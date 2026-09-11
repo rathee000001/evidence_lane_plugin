@@ -1,0 +1,8 @@
+{
+  "schema": "evidence-lane.flash-authority.v4",
+  "authority_id": "uop",
+  "database": "uop/uop_sqlite.sqlite",
+  "runtime_access": "verified_exact_bytes_read_only",
+  "policy_source": "uop/codex-operation-policy.v4.json",
+  "project_payloads_packaged": false
+}

@@ -1,28 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Docs builder binding request",
-  "type": "object",
-  "required": [
-    "lane_id",
-    "source_paths",
-    "bundle_arguments"
-  ],
+  "additionalProperties": false,
   "properties": {
-    "lane_id": {
-      "const": "docs"
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Task Id",
+      "type": "string"
     },
-    "source_paths": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+    "plan_revision": {
+      "minimum": 1,
+      "title": "Plan Revision",
+      "type": "integer"
     },
-    "bundle_arguments": {
-      "type": "object"
+    "contract_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Contract Digest",
+      "type": "string"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "9BCC90599D6DE452AA67C7533CB75DC8C1640D6099F32C5754A0888A5CA7D2CE"
+  "required": [
+    "task_id",
+    "plan_revision",
+    "contract_digest"
+  ],
+  "title": "Docs planned builder arguments",
+  "type": "object",
+  "x-public-action": "delta_enter_planned",
+  "x-sector-lane": "docs",
+  "x-operation-actions": [
+    "document_convert",
+    "document_edit",
+    "document_enrich",
+    "document_export",
+    "document_generate",
+    "document_index",
+    "document_refresh",
+    "document_render",
+    "source_snapshot_retire"
+  ],
+  "x-project-id-required": true
 }

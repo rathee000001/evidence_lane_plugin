@@ -1,0 +1,45 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "install",
+  "members": [
+    {
+      "path": "schemas/install/explicit-license-grant.v4.schema.json",
+      "sha256": "afcbdfe40fe5017f8881ec12d095cb3a9793f9682ed1dab7d465dccd7abf2887"
+    },
+    {
+      "path": "schemas/install/first-detection-bundle-plan.v4.schema.json",
+      "sha256": "61d1218c759e6d0bf29a578c170a0dac97d9d3f86f214daa1aeff5c3d1e09218"
+    },
+    {
+      "path": "schemas/install/first-detection-component.v4.schema.json",
+      "sha256": "004035a6e0dbc738e88f3a6559cf01355b4c51ae4bd7b398e56d1f8be743061b"
+    },
+    {
+      "path": "schemas/install/first-detection-installation.v4.schema.json",
+      "sha256": "3cacdb023c5037e119b69133d83e85bee7d1204ba86f7b8744e2d85ca2dfc9d2"
+    },
+    {
+      "path": "schemas/install/first-detection-release-binding.v4.schema.json",
+      "sha256": "a7287ae130d6b6c886d4ca70e69c73456c6fecde1a0439eff467e53903f14db5"
+    },
+    {
+      "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
+      "sha256": "1d4aeff3fac2ddd48f5dba149cdc5752f81718d3dd010ef591a924ab214164e0"
+    },
+    {
+      "path": "schemas/install/first-detection-status.v4.schema.json",
+      "sha256": "6d9d19c573531b61de967cbc5899b334a480d3cf14ee4c7397afbe3fc2a44a64"
+    },
+    {
+      "path": "schemas/install/installed-file-manifest.v4.schema.json",
+      "sha256": "0e6a217a53f71947dabb58a94f42db0d8748aa3e847fc151f2d608e384f80e39"
+    },
+    {
+      "path": "schemas/install/runtime-wheel-license-index.v4.schema.json",
+      "sha256": "1f3708069593c5524f9a58d9e0294f17d8edca2c492d89782cfb8225eacb1e6b"
+    }
+  ],
+  "purpose": "Complete install schema family",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

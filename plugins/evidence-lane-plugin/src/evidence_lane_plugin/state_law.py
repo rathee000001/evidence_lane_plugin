@@ -1,166 +1,115 @@
-"""Single executable transition law for every governed session state change."""
+"""Executable Plan-task and project-session transition law in the original owner.
 
+Plan, session, job and Canon state remain separate. The table below governs
+only its named Plan/session consumers; it does not confer execution authority.
+"""
 from __future__ import annotations
 
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Any
+from typing import Literal
 
-from .errors import require
-from .models import SessionState
+from pydantic import Field, JsonValue
+
+from .errors import LaneError
+from .registry import ActionSpec, Contract
 
 
 class LifecycleEvent(StrEnum):
-    FLASH_VERIFIED = "FLASH_VERIFIED"
-    BOOTSTRAP_PV0 = "BOOTSTRAP_PV0"
-    BUILD_INITIAL = "BUILD_INITIAL"
-    CLASSIFY_TASK = "CLASSIFY_TASK"
-    ADVANCE_VERIFIED_STATE_TRAVEL_TASK = "ADVANCE_VERIFIED_STATE_TRAVEL_TASK"
-    ADVANCE_VERIFIED_FALLBACK_PREWARM_TASK = (
-        "ADVANCE_VERIFIED_FALLBACK_PREWARM_TASK"
-    )
-    ADVANCE_VERIFIED_TASK_CHECKPOINT = "ADVANCE_VERIFIED_TASK_CHECKPOINT"
-    RECONCILE_COMPLETED_TASK = "RECONCILE_COMPLETED_TASK"
-    BEGIN_EXIT = "BEGIN_EXIT"
-    RECOVER_INTERRUPTED_EXIT = "RECOVER_INTERRUPTED_EXIT"
-    SEAL_EXIT = "SEAL_EXIT"
-    SEAL_INITIAL_RETRY = "SEAL_INITIAL_RETRY"
-    REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT = (
-        "REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT"
-    )
-    HIL_APPROVE = "HIL_APPROVE"
-    HIL_APPROVE_WITH_DELTA = "HIL_APPROVE_WITH_DELTA"
-    HIL_MORE_RESEARCH = "HIL_MORE_RESEARCH"
-    HIL_ROLLBACK = "HIL_ROLLBACK"
-    HIL_REJECT = "HIL_REJECT"
-    HIL_FAIL = "HIL_FAIL"
-    RETURN_TO_ACCEPTED = "RETURN_TO_ACCEPTED"
-    BEGIN_NEXT_TURN = "BEGIN_NEXT_TURN"
+    TASK_TRANSITION = 'task_transition'
+    SESSION_BOOT = 'session_boot'
+    SESSION_RESUME = 'session_resume'
+    SESSION_EXIT = 'session_exit'
+    SESSION_RECOVERY_CLOSED = 'session_recovery_closed'
 
 
-def _pairs(
-    sources: set[SessionState],
-    targets: set[SessionState],
-) -> frozenset[tuple[SessionState, SessionState]]:
+def _pairs(sources, targets):
     return frozenset((source, target) for source in sources for target in targets)
 
 
-_CANDIDATE = {SessionState.PV1_CANDIDATE, SessionState.PVN1_CANDIDATE}
-_ACCEPTED = {SessionState.PVN_ACCEPTED, SessionState.PVN1_ACCEPTED}
-_IDLE_ENTRY = {
-    SessionState.BOOTED,
-    SessionState.PVN_ACCEPTED,
-    SessionState.PVN1_ACCEPTED,
-    SessionState.PVN1_ENTRY,
-}
-_CLASSIFIABLE = _IDLE_ENTRY | {
-    SessionState.CORRECTION_TASK_PENDING,
-    SessionState.RESEARCH_TASK_PENDING,
-}
+TRANSITION_LAW = MappingProxyType({
+    ('plan_task', LifecycleEvent.TASK_TRANSITION): (
+        _pairs({'queued'}, {'active', 'cancelled'})
+        | _pairs({'active'}, {'completed', 'blocked', 'failed', 'cancelled'})
+        | _pairs({'blocked'}, {'queued', 'cancelled'})),
+    ('project_session', LifecycleEvent.SESSION_BOOT): _pairs({None, 'closed'}, {'active'}),
+    ('project_session', LifecycleEvent.SESSION_RESUME): _pairs({'active'}, {'active'}),
+    ('project_session', LifecycleEvent.SESSION_EXIT): _pairs({'active'}, {'closed'}),
+    # Existing offline restore and source-binding recovery close the saved
+    # session after their own writer/backup checks. This is an internal event,
+    # not a public bypass of authenticated session entry or exit.
+    ('project_session', LifecycleEvent.SESSION_RECOVERY_CLOSED): _pairs({'active'}, {'closed'}),
+})
 
-TRANSITION_LAW = MappingProxyType(
-    {
-        LifecycleEvent.FLASH_VERIFIED: frozenset(
-            {(SessionState.SESSION_BOOT_FLASH, SessionState.BOOTED)}
-        ),
-        LifecycleEvent.BOOTSTRAP_PV0: frozenset(
-            {(SessionState.BOOTED, SessionState.PVN_ACCEPTED)}
-        ),
-        LifecycleEvent.BUILD_INITIAL: frozenset(
-            {(SessionState.BOOTED, SessionState.PV1_CANDIDATE)}
-        ),
-        LifecycleEvent.CLASSIFY_TASK: _pairs(
-            _CLASSIFIABLE,
-            {
-                SessionState.TASK_CLASSIFIED,
-                SessionState.AWAITING_USER_APPLY_COMMIT,
-            },
-        ),
-        LifecycleEvent.ADVANCE_VERIFIED_STATE_TRAVEL_TASK: frozenset(
-            {(SessionState.TASK_CLASSIFIED, SessionState.TASK_CLASSIFIED)}
-        ),
-        LifecycleEvent.ADVANCE_VERIFIED_FALLBACK_PREWARM_TASK: frozenset(
-            {(SessionState.TASK_CLASSIFIED, SessionState.TASK_CLASSIFIED)}
-        ),
-        LifecycleEvent.ADVANCE_VERIFIED_TASK_CHECKPOINT: frozenset(
-            {(SessionState.TASK_CLASSIFIED, SessionState.TASK_CLASSIFIED)}
-        ),
-        LifecycleEvent.RECONCILE_COMPLETED_TASK: _pairs(
-            {SessionState.TASK_CLASSIFIED},
-            _ACCEPTED,
-        ),
-        LifecycleEvent.BEGIN_EXIT: _pairs(
-            {
-                SessionState.TASK_CLASSIFIED,
-                SessionState.AWAITING_USER_APPLY_COMMIT,
-            },
-            {SessionState.EXIT_BUILDING},
-        ),
-        LifecycleEvent.RECOVER_INTERRUPTED_EXIT: frozenset(
-            {(SessionState.EXIT_BUILDING, SessionState.EXIT_BUILDING)}
-        ),
-        LifecycleEvent.SEAL_EXIT: frozenset(
-            {(SessionState.EXIT_BUILDING, SessionState.PVN1_CANDIDATE)}
-        ),
-        LifecycleEvent.SEAL_INITIAL_RETRY: frozenset(
-            {(SessionState.EXIT_BUILDING, SessionState.PV1_CANDIDATE)}
-        ),
-        LifecycleEvent.REOPEN_UNPRESENTED_CANDIDATE_FOR_DELTA_EXIT: _pairs(
-            _CANDIDATE, {SessionState.TASK_CLASSIFIED}
-        ),
-        LifecycleEvent.HIL_APPROVE: _pairs(_CANDIDATE, _ACCEPTED),
-        LifecycleEvent.HIL_APPROVE_WITH_DELTA: _pairs(
-            _CANDIDATE, {SessionState.CORRECTION_TASK_PENDING}
-        ),
-        LifecycleEvent.HIL_MORE_RESEARCH: _pairs(
-            _CANDIDATE, {SessionState.RESEARCH_TASK_PENDING}
-        ),
-        LifecycleEvent.HIL_ROLLBACK: _pairs(_CANDIDATE | _IDLE_ENTRY, _ACCEPTED),
-        LifecycleEvent.HIL_REJECT: _pairs(_CANDIDATE, {SessionState.REJECTED_RUN}),
-        LifecycleEvent.HIL_FAIL: _pairs(_CANDIDATE, {SessionState.FAILED_RUN}),
-        LifecycleEvent.RETURN_TO_ACCEPTED: _pairs(
-            {SessionState.REJECTED_RUN, SessionState.FAILED_RUN}, _ACCEPTED
-        ),
-        LifecycleEvent.BEGIN_NEXT_TURN: _pairs(_ACCEPTED, {SessionState.PVN1_ENTRY}),
-    }
-)
+DOMAIN_CONSUMERS = MappingProxyType({
+    'plan_task': {
+        'owner': 'plan_runtime.PlanStore.transition',
+        'storage_owner': 'plan',
+        'additional_checks': ('current_plan_revision', 'exact_task_contract', 'one_active_task',
+                              'completed_dependencies', 'restoration_and_recovery_ready',
+                              'verified_delta_receipt_before_completion'),
+    },
+    'project_session': {
+        'owner': 'session_authority.SessionAuthority.append',
+        'storage_owner': 'receipts',
+        'additional_checks': ('locked_flash', 'current_session_head_and_generation',
+                              'authenticated_client_ownership', 'safe_work_boundary',
+                              'exact_root_pv_on_entry', 'current_runtime_package'),
+    },
+})
 
 
-def transition(
-    current: SessionState,
-    event: LifecycleEvent,
-    target: SessionState,
-) -> SessionState:
-    allowed = TRANSITION_LAW[event]
-    require(
-        (current, target) in allowed,
-        "SESSION_TRANSITION_NOT_ALLOWED",
-        "The requested lifecycle transition is not present in the canonical law.",
-        status="BLOCKED",
-        current=current.value,
-        event=event.value,
-        target=target.value,
-        allowed=[
-            {"from": source.value, "to": destination.value}
-            for source, destination in sorted(
-                allowed, key=lambda pair: (pair[0].value, pair[1].value)
-            )
-        ],
-    )
+def transition(current, event, target, *, domain):
+    """Reject undeclared changes before the owning authority writes an event."""
+    allowed = TRANSITION_LAW.get((domain, event))
+    if allowed is None or (current, target) not in allowed:
+        code = 'INVALID_TASK_TRANSITION' if domain == 'plan_task' else 'SESSION_TRANSITION_NOT_ALLOWED'
+        raise LaneError(code, 'The requested state change is not present in its owning transition law.',
+            details={'domain': domain, 'event': str(event), 'current': current, 'target': target})
     return target
 
 
-def transition_catalog() -> dict[str, Any]:
-    return {
-        "schema": "evidence-lane.session-transition-law.v1",
-        "single_authority": True,
-        "events": {
-            event.value: [
-                {"from": source.value, "to": target.value}
-                for source, target in sorted(
-                    pairs, key=lambda pair: (pair[0].value, pair[1].value)
-                )
-            ]
-            for event, pairs in TRANSITION_LAW.items()
-        },
-    }
+def transition_catalog(domain=None):
+    """Read the same immutable table that Plan and session writes execute."""
+    if domain is not None and domain not in DOMAIN_CONSUMERS:
+        raise LaneError('TRANSITION_DOMAIN_UNKNOWN', 'Select the Plan-task or project-session domain.')
+    selected = [domain] if domain else list(DOMAIN_CONSUMERS)
+    return {name: {
+        **DOMAIN_CONSUMERS[name],
+        'additional_checks': list(DOMAIN_CONSUMERS[name]['additional_checks']),
+        'events': {str(event): [{'from': source, 'to': target}
+            for source, target in sorted(pairs, key=lambda pair: (pair[0] or '', pair[1]))]
+            for (owner, event), pairs in TRANSITION_LAW.items() if owner == name},
+    } for name in selected}
+
+
+class TransitionLawQuery(Contract):
+    domain: Literal['plan_task', 'project_session'] | None = None
+
+
+class TransitionLawResult(Contract):
+    contract: Literal['evidence-lane.lifecycle-transition-law.v4'] = 'evidence-lane.lifecycle-transition-law.v4'
+    domains: dict[str, JsonValue]
+    flash_digest: str = Field(pattern=r'^[0-9a-f]{64}$')
+    workflow_gates: list[dict[str, JsonValue]]
+    law_digest: str = Field(pattern=r'^[0-9a-f]{64}$')
+    coverage: Literal['plan_task_transitions_and_project_session_events'] = 'plan_task_transitions_and_project_session_events'
+    independent_state_owners: list[str]
+    project_mutated: Literal[False] = False
+    execution_authorized: Literal[False] = False
+    native_goal_or_task_attested: Literal[False] = False
+
+
+def register_transition_law(engine):
+    def read(context, request):
+        from .flash_authority import SessionFlashAuthority
+        from .plan_runtime import content_digest
+        policy = SessionFlashAuthority().policy_rows('uop', ('uop_workflow_gate_v4',), registry=engine.registry)
+        domains = transition_catalog(request.domain)
+        gates = policy['tables']['uop_workflow_gate_v4']
+        return TransitionLawResult(domains=domains, flash_digest=policy['manifest_digest'], workflow_gates=gates,
+            law_digest=content_digest({'domains': domains, 'workflow_gates': gates, 'flash_digest': policy['manifest_digest']}),
+            independent_state_owners=['plan_revision_replacement', 'delta_runs', 'jobs', 'canon', 'continuation'])
+    engine.registry.register(ActionSpec('lifecycle_transition_law',
+        'Inspect executable Plan/session transitions and current UOP workflow gates without changing state.',
+        TransitionLawQuery, TransitionLawResult, read, project_required=False, workflow='evi'))

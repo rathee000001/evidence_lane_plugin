@@ -1,0 +1,185 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Select one registered project and its explicit permissions on this owner-authorized client.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "permissions": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 7,
+        "minItems": 1,
+        "title": "Permissions",
+        "type": "array"
+      },
+      "project_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id"
+    ],
+    "title": "ProjectSelection",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "project_select",
+  "outputSchema": {
+    "$defs": {
+      "ProjectRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_route": {
+            "title": "Capture Route",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "read_only": {
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "registration_bound": {
+            "title": "Registration Bound",
+            "type": "boolean"
+          },
+          "registration_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Digest"
+          },
+          "sensitivity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sensitivity"
+          },
+          "sensitivity_enforcement": {
+            "title": "Sensitivity Enforcement",
+            "type": "string"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "state_root": {
+            "title": "State Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "state_root",
+          "source_root",
+          "read_only",
+          "display_name",
+          "sensitivity",
+          "capture_route",
+          "registration_digest",
+          "registration_bound",
+          "sensitivity_enforcement"
+        ],
+        "title": "ProjectRecord",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "client_id": {
+        "title": "Client Id",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "permissions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Permissions",
+        "type": "array"
+      },
+      "project": {
+        "$ref": "#/$defs/ProjectRecord"
+      }
+    },
+    "required": [
+      "client_id",
+      "project",
+      "permissions"
+    ],
+    "title": "ProjectSelected",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "project_admin",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "b7f90e71e4d9ecc09ff79b00d1632097bb150af7848ab1486c0f26f563171725",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_select",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_actions:register_project_actions.<locals>.select",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_select.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

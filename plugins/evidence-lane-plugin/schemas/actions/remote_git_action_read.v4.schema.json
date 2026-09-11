@@ -1,0 +1,108 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read one recorded push state and integrity without contacting the remote.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "action_id": {
+        "pattern": "^[0-9a-f-]{36}$",
+        "title": "Action Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "action_id"
+    ],
+    "title": "PushRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "remote_git_action_read",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "live_remote_observed": {
+        "default": false,
+        "title": "Live Remote Observed",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "record": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Record"
+      }
+    },
+    "required": [
+      "project_id",
+      "record"
+    ],
+    "title": "PushState",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "64c9cf8ea51ac372041060d68f94f0745d06c76ca1bd14eeef873eac24554705",
+      "owner": "gitpush",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "1f7a3e8a6b6839f3afa299d2bad767510cc4a14ff9eb99c4aad3fd9ed1db9616",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "remote_git_action_read",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.remote_git:register_remote_git_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "remote_git_action_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

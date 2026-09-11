@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "Power BI selected DOT publication",
+  "type": "object",
+  "x-format": "dot",
+  "x-lane-id": "power_bi",
+  "x-selection-policy": "Only explicitly selected lane formats; natural artifacts remain separate."
+}

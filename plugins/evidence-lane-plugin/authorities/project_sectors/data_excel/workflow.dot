@@ -1,85 +1,82 @@
-digraph surface_project_sector_data_excel {
+digraph workflow_data_excel {
   // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
   // PYTHON_GRAPHVIZ_VERSION=0.21
   bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
   node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
   edge [color="#667085" fontname=Arial]
-  ENTRY [label="PROJECT_SECTOR data_excel exact identity" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
-  EXIT [label="Result / explicit stop / next refresh" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  subgraph cluster_flow {
-    label="Current surface execution flow" rankdir=TB
-    SCHEMA [label="Resolve current surface + action schemas" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SKILLS [label="Resolve 36 current skill workflows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ACTIONS [label="Resolve 41 current typed actions" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    OUTER [label="Outer SDK / FastMCP / native MCP / local route" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    VALIDATE [label="Validate result, authority and HIL effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    RECEIPT [label="Exact refresh and provenance receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_project_pv_baseline {
-    label="Project/PV baseline connection (identity only)" rankdir=TB
-    BASELINE_01 [label=PROJECT_PV_ROOT color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    BASELINE_02 [label=AUTHORITY_REGISTRY color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    BASELINE_03 [label="PROJECT_SECTOR:data_excel" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_surface_phases {
-    label="data_excel lane specific execution" rankdir=TB
-    PHASE_SOURCE_CLASSIFY [label="Classify prompt/content/override into this lane" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_EXACT_SOURCE_CAS [label="Hash and store exact source bytes once" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_LANE_PARSE [label="Parse with office_data_structural_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_LANE_CHUNK [label="Chunk once with table_structure_v1" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_STRUCTURED_FACTS [label="Project lane facts into 23 lane tables" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_SQLITE_COMMIT [label="Write owning SQLite generation atomically" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_RETRIEVAL_INDEX [label="Refresh data_fts and reusable indexes" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_TOPOLOGY_GRAPH [label="Derive lane-specific MMD and DOT topology" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_RESULT_VALIDATE [label="Validate schema, tools, hashes and authority effects" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_ATOMIC_REFRESH [label="Swap changed generation; reuse unchanged atoms" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_tool_roles {
-    label="Mutually exclusive tool roles" rankdir=TB
-    ROLE_TASK_EXECUTION [label="task execution: 24 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_TRANSPORT_ORCHESTRATION [label="transport orchestration: 0 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_EXTERNAL_SERVICES_OR_STORES [label="external services or stores: 5 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS [label="observability evaluation attachments: 2 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  ENTRY -> SCHEMA
-  SCHEMA -> SKILLS
-  SKILLS -> ACTIONS
-  ACTIONS -> INTERNAL_SDK
-  INTERNAL_SDK -> ENV
-  ENV -> UOP
-  UOP -> TOOLS
-  TOOLS -> OUTER
-  BASELINE_01 -> BASELINE_02
-  BASELINE_02 -> BASELINE_03
-  BASELINE_03 -> ENTRY [label="bind current surface identity"]
-  OUTER -> PHASE_SOURCE_CLASSIFY [label="surface-local route"]
-  PHASE_SOURCE_CLASSIFY -> PHASE_EXACT_SOURCE_CAS
-  PHASE_EXACT_SOURCE_CAS -> PHASE_LANE_PARSE
-  PHASE_LANE_PARSE -> PHASE_LANE_CHUNK
-  PHASE_LANE_CHUNK -> PHASE_STRUCTURED_FACTS
-  PHASE_STRUCTURED_FACTS -> PHASE_SQLITE_COMMIT
-  PHASE_SQLITE_COMMIT -> PHASE_RETRIEVAL_INDEX
-  PHASE_SQLITE_COMMIT -> PHASE_TOPOLOGY_GRAPH
-  PHASE_RETRIEVAL_INDEX -> PHASE_RESULT_VALIDATE
-  PHASE_TOPOLOGY_GRAPH -> PHASE_RESULT_VALIDATE
-  PHASE_RESULT_VALIDATE -> PHASE_ATOMIC_REFRESH [label="when applicable" style=dashed]
-  PHASE_RESULT_VALIDATE -> HOOKS [label="read/no-change result" style=dashed]
-  PHASE_ATOMIC_REFRESH -> HOOKS [label="changed generation"]
-  HOOKS -> VALIDATE
-  VALIDATE -> RECEIPT
-  RECEIPT -> EXIT
-  RECEIPT -> ENTRY [label="next conditional refresh" style=dashed]
-  TOOLS -> ROLE_TASK_EXECUTION
-  ROLE_TASK_EXECUTION -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_TRANSPORT_ORCHESTRATION
-  ROLE_TRANSPORT_ORCHESTRATION -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_EXTERNAL_SERVICES_OR_STORES
-  ROLE_EXTERNAL_SERVICES_OR_STORES -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS
-  ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS -> OUTER [label="selected when condition true" style=dashed]
+  lane [label="data_excel owning database and immutable files" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  delta [label="Exact current Plan and normal Delta admission" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  verify [label="Owning acceptance checks and verified Delta exit" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  read [label="Scoped authenticated SDK read" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_source_snapshot_retire [label=source_snapshot_retire color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_source_snapshot_state [label=source_snapshot_state color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_current [label=spreadsheet_current color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_edit [label=spreadsheet_edit color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_export [label=spreadsheet_export color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_generate [label=spreadsheet_generate color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_index [label=spreadsheet_index color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_index_values [label=spreadsheet_index_values color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_inspect_openpyxl [label=spreadsheet_inspect_openpyxl color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_inspect_pandas [label=spreadsheet_inspect_pandas color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_inspection_read [label=spreadsheet_inspection_read color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_query [label=spreadsheet_query color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_read [label=spreadsheet_read color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_recalculate [label=spreadsheet_recalculate color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_refresh [label=spreadsheet_refresh color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_refresh_values [label=spreadsheet_refresh_values color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_render [label=spreadsheet_render color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_spreadsheet_render_read [label=spreadsheet_render_read color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  delta -> action_source_snapshot_retire [label=sources]
+  action_source_snapshot_retire -> lane [label="owned publication"]
+  action_source_snapshot_retire -> verify [label=source_selector_retirement_verified]
+  read -> action_source_snapshot_state [label=read]
+  lane -> action_source_snapshot_state [label="bounded recorded evidence"]
+  read -> action_spreadsheet_current [label=read]
+  lane -> action_spreadsheet_current [label="bounded recorded evidence"]
+  delta -> action_spreadsheet_edit [label=spreadsheet]
+  action_spreadsheet_edit -> lane [label="owned publication"]
+  action_spreadsheet_edit -> verify [label=tabular_snapshot_integrity]
+  delta -> action_spreadsheet_export [label=spreadsheet]
+  action_spreadsheet_export -> lane [label="owned publication"]
+  action_spreadsheet_export -> verify [label=tabular_export_hash_verified]
+  delta -> action_spreadsheet_generate [label=spreadsheet]
+  action_spreadsheet_generate -> lane [label="owned publication"]
+  action_spreadsheet_generate -> verify [label=tabular_snapshot_integrity]
+  delta -> action_spreadsheet_index [label=spreadsheet]
+  action_spreadsheet_index -> lane [label="owned publication"]
+  action_spreadsheet_index -> verify [label="tabular_snapshot_integrity, tabular_source_hash_unchanged"]
+  delta -> action_spreadsheet_index_values [label=spreadsheet]
+  action_spreadsheet_index_values -> lane [label="owned publication"]
+  action_spreadsheet_index_values -> verify [label="tabular_snapshot_integrity, tabular_source_hash_unchanged"]
+  delta -> action_spreadsheet_inspect_openpyxl [label=spreadsheet]
+  action_spreadsheet_inspect_openpyxl -> lane [label="owned publication"]
+  action_spreadsheet_inspect_openpyxl -> verify [label=tabular_inspection_reconciled]
+  delta -> action_spreadsheet_inspect_pandas [label=spreadsheet]
+  action_spreadsheet_inspect_pandas -> lane [label="owned publication"]
+  action_spreadsheet_inspect_pandas -> verify [label=tabular_inspection_reconciled]
+  read -> action_spreadsheet_inspection_read [label=read]
+  lane -> action_spreadsheet_inspection_read [label="bounded recorded evidence"]
+  read -> action_spreadsheet_query [label=read]
+  lane -> action_spreadsheet_query [label="bounded recorded evidence"]
+  read -> action_spreadsheet_read [label=read]
+  lane -> action_spreadsheet_read [label="bounded recorded evidence"]
+  delta -> action_spreadsheet_recalculate [label=spreadsheet]
+  action_spreadsheet_recalculate -> lane [label="owned publication"]
+  action_spreadsheet_recalculate -> verify [label=tabular_snapshot_integrity]
+  delta -> action_spreadsheet_refresh [label=spreadsheet]
+  action_spreadsheet_refresh -> lane [label="owned publication"]
+  action_spreadsheet_refresh -> verify [label="tabular_snapshot_integrity, tabular_source_hash_unchanged"]
+  delta -> action_spreadsheet_refresh_values [label=spreadsheet]
+  action_spreadsheet_refresh_values -> lane [label="owned publication"]
+  action_spreadsheet_refresh_values -> verify [label="tabular_snapshot_integrity, tabular_source_hash_unchanged"]
+  delta -> action_spreadsheet_render [label=spreadsheet]
+  action_spreadsheet_render -> lane [label="owned publication"]
+  action_spreadsheet_render -> verify [label=spreadsheet_render_bytes_verified]
+  read -> action_spreadsheet_render_read [label=read]
+  lane -> action_spreadsheet_render_read [label="bounded recorded evidence"]
+  action_source_snapshot_retire -> action_spreadsheet_edit [constraint=true style=invis weight=100]
+  action_spreadsheet_index -> action_spreadsheet_index_values [constraint=true style=invis weight=100]
+  action_spreadsheet_recalculate -> action_spreadsheet_refresh [constraint=true style=invis weight=100]
+  action_source_snapshot_state -> action_spreadsheet_current [constraint=true style=invis weight=100]
+  action_spreadsheet_read -> action_spreadsheet_render_read [constraint=true style=invis weight=100]
 }

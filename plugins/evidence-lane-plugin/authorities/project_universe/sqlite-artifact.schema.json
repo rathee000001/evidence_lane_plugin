@@ -1,45 +1,35 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_universe SQLITE_AUTHORITY artifact receipt",
   "type": "object",
   "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
+    "schema",
+    "lane_id",
+    "database_role",
+    "business_rows",
+    "project_identity_rows",
+    "sqlite_version",
+    "sqlite_sha256",
+    "tables",
+    "relations",
+    "runtime_initialization_performed"
   ],
   "properties": {
-    "authority_id": {
-      "const": "project_universe"
+    "lane_id": {
+      "const": "universe"
     },
-    "artifact_path": {
-      "const": "project_universe.sqlite"
+    "database_role": {
+      "const": "unbound_schema_template"
     },
-    "artifact_role": {
-      "const": "SQLITE_AUTHORITY"
+    "business_rows": {
+      "const": 0
     },
-    "syntax": {
-      "const": "SQLITE3_FTS5"
+    "project_identity_rows": {
+      "const": 0
     },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
+    "sqlite_sha256": {
       "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "authority_support._schema_snapshot"
-    },
-    "status": {
-      "const": "PASS"
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "1B951EFBB66F854D8282D2B8595E70A18A58CD2B53FD4CD5F069104A3699E5E0"
+  "title": "universe empty unbound schema template"
 }

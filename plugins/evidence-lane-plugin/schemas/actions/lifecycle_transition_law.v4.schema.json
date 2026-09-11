@@ -1,0 +1,159 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect executable Plan/session transitions and current UOP workflow gates without changing state.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "domain": {
+        "anyOf": [
+          {
+            "enum": [
+              "plan_task",
+              "project_session"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Domain"
+      }
+    },
+    "title": "TransitionLawQuery",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "lifecycle_transition_law",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "contract": {
+        "const": "evidence-lane.lifecycle-transition-law.v4",
+        "default": "evidence-lane.lifecycle-transition-law.v4",
+        "title": "Contract",
+        "type": "string"
+      },
+      "coverage": {
+        "const": "plan_task_transitions_and_project_session_events",
+        "default": "plan_task_transitions_and_project_session_events",
+        "title": "Coverage",
+        "type": "string"
+      },
+      "domains": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Domains",
+        "type": "object"
+      },
+      "execution_authorized": {
+        "const": false,
+        "default": false,
+        "title": "Execution Authorized",
+        "type": "boolean"
+      },
+      "flash_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Flash Digest",
+        "type": "string"
+      },
+      "independent_state_owners": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Independent State Owners",
+        "type": "array"
+      },
+      "law_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Law Digest",
+        "type": "string"
+      },
+      "native_goal_or_task_attested": {
+        "const": false,
+        "default": false,
+        "title": "Native Goal Or Task Attested",
+        "type": "boolean"
+      },
+      "project_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "workflow_gates": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Workflow Gates",
+        "type": "array"
+      }
+    },
+    "required": [
+      "domains",
+      "flash_digest",
+      "workflow_gates",
+      "law_digest",
+      "independent_state_owners"
+    ],
+    "title": "TransitionLawResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "71a5a8f605303acd06fbd41bbfacf0479e96d7035845849e259c142d0c4d9715",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lifecycle_transition_law",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.state_law:register_transition_law.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lifecycle_transition_law.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

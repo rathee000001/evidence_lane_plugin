@@ -1,10 +1,11 @@
-"""Bounded validation/traversal binding for this separate authority."""
+"""sources: authenticated public SDK read binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import validate_authority_support
+OWNER_ID = 'sources'
+ACTIONS = {'custom_lanes_read': True, 'fetch': True, 'git_branch_authority': True, 'source_classify': True, 'source_materialization_read': True, 'source_preparation_read': True, 'source_read': True, 'source_routes_read': True, 'source_snapshot_state': True, 'source_verify': True}
 
-AUTHORITY_ID = "source_authority"
 
-def validate(project_root):
-    return validate_authority_support(project_root, AUTHORITY_ID)
+def read_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "validate"]
+__all__ = ["OWNER_ID", "read_authority"]

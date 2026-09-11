@@ -1,23 +1,92 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning pointer-contract.v1.json",
-  "type": "object",
-  "required": [
-    "schema",
-    "status",
-    "authority_id"
-  ],
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
   "properties": {
-    "schema": {
-      "const": "evidence-lane.installed-authority-pointer-contract.v1"
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
     },
-    "status": {
-      "const": "PASS"
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
     },
-    "authority_id": {
-      "const": "agent_learning"
+    "state": {
+      "enum": [
+        "not_materialized",
+        "fresh",
+        "stale",
+        "historical",
+        "contract_changed"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "checked_at": {
+      "title": "Checked At",
+      "type": "string"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Digest"
+    },
+    "manifest": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manifest"
+    },
+    "contents": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contents"
+    },
+    "refresh_performed": {
+      "const": false,
+      "default": false,
+      "title": "Refresh Performed",
+      "type": "boolean"
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "85CBF583270553BC02D969D1801AD0100EC6E23AEEF946DE165022DFC3B26661"
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation"
+  ],
+  "title": "learning selected pointer readback",
+  "type": "object"
 }

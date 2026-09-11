@@ -1,13 +1,10 @@
-"""Lane-specific binding to live pointer/MMD/DOT/SQLite traversal."""
+"""github_code: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import read_sector_source
 
-from evidence_lane_plugin.lane_reader import LaneReader
+LANE_ID = 'github_code'
+ACTION_LANES = {'code_current': 'local_code', 'code_impact': 'local_code', 'code_query': 'local_code', 'code_read': 'local_code', 'code_semantic_query': 'local_code', 'code_semantic_query_faiss': 'local_code', 'code_semantic_query_vec': 'local_code', 'fetch': 'local_code', 'pv_summary': 'local_code', 'source_snapshot_state': 'github_code'}
 
-LANE_ID = "github_code"
+def read_lane_source(client, **arguments):
+    return read_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
-def lane_status(reader: LaneReader, project_id: str):
-    return reader.lane_status(project_id, LANE_ID)
-
-def search(reader: LaneReader, project_id: str, query: str, **kwargs):
-    return reader.search(project_id, LANE_ID, query, **kwargs)
-
-__all__ = ["LANE_ID", "lane_status", "search"]
+__all__ = ["LANE_ID", "read_lane_source"]

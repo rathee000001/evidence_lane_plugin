@@ -1,0 +1,73 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "custom",
+  "source_package_folder": "authorities/project_sectors/custom",
+  "project_state_folder": "sectors/custom",
+  "database": "sectors/custom/custom_sector_v001.sqlite",
+  "files": "sectors/custom/files",
+  "schema_history": "sectors/custom/schema-history",
+  "migrations": [
+    {
+      "owner": "custom",
+      "version": 1,
+      "digest": "9c0a24403f1a5a2ab9ce6e6accbf30ca181fb8be89a8b234754d1f0fa959d4c1"
+    },
+    {
+      "owner": "customselector",
+      "version": 1,
+      "digest": "4bb68fa5309664c31a6759c775eb34f497d0b74aaa9d042b058c1381dc494f38"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "custom",
+    "folder": "sectors/custom",
+    "files_root": "sectors/custom/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "custom_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        "*declared_by_adapter"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "adapter_declared_schema_and_source_lineage"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "custom.mmd",
+      "dot": "custom.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "F600829AC08FCDE33E83C382D4B5F31E592419AE687BBB5078711B3E11351BFA"
+  },
+  "actions": [
+    "custom_current",
+    "custom_index",
+    "custom_index_media",
+    "custom_query",
+    "custom_read",
+    "custom_refresh",
+    "custom_refresh_media",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

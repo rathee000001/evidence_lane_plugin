@@ -1,0 +1,24 @@
+{
+  "action_set_digest": "aeb1ffdf7361b5a9a791205e1e592761ceb84afbbb4743bd0ecf3316a12b1681",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Revoke the exact reviewed project extension version while preserving its history.",
+      "input_schema_digest": "23e344113292ef514ee20f43dec293a42717e29167c5178e408fad40b2cf8d41",
+      "mutates": true,
+      "name": "connector_revoke",
+      "output_schema_digest": "8dbb420106d742b2ca6316047c5d20210cacbe469e4b0980c4ab73a605c1d5c5",
+      "permission": "admin",
+      "profile": "extensions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "drop-additional-plugin"
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "evidence-lane.installation-layout.v4",
+  "plugin_source": "plugins/evidence-lane-plugin",
+  "plugin_installation": "Codex-managed installed plugin location; discovered from the loaded package",
+  "studio_source": "apps/evidence-lane-studio",
+  "studio_platform": "Windows PC",
+  "studio_installation_default": "C:/Apps/EvidenceLaneStudio",
+  "studio_root_override": "EVIDENCE_LANE_STUDIO_ROOT",
+  "shared_once_across_projects": true,
+  "active_release_layout": "releases/v<plugin-version>-<release-asset-digest-prefix>",
+  "active_release_pointer": "installation.json",
+  "active_release_update": "atomic sealed pointer after materialization, self-test and Windows registration",
+  "prior_release_policy": "retain; never overwrite or infer ownership from PID",
+  "folders": {
+    "app": "releases/<active>/app",
+    "immutable_plugin_copy": "releases/<active>/app/plugin",
+    "persistent_engine": "releases/<active>/runtime/engine",
+    "python_environments": "releases/<active>/toolchains/python/<dependency-identity>/venv",
+    "native_binaries": "releases/<active>/toolchains/bin",
+    "node_packages": "releases/<active>/toolchains/node",
+    "required_model_assets": "releases/<active>/toolchains/models",
+    "release_asset_cache": "cache/release-assets",
+    "failed_staging_evidence": "failed"
+  },
+  "toolchain_scope": "Every retained locally installable tool and transitive dependency in the complete registry, including required model assets and compatible provider environments",
+  "external_services": "Install clients/adapters; keep remote service configuration and credentials explicit",
+  "release_input_policy": "Exact sparse-root bytes from the installed Git ref plus SHA-256-bound component assets from the same repository release only; no third-party acquisition during first detection or operations",
+  "release_asset_partitioning": "Deterministic regular-file parts with at most 1750000000 payload bytes each; every logical component requires one complete ordered part sequence",
+  "license_policy": "Copy complete retained license/source evidence; Ghostscript remains explicit-license-gated",
+  "removed_office_dependencies": [
+    "OpenJDK",
+    "Jackcess",
+    "OneNote_Parser"
+  ],
+  "prewarming": "One bounded shared worker pool loads installed dependencies as selected by lane/operation contracts; no per-project dependency installation",
+  "codex_direct_use": "Explicit executable/environment paths resolved from this same installation and its verified receipt",
+  "macos": "MCP/SDK/skills/hooks host path without local Studio or the Windows-managed toolchain",
+  "mobile_studio": false,
+  "install_sequence": [
+    "complete executable plugin",
+    "pair separate Studio application",
+    "final explained purge and candidate qualification",
+    "commit complete candidate",
+    "install plugin through Codex",
+    "first plugin detection provisions full shared Studio and toolchain installation",
+    "verify installed runtime and native connection"
+  ],
+  "preinstall_source_and_protocol_complete": true,
+  "release_binding_status": "RELEASE_BOUND; first detection additionally requires exact remote Git-ref and release-asset readback",
+  "installed": false
+}

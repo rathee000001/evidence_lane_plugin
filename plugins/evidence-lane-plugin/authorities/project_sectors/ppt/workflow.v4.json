@@ -1,0 +1,973 @@
+{
+  "schema": "evidence-lane.sector-workflow.v4",
+  "lane_id": "ppt",
+  "source_package_folder": "authorities/project_sectors/ppt",
+  "external_project_folder": "sectors/ppt",
+  "actions": [
+    {
+      "name": "presentation_convert",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_convert",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_convert.shared_office",
+            "adapter": "evidence_lane_plugin.presentation_conversion:convert_presentation",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_convert"
+        ],
+        "installation_implied": false,
+        "contract_digest": "034ce4e4277491cdb024d9e371e2ad150bd6a4c6ced6a048da12c2a75cf45c09"
+      },
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_current",
+      "profile": "presentation",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_current",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_current.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "0ab60788bb5324a44482dfadd55470dbdd52487aed4914c0ead452ad198fd695"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_edit",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_edit",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_edit.native_presentation",
+            "adapter": "evidence_lane_plugin.presentation_profile:edit_presentation",
+            "tool_ids": [
+              "Python",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "1589b4df821666596b6ecd1e1142d60cd757ead22fe03a040152d9aae00fda64"
+      },
+      "verification_checks": [
+        "presentation_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_enrich",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_enrich",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_enrich.docling",
+            "adapter": "evidence_lane_plugin.presentation_enrichment:enrich",
+            "tool_ids": [
+              "Python",
+              "Docling"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_enrich"
+        ],
+        "installation_implied": false,
+        "contract_digest": "74c4d0117050255a7505bc6fa0c3316b75aa973523d456375caa2070ed6fb50a"
+      },
+      "verification_checks": [
+        "presentation_enrichment_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_enrichment_read",
+      "profile": "presentation",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_enrichment_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_enrichment_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_enrichment:register_enrichment_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "d5fdf6d24209b6fab60588ccc9d15c8c8764cfddbe96a372a4de380eeaefe13f"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_export",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_export",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_export.native",
+            "adapter": "evidence_lane_plugin.presentation_profile:export_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "presentation_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "ppt.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "presentation_export.native_view",
+            "adapter": "evidence_lane_plugin.presentation_profile:export_presentation",
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "presentation_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "ppt.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "presentation_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "0d6ab3501c4a6c767303dc060c3ff902879aa3a3a2aec9842de2c79fbeb4c324"
+      },
+      "verification_checks": [
+        "presentation_export_hash_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_generate",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_generate",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_generate.native_presentation",
+            "adapter": "evidence_lane_plugin.presentation_profile:generate_presentation",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML",
+              "Pillow",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "9c6e3a031cd1e792dc6e3fc3aa93f8621eca9f03898a94c9289a3f3e1b9f4d33"
+      },
+      "verification_checks": [
+        "presentation_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_index",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_index",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_index.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:index_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "220749f79385babb5be9ebaa27e727eb4c645e4cf8db18e6e88938ed043adf17"
+      },
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_query",
+      "profile": "presentation",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_query",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_query.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "02080198376c6006756d5029ebc075c6fca02b520702681b84d5cec14eed9f3a"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_read",
+      "profile": "presentation",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "92f231535b69cbcd10cf8963b52a9dd905513b4d31c8b29989db7f530b8f1011"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_refresh",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_refresh",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_refresh.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:index_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "a1bcf9c04b5fb1edc57be22855086791f3fb52b32e6dd8ebfe205a9282aaf32d"
+      },
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_render",
+      "profile": "presentation",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_render",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_render.shared_office",
+            "adapter": "evidence_lane_plugin.presentation_rendering:render_presentation",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "pypdfium2"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_render"
+        ],
+        "installation_implied": false,
+        "contract_digest": "2f0193f901d0328e4edd31e1084b8369c1c69d55026464fa83455f899b98ceb2"
+      },
+      "verification_checks": [
+        "presentation_render_bytes_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_render_read",
+      "profile": "presentation",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_render_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_render_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_rendering:register_render_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "30cd1a694dbc512bbc830e6bf7a9724f6c8a616a632410697883657bb36102e9"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "ppt.structure",
+      "lane_id": "ppt",
+      "folder": "sectors/ppt",
+      "version": 1,
+      "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
+      "consumer": "artifact_export",
+      "implementation_digest": "5a7382ed1f557ccbf79317fca5c42114f00d8e5b77f0102d241099664d5e2c75",
+      "files": {
+        "mmd": "ppt.mmd",
+        "dot": "ppt.dot",
+        "pointer": "ppt.pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "ppt"
+      ],
+      "node_kinds": [
+        "presentation",
+        "presentation_slide",
+        "presentation_shape",
+        "presentation_table",
+        "presentation_image",
+        "presentation_notes",
+        "presentation_chart"
+      ],
+      "edge_kinds": [
+        "CONTAINS",
+        "NEXT"
+      ],
+      "schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_ppt",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 22,
+    "edge_count": 26,
+    "group_count": 0,
+    "semantic_topology_sha256": "3413BF32F6AA60825E75B5001C0AF8C2D8E9D5E48AB91929AE56B8757F33BDF1",
+    "mmd_sha256": "89983EA3515152F30D175A5302F463A48B64C38F32C078646BC17CBEF374728D",
+    "dot_sha256": "0D9F1A3023B966B4476CC3389C6DA02DF7C8B7D0B849F5E1ACCCD9DAA0EAEA9C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "67B55560BD7409E941840754B2B3C3EF130B4A04E248F97AC6CFF8D3D9D6A19F",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "8C818F06664CD151375F84C0BD905BAC53E0CEBC798CFF9A6A6AC903F1C8D7FE"
+  },
+  "workflow_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_ppt",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 19,
+    "edge_count": 39,
+    "group_count": 0,
+    "semantic_topology_sha256": "C21634126EEAEF7D783B153397B97515535AC564C40BE419F60F0B1D64415840",
+    "mmd_sha256": "0B7214E6BB09EB5C55F463CC421C0495501159188B4EE47955B71DF7BCA7B25D",
+    "dot_sha256": "0CA3EDAABA620865F758F9F736826656A7ABF04CD676785602B4401DA012AB78",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "96057C27A1E3B34F8D824AE717D7AA7FD35C2A47CA8394BB03106DD4DA44B7DD",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 5,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "35919ABD90366609F6CA51B00579AEC7524DD314D391342958F8034AF7D83C5D"
+  },
+  "graph_role": "source_package_schema_and_executable_routes",
+  "project_data_copied": false
+}

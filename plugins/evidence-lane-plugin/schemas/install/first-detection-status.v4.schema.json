@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/install/first-detection-status.v4.schema.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "phase",
+    "plugin_version",
+    "release_ref",
+    "selected_components",
+    "error_code",
+    "credentials_recorded",
+    "project_state_changed",
+    "installed_native_execution_claimed",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.first-detection-status.v4"
+    },
+    "phase": {
+      "enum": [
+        "ACQUIRING_RELEASE_ASSETS",
+        "MATERIALIZED_VALIDATING",
+        "ACTIVE_EXACT_RELEASE",
+        "FAILED"
+      ]
+    },
+    "credentials_recorded": {
+      "const": false
+    },
+    "project_state_changed": {
+      "const": false
+    },
+    "installed_native_execution_claimed": {
+      "const": false
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

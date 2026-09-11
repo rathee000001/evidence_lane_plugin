@@ -1,0 +1,29 @@
+digraph schema_chat_lineage {
+  // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
+  // PYTHON_GRAPHVIZ_VERSION=0.21
+  bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
+  node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
+  edge [color="#667085" fontname=Arial]
+  t_continuation_bindings [label="continuation_bindings\nbinding_digest, participant_id, generation, body_json" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_continuation_events [label="continuation_events\nsequence, request_id, kind, actor_id, input_digest, result_json, previous_digest, digest, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_continuation_offers [label="continuation_offers\nsequence, continuation_id, participant_id, source_client_id, destination_client_id, continuation_digest, body_json, state, result_json, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_continuation_retired_clients [label="continuation_retired_clients\nclient_id, continuation_id, destination_client_id, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_lane_identity [label="lane_identity\nsingleton, project_id, lane_id, kind, storage_layout, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_lineage_chunks [label="lineage_chunks\nchunk_id, event_id, ordinal, text_digest, text" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_lineage_events [label="lineage_events\nsequence, event_id, kind, client_id, provenance, reported_session_id, reported_turn_id, tool_use_id, parent_event_id, payload_digest, identity_digest, previous_cursor, cursor, received_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_lineage_fts [label="lineage_fts\nchunk_id, event_id, text" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_objects [label="objects\ndigest, size_bytes, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_prompt_classifications [label="prompt_classifications\nclassification_id, source_event_id, ordinal, actor_id, previous_digest, classification_json, classification_digest" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_prompt_entries [label="prompt_entries\nsource_event_id, client_id, reported_session_id, prompt_index, source_cursor, entry_json, previous_entry_digest, entry_digest" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_schema_migrations [label="schema_migrations\nowner, version, digest, description, applied_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_schema_ownership [label="schema_ownership\nobject_name, owner, object_type" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_turn_events [label="turn_events\nsequence, source_event_id, client_id, reported_session_id, reported_turn_id, session_digest, event_name, body_digest, previous_digest, digest" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+  t_continuation_retired_clients -> t_continuation_offers [label=continuation_id]
+  t_lineage_chunks -> t_lineage_events [label=event_id]
+  t_lineage_events -> t_objects [label=payload_digest]
+  t_lineage_events -> t_lineage_events [label=parent_event_id]
+  t_prompt_classifications -> t_prompt_entries [label=source_event_id]
+  t_prompt_entries -> t_lineage_events [label=source_event_id]
+  t_turn_events -> t_objects [label=body_digest]
+  t_turn_events -> t_lineage_events [label=source_event_id]
+}

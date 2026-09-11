@@ -1,0 +1,73 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "artifacts",
+  "source_package_folder": "authorities/project_sectors/artifacts",
+  "project_state_folder": "sectors/artifacts",
+  "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
+  "files": "sectors/artifacts/files",
+  "schema_history": "sectors/artifacts/schema-history",
+  "migrations": [
+    {
+      "owner": "artifacts",
+      "version": 1,
+      "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53"
+    },
+    {
+      "owner": "artifactsselector",
+      "version": 1,
+      "digest": "1fe9c3069807f51dcf76a37fdf93d414e0c3feb5d76216f6d70003aded928ca6"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "artifacts",
+    "folder": "sectors/artifacts",
+    "files_root": "sectors/artifacts/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "artifacts_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        "*declared_by_producer"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "producer_source_output_and_verification"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "artifacts.mmd",
+      "dot": "artifacts.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact produced artifact and verification receipt"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "13A15772CDA7D1777CE83C9C0959F1BD94B6ED437F9153D644B0A101FAA49E43"
+  },
+  "actions": [
+    "artifacts_current",
+    "artifacts_index",
+    "artifacts_index_media",
+    "artifacts_query",
+    "artifacts_read",
+    "artifacts_refresh",
+    "artifacts_refresh_media",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

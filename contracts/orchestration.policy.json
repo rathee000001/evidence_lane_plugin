@@ -1,0 +1,239 @@
+{
+  "schema_version": 4,
+  "role": "v4 target orchestration contract; implementation and execution must be verified separately",
+  "origin": "plugins/evidence-lane-plugin/toolchains/tool-definitions.v4.json and the accepted v4 workflow corrections; historical imported hashes remain in the definition provenance",
+  "public_workflows": {
+    "source": "plugins/evidence-lane-plugin/skills",
+    "rule": "Original retained first-class skills remain separate, each owning its actual multiple actions; no fixed six-workflow partition."
+  },
+  "public_workflow_exclusions": [
+    "Skill Creator",
+    "Plugin Creator",
+    "plugin packaging",
+    "plugin distribution CI",
+    "maintainer release qualification"
+  ],
+  "orchestration_layers": [
+    {
+      "id": "interaction",
+      "role": "Codex interprets user intent through first-class skills; Windows Studio is the persistent connection/orchestration app with a read-only human view."
+    },
+    {
+      "id": "host_transport",
+      "role": "Codex Desktop, CLI and supported VM hosts use native MCP clients; optional authenticated remote clients use a declared remote engine"
+    },
+    {
+      "id": "typed_dispatch",
+      "role": "One action registry produces SDK/MCP/skill/hook contracts; supported host events only"
+    },
+    {
+      "id": "project_workflow",
+      "role": "Resolve project, current Plan revision, dependencies, source scope, lane contract and information versus semantic steer"
+    },
+    {
+      "id": "tool_selection",
+      "role": "Agent selects an eligible lane/action route; engine enforces declared primary/fallback order, permissions, readiness, compatibility, budgets and external configuration"
+    },
+    {
+      "id": "execution",
+      "role": "Persistent engine coordinates bounded jobs and prewarmed workers with one writer per project; CPU/CUDA/ROCm/DirectML is a shared execution-provider choice"
+    },
+    {
+      "id": "verification",
+      "role": "Validate operation-specific outputs and checks; reconcile effects, append receipts, update derived views, and reject stale worker completion"
+    },
+    {
+      "id": "continuity",
+      "role": "After a verified Delta exit, update project-local Learning and select the next ready task; preserve attributed Memory, Canon and ChatLineage separately"
+    }
+  ],
+  "selection_inputs": [
+    "project_id",
+    "plan_revision",
+    "lane_id",
+    "operation",
+    "source_type",
+    "contract_version",
+    "allowed_tools",
+    "ordered_primary_and_fallback",
+    "project_grants",
+    "host_capabilities",
+    "dependency_readiness",
+    "provider_compatibility",
+    "resource_budget",
+    "requested_output_fidelity"
+  ],
+  "selection_receipt": [
+    "selected_tool_or_provider",
+    "selection_reason",
+    "fallback_reason",
+    "verified_runtime_identity",
+    "input_bindings",
+    "output_evidence"
+  ],
+  "core_toolchain_roles": {
+    "mcp_transport_and_composition": [
+      "MCP Python SDK",
+      "FastMCP composition where selected",
+      "OpenAI Agents SDK typed tools and MCP utilities without another agent owner"
+    ],
+    "workflow_and_retrieval": [
+      "LangChain runnable composition",
+      "LlamaIndex",
+      "SQLite FTS5/BM25",
+      "bounded lexical and semantic adapters"
+    ],
+    "code": [
+      "Git",
+      "GitPython",
+      "Tree-sitter",
+      "structural parsers",
+      "project-selected checks"
+    ],
+    "documents_and_media": [
+      "OpenXML",
+      "Docling",
+      "PyMuPDF and PDF tools",
+      "OCR",
+      "FFmpeg"
+    ],
+    "data_and_bi": [
+      "DuckDB",
+      "Polars",
+      "pandas/Arrow",
+      "Excel adapters",
+      "Tableau Hyper",
+      "Power BI format-specific adapters"
+    ],
+    "research": [
+      "HTTPX",
+      "Trafilatura",
+      "HTML parsers",
+      "citation binding"
+    ],
+    "graphs_when_contract_requires": [
+      "LangGraph Mermaid export",
+      "Graphviz DOT",
+      "rustworkx"
+    ],
+    "evaluation_and_observation": [
+      "project-selected tests",
+      "LangSmith",
+      "OpenTelemetry",
+      "redacted optional trace providers"
+    ]
+  },
+  "mcp_role_taxonomy": {
+    "hosts_and_clients": "Codex and other explicitly supported connecting clients; observed connection state is separate from claimed host identity",
+    "server_transport_frameworks": "MCP Python SDK and FastMCP are implementation frameworks, not connected Codex clients",
+    "tool_provider_servers": [
+      "GitHub MCP",
+      "Filesystem MCP",
+      "PostgreSQL MCP",
+      "Slack MCP where explicitly authorized"
+    ],
+    "native_local_tools": "Git, parsers, renderers and local libraries remain tools rather than MCP clients",
+    "compute_providers": "CPU, NVIDIA and AMD execution readiness is independent of client or connector connection state"
+  },
+  "optional_extensions": {
+    "role": "Additional or configured external connectors, plugins and toolchain grants; not the core toolchain matrix",
+    "controls": [
+      "add",
+      "configure",
+      "revoke",
+      "purpose",
+      "role schema",
+      "project/action/host/path scopes",
+      "expiry"
+    ],
+    "execution": "Eligible only inside a selected operation and current grant; presence never means execute all tools"
+  },
+  "steer_handling": {
+    "informational": "Bounded read-only answer; no Plan mutation",
+    "semantic": "Checkpoint or cancel affected work, atomically replace current/queued contracts, preserve completed history, reject stale completion and resume eligible work"
+  },
+  "storage": {
+    "per_project": "One selected external project root; each authority and sector owns separate SQLite, schema history and files; Root PV coordinates exact lane heads.",
+    "logical_owners": [
+      "Plan",
+      "ChatLineage",
+      "Canon",
+      "Project Memory",
+      "Learning",
+      "Source Provenance",
+      "Receipt Ledger",
+      "Project Universe",
+      "sector profiles"
+    ],
+    "derived_files": "Separate per-lane folders retain each contract's own subset and semantics for MMD, DOT, pointers and natural artifacts",
+    "cross_project": "Explicit in-place read-only queries with attribution; no database merging"
+  },
+  "studio": {
+    "layout": "Direct HIL four-shell reuse: project side rail, persistent top context shell, workflow pills in command/prompt bar, single changing inner content panel.",
+    "navigation": [
+      "Overview",
+      "Plan",
+      "Work",
+      "Sources",
+      "Evidence",
+      "Toolchains",
+      "Connections",
+      "Compute",
+      "Diagnostics"
+    ],
+    "toolchains": "Filter by lane, operation and orchestration layer; show ordered eligible tools, selected route, fallback reason and actual readiness",
+    "connections": "Separate host/client sessions from MCP tool providers and optional connectors",
+    "status": "Live data only; placeholders and target mockups are labelled, unavailable features do not display fabricated active state",
+    "visibility": "Visible in development and shipping; open, minimize and reopen while the engine can run in the background",
+    "frontend_source": "F:/DATA MACHINE/evidence-os-clean-full-app_current hill_sopuce code/frontend/theme-contract",
+    "reuse_mode": "Actual components and theme implementation, with adapted v4 bindings and provenance; not visual imitation only.",
+    "asset_source": "apps/evidence-lane-app/public",
+    "platform": "Windows PC only",
+    "mobile_application": false,
+    "macos_application": false,
+    "human_mutations": false,
+    "app_source": "apps/evidence-lane-studio",
+    "plugin_source": "plugins/evidence-lane-plugin",
+    "pairing_order": "Complete the executable plugin first, then pair this separate app."
+  },
+  "removed_v3_workflows": [
+    "ENV/UOP Formula",
+    "Project Overlay",
+    "accepted-PV ZIP hierarchy",
+    "PV ZIP Loader",
+    "PV rollback",
+    "PV/Learning HIL",
+    "standalone Discussion/Analysis/Mode sectors"
+  ],
+  "workers": {
+    "kind": "OS child processes",
+    "ai_subagents": false,
+    "role": "Execute the selected toolchain with bounded resources and attributed process/operation evidence."
+  },
+  "installation": {
+    "shared_once": true,
+    "local": "Provision all required retained local libraries, binaries, model assets and supported provider environments with Studio/engine.",
+    "external": "Ship adapters; configure external services and credentials explicitly.",
+    "execution": "Installation does not execute every tool; lane/operation primary and fallback routing remains conditional.",
+    "studio_root": "C:/Apps/EvidenceLaneStudio",
+    "plugin_root": "Codex-managed installed plugin location",
+    "direct_codex_use": "Resolve explicit executable/environment paths from the same verified shared Studio installation"
+  },
+  "host_platform_policy": {
+    "Windows": "Studio/backend with its shared managed toolchain; execution requires measured readiness and lane selection.",
+    "macOS": "MCP/SDK/skills/hooks host path only; no local Studio or Windows-managed toolchain capabilities. Current direct adapter implementation and host support must be verified.",
+    "mobile": "No Studio application or mobile product workflow.",
+    "VM_and_CLI": "Use the host matrix and explicit supported backend route; ephemeral hosts need verified persistent storage.",
+    "tool_count": "Derive counts from the current registry; installed and usable counts come from runtime evidence."
+  },
+  "command_path": [
+    "Codex intent and skills",
+    "typed SDK/MCP",
+    "Studio persistent backend API on a supported route",
+    "plugin operation and lane/tool selection",
+    "owned bounded workers",
+    "separate lane SQLite/files and receipts",
+    "Codex result and read-only Studio view"
+  ],
+  "purge": "Final cross-layer purge after replacement implementation and Studio pairing; record each retained feature location and each removal reason."
+}

@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "lifecycle",
+  "members": [
+    {
+      "path": "src/evidence_lane_plugin/adaptive_delta_entry.py",
+      "sha256": "a84ecbbf166eaa87f0106af6d2e6438d02f231ee248953fc2d47fb1caccb42f8"
+    },
+    {
+      "path": "src/evidence_lane_plugin/adaptive_delta_exit.py",
+      "sha256": "358b3d3fbcf9f4c0642c926982737fc18e3fb9a9b4b8ecb93b15b2b5b9c3eb5e"
+    },
+    {
+      "path": "src/evidence_lane_plugin/plan_runtime.py",
+      "sha256": "8e9b3e7ff5eab135512806c1662d7d68ead3212a85e0907c928c85cdf793878b"
+    },
+    {
+      "path": "src/evidence_lane_plugin/session.py",
+      "sha256": "2e4ac28839f704d2aafbe65f3b77b9591e6e5b040470d31b61c0e99849477535"
+    }
+  ],
+  "purpose": "Session, project Plan and bounded work lifecycle owners",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

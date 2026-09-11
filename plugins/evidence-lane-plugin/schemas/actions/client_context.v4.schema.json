@@ -1,0 +1,326 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read this authenticated engine client and its explicitly configured project selections.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "ClientContextQuery",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "client_context",
+  "outputSchema": {
+    "$defs": {
+      "ClientHello": {
+        "additionalProperties": false,
+        "properties": {
+          "configured_profile": {
+            "default": "unknown",
+            "title": "Configured Profile",
+            "type": "string"
+          },
+          "peer_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Peer Capabilities",
+            "type": "array"
+          },
+          "peer_name": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Peer Name"
+          },
+          "peer_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Peer Version"
+          },
+          "protocol": {
+            "default": "local_api",
+            "enum": [
+              "local_api",
+              "mcp_stdio"
+            ],
+            "title": "Protocol",
+            "type": "string"
+          },
+          "protocol_version": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Protocol Version"
+          }
+        },
+        "title": "ClientHello",
+        "type": "object"
+      },
+      "HostObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "architecture": {
+            "title": "Architecture",
+            "type": "string"
+          },
+          "available_commands": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Commands",
+            "type": "array"
+          },
+          "client": {
+            "$ref": "#/$defs/ClientHello"
+          },
+          "client_evidence_basis": {
+            "const": "authenticated_client_report",
+            "default": "authenticated_client_report",
+            "title": "Client Evidence Basis",
+            "type": "string"
+          },
+          "configured_storage_policy": {
+            "title": "Configured Storage Policy",
+            "type": "string"
+          },
+          "cpu_count": {
+            "title": "Cpu Count",
+            "type": "integer"
+          },
+          "engine_studio_platform_supported": {
+            "default": false,
+            "title": "Engine Studio Platform Supported",
+            "type": "boolean"
+          },
+          "host_profile_attestation": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Host Profile Attestation",
+            "type": "string"
+          },
+          "local_measurement_basis": {
+            "const": "engine_os_and_path_probe",
+            "default": "engine_os_and_path_probe",
+            "title": "Local Measurement Basis",
+            "type": "string"
+          },
+          "local_transport": {
+            "enum": [
+              "windows_current_user_loopback",
+              "posix_current_user_loopback",
+              "unavailable"
+            ],
+            "title": "Local Transport",
+            "type": "string"
+          },
+          "managed_toolchain_readiness": {
+            "default": "not_supported_on_this_platform",
+            "enum": [
+              "requires_windows_studio_probe",
+              "not_supported_on_this_platform"
+            ],
+            "title": "Managed Toolchain Readiness",
+            "type": "string"
+          },
+          "model_identity": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Model Identity",
+            "type": "string"
+          },
+          "native_goal": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Native Goal",
+            "type": "string"
+          },
+          "native_hooks": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Native Hooks",
+            "type": "string"
+          },
+          "native_plan": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Native Plan",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "observation_id": {
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "operating_system": {
+            "title": "Operating System",
+            "type": "string"
+          },
+          "python_version": {
+            "title": "Python Version",
+            "type": "string"
+          },
+          "studio_installation": {
+            "const": "not_measured",
+            "default": "not_measured",
+            "title": "Studio Installation",
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "engine_start",
+              "client_connect"
+            ],
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "observation_id",
+          "observed_at",
+          "trigger",
+          "operating_system",
+          "architecture",
+          "python_version",
+          "cpu_count",
+          "available_commands",
+          "client",
+          "local_transport",
+          "configured_storage_policy"
+        ],
+        "title": "HostObservation",
+        "type": "object"
+      },
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "client_id": {
+        "title": "Client Id",
+        "type": "string"
+      },
+      "engine_instance_id": {
+        "title": "Engine Instance Id",
+        "type": "string"
+      },
+      "expires_at": {
+        "title": "Expires At",
+        "type": "string"
+      },
+      "host_observation": {
+        "$ref": "#/$defs/HostObservation"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "permission_changed": {
+        "const": false,
+        "default": false,
+        "title": "Permission Changed",
+        "type": "boolean"
+      },
+      "projects": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Projects",
+        "type": "array"
+      }
+    },
+    "required": [
+      "client_id",
+      "engine_instance_id",
+      "expires_at",
+      "host_observation",
+      "projects"
+    ],
+    "title": "ClientContextResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7199a68e593cd3f298d33448713eb4c8ea6898536e691f0b28e165ab6c1dacaf",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "client_context",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.connections:register_client_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "client_context.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

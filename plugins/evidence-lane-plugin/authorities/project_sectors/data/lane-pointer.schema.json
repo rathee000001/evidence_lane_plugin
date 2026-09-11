@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "not_materialized",
+        "fresh",
+        "stale",
+        "historical",
+        "contract_changed"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "checked_at": {
+      "title": "Checked At",
+      "type": "string"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Digest"
+    },
+    "manifest": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manifest"
+    },
+    "contents": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contents"
+    },
+    "refresh_performed": {
+      "const": false,
+      "default": false,
+      "title": "Refresh Performed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation"
+  ],
+  "title": "Structured data snapshot navigation and freshness readback",
+  "type": "object"
+}

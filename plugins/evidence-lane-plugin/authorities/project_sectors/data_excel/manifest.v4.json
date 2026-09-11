@@ -1,0 +1,3385 @@
+{
+  "schema": "evidence-lane.sector-package.v4",
+  "lane_id": "data_excel",
+  "folder": "sectors/data_excel",
+  "source_package_folder": "authorities/project_sectors/data_excel",
+  "folder_role": "external_project_state",
+  "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
+  "files": "sectors/data_excel/files",
+  "schema_history": "sectors/data_excel/schema-history",
+  "runtime_module": "evidence_lane_plugin.tabular_profile",
+  "parser_modules": [
+    "evidence_lane_plugin.spreadsheet_parsers",
+    "evidence_lane_plugin.spreadsheet_workers"
+  ],
+  "retrieval_module": "evidence_lane_plugin.tabular_profile",
+  "migrations": [
+    {
+      "owner": "dataexcel",
+      "version": 1,
+      "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+    },
+    {
+      "owner": "dataexcelselector",
+      "version": 1,
+      "digest": "2689665c824cec64def6fd3c64a4324520449ce7bf24e7c9a63f7b5822f83442"
+    }
+  ],
+  "actions": [
+    {
+      "name": "source_snapshot_retire",
+      "description": "Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.",
+      "inputSchema": {
+        "$defs": {
+          "SnapshotSelection": {
+            "additionalProperties": false,
+            "properties": {
+              "lane_id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "snapshot_id": {
+                "pattern": "^[a-f0-9]{64}$",
+                "title": "Snapshot Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "lane_id",
+              "snapshot_id"
+            ],
+            "title": "SnapshotSelection",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/SnapshotSelection"
+            },
+            "maxItems": 128,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "replacement_tasks": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Replacement Tasks",
+            "type": "array"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "max_files": {
+            "default": 512,
+            "maximum": 4096,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 33554432,
+            "maximum": 536870912,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotRetire",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "worker_operations": [
+        "code_git_checkpoint"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "description": "Inspect an owning local-source snapshot, retained lineage head and retirement without refreshing source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_current",
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "DataExcelSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_current",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_current.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f01bad1fcd2e75d2b10eccecd05389a97d94365e795af92c9d9554c8bfe3a004"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_edit",
+      "description": "Replace exact existing OpenXML cells while preserving other package members and invalidating stale formula caches.",
+      "inputSchema": {
+        "$defs": {
+          "CellReplacement": {
+            "additionalProperties": false,
+            "properties": {
+              "sheet": {
+                "maxLength": 31,
+                "minLength": 1,
+                "title": "Sheet",
+                "type": "string"
+              },
+              "cell": {
+                "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+                "title": "Cell",
+                "type": "string"
+              },
+              "expected_value": {
+                "$ref": "#/$defs/Value"
+              },
+              "expected_formula": {
+                "anyOf": [
+                  {
+                    "maxLength": 8192,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Expected Formula"
+              },
+              "replacement_value": {
+                "$ref": "#/$defs/Value"
+              },
+              "replacement_formula": {
+                "anyOf": [
+                  {
+                    "maxLength": 8192,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Replacement Formula"
+              }
+            },
+            "required": [
+              "sheet",
+              "cell",
+              "expected_value",
+              "replacement_value"
+            ],
+            "title": "CellReplacement",
+            "type": "object"
+          },
+          "Value": {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number",
+                  "boolean",
+                  "null",
+                  "date",
+                  "datetime",
+                  "time",
+                  "iso_date",
+                  "error",
+                  "duration_seconds",
+                  "binary",
+                  "json",
+                  "missing",
+                  "nonfinite"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Value"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/CellReplacement"
+            },
+            "maxItems": 128,
+            "minItems": 1,
+            "title": "Replacements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256",
+          "replacements"
+        ],
+        "title": "DataExcelSpreadsheetEdit",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_edit",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_edit.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:edit",
+            "tool_ids": [
+              "Python",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d571acc6238c27ee0c52de60a63b54cf0fbc0217218ade31159f2f3fefca41a4"
+      },
+      "worker_operations": [
+        "spreadsheet_edit"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_export",
+      "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "DataExcelExport",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_export",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_export.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_view",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_values",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_values_view",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "python_calamine",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "tabular_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "e7ebc696c555b5525e973af0c729364c2ffb056558c66e0fb4f2d484061fe096"
+      },
+      "worker_operations": [
+        "tabular_parse_content",
+        "render_lane_view"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_export_hash_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_generate",
+      "description": "Generate a new immutable lane-owned file under the format-specific contract.",
+      "inputSchema": {
+        "$defs": {
+          "Cell": {
+            "additionalProperties": false,
+            "properties": {
+              "cell": {
+                "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+                "title": "Cell",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/Value"
+              },
+              "formula": {
+                "anyOf": [
+                  {
+                    "maxLength": 8192,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Formula"
+              },
+              "number_format": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Number Format"
+              }
+            },
+            "required": [
+              "cell",
+              "value"
+            ],
+            "title": "Cell",
+            "type": "object"
+          },
+          "Sheet": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 31,
+                "minLength": 1,
+                "pattern": "^[^\\\\/?*\\[\\]:]+$",
+                "title": "Name",
+                "type": "string"
+              },
+              "cells": {
+                "items": {
+                  "$ref": "#/$defs/Cell"
+                },
+                "maxItems": 2000,
+                "minItems": 1,
+                "title": "Cells",
+                "type": "array"
+              },
+              "freeze_panes": {
+                "anyOf": [
+                  {
+                    "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Freeze Panes"
+              },
+              "autofilter": {
+                "anyOf": [
+                  {
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Autofilter"
+              }
+            },
+            "required": [
+              "name",
+              "cells"
+            ],
+            "title": "Sheet",
+            "type": "object"
+          },
+          "Value": {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number",
+                  "boolean",
+                  "null",
+                  "date",
+                  "datetime",
+                  "time",
+                  "iso_date",
+                  "error",
+                  "duration_seconds",
+                  "binary",
+                  "json",
+                  "missing",
+                  "nonfinite"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Value"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^/\\\\:]+\\.xlsx$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/$defs/Sheet"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Sheets",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          }
+        },
+        "required": [
+          "logical_name",
+          "sheets"
+        ],
+        "title": "DataExcelSpreadsheetGenerate",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_generate",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_generate.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:generate",
+            "tool_ids": [
+              "Python",
+              "openpyxl"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "3d73845dd9d8945f10a5ec1d1bc0ffe30068ddf1fdb7715b1c3b6622dcbd862b"
+      },
+      "worker_operations": [
+        "spreadsheet_generate"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_index",
+      "description": "Snapshot exact file bytes and bounded facts in the separate data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(xlsx|xlsm|xltx|xltm)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "SpreadsheetIndexRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_index",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_index.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d90fd37e2876e5b91eb41ee0c860bada233578f08c5d2499f95e6f7c05f245a1"
+      },
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "data_excel"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      },
+      "source_materialization": {
+        "path_argument": "filename",
+        "group_limit": 1,
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "preparation_is_execution": false
+      }
+    },
+    {
+      "name": "spreadsheet_index_values",
+      "description": "Snapshot exact file bytes and bounded facts in the separate data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(xls|xlsb|ods)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "SpreadsheetIndexValuesRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_index_values",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_index_values.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "5e921f6c397e8a74affd3315a3fcfc761e54b22e6ffb1d4a12280fd8b28c6109"
+      },
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "data_excel"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    },
+    {
+      "name": "spreadsheet_inspect_openpyxl",
+      "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_rows": {
+            "default": 200,
+            "maximum": 2000,
+            "minimum": 1,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "max_columns": {
+            "default": 64,
+            "maximum": 256,
+            "minimum": 1,
+            "title": "Max Columns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataExcelInspection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspect_openpyxl",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspect_openpyxl.library",
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "tool_ids": [
+              "Python",
+              "openpyxl"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_inspect"
+        ],
+        "installation_implied": false,
+        "contract_digest": "5f6fa0cf9494d58b18b4fd69eeb2a72336155a201054ffae278cb24a5f3fb7eb"
+      },
+      "worker_operations": [
+        "tabular_inspect"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_inspect_pandas",
+      "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_rows": {
+            "default": 200,
+            "maximum": 2000,
+            "minimum": 1,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "max_columns": {
+            "default": 64,
+            "maximum": 256,
+            "minimum": 1,
+            "title": "Max Columns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataExcelInspection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspect_pandas",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspect_pandas.library",
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "tool_ids": [
+              "Python",
+              "pandas"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_inspect"
+        ],
+        "installation_implied": false,
+        "contract_digest": "9164260da1b100fde3a868ffe73dd11cf72fd45ca1718bb02100664a6a1c00e9"
+      },
+      "worker_operations": [
+        "tabular_inspect"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_inspection_read",
+      "description": "Read an exact library inspection and its source binding.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "derivative_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Derivative Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "derivative_id"
+        ],
+        "title": "DataExcelInspectionRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspection_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspection_read.engine",
+            "adapter": "evidence_lane_plugin.tabular_inspection:register_inspections.<locals>.reader",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "22fba0536fa1802b33284f35985ea022acda0dc6cc806f522bd10901be290964"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_query",
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "workbook",
+              "sheet",
+              "cell",
+              "formula",
+              "defined_name",
+              "merged_range",
+              "validation",
+              "hyperlink",
+              "relationship",
+              "table",
+              "chart"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "part": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Part"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataExcelQuery",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_query",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_query.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4a9b6707e37afe59e2b014491239c7f504306f42f72d78ec7223c08a78f2ba1a"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "data_excel"
+        ],
+        "items": "rows",
+        "current_action": "spreadsheet_current",
+        "current_items": "files",
+        "collection": "text",
+        "match_mode": "any",
+        "basis": "sqlite_fts5_bm25",
+        "rerank_text": "text"
+      }
+    },
+    {
+      "name": "spreadsheet_read",
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "representation": {
+            "default": "snapshot",
+            "enum": [
+              "snapshot",
+              "original_source"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 8388608,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataExcelRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_read.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9b1ad0ad7618ad5874a1bf8621311248a966bd27567ea232255174271e32db58"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ],
+      "lane_fetch": {
+        "lanes": [
+          "data_excel"
+        ],
+        "primary_representation": "snapshot",
+        "path_argument": null,
+        "path_prefix": "",
+        "offset_argument": "offset",
+        "path_result": "logical_name",
+        "digest_result": "sha256",
+        "size_result": "total_bytes"
+      }
+    },
+    {
+      "name": "spreadsheet_recalculate",
+      "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256"
+        ],
+        "title": "DataExcelSpreadsheetRecalculate",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_recalculate",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_recalculate.calc",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:recalculate",
+            "tool_ids": [
+              "Python",
+              "LibreOffice"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_recalculate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "769c51f0c08a605ec16df8448c0c6125ef05f2c487f97f4c4774083d903b05b3"
+      },
+      "worker_operations": [
+        "spreadsheet_recalculate"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_refresh",
+      "description": "Snapshot exact file bytes and bounded facts in the separate data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(xlsx|xlsm|xltx|xltm)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "SpreadsheetRefreshRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_refresh",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_refresh.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bb64a6aa57a41e523884516d76a6b8af3939e3b2b8cdc9cf3749a441e851cefb"
+      },
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "data_excel"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    },
+    {
+      "name": "spreadsheet_refresh_values",
+      "description": "Snapshot exact file bytes and bounded facts in the separate data_excel lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(xls|xlsb|ods)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "SpreadsheetRefreshValuesRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_refresh_values",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_refresh_values.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "1d8d9d9f901a0f89b526add6c1dd804a235ba99c2050b4382909a2549646c153"
+      },
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "data_excel"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    },
+    {
+      "name": "spreadsheet_render",
+      "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_pages": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "dpi": {
+            "default": 110,
+            "maximum": 150,
+            "minimum": 72,
+            "title": "Dpi",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          },
+          "max_output_bytes": {
+            "default": 8388608,
+            "maximum": 16777216,
+            "minimum": 65536,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataExcelSpreadsheetRender",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "spreadsheet",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_render",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_render.calc",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:render",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "pypdfium2"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_render"
+        ],
+        "installation_implied": false,
+        "contract_digest": "02c638cd848b403417c177e4c9aac887c5e0f78f777d68ffa657cba75340250e"
+      },
+      "worker_operations": [
+        "spreadsheet_render"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "spreadsheet_render_bytes_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_render_read",
+      "description": "Read and verify an exact workbook rendering and its natural artifacts.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data_excel",
+            "default": "data_excel",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "derivative_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Derivative Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "derivative_id"
+        ],
+        "title": "DataExcelDerivativeRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "spreadsheet",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_render_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_render_read.engine",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:register_spreadsheet_rendering.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3a55261bb63a752112d34b6df98d7a73de6c335a99ff4382ce6cee81b9d723cc"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    }
+  ],
+  "source_selector": {
+    "lane_id": "data_excel",
+    "current_table": "sheet_current",
+    "key_field": "source_id",
+    "retirement_table": "selector_retirement",
+    "scope": "owning_local_source_snapshots",
+    "history_deleted": false
+  },
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "data_excel",
+    "folder": "sectors/data_excel",
+    "files_root": "sectors/data_excel/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "data_excel_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".xlsx",
+        ".xlsm",
+        ".xls",
+        ".xlsb",
+        ".ods",
+        ".xltx",
+        ".xltm",
+        ".pdf",
+        ".png"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "workbook_sheet_formula_dependencies"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "data_excel.mmd",
+      "dot": "data_excel.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C"
+  },
+  "toolchain": "toolchains/operation-toolchains.v4.json",
+  "source_byte_store": "owning_lane_files",
+  "historical_git_owner": null,
+  "full_runtime_installation_verified": false,
+  "project_data_packaged": false,
+  "formats": {
+    "schema": "evidence-lane.tabular-formats.v4",
+    "lane_id": "data_excel",
+    "database_owner": "data_excel",
+    "queries": [
+      "metadata",
+      "text",
+      "workbook",
+      "sheet",
+      "cell",
+      "formula",
+      "defined_name",
+      "merged_range",
+      "validation",
+      "hyperlink",
+      "relationship",
+      "table",
+      "chart"
+    ],
+    "original_bytes_retained": true,
+    "source_changes_require_separate_export": true,
+    "versions_and_files": "owning_lane_only",
+    "query_sql_from_clients": false,
+    "graph_files": [
+      "data_excel.mmd",
+      "data_excel.dot",
+      "data_excel.pointer.json"
+    ],
+    "version_tables": [
+      "sheet_source",
+      "sheet_version",
+      "sheet_current",
+      "sheet_export",
+      "sheet_derivative"
+    ],
+    "budgets": {
+      "max_source_bytes": 8388608,
+      "max_facts_bytes": 16777216,
+      "max_fact_items": 50000,
+      "max_tables": 128,
+      "sampled_rows_per_table": 2000,
+      "sample_columns": 256,
+      "max_query_items": 100
+    },
+    "installed_native_execution_verified": false,
+    "native_intake": [
+      ".xlsm",
+      ".xlsx",
+      ".xltm",
+      ".xltx"
+    ],
+    "value_reader_intake": [
+      ".xls",
+      ".xlsb",
+      ".ods"
+    ],
+    "generation": [
+      ".xlsx"
+    ],
+    "cell_edit": [
+      ".xlsm",
+      ".xlsx",
+      ".xltm",
+      ".xltx"
+    ],
+    "render": [
+      ".xlsm",
+      ".xlsx",
+      ".xltm",
+      ".xltx"
+    ],
+    "recalculate": [
+      ".xlsx"
+    ],
+    "native_formulas": "source_expression_and_cached_value_separate",
+    "formula_dependencies": "syntactic_A1_ranges_only",
+    "value_reader_limitations": "Formula expressions and formatting not extracted; source bytes retained.",
+    "cell_edit_fidelity": "Exact existing cells; active protection, merged/validated/formula ranges, rich text and extended cell metadata refused; unchanged package members preserved.",
+    "generated_numbers": "At most 15 significant decimal digits within Excel normal range; output values independently reparsed and compared.",
+    "generated_dates": "ISO dates and timezone-free times through milliseconds; submillisecond requests refused.",
+    "recalculation": "Separate new Calc-written version; package formatting/objects may change.",
+    "render_equivalence": "Calc page output is not Microsoft Excel equivalence proof.",
+    "library_inspection": [
+      "openpyxl_original_workbook",
+      "pandas_native_sample"
+    ],
+    "calc_allowed_functions": [
+      "ABS",
+      "AND",
+      "AVERAGE",
+      "AVERAGEIF",
+      "AVERAGEIFS",
+      "COLUMNS",
+      "CONCAT",
+      "CONCATENATE",
+      "COUNT",
+      "COUNTA",
+      "COUNTIF",
+      "COUNTIFS",
+      "DATE",
+      "DAY",
+      "FALSE",
+      "HLOOKUP",
+      "IF",
+      "IFERROR",
+      "IFS",
+      "INDEX",
+      "INT",
+      "ISBLANK",
+      "ISNUMBER",
+      "ISTEXT",
+      "LEFT",
+      "LEN",
+      "LOWER",
+      "MATCH",
+      "MAX",
+      "MID",
+      "MIN",
+      "MOD",
+      "MONTH",
+      "NOT",
+      "OR",
+      "POWER",
+      "PRODUCT",
+      "RIGHT",
+      "ROUND",
+      "ROUNDDOWN",
+      "ROUNDUP",
+      "ROWS",
+      "SQRT",
+      "SUBTOTAL",
+      "SUM",
+      "SUMIF",
+      "SUMIFS",
+      "SUMPRODUCT",
+      "TEXTJOIN",
+      "TRIM",
+      "TRUE",
+      "UPPER",
+      "VALUE",
+      "VLOOKUP",
+      "XLOOKUP",
+      "YEAR"
+    ],
+    "macros_executed": false,
+    "external_links_followed": false
+  },
+  "render_module": "evidence_lane_plugin.spreadsheet_rendering",
+  "members": [
+    {
+      "path": "authorities/project_sectors/data_excel/schema.sql",
+      "sha256": "c0ecd0bc4d91111442ef0d6d4c7290382794e9dcfcf854a7b827e4d6302a4e61"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/migration-history.json",
+      "sha256": "82810c57e492a5a05bf1348e41e5f45a9c1493ac7bcd5bbcfcec07c44d963f23"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/runtime.py",
+      "sha256": "c44c6115211cdadc74bbb34508c4773ac8e21829d13b7ff6d5f68d177284d5b2"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/builder.py",
+      "sha256": "dd663f9f18fcb8fd737d99cad05d364bdd89b5eeabe95f95f5471b03ce392c79"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/reader.py",
+      "sha256": "9b25dd03a050b7e2be9b53d98c868922e37db24071b67dc3fecf3d4c075245ca"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/builder-contract.schema.json",
+      "sha256": "22c861d1b853849cec740f43b837189bc52ac3cfd8933d7a165951e74402b5ad"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/reader-contract.schema.json",
+      "sha256": "030ebc612caefd04625e35480cfc882ddcd80751b6a4f1802d62ef644b027f86"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/refresh-receipt.schema.json",
+      "sha256": "671ca60489b81c2c1e34c021789a082e42e1e604bdd45665081d9dd0339f5e19"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
+      "sha256": "c3af7295742753024dc876ec6a7f080b12a88fa94e88bb7a26a50c32a0b66ec7"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/mmd-artifact.schema.json",
+      "sha256": "8715408fea729db7045ad23fae1b6a217f2df0c3aee080bc68516f4335c69524"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
+      "sha256": "afa05e127970f797c9b6d3ca3fa476431a69b6bfea02496af27c5ddd9ddc40da"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/data_excel_sector_v001.sqlite",
+      "sha256": "08e58e80ce4f83f502d24bcb06087b2d465dbd484515585dff4679e73942c64d"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/schema-template.json",
+      "sha256": "86e96cb5ff2fd090528ac1d773e2eadb1805a84ce87dbc241619e1e17fa288bf"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/sqlite-artifact.schema.json",
+      "sha256": "ffccfd8d60a26831b5456b1c6b56c9161716d4c17c853daec3d801d86d36130d"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/data_excel.mmd",
+      "sha256": "c0f1612f955dc200ea0a930634d5b6e44a93d8a5b727b1f784b325f1ce3250ba"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/data_excel.dot",
+      "sha256": "2b12d681b2863a046c7df571b0551b82e7d7247f6070842dbd6b7bad53cd8b25"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.mmd",
+      "sha256": "0642441e36568dcd9db89f276464311f5b68db7f92a64a6a0b57c9879cdb1d2c"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.dot",
+      "sha256": "8a50889e2fb462aa6c10a60c8b79044933dca3b26a35bb112012d5c62529861e"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/workflow.v4.json",
+      "sha256": "5bb0e9b8fb6c5957bc08699b3dbe4c11785d419d33a7579ef71fc36efb5d74e3"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/tools.json",
+      "sha256": "3f3db738110913b63d4c3f93024a86947ded94dbb21e511b257d893cd9c300dc"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/tools.schema.json",
+      "sha256": "76d7bd27467a40e71d5a7f5668f082d2f6e00c7953be0178bd9cfb176592c21a"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/README.md",
+      "sha256": "4e053230f7abc654293e1a28ca853178a88b091aae6427ac8fad4953574923c8"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/lane-contract.v4.json",
+      "sha256": "5dc8a48bc55af5570bd2ef0f38abc0581bcd5cf51e950502de9497f840c203c5"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/manifest.schema.json",
+      "sha256": "b89223b5c189a6fccb58dbadc43525f24c5ed065a0fbccf22c3f640d17828c77"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=13AA790E4DFF54CAA480BAAF1F7271E017F2689A17C0F8474C7706C71977BA81
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  t_continuation_bindings["continuation_bindings<br/>binding_digest, participant_id, generation, body_json"]:::table
+  t_continuation_events["continuation_events<br/>sequence, request_id, kind, actor_id, input_digest, result_json, previous_digest, digest, created_at"]:::table
+  t_continuation_offers["continuation_offers<br/>sequence, continuation_id, participant_id, source_client_id, destination_client_id, continuation_digest, body_json, state, result_json, created_at"]:::table
+  t_continuation_retired_clients["continuation_retired_clients<br/>client_id, continuation_id, destination_client_id, created_at"]:::table
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_lineage_chunks["lineage_chunks<br/>chunk_id, event_id, ordinal, text_digest, text"]:::table
+  t_lineage_events["lineage_events<br/>sequence, event_id, kind, client_id, provenance, reported_session_id, reported_turn_id, tool_use_id, parent_event_id, payload_digest, identity_digest, previous_cursor, cursor, received_at"]:::table
+  t_lineage_fts["lineage_fts<br/>chunk_id, event_id, text"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_prompt_classifications["prompt_classifications<br/>classification_id, source_event_id, ordinal, actor_id, previous_digest, classification_json, classification_digest"]:::table
+  t_prompt_entries["prompt_entries<br/>source_event_id, client_id, reported_session_id, prompt_index, source_cursor, entry_json, previous_entry_digest, entry_digest"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_turn_events["turn_events<br/>sequence, source_event_id, client_id, reported_session_id, reported_turn_id, session_digest, event_name, body_digest, previous_digest, digest"]:::table
+  t_continuation_retired_clients -->|"continuation_id"| t_continuation_offers
+  t_lineage_chunks -->|"event_id"| t_lineage_events
+  t_lineage_events -->|"payload_digest"| t_objects
+  t_lineage_events -->|"parent_event_id"| t_lineage_events
+  t_prompt_classifications -->|"source_event_id"| t_prompt_entries
+  t_prompt_entries -->|"source_event_id"| t_lineage_events
+  t_turn_events -->|"body_digest"| t_objects
+  t_turn_events -->|"source_event_id"| t_lineage_events

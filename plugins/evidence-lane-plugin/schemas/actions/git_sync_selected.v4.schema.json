@@ -1,0 +1,181 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Select exact local branch authority without source changes, or fetch and apply one scoped clean fast-forward.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authentication": {
+        "default": "none",
+        "enum": [
+          "none",
+          "host_git_credential_manager",
+          "host_openssh_agent"
+        ],
+        "title": "Authentication",
+        "type": "string"
+      },
+      "branch": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Branch",
+        "type": "string"
+      },
+      "expected_authority_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Expected Authority Digest"
+      },
+      "expected_before_commit": {
+        "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+        "title": "Expected Before Commit",
+        "type": "string"
+      },
+      "expected_commit": {
+        "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+        "title": "Expected Commit",
+        "type": "string"
+      },
+      "expected_remote_url": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Expected Remote Url",
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "select_local_authority",
+          "fast_forward"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "remote": {
+        "default": "origin",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+        "title": "Remote",
+        "type": "string"
+      },
+      "replace_branch_authority": {
+        "default": false,
+        "title": "Replace Branch Authority",
+        "type": "boolean"
+      },
+      "source": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Source",
+        "type": "string"
+      }
+    },
+    "required": [
+      "source",
+      "branch",
+      "expected_before_commit",
+      "expected_commit",
+      "expected_remote_url",
+      "mode",
+      "expected_authority_digest"
+    ],
+    "title": "GitSyncSelection",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "git_sync_selected",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority_digest": {
+        "title": "Authority Digest",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": true,
+        "title": "Result",
+        "type": "object"
+      },
+      "sync_digest": {
+        "title": "Sync Digest",
+        "type": "string"
+      },
+      "sync_id": {
+        "title": "Sync Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "sync_id",
+      "sync_digest",
+      "authority_digest",
+      "result"
+    ],
+    "title": "GitSyncResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "b08216b22a8534d8cbc39614dbdc013a75d1ad8f505c423cfb59fdaf4dfba8bd",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "git_sync_selected",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.enrollment:sync_selected_branch",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "git_sync_selected.exact_git",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [
+    "git_selected_source_identity",
+    "git_branch_authority_integrity",
+    "git_changed_source_fingerprint"
+  ],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

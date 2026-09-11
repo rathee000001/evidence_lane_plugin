@@ -1,0 +1,100 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Abandon a pending restoration record while preserving all files.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_preview_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Preview Digest",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "request_id",
+      "expected_preview_digest"
+    ],
+    "title": "RestoreAbandon",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "git_restore_abandon",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "files_removed": {
+        "default": false,
+        "title": "Files Removed",
+        "type": "boolean"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "state": {
+        "default": "abandoned",
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "request_id"
+    ],
+    "title": "RestoreAbandoned",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "c6923a77ab64675290b1be8e34e2b7cc7b70c307951a231aab0df695b975f713",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "git_restore_abandon",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.abandon",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "git_restore_abandon.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

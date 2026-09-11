@@ -1,0 +1,65 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "tableau",
+  "members": [
+    {
+      "path": "authorities/project_sectors/tableau/builder-contract.schema.json",
+      "sha256": "819e9cc43947004a66ffaed14c0b4d868da464f7411c0a0f0fa1df1959023f51"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/dot-artifact.schema.json",
+      "sha256": "4158d7fb5b551bc105805dbd4ef4d5af29800ffa16e1647772bf224b95c0afc7"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/lane-contract.v4.json",
+      "sha256": "05a1a076c0713568214732101d48a3593e24e879fe18d017e4bbe03975b34bb7"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/lane-pointer.schema.json",
+      "sha256": "812206d2a8445c7f0149b29c066c74f55d6f7d3040117f8689fb90de42374ac2"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/manifest.schema.json",
+      "sha256": "6c326320ce921d1079889ec5ec154b33597d4d348802bbbae78a09680eb3b9dc"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/manifest.v4.json",
+      "sha256": "0110db3de6b459b2d7958d8ee0f725d292f9cb454ce81b0f3a0ef57430d85e41"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/migration-history.json",
+      "sha256": "108f8dbc7acfce87af62610d9280ce9a677c1ae8aeeb0021af240fffcb47c1aa"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/mmd-artifact.schema.json",
+      "sha256": "e6d8cc6c05e292c66fbb6b7d9bbfd638fa93ca670d4dcac56829adef48d05987"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/reader-contract.schema.json",
+      "sha256": "8ed21c04ead69007ec3faf8f9c93c8da137c67a8f0f4d99e7122dd27c8c32acb"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/refresh-receipt.schema.json",
+      "sha256": "d73bb59e008a972f988a3b669e9bc3b032ae47f869b730a781fa269e19c51e29"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/schema-template.json",
+      "sha256": "bf3ba3e6b5630a46f3ddc807b756b0cf78eb35af522ff008e38725cf62a2ad4b"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/schema.sql",
+      "sha256": "55e691b743794e0916d5f72fa7a605248a10738f29c10e73df9171dd4c80b936"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/sqlite-artifact.schema.json",
+      "sha256": "39d3744ba62f3737834193ab7a208a248e5885c9df070ef0dce20bdf6cfbf70b"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tools.schema.json",
+      "sha256": "dd4be0c2f26fedfda93f6adde046aa3aed483823b6cb7fece6d5ee48f831eb81"
+    }
+  ],
+  "purpose": "Complete current sector owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

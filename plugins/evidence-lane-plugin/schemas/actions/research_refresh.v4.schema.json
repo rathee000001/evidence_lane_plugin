@@ -1,0 +1,352 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Index exact selected source bytes and attributed bounded facts in the separate research lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "adapter_contract": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Adapter Contract"
+      },
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "filename": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Filename",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "research",
+        "default": "research",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_file_bytes": {
+        "default": 1048576,
+        "maximum": 8388608,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "parser": {
+        "default": "auto",
+        "enum": [
+          "auto",
+          "text",
+          "json",
+          "notebook",
+          "archive",
+          "sqlite",
+          "opaque",
+          "document",
+          "presentation",
+          "spreadsheet",
+          "data",
+          "pdf_pymupdf",
+          "pdf_pypdf",
+          "pdf_pdfplumber",
+          "media"
+        ],
+        "title": "Parser",
+        "type": "string"
+      },
+      "sqlite_rows": {
+        "default": 100,
+        "maximum": 200,
+        "minimum": 0,
+        "title": "Sqlite Rows",
+        "type": "integer"
+      },
+      "sqlite_tables": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "Sqlite Tables",
+        "type": "array"
+      }
+    },
+    "required": [
+      "filename"
+    ],
+    "title": "ResearchIndex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "research_refresh",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "filename"
+  ],
+  "permission": "write",
+  "profile": "research",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "source_routes": {
+    "implicit_global_default": false,
+    "lanes": [
+      "research"
+    ],
+    "path_fields": [
+      "filename"
+    ],
+    "selection": "delta_enter.source_route"
+  },
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "82f93e4a8227440819fd6d1406a0e2bc39f7a726127cae548172c590d7d27906",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "research_refresh",
+    "profile": "research",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.sqlite_sqlalchemy",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLAlchemy"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.native",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.calamine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "python_calamine"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.presentation",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "PPTX_OpenXML"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.arrow",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pyarrow"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.pdf_pymupdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "PyMuPDF"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.pdf_pypdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+        "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_refresh.pdf_pdfplumber",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pdfplumber"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "sector_evidence_parse_file"
+    ]
+  },
+  "verification_checks": [
+    "sector_evidence_snapshot_integrity",
+    "sector_evidence_source_hash_unchanged"
+  ],
+  "worker_operations": [
+    "sector_evidence_parse_file"
+  ],
+  "workflow": "refresh"
+}

@@ -1,0 +1,360 @@
+{
+  "action": "github_repository_inspect",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/github_repository_inspect.action.v4.json",
+  "sdk_binding_sha256": "ae6942a1cbed03e2729ae3d6a271e49538a8cda2db48156020ac9f1400fe6148",
+  "tool": {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.",
+    "inputSchema": {
+      "$defs": {
+        "GitHubPageCursor": {
+          "additionalProperties": false,
+          "properties": {
+            "offset": {
+              "default": 0,
+              "maximum": 99,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "page": {
+              "default": 1,
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "page_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Page Sha256"
+            }
+          },
+          "title": "GitHubPageCursor",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "branch_cursor": {
+              "$ref": "#/$defs/GitHubPageCursor"
+            },
+            "include_workflows": {
+              "default": true,
+              "title": "Include Workflows",
+              "type": "boolean"
+            },
+            "max_branches": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Max Branches",
+              "type": "integer"
+            },
+            "max_http_requests": {
+              "default": 16,
+              "maximum": 32,
+              "minimum": 1,
+              "title": "Max Http Requests",
+              "type": "integer"
+            },
+            "max_metadata_bytes": {
+              "default": 2097152,
+              "maximum": 8388608,
+              "minimum": 1024,
+              "title": "Max Metadata Bytes",
+              "type": "integer"
+            },
+            "max_response_bytes": {
+              "default": 2097152,
+              "maximum": 4194304,
+              "minimum": 1024,
+              "title": "Max Response Bytes",
+              "type": "integer"
+            },
+            "max_total_response_bytes": {
+              "default": 8388608,
+              "maximum": 33554432,
+              "minimum": 1024,
+              "title": "Max Total Response Bytes",
+              "type": "integer"
+            },
+            "max_workflows": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Max Workflows",
+              "type": "integer"
+            },
+            "plugin_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Plugin Id"
+            },
+            "repository": {
+              "maxLength": 140,
+              "minLength": 3,
+              "title": "Repository",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "default": 20,
+              "exclusiveMinimum": 0,
+              "maximum": 60,
+              "title": "Timeout Seconds",
+              "type": "number"
+            },
+            "workflow_cursor": {
+              "$ref": "#/$defs/GitHubPageCursor"
+            }
+          },
+          "required": [
+            "repository"
+          ],
+          "title": "GitHubInspectionRequest",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "github_repository_inspect",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

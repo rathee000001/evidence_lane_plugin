@@ -1,0 +1,166 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "default": "local_code",
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_read_bytes": {
+        "default": 67108864,
+        "maximum": 134217728,
+        "minimum": 1024,
+        "title": "Max Read Bytes",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "timeout_ms": {
+        "default": 10000,
+        "maximum": 30000,
+        "minimum": 100,
+        "title": "Timeout Ms",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "Summary",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "pv_summary",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "mutation_performed": {
+        "const": false,
+        "default": false,
+        "title": "Mutation Performed",
+        "type": "boolean"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "refresh_performed": {
+        "const": false,
+        "default": false,
+        "title": "Refresh Performed",
+        "type": "boolean"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "ReadResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+      "owner": "localcode",
+      "version": 1
+    },
+    {
+      "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+      "owner": "localcode",
+      "version": 2
+    },
+    {
+      "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+      "owner": "localcode",
+      "version": 3
+    },
+    {
+      "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+      "owner": "githubcode",
+      "version": 1
+    },
+    {
+      "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+      "owner": "githubcode",
+      "version": 2
+    },
+    {
+      "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+      "owner": "githubcode",
+      "version": 3
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "pv_summary",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pv_summary.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

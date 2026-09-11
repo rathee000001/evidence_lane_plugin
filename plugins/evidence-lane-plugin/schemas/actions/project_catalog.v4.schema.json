@@ -1,0 +1,188 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read registered project roots through the owner-granted native administration channel.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "default": 50,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 10000,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      }
+    },
+    "title": "ProjectCatalogRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_catalog",
+  "outputSchema": {
+    "$defs": {
+      "ProjectRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_route": {
+            "title": "Capture Route",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "read_only": {
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "registration_bound": {
+            "title": "Registration Bound",
+            "type": "boolean"
+          },
+          "registration_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Digest"
+          },
+          "sensitivity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sensitivity"
+          },
+          "sensitivity_enforcement": {
+            "title": "Sensitivity Enforcement",
+            "type": "string"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "state_root": {
+            "title": "State Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "state_root",
+          "source_root",
+          "read_only",
+          "display_name",
+          "sensitivity",
+          "capture_route",
+          "registration_digest",
+          "registration_bound",
+          "sensitivity_enforcement"
+        ],
+        "title": "ProjectRecord",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "offset": {
+        "title": "Offset",
+        "type": "integer"
+      },
+      "projects": {
+        "items": {
+          "$ref": "#/$defs/ProjectRecord"
+        },
+        "title": "Projects",
+        "type": "array"
+      },
+      "selection_changed": {
+        "default": false,
+        "title": "Selection Changed",
+        "type": "boolean"
+      },
+      "total": {
+        "title": "Total",
+        "type": "integer"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "projects",
+      "total",
+      "offset",
+      "truncated"
+    ],
+    "title": "ProjectCatalog",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "project_admin",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "19b3c873a8ddb14d423a672a11422850dfd89159b7b15a07e53fe6a4331efcd9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_catalog",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_actions:register_project_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_catalog.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

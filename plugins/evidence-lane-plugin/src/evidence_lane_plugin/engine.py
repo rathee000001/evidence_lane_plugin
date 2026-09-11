@@ -1,1134 +1,491 @@
-"""Deterministic Git/code PV builder retained from the historical method laws."""
+"""Process ownership and durable lifecycle for the local v4 engine.
+
+The OS lock establishes singleton ownership. A PID is diagnostic information,
+never evidence of a native Codex task or of permission to take over a writer.
+"""
 
 from __future__ import annotations
 
 import json
-import shutil
-import sqlite3
-import tempfile
+import os
+import threading
+import time
+from concurrent.futures import Future
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, cast
+from typing import Literal, Self
+from uuid import uuid4
 
-from . import database
-from .acceptance import declarations_for_phase, run_acceptance_checks
-from .engine_identity import build_engine_identity
-from .errors import EvidenceLaneError, require
-from .git_adapter import (
-    diff_patch,
-    identity_json,
-    inspect_repository,
-    try_resolve_git_executable,
-)
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
-from .ids import new_ulid, prefixed_id
-from .ingest import ingest_repository, refresh_repository
-from .lane_engine import build_lane_bundle, validate_lane_bundle
-from .mode_governance import validate_mode_binding
-from .models import SessionRecord, TaskContract
-from .next_actions import hil_next_action, refresh_output_handoff
-from .project_authority import is_working_sector_operational_member
-from .project_overlay import build_project_overlay, validate_project_overlay
-from .pv_package import build_pv_package
-from .runtime_continuity import validate_runtime_continuity
-from .store import ProjectStore
-from .timeutil import utc_now
+from . import __version__
+from .build import runtime_source_identity
+from .connections import ClientRouter
+from .errors import LaneError
+from .host_routing import HostDetector, HostObservation
+from .locking import RuntimeLock
+from .projects import ProjectDirectory, atomic_json
+from .registry import ActionRegistry, ActionSpec, Contract
+from .runtime_health import CapabilityMonitor, RuntimeStatus, RuntimeStatusInput, runtime_status
+from .storage import now, reject_links
+from .workers import WorkerPool
 
 
-def _db_file_index(path: Path) -> dict[str, dict[str, Any]]:
-    with database.connect(path, readonly=True) as connection:
-        rows = connection.execute(
-            "SELECT path, sha256, size_bytes, code_family FROM files ORDER BY path"
-        ).fetchall()
-    return {
-        row["path"]: {
-            "sha256": row["sha256"],
-            "size_bytes": row["size_bytes"],
-            "code_family": row["code_family"],
-        }
-        for row in rows
-    }
+class Empty(Contract):
+    pass
 
 
-def compare_source_indexes(
-    prior_database: Path | None,
-    current_database: Path,
-) -> dict[str, Any]:
-    prior = _db_file_index(prior_database) if prior_database else {}
-    current = _db_file_index(current_database)
-    added = [
-        {"path": path, **current[path]}
-        for path in sorted(current.keys() - prior.keys())
-    ]
-    deleted = [
-        {"path": path, **prior[path]} for path in sorted(prior.keys() - current.keys())
-    ]
-    modified = [
-        {
-            "path": path,
-            "before_sha256": prior[path]["sha256"],
-            "after_sha256": current[path]["sha256"],
-            "before_bytes": prior[path]["size_bytes"],
-            "after_bytes": current[path]["size_bytes"],
-            "code_family": current[path]["code_family"],
-        }
-        for path in sorted(prior.keys() & current.keys())
-        if prior[path]["sha256"] != current[path]["sha256"]
-    ]
-    unchanged = sum(
-        1
-        for path in prior.keys() & current.keys()
-        if prior[path]["sha256"] == current[path]["sha256"]
-    )
-    payload = {
-        "added": added,
-        "modified": modified,
-        "deleted": deleted,
-        "unchanged": unchanged,
-    }
-    payload["delta_sha256"] = sha256_bytes(canonical_json_bytes(payload))
-    return payload
+class ProjectStatus(Contract):
+    project_id: str
+    format_version: int
+    object_count: int
+    object_bytes: int
+    receipt_count: int
 
 
-class CodePVEngine:
-    def __init__(
-        self,
-        *,
-        store: ProjectStore,
-        source_repository_root: str | Path,
-        package_source_root: str | Path,
-    ) -> None:
-        self.store = store
-        self.source_repository_root = Path(source_repository_root).resolve()
-        self.package_source_root = Path(package_source_root).resolve()
+class EngineHealth(Contract):
+    version: str
+    instance_id: str
+    phase: Literal["created", "running", "draining", "stopped"]
+    started_at: str | None
+    previous_shutdown: Literal["first_start", "clean", "unclean"]
+    project_count: int
+    host_observation: HostObservation | None
+    native_task_attestation: Literal["not_provided"] = "not_provided"
+    accepted_requests: int = 0
+    runtime_identity: dict
 
-    def doctor(self) -> dict[str, Any]:
-        schema_path = self.package_source_root / "schema.sql"
-        checks = {
-            "git": try_resolve_git_executable(self.source_repository_root) is not None,
-            "python": True,
-            "sqlite_fts5": False,
-            "schema_file": schema_path.is_file(),
-            "store_writable": False,
-        }
-        with sqlite3.connect(":memory:") as connection:
+
+class Quiescence(Contract):
+    instance_id: str
+    quiescent: bool
+    accepted_requests: int
+    worker_generation: str | None
+    stage: Literal["requests", "workers", "provider_workers", "quiescent"]
+    automatic_kill: Literal[False] = False
+    automatic_replay: Literal[False] = False
+
+
+class Engine:
+    def __init__(self, runtime_root: Path, *, registry: ActionRegistry | None = None,
+                 detector: HostDetector | None = None, worker_pool: WorkerPool | None = None,
+                 capabilities: CapabilityMonitor | None = None):
+        self.root = Path(os.path.abspath(runtime_root.expanduser()))
+        self.runtime_identity = runtime_source_identity()
+        reject_links(self.root, Path(self.root.anchor))
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.lock = RuntimeLock(self.root / "engine.lock")
+        self.state_path = self.root / "engine-state.json"
+        self.directory = ProjectDirectory(self.root)
+        self.detector = detector or HostDetector()
+        self.host_observation: HostObservation | None = None
+        self.workers = worker_pool
+        self.capabilities = capabilities or CapabilityMonitor()
+        from .provider_workers import ProviderWorkers
+        self.provider_workers = ProviderWorkers(self.capabilities)
+        self.capabilities.provider_workers = self.provider_workers
+        self.instance_id = str(uuid4())
+        from .storage_selection import LocalStoragePolicy, local_storage_evidence
+        self.local_storage_policy = LocalStoragePolicy.load(self.root)
+        self.clients = ClientRouter(self.directory, detector=self.detector, engine_id=self.instance_id,
+            storage_observer=lambda project_id: local_storage_evidence(self, project_id))
+        self.phase = "created"
+        self.started_at: str | None = None
+        self.previous_shutdown = "first_start"
+        self._mutex = threading.RLock()
+        self._admission = threading.Condition(self._mutex)
+        self._local = threading.local()
+        self._accepted = 0
+        self._background_jobs = 0
+        self._lifecycle = threading.RLock()
+        self._stopped = threading.Event()
+        self.registry = registry or ActionRegistry()
+        from .extension_routes import ExtensionRouter
+        self.registry.tool_router.extensions = ExtensionRouter(self)
+        from .compute_routes import ComputeRouter
+        self.registry.tool_router.compute = ComputeRouter(self)
+        self.registry.register(
+            ActionSpec(
+                "engine_health", "Read the local engine lifecycle and version.",
+                Empty, EngineHealth, lambda context, arguments: self.health(),
+                project_required=False, workflow='boot')
+        )
+        self.registry.register(ActionSpec(
+            "runtime_status", "Read measured tools/providers, worker state and selected-project job health.",
+            RuntimeStatusInput, RuntimeStatus,
+            lambda context, arguments: runtime_status(self, context, arguments), project_required=False, workflow='toolchain'))
+        self.registry.register(ActionSpec(
+            "project_status", "Read identity and storage counts for one selected project.",
+            Empty, ProjectStatus, self.project_status, queryable_in_delta=True, cross_project_read=True, workflow='boot'))
+        from .plan_runtime import register_plan_actions
+        register_plan_actions(self)
+        from .acceptance import register_validation_actions
+        register_validation_actions(self)
+        from .capture_routing import CaptureRouter, register_capture_actions
+        from .lineage import register_lineage_actions
+        self.capture = CaptureRouter(self)
+        register_lineage_actions(self)
+        register_capture_actions(self)
+        from .steering import register_steer_actions
+        register_steer_actions(self)
+        from .coordination import ProjectCoordinator
+        self.project_work = ProjectCoordinator(self)
+        from .adaptive_delta_entry import DeltaService
+        self.delta = DeltaService(self)
+        from .live_authority_query import register_query_actions
+        register_query_actions(self)
+        from .adaptive_delta_exit import DeltaExit
+        self.delta_exit = DeltaExit(self)
+        from .agent_learning import register_learning_actions
+        register_learning_actions(self)
+        from .project_memory import register_memory_actions
+        register_memory_actions(self)
+        from .source_intake import register_source_actions
+        register_source_actions(self)
+        from .source_preparation import register_preparation_actions
+        register_preparation_actions(self)
+        from .source_materialization import SourceMaterialization
+        self.source_materialization = SourceMaterialization(self)
+        from .code_profile import register_code_actions
+        register_code_actions(self)
+        from .enrollment import register_git_sync_actions
+        register_git_sync_actions(self)
+        from .remote_git import register_remote_git_actions
+        register_remote_git_actions(self)
+        from .github_toolchain import register_github_actions
+        register_github_actions(self)
+        from .context_index_routing import _register_remote_context_index_actions
+        _register_remote_context_index_actions(self)
+        from .evaluation_toolchain import register_evaluation_actions
+        from .observability_toolchain import register_observability_actions
+        register_evaluation_actions(self)
+        register_observability_actions(self)
+        from .document_profile import register_document_actions
+        register_document_actions(self)
+        from .tabular_profile import register_tabular_actions
+        register_tabular_actions(self)
+        from .presentation_profile import register_presentation_actions
+        register_presentation_actions(self)
+        from .tableau_profile import register_tableau_actions
+        register_tableau_actions(self)
+        from .powerbi_profile import register_powerbi_actions
+        register_powerbi_actions(self)
+        from .pdf_profile import register_pdf_actions
+        register_pdf_actions(self)
+        from .media_profile import register_media_actions
+        register_media_actions(self)
+        from .sector_evidence_profile import register_evidence_sector_actions
+        register_evidence_sector_actions(self)
+        from .research_web_profile import register_web_actions
+        register_web_actions(self)
+        from .research_discovery_profile import register_discovery_actions
+        register_discovery_actions(self)
+        from .sector_evidence_views import register_evidence_views
+        register_evidence_views(self)
+        from .canon_task_graph import register_canon_actions
+        register_canon_actions(self)
+        from .task_binding_registry import register_continuation_actions
+        register_continuation_actions(self)
+        from .canon_runtime_continuity import register_continuation_context
+        register_continuation_context(self)
+        from .project_universe import register_project_link_actions
+        register_project_link_actions(self)
+        from .universe_snapshot import register_universe_snapshot_actions
+        register_universe_snapshot_actions(self)
+        from .universe_federation import register_federation_actions
+        register_federation_actions(self)
+        from .lane_reader import register_cross_project_actions
+        register_cross_project_actions(self)
+        from .lane_contract import register_authority_views
+        register_authority_views(self)
+        from .artifact_contract import register_artifact_actions
+        from .store import register_restoration_actions
+        register_restoration_actions(self)
+        from .database_recovery import register_recovery_actions
+        register_recovery_actions(self)
+        from .job_recovery import register_job_recovery_actions
+        register_job_recovery_actions(self)
+        register_artifact_actions(self)
+        from .workflow_surface import register_workflow_actions
+        register_workflow_actions(self)
+        from .connections import register_client_actions
+        register_client_actions(self)
+        from .connector_governance import register_connector_actions
+        register_connector_actions(self)
+        from .accelerators import register_accelerator_actions
+        register_accelerator_actions(self)
+        from .session import register_session_actions
+        register_session_actions(self)
+        from .state_law import register_transition_law
+        register_transition_law(self)
+        from .project_actions import register_project_actions
+        register_project_actions(self)
+        from .storage_selection import register_storage_actions
+        register_storage_actions(self)
+        from .mcp_apps import register_panel_actions
+        register_panel_actions(self)
+        from .reader import register_reader_actions
+        register_reader_actions(self)
+        from .agent_configuration import register_instruction_actions
+        register_instruction_actions(self)
+        from .first_class_workflows import register_first_class_actions
+        register_first_class_actions(self)
+        from .tool_routes import register_toolchain_actions
+        register_toolchain_actions(self)
+        from .mode_governance import register_mode_actions
+        register_mode_actions(self)
+        from .prompt_index import register_prompt_actions
+        register_prompt_actions(self)
+        from .selector_owners import register_selector_owners
+        from .source_selectors import register_selector_actions
+        register_selector_owners(self.registry)
+        register_selector_actions(self)
+        from .env_uop_tool_routing import EnvUopRuntime
+        self.registry.control_plane = EnvUopRuntime(self.registry)
+
+    def project_status(self, context, arguments) -> ProjectStatus:
+        store = self.directory.open(context.project_id)
+        with store.connection(read_only=True) as connection:
+            metadata = connection.execute("SELECT format_version FROM project WHERE singleton=1").fetchone()
+            # Holding this Root PV read pins every lane to the same publication.
+            object_count = object_bytes = receipts = 0
+            for item in store.lane_catalog():
+                with store.lane(item['lane_id']).connection(read_only=True) as lane:
+                    objects = lane.execute("SELECT COUNT(*),COALESCE(SUM(size_bytes),0) FROM objects").fetchone()
+                    object_count += objects[0]
+                    object_bytes += objects[1]
+                    if item['lane_id'] == 'receipts':
+                        receipts = lane.execute('SELECT COUNT(*) FROM receipts').fetchone()[0]
+        return ProjectStatus(project_id=store.project_id, format_version=metadata[0],
+                             object_count=object_count, object_bytes=object_bytes, receipt_count=receipts)
+
+    def _persist(self) -> None:
+        reject_links(self.state_path, self.root)
+        atomic_json(self.state_path, {
+            "format_version": 1, "engine_version": __version__,
+            "instance_id": self.instance_id, "pid": os.getpid(),
+            "phase": self.phase, "started_at": self.started_at, "updated_at": now(),
+        })
+
+    def start(self) -> None:
+        with self._mutex:
+            if self.phase != "created":
+                raise LaneError("INVALID_ENGINE_TRANSITION", "Create a new engine to start again.")
+            self.lock.acquire()
             try:
-                connection.execute("CREATE VIRTUAL TABLE test_fts USING fts5(content)")
-                checks["sqlite_fts5"] = True
-            except sqlite3.OperationalError:
-                checks["sqlite_fts5"] = False
-        probe = self.store.root / ".doctor-probe"
-        try:
-            probe.write_bytes(b"evidence-lane-doctor")
-            checks["store_writable"] = probe.read_bytes() == b"evidence-lane-doctor"
-        finally:
-            probe.unlink(missing_ok=True)
-        identity = build_engine_identity(
-            package_root=self.package_source_root,
-            repository_root=self.source_repository_root,
-        )[0].as_dict()
-        return {
-            "status": "PASS" if all(checks.values()) else "FAIL",
-            "checks": checks,
-            "engine": identity,
-        }
+                reject_links(self.state_path, self.root)
+                if self.state_path.exists():
+                    try:
+                        if self.state_path.stat().st_size > 16_384:
+                            raise ValueError()
+                        previous = json.loads(self.state_path.read_text(encoding="utf-8"))
+                        if previous["format_version"] != 1 or previous["phase"] not in {
+                            "running", "draining", "stopped"
+                        }:
+                            raise ValueError()
+                    except (KeyError, TypeError, ValueError):
+                        raise LaneError(
+                            "RUNTIME_STATE_INVALID", "The previous lifecycle record is invalid."
+                        ) from None
+                    self.previous_shutdown = (
+                        "clean" if previous["phase"] == "stopped" else "unclean"
+                    )
+                self.host_observation = self.detector.inspect(trigger="engine_start")
+                self.capabilities.refresh()
+                if self.workers is not None:
+                    self.workers.start()
+                self.registry.freeze()
+                self.started_at = now()
+                self.phase = "running"
+                self._persist()
+            except BaseException:
+                if self.workers is not None:
+                    self.workers.close(force=True)
+                self.phase = "created"
+                self.lock.release()
+                raise
 
-    def _build_live_root_hil_proposal(
-        self,
-        *,
-        project_id: str,
-        session: SessionRecord,
-        run_id: str,
-        lineage_path: str | Path,
-        task: TaskContract | None,
-        pointer: Any,
-        config: Any,
-        runtime_continuity: dict[str, Any],
-        mode_execution: dict[str, Any] | None,
-        acceptance_health: dict[str, Any],
-        repository_payload: dict[str, Any],
-        identity: Any,
-        proposed_pv: str,
-        proposal_id: str,
-        created_at: str,
-    ) -> dict[str, Any]:
-        """Refresh only the live-root Project Overlay before explicit HIL."""
+    def begin_drain(self) -> None:
+        with self._mutex:
+            if self.phase != "running":
+                raise LaneError("INVALID_ENGINE_TRANSITION", "Only a running engine can drain.")
+            self.phase = "draining"
+            if self._accepted == 0 and self.workers is not None:
+                self.workers.begin_drain()
+            self._persist()
 
-        project_root = self.store.project_root(project_id)
-        sectors_root = project_root / "sectors"
-        lane_validation = validate_lane_bundle(sectors_root)
-        checksum_mismatches = dict(
-            lane_validation.get("checksum_mismatches") or {}
-        )
-        operational_authority_only_drift = bool(checksum_mismatches) and all(
-            is_working_sector_operational_member(path)
-            for path in checksum_mismatches
-        )
-        validated_live_operational_authority = bool(
-            operational_authority_only_drift
-            and not lane_validation.get("lane_manifest_errors")
-            and all(
-                lane.get("valid") is True
-                for lane in dict(lane_validation.get("lanes") or {}).values()
-            )
-            and lane_validation.get("lane_directory_set_valid") is True
-            and lane_validation.get("source_routes_valid") is True
-            and lane_validation.get("topology_valid") is True
-        )
-        require(
-            lane_validation.get("valid") is True
-            or validated_live_operational_authority,
-            "LIVE_ROOT_SECTOR_AUTHORITY_INVALID",
-            "The live sector authority must validate before Project Overlay refresh.",
-            status="MISMATCH",
-            project_id=project_id,
-            operational_authority_only_drift=operational_authority_only_drift,
-            checksum_mismatch_paths=sorted(checksum_mismatches),
-            validation=lane_validation,
-        )
-        lane_manifest = json.loads(
-            (sectors_root / "manifest.json").read_text(encoding="utf-8")
-        )
-        code_mode = str(
-            lane_manifest.get("code_mode")
-            or ("github_code" if identity.provider == "github" else "local_code")
-        )
-        prior_overlay = project_root / "project_overlay"
-        prior_overlay_validation = (
-            validate_project_overlay(prior_overlay)
-            if (prior_overlay / "project_overlay.sqlite").is_file()
-            else None
-        )
-        require(
-            prior_overlay_validation is None
-            or prior_overlay_validation.get("valid") is True,
-            "LIVE_ROOT_PROJECT_OVERLAY_BASELINE_INVALID",
-            "The prior live-root Project Overlay cannot be used as the blast-radius baseline.",
-            status="MISMATCH",
-            project_id=project_id,
-        )
-        build_prefix = f"evi-overlay-{proposed_pv.lower()}-"
-        build_parent = Path(tempfile.gettempdir()).resolve()
-        build_root = Path(tempfile.mkdtemp(prefix=build_prefix)).resolve()
-        try:
-            overlay_path = build_root / "project_overlay"
-            overlay_validation = build_project_overlay(
-                overlay_path,
-                lane_bundle_path=sectors_root,
-                lineage_source=lineage_path,
-                candidate_id=proposal_id,
-                proposed_pv=proposed_pv,
-                parent_accepted_pv=pointer.accepted_pv,
-                pointer_generation=pointer.generation,
-                code_mode=code_mode,
-                created_at=created_at,
-                truth_state="HIL_PROPOSAL_ONLY",
-                accepted_parent_access=(
-                    "LIVE_ROOT_BASELINE_ONLY_ACCEPTED_ARCHIVE_UNOPENED"
-                ),
-                prior_overlay_path=prior_overlay,
-            )
-            overlay_delta = dict(overlay_validation["project_overlay_delta"])
-            next_action_contract = hil_next_action(
-                project_id=project_id,
-                session_id=session.session_id,
-                candidate_id=proposal_id,
-                proposed_pv=proposed_pv,
-                mode_execution=mode_execution,
-            )
-            output_handoff = refresh_output_handoff(
-                host_kind=session.host.value,
-                client_can_edit_source=(
-                    session.metadata.get("client_source_edit_authority") == "DIRECT"
-                ),
-                candidate_id=proposal_id,
-                proposed_pv=proposed_pv,
-            )
-            invocation = runtime_continuity.get("invocation")
-            exit_prompt_label = (
-                str(
-                    invocation.get("exit_slip_next_prompt_label")
-                    or "PV_EXIT_SUGGESTED_NEXT_PROMPT"
-                )
-                if isinstance(invocation, dict)
-                else "PV_EXIT_SUGGESTED_NEXT_PROMPT"
-            )
-            project_identity = {
-                "schema": "evidence-lane.project-identity.v1",
-                "project_id": project_id,
-                "display_name": config.display_name,
-                "repository": repository_payload,
-                "sensitivity": config.sensitivity,
-                "source_authority": "SOLE_LIVE_PROJECT_ROOT_AND_VALIDATED_SECTORS",
-                "universal_lanes": {
-                    "lane_count": lane_validation["lane_count"],
-                    "code_mode": code_mode,
-                    "bundle_sha256": lane_validation["bundle_sha256"],
-                },
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-            }
-            entry_slip = {
-                "schema": "evidence-lane.entry-slip.v1",
-                "session_id": session.session_id,
-                "run_id": run_id,
-                "project_id": project_id,
-                "accepted_entry_pv": pointer.accepted_pv,
-                "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-                "pointer_generation": pointer.generation,
-                "repository_entry": session.repository,
-                "task": task.as_dict() if task else None,
-                "runtime_continuity": runtime_continuity,
-                "mode_execution": mode_execution,
-                "entered_at": session.created_at,
-            }
-            patch = diff_patch(config.repository_path)
-            exit_slip = {
-                "schema": "evidence-lane.exit-slip.v1",
-                "session_id": session.session_id,
-                "run_id": run_id,
-                "project_id": project_id,
-                "proposed_pv": proposed_pv,
-                "proposal_id": proposal_id,
-                "candidate_id": proposal_id,
-                "repository_exit": repository_payload,
-                "source_delta": overlay_delta,
-                "git_patch_sha256": sha256_bytes(patch.encode("utf-8")),
-                "git_patch_bytes": len(patch.encode("utf-8")),
-                "task": task.as_dict() if task else None,
-                "runtime_continuity": runtime_continuity,
-                "pv_exit_prompt": {
-                    "label": exit_prompt_label,
-                    "suggested_next_prompt": next_action_contract[
-                        "suggested_next_prompt"
-                    ],
-                    "choices": next_action_contract.get("choices", []),
-                    "copyable": True,
-                    "host_owned_composer": True,
-                    "auto_submit": False,
-                },
-                "mode_execution": mode_execution,
-                "acceptance_checks": acceptance_health,
-                "lane_refresh": {
-                    "status": "NOT_RUN_LIVE_SECTORS_ALREADY_AUTHORITY",
-                    "bundle_sha256": lane_validation["bundle_sha256"],
-                    "lane_count": lane_validation["lane_count"],
-                },
-                "project_overlay_refresh": overlay_validation,
-                "next_action": next_action_contract,
-                "host_output_handoff": output_handoff,
-                "full_candidate_package_built": False,
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-                "exited_at": created_at,
-            }
-            proposal_manifest = {
-                "schema": "evidence-lane.live-root-hil-proposal-manifest.v1",
-                "project_id": project_id,
-                "proposal_id": proposal_id,
-                "candidate_id": proposal_id,
-                "proposed_pv": proposed_pv,
-                "parent_accepted_pv": pointer.accepted_pv,
-                "parent_manifest_sha256": pointer.accepted_manifest_sha256,
-                "pointer_generation": pointer.generation,
-                "project_overlay_manifest_sha256": overlay_validation[
-                    "manifest_sha256"
-                ],
-                "project_overlay_delta_sha256": overlay_delta["delta_sha256"],
-                "full_candidate_package_built": False,
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-                "created_at": created_at,
-            }
-            engine_identity, toolchain = build_engine_identity(
-                package_root=self.package_source_root,
-                repository_root=self.source_repository_root,
-            )
-            proposal_validation = {
-                "status": "PASS",
-                "valid": True,
-                # Match the contained package contract: promotability here is
-                # structural authority validity. Declared acceptance and any
-                # post-seal checks remain separately enforced at the decision
-                # boundary; prose checks do not make a valid live overlay
-                # structurally non-promotable.
-                "promotable": overlay_validation.get("valid") is True,
-                "project_id": project_id,
-                "proposal_id": proposal_id,
-                "candidate_id": proposal_id,
-                "proposed_pv": proposed_pv,
-                "parent_accepted_pv": pointer.accepted_pv,
-                "pointer_generation": pointer.generation,
-                "warnings": [],
-                "full_candidate_package_built": False,
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-                "project_overlay": overlay_validation,
-            }
-            stored = self.store.place_live_root_hil_proposal(
-                project_id,
-                proposal_id,
-                proposed_pv=proposed_pv,
-                project_overlay_source=overlay_path,
-                package_metadata={
-                    "manifest": proposal_manifest,
-                    "project_identity": project_identity,
-                    "entry_slip": entry_slip,
-                    "exit_slip": exit_slip,
-                },
-                validation=proposal_validation,
-            )
-            postseal_declarations = declarations_for_phase(
-                config.repository_path,
-                task.acceptance_checks if task else [],
-                phase="POSTSEAL",
-            )
-            postseal_acceptance = None
-            postseal_receipt_path = None
-            postseal_receipt_sha256 = None
-            if postseal_declarations:
-                postseal_acceptance = run_acceptance_checks(
-                    config.repository_path,
-                    postseal_declarations,
-                    phase="POSTSEAL",
-                    environment={
-                        "EVIDENCE_LANE_CANDIDATE_PATH": str(project_root),
-                        "EVIDENCE_LANE_PROJECT_ROOT": str(project_root),
-                        "EVIDENCE_LANE_PROJECT_ID": project_id,
-                        "EVIDENCE_LANE_EXPECTED_CANDIDATE_ID": proposal_id,
-                        "EVIDENCE_LANE_EXPECTED_ACCEPTED_PV": (
-                            pointer.accepted_pv or "NONE"
-                        ),
-                        "EVIDENCE_LANE_EXPECTED_POINTER_GENERATION": str(
-                            pointer.generation
-                        ),
-                        "EVIDENCE_LANE_EXPECTED_COMMIT": identity.commit_sha,
-                    },
-                )
-                postseal_receipt = {
-                    "schema": "evidence-lane.postseal-acceptance.receipt.v1",
-                    "project_id": project_id,
-                    "candidate_id": proposal_id,
-                    "accepted_pv_retained": pointer.accepted_pv,
-                    "pointer_generation_retained": pointer.generation,
-                    "source_commit_sha": identity.commit_sha,
-                    "acceptance": postseal_acceptance,
-                    "recorded_at": utc_now(),
-                }
-                postseal_receipt["receipt_sha256"] = sha256_bytes(
-                    canonical_json_bytes(postseal_receipt)
-                )
-                postseal_receipt_path = (
-                    project_root
-                    / "receipts"
-                    / f"postseal_{proposal_id.lower()}.json"
-                )
-                postseal_receipt_sha256 = postseal_receipt["receipt_sha256"]
-                atomic_write_json(postseal_receipt_path, postseal_receipt)
-            return {
-                "candidate_id": proposal_id,
-                "proposal_id": proposal_id,
-                "proposed_pv": proposed_pv,
-                "manifest_sha256": stored["manifest_sha256"],
-                "package_sha256": stored["package_sha256"],
-                "warnings": [],
-                "stored_path": str(project_root),
-                "stored_validation": stored,
-                "repository": repository_payload,
-                "source_delta": overlay_delta,
-                "ingestion": {
-                    "status": "NOT_RUN_LIVE_SECTORS_ALREADY_AUTHORITY",
-                    "exact_live_sector_bundle_sha256": lane_validation[
-                        "bundle_sha256"
-                    ],
-                },
-                "acceptance_checks": acceptance_health,
-                "postseal_acceptance": postseal_acceptance,
-                "postseal_acceptance_receipt": (
-                    str(postseal_receipt_path) if postseal_receipt_path else None
-                ),
-                "postseal_acceptance_receipt_sha256": postseal_receipt_sha256,
-                "lane_refresh": lane_validation,
-                "project_overlay_refresh": overlay_validation,
-                "next_action": next_action_contract,
-                "mode_execution": mode_execution,
-                "toolchain_manifest_sha256": (
-                    engine_identity.toolchain_manifest_sha256
-                ),
-                "toolchain_package_count": len(toolchain["packages"]),
-                "full_candidate_package_built": False,
-                "candidate_directory_created": False,
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-            }
-        finally:
-            resolved_build = build_root.resolve()
-            if (
-                resolved_build.parent != build_parent
-                or not resolved_build.name.startswith(build_prefix)
-            ):
-                raise EvidenceLaneError(
-                    "OVERLAY_BUILD_CLEANUP_PATH_ESCAPE",
-                    "The temporary Project Overlay path escaped its exact runtime directory.",
-                    status="FAIL",
-                )
-            shutil.rmtree(resolved_build, ignore_errors=True)
+    @contextmanager
+    def admit(self):
+        """Atomically admit an entire request, including its nested SDK call.
 
-    def build_candidate(
-        self,
-        *,
-        project_id: str,
-        session: SessionRecord,
-        run_id: str,
-        lineage_path: str | Path,
-        task: TaskContract | None,
-        initial_entry: bool,
-    ) -> dict[str, Any]:
-        config = self.store.config(project_id)
-        pointer = self.store.pointer(project_id)
-        require(
-            session.project_id == project_id,
-            "SESSION_PROJECT_MISMATCH",
-            "The session is not authorized for this project.",
-            status="MISMATCH",
-        )
-        require(
-            pointer.generation == session.accepted_pointer_generation,
-            "SESSION_POINTER_STALE",
-            "The accepted pointer changed after session boot.",
-            status="STALE",
-            session_generation=session.accepted_pointer_generation,
-            current_generation=pointer.generation,
-        )
-        runtime_continuity_value = session.metadata.get("runtime_continuity")
-        require(
-            isinstance(runtime_continuity_value, dict),
-            "RUNTIME_CONTINUITY_REQUIRED",
-            "A candidate build requires the boot/resume ENV and storage continuity receipt.",
-            status="BLOCKED",
-        )
-        runtime_continuity = validate_runtime_continuity(
-            cast(dict[str, Any], runtime_continuity_value)
-        )
-        mode_binding_value = session.metadata.get(
-            "task_mode_binding" if task is not None else "active_mode_binding"
-        )
-        mode_binding: dict[str, Any] | None = None
-        if isinstance(mode_binding_value, dict):
-            mode_binding = validate_mode_binding(
-                mode_binding_value,
-                expected_task_id=(task.task_id if task is not None else None),
-            )
-        if initial_entry:
-            require(
-                pointer.accepted_pv is None,
-                "INITIAL_ENTRY_ALREADY_EXISTS",
-                "PV1 can only be built when no accepted PV exists.",
-                status="BLOCKED",
-            )
-        acceptance_health = run_acceptance_checks(
-            config.repository_path,
-            task.acceptance_checks if task else [],
-        )
-        require(
-            acceptance_health["source_unchanged"],
-            "ACCEPTANCE_CHECK_MUTATED_SOURCE",
-            "An acceptance command changed the governed source. Restore or explicitly "
-            "include that change before building a candidate.",
-            status="BLOCKED",
-            acceptance_health=acceptance_health,
-        )
-        mode_execution: dict[str, Any] | None = None
-        if mode_binding is not None:
-            governance = cast(dict[str, Any], mode_binding["mode_governance"])
-            contracts = cast(list[dict[str, Any]], governance["contracts"])
-            ci_cd_required = any(
-                bool(contract.get("ci_cd", {}).get("required"))
-                for contract in contracts
-            )
-            mode_execution = {
-                "schema": "evidence-lane.mode-execution.v1",
-                "selection_source": mode_binding["selection_source"],
-                "selected_mode_ids": list(mode_binding["selected_mode_ids"]),
-                "mode_intersection": mode_binding["mode_intersection"],
-                "canonical_lanes": list(mode_binding["canonical_lanes"]),
-                "mode_binding_receipt_sha256": mode_binding[
-                    "binding_receipt_sha256"
-                ],
-                "combined_operator_receipt_sha256": governance[
-                    "combined_operator_receipt_sha256"
-                ],
-                "visible_formula_response": list(
-                    governance["visible_formula_response"]
-                ),
-                "operator_contracts": contracts,
-                "lane_hil_contracts": [contract["hil"] for contract in contracts],
-                "ci_cd": {
-                    "required_by_selected_mode": ci_cd_required,
-                    "prebuild_receipt_status": acceptance_health.get(
-                        "prebuild_status", acceptance_health["status"]
-                    ),
-                    "prebuild_receipt_verdict": acceptance_health.get(
-                        "prebuild_verdict", acceptance_health["verdict"]
-                    ),
-                    "declared": acceptance_health["declared"],
-                    "executed": acceptance_health.get(
-                        "prebuild_executed", acceptance_health["executed"]
-                    ),
-                    "postseal_pending": acceptance_health.get(
-                        "postseal_pending", 0
-                    ),
-                    "commands_inferred": acceptance_health["commands_inferred"],
-                    "approve_gate": (
-                        "PASS"
-                        if not ci_cd_required
-                        or acceptance_health.get(
-                            "prebuild_status", acceptance_health["status"]
-                        )
-                        == "PASS"
-                        else "OPEN_OR_FAILED"
-                    ),
-                },
-                "authority_hil_token_vocabulary": governance[
-                    "authority_hil_token_vocabulary"
-                ],
-                "authority_hil_is_lane_specific": True,
-                "decision_count_is_behavior_ceiling": False,
-                "mode_selection_is_not_hil_approval": True,
-                "candidate_created_by_selection": False,
-                "pointer_moved_by_selection": False,
-            }
-            mode_execution["execution_receipt_sha256"] = sha256_bytes(
-                canonical_json_bytes(mode_execution)
-            )
-        identity = inspect_repository(
-            config.repository_path,
-            expected_owner=config.expected_owner,
-            expected_name=config.expected_name,
-            expected_branch=(
-                config.allowed_branches[0]
-                if len(config.allowed_branches) == 1
-                else None
-            ),
-            require_clean=initial_entry,
-        )
-        require(
-            identity.branch in config.allowed_branches,
-            "BRANCH_NOT_AUTHORIZED",
-            "The current Git branch is not authorized for this project.",
-            status="BLOCKED",
-            branch=identity.branch,
-            allowed_branches=config.allowed_branches,
-        )
-        repository_payload = identity_json(identity, config.repository_path)
-        proposed_pv = self.store.next_pv_id(project_id)
-        external_project_authority = self.store.uses_external_project_authority(
-            project_id
-        )
-        candidate_id = (
-            f"{proposed_pv}_HIL_PROPOSAL__RUN_{new_ulid()}"
-            if external_project_authority
-            else f"{proposed_pv}_CANDIDATE__RUN_{new_ulid()}"
-        )
-        created_at = utc_now()
-        project_root = self.store.project_root(project_id)
-        if external_project_authority:
-            return self._build_live_root_hil_proposal(
-                project_id=project_id,
-                session=session,
-                run_id=run_id,
-                lineage_path=lineage_path,
-                task=task,
-                pointer=pointer,
-                config=config,
-                runtime_continuity=runtime_continuity,
-                mode_execution=mode_execution,
-                acceptance_health=acceptance_health,
-                repository_payload=repository_payload,
-                identity=identity,
-                proposed_pv=proposed_pv,
-                proposal_id=candidate_id,
-                created_at=created_at,
-            )
-        # Candidate construction is transient runtime work, not project
-        # authority.  Keep it out of the live project root so an interrupted
-        # build cannot expose a misleading `.build` project member.
-        build_prefix = f"evi-{proposed_pv.lower()}-"
-        build_parent = Path(tempfile.gettempdir()).resolve()
-        build_root = Path(tempfile.mkdtemp(prefix=build_prefix)).resolve()
+        Draining blocks new admissions while an already accepted handler may
+        still submit its worker operation. Worker shutdown follows these exits.
+        """
+        with self._admission:
+            depth = getattr(self._local, "depth", 0)
+            if depth == 0:
+                if self.phase != "running":
+                    raise LaneError("ENGINE_DRAINING", "The engine is finishing its current work.")
+                self._accepted += 1
+            self._local.depth = depth + 1
         try:
-            db_path = build_root / "code.sqlite"
-            prior_db = None
-            if pointer.accepted_pv:
-                prior_db = (
-                    self.store.accepted_path(project_id, pointer.accepted_pv)
-                    / "code.sqlite"
-                )
-                require(
-                    prior_db.is_file(),
-                    "ACCEPTED_CODE_DATABASE_MISSING",
-                    "The accepted entry PV has no code compatibility database.",
-                    status="MISMATCH",
-                    accepted_pv=pointer.accepted_pv,
-                )
-                shutil.copyfile(prior_db, db_path)
-            database.initialize(
-                db_path,
-                extra_metadata={
-                    "project_id": project_id,
-                    "candidate_id": candidate_id,
-                    "proposed_pv": proposed_pv,
-                    "created_at": created_at,
-                },
-            )
-            started_at = utc_now()
-            with database.connect(db_path) as connection:
-                with database.transaction(connection):
-                    repository_values = (
-                        identity.provider,
-                        identity.repository_url,
-                        identity.owner,
-                        identity.name,
-                        identity.branch,
-                        identity.commit_sha,
-                        identity.tree_sha,
-                        repository_payload["worktree_sha256"],
-                        int(identity.is_clean),
-                        json.dumps(
-                            repository_payload["submodules"],
-                            sort_keys=True,
-                            separators=(",", ":"),
-                        ),
-                        identity.lfs_state,
-                    )
-                    if prior_db:
-                        repository_row = connection.execute(
-                            """
-                            SELECT repository_id FROM repositories
-                            ORDER BY repository_id DESC LIMIT 1
-                            """
-                        ).fetchone()
-                        require(
-                            repository_row is not None,
-                            "ACCEPTED_REPOSITORY_ROW_MISSING",
-                            "The accepted code database has no repository identity.",
-                            status="MISMATCH",
-                        )
-                        repository_id = int(repository_row["repository_id"])
-                        connection.execute(
-                            """
-                            UPDATE repositories SET
-                                provider=?, repository_url=?, owner=?, name=?,
-                                branch=?, commit_sha=?, tree_sha=?, worktree_sha256=?,
-                                is_clean=?, submodules_json=?, lfs_state=?
-                            WHERE repository_id=?
-                            """,
-                            (*repository_values, repository_id),
-                        )
-                        ingestion = refresh_repository(
-                            connection,
-                            repository_id=repository_id,
-                            repository_root=config.repository_path,
-                            parent_pv=pointer.accepted_pv or "NONE",
-                        )
-                    else:
-                        repo_cursor = connection.execute(
-                            """
-                            INSERT INTO repositories(
-                                provider, repository_url, owner, name, branch, commit_sha,
-                                tree_sha, worktree_sha256, is_clean, submodules_json, lfs_state
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """,
-                            repository_values,
-                        )
-                        repository_id = database.required_lastrowid(repo_cursor)
-                        ingestion = ingest_repository(
-                            connection,
-                            repository_id=repository_id,
-                            repository_root=config.repository_path,
-                        )
-                    connection.execute(
-                        """
-                        INSERT INTO pointers(pointer_kind, pointer_value, pointer_sha256, created_at)
-                        VALUES (?, ?, ?, ?)
-                        """,
-                        (
-                            "accepted_entry",
-                            pointer.accepted_pv or "NONE",
-                            pointer.accepted_manifest_sha256 or "NONE",
-                            created_at,
-                        ),
-                    )
-                    if task:
-                        connection.execute(
-                            """
-                            INSERT INTO tasks(
-                                task_id, task_class, requested_outcome,
-                                permitted_paths_json, permitted_tools_json,
-                                acceptance_checks_json, write_boundary, stop_condition,
-                                hil_required, status
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """,
-                            (
-                                task.task_id,
-                                task.task_class.value,
-                                task.requested_outcome,
-                                json.dumps(task.permitted_paths, sort_keys=True),
-                                json.dumps(task.permitted_tools, sort_keys=True),
-                                json.dumps(task.acceptance_checks, sort_keys=True),
-                                task.write_boundary,
-                                task.stop_condition,
-                                int(task.hil_required),
-                                task.status,
-                            ),
-                        )
-                    for check in acceptance_health["checks"]:
-                        connection.execute(
-                            """
-                            INSERT INTO acceptance_results(
-                                run_id, declaration, command_text, status, returncode,
-                                duration_seconds, output_tail, output_truncated, reason
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """,
-                            (
-                                run_id,
-                                check["declaration"],
-                                check["command"],
-                                check["status"],
-                                check["returncode"],
-                                check["duration_seconds"],
-                                check["output_tail"],
-                                int(check["output_truncated"]),
-                                check["reason"],
-                            ),
-                        )
-                    connection.execute(
-                        """
-                        INSERT INTO runs(
-                            run_id, task_id, session_id, agent_id, host_kind,
-                            source_commit_sha, source_worktree_sha256,
-                            started_at, completed_at, status
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            run_id,
-                            task.task_id if task else None,
-                            session.session_id,
-                            str(session.metadata.get("agent_id", "single-agent")),
-                            session.host.value,
-                            identity.commit_sha,
-                            repository_payload["worktree_sha256"],
-                            started_at,
-                            utc_now(),
-                            "CAPTURED",
-                        ),
-                    )
-                    connection.execute(
-                        """
-                        INSERT INTO pv_ancestry(
-                            child_candidate_id, parent_accepted_pv, proposed_pv,
-                            run_id, parent_manifest_sha256, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            candidate_id,
-                            pointer.accepted_pv,
-                            proposed_pv,
-                            run_id,
-                            pointer.accepted_manifest_sha256,
-                            created_at,
-                        ),
-                    )
-                    connection.execute(
-                        """
-                        INSERT INTO provenance(
-                            source_kind, source_identity, output_kind, output_identity,
-                            authority, sha256, details_json
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            "git_worktree",
-                            f"{identity.repository_url}@{identity.commit_sha}",
-                            "code_sqlite",
-                            candidate_id,
-                            "exact repository bytes in compressed file_content_cas",
-                            repository_payload["worktree_sha256"],
-                            json.dumps(
-                                repository_payload,
-                                sort_keys=True,
-                                separators=(",", ":"),
-                            ),
-                        ),
-                    )
-                    completed_at = utc_now()
-                    connection.execute(
-                        """
-                        INSERT INTO builder_receipts(
-                            receipt_id, phase, status, started_at, completed_at, details_json
-                        ) VALUES (?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            prefixed_id("build"),
-                            "whole_source_ingestion",
-                            "PASS",
-                            started_at,
-                            completed_at,
-                            json.dumps(
-                                ingestion.as_dict(),
-                                sort_keys=True,
-                                separators=(",", ":"),
-                            ),
-                        ),
-                    )
-                connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                connection.commit()
-            database.validate(db_path)
-            delta = compare_source_indexes(prior_db, db_path)
-            parent_lane_bundle = None
-            if pointer.accepted_pv:
-                possible_parent = (
-                    self.store.accepted_path(project_id, pointer.accepted_pv)
-                    / "lanes"
-                )
-                if possible_parent.is_dir():
-                    parent_lane_bundle = possible_parent
-            lane_report = build_lane_bundle(
-                repository_root=config.repository_path,
-                output_directory=build_root / "lane_bundle",
-                code_mode=(
-                    "github_code" if identity.provider == "github" else "local_code"
-                ),
-                parent_lane_bundle=parent_lane_bundle,
-                parent_pv=pointer.accepted_pv,
-                proposed_pv=proposed_pv,
-                pointer_generation=pointer.generation,
-                source_overrides=session.metadata.get("source_lane_overrides"),
-                git_mode=str(session.metadata.get("git_arm_mode") or "AUTO"),
-            )
-            patch = diff_patch(config.repository_path)
-            patch_sha256 = sha256_bytes(patch.encode("utf-8"))
-            engine_identity, toolchain = build_engine_identity(
-                package_root=self.package_source_root,
-                repository_root=self.source_repository_root,
-            )
-            project_identity = {
-                "schema": "evidence-lane.project-identity.v1",
-                "project_id": project_id,
-                "display_name": config.display_name,
-                "repository": repository_payload,
-                "sensitivity": config.sensitivity,
-                "source_authority": (
-                    "exact governed source bytes captured in code.sqlite and the "
-                    "eighteen-lane SQLite bundle"
-                ),
-                "universal_lanes": {
-                    "lane_count": lane_report["lane_count"],
-                    "code_mode": lane_report["code_mode"],
-                    "bundle_sha256": lane_report["bundle_sha256"],
-                },
-            }
-            entry_slip = {
-                "schema": "evidence-lane.entry-slip.v1",
-                "session_id": session.session_id,
-                "run_id": run_id,
-                "project_id": project_id,
-                "accepted_entry_pv": pointer.accepted_pv,
-                "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-                "pointer_generation": pointer.generation,
-                "repository_entry": session.repository,
-                "task": task.as_dict() if task else None,
-                "runtime_continuity": runtime_continuity,
-                "mode_execution": mode_execution,
-                "entered_at": session.created_at,
-            }
-            next_action_contract = hil_next_action(
-                project_id=project_id,
-                session_id=session.session_id,
-                candidate_id=candidate_id,
-                proposed_pv=proposed_pv,
-                mode_execution=mode_execution,
-            )
-            output_handoff = refresh_output_handoff(
-                host_kind=session.host.value,
-                client_can_edit_source=(
-                    session.metadata.get("client_source_edit_authority") == "DIRECT"
-                ),
-                candidate_id=candidate_id,
-                proposed_pv=proposed_pv,
-            )
-            invocation = runtime_continuity.get("invocation")
-            exit_prompt_label = (
-                str(
-                    invocation.get("exit_slip_next_prompt_label")
-                    or "PV_EXIT_SUGGESTED_NEXT_PROMPT"
-                )
-                if isinstance(invocation, dict)
-                else "PV_EXIT_SUGGESTED_NEXT_PROMPT"
-            )
-            exit_slip = {
-                "schema": "evidence-lane.exit-slip.v1",
-                "session_id": session.session_id,
-                "run_id": run_id,
-                "project_id": project_id,
-                "proposed_pv": proposed_pv,
-                "candidate_id": candidate_id,
-                "repository_exit": repository_payload,
-                "source_delta": delta,
-                "git_patch_sha256": patch_sha256,
-                "git_patch_bytes": len(patch.encode("utf-8")),
-                "task": task.as_dict() if task else None,
-                "runtime_continuity": runtime_continuity,
-                "pv_exit_prompt": {
-                    "label": exit_prompt_label,
-                    "suggested_next_prompt": next_action_contract[
-                        "suggested_next_prompt"
-                    ],
-                    "choices": next_action_contract.get("choices", []),
-                    "copyable": True,
-                    "host_owned_composer": True,
-                    "auto_submit": False,
-                },
-                "mode_execution": mode_execution,
-                "acceptance_checks": (
-                    acceptance_health
-                    if task
-                    else {
-                        "status": "PASS",
-                        "verdict": "INITIAL_ENTRY_BUILD",
-                        "declared": 0,
-                        "executed": 0,
-                        "checks": [],
-                        "commands_inferred": False,
-                    }
-                ),
-                "lane_refresh": lane_report["summary"],
-                "next_action": next_action_contract,
-                "host_output_handoff": output_handoff,
-                "exited_at": created_at,
-            }
-            package_warnings = list(ingestion.warnings)
-            if lane_report["summary"]["blocked_sources"]:
-                package_warnings.append(
-                    {
-                        "status": "PARTIAL",
-                        "code": "LANE_SOURCES_BLOCKED_OR_UNSUPPORTED",
-                        "count": lane_report["summary"]["blocked_sources"],
-                        "exact_source_bytes_preserved": True,
-                    }
-                )
-            package_result = build_pv_package(
-                build_root / "package",
-                database_path=db_path,
-                lineage_source=lineage_path,
-                project_identity=project_identity,
-                active_pointer={
-                    "project_id": project_id,
-                    "accepted_pv": pointer.accepted_pv,
-                    "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-                    "generation": pointer.generation,
-                    "updated_at": pointer.updated_at,
-                    "prior_generation": pointer.prior_generation,
-                },
-                entry_slip=entry_slip,
-                exit_slip=exit_slip,
-                engine_identity=engine_identity.as_dict(),
-                candidate_id=candidate_id,
-                proposed_pv=proposed_pv,
-                parent_accepted_pv=pointer.accepted_pv,
-                parent_manifest_sha256=pointer.accepted_manifest_sha256,
-                run_id=run_id,
-                created_at=created_at,
-                warnings=package_warnings,
-                lane_bundle_path=build_root / "lane_bundle",
-                code_mode=lane_report["code_mode"],
-                connector_brain_path=(
-                    self.store.project_root(project_id)
-                    / "connector_brain"
-                    / "connector-brain.sqlite"
-                ),
-            )
-            stored = self.store.place_candidate(
-                project_id, candidate_id, build_root / "package"
-            )
-            postseal_declarations = declarations_for_phase(
-                config.repository_path,
-                task.acceptance_checks if task else [],
-                phase="POSTSEAL",
-            )
-            postseal_acceptance = None
-            postseal_receipt_path = None
-            postseal_receipt_sha256 = None
-            if postseal_declarations:
-                postseal_acceptance = run_acceptance_checks(
-                    config.repository_path,
-                    postseal_declarations,
-                    phase="POSTSEAL",
-                    environment={
-                        "EVIDENCE_LANE_CANDIDATE_PATH": str(
-                            self.store.candidate_runtime_path(project_id, candidate_id)
-                        ),
-                        "EVIDENCE_LANE_PROJECT_ROOT": str(project_root),
-                        "EVIDENCE_LANE_PROJECT_ID": project_id,
-                        "EVIDENCE_LANE_EXPECTED_CANDIDATE_ID": candidate_id,
-                        "EVIDENCE_LANE_EXPECTED_ACCEPTED_PV": (
-                            pointer.accepted_pv or "NONE"
-                        ),
-                        "EVIDENCE_LANE_EXPECTED_POINTER_GENERATION": str(
-                            pointer.generation
-                        ),
-                        "EVIDENCE_LANE_EXPECTED_COMMIT": identity.commit_sha,
-                    },
-                )
-                postseal_receipt = {
-                    "schema": "evidence-lane.postseal-acceptance.receipt.v1",
-                    "project_id": project_id,
-                    "candidate_id": candidate_id,
-                    "accepted_pv_retained": pointer.accepted_pv,
-                    "pointer_generation_retained": pointer.generation,
-                    "source_commit_sha": identity.commit_sha,
-                    "acceptance": postseal_acceptance,
-                    "recorded_at": utc_now(),
-                }
-                postseal_receipt["receipt_sha256"] = sha256_bytes(
-                    canonical_json_bytes(postseal_receipt)
-                )
-                postseal_receipt_path = (
-                    project_root
-                    / "receipts"
-                    / f"postseal_{candidate_id.lower()}.json"
-                )
-                postseal_receipt_sha256 = postseal_receipt["receipt_sha256"]
-                atomic_write_json(postseal_receipt_path, postseal_receipt)
-            return {
-                **package_result,
-                "stored_path": str(
-                    self.store.candidate_runtime_path(project_id, candidate_id)
-                ),
-                "stored_validation": stored,
-                "repository": repository_payload,
-                "source_delta": delta,
-                "ingestion": ingestion.as_dict(),
-                "acceptance_checks": acceptance_health,
-                "postseal_acceptance": postseal_acceptance,
-                "postseal_acceptance_receipt": (
-                    str(postseal_receipt_path) if postseal_receipt_path else None
-                ),
-                "postseal_acceptance_receipt_sha256": postseal_receipt_sha256,
-                "lane_refresh": lane_report,
-                "next_action": next_action_contract,
-                "mode_execution": mode_execution,
-                "toolchain_manifest_sha256": engine_identity.toolchain_manifest_sha256,
-                "toolchain_package_count": len(toolchain["packages"]),
-            }
+            yield
         finally:
-            resolved_build = build_root.resolve()
-            resolved_parent = build_parent.resolve()
-            if (
-                resolved_build.parent != resolved_parent
-                or not resolved_build.name.startswith(build_prefix)
-            ):
-                raise EvidenceLaneError(
-                    "BUILD_CLEANUP_PATH_ESCAPE",
-                    "The temporary build path escaped its exact runtime directory.",
-                    status="FAIL",
-                )
-            shutil.rmtree(resolved_build, ignore_errors=True)
+            with self._admission:
+                self._local.depth -= 1
+                if self._local.depth == 0:
+                    self._accepted -= 1
+                    if self._accepted == 0 and self.phase == "draining" and self.workers is not None:
+                        self.workers.begin_drain()
+                    self._admission.notify_all()
+
+    @contextmanager
+    def lifecycle_control(self):
+        if getattr(self._local, "depth", 0):
+            raise LaneError("LIFECYCLE_FROM_ACTION", "Request lifecycle work through the owner control channel.")
+        if not self._lifecycle.acquire(blocking=False):
+            raise LaneError("LIFECYCLE_BUSY", "Another engine lifecycle operation is still finishing.")
+        try:
+            yield
+        finally:
+            self._lifecycle.release()
+
+    def start_job(self, target) -> Future:
+        """Transfer accepted work to a bounded driver before this request exits.
+
+        The reservation closes the enqueue/drain race. Only registered engine
+        code supplies a callable; tool arguments cannot choose Python code.
+        """
+        with self._admission:
+            if not getattr(self._local, "depth", 0) or self._background_jobs >= 16:
+                raise LaneError("JOB_ADMISSION_UNAVAILABLE", "No accepted background job slot is available.")
+            self._background_jobs += 1
+            self._accepted += 1
+            completion: Future = Future()
+            completion.set_running_or_notify_cancel()
+
+            def run():
+                self._local.depth = 1
+                result, failure = None, None
+                try:
+                    result = target()
+                except BaseException as error:  # noqa: BLE001 - transfer every driver failure to its owned Future
+                    failure = error
+                finally:
+                    self._local.depth = 0
+                    with self._admission:
+                        self._background_jobs -= 1
+                        self._accepted -= 1
+                        if self._accepted == 0 and self.phase == "draining" and self.workers is not None:
+                            self.workers.begin_drain()
+                        self._admission.notify_all()
+                # Completion means the actual owner released its work, including
+                # the project writer. Nested drivers must never wait on the
+                # aggregate background count (which includes themselves).
+                if failure is None:
+                    completion.set_result(result)
+                else:
+                    completion.set_exception(failure)
+
+            try:
+                threading.Thread(target=run, daemon=True, name="evidence-lane-delta-driver").start()
+            except BaseException:
+                self._background_jobs -= 1
+                self._accepted -= 1
+                self._admission.notify_all()
+                raise
+            return completion
+
+    def _quiescence(self, stage: str) -> Quiescence:
+        with self._mutex:
+            return Quiescence(instance_id=self.instance_id, quiescent=stage == "quiescent",
+                              accepted_requests=self._accepted,
+                              worker_generation=self.workers.generation if self.workers else None, stage=stage)
+
+    def quiesce(self, *, timeout: float | None = 30) -> Quiescence:
+        """Bounded owner drain. A timeout keeps ownership and never kills work."""
+        if timeout is not None and (not 0 <= timeout <= 3600):
+            raise LaneError("INVALID_DRAIN_TIMEOUT", "Use a drain timeout between zero and one hour.")
+        with self.lifecycle_control():
+            deadline = time.monotonic() + timeout if timeout is not None else None
+            with self._admission:
+                if self.phase == "running":
+                    self.begin_drain()
+                if self.phase != "draining":
+                    raise LaneError("INVALID_ENGINE_TRANSITION", "Only an active engine can quiesce.")
+                while self._accepted:
+                    remaining = max(0, deadline - time.monotonic()) if deadline is not None else None
+                    if remaining == 0:
+                        return self._quiescence("requests")
+                    self._admission.wait(remaining)
+            if self.workers is not None:
+                remaining = max(0, deadline - time.monotonic()) if deadline is not None else None
+                if not self.workers.close(timeout=remaining):
+                    return self._quiescence("workers")
+            remaining = max(0, deadline - time.monotonic()) if deadline is not None else None
+            if not self.provider_workers.close(timeout=remaining):
+                return self._quiescence('provider_workers')
+            return self._quiescence("quiescent")
+
+    def replace_workers(self, replacement: WorkerPool, *, timeout: float = 30) -> Quiescence:
+        """Replace compatible OS workers after the old executor fully joins.
+
+        This replaces processes for the same operation definitions. Updating
+        engine code or schema requires a complete stopped-engine installation.
+        """
+        with self.lifecycle_control():
+            old = self.workers
+            if (old is None or replacement is old or replacement.status()["state"] != "created"
+                    or old.operations != replacement.operations or old.prewarm != replacement.prewarm):
+                raise LaneError("INCOMPATIBLE_WORKER_REPLACEMENT", "Use a fresh pool with the same operation contracts.")
+            result = self.quiesce(timeout=timeout)
+            if not result.quiescent:
+                return result
+            replacement.start(timeout=timeout)
+            with self._mutex:
+                from .provider_workers import ProviderWorkers
+                self.provider_workers = ProviderWorkers(self.capabilities)
+                self.capabilities.provider_workers = self.provider_workers
+                self.workers = replacement
+                self.phase = "running"
+                try:
+                    self._persist()
+                except BaseException:
+                    self.phase = "draining"
+                    raise
+            return result
+
+    def stop(self, *, timeout: float | None = None) -> bool:
+        with self.lifecycle_control():
+            if self.phase == "stopped":
+                return True
+            if not self.quiesce(timeout=timeout).quiescent:
+                return False
+            self.clients.close()
+            with self._mutex:
+                self.phase = "stopped"
+                try:
+                    self._persist()
+                finally:
+                    self.lock.release()
+                    self._stopped.set()
+            return True
+
+    def health(self) -> EngineHealth:
+        with self._mutex:
+            return EngineHealth(
+                version=__version__, instance_id=self.instance_id, phase=self.phase,
+                started_at=self.started_at, previous_shutdown=self.previous_shutdown,
+                project_count=len(self.directory.entries()),
+                host_observation=self.host_observation,
+                accepted_requests=self._accepted,
+                runtime_identity=self.runtime_identity,
+            )
+
+    def wait(self, timeout: float | None = None) -> bool:
+        return self._stopped.wait(timeout)
+
+    def __enter__(self) -> Self:
+        self.start()
+        return self
+
+    def __exit__(self, *exc_info) -> None:
+        self.stop()

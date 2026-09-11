@@ -1,22 +1,21 @@
-# Proprietary plugin license and rights notice
+# MIT License
 
-Copyright © 2026 Praveen Rathee. All rights reserved.
+Copyright (c) 2026 Praveen Rathee
 
-The Evidence Lane plugin source, documentation, original artwork, schemas,
-lifecycle design, and project-specific artifacts in this package are
-proprietary unless a file expressly states otherwise. Access for evaluation,
-private collaboration, installation, or testing does not grant permission to
-copy, redistribute, publish, sublicense, commercialize, create derivative
-releases, or expose private project material.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-No patent, trademark, copyright, trade-secret, database, or other intellectual
-property right is transferred by access to this package. No HIL decision,
-candidate package, Git branch, installation, deployment, or marketplace draft
-changes that rule.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Third-party software, services, models, assets, and trademarks remain governed
-by their respective owners' terms, licenses, and rights. This notice does not
-replace those terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-For permission beyond private evaluation, obtain a separate written agreement
-from Praveen Rathee.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

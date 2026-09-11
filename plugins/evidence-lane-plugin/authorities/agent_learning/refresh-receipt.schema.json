@@ -1,44 +1,194 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning support refresh receipt",
-  "type": "object",
-  "required": [
-    "schema",
-    "status",
-    "authority_id",
-    "database",
-    "mmd",
-    "dot",
-    "tools",
-    "receipt_sha256"
-  ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.sqlite-authority-support-system.v1"
-    },
-    "status": {
-      "const": "PASS"
-    },
-    "authority_id": {
-      "const": "agent_learning"
-    },
-    "database": {
+  "$defs": {
+    "EvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "receipt",
+            "object",
+            "source",
+            "test",
+            "commit",
+            "installation",
+            "user_decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "identifier": {
+          "title": "Identifier",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Digest"
+        }
+      },
+      "required": [
+        "kind",
+        "identifier"
+      ],
+      "title": "EvidenceReference",
       "type": "object"
     },
-    "mmd": {
+    "JsonValue": {},
+    "PublicError": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Details",
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "PublicError",
       "type": "object"
-    },
-    "dot": {
-      "type": "object"
-    },
-    "tools": {
-      "type": "object"
-    },
-    "receipt_sha256": {
-      "type": "string",
-      "pattern": "^[A-Fa-f0-9]{64}$"
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "E49A834E649BFE3022DE31D028BB31BA4BEAA0954B338C136029D697FD9BD70E"
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "const": 4,
+      "default": 4,
+      "title": "Protocol Version",
+      "type": "integer"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "action": {
+      "title": "Action",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "error",
+        "queued",
+        "waiting"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Result"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PublicError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "job_id": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Job Id"
+    },
+    "plan_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Plan Revision"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/EvidenceReference"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "tool_execution": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Execution"
+    }
+  },
+  "required": [
+    "request_id",
+    "action",
+    "status"
+  ],
+  "title": "learning attributed response",
+  "type": "object"
 }

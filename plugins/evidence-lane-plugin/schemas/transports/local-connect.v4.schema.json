@@ -1,0 +1,137 @@
+{
+  "$defs": {
+    "ClientHello": {
+      "additionalProperties": false,
+      "properties": {
+        "configured_profile": {
+          "default": "unknown",
+          "title": "Configured Profile",
+          "type": "string"
+        },
+        "peer_capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Peer Capabilities",
+          "type": "array"
+        },
+        "peer_name": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Name"
+        },
+        "peer_version": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Version"
+        },
+        "protocol": {
+          "default": "local_api",
+          "enum": [
+            "local_api",
+            "mcp_stdio"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "protocol_version": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Protocol Version"
+        }
+      },
+      "title": "ClientHello",
+      "type": "object"
+    },
+    "ProjectSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "permissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Permissions",
+          "type": "array"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id"
+      ],
+      "title": "ProjectSelection",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "claimed_task_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Claimed Task Id"
+    },
+    "hello": {
+      "$ref": "#/$defs/ClientHello"
+    },
+    "label": {
+      "default": "Native MCP adapter",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+    },
+    "manage_projects": {
+      "default": false,
+      "title": "Manage Projects",
+      "type": "boolean"
+    },
+    "projects": {
+      "items": {
+        "$ref": "#/$defs/ProjectSelection"
+      },
+      "maxItems": 32,
+      "title": "Projects",
+      "type": "array"
+    }
+  },
+  "title": "ConnectRequest",
+  "type": "object"
+}

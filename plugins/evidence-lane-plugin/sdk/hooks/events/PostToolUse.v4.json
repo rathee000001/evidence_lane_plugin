@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/PostToolUse/handler.py",
+  "event": "PostToolUse",
+  "event_contract": "hooks/events/PostToolUse/event.v4.json",
+  "event_contract_sha256": "b5756b366dbc590f0fc3df5f2062a738c86635a599476e4adddf0082d0d1f10c",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/PostToolUse.v4.schema.json",
+  "input_schema_sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

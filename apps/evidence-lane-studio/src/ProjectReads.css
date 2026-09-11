@@ -1,0 +1,15 @@
+.studio-cross-project { margin-top: 34px; border-top: 1px solid rgba(131,162,178,.24); padding-top: 25px; }
+.studio-cross-project h2 { font-size: 21px; letter-spacing: -.02em; }
+.studio-project-choices { border: 1px solid rgba(131,162,178,.3); border-radius: 13px; padding: 15px; margin: 18px 0; display: flex; flex-wrap: wrap; gap: 16px 25px; }
+.studio-project-choices legend { padding: 0 6px; font-size: 12px; color: #5e7c8e; }
+.studio-project-choices label { display: grid; grid-template-columns: 18px minmax(0,1fr); column-gap: 8px; font-size: 12px; align-items: center; }
+.studio-project-choices input { width: 15px; height: 15px; accent-color: #48b6cc; }
+.studio-project-choices small { grid-column: 2; color: #68818f; font-size: 10px; overflow-wrap: anywhere; }
+.studio-cross-project .studio-checkbox-label { flex-direction: row; align-items: center; gap: 8px; padding-bottom: 10px; }
+.studio-cross-project .studio-checkbox-label input { width: 15px; height: 15px; accent-color: #48b6cc; }
+.studio-linked-list { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; }
+.studio-linked-list > div { padding: 12px 15px; border-radius: 12px; background: rgba(255,255,255,.34); }
+.studio-linked-list small { display: block; color: #68818f; margin-top: 8px; font-size: 11px; }
+.studio-result-summaries { padding-left: 18px; line-height: 1.7; font-size: 12px; }
+.studio-result-summaries li { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 130px; overflow-y: auto; }
+.studio-cross-project .studio-observation > .studio-muted { overflow-wrap: anywhere; }

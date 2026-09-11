@@ -1,0 +1,126 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Hash-check an exact project backup without restoring it.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "backup_root": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Backup Root",
+        "type": "string"
+      },
+      "manifest_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Manifest Digest",
+        "type": "string"
+      }
+    },
+    "required": [
+      "backup_root",
+      "manifest_digest"
+    ],
+    "title": "BackupVerify",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_backup_verify",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "file_count": {
+        "title": "File Count",
+        "type": "integer"
+      },
+      "lane_count": {
+        "default": 0,
+        "title": "Lane Count",
+        "type": "integer"
+      },
+      "manifest_digest": {
+        "title": "Manifest Digest",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_mutated": {
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "root_pv": {
+        "additionalProperties": true,
+        "title": "Root Pv",
+        "type": "object"
+      },
+      "sqlite_integrity": {
+        "default": "ok",
+        "title": "Sqlite Integrity",
+        "type": "string"
+      },
+      "total_bytes": {
+        "title": "Total Bytes",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "manifest_digest",
+      "file_count",
+      "total_bytes"
+    ],
+    "title": "BackupVerified",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "85560b598d7a02439b460a724eb728b317dd452eb72b54ef02a321387798fa0e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_backup_verify",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.verify",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_backup_verify.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

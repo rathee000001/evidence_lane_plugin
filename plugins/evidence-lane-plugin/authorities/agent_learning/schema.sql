@@ -1,182 +1,21 @@
--- Generated from the canonical authority SQLite builder.
--- FTS5 shadow tables are intentionally omitted; SQLite creates them.
+-- Projection: runtime applies the real ordered migrations under its project writer.
 
-CREATE TABLE authority_index_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_bytes BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE VIRTUAL TABLE authority_index_fts USING fts5(
-            node_id UNINDEXED,
-            authority_id UNINDEXED,
-            source_table UNINDEXED,
-            source_identity UNINDEXED,
-            text_content,
-            content='',
-            contentless_delete=1,
-            tokenize='unicode61'
-        );
-
-CREATE TABLE authority_index_node(
-            node_id TEXT PRIMARY KEY,
-            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)
-                ON DELETE CASCADE,
-            ordinal INTEGER NOT NULL,
-            char_start INTEGER NOT NULL,
-            char_end INTEGER NOT NULL,
-            text_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            UNIQUE(source_id, ordinal)
-        ) STRICT;
-
-CREATE TABLE authority_index_refresh_receipt(
-            sequence INTEGER PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_count INTEGER NOT NULL,
-            node_count INTEGER NOT NULL,
-            indexed_table_count INTEGER NOT NULL,
-            llama_index_core_version TEXT NOT NULL,
-            chunk_size_tokens INTEGER NOT NULL,
-            chunk_overlap_tokens INTEGER NOT NULL,
-            prior_receipt_sha256 TEXT,
-            recorded_at TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE authority_index_source(
-            source_id TEXT PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_table TEXT NOT NULL,
-            source_identity TEXT NOT NULL,
-            source_text_sha256 TEXT NOT NULL,
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            recorded_at TEXT NOT NULL,
-            UNIQUE(authority_id, source_table, source_identity)
-        ) STRICT;
-
-CREATE TABLE learning_candidate(
-    candidate_id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
-    candidate_sha256 TEXT NOT NULL UNIQUE,
-    dedup_key_sha256 TEXT NOT NULL,
-    tier TEXT NOT NULL,
-    lesson_type TEXT NOT NULL,
-    expires_at TEXT,
-    candidate_json TEXT NOT NULL
-) STRICT;
-
-CREATE VIRTUAL TABLE learning_candidate_fts USING fts5(
-    candidate_id UNINDEXED,
-    project_id UNINDEXED,
-    statement,
-    lesson_type,
-    scope_text,
-    tokenize='unicode61'
-);
-
-CREATE TABLE learning_decision_receipt(
-    decision_key_sha256 TEXT PRIMARY KEY,
-    candidate_id TEXT NOT NULL
-        REFERENCES learning_candidate(candidate_id),
-    receipt_sha256 TEXT NOT NULL UNIQUE,
-    receipt_json TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE learning_event(
-    sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_id TEXT NOT NULL UNIQUE,
-    candidate_id TEXT NOT NULL
-        REFERENCES learning_candidate(candidate_id),
-    event_type TEXT NOT NULL,
-    lifecycle_state TEXT NOT NULL,
-    occurred_at TEXT NOT NULL,
-    decision_key_sha256 TEXT,
-    event_sha256 TEXT NOT NULL UNIQUE,
-    event_json TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE learning_pointer_history(
-    project_id TEXT NOT NULL,
-    generation INTEGER NOT NULL CHECK(generation > 0),
-    candidate_id TEXT NOT NULL
-        REFERENCES learning_candidate(candidate_id),
-    candidate_sha256 TEXT NOT NULL,
-    prior_generation INTEGER NOT NULL CHECK(prior_generation >= 0),
-    reason TEXT NOT NULL,
-    pointer_sha256 TEXT NOT NULL UNIQUE,
-    pointer_json TEXT NOT NULL,
-    PRIMARY KEY(project_id,generation)
-) STRICT;
-
-CREATE TABLE learning_schema_metadata(
-    singleton INTEGER PRIMARY KEY CHECK(singleton=1),
-    schema_id TEXT NOT NULL,
-    schema_version INTEGER NOT NULL CHECK(schema_version > 0),
-    ddl_sha256 TEXT NOT NULL,
-    schema_signature_sha256 TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE memory_edge(
-    edge_id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
-    source_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),
-    target_locator_id TEXT NOT NULL REFERENCES memory_locator(locator_id),
-    edge_type TEXT NOT NULL,
-    evidence_sha256 TEXT NOT NULL,
-    edge_sha256 TEXT NOT NULL UNIQUE,
-    edge_json TEXT NOT NULL,
-    recorded_at TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE memory_locator(
-    locator_id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
-    sector TEXT NOT NULL,
-    locator_kind TEXT NOT NULL,
-    locator_value TEXT NOT NULL,
-    revision_sha256 TEXT NOT NULL,
-    label TEXT NOT NULL,
-    search_text TEXT NOT NULL,
-    locator_sha256 TEXT NOT NULL UNIQUE,
-    locator_json TEXT NOT NULL,
-    recorded_at TEXT NOT NULL
-) STRICT;
-
-CREATE VIRTUAL TABLE memory_locator_fts USING fts5(
-    locator_id UNINDEXED,
-    project_id UNINDEXED,
-    sector,
-    locator_kind,
-    label,
-    search_text,
-    tokenize='unicode61'
-);
-
-CREATE INDEX authority_index_node_source_idx
-        ON authority_index_node(source_id, ordinal);
-
-CREATE INDEX authority_index_source_table_idx
-        ON authority_index_source(authority_id, source_table, source_identity);
-
-CREATE INDEX idx_learning_candidate_dedup
-ON learning_candidate(project_id,dedup_key_sha256);
-
-CREATE UNIQUE INDEX idx_learning_decision_once
-ON learning_event(decision_key_sha256)
-WHERE decision_key_sha256 IS NOT NULL;
-
-CREATE INDEX idx_memory_edge_project_source
-ON memory_edge(project_id,source_locator_id,edge_type);
-
-CREATE INDEX idx_memory_edge_project_target
-ON memory_edge(project_id,target_locator_id,edge_type);
-
-CREATE INDEX idx_memory_locator_project_sector
-ON memory_locator(project_id,sector,locator_id);
+-- learning v1, digest ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38
+CREATE TABLE learning_versions (
+       version_id TEXT PRIMARY KEY, lesson_key TEXT NOT NULL, version INTEGER NOT NULL,
+       profile TEXT NOT NULL, action TEXT NOT NULL, scope_json TEXT NOT NULL CHECK(json_valid(scope_json)),
+       content_digest TEXT NOT NULL REFERENCES objects(digest),
+       source_job_id TEXT NOT NULL UNIQUE,
+       source_receipt_id TEXT NOT NULL,
+       state TEXT NOT NULL CHECK(state IN ('active','superseded','revoked')), created_at TEXT NOT NULL,
+       UNIQUE(lesson_key,version));
+CREATE INDEX learning_scope ON learning_versions(profile,action,state);
+CREATE TABLE learning_current (lesson_key TEXT PRIMARY KEY,
+       version_id TEXT NOT NULL UNIQUE REFERENCES learning_versions(version_id));
+CREATE TABLE learning_controls (lesson_key TEXT PRIMARY KEY,
+       revoked_by TEXT NOT NULL, reason TEXT NOT NULL, revoked_at TEXT NOT NULL);
+CREATE TABLE learning_events (sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,
+       version_id TEXT NOT NULL REFERENCES learning_versions(version_id), kind TEXT NOT NULL,
+       actor_id TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL);
+CREATE VIRTUAL TABLE learning_fts USING fts5(version_id UNINDEXED,text,tokenize='unicode61');

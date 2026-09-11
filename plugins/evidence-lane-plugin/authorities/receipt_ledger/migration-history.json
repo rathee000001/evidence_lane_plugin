@@ -1,0 +1,115 @@
+{
+  "schema": "evidence-lane.packaged-migration-history.v4",
+  "authority_id": "receipts",
+  "migrations": [
+    {
+      "owner": "access",
+      "version": 1,
+      "digest": "3b13d260a0ddf92fd0975facd96d9a8a77f8fe2ee46564a3dc4dc7108b9cc931",
+      "description": "Project grants and revocations",
+      "statements": [
+        "CREATE TABLE access_grants (\n        grant_id TEXT PRIMARY KEY, principal_id TEXT NOT NULL,\n        permissions_json TEXT NOT NULL CHECK(json_valid(permissions_json)),\n        roots_json TEXT NOT NULL CHECK(json_valid(roots_json)),\n        expires_at TEXT, revoked_at TEXT, created_at TEXT NOT NULL)",
+        "CREATE INDEX access_principal ON access_grants(principal_id,revoked_at)"
+      ]
+    },
+    {
+      "owner": "access",
+      "version": 2,
+      "digest": "577ea803dfc2ad489971466697e398d1e80f319a86e46863a2243144cb515a20",
+      "description": "Exact parent binding for scoped remote connection grants",
+      "statements": [
+        "ALTER TABLE access_grants ADD COLUMN parent_grant_id TEXT REFERENCES access_grants(grant_id)",
+        "CREATE INDEX access_parent ON access_grants(parent_grant_id)"
+      ]
+    },
+    {
+      "owner": "extensions",
+      "version": 1,
+      "digest": "102ea20426b23b0e9a8d8ac28804ee6a02deed19f438b52041252ceb7464e4c6",
+      "description": "Versioned extension grants and append-only events",
+      "statements": [
+        "CREATE TABLE extensions_registration (\n            plugin_id TEXT PRIMARY KEY, current_version INTEGER NOT NULL,\n            revoked_at TEXT)",
+        "CREATE TABLE extensions_versions (\n            plugin_id TEXT NOT NULL REFERENCES extensions_registration(plugin_id),\n            version INTEGER NOT NULL, registration_json TEXT NOT NULL CHECK(json_valid(registration_json)),\n            digest TEXT NOT NULL, configured_at TEXT NOT NULL, actor_id TEXT NOT NULL,\n            PRIMARY KEY(plugin_id,version))",
+        "CREATE TABLE extensions_events (\n            sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,\n            plugin_id TEXT NOT NULL REFERENCES extensions_registration(plugin_id),\n            event_type TEXT NOT NULL, actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL,\n            details_json TEXT NOT NULL CHECK(json_valid(details_json)),\n            prior_digest TEXT, digest TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "accelerator",
+      "version": 1,
+      "digest": "fe67ae66b30a4f7af57871de306fb5ab461c86ef3083630a8f8612fcb9ee9eed",
+      "description": "Project accelerator configuration history",
+      "statements": [
+        "CREATE TABLE accelerator_settings (\n            revision INTEGER PRIMARY KEY, config_json TEXT NOT NULL CHECK(json_valid(config_json)),\n            digest TEXT NOT NULL, actor_id TEXT NOT NULL, configured_at TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "remote",
+      "version": 1,
+      "digest": "b9c373cfd117a3bab3e8601df3d716a8d42373569bde00caa1a16655ca7e5658",
+      "description": "Scoped remote restart probes",
+      "statements": [
+        "CREATE TABLE remote_probe (\n        principal_id TEXT PRIMARY KEY, policy_digest TEXT NOT NULL,\n        nonce_digest TEXT NOT NULL, object_digest TEXT NOT NULL,\n        engine_id TEXT NOT NULL, created_at TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "recovery",
+      "version": 1,
+      "digest": "6ef8c33aa2e21276d3cc7bee8dc6f25532996a96e0018079c787fbdb7124e596",
+      "description": "Backup receipts and explicit offline database recovery boundaries",
+      "statements": [
+        "CREATE TABLE recovery_backups (request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL,\n       input_digest TEXT NOT NULL, result_json TEXT NOT NULL CHECK(json_valid(result_json)))",
+        "CREATE TABLE recovery_history (sequence INTEGER PRIMARY KEY, digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+        "CREATE TABLE recovery_control (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       recovery_digest TEXT NOT NULL, required_after_revision INTEGER NOT NULL, cleared_by_revision INTEGER)"
+      ]
+    },
+    {
+      "owner": "sessions",
+      "version": 1,
+      "digest": "f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb",
+      "description": "Project session head and immutable attributed transitions",
+      "statements": [
+        "CREATE TABLE sessions_records (session_id TEXT PRIMARY KEY,\n       state TEXT NOT NULL CHECK(state IN ('active','closed')), generation INTEGER NOT NULL CHECK(generation>=1),\n       owner_client_id TEXT NOT NULL, owner_engine_id TEXT NOT NULL, reported_session_id TEXT NOT NULL,\n       flash_digest TEXT NOT NULL, runtime_package_digest TEXT NOT NULL, event_digest TEXT NOT NULL,\n       created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        "CREATE UNIQUE INDEX sessions_one_active ON sessions_records(state) WHERE state='active'",
+        "CREATE TABLE sessions_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id))",
+        "CREATE TABLE sessions_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id) DEFERRABLE INITIALLY DEFERRED,\n       generation INTEGER NOT NULL, action TEXT NOT NULL, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE,\n       created_at TEXT NOT NULL, UNIQUE(session_id,generation))"
+      ]
+    },
+    {
+      "owner": "gitpush",
+      "version": 1,
+      "digest": "64c9cf8ea51ac372041060d68f94f0745d06c76ca1bd14eeef873eac24554705",
+      "description": "One-use prepared pushes and append-only outcome history",
+      "statements": [
+        "CREATE TABLE gitpush_events (action_id TEXT NOT NULL, sequence INTEGER NOT NULL,\n       digest TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       PRIMARY KEY(action_id,sequence))",
+        "CREATE TABLE gitpush_current (action_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL,\n       digest TEXT NOT NULL, FOREIGN KEY(action_id,sequence) REFERENCES gitpush_events(action_id,sequence))"
+      ]
+    },
+    {
+      "owner": "capture",
+      "version": 1,
+      "digest": "ce16fd00779be73e5122cd75948b11269fc92eca33ca2e7896e99d46d5530860",
+      "description": "Hash-chained project capture decisions separate from visible lineage",
+      "statements": [
+        "CREATE TABLE capture_decisions (\n       sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,\n       previous_digest TEXT,digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))"
+      ]
+    },
+    {
+      "owner": "hostmemory",
+      "version": 1,
+      "digest": "30bede0b4dd3f7634a29b2ccb890c33ec0dc509b0a6978e2ff10248d83ee1aa3",
+      "description": "Explicit host-memory provenance receipt and Memory-link identities",
+      "statements": [
+        "CREATE TABLE hostmemory_imports (\n       request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       receipt_id TEXT NOT NULL UNIQUE REFERENCES receipts(receipt_id), receipt_digest TEXT NOT NULL,\n       result_json TEXT NOT NULL CHECK(json_valid(result_json)), result_digest TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "storage",
+      "version": 1,
+      "digest": "a47bb0877ae5f3d44866e04ee05766eca59af045fb07c7618917470bd197135b",
+      "description": "Hash-linked primary storage selections in Receipts",
+      "statements": [
+        "CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,\n       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)"
+      ]
+    }
+  ]
+}

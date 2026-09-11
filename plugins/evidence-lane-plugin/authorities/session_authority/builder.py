@@ -1,10 +1,11 @@
-"""Build/refresh binding for this separate authority support system."""
+"""session_authority: authenticated public SDK mutation binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import refresh_authority_support
+OWNER_ID = 'session_authority'
+ACTIONS = {'session_boot': True, 'session_exit': True, 'session_resume': True}
 
-AUTHORITY_ID = "session_authority"
 
-def refresh(project_root):
-    return refresh_authority_support(project_root, AUTHORITY_ID)
+def build_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "refresh"]
+__all__ = ["OWNER_ID", "build_authority"]

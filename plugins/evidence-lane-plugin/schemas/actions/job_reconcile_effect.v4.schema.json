@@ -1,0 +1,199 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Reconcile one uncertain effect using committed confirmation, local prepared bytes or exact Git readback; require a fresh Plan afterward.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "effect_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Effect Id",
+        "type": "string"
+      },
+      "expected_effect_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Effect Digest",
+        "type": "string"
+      },
+      "job_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Job Id",
+        "type": "string"
+      },
+      "max_file_bytes": {
+        "default": 33554432,
+        "maximum": 134217728,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "observation_route": {
+        "default": "local_or_recorded",
+        "enum": [
+          "local_or_recorded",
+          "git_readback"
+        ],
+        "title": "Observation Route",
+        "type": "string"
+      },
+      "plan_revision": {
+        "minimum": 1,
+        "title": "Plan Revision",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "job_id",
+      "effect_id",
+      "expected_effect_digest",
+      "plan_revision"
+    ],
+    "title": "ReconcileJobEffect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "job_reconcile_effect",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "automatic_replay": {
+        "const": false,
+        "default": false,
+        "title": "Automatic Replay",
+        "type": "boolean"
+      },
+      "effect_id": {
+        "title": "Effect Id",
+        "type": "string"
+      },
+      "evidence_object": {
+        "title": "Evidence Object",
+        "type": "string"
+      },
+      "job_id": {
+        "title": "Job Id",
+        "type": "string"
+      },
+      "job_state": {
+        "title": "Job State",
+        "type": "string"
+      },
+      "job_success_inferred": {
+        "const": false,
+        "default": false,
+        "title": "Job Success Inferred",
+        "type": "boolean"
+      },
+      "outcome": {
+        "enum": [
+          "confirmed",
+          "absent"
+        ],
+        "title": "Outcome",
+        "type": "string"
+      },
+      "plan_refresh_required": {
+        "const": true,
+        "default": true,
+        "title": "Plan Refresh Required",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "job_id",
+      "effect_id",
+      "outcome",
+      "evidence_object",
+      "job_state"
+    ],
+    "title": "ReconciledJobEffect",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "plan",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "dfab46da8328fd41b64cae92b51e8ae6d90fff58719be6151edde78b4a6098a3",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "job_reconcile_effect",
+    "profile": "plan",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.job_recovery:register_job_recovery_actions.<locals>.reconcile",
+        "argument_suffixes": {},
+        "argument_values": {
+          "observation_route": [
+            "local_or_recorded"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "job_reconcile_effect.local_or_recorded",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.job_recovery:register_job_recovery_actions.<locals>.reconcile",
+        "argument_suffixes": {},
+        "argument_values": {
+          "observation_route": [
+            "git_readback"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "job_reconcile_effect.git_readback",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

@@ -1,0 +1,169 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect registered selected SQLite assets read-only and append measured schema receipts.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "batch_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:-]+$",
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "exact_count_max_database_bytes": {
+        "default": 8388608,
+        "maximum": 33554432,
+        "minimum": 1,
+        "title": "Exact Count Max Database Bytes",
+        "type": "integer"
+      },
+      "max_assets": {
+        "default": 512,
+        "maximum": 512,
+        "minimum": 1,
+        "title": "Max Assets",
+        "type": "integer"
+      },
+      "max_batch_vm_steps": {
+        "default": 40000000,
+        "maximum": 200000000,
+        "minimum": 1000,
+        "title": "Max Batch Vm Steps",
+        "type": "integer"
+      },
+      "max_embedded_member_bytes": {
+        "default": 67108864,
+        "maximum": 805306368,
+        "minimum": 1,
+        "title": "Max Embedded Member Bytes",
+        "type": "integer"
+      },
+      "max_metadata_bytes": {
+        "default": 8388608,
+        "maximum": 33554432,
+        "minimum": 1024,
+        "title": "Max Metadata Bytes",
+        "type": "integer"
+      },
+      "max_total_input_bytes": {
+        "default": 268435456,
+        "maximum": 4294967296,
+        "minimum": 1,
+        "title": "Max Total Input Bytes",
+        "type": "integer"
+      },
+      "timeout_seconds": {
+        "default": 15,
+        "exclusiveMinimum": 0,
+        "maximum": 60,
+        "title": "Timeout Seconds",
+        "type": "number"
+      }
+    },
+    "required": [
+      "batch_id"
+    ],
+    "title": "SourceSQLiteRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "source_inspect_sqlite",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4528e2dd46b3a50e7fd017221104dacfb67fe4053cbc901f7e27c96fe5cb7ae2",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "source_inspect_sqlite",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_inspect_sqlite.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

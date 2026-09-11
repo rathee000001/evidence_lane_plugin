@@ -1,59 +1,88 @@
-name: Evidence Lane governed Python CI
+name: Evidence Lane plugin regression
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - "agent/**"
+    branches: [main, 'codex/**']
+  pull_request:
+    branches: [main, 'codex/**']
 
 permissions:
   contents: read
 
 concurrency:
-  group: evidence-lane-ci-${{ github.ref }}
+  group: evidence-lane-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  governed-python:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        profile:
-          - governed-quality
-          - governed-lifecycle
-          - governed-lanes
-          - governed-sources-mcp
+  select:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
     steps:
-      - name: Checkout exact study commit
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The semantic fingerprint keeps the immutable cumulative main
-          # baseline even after bounded correction and receipt commits.
           fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: |
-            plugins/evidence-lane-plugin/requirements.torch-cpu.lock.txt
-            plugins/evidence-lane-plugin/requirements.lock.txt
-      - name: Install governed Python dependencies
-        run: |
-          python -m pip install --require-hashes --no-deps -r plugins/evidence-lane-plugin/requirements.torch-cpu.lock.txt
-          python -m pip install --require-hashes -r plugins/evidence-lane-plugin/requirements.lock.txt
-      - name: Execute Code-mode CI contract
-        uses: ./.github/actions/evidence-lane-ci
-        with:
-          profile: ${{ matrix.profile }}
-          receipt_path: .runtime/ci/${{ matrix.profile }}-receipt.json
-      - name: Upload CI receipt
+          python-version: '3.14.2'
+          architecture: x64
+      - name: Select current repository regression profiles
+        id: select
+        run: python -B scripts/maintainer_ci.py select
+      - name: Preserve selection and its coverage boundary
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: evidence-lane-${{ matrix.profile }}-receipt
-          path: .runtime/ci/${{ matrix.profile }}-receipt.json
+          name: plugin-ci-selection
+          path: .work/ci/selection.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+  regression:
+    needs: select
+    runs-on: windows-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.select.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14.2'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: requirements-dev.lock.txt
+      - name: Install the pinned regression environment
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip check
+      - name: Check complete repository Python lint
+        if: matrix.profile == 'ci'
+        run: python -B -m ruff check --no-cache .
+      - name: Check complete plugin Python types
+        if: matrix.profile == 'ci'
+        run: python -B -m mypy --no-incremental
+      - name: Run the selected regression profile
+        uses: ./.github/actions/evidence-lane-ci
+        with:
+          profile: ${{ matrix.profile }}
+      - name: Preserve measured results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: plugin-ci-${{ matrix.profile }}
+          include-hidden-files: true
+          path: |
+            .work/ci/${{ matrix.profile }}/receipt.json
+            .work/ci/${{ matrix.profile }}/junit.xml
+            .work/ci/${{ matrix.profile }}/stdout.txt
+            .work/ci/${{ matrix.profile }}/stderr.txt
           if-no-files-found: error
           retention-days: 7

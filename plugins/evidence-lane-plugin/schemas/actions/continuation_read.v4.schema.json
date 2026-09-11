@@ -1,0 +1,131 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read bounded project continuation bindings without reattaching host sessions.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "after_sequence": {
+        "default": 0,
+        "minimum": 0,
+        "title": "After Sequence",
+        "type": "integer"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 50,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "participant_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Participant Id"
+      }
+    },
+    "title": "ContinuationRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "continuation_read",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "last_sequence": {
+        "title": "Last Sequence",
+        "type": "integer"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "offers": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Offers",
+        "type": "array"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "scope": {
+        "default": "project_participant_ownership_and_context",
+        "title": "Scope",
+        "type": "string"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "offers",
+      "last_sequence",
+      "truncated"
+    ],
+    "title": "ContinuationPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "continuity",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "87a205d3c9ae34fe843346443331887fbfeb4118f12d41abbff7babbf5e0a09b",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "continuation_read",
+    "profile": "continuity",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "continuation_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "state-travel"
+}

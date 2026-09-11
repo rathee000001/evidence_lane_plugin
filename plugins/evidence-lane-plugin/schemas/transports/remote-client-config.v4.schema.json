@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "ca_file": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ca File"
+    },
+    "credential_env": {
+      "pattern": "^[A-Z][A-Z0-9_]{2,127}$",
+      "title": "Credential Env",
+      "type": "string"
+    },
+    "hook_binding_directory": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hook Binding Directory"
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string"
+    },
+    "probe_file": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Probe File"
+    },
+    "project_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "server_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Server Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "origin",
+    "server_id",
+    "project_id",
+    "credential_env"
+  ],
+  "title": "RemoteClientConfig",
+  "type": "object"
+}

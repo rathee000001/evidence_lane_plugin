@@ -1,0 +1,2765 @@
+{
+  "schema": "evidence-lane.sector-package.v4",
+  "lane_id": "ppt",
+  "folder": "sectors/ppt",
+  "source_package_folder": "authorities/project_sectors/ppt",
+  "folder_role": "external_project_state",
+  "database": "sectors/ppt/ppt_sector_v001.sqlite",
+  "files": "sectors/ppt/files",
+  "schema_history": "sectors/ppt/schema-history",
+  "runtime_module": "evidence_lane_plugin.presentation_profile",
+  "parser_modules": [
+    "evidence_lane_plugin.presentation_parsers",
+    "evidence_lane_plugin.presentation_workers",
+    "evidence_lane_plugin.presentation_authoring"
+  ],
+  "retrieval_module": "evidence_lane_plugin.presentation_profile",
+  "migrations": [
+    {
+      "owner": "ppt",
+      "version": 1,
+      "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+    },
+    {
+      "owner": "pptselector",
+      "version": 1,
+      "digest": "998eab50a277bf8debd7a7b586e0976f77c10571129cc35ac5c83c5c23238fb6"
+    }
+  ],
+  "actions": [
+    {
+      "name": "presentation_convert",
+      "description": "Convert exact legacy PPT/ODP bytes into a separate versioned PPTX while retaining the original.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "PresentationConvert",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_convert",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_convert.shared_office",
+            "adapter": "evidence_lane_plugin.presentation_conversion:convert_presentation",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_convert"
+        ],
+        "installation_implied": false,
+        "contract_digest": "034ce4e4277491cdb024d9e371e2ad150bd6a4c6ced6a048da12c2a75cf45c09"
+      },
+      "worker_operations": [
+        "presentation_convert"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_current",
+      "description": "Read current presentation identities without refreshing source files.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "PresentationSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_current",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_current.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "0ab60788bb5324a44482dfadd55470dbdd52487aed4914c0ead452ad198fd695"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_edit",
+      "description": "Publish a new immutable lane-owned PPTX version with explicit structural and layout fidelity.",
+      "inputSchema": {
+        "$defs": {
+          "PresentationReplacement": {
+            "additionalProperties": false,
+            "properties": {
+              "part": {
+                "pattern": "^ppt/(slides/slide|notesSlides/notesSlide)\\d+\\.xml$",
+                "title": "Part",
+                "type": "string"
+              },
+              "paragraph_index": {
+                "maximum": 8191,
+                "minimum": 0,
+                "title": "Paragraph Index",
+                "type": "integer"
+              },
+              "expected_text": {
+                "maxLength": 32768,
+                "title": "Expected Text",
+                "type": "string"
+              },
+              "replacement_text": {
+                "maxLength": 32768,
+                "title": "Replacement Text",
+                "type": "string"
+              }
+            },
+            "required": [
+              "part",
+              "paragraph_index",
+              "expected_text",
+              "replacement_text"
+            ],
+            "title": "PresentationReplacement",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/PresentationReplacement"
+            },
+            "maxItems": 32,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "slide_order": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Slide Order"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256"
+        ],
+        "title": "PresentationEdit",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_edit",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_edit.native_presentation",
+            "adapter": "evidence_lane_plugin.presentation_profile:edit_presentation",
+            "tool_ids": [
+              "Python",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "1589b4df821666596b6ecd1e1142d60cd757ead22fe03a040152d9aae00fda64"
+      },
+      "worker_operations": [
+        "presentation_edit"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_enrich",
+      "description": "Add a separate completed Docling projection to an exact PPTX snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_output_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PresentationEnrich",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_enrich",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_enrich.docling",
+            "adapter": "evidence_lane_plugin.presentation_enrichment:enrich",
+            "tool_ids": [
+              "Python",
+              "Docling"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_enrich"
+        ],
+        "installation_implied": false,
+        "contract_digest": "74c4d0117050255a7505bc6fa0c3316b75aa973523d456375caa2070ed6fb50a"
+      },
+      "worker_operations": [
+        "presentation_enrich"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_enrichment_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_enrichment_read",
+      "description": "Read a bounded Markdown excerpt and optional structured projection from an exact completed rich conversion.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "enrichment_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Enrichment Id",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 2097152,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_characters": {
+            "default": 32768,
+            "maximum": 65536,
+            "minimum": 1,
+            "title": "Max Characters",
+            "type": "integer"
+          },
+          "include_structure": {
+            "default": false,
+            "title": "Include Structure",
+            "type": "boolean"
+          },
+          "max_structure_bytes": {
+            "default": 131072,
+            "maximum": 524288,
+            "minimum": 4096,
+            "title": "Max Structure Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enrichment_id"
+        ],
+        "title": "PresentationEnrichmentRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_enrichment_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_enrichment_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_enrichment:register_enrichment_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "d5fdf6d24209b6fab60588ccc9d15c8c8764cfddbe96a372a4de380eeaefe13f"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "presentation_export",
+      "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "PresentationExport",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_export",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_export.native",
+            "adapter": "evidence_lane_plugin.presentation_profile:export_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "presentation_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "ppt.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "presentation_export.native_view",
+            "adapter": "evidence_lane_plugin.presentation_profile:export_presentation",
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "presentation_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "ppt.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "presentation_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "0d6ab3501c4a6c767303dc060c3ff902879aa3a3a2aec9842de2c79fbeb4c324"
+      },
+      "worker_operations": [
+        "presentation_parse_content",
+        "render_lane_view"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_export_hash_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_generate",
+      "description": "Publish a new immutable lane-owned PPTX version with explicit structural and layout fidelity.",
+      "inputSchema": {
+        "$defs": {
+          "Slide": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 160,
+                "minLength": 1,
+                "title": "Name",
+                "type": "string"
+              },
+              "background": {
+                "default": "FFFFFF",
+                "pattern": "^[0-9A-Fa-f]{6}$",
+                "title": "Background",
+                "type": "string"
+              },
+              "notes": {
+                "default": "",
+                "maxLength": 16384,
+                "title": "Notes",
+                "type": "string"
+              },
+              "objects": {
+                "items": {
+                  "$ref": "#/$defs/SlideObject"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "title": "Objects",
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "objects"
+            ],
+            "title": "Slide",
+            "type": "object"
+          },
+          "SlideObject": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "text",
+                  "rectangle",
+                  "ellipse",
+                  "table",
+                  "image"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "name": {
+                "maxLength": 160,
+                "minLength": 1,
+                "title": "Name",
+                "type": "string"
+              },
+              "x": {
+                "maximum": 100,
+                "minimum": 0,
+                "title": "X",
+                "type": "number"
+              },
+              "y": {
+                "maximum": 100,
+                "minimum": 0,
+                "title": "Y",
+                "type": "number"
+              },
+              "width": {
+                "exclusiveMinimum": 0,
+                "maximum": 100,
+                "title": "Width",
+                "type": "number"
+              },
+              "height": {
+                "exclusiveMinimum": 0,
+                "maximum": 100,
+                "title": "Height",
+                "type": "number"
+              },
+              "text": {
+                "default": "",
+                "maxLength": 16384,
+                "title": "Text",
+                "type": "string"
+              },
+              "font_points": {
+                "default": 24,
+                "maximum": 96,
+                "minimum": 8,
+                "title": "Font Points",
+                "type": "integer"
+              },
+              "color": {
+                "default": "172333",
+                "pattern": "^[0-9A-Fa-f]{6}$",
+                "title": "Color",
+                "type": "string"
+              },
+              "fill": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9A-Fa-f]{6}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Fill"
+              },
+              "bold": {
+                "default": false,
+                "title": "Bold",
+                "type": "boolean"
+              },
+              "rows": {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "maxItems": 100,
+                "title": "Rows",
+                "type": "array"
+              },
+              "image_base64": {
+                "anyOf": [
+                  {
+                    "maxLength": 1048576,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Image Base64"
+              },
+              "image_format": {
+                "default": "png",
+                "enum": [
+                  "png",
+                  "jpeg"
+                ],
+                "title": "Image Format",
+                "type": "string"
+              },
+              "description": {
+                "default": "",
+                "maxLength": 1000,
+                "title": "Description",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "name",
+              "x",
+              "y",
+              "width",
+              "height"
+            ],
+            "title": "SlideObject",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^/\\\\:]+\\.pptx$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "width_inches": {
+            "default": 13.333333,
+            "maximum": 56,
+            "minimum": 1,
+            "title": "Width Inches",
+            "type": "number"
+          },
+          "height_inches": {
+            "default": 7.5,
+            "maximum": 56,
+            "minimum": 1,
+            "title": "Height Inches",
+            "type": "number"
+          },
+          "slides": {
+            "items": {
+              "$ref": "#/$defs/Slide"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Slides",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          }
+        },
+        "required": [
+          "logical_name",
+          "title",
+          "slides"
+        ],
+        "title": "PresentationGenerate",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_generate",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_generate.native_presentation",
+            "adapter": "evidence_lane_plugin.presentation_profile:generate_presentation",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML",
+              "Pillow",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "9c6e3a031cd1e792dc6e3fc3aa93f8621eca9f03898a94c9289a3f3e1b9f4d33"
+      },
+      "worker_operations": [
+        "presentation_generate"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_index",
+      "description": "Snapshot one exact presentation and its bounded native structure in the separate PPT lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "PresentationIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_index",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_index.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:index_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "220749f79385babb5be9ebaa27e727eb4c645e4cf8db18e6e88938ed043adf17"
+      },
+      "worker_operations": [
+        "presentation_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "ppt"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      },
+      "source_materialization": {
+        "path_argument": "filename",
+        "group_limit": 1,
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "preparation_is_execution": false
+      }
+    },
+    {
+      "name": "presentation_query",
+      "description": "Read bounded native structures or literal FTS5/BM25 matches from an exact presentation version.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "slide",
+              "notes",
+              "shape",
+              "text_block",
+              "table",
+              "image",
+              "relationship",
+              "chart"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PresentationQuery",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_query",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_query.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "02080198376c6006756d5029ebc075c6fca02b520702681b84d5cec14eed9f3a"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "ppt"
+        ],
+        "items": "rows",
+        "current_action": "presentation_current",
+        "current_items": "presentations",
+        "collection": "text",
+        "match_mode": "any",
+        "basis": "sqlite_fts5_bm25",
+        "rerank_text": "text"
+      }
+    },
+    {
+      "name": "presentation_read",
+      "description": "Read a bounded base64 byte range from an exact immutable presentation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "representation": {
+            "default": "presentation",
+            "enum": [
+              "presentation",
+              "original_source"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 8388608,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PresentationRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "92f231535b69cbcd10cf8963b52a9dd905513b4d31c8b29989db7f530b8f1011"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ],
+      "lane_fetch": {
+        "lanes": [
+          "ppt"
+        ],
+        "primary_representation": "presentation",
+        "path_argument": null,
+        "path_prefix": "",
+        "offset_argument": "offset",
+        "path_result": "logical_name",
+        "digest_result": "sha256",
+        "size_result": "total_bytes"
+      }
+    },
+    {
+      "name": "presentation_refresh",
+      "description": "Snapshot one exact presentation and its bounded native structure in the separate PPT lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "PresentationIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_refresh",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_refresh.engine",
+            "adapter": "evidence_lane_plugin.presentation_profile:index_presentation",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "a1bcf9c04b5fb1edc57be22855086791f3fb52b32e6dd8ebfe205a9282aaf32d"
+      },
+      "worker_operations": [
+        "presentation_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_snapshot_integrity",
+        "presentation_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "ppt"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    },
+    {
+      "name": "presentation_render",
+      "description": "Render exact presentation bytes to PDF and page PNGs using the verified shared office runtime.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_pages": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "dpi": {
+            "default": 110,
+            "maximum": 150,
+            "minimum": 72,
+            "title": "Dpi",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          },
+          "max_output_bytes": {
+            "default": 8388608,
+            "maximum": 16777216,
+            "minimum": 65536,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PresentationRender",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "presentation",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_render",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_render.shared_office",
+            "adapter": "evidence_lane_plugin.presentation_rendering:render_presentation",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "pypdfium2"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "presentation_render"
+        ],
+        "installation_implied": false,
+        "contract_digest": "2f0193f901d0328e4edd31e1084b8369c1c69d55026464fa83455f899b98ceb2"
+      },
+      "worker_operations": [
+        "presentation_render"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "presentation_render_bytes_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "presentation_render_read",
+      "description": "Read and verify one immutable presentation-render manifest and its artifacts.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "render_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Render Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "render_id"
+        ],
+        "title": "PresentationRenderRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "ppt",
+            "default": "ppt",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PresentationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "presentation",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "presentation_render_read",
+        "profile": "presentation",
+        "routes": [
+          {
+            "route_id": "presentation_render_read.engine",
+            "adapter": "evidence_lane_plugin.presentation_rendering:register_render_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "30cd1a694dbc512bbc830e6bf7a9724f6c8a616a632410697883657bb36102e9"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "ppt",
+          "version": 1,
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91"
+        }
+      ]
+    },
+    {
+      "name": "source_snapshot_retire",
+      "description": "Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.",
+      "inputSchema": {
+        "$defs": {
+          "SnapshotSelection": {
+            "additionalProperties": false,
+            "properties": {
+              "lane_id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "snapshot_id": {
+                "pattern": "^[a-f0-9]{64}$",
+                "title": "Snapshot Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "lane_id",
+              "snapshot_id"
+            ],
+            "title": "SnapshotSelection",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/SnapshotSelection"
+            },
+            "maxItems": 128,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "replacement_tasks": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Replacement Tasks",
+            "type": "array"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "max_files": {
+            "default": 512,
+            "maximum": 4096,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 33554432,
+            "maximum": 536870912,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotRetire",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "worker_operations": [
+        "code_git_checkpoint"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "description": "Inspect an owning local-source snapshot, retained lineage head and retirement without refreshing source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": []
+    }
+  ],
+  "source_selector": {
+    "lane_id": "ppt",
+    "current_table": "ppt_current",
+    "key_field": "presentation_id",
+    "retirement_table": "selector_retirement",
+    "scope": "owning_local_source_snapshots",
+    "history_deleted": false
+  },
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "ppt",
+    "folder": "sectors/ppt",
+    "files_root": "sectors/ppt/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "ppt_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".pptx",
+        ".pptm",
+        ".potx",
+        ".ppsx",
+        ".odp",
+        ".ppt",
+        ".pdf",
+        ".png"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "slide_order_shapes_notes_and_assets"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "ppt.mmd",
+      "dot": "ppt.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact presentation snapshot, declared slide number and native object locators; rendered pages are separate"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "F3E85A0F941B60A5CBCDB490AF88DE7EE8C81AC083E2F68E27FB763EEB577B57"
+  },
+  "toolchain": "toolchains/operation-toolchains.v4.json",
+  "source_byte_store": "owning_lane_files",
+  "historical_git_owner": null,
+  "full_runtime_installation_verified": false,
+  "project_data_packaged": false,
+  "formats": {
+    "schema": "evidence-lane.presentation-formats.v4",
+    "lane_id": "ppt",
+    "native_intake": [
+      ".potx",
+      ".ppsx",
+      ".pptm",
+      ".pptx"
+    ],
+    "generation": [
+      ".pptx"
+    ],
+    "text_edit_and_slide_order": [
+      ".pptx",
+      ".potx",
+      ".ppsx"
+    ],
+    "generation_objects": [
+      "text",
+      "rectangle",
+      "ellipse",
+      "editable_table",
+      "embedded_png",
+      "embedded_jpeg",
+      "speaker_notes"
+    ],
+    "render": [
+      ".pptx",
+      ".potx",
+      ".ppsx"
+    ],
+    "render_engine": "verified_shared_LibreOffice_Impress_and_pypdfium2",
+    "legacy_conversion_required": [
+      ".ppt",
+      ".odp"
+    ],
+    "legacy_conversion_implemented": true,
+    "legacy_fidelity": "original_retained_derived_pptx_not_lossless_round_trip",
+    "chart_generation": false,
+    "chart_intake": "relationships_and_cached_values_original_workbooks_retained",
+    "optional_enrichment": {
+      "engine": "Docling",
+      "formats": [
+        ".pptx",
+        ".potx",
+        ".ppsx"
+      ],
+      "completion_required": "success",
+      "model_download_during_operation": false
+    },
+    "animation_playback": false,
+    "powerpoint_layout_equivalence": false,
+    "render_exclusions": [
+      "macro_packages",
+      "embedded_ole_or_controls",
+      "embedded_chart_workbooks",
+      "external_resources_except_hyperlinks",
+      "audio_video_playback",
+      "program_or_macro_actions"
+    ],
+    "render_fidelity": {
+      "font_substitution": "possible",
+      "hidden_slides": "converter_default",
+      "visual_review": "separate_from_successful_render"
+    },
+    "budgets": {
+      "max_source_bytes": 8388608,
+      "max_expanded_package_bytes": 33554432,
+      "max_package_members": 4096,
+      "max_slides": 100,
+      "max_structure_items": 8192,
+      "text_chunk_characters": 4096,
+      "max_query_items": 100,
+      "max_render_pages": 100
+    },
+    "source_edits_require_separate_export": true,
+    "macros_and_external_resources_executed": false,
+    "natural_files": [
+      "original_format",
+      ".pptx",
+      ".pdf",
+      ".png"
+    ],
+    "graph_files": [
+      "ppt.mmd",
+      "ppt.dot",
+      "ppt.pointer.json"
+    ]
+  },
+  "render_module": "evidence_lane_plugin.presentation_rendering",
+  "members": [
+    {
+      "path": "authorities/project_sectors/ppt/schema.sql",
+      "sha256": "ae1ef8da2b72d430ada7001ccff235886573ff006d94b1912beeb127aa12a0ac"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/migration-history.json",
+      "sha256": "873a6e3528b4f486180e754c750e4819692d3c8a89a62ff85749565d35b909b5"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/runtime.py",
+      "sha256": "5294a62ec9effafa97aca7fcc841220dc7740e20959a03a2130617ce2ea4980a"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/builder.py",
+      "sha256": "396755bb26403598d90a6e07a34690d058f04f8da467d16adb32125ea7f4e8c2"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/reader.py",
+      "sha256": "ab0492ed61761a2538d64791c5f1570ac7e678849b4433c00c71296e19c3f926"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/builder-contract.schema.json",
+      "sha256": "4434168b18cbd2bb0a089f76173c596477f1c71db8a9a2722a1c363e3a0b4e76"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/reader-contract.schema.json",
+      "sha256": "0398e5f0021643c9ff6114e0a518d4d051a366f34c8ea64d33f16dda6edf1a4b"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/refresh-receipt.schema.json",
+      "sha256": "44c688655fef45de52eb548ab96bf93b56b10f8d2ad831a33b2b835a8bc73484"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/lane-pointer.schema.json",
+      "sha256": "2a054f7491467700f5196a7491763da602ed7a061eb6452bec06eb53077483c6"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/mmd-artifact.schema.json",
+      "sha256": "66b8897f8e9bfd275a4b6218bfc3c3a13a35ea44375c48ab909fc4e2e26c3306"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/dot-artifact.schema.json",
+      "sha256": "a1f3cf6d643c940950ab48020565a14a5209a86d1d0ced5d6db05e4df104b3ed"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt_sector_v001.sqlite",
+      "sha256": "8e66678de6e5f85e2bb01dc99967745c7395f83fb2446bce0329ed82b8b8407f"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/schema-template.json",
+      "sha256": "f14c803b365a7a7331744e924d9e7880a4866a40a886f73b46e7710b07544679"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/sqlite-artifact.schema.json",
+      "sha256": "cf2bf4b3c3ac936b13dbacff939a629c4a14d065ff13ff5d621ba440b632fa07"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt.mmd",
+      "sha256": "89983ea3515152f30d175a5302f463a48b64c38f32c078646bc17cbef374728d"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/ppt.dot",
+      "sha256": "0d9f1a3023b966b4476cc3389c6da02df7c8b7d0b849f5e1acccd9daa0eaea9c"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/workflow.mmd",
+      "sha256": "0b7214e6bb09eb5c55f463cc421c0495501159188b4ee47955b71df7bca7b25d"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/workflow.dot",
+      "sha256": "0ca3edaaba620865f758f9f736826656a7abf04cd676785602b4401da012ab78"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/workflow.v4.json",
+      "sha256": "c9ffa2e0f83df5f156a670861f352d4cbe5a990ac380cf4cf60cce90f3bc0a94"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/tools.json",
+      "sha256": "e0dce67be1d89a5435726e34de6596e3721309f7692278e36a091e84e1fc9130"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/tools.schema.json",
+      "sha256": "456fac69da5746e69c6f769ecaa3ae283211a5f1111c57d4135ea3a8808a2824"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/README.md",
+      "sha256": "16a8a08fe8deb125b488b07952e32f4aecaa26ffdc9ce064f99b6ebbe873e30a"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/lane-contract.v4.json",
+      "sha256": "24d67841c76df61f06a70881364f658a02123f692ad9afe7889b32aafc5f9a37"
+    },
+    {
+      "path": "authorities/project_sectors/ppt/manifest.schema.json",
+      "sha256": "9fab943e8cac3c1dfb5af7e9bcace63eb2940e5b117d240b8cb50fad599522ed"
+    }
+  ]
+}

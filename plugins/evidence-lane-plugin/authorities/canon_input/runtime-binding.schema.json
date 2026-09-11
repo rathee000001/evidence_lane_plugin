@@ -1,23 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "canon_input runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "canon_input"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.canon_task_graph"
-    },
-    "source_sha256": {
-      "const": "F19A3643ED9216A89443EAFB7A77E7BF373F7FD7F3D418DD283EF32BA0E19F4F"
-    }
+  "const": {
+    "owner_id": "canon",
+    "modules": [
+      "evidence_lane_plugin.canon_task_graph"
+    ],
+    "storage": "authorities/canon/canon_authority_v001.sqlite with files and schema history in authorities/canon",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "F61B378410889D60D182816AEBABFBC79A40D42C9526BDECC6BB40B796E9C97D"
+  "title": "canon canonical runtime binding"
 }

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B7448F6B19A1D8BB6952361CF54AE2E6425A0302E95B111DA1208AE1DF969F3D
+%% LANGGRAPH_EXPORT_SHA256=4FDDCEF9DDF2EC3DAAA7C9A44C20595350646D30E739DFE4EF083B625EC0599C
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,74 +15,70 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
-  ENTRY["NAMED_ROOT_AUTHORITY receipt_ledger exact identity"]:::root
-  EXIT["Result / explicit stop / next refresh"]:::output
-  subgraph FLOW["Current surface execution flow"]
-    direction TB
-    SCHEMA["Resolve current surface + action schemas"]:::semantic
-    SKILLS["Resolve 79 current skill workflows"]:::semantic
-    ACTIONS["Resolve 91 current typed actions"]:::semantic
-    INTERNAL_SDK["Internal SDK execution owner"]:::semantic
-    ENV["ENV15 environment selection"]:::semantic
-    UOP["UOP15 governance and gates"]:::warn
-    TOOLS["Conditional tool role resolution"]:::semantic
-    OUTER["Outer SDK / FastMCP / native MCP / local route"]:::semantic
-    HOOKS["Only emitted ordered hooks"]:::semantic
-    VALIDATE["Validate result, authority and HIL effects"]:::warn
-    RECEIPT["Exact refresh and provenance receipt"]:::output
-  end
-  subgraph PROJECT_PV_BASELINE["Project/PV baseline connection (identity only)"]
-    direction TB
-    BASELINE_01["PROJECT_PV_ROOT"]:::semantic
-    BASELINE_02["AUTHORITY_REGISTRY"]:::semantic
-    BASELINE_03["NAMED_ROOT_AUTHORITY:receipt_ledger"]:::semantic
-  end
-  subgraph SURFACE_PHASES["receipt_ledger authority specific execution"]
-    direction TB
-    PHASE_AUTHORITY_BIND["Bind exact authority identity and contract"]:::semantic
-    PHASE_AUTHORITY_OPERATION["Run the authority-owned read or write"]:::semantic
-    PHASE_AUTHORITY_INDEX["Refresh applicable SQLite/FTS/index projection"]:::semantic
-    PHASE_AUTHORITY_GRAPH["Refresh authority-specific MMD and DOT"]:::semantic
-    PHASE_RESULT_VALIDATE["Validate effects, boundaries and hashes"]:::semantic
-    PHASE_ATOMIC_REFRESH["Commit changed generation; reuse unchanged atoms"]:::semantic
-  end
-  subgraph TOOL_ROLES["Mutually exclusive tool roles"]
-    direction TB
-    ROLE_TASK_EXECUTION["task execution: 6 current rows"]:::semantic
-    ROLE_TRANSPORT_ORCHESTRATION["transport orchestration: 0 current rows"]:::semantic
-    ROLE_EXTERNAL_SERVICES_OR_STORES["external services or stores: 0 current rows"]:::semantic
-    ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS["observability evaluation attachments: 0 current rows"]:::semantic
-  end
-  ENTRY --> SCHEMA
-  SCHEMA --> SKILLS
-  SKILLS --> ACTIONS
-  ACTIONS --> INTERNAL_SDK
-  INTERNAL_SDK --> ENV
-  ENV --> UOP
-  UOP --> TOOLS
-  TOOLS --> OUTER
-  BASELINE_01 --> BASELINE_02
-  BASELINE_02 --> BASELINE_03
-  BASELINE_03 -->|"bind current surface identity"| ENTRY
-  OUTER -->|"surface-local route"| PHASE_AUTHORITY_BIND
-  PHASE_AUTHORITY_BIND --> PHASE_AUTHORITY_OPERATION
-  PHASE_AUTHORITY_OPERATION -->|"conditional: when applicable"| PHASE_AUTHORITY_INDEX
-  PHASE_AUTHORITY_OPERATION -->|"conditional: when applicable"| PHASE_AUTHORITY_GRAPH
-  PHASE_AUTHORITY_OPERATION --> PHASE_RESULT_VALIDATE
-  PHASE_AUTHORITY_INDEX --> PHASE_RESULT_VALIDATE
-  PHASE_AUTHORITY_GRAPH --> PHASE_RESULT_VALIDATE
-  PHASE_RESULT_VALIDATE -->|"conditional: when applicable"| PHASE_ATOMIC_REFRESH
-  PHASE_RESULT_VALIDATE -->|"conditional: read/no-change result"| HOOKS
-  PHASE_ATOMIC_REFRESH -->|"changed generation"| HOOKS
-  HOOKS --> VALIDATE
-  VALIDATE --> RECEIPT
-  RECEIPT --> EXIT
-  RECEIPT -->|"conditional: next conditional refresh"| ENTRY
-  TOOLS --> ROLE_TASK_EXECUTION
-  ROLE_TASK_EXECUTION -->|"conditional: selected when condition true"| OUTER
-  TOOLS --> ROLE_TRANSPORT_ORCHESTRATION
-  ROLE_TRANSPORT_ORCHESTRATION -->|"conditional: selected when condition true"| OUTER
-  TOOLS --> ROLE_EXTERNAL_SERVICES_OR_STORES
-  ROLE_EXTERNAL_SERVICES_OR_STORES -->|"conditional: selected when condition true"| OUTER
-  TOOLS --> ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS
-  ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS -->|"conditional: selected when condition true"| OUTER
+  sdk["Authenticated SDK and native MCP client"]:::default
+  read["Exact selected scope and bounded recorded evidence"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
+  delta["Current stored Plan operation and Delta admission"]:::default
+  owner["receipts current executable owner"]:::default
+  action_accelerator_configure["accelerator_configure"]:::default
+  action_accelerator_read["accelerator_read"]:::default
+  action_capture_bind["capture_bind"]:::default
+  action_connector_configure["connector_configure"]:::default
+  action_connector_read["connector_read"]:::default
+  action_connector_revoke["connector_revoke"]:::default
+  action_remote_git_action_read["remote_git_action_read"]:::default
+  action_remote_git_execute_push["remote_git_execute_push"]:::default
+  action_remote_git_prepare_push["remote_git_prepare_push"]:::default
+  action_session_boot["session_boot"]:::default
+  action_session_context["session_context"]:::default
+  action_session_exit["session_exit"]:::default
+  action_session_exit_boundary["session_exit_boundary"]:::default
+  action_session_resume["session_resume"]:::default
+  action_session_status["session_status"]:::default
+  action_storage_connector_inspect["storage_connector_inspect"]:::default
+  action_storage_connector_select["storage_connector_select"]:::default
+  sdk -->|"admin"| action_accelerator_configure
+  action_accelerator_configure -->|"toolchain"| writer
+  sdk -->|"read"| action_accelerator_read
+  action_accelerator_read -->|"toolchain"| read
+  sdk -->|"write"| action_capture_bind
+  action_capture_bind -->|"boot"| writer
+  sdk -->|"admin"| action_connector_configure
+  action_connector_configure -->|"additional-plugin"| writer
+  sdk -->|"read"| action_connector_read
+  action_connector_read -->|"plugin"| read
+  sdk -->|"admin"| action_connector_revoke
+  action_connector_revoke -->|"drop-additional-plugin"| writer
+  sdk -->|"read"| action_remote_git_action_read
+  action_remote_git_action_read -->|"lifecycle"| read
+  sdk -->|"publish"| action_remote_git_execute_push
+  delta -->|"required current operation contract"| action_remote_git_execute_push
+  action_remote_git_execute_push -->|"lifecycle"| writer
+  sdk -->|"publish"| action_remote_git_prepare_push
+  delta -->|"required current operation contract"| action_remote_git_prepare_push
+  action_remote_git_prepare_push -->|"lifecycle"| writer
+  sdk -->|"write"| action_session_boot
+  action_session_boot -->|"boot"| writer
+  sdk -->|"read"| action_session_context
+  action_session_context -->|"boot"| read
+  sdk -->|"write"| action_session_exit
+  action_session_exit -->|"exit-boot"| writer
+  sdk -->|"read"| action_session_exit_boundary
+  action_session_exit_boundary -->|"exit-boot"| read
+  sdk -->|"write"| action_session_resume
+  action_session_resume -->|"boot"| writer
+  sdk -->|"read"| action_session_status
+  action_session_status -->|"boot"| read
+  sdk -->|"read"| action_storage_connector_inspect
+  action_storage_connector_inspect -->|"storage"| read
+  sdk -->|"admin"| action_storage_connector_select
+  action_storage_connector_select -->|"storage"| writer
+  writer -->|"owned mutation and attributed result"| owner
+  owner -->|"published state"| read
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_accelerator_configure ~~~ action_accelerator_read
+  action_connector_configure ~~~ action_connector_read
+  action_remote_git_execute_push ~~~ action_remote_git_prepare_push
+  action_session_exit ~~~ action_session_exit_boundary
+  action_storage_connector_inspect ~~~ action_storage_connector_select
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -1,0 +1,184 @@
+{
+  "action_count": 297,
+  "bootstrap_dependency": "Python 3.14 command and pinned core environment; complete first-detection installer is a separate qualification",
+  "entrypoint": "scripts/run_mcp.py",
+  "full_toolchain_readiness": "not_established_by_this_contract",
+  "hook_trust_attested": false,
+  "installed": false,
+  "installed_plugin_location": "Codex-managed plugin root",
+  "legacy_installer_called_by_current_entrypoint": false,
+  "local_api": {
+    "action_route": "/v4/action",
+    "capture_route": "/v4/capture",
+    "connection_route": "/v4/connect",
+    "origin": "current-user loopback only",
+    "owner": "local_transport.LocalEndpoint",
+    "posix_credentials": "owned private file with no-follow checks",
+    "project_admin": "separate local-owner bootstrap grant",
+    "windows_credentials": "current-user DPAPI"
+  },
+  "native_task_attestation": "not_provided",
+  "platforms": {
+    "Darwin": {
+      "runtime": "~/Library/Application Support/EvidenceLane/runtime",
+      "studio": false
+    },
+    "Linux": {
+      "runtime": "~/.local/share/EvidenceLane/runtime",
+      "studio": false
+    },
+    "Windows": {
+      "runtime": "C:/Apps/EvidenceLaneStudio/runtime/engine",
+      "studio": true
+    },
+    "codex_vm_ephemeral": {
+      "requires_verified_remote_route": true
+    },
+    "codex_vm_persistent": {
+      "requires_verified_remote_route": true
+    }
+  },
+  "project_state": "separate authority/sector SQLite databases and files coordinated by Root PV",
+  "remote_api": {
+    "authorization": "exact parent grant plus a unique engine-issued child connection",
+    "automatic_mutation_retry": false,
+    "durability": "server-enforced recent SQLite/object read after engine restart and operator persistent declaration",
+    "hook_provenance": "authenticated_remote_hook_report",
+    "origin": "explicit HTTPS with verified TLS",
+    "owner": "remote_api.RemoteGateway",
+    "physical_volume_durability": "operator_declaration_only",
+    "project_admin": false,
+    "read_only_setup": "server owner may prepare the exact grant-bound restart probe; the client can verify it without probe-write permission",
+    "route_prefix": "/remote/v4/",
+    "routes": [
+      "discover",
+      "probe",
+      "verify",
+      "connect",
+      "action",
+      "capture",
+      "disconnect"
+    ]
+  },
+  "retained_provisioning_source": "scripts/first_detection.py",
+  "schema": "evidence-lane.engine-connection-contract.v4",
+  "session_state_owner": "receipts lane",
+  "source_members": [
+    {
+      "path": ".mcp.json",
+      "sha256": "8BF7ED7621111DD5CAFB62495270D9FBFFEFF4289AB45DED8F209720A7B1BEE0"
+    },
+    {
+      "path": "scripts/run_mcp.py",
+      "sha256": "7AC1F50924FEE654350D12B7010B8E64107B122194905E4207AB0A256F50E44F"
+    },
+    {
+      "path": "scripts/run_engine.py",
+      "sha256": "95084FF155B48C35C802703E1F95E90EC02734BE29FA76D7799352D4F22BFAC1"
+    },
+    {
+      "path": "src/evidence_lane_plugin/launcher.py",
+      "sha256": "AE346A2BFA2EFB14509C7ABA227FC617FE104BBC6AC354BC40D0559A01364655"
+    },
+    {
+      "path": "src/evidence_lane_plugin/service.py",
+      "sha256": "C8CA0D33DE41304F080E1D9D904089B3E52D49DB72C434A08A28C6B76E785E3C"
+    },
+    {
+      "path": "src/evidence_lane_plugin/connections.py",
+      "sha256": "CB964957D33E0F2FB9F7F9C6D4AEF51E51618887321B6F05544C7772D1C2C8FB"
+    },
+    {
+      "path": "src/evidence_lane_plugin/local_transport.py",
+      "sha256": "5868D3E8CBE56DAC2B590F47074D9D818A1E2EAC05875F7F8291B7C7AB627B97"
+    },
+    {
+      "path": "src/evidence_lane_plugin/projects.py",
+      "sha256": "F5F400E43CFC7D6D081CF6896905B4A6FD64CDD62E34ACDA77406172490CF18F"
+    },
+    {
+      "path": "src/evidence_lane_plugin/remote_api.py",
+      "sha256": "F3B8F6FAA7FE49CA4944F5C509B5F03F9D97C6D759195FAA138DFE629F217525"
+    },
+    {
+      "path": "src/evidence_lane_plugin/remote_transport.py",
+      "sha256": "47C4788775E3543586B7082CB3AD65016161D533612F0D67A57B1B4BBAF0336D"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_server.py",
+      "sha256": "7F8E10787F5C2897EA867770E23FE646DF25EBCCCA982D6C91F3E18E1F4107E6"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_adapter.py",
+      "sha256": "17564247AE0A34209C2B63960A7AD7C3FFF537A25A055715CC48F9E3D449A531"
+    },
+    {
+      "path": "src/evidence_lane_plugin/capture_routing.py",
+      "sha256": "56DF536B6D587B4F098A151E89BB876C054F0B20E614873D9AD3D8FFE2C16D6B"
+    },
+    {
+      "path": "src/evidence_lane_plugin/hook_contract.py",
+      "sha256": "00352F4A2C1AAAB832769DCB1C1D14F14D223D86BC3398A42336776D20170CA5"
+    },
+    {
+      "path": "src/evidence_lane_plugin/session.py",
+      "sha256": "2E4AC28839F704D2AAFBE65F3B77B9591E6E5B040470D31B61C0E99849477535"
+    },
+    {
+      "path": "src/evidence_lane_plugin/session_authority.py",
+      "sha256": "C893AD93E818CACC7ABF8A0CE205BDFE93E51E140C4946BE7A849548CCC1B6B9"
+    },
+    {
+      "path": "src/evidence_lane_plugin/flash_authority.py",
+      "sha256": "CBBDDB33C8BA20AA37E3E178175A9733AF53D2B419661F36F48DB47FCFD5A4CD"
+    },
+    {
+      "path": "src/evidence_lane_plugin/host_routing.py",
+      "sha256": "931DE6FFAD66787D474AF5D6CB3937CBF70A55197BB69F5FD5450C0A787F0BF4"
+    },
+    {
+      "path": "src/evidence_lane_plugin/endpoint_credentials.py",
+      "sha256": "985EC0BBE267AFB3036544AC89919EAF77BE5AB7D70695416E79339F5CA1C2CB"
+    },
+    {
+      "path": "authorities/session_authority/installation-layout.v4.json",
+      "sha256": "D34115344544AF31B6CC8BD41032729D77DB71B215C96323662295AAB3FE38F7"
+    }
+  ],
+  "status": "source_contract",
+  "stdio_contract": {
+    "mcpServers": {
+      "evidence-lane": {
+        "args": [
+          "-I",
+          "-B",
+          "./scripts/run_mcp.py",
+          "--transport",
+          "stdio",
+          "--local-project-administration"
+        ],
+        "command": "python",
+        "cwd": ".",
+        "env_vars": [
+          "EVIDENCE_LANE_RUNTIME_ROOT",
+          "EVIDENCE_LANE_STUDIO_ROOT",
+          "EVIDENCE_LANE_HOST_PROFILE",
+          "EVIDENCE_LANE_GHOSTSCRIPT_LICENSE_RECEIPT",
+          "EVIDENCE_LANE_REMOTE_CONFIG",
+          "EVIDENCE_LANE_REMOTE_TOKEN"
+        ],
+        "required": true,
+        "startup_timeout_sec": 7200,
+        "tool_timeout_sec": 60
+      }
+    }
+  },
+  "studio": {
+    "human_access": "visible_read_only",
+    "owner_source": "apps/evidence-lane-studio",
+    "shared_installation": "authorities/session_authority/installation-layout.v4.json",
+    "windows_pc_only": true
+  },
+  "superseded_hidden_bearer_route_retired": true,
+  "workflow_count": 24
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "evidence-lane.python-runtimes.v4",
+  "status": "COMPLETE_PREINSTALL_INPUT",
+  "release_component": "core-engine-studio",
+  "platform": "windows-x86_64",
+  "runtimes": [
+    {
+      "runtime_id": "cp314",
+      "version": "3.14.2",
+      "distribution": "NuGet python",
+      "upstream_url": "https://www.nuget.org/api/v2/package/python/3.14.2",
+      "archive": "python.3.14.2.nupkg",
+      "bytes": 14917754,
+      "sha256": "c8d5e2b95f0250ceb84aafc2ded952c1c3ae65870651042aff7c2f19de856b75",
+      "archive_prefix": "tools/",
+      "installed_python": "toolchains/python/base/cp314/python.exe",
+      "venv_available": true,
+      "pip_available": true,
+      "license": "Python-2.0",
+      "license_path": "tools/LICENSE.txt",
+      "license_bytes": 35407,
+      "license_sha256": "935cf13e19f8c31b497d20b05d73623431a226b230c3599bc30fa3348979bc68"
+    },
+    {
+      "runtime_id": "cp312",
+      "version": "3.12.10",
+      "distribution": "NuGet python",
+      "upstream_url": "https://www.nuget.org/api/v2/package/python/3.12.10",
+      "archive": "python.3.12.10.nupkg",
+      "bytes": 14515433,
+      "sha256": "0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8",
+      "archive_prefix": "tools/",
+      "installed_python": "toolchains/python/base/cp312/python.exe",
+      "venv_available": true,
+      "pip_available": true,
+      "license": "Python-2.0",
+      "license_path": "tools/LICENSE.txt",
+      "license_bytes": 36874,
+      "license_sha256": "e502c6b880ff58d614901495a9009c136539cd0b1e2a2abb8fc00b934c203419"
+    }
+  ],
+  "first_detection_download_allowed": false,
+  "operation_download_allowed": false,
+  "installation_state": "not_installed",
+  "installed_execution_claimed": false
+}

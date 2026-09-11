@@ -1,0 +1,4026 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "sources",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "eeb7dda6b9b7ddfb3ba009f26a6682016257f3072a6d19f9128a9094d75dd36a",
+  "tables": [
+    {
+      "name": "customlanes_contracts",
+      "type": "table",
+      "sql": "CREATE TABLE customlanes_contracts(contract_sha256 TEXT PRIMARY KEY,lane_id TEXT NOT NULL,\n        previous_contract TEXT REFERENCES customlanes_contracts(contract_sha256),\n        contract_json TEXT NOT NULL CHECK(json_valid(contract_json)),created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "contract_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_contract",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "contract_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "customlanes_current",
+      "type": "table",
+      "sql": "CREATE TABLE customlanes_current(lane_id TEXT PRIMARY KEY,\n        contract_sha256 TEXT NOT NULL REFERENCES customlanes_contracts(contract_sha256)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "contract_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "gitbranch_current",
+      "type": "table",
+      "sql": "CREATE TABLE gitbranch_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       generation INTEGER NOT NULL REFERENCES gitbranch_history(generation), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "gitbranch_enrollment",
+      "type": "table",
+      "sql": "CREATE TABLE gitbranch_enrollment (enrollment_id TEXT PRIMARY KEY, digest TEXT NOT NULL UNIQUE,\n           body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "enrollment_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "gitbranch_history",
+      "type": "table",
+      "sql": "CREATE TABLE gitbranch_history (generation INTEGER PRIMARY KEY, digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "gitbranch_sync",
+      "type": "table",
+      "sql": "CREATE TABLE gitbranch_sync (sync_id TEXT PRIMARY KEY, digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sync_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "intake_batch",
+      "type": "table",
+      "sql": "CREATE TABLE intake_batch(\n                batch_id TEXT PRIMARY KEY,\n                batch_sha256 TEXT NOT NULL UNIQUE,\n                source_count INTEGER NOT NULL,\n                directory_count INTEGER NOT NULL,\n                file_count INTEGER NOT NULL,\n                zip_count INTEGER NOT NULL,\n                exact_extracted_zip_relations INTEGER NOT NULL,\n                unique_zip_count INTEGER NOT NULL,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "directory_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "zip_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "exact_extracted_zip_relations",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "unique_zip_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "registry_event",
+      "type": "table",
+      "sql": "CREATE TABLE registry_event(\n                event_id TEXT PRIMARY KEY,\n                batch_id TEXT,\n                event_type TEXT NOT NULL,\n                event_json TEXT NOT NULL,\n                event_sha256 TEXT NOT NULL,\n                occurred_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "event_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "event_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "occurred_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "registry_meta",
+      "type": "table",
+      "sql": "CREATE TABLE registry_meta(\n                key TEXT PRIMARY KEY,\n                value TEXT NOT NULL\n            )",
+      "rows": 1,
+      "columns": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "restoration_control",
+      "type": "table",
+      "sql": "CREATE TABLE restoration_control (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       generation INTEGER NOT NULL REFERENCES restoration_history(generation),\n       restore_digest TEXT NOT NULL, required_after_revision INTEGER NOT NULL,\n       cleared_by_revision INTEGER)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "restore_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "required_after_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "cleared_by_revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "restoration_history",
+      "type": "table",
+      "sql": "CREATE TABLE restoration_history (generation INTEGER PRIMARY KEY, digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "restoration_reindex",
+      "type": "table",
+      "sql": "CREATE TABLE restoration_reindex (generation INTEGER PRIMARY KEY REFERENCES restoration_history(generation),\n       digest TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "restoration_requests",
+      "type": "table",
+      "sql": "CREATE TABLE restoration_requests (request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL,\n       input_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       state TEXT NOT NULL CHECK(state IN ('pending','published','abandoned')),\n       result_json TEXT CHECK(json_valid(result_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "input_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_archive_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE source_archive_receipt(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                archive_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                intake_status TEXT NOT NULL,\n                skip_status TEXT NOT NULL,\n                counterpart_object_id TEXT REFERENCES source_object(object_id),\n                counterpart_scope TEXT,\n                matched_prefix TEXT,\n                unsafe_member_count INTEGER NOT NULL,\n                policy_excluded_member_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL,\n                created_at TEXT NOT NULL,\n                PRIMARY KEY(batch_id, archive_object_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "archive_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "intake_status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "skip_status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "counterpart_object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "counterpart_scope",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "matched_prefix",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "unsafe_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "policy_excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_assertion_set",
+      "type": "table",
+      "sql": "CREATE TABLE source_assertion_set(\n                assertion_set_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                crosswalk_sha256 TEXT NOT NULL,\n                source_count INTEGER NOT NULL,\n                claim_count INTEGER NOT NULL,\n                created_at TEXT NOT NULL,\n                UNIQUE(batch_id, crosswalk_sha256)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "assertion_set_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "crosswalk_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "claim_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_authority_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE source_authority_fts USING fts5(object_id UNINDEXED, source_pointer, member_path)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "source_pointer",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_custom_schema",
+      "type": "table",
+      "sql": "CREATE TABLE source_custom_schema(\n                schema_id TEXT NOT NULL,\n                schema_version INTEGER NOT NULL,\n                schema_sha256 TEXT NOT NULL UNIQUE,\n                target_lane_id TEXT NOT NULL,\n                compiler_version TEXT NOT NULL,\n                definition_json TEXT NOT NULL,\n                compiled_json TEXT NOT NULL,\n                created_at TEXT NOT NULL,\n                PRIMARY KEY(schema_id, schema_version)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "schema_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "schema_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "target_lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "compiler_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "definition_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "compiled_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_custom_schema_mapping",
+      "type": "table",
+      "sql": "CREATE TABLE source_custom_schema_mapping(\n                mapping_id TEXT PRIMARY KEY,\n                schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                occurrence_ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                member_path TEXT NOT NULL,\n                selector_id TEXT NOT NULL,\n                target_lane_id TEXT NOT NULL,\n                mapped_json TEXT NOT NULL,\n                mapping_sha256 TEXT NOT NULL,\n                mapping_state TEXT NOT NULL,\n                UNIQUE(schema_sha256, batch_id, occurrence_ordinal, member_path, selector_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "mapping_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "occurrence_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "selector_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "target_lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mapped_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mapping_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mapping_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_custom_schema_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE source_custom_schema_receipt(\n                receipt_id TEXT PRIMARY KEY,\n                schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                matched_occurrence_count INTEGER NOT NULL,\n                mapping_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(schema_sha256, batch_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "matched_occurrence_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mapping_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_exclusion_summary",
+      "type": "table",
+      "sql": "CREATE TABLE source_exclusion_summary(\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                policy_reason TEXT NOT NULL,\n                excluded_entry_count INTEGER NOT NULL,\n                excluded_bytes INTEGER,\n                descendant_members_enumerated INTEGER NOT NULL CHECK(descendant_members_enumerated IN (0, 1)),\n                member_paths_stored INTEGER NOT NULL CHECK(member_paths_stored = 0),\n                capture_mode TEXT NOT NULL,\n                PRIMARY KEY(object_id, policy_reason)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "policy_reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "excluded_entry_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "excluded_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "descendant_members_enumerated",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_paths_stored",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "capture_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_changed_line",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_changed_line(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                hunk_ordinal INTEGER NOT NULL,\n                line_ordinal INTEGER NOT NULL,\n                line_kind TEXT NOT NULL,\n                old_line_number INTEGER,\n                new_line_number INTEGER,\n                content_size_bytes INTEGER NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                no_newline INTEGER NOT NULL CHECK(no_newline IN (0, 1)),\n                line_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal,\n                    line_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                ) REFERENCES source_git_hunk(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                )\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "hunk_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 5
+        },
+        {
+          "name": "line_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 6
+        },
+        {
+          "name": "line_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "old_line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "new_line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "content_size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "no_newline",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "line_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_commit",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_commit(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                commit_sha TEXT NOT NULL,\n                ordinal INTEGER NOT NULL,\n                tree_sha TEXT NOT NULL,\n                authored_at TEXT NOT NULL,\n                committed_at TEXT NOT NULL,\n                author_sha256 TEXT NOT NULL,\n                committer_sha256 TEXT NOT NULL,\n                message_redacted TEXT NOT NULL,\n                message_sha256 TEXT NOT NULL,\n                object_content_sha256 TEXT NOT NULL,\n                parent_count INTEGER NOT NULL,\n                commit_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha),\n                UNIQUE(snapshot_id, ordinal)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tree_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authored_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "committed_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "author_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "committer_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "message_redacted",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "message_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commit_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_file_change",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_file_change(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                comparison_base_sha TEXT NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                status_code TEXT NOT NULL,\n                similarity_score INTEGER,\n                prior_path TEXT,\n                member_path TEXT NOT NULL,\n                old_mode TEXT NOT NULL,\n                new_mode TEXT NOT NULL,\n                old_object_sha TEXT NOT NULL,\n                new_object_sha TEXT NOT NULL,\n                additions INTEGER,\n                deletions INTEGER,\n                binary INTEGER NOT NULL CHECK(binary IN (0, 1)),\n                change_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "comparison_base_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "status_code",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "similarity_score",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "prior_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "old_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "new_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "old_object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "new_object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "additions",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "deletions",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "binary",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "change_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_hunk",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_hunk(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                hunk_ordinal INTEGER NOT NULL,\n                old_start INTEGER NOT NULL,\n                old_count INTEGER NOT NULL,\n                new_start INTEGER NOT NULL,\n                new_count INTEGER NOT NULL,\n                header_sha256 TEXT NOT NULL,\n                hunk_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal,\n                    hunk_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ) REFERENCES source_git_file_change(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                )\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "hunk_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 5
+        },
+        {
+          "name": "old_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "old_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "new_start",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "new_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "header_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "hunk_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_impact",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_impact(\n                impact_id TEXT PRIMARY KEY,\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                mapped_path_count INTEGER NOT NULL,\n                unmapped_path_count INTEGER NOT NULL,\n                seed_nodes_json TEXT NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                graph_impact_id TEXT,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mapped_path_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "unmapped_path_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "seed_nodes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "graph_impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_object",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_object(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                object_sha TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                size_bytes INTEGER NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                object_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, object_sha)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_object_path",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_object_path(\n                snapshot_id TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                path_ordinal INTEGER NOT NULL,\n                observed_path TEXT NOT NULL,\n                path_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, object_sha, path_ordinal),\n                FOREIGN KEY(snapshot_id, object_sha)\n                    REFERENCES source_git_object(snapshot_id, object_sha)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "path_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "observed_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "path_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_parent",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_parent(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                parent_sha TEXT NOT NULL,\n                parent_edge_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha, parent_ordinal),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "parent_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_ref",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_ref(\n                snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),\n                ref_name TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                peeled_sha TEXT,\n                peeled_type TEXT,\n                ref_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, ref_name)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "ref_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "peeled_sha",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "peeled_type",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "ref_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_rename",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_rename(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                parent_ordinal INTEGER NOT NULL,\n                change_ordinal INTEGER NOT NULL,\n                prior_path TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                similarity_score INTEGER NOT NULL,\n                rename_sha256 TEXT NOT NULL,\n                PRIMARY KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ),\n                FOREIGN KEY(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                ) REFERENCES source_git_file_change(\n                    snapshot_id,\n                    commit_sha,\n                    parent_ordinal,\n                    change_ordinal\n                )\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "parent_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "change_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "prior_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "similarity_score",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rename_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_snapshot",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_snapshot(\n                snapshot_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                occurrence_ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                repository_identity_sha256 TEXT NOT NULL,\n                head_commit_sha TEXT NOT NULL,\n                head_tree_sha TEXT NOT NULL,\n                branch TEXT NOT NULL,\n                worktree_clean INTEGER NOT NULL CHECK(worktree_clean IN (0, 1)),\n                worktree_status_sha256 TEXT NOT NULL,\n                history_signature_sha256 TEXT NOT NULL,\n                configuration_json TEXT NOT NULL,\n                ref_count INTEGER NOT NULL,\n                commit_count INTEGER NOT NULL,\n                parent_edge_count INTEGER NOT NULL,\n                object_count INTEGER NOT NULL,\n                tree_entry_count INTEGER NOT NULL,\n                file_change_count INTEGER NOT NULL,\n                rename_count INTEGER NOT NULL,\n                hunk_count INTEGER NOT NULL,\n                changed_line_count INTEGER NOT NULL,\n                refs_root_sha256 TEXT NOT NULL,\n                commits_root_sha256 TEXT NOT NULL,\n                objects_root_sha256 TEXT NOT NULL,\n                trees_root_sha256 TEXT NOT NULL,\n                changes_root_sha256 TEXT NOT NULL,\n                hunks_root_sha256 TEXT NOT NULL,\n                lines_root_sha256 TEXT NOT NULL,\n                history_root_sha256 TEXT NOT NULL,\n                status TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(\n                    batch_id,\n                    occurrence_ordinal,\n                    history_signature_sha256,\n                    worktree_status_sha256,\n                    repository_identity_sha256\n                )\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "occurrence_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "repository_identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "head_commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "head_tree_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "branch",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "worktree_clean",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "worktree_status_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "history_signature_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "configuration_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ref_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commit_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tree_entry_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "file_change_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rename_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "hunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "changed_line_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "refs_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commits_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "objects_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "trees_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "changes_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "hunks_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lines_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "history_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_git_tree_entry",
+      "type": "table",
+      "sql": "CREATE TABLE source_git_tree_entry(\n                snapshot_id TEXT NOT NULL,\n                commit_sha TEXT NOT NULL,\n                entry_ordinal INTEGER NOT NULL,\n                member_path TEXT NOT NULL,\n                mode TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                object_sha TEXT NOT NULL,\n                entry_sha256 TEXT NOT NULL,\n                PRIMARY KEY(snapshot_id, commit_sha, entry_ordinal),\n                FOREIGN KEY(snapshot_id, commit_sha)\n                    REFERENCES source_git_commit(snapshot_id, commit_sha)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "commit_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "entry_ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_sha",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entry_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_diff",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_diff(\n                diff_id TEXT PRIMARY KEY,\n                from_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                to_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                added_node_count INTEGER NOT NULL,\n                removed_node_count INTEGER NOT NULL,\n                changed_node_count INTEGER NOT NULL,\n                added_edge_count INTEGER NOT NULL,\n                removed_edge_count INTEGER NOT NULL,\n                changed_edge_count INTEGER NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL,\n                UNIQUE(from_graph_id, to_graph_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "diff_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "from_graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "to_graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "added_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "removed_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "changed_node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "added_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "removed_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "changed_edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_edge",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_edge(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                edge_id TEXT NOT NULL,\n                source_node_id TEXT NOT NULL,\n                target_node_id TEXT NOT NULL,\n                relation TEXT NOT NULL,\n                confidence TEXT NOT NULL,\n                source_scope_id TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                line_number INTEGER,\n                parser_id TEXT NOT NULL,\n                evidence_json TEXT NOT NULL,\n                evidence_sha256 TEXT NOT NULL,\n                edge_sha256 TEXT NOT NULL,\n                PRIMARY KEY(graph_id, edge_id),\n                FOREIGN KEY(graph_id, source_node_id)\n                    REFERENCES source_graph_node(graph_id, node_id),\n                FOREIGN KEY(graph_id, target_node_id)\n                    REFERENCES source_graph_node(graph_id, node_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "source_node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "target_node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "relation",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "confidence",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "line_number",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "edge_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_file_coverage",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_file_coverage(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                language TEXT NOT NULL,\n                file_state TEXT NOT NULL,\n                parser_id TEXT NOT NULL,\n                size_bytes INTEGER,\n                byte_sha256 TEXT,\n                symbol_count INTEGER NOT NULL,\n                import_count INTEGER NOT NULL,\n                call_count INTEGER NOT NULL,\n                node_count INTEGER NOT NULL,\n                edge_count INTEGER NOT NULL,\n                reason TEXT NOT NULL,\n                PRIMARY KEY(graph_id, object_id, member_path)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "language",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "file_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "symbol_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "import_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "call_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_impact",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_impact(\n                impact_id TEXT PRIMARY KEY,\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                seed_nodes_json TEXT NOT NULL,\n                relations_json TEXT NOT NULL,\n                direction TEXT NOT NULL,\n                max_depth INTEGER NOT NULL,\n                max_nodes INTEGER NOT NULL,\n                projection_json TEXT NOT NULL,\n                projection_sha256 TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "impact_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "seed_nodes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "relations_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "direction",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "max_depth",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "max_nodes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "projection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_node",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_node(\n                graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),\n                node_id TEXT NOT NULL,\n                source_scope_id TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                member_path TEXT NOT NULL,\n                node_kind TEXT NOT NULL,\n                language TEXT NOT NULL,\n                label TEXT NOT NULL,\n                qualified_name TEXT NOT NULL,\n                start_line INTEGER,\n                end_line INTEGER,\n                extraction_authority TEXT NOT NULL,\n                parser_id TEXT NOT NULL,\n                identity_json TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                content_sha256 TEXT NOT NULL,\n                node_sha256 TEXT NOT NULL,\n                PRIMARY KEY(graph_id, node_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "node_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "source_scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "node_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "language",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "qualified_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "end_line",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "extraction_authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "content_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "node_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_graph_snapshot",
+      "type": "table",
+      "sql": "CREATE TABLE source_graph_snapshot(\n                graph_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                extractor_version TEXT NOT NULL,\n                configuration_json TEXT NOT NULL,\n                selection_sha256 TEXT NOT NULL,\n                source_count INTEGER NOT NULL,\n                file_count INTEGER NOT NULL,\n                parsed_file_count INTEGER NOT NULL,\n                node_count INTEGER NOT NULL,\n                edge_count INTEGER NOT NULL,\n                coverage_sha256 TEXT NOT NULL,\n                graph_root_sha256 TEXT NOT NULL,\n                status TEXT NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "graph_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "extractor_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "configuration_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "selection_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parsed_file_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "node_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "edge_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "coverage_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "graph_root_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_identity_assertion",
+      "type": "table",
+      "sql": "CREATE TABLE source_identity_assertion(\n                assertion_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                identity_axis TEXT NOT NULL,\n                value_json TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                claim_state TEXT NOT NULL,\n                assertion_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "assertion_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_axis",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "value_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "claim_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "assertion_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_identity_entity",
+      "type": "table",
+      "sql": "CREATE TABLE source_identity_entity(\n                entity_id TEXT PRIMARY KEY,\n                entity_kind TEXT NOT NULL,\n                label TEXT NOT NULL,\n                version_label TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                entity_json TEXT NOT NULL,\n                entity_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "entity_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "entity_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "version_label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_identity_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE source_identity_receipt(\n                receipt_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                matrix_sha256 TEXT NOT NULL UNIQUE,\n                source_profile_count INTEGER NOT NULL,\n                entity_count INTEGER NOT NULL,\n                assertion_count INTEGER NOT NULL,\n                relation_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "matrix_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_profile_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entity_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "assertion_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "relation_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_identity_relation",
+      "type": "table",
+      "sql": "CREATE TABLE source_identity_relation(\n                relation_id TEXT PRIMARY KEY,\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                subject_type TEXT NOT NULL,\n                subject_id TEXT NOT NULL,\n                relation_type TEXT NOT NULL,\n                object_type TEXT NOT NULL,\n                object_id TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                evidence_ref TEXT NOT NULL,\n                relation_sha256 TEXT NOT NULL UNIQUE,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "relation_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "subject_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "subject_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "relation_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_ref",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "relation_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_member",
+      "type": "table",
+      "sql": "CREATE TABLE source_member(\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                member_path TEXT NOT NULL,\n                member_kind TEXT NOT NULL,\n                size_bytes INTEGER,\n                sha256 TEXT,\n                policy_state TEXT NOT NULL,\n                policy_reason TEXT NOT NULL,\n                PRIMARY KEY(object_id, member_path)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "member_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "policy_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "policy_reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_object",
+      "type": "table",
+      "sql": "CREATE TABLE source_object(\n                object_id TEXT PRIMARY KEY,\n                source_pointer TEXT NOT NULL,\n                resolved_pointer TEXT NOT NULL,\n                kind TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                identity_sha256 TEXT NOT NULL,\n                byte_sha256 TEXT,\n                size_bytes INTEGER,\n                member_count INTEGER NOT NULL,\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                member_path_size_sha256 TEXT,\n                content_merkle_sha256 TEXT\n            , exclusion_summary_sha256 TEXT)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "resolved_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "included_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_path_size_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "content_merkle_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "exclusion_summary_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_occurrence",
+      "type": "table",
+      "sql": "CREATE TABLE source_occurrence(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                ordinal INTEGER NOT NULL,\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                supplied_pointer TEXT NOT NULL,\n                lane_id TEXT NOT NULL,\n                PRIMARY KEY(batch_id, ordinal)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "supplied_pointer",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_policy_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE source_policy_receipt(\n                object_id TEXT PRIMARY KEY REFERENCES source_object(object_id),\n                included_member_count INTEGER NOT NULL,\n                excluded_member_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "included_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "excluded_member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_provenance",
+      "type": "table",
+      "sql": "CREATE TABLE source_provenance(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                claim_key TEXT NOT NULL,\n                claim_json TEXT NOT NULL,\n                authority TEXT NOT NULL,\n                PRIMARY KEY(batch_id, object_id, claim_key)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "claim_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "claim_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_relation",
+      "type": "table",
+      "sql": "CREATE TABLE source_relation(\n                batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n                left_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                relation_type TEXT NOT NULL,\n                right_object_id TEXT NOT NULL REFERENCES source_object(object_id),\n                receipt_sha256 TEXT NOT NULL,\n                PRIMARY KEY(batch_id, left_object_id, relation_type, right_object_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "left_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "relation_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "right_object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_asset",
+      "type": "table",
+      "sql": "CREATE TABLE source_sqlite_asset(\n            object_id TEXT NOT NULL REFERENCES source_object(object_id), member_path TEXT NOT NULL,\n            inspection_state TEXT NOT NULL, schema_sha256 TEXT, byte_sha256 TEXT, size_bytes INTEGER,\n            canonical_asset_id TEXT, inspection_receipt_sha256 TEXT, inspection_id TEXT NOT NULL,\n            PRIMARY KEY(object_id, member_path, inspection_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "inspection_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "inspection_receipt_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "inspection_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_foreign_key",
+      "type": "table",
+      "sql": "CREATE TABLE source_sqlite_foreign_key(\n                canonical_asset_id TEXT NOT NULL REFERENCES source_sqlite_receipt(canonical_asset_id),\n                from_table TEXT NOT NULL,\n                foreign_key_id INTEGER NOT NULL,\n                sequence_id INTEGER NOT NULL,\n                to_table TEXT,\n                from_column TEXT,\n                to_column TEXT,\n                on_update TEXT,\n                on_delete TEXT,\n                match_rule TEXT,\n                PRIMARY KEY(canonical_asset_id, from_table, foreign_key_id, sequence_id)\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "from_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "foreign_key_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 3
+        },
+        {
+          "name": "sequence_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "to_table",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "from_column",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "to_column",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "on_update",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "on_delete",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "match_rule",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE source_sqlite_receipt(\n                canonical_asset_id TEXT PRIMARY KEY,\n                byte_sha256 TEXT NOT NULL,\n                size_bytes INTEGER NOT NULL,\n                inspection_mode TEXT NOT NULL,\n                status TEXT NOT NULL,\n                integrity_json TEXT NOT NULL,\n                foreign_key_error_count INTEGER NOT NULL,\n                user_version INTEGER,\n                page_count INTEGER,\n                page_size INTEGER,\n                schema_sha256 TEXT,\n                schema_object_count INTEGER NOT NULL,\n                table_count INTEGER NOT NULL,\n                fts_table_count INTEGER NOT NULL,\n                receipt_json TEXT NOT NULL,\n                receipt_sha256 TEXT NOT NULL,\n                created_at TEXT NOT NULL\n            )",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "canonical_asset_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "byte_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "inspection_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "integrity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "foreign_key_error_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "user_version",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "page_count",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "page_size",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "schema_object_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "fts_table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_schema_object",
+      "type": "table",
+      "sql": "CREATE TABLE source_sqlite_schema_object(\n            object_id TEXT NOT NULL, member_path TEXT NOT NULL, object_type TEXT NOT NULL,\n            object_name TEXT NOT NULL, sql_sha256 TEXT, inspection_id TEXT NOT NULL,\n            PRIMARY KEY(object_id, member_path, inspection_id, object_type, object_name))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 5
+        },
+        {
+          "name": "sql_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "inspection_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        }
+      ]
+    },
+    {
+      "name": "source_sqlite_table_stat",
+      "type": "table",
+      "sql": "CREATE TABLE source_sqlite_table_stat(\n            object_id TEXT NOT NULL, member_path TEXT NOT NULL, table_name TEXT NOT NULL,\n            row_count INTEGER, count_state TEXT NOT NULL, inspection_id TEXT NOT NULL,\n            PRIMARY KEY(object_id, member_path, inspection_id, table_name))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "member_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "table_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 4
+        },
+        {
+          "name": "row_count",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "count_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "inspection_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        }
+      ]
+    },
+    {
+      "name": "sourcematerialization_runs",
+      "type": "table",
+      "sql": "CREATE TABLE sourcematerialization_runs (\n       run_id TEXT PRIMARY KEY, client_id TEXT NOT NULL, request_digest TEXT NOT NULL,\n       preparation_id TEXT NOT NULL REFERENCES objects(digest), plan_revision INTEGER NOT NULL,\n       engine_instance TEXT NOT NULL, intent_object TEXT NOT NULL REFERENCES objects(digest),\n       state TEXT NOT NULL CHECK(state IN ('active','completed','blocked')),\n       outcome_object TEXT REFERENCES objects(digest), created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "preparation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "engine_instance",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "intent_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "outcome_object",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "sourceroutes_preparations",
+      "type": "table",
+      "sql": "CREATE TABLE sourceroutes_preparations (\n       request_id TEXT PRIMARY KEY, client_id TEXT NOT NULL, request_digest TEXT NOT NULL,\n       preparation_id TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "preparation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "sourceroutes_receipts",
+      "type": "table",
+      "sql": "CREATE TABLE sourceroutes_receipts (\n       route_id TEXT PRIMARY KEY REFERENCES objects(digest),\n       batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),\n       parent_route_id TEXT REFERENCES sourceroutes_receipts(route_id),\n       created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "route_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_route_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "sourceroutes_requests",
+      "type": "table",
+      "sql": "CREATE TABLE sourceroutes_requests (\n       request_id TEXT PRIMARY KEY, client_id TEXT NOT NULL, action TEXT NOT NULL,\n       request_digest TEXT NOT NULL, route_id TEXT NOT NULL REFERENCES sourceroutes_receipts(route_id),\n       result_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "route_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "customlanes_contracts",
+      "target": "customlanes_contracts",
+      "column": "previous_contract",
+      "target_column": "contract_sha256"
+    },
+    {
+      "source": "customlanes_current",
+      "target": "customlanes_contracts",
+      "column": "contract_sha256",
+      "target_column": "contract_sha256"
+    },
+    {
+      "source": "gitbranch_current",
+      "target": "gitbranch_history",
+      "column": "generation",
+      "target_column": "generation"
+    },
+    {
+      "source": "restoration_control",
+      "target": "restoration_history",
+      "column": "generation",
+      "target_column": "generation"
+    },
+    {
+      "source": "restoration_reindex",
+      "target": "restoration_history",
+      "column": "generation",
+      "target_column": "generation"
+    },
+    {
+      "source": "source_archive_receipt",
+      "target": "source_object",
+      "column": "counterpart_object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_archive_receipt",
+      "target": "source_object",
+      "column": "archive_object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_archive_receipt",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_assertion_set",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_custom_schema_mapping",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_custom_schema_mapping",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_custom_schema_mapping",
+      "target": "source_custom_schema",
+      "column": "schema_sha256",
+      "target_column": "schema_sha256"
+    },
+    {
+      "source": "source_custom_schema_receipt",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_custom_schema_receipt",
+      "target": "source_custom_schema",
+      "column": "schema_sha256",
+      "target_column": "schema_sha256"
+    },
+    {
+      "source": "source_exclusion_summary",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_git_changed_line",
+      "target": "source_git_hunk",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_changed_line",
+      "target": "source_git_hunk",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_git_changed_line",
+      "target": "source_git_hunk",
+      "column": "parent_ordinal",
+      "target_column": "parent_ordinal"
+    },
+    {
+      "source": "source_git_changed_line",
+      "target": "source_git_hunk",
+      "column": "change_ordinal",
+      "target_column": "change_ordinal"
+    },
+    {
+      "source": "source_git_changed_line",
+      "target": "source_git_hunk",
+      "column": "hunk_ordinal",
+      "target_column": "hunk_ordinal"
+    },
+    {
+      "source": "source_git_commit",
+      "target": "source_git_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_file_change",
+      "target": "source_git_commit",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_file_change",
+      "target": "source_git_commit",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_git_hunk",
+      "target": "source_git_file_change",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_hunk",
+      "target": "source_git_file_change",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_git_hunk",
+      "target": "source_git_file_change",
+      "column": "parent_ordinal",
+      "target_column": "parent_ordinal"
+    },
+    {
+      "source": "source_git_hunk",
+      "target": "source_git_file_change",
+      "column": "change_ordinal",
+      "target_column": "change_ordinal"
+    },
+    {
+      "source": "source_git_impact",
+      "target": "source_graph_snapshot",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_git_impact",
+      "target": "source_git_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_object",
+      "target": "source_git_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_object_path",
+      "target": "source_git_object",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_object_path",
+      "target": "source_git_object",
+      "column": "object_sha",
+      "target_column": "object_sha"
+    },
+    {
+      "source": "source_git_parent",
+      "target": "source_git_commit",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_parent",
+      "target": "source_git_commit",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_git_ref",
+      "target": "source_git_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_rename",
+      "target": "source_git_file_change",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_rename",
+      "target": "source_git_file_change",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_git_rename",
+      "target": "source_git_file_change",
+      "column": "parent_ordinal",
+      "target_column": "parent_ordinal"
+    },
+    {
+      "source": "source_git_rename",
+      "target": "source_git_file_change",
+      "column": "change_ordinal",
+      "target_column": "change_ordinal"
+    },
+    {
+      "source": "source_git_snapshot",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_git_snapshot",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_git_tree_entry",
+      "target": "source_git_commit",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "source_git_tree_entry",
+      "target": "source_git_commit",
+      "column": "commit_sha",
+      "target_column": "commit_sha"
+    },
+    {
+      "source": "source_graph_diff",
+      "target": "source_graph_snapshot",
+      "column": "to_graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_diff",
+      "target": "source_graph_snapshot",
+      "column": "from_graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_edge",
+      "target": "source_graph_node",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_edge",
+      "target": "source_graph_node",
+      "column": "target_node_id",
+      "target_column": "node_id"
+    },
+    {
+      "source": "source_graph_edge",
+      "target": "source_graph_node",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_edge",
+      "target": "source_graph_node",
+      "column": "source_node_id",
+      "target_column": "node_id"
+    },
+    {
+      "source": "source_graph_edge",
+      "target": "source_graph_snapshot",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_file_coverage",
+      "target": "source_graph_snapshot",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_impact",
+      "target": "source_graph_snapshot",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_node",
+      "target": "source_graph_snapshot",
+      "column": "graph_id",
+      "target_column": "graph_id"
+    },
+    {
+      "source": "source_graph_snapshot",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_identity_assertion",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_identity_assertion",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_identity_receipt",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_identity_relation",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_member",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_occurrence",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_occurrence",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_policy_receipt",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_provenance",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_provenance",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_relation",
+      "target": "source_object",
+      "column": "right_object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_relation",
+      "target": "source_object",
+      "column": "left_object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_relation",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "source_sqlite_asset",
+      "target": "source_object",
+      "column": "object_id",
+      "target_column": "object_id"
+    },
+    {
+      "source": "source_sqlite_foreign_key",
+      "target": "source_sqlite_receipt",
+      "column": "canonical_asset_id",
+      "target_column": "canonical_asset_id"
+    },
+    {
+      "source": "sourcematerialization_runs",
+      "target": "objects",
+      "column": "outcome_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourcematerialization_runs",
+      "target": "objects",
+      "column": "intent_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourcematerialization_runs",
+      "target": "objects",
+      "column": "preparation_id",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourceroutes_preparations",
+      "target": "objects",
+      "column": "preparation_id",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourceroutes_receipts",
+      "target": "sourceroutes_receipts",
+      "column": "parent_route_id",
+      "target_column": "route_id"
+    },
+    {
+      "source": "sourceroutes_receipts",
+      "target": "intake_batch",
+      "column": "batch_id",
+      "target_column": "batch_id"
+    },
+    {
+      "source": "sourceroutes_receipts",
+      "target": "objects",
+      "column": "route_id",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourceroutes_requests",
+      "target": "objects",
+      "column": "result_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "sourceroutes_requests",
+      "target": "sourceroutes_receipts",
+      "column": "route_id",
+      "target_column": "route_id"
+    }
+  ],
+  "runtime_initialization_performed": false,
+  "static_schema_metadata": {
+    "registry_meta": [
+      [
+        "schema",
+        "evidence-lane.source-authority-registry.v1"
+      ]
+    ]
+  }
+}

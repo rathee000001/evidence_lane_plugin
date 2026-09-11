@@ -1,0 +1,80 @@
+{
+  "action_set_digest": "0eb3c9caf2e10f50eca59697863e416044afa18e7f860e608d7e1f703f9f531b",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Accept a destination-pinned project continuation and put the source client in read-only closeout.",
+      "input_schema_digest": "d6cb0462d15665388ba2eeb32bf3df79fe21adb0628c861f8b360cb857ade388",
+      "mutates": true,
+      "name": "continuation_accept",
+      "output_schema_digest": "e104352ec15357ed0d9b8864a0f53c734922fc95620ad6fe2f646b388dc7059f",
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Cancel an unconsumed continuation owned by this source client.",
+      "input_schema_digest": "513a257cfd907461566b3745d37e035d33553d81b840bd848be4dab0a01012fb",
+      "mutates": true,
+      "name": "continuation_cancel",
+      "output_schema_digest": "a17ade4bb2a4652ca9286dee5fb1d9e5ec73d6d17c99cb3fa20b9d9ec6b4d03c",
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+      "input_schema_digest": "759934ae02ddab05a0c3d65c50797acb69dbf3288bd3ed66d929d84397544117",
+      "mutates": false,
+      "name": "continuation_context",
+      "output_schema_digest": "760cc4cca9cf0101d18bec82278fa629fdc56537ba18c3335eb296e98676177d",
+      "permission": "read",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Offer exact project-participant continuity to another registered client at a safe work boundary.",
+      "input_schema_digest": "d95c6a868bc3795be9cd349ad26c2faa6285734092ae6db97a273a36967641f5",
+      "mutates": true,
+      "name": "continuation_offer",
+      "output_schema_digest": "154c94241612e72cef4130da55cca448990f6cca5456b66505f4ffc3737a9752",
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read bounded project continuation bindings without reattaching host sessions.",
+      "input_schema_digest": "8ef2700342a0fec05ea8d20e693fd89e32df2f198e08c0f10f82fd1bbc0f8f74",
+      "mutates": false,
+      "name": "continuation_read",
+      "output_schema_digest": "db2192cff0fbc3c938ba9746b15e0d12828265c0381dfd4aaf92698d9025817d",
+      "permission": "read",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "state-travel"
+}

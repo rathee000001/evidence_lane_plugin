@@ -1,0 +1,289 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Project saved HTML bytes through the first ready or explicitly selected extractor without network access.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "encoding": {
+        "default": "utf-8",
+        "enum": [
+          "utf-8",
+          "utf-8-sig",
+          "windows-1252",
+          "iso-8859-1",
+          "utf-16"
+        ],
+        "title": "Encoding",
+        "type": "string"
+      },
+      "expected_snapshot": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Snapshot",
+        "type": "string"
+      },
+      "extractor": {
+        "default": "auto",
+        "enum": [
+          "auto",
+          "trafilatura",
+          "readability",
+          "beautifulsoup",
+          "markdownify",
+          "html2text",
+          "stdlib"
+        ],
+        "title": "Extractor",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "research",
+        "default": "research",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_snapshot"
+    ],
+    "title": "Extract",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "research_web_extract",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "research",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "d643f58265100df773e6b1772cdbef6273b37021e5ec62109c09022e0f970901",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "research_web_extract",
+    "profile": "research",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_trafilatura",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "trafilatura"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.trafilatura",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "trafilatura",
+          "BeautifulSoup4",
+          "lxml"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_readability",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "readability"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.readability",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "readability_lxml",
+          "BeautifulSoup4",
+          "lxml"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_beautifulsoup",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "beautifulsoup"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.beautifulsoup",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "BeautifulSoup4",
+          "lxml"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_markdownify",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "markdownify"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.markdownify",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "markdownify",
+          "BeautifulSoup4",
+          "lxml"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_html2text",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "html2text"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.html2text",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "html2text",
+          "BeautifulSoup4",
+          "lxml"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:extract_stdlib",
+        "argument_suffixes": {},
+        "argument_values": {
+          "extractor": [
+            "auto",
+            "stdlib"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+        "route_id": "research_web_extract.stdlib",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "research_web_extract_source"
+    ]
+  },
+  "verification_checks": [
+    "research_web_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "research_web_extract_source"
+  ],
+  "workflow": "source-intake"
+}

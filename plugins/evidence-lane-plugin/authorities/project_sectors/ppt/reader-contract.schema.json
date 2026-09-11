@@ -1,40 +1,559 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "PPT / Presentation bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "lane_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "SectorArgs_presentation_current_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "default": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "SectorArgs_presentation_current_ppt",
+      "type": "object"
     },
-    "lane_id": {
-      "const": "ppt"
+    "SectorArgs_presentation_enrichment_read_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "default": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "enrichment_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Enrichment Id",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 2097152,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_characters": {
+          "default": 32768,
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "include_structure": {
+          "default": false,
+          "title": "Include Structure",
+          "type": "boolean"
+        },
+        "max_structure_bytes": {
+          "default": 131072,
+          "maximum": 524288,
+          "minimum": 4096,
+          "title": "Max Structure Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "enrichment_id"
+      ],
+      "title": "SectorArgs_presentation_enrichment_read_ppt",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "SectorArgs_presentation_query_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "default": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "slide",
+            "notes",
+            "shape",
+            "text_block",
+            "table",
+            "image",
+            "relationship",
+            "chart"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_presentation_query_ppt",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "SectorArgs_presentation_read_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "default": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "representation": {
+          "default": "presentation",
+          "enum": [
+            "presentation",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_presentation_read_ppt",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "SectorArgs_presentation_render_read_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "default": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "render_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Render Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "render_id"
+      ],
+      "title": "SectorArgs_presentation_render_read_ppt",
+      "type": "object"
+    },
+    "SectorArgs_source_snapshot_state_ppt": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "ppt",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_ppt",
+      "type": "object"
+    },
+    "SectorRequest_presentation_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "presentation_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_presentation_current_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_presentation_current",
+      "type": "object"
+    },
+    "SectorRequest_presentation_enrichment_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "presentation_enrichment_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_presentation_enrichment_read_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_presentation_enrichment_read",
+      "type": "object"
+    },
+    "SectorRequest_presentation_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "presentation_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_presentation_query_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_presentation_query",
+      "type": "object"
+    },
+    "SectorRequest_presentation_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "presentation_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_presentation_read_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_presentation_read",
+      "type": "object"
+    },
+    "SectorRequest_presentation_render_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "presentation_render_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_presentation_render_read_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_presentation_render_read",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_ppt"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "1E22C524FDBA48F235ED3BF803C462461A8DF699867BDFE1A547EA768C43F1EF"
+  "discriminator": {
+    "mapping": {
+      "presentation_current": "#/$defs/SectorRequest_presentation_current",
+      "presentation_enrichment_read": "#/$defs/SectorRequest_presentation_enrichment_read",
+      "presentation_query": "#/$defs/SectorRequest_presentation_query",
+      "presentation_read": "#/$defs/SectorRequest_presentation_read",
+      "presentation_render_read": "#/$defs/SectorRequest_presentation_render_read",
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_presentation_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_presentation_enrichment_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_presentation_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_presentation_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_presentation_render_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    }
+  ],
+  "title": "PPT / Presentation typed reader requests"
 }

@@ -4,12 +4,24 @@
       "cwd": ".",
       "command": "python",
       "args": [
+        "-I",
+        "-B",
         "./scripts/run_mcp.py",
         "--transport",
-        "stdio"
+        "stdio",
+        "--local-project-administration"
       ],
-      "startup_timeout_sec": 900,
-      "tool_timeout_sec": 3600
+      "env_vars": [
+        "EVIDENCE_LANE_RUNTIME_ROOT",
+        "EVIDENCE_LANE_STUDIO_ROOT",
+        "EVIDENCE_LANE_HOST_PROFILE",
+        "EVIDENCE_LANE_GHOSTSCRIPT_LICENSE_RECEIPT",
+        "EVIDENCE_LANE_REMOTE_CONFIG",
+        "EVIDENCE_LANE_REMOTE_TOKEN"
+      ],
+      "required": true,
+      "startup_timeout_sec": 7200,
+      "tool_timeout_sec": 60
     }
   }
 }

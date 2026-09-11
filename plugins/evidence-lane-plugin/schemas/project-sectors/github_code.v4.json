@@ -1,0 +1,65 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "github_code",
+  "members": [
+    {
+      "path": "authorities/project_sectors/github_code/builder-contract.schema.json",
+      "sha256": "5cc5adc2f591424f7c07a4d1aea57157affa686a2cf69bf23d286c1ec459067f"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/dot-artifact.schema.json",
+      "sha256": "0b4a508b3341a4ed658077562ab6cfbae17e1b938c2b482a8404977f7610a4e5"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/lane-contract.v4.json",
+      "sha256": "f5e2628a22eebd5241f70b97478aa5e6e3d2a191bb8b9a804ff5eae9fca84ca8"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/lane-pointer.schema.json",
+      "sha256": "072218d9a6d3d7f58b80c4c6b2afaee4bdc0e564f2ce48406edbbdfd7a448ce9"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/manifest.schema.json",
+      "sha256": "6df322631fc370028415aa8f2ff8f15f6e1a2016948dc080eb93c3cd07b58098"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/manifest.v4.json",
+      "sha256": "d226574de108cb3b84be12ecdcb5fb0ba884133cdb21ce761e42f66fc23f0ddb"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/migration-history.json",
+      "sha256": "88d12c4b0fceeed8aa90769f20bcbbb07ac4ac38bf114abd58dd8b7fb68c0293"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/mmd-artifact.schema.json",
+      "sha256": "fa78f9dcce6ff9126a47e507d1caf83925b6636b6d7941bf21571fb50bdf13fd"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/reader-contract.schema.json",
+      "sha256": "d268b7a951168d2ae69a94df68cf322d32c0813d1149fe7c148868611393bdec"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/refresh-receipt.schema.json",
+      "sha256": "28270191e9921d5f8e3a1525f2b18557f70cc6fefafb863c8fbdfd6f23086c25"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/schema-template.json",
+      "sha256": "4fa919c366da4154d4d9ce50010293cc8978d42d5157b1e50ae98440e02bd6d5"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/schema.sql",
+      "sha256": "ebc2383d9ad412a9b70056de08ece78b2e653c5e8734fded711fc6fe6c9f4d38"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/sqlite-artifact.schema.json",
+      "sha256": "823f0b8c0cd2141fb3b30fd4b787c900d981b3c66dc64496994689b615ad46d3"
+    },
+    {
+      "path": "authorities/project_sectors/github_code/tools.schema.json",
+      "sha256": "5db1c9e88f51a98029b8f4ec5153ef4ffd44c84805361b1fb0bddd7d6c581da6"
+    }
+  ],
+  "purpose": "Complete current sector owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

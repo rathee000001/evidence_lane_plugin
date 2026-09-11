@@ -1,0 +1,73 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "project_memory",
+  "members": [
+    {
+      "path": "authorities/project_memory/build-refresh-contract.schema.json",
+      "sha256": "2630b5710dc6ae0e66a398307a435772dd02e7f5930238a8287ad02bf97584a5"
+    },
+    {
+      "path": "authorities/project_memory/dot-artifact.schema.json",
+      "sha256": "47b0fb5a841ad9ac8e20b0e6b25015d1188e1de5e924d0449bdb60d9ec060f32"
+    },
+    {
+      "path": "authorities/project_memory/manifest.schema.json",
+      "sha256": "e132efb21c58b54f0a396116ed792f61e49a700c23392255339914f171833090"
+    },
+    {
+      "path": "authorities/project_memory/manifest.v4.json",
+      "sha256": "3ad4708cc52977a4bc5b49c44c1d3decddf597f5ae671a7bf2d79cb6fa7b0d83"
+    },
+    {
+      "path": "authorities/project_memory/migration-history.json",
+      "sha256": "ab6bfddc73745afb3a6efefeeb4aa74e6ca80c9738f0bb442f08144db0e0f1fa"
+    },
+    {
+      "path": "authorities/project_memory/mmd-artifact.schema.json",
+      "sha256": "7b08402a7742e92a41d731eb25cd2c35c90b6e69c8776f174a793632266db7d6"
+    },
+    {
+      "path": "authorities/project_memory/pointer-contract.schema.json",
+      "sha256": "b2bc67f5d1a886d39e734c3ab85daa8067aca388f145be4b6fcb76db3d53e519"
+    },
+    {
+      "path": "authorities/project_memory/pointer-contract.v4.json",
+      "sha256": "3ad2315543e24fe28ed9a7971b722f9adf4cbe639bf160cfc1ffaf5273ffbb32"
+    },
+    {
+      "path": "authorities/project_memory/reader-contract.schema.json",
+      "sha256": "ec02605b2ff620d82e6c6d87d3e90dd94dc84d40f469bbb91aa6873488355e6b"
+    },
+    {
+      "path": "authorities/project_memory/refresh-receipt.schema.json",
+      "sha256": "8b5bdb9dfad1e47168931407cf804f6643646f560f8693877d00e3eb7f70d3ef"
+    },
+    {
+      "path": "authorities/project_memory/runtime-binding.schema.json",
+      "sha256": "b38fda91fbb35fcdd2690ee2c4367ddd29b5d18ad2ac71a85761808514eb2b6a"
+    },
+    {
+      "path": "authorities/project_memory/runtime-binding.v4.json",
+      "sha256": "94e782dcd4c459d5f1faf58f4e29104a72401b532b0db45d5f4d1e82154fb367"
+    },
+    {
+      "path": "authorities/project_memory/schema.sql",
+      "sha256": "c5504cbb072a9bcb740676df2fd6cbf1e287bb64fff928036bba9a0bd3b0bc00"
+    },
+    {
+      "path": "authorities/project_memory/sqlite-artifact.schema.json",
+      "sha256": "85dc90b09e664644cfe8bd343cf94217fbbb3c7407d4c2349dcb3d15f56d1430"
+    },
+    {
+      "path": "authorities/project_memory/sqlite-schema.v4.json",
+      "sha256": "3157e965f8808fca5627cdf7e3d6e198e5833e6168ee57f0a6b0b454bf2153a3"
+    },
+    {
+      "path": "authorities/project_memory/tools.schema.json",
+      "sha256": "c9e707418ee3ec88e2a503963f242e61bee29caccac09ed50d429f4cec754741"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

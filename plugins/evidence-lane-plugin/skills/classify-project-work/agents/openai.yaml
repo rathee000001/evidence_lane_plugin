@@ -1,0 +1,9 @@
+interface:
+  display_name: "Classify project work"
+  short_description: "Classify a request and its relevant work lanes"
+  default_prompt: "Use $classify-project-work to classify my current request and relevant source lanes."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

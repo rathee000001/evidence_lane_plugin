@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "source_package_folder",
+    "folder",
+    "folder_role",
+    "database",
+    "files",
+    "migrations",
+    "actions",
+    "members",
+    "project_data_packaged"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.sector-package.v4"
+    },
+    "lane_id": {
+      "const": "power_bi"
+    },
+    "source_package_folder": {
+      "const": "authorities/project_sectors/power_bi"
+    },
+    "folder": {
+      "const": "sectors/power_bi"
+    },
+    "folder_role": {
+      "const": "external_project_state"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    },
+    "project_data_packaged": {
+      "const": false
+    }
+  }
+}

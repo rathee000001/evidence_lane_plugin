@@ -1,0 +1,1760 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Accept a destination-pinned project continuation and put the source client in read-only closeout.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest"
+        ],
+        "title": "ContinuationAccept",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_accept",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_digest": {
+            "title": "Binding Digest",
+            "type": "string"
+          },
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          },
+          "canon_decisions_replayed": {
+            "default": false,
+            "title": "Canon Decisions Replayed",
+            "type": "boolean"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "jobs_replayed": {
+            "default": false,
+            "title": "Jobs Replayed",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "owner_client_id": {
+            "title": "Owner Client Id",
+            "type": "string"
+          },
+          "owner_generation": {
+            "title": "Owner Generation",
+            "type": "integer"
+          },
+          "participant_id": {
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "previous_owner_client_id": {
+            "title": "Previous Owner Client Id",
+            "type": "string"
+          },
+          "source_bytes_reverified": {
+            "default": false,
+            "title": "Source Bytes Reverified",
+            "type": "boolean"
+          },
+          "source_client_closeout_only": {
+            "default": true,
+            "title": "Source Client Closeout Only",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "transferred_participant_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Transferred Participant Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "participant_id",
+          "owner_generation",
+          "owner_client_id",
+          "previous_owner_client_id",
+          "binding_digest",
+          "plan_revision",
+          "task_id",
+          "transferred_participant_ids"
+        ],
+        "title": "ContinuationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b73b55c1fb1dde978212ebd3a2dd796dee738c07eca8a7942276fe905ea67ff5",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_accept",
+        "profile": "continuity",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_accept.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "state-travel"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Cancel an unconsumed continuation owned by this source client.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "reason"
+        ],
+        "title": "ContinuationCancel",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_cancel",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "cancelled",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id"
+        ],
+        "title": "ContinuationCancelled",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "28cf1d80646a4c4c2f56b2bb7eb61b122e821c00f867b1316cd3f1088232e92d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_cancel",
+        "profile": "continuity",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_cancel.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "state-travel"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 4,
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest"
+        ],
+        "title": "ContinuationContextRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "continuation_context",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "canon": {
+            "additionalProperties": true,
+            "title": "Canon",
+            "type": "object"
+          },
+          "canon_continuity": {
+            "additionalProperties": true,
+            "title": "Canon Continuity",
+            "type": "object"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "current_owner": {
+            "additionalProperties": true,
+            "title": "Current Owner",
+            "type": "object"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "jobs_replayed": {
+            "default": false,
+            "title": "Jobs Replayed",
+            "type": "boolean"
+          },
+          "lineage_locators": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Lineage Locators",
+            "type": "array"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_task": {
+            "additionalProperties": true,
+            "title": "Plan Task",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "snapshot_scope": {
+            "default": "one_published_root_pv_with_separate_owner_views",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "source_bytes_reverified": {
+            "default": false,
+            "title": "Source Bytes Reverified",
+            "type": "boolean"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "state_root": {
+            "title": "State Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "continuation_id",
+          "source_client_id",
+          "destination_client_id",
+          "current_owner",
+          "plan_task",
+          "lineage_locators",
+          "canon",
+          "canon_continuity",
+          "memory",
+          "source_root",
+          "state_root"
+        ],
+        "title": "ContinuationContext",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "1ca69edd5422374171f892c3aac5a0f19055bca7c4f7e95a029ac6bb81fb8f18",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_context",
+        "profile": "continuity",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_runtime_continuity:register_continuation_context.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_context.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "state-travel"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Offer exact project-participant continuity to another registered client at a safe work boundary.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "destination_participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Destination Participant Id",
+            "type": "string"
+          },
+          "expires_in_seconds": {
+            "default": 3600,
+            "maximum": 86400,
+            "minimum": 30,
+            "title": "Expires In Seconds",
+            "type": "integer"
+          },
+          "memory_checkpoint": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Checkpoint"
+          },
+          "participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "require_native_attestation": {
+            "default": false,
+            "title": "Require Native Attestation",
+            "type": "boolean"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "destination_participant_id",
+          "plan_revision",
+          "task_id",
+          "contract_digest"
+        ],
+        "title": "ContinuationOffer",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_offer",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          },
+          "continuation_digest": {
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "host_task_created": {
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "identity_scope": {
+            "default": "authenticated_engine_clients",
+            "title": "Identity Scope",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "offered",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "source_client_id",
+          "destination_client_id",
+          "expires_at"
+        ],
+        "title": "ContinuationOffered",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "1ed02188041722ee5b130c59a80b636fe98912a7ebf8e38a1d8c1e719427a732",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_offer",
+        "profile": "continuity",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_offer.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "state-travel"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read bounded project continuation bindings without reattaching host sessions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "after_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Sequence",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "participant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Participant Id"
+          }
+        },
+        "title": "ContinuationRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "continuation_read",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "last_sequence": {
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "offers": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "scope": {
+            "default": "project_participant_ownership_and_context",
+            "title": "Scope",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "offers",
+          "last_sequence",
+          "truncated"
+        ],
+        "title": "ContinuationPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "continuity",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "87a205d3c9ae34fe843346443331887fbfeb4118f12d41abbff7babbf5e0a09b",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_read",
+        "profile": "continuity",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "state-travel"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Administratively cancel an exact stale, unconsumed continuation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "reason"
+        ],
+        "title": "ContinuationCancel",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_recovery_cancel",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "cancelled",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id"
+        ],
+        "title": "ContinuationCancelled",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "aaa5b3aee0cf3ced14314875f5930ceead4cdb5b37dea9462da26af68e9b535b",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_recovery_cancel",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.cancel_recovery",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_recovery_cancel.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Administratively offer exact participant reassignment after client-session loss; destination acceptance is still required.",
+      "inputSchema": {
+        "$defs": {
+          "ContinuationOffer": {
+            "additionalProperties": false,
+            "properties": {
+              "contract_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Contract Digest",
+                "type": "string"
+              },
+              "destination_participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Destination Participant Id",
+                "type": "string"
+              },
+              "expires_in_seconds": {
+                "default": 3600,
+                "maximum": 86400,
+                "minimum": 30,
+                "title": "Expires In Seconds",
+                "type": "integer"
+              },
+              "memory_checkpoint": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Memory Checkpoint"
+              },
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "plan_revision": {
+                "minimum": 1,
+                "title": "Plan Revision",
+                "type": "integer"
+              },
+              "request_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Request Id",
+                "type": "string"
+              },
+              "require_native_attestation": {
+                "default": false,
+                "title": "Require Native Attestation",
+                "type": "boolean"
+              },
+              "task_id": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Task Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "participant_id",
+              "destination_participant_id",
+              "plan_revision",
+              "task_id",
+              "contract_digest"
+            ],
+            "title": "ContinuationOffer",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "expected_destination_participant_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Destination Participant Digest",
+            "type": "string"
+          },
+          "expected_source_participant_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Source Participant Digest",
+            "type": "string"
+          },
+          "offer": {
+            "$ref": "#/$defs/ContinuationOffer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "offer",
+          "expected_source_participant_digest",
+          "expected_destination_participant_digest",
+          "reason"
+        ],
+        "title": "ContinuationRecoveryOffer",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_recovery_offer",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          },
+          "continuation_digest": {
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "host_task_created": {
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "identity_scope": {
+            "default": "authenticated_engine_clients",
+            "title": "Identity Scope",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "offered",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "source_client_id",
+          "destination_client_id",
+          "expires_at"
+        ],
+        "title": "ContinuationOffered",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "4d0d6f17f9eb17ff130b10bd1c80abe13241a19f88a424c302fa47c7392368ab",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_recovery_offer",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.recover",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_recovery_offer.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "ContinuationAccept": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest"
+      ],
+      "title": "ContinuationAccept",
+      "type": "object"
+    },
+    "ContinuationCancel": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "reason"
+      ],
+      "title": "ContinuationCancel",
+      "type": "object"
+    },
+    "ContinuationCancelled": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "state": {
+          "default": "cancelled",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id"
+      ],
+      "title": "ContinuationCancelled",
+      "type": "object"
+    },
+    "ContinuationContext": {
+      "additionalProperties": false,
+      "properties": {
+        "canon": {
+          "additionalProperties": true,
+          "title": "Canon",
+          "type": "object"
+        },
+        "canon_continuity": {
+          "additionalProperties": true,
+          "title": "Canon Continuity",
+          "type": "object"
+        },
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "current_owner": {
+          "additionalProperties": true,
+          "title": "Current Owner",
+          "type": "object"
+        },
+        "destination_client_id": {
+          "title": "Destination Client Id",
+          "type": "string"
+        },
+        "host_session_attached": {
+          "default": false,
+          "title": "Host Session Attached",
+          "type": "boolean"
+        },
+        "jobs_replayed": {
+          "default": false,
+          "title": "Jobs Replayed",
+          "type": "boolean"
+        },
+        "lineage_locators": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Lineage Locators",
+          "type": "array"
+        },
+        "memory": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Memory"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "plan_task": {
+          "additionalProperties": true,
+          "title": "Plan Task",
+          "type": "object"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "snapshot_scope": {
+          "default": "one_published_root_pv_with_separate_owner_views",
+          "title": "Snapshot Scope",
+          "type": "string"
+        },
+        "source_bytes_reverified": {
+          "default": false,
+          "title": "Source Bytes Reverified",
+          "type": "boolean"
+        },
+        "source_client_id": {
+          "title": "Source Client Id",
+          "type": "string"
+        },
+        "source_root": {
+          "title": "Source Root",
+          "type": "string"
+        },
+        "state_root": {
+          "title": "State Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "continuation_id",
+        "source_client_id",
+        "destination_client_id",
+        "current_owner",
+        "plan_task",
+        "lineage_locators",
+        "canon",
+        "canon_continuity",
+        "memory",
+        "source_root",
+        "state_root"
+      ],
+      "title": "ContinuationContext",
+      "type": "object"
+    },
+    "ContinuationContextRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest"
+      ],
+      "title": "ContinuationContextRequest",
+      "type": "object"
+    },
+    "ContinuationOffer": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "destination_participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Destination Participant Id",
+          "type": "string"
+        },
+        "expires_in_seconds": {
+          "default": 3600,
+          "maximum": 86400,
+          "minimum": 30,
+          "title": "Expires In Seconds",
+          "type": "integer"
+        },
+        "memory_checkpoint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Checkpoint"
+        },
+        "participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "require_native_attestation": {
+          "default": false,
+          "title": "Require Native Attestation",
+          "type": "boolean"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_id",
+        "destination_participant_id",
+        "plan_revision",
+        "task_id",
+        "contract_digest"
+      ],
+      "title": "ContinuationOffer",
+      "type": "object"
+    },
+    "ContinuationOffered": {
+      "additionalProperties": false,
+      "properties": {
+        "canon_checkpoint_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canon Checkpoint Digest"
+        },
+        "continuation_digest": {
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "destination_client_id": {
+          "title": "Destination Client Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "string"
+        },
+        "host_task_created": {
+          "default": false,
+          "title": "Host Task Created",
+          "type": "boolean"
+        },
+        "identity_scope": {
+          "default": "authenticated_engine_clients",
+          "title": "Identity Scope",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "source_client_id": {
+          "title": "Source Client Id",
+          "type": "string"
+        },
+        "state": {
+          "default": "offered",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "source_client_id",
+        "destination_client_id",
+        "expires_at"
+      ],
+      "title": "ContinuationOffered",
+      "type": "object"
+    },
+    "ContinuationPage": {
+      "additionalProperties": false,
+      "properties": {
+        "last_sequence": {
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "offers": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Offers",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "scope": {
+          "default": "project_participant_ownership_and_context",
+          "title": "Scope",
+          "type": "string"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "offers",
+        "last_sequence",
+        "truncated"
+      ],
+      "title": "ContinuationPage",
+      "type": "object"
+    },
+    "ContinuationRead": {
+      "additionalProperties": false,
+      "properties": {
+        "after_sequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "After Sequence",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "participant_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participant Id"
+        }
+      },
+      "title": "ContinuationRead",
+      "type": "object"
+    },
+    "ContinuationRecoveryOffer": {
+      "$defs": {
+        "ContinuationOffer": {
+          "additionalProperties": false,
+          "properties": {
+            "contract_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Contract Digest",
+              "type": "string"
+            },
+            "destination_participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Destination Participant Id",
+              "type": "string"
+            },
+            "expires_in_seconds": {
+              "default": 3600,
+              "maximum": 86400,
+              "minimum": 30,
+              "title": "Expires In Seconds",
+              "type": "integer"
+            },
+            "memory_checkpoint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Memory Checkpoint"
+            },
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "plan_revision": {
+              "minimum": 1,
+              "title": "Plan Revision",
+              "type": "integer"
+            },
+            "request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Request Id",
+              "type": "string"
+            },
+            "require_native_attestation": {
+              "default": false,
+              "title": "Require Native Attestation",
+              "type": "boolean"
+            },
+            "task_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "participant_id",
+            "destination_participant_id",
+            "plan_revision",
+            "task_id",
+            "contract_digest"
+          ],
+          "title": "ContinuationOffer",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "expected_destination_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Destination Participant Digest",
+          "type": "string"
+        },
+        "expected_source_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Source Participant Digest",
+          "type": "string"
+        },
+        "offer": {
+          "$ref": "#/$defs/ContinuationOffer"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "offer",
+        "expected_source_participant_digest",
+        "expected_destination_participant_digest",
+        "reason"
+      ],
+      "title": "ContinuationRecoveryOffer",
+      "type": "object"
+    },
+    "ContinuationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_digest": {
+          "title": "Binding Digest",
+          "type": "string"
+        },
+        "canon_checkpoint_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canon Checkpoint Digest"
+        },
+        "canon_decisions_replayed": {
+          "default": false,
+          "title": "Canon Decisions Replayed",
+          "type": "boolean"
+        },
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "host_session_attached": {
+          "default": false,
+          "title": "Host Session Attached",
+          "type": "boolean"
+        },
+        "jobs_replayed": {
+          "default": false,
+          "title": "Jobs Replayed",
+          "type": "boolean"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "owner_client_id": {
+          "title": "Owner Client Id",
+          "type": "string"
+        },
+        "owner_generation": {
+          "title": "Owner Generation",
+          "type": "integer"
+        },
+        "participant_id": {
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "plan_mutated": {
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "plan_revision": {
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "previous_owner_client_id": {
+          "title": "Previous Owner Client Id",
+          "type": "string"
+        },
+        "source_bytes_reverified": {
+          "default": false,
+          "title": "Source Bytes Reverified",
+          "type": "boolean"
+        },
+        "source_client_closeout_only": {
+          "default": true,
+          "title": "Source Client Closeout Only",
+          "type": "boolean"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "transferred_participant_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Transferred Participant Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "participant_id",
+        "owner_generation",
+        "owner_client_id",
+        "previous_owner_client_id",
+        "binding_digest",
+        "plan_revision",
+        "task_id",
+        "transferred_participant_ids"
+      ],
+      "title": "ContinuationResult",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "continuity"
+}

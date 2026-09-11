@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import sqlite3
+import threading
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -11,7 +12,10 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
-from .native_toolchain import configured_runtime_root, installed_toolchain_record
+from .shared_tool_assets import resolve_shared_asset
+
+_MODEL_CACHE: dict[tuple[str, str, str], Any] = {}
+_MODEL_LOCK = threading.Lock()
 
 
 class VectorModelContract(BaseModel):
@@ -45,22 +49,11 @@ def _directory_identity(path: Path) -> str:
 
 
 def configured_embedding_model() -> VectorModelContract | None:
-    runtime_root = configured_runtime_root()
-    if runtime_root is None:
-        return None
-    record = installed_toolchain_record(
-        "embedding_model_bge_small_en_v1_5",
-        runtime_root=runtime_root,
-    )
-    if record is None or record.get("status") != "PASS":
-        return None
-    path = Path(str(record.get("model_path") or "")).resolve(strict=True)
-    try:
-        path.relative_to(runtime_root)
-    except ValueError as exc:
-        raise RuntimeError("EMBEDDING_MODEL_OUTSIDE_HIDDEN_RUNTIME") from exc
-    if _directory_identity(path) != str(record.get("files_sha256") or ""):
-        raise RuntimeError("EMBEDDING_MODEL_SNAPSHOT_HASH_MISMATCH")
+    path, record = resolve_shared_asset('embedding_snapshot')
+    if (record.get('repository') != 'BAAI/bge-small-en-v1.5'
+            or record.get('revision') != '5c38ec7c405ec4b44b94cc5a9bb96e735b38267a'
+            or record.get('dimension') != 384):
+        raise ValueError('EMBEDDING_MODEL_PIN_MISMATCH')
     return VectorModelContract(
         model_id=f"{record['repository']}@{record['revision']}",
         dimension=int(record["dimension"]),
@@ -172,7 +165,15 @@ def embed_with_local_sentence_transformer(
         SentenceTransformer,  # type: ignore[import-not-found]
     )
 
-    model = SentenceTransformer(str(model_path), local_files_only=True)
+    key = (str(model_path), contract.model_id, _directory_identity(model_path))
+    with _MODEL_LOCK:
+        model = _MODEL_CACHE.get(key)
+        if model is None:
+            # Prewarm once per owned worker process. A changed file identity
+            # creates another cache key; no query downloads or remote code.
+            model = SentenceTransformer(str(model_path), local_files_only=True, trust_remote_code=False, device='cpu')
+            _MODEL_CACHE.clear()
+            _MODEL_CACHE[key] = model
     vectors = model.encode(
         list(texts),
         convert_to_numpy=True,

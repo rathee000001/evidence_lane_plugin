@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "chat_lineage selected project graph publication",
+  "type": "object",
+  "x-format": "mmd",
+  "x-lane-id": "chat_lineage",
+  "x-view-contracts": [
+    {
+      "view_id": "chat_lineage.ancestry",
+      "lane_id": "chat_lineage",
+      "folder": "authorities/chat_lineage",
+      "version": 1,
+      "meaning": "Visible conversation events and their recorded parent ancestry.",
+      "consumer": "artifact_export",
+      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "files": {
+        "mmd": "chat_lineage.mmd",
+        "dot": "chat_lineage.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "lineage"
+      ],
+      "node_kinds": [
+        "lineage_event"
+      ],
+      "edge_kinds": [
+        "PARENT_OF"
+      ],
+      "schemas": [
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "x-automatic-refresh": false
+}

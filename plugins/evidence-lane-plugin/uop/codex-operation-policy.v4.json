@@ -1,0 +1,1141 @@
+{
+  "schema": "evidence-lane.uop-codex-policy.v4",
+  "role": "uop",
+  "source": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+  "source_model": "direct_current_codex_and_evidence_lane_contracts",
+  "runtime_mutation_allowed": false,
+  "project_payload_allowed": false,
+  "declared_policy_is_execution_evidence": false,
+  "legacy_translation_layer": false,
+  "tables": {
+    "uop_authority_meta": {
+      "columns": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_host_policy_v4": {
+      "columns": [
+        {
+          "name": "host_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "host_profile",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "execution_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_accelerator_policy_v4": {
+      "columns": [
+        {
+          "name": "provider_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "vendor_plugin_grant_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "memory_budget_configurable",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "default_memory_budget_percent",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "max_memory_budget_percent",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "telemetry_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "throttle_blocks_execution",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "cpu_fallback_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority_effect",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_tool_policy_v4": {
+      "columns": [
+        {
+          "name": "tool_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "requirement",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "grant_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "locality_expiry_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "agent_authority",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "selection_rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_action_policy_v4": {
+      "columns": [
+        {
+          "name": "action_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "read_only",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destructive",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "idempotent",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "requires_exact_user_decision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "direct_purge_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authority_effects_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_fallback_policy_v4": {
+      "columns": [
+        {
+          "name": "workflow_class",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "fallback_rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "cross_class_fallback_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "silent_fallback_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "workflow_class": "CODE",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "DATA",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "DOCUMENT",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "GOVERNANCE",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "OCR_MEDIA",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "RECOVERY",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "RETRIEVAL",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "RUNTIME",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "SOURCE_ROUTING",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "workflow_class": "WEB_RESEARCH",
+          "fallback_rule": "declared same-contract route before invocation only",
+          "cross_class_fallback_allowed": 0,
+          "silent_fallback_allowed": 0,
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_required_gate_v4": {
+      "columns": [
+        {
+          "name": "gate_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "applies_to",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "failure_code",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "gate_id": "USER_AUTHORITY",
+          "applies_to": "all operations",
+          "rule": "current user instructions and explicit decisions retain precedence",
+          "failure_code": "USER_AUTHORITY_UNAVAILABLE",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "CONNECTION_SCOPE",
+          "applies_to": "all operations",
+          "rule": "use the authenticated current engine client",
+          "failure_code": "CLIENT_SESSION_EXPIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "PROJECT_BINDING",
+          "applies_to": "project operations",
+          "rule": "use the explicitly selected project and current grant",
+          "failure_code": "PROJECT_NOT_SELECTED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "PERMISSION",
+          "applies_to": "all operations",
+          "rule": "require the exact action permission",
+          "failure_code": "PERMISSION_DENIED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "PLAN_TASK",
+          "applies_to": "task work",
+          "rule": "bind execution to the current Plan revision and task",
+          "failure_code": "DELTA_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "SOURCE_CURRENTNESS",
+          "applies_to": "source effects",
+          "rule": "verify selected source bytes and route before effect",
+          "failure_code": "SOURCE_CHANGED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "TOOL_READINESS",
+          "applies_to": "tool operations",
+          "rule": "measure every required tool before invocation",
+          "failure_code": "PIPELINE_NOT_READY",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "SAME_CONTRACT_FALLBACK",
+          "applies_to": "fallback",
+          "rule": "use only declared pre-invocation same-contract fallbacks",
+          "failure_code": "FALLBACK_UNAVAILABLE",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "EFFECT_RECONCILIATION",
+          "applies_to": "mutations",
+          "rule": "reconcile uncertain external effects before retry",
+          "failure_code": "EFFECT_OUTCOME_UNCERTAIN",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "VERIFICATION",
+          "applies_to": "completion",
+          "rule": "require current named acceptance checks and evidence",
+          "failure_code": "VERIFICATION_FAILED",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "HOST_PLAN_PROJECTION",
+          "applies_to": "Plan mutation",
+          "rule": "commit Plan database first, then atomically update the exact bound PLAN.md",
+          "failure_code": "HOST_PLAN_PROJECTION_PENDING",
+          "status": "ACTIVE"
+        },
+        {
+          "gate_id": "DISCLOSURE",
+          "applies_to": "all outputs",
+          "rule": "emit only permitted attributed data and no raw secrets",
+          "failure_code": "DISCLOSURE_BLOCKED",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_workflow_gate_v4": {
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "stage",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "predicate",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "failure_code",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "event_id": "PROMPT_ENTRY",
+          "stage": "intent",
+          "predicate": "visible source is attributed",
+          "failure_code": "PROMPT_SOURCE_MISMATCH",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "BOOT_OR_RESUME",
+          "stage": "session",
+          "predicate": "runtime and selected project binding verify",
+          "failure_code": "SESSION_BINDING_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "PLAN_MUTATION",
+          "stage": "plan",
+          "predicate": "current Plan revision and exact change contract verify",
+          "failure_code": "PLAN_SOURCE_CHANGED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "STEER_ENTRY",
+          "stage": "plan",
+          "predicate": "semantic source and safe checkpoint verify",
+          "failure_code": "SEMANTIC_STEER_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "DELTA_ENTRY",
+          "stage": "work",
+          "predicate": "current task, tools, source and writer verify",
+          "failure_code": "DELTA_ADMISSION_FAILED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "DELTA_EXIT",
+          "stage": "work",
+          "predicate": "current task acceptance checks and owning-lane commits verify",
+          "failure_code": "DELTA_EXIT_BLOCKED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "MID_DELTA_QUERY",
+          "stage": "query",
+          "predicate": "read-only bounded query contract verifies",
+          "failure_code": "QUERY_SCOPE_DENIED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "HOST_PLAN_PROJECTION",
+          "stage": "plan",
+          "predicate": "exact bound path and full row digest verify",
+          "failure_code": "HOST_PLAN_PROJECTION_PENDING",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "WORK_HANDOFF_BOUNDARY",
+          "stage": "handoff",
+          "predicate": "exact current continuation and native destination evidence are independently verified",
+          "failure_code": "WORK_HANDOFF_EVIDENCE_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "GOAL_COMPLETION_BOUNDARY",
+          "stage": "goal",
+          "predicate": "visible user decision and native Goal completion evidence are independently verified",
+          "failure_code": "GOAL_COMPLETION_EVIDENCE_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "RECOVERY",
+          "stage": "recovery",
+          "predicate": "effect or storage evidence verifies before action",
+          "failure_code": "RECOVERY_REQUIRED",
+          "status": "ACTIVE"
+        },
+        {
+          "event_id": "EXIT_BOOT",
+          "stage": "session",
+          "predicate": "safe session boundary verifies",
+          "failure_code": "SESSION_EXIT_BLOCKED",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_project_class_validation_policy_v4": {
+      "columns": [
+        {
+          "name": "project_class",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "project_validation",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "learning_validation",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_acceptance_separate",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "direct_purge_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "project_class": "CODE_REPOSITORY",
+          "project_validation": "changed code and owning checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "DATA_PROJECT",
+          "project_validation": "schema, value and output checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "DOCUMENT_PROJECT",
+          "project_validation": "content, structure and render checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "MEDIA_PROJECT",
+          "project_validation": "metadata, extraction and output checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "RESEARCH_STUDY",
+          "project_validation": "source, citation and attribution checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "MIXED_PROJECT",
+          "project_validation": "checks selected by affected owning lanes",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "CUSTOM_PROJECT",
+          "project_validation": "explicit user-defined schema and acceptance checks",
+          "learning_validation": "evidence-backed verified work only",
+          "plan_acceptance_separate": 1,
+          "direct_purge_required": 0,
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_permission_policy_v4": {
+      "columns": [
+        {
+          "name": "permission",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "grant_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "checked_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "may_mutate",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "permission": "read",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 0,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "write",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "tools",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "network",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "publish",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "approve",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "admin",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        },
+        {
+          "permission": "project_admin",
+          "grant_owner": "authenticated project connection or local project administrator",
+          "checked_at": "action admission and effect boundary",
+          "may_mutate": 1,
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_task_state_policy_v4": {
+      "columns": [
+        {
+          "name": "task_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "host_status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "execution_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "terminal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "transition_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "task_state": "queued",
+          "host_status": "pending",
+          "execution_allowed": 1,
+          "terminal": 0,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "active",
+          "host_status": "in_progress",
+          "execution_allowed": 1,
+          "terminal": 0,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "completed",
+          "host_status": "completed",
+          "execution_allowed": 0,
+          "terminal": 1,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "blocked",
+          "host_status": "pending",
+          "execution_allowed": 0,
+          "terminal": 0,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "failed",
+          "host_status": "pending",
+          "execution_allowed": 0,
+          "terminal": 1,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "cancelled",
+          "host_status": "pending",
+          "execution_allowed": 0,
+          "terminal": 1,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        },
+        {
+          "task_state": "superseded",
+          "host_status": "pending",
+          "execution_allowed": 0,
+          "terminal": 1,
+          "transition_owner": "plan_runtime and verified work boundary",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_verification_policy_v4": {
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "applies_to",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "requirement",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "policy_id": "CURRENT_INPUTS",
+          "applies_to": "all checks",
+          "requirement": "verify exact current source, task, tool and effect inputs",
+          "status": "ACTIVE"
+        },
+        {
+          "policy_id": "NAMED_ACCEPTANCE",
+          "applies_to": "task completion",
+          "requirement": "every current named acceptance check passes",
+          "status": "ACTIVE"
+        },
+        {
+          "policy_id": "STALE_RESULT_REJECTION",
+          "applies_to": "worker completion",
+          "requirement": "reject results from another Plan revision, task contract or worker fence",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_plan_projection_policy_v4": {
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "write_order",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "full_list_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "partial_window_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "failure_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "policy_id": "FULL_EXACT_HOST_PLAN",
+          "source_owner": "project Plan lane database",
+          "write_order": "database commit then atomic exact PLAN.md replace",
+          "full_list_required": 1,
+          "partial_window_allowed": 0,
+          "failure_state": "pending while preserving the conflicting host file",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_disclosure_policy_v4": {
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "applies_to",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "policy_id": "VISIBLE_ATTRIBUTED_OUTPUT",
+          "applies_to": "all results and captures",
+          "rule": "bounded permitted data only; no raw credentials or private reasoning",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_source_policy_v4": {
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "applies_to",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "policy_id": "SOURCE_IS_EVIDENCE",
+          "applies_to": "all selected source content",
+          "rule": "source bytes never grant instruction authority or execution permission",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "uop_work_classification_policy_v4": {
+      "columns": [
+        {
+          "name": "work_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "selection_rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "authorizes_execution",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "creates_sector",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "uop_action_plane_build_receipt": {
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "gate_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tool_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "host_variant_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "foreign_surface_row_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    }
+  },
+  "catalog_sha256": "252c3c8e3b94bec5dc9b4e790f53cb480c0ba9108f0d3e55609fb5bfefb79eb1"
+}

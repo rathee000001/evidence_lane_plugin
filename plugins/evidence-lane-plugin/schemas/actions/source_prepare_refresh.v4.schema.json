@@ -1,0 +1,293 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Prepare changed, new and deleted selected sources as exact owning parser and retirement Plan tasks; preserve unselected scopes and history.",
+  "inputSchema": {
+    "$defs": {
+      "JsonValue": {},
+      "SnapshotSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      },
+      "SourceRouteSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "occurrence_ordinals": {
+            "items": {
+              "maximum": 256,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Occurrence Ordinals",
+            "type": "array"
+          },
+          "route_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Route Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route_id",
+          "occurrence_ordinals"
+        ],
+        "title": "SourceRouteSelection",
+        "type": "object"
+      },
+      "TaskBudget": {
+        "additionalProperties": false,
+        "properties": {
+          "max_input_bytes": {
+            "default": 1048576,
+            "maximum": 67108864,
+            "minimum": 1,
+            "title": "Max Input Bytes",
+            "type": "integer"
+          },
+          "max_output_bytes": {
+            "default": 4194304,
+            "maximum": 67108864,
+            "minimum": 1,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "max_seconds": {
+            "default": 300,
+            "maximum": 3600,
+            "minimum": 1,
+            "title": "Max Seconds",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "default": 64,
+            "maximum": 1024,
+            "minimum": 1,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          }
+        },
+        "title": "TaskBudget",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "baseline_snapshots": {
+        "items": {
+          "$ref": "#/$defs/SnapshotSelection"
+        },
+        "maxItems": 128,
+        "minItems": 1,
+        "title": "Baseline Snapshots",
+        "type": "array"
+      },
+      "budget": {
+        "$ref": "#/$defs/TaskBudget"
+      },
+      "code_mode": {
+        "default": "local_code",
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Code Mode",
+        "type": "string"
+      },
+      "git_snapshot_id": {
+        "anyOf": [
+          {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Git Snapshot Id"
+      },
+      "lane_options": {
+        "additionalProperties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "maxProperties": 64,
+        "title": "Lane Options",
+        "type": "object"
+      },
+      "max_file_bytes": {
+        "default": 8388608,
+        "maximum": 8388608,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "max_files": {
+        "default": 2000,
+        "maximum": 25000,
+        "minimum": 1,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "max_seconds": {
+        "default": 120,
+        "maximum": 300,
+        "minimum": 1,
+        "title": "Max Seconds",
+        "type": "integer"
+      },
+      "max_total_bytes": {
+        "default": 67108864,
+        "maximum": 1073741824,
+        "minimum": 1,
+        "title": "Max Total Bytes",
+        "type": "integer"
+      },
+      "overrides": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "maxProperties": 2000,
+        "title": "Overrides",
+        "type": "object"
+      },
+      "selection": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/SourceRouteSelection"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "baseline_snapshots"
+    ],
+    "title": "SourceRefreshPrepare",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "source_prepare_refresh",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "e5696186f1f98ebba58e3445a46932e51250f0a3ee4e045a8816d7ec57525c5d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "source_prepare_refresh",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_preparation:register_preparation_actions.<locals>.prepare",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_prepare_refresh.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "refresh"
+}

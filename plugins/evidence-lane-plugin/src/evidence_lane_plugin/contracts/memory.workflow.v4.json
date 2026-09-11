@@ -1,0 +1,2803 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Query one exact rebuildable remote context index while retaining SQLite and source-hash authority.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Authority Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_response_bytes": {
+            "default": 2097152,
+            "maximum": 8388608,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "query_text": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query Text"
+          },
+          "query_vector": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 4096,
+            "minItems": 1,
+            "title": "Query Vector",
+            "type": "array"
+          },
+          "resource_id": {
+            "maxLength": 384,
+            "minLength": 3,
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "source_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Sha256",
+            "type": "string"
+          },
+          "sqlite_identity_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sqlite Identity Sha256",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "tool_id": {
+            "enum": [
+              "Pinecone",
+              "Weaviate",
+              "Milvus",
+              "OpenSearch"
+            ],
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "top_k": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tool_id",
+          "lane_id",
+          "authority_id",
+          "resource_id",
+          "sqlite_identity_sha256",
+          "source_sha256",
+          "query_vector"
+        ],
+        "title": "ContextIndexQueryRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "context_index_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "tool_id": {
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "operation",
+          "result",
+          "receipt_sha256"
+        ],
+        "title": "ContextIndexExecutionResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "tools",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "77b0f39c01fe31b909f525d80ffb0a1f09367df0ba6874c1a7a4188b55f7b3a9",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "context_index_query",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Pinecone"
+              ]
+            },
+            "extension": {
+              "backend_id": "pinecone.data-plane-rest",
+              "backend_runtime": "python",
+              "backend_version": "2025-10",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.pinecone",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Pinecone"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Weaviate"
+              ]
+            },
+            "extension": {
+              "backend_id": "weaviate.rest-graphql",
+              "backend_runtime": "python",
+              "backend_version": "v1",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.weaviate",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Weaviate"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Milvus"
+              ]
+            },
+            "extension": {
+              "backend_id": "milvus.rest",
+              "backend_runtime": "python",
+              "backend_version": "v2",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.milvus",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Milvus"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "OpenSearch"
+              ]
+            },
+            "extension": {
+              "backend_id": "opensearch.rest",
+              "backend_runtime": "python",
+              "backend_version": "v2",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.opensearch",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenSearch"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "context_index_result_binding"
+      ],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Upsert changed records or delete one SQLite identity from an exact rebuildable remote context index.",
+      "inputSchema": {
+        "$defs": {
+          "ContextIndexRecord": {
+            "additionalProperties": false,
+            "properties": {
+              "record_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "title": "Record Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "maxLength": 32768,
+                "title": "Text",
+                "type": "string"
+              },
+              "vector": {
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 4096,
+                "minItems": 1,
+                "title": "Vector",
+                "type": "array"
+              }
+            },
+            "required": [
+              "record_id",
+              "vector"
+            ],
+            "title": "ContextIndexRecord",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "authority_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Authority Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_response_bytes": {
+            "default": 2097152,
+            "maximum": 8388608,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          },
+          "operation": {
+            "enum": [
+              "upsert_changed",
+              "delete_identity"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/$defs/ContextIndexRecord"
+            },
+            "maxItems": 100,
+            "title": "Records",
+            "type": "array"
+          },
+          "resource_id": {
+            "maxLength": 384,
+            "minLength": 3,
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "source_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Sha256",
+            "type": "string"
+          },
+          "sqlite_identity_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sqlite Identity Sha256",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "tool_id": {
+            "enum": [
+              "Pinecone",
+              "Weaviate",
+              "Milvus",
+              "OpenSearch"
+            ],
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "lane_id",
+          "authority_id",
+          "resource_id",
+          "sqlite_identity_sha256",
+          "source_sha256",
+          "operation"
+        ],
+        "title": "ContextIndexSyncRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "context_index_sync",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "tool_id": {
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "operation",
+          "result",
+          "receipt_sha256"
+        ],
+        "title": "ContextIndexExecutionResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "publish",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7e4f066ca005d1d48e5467a83caad9d5a068b7f606265f3801ddd4ef9cf8ae56",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "context_index_sync",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Pinecone"
+              ]
+            },
+            "extension": {
+              "backend_id": "pinecone.data-plane-rest",
+              "backend_runtime": "python",
+              "backend_version": "2025-10",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.pinecone",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Pinecone"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Weaviate"
+              ]
+            },
+            "extension": {
+              "backend_id": "weaviate.rest-graphql",
+              "backend_runtime": "python",
+              "backend_version": "v1",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.weaviate",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Weaviate"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "Milvus"
+              ]
+            },
+            "extension": {
+              "backend_id": "milvus.rest",
+              "backend_runtime": "python",
+              "backend_version": "v2",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.milvus",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Milvus"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "argument_suffixes": {},
+            "argument_values": {
+              "tool_id": [
+                "OpenSearch"
+              ]
+            },
+            "extension": {
+              "backend_id": "opensearch.rest",
+              "backend_runtime": "python",
+              "backend_version": "v2",
+              "capability": "context_index",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "selected_by_action",
+              "lane_field": "lane_id",
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "role": "context_index_result",
+              "role_schema": {
+                "operation": "text",
+                "receipt_sha256": "blob_hash",
+                "result": "json",
+                "tool_id": "text"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "context_index.opensearch",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenSearch"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "context_index_result_binding"
+      ],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Pin a bounded Memory slice to current Plan and attributed visible lineage.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "locator_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Locator Ids",
+            "type": "array"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "plan_revision",
+          "contract_digest",
+          "locator_ids"
+        ],
+        "title": "MemoryCheckpoint",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "memory_checkpoint",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_digest": {
+            "title": "Checkpoint Digest",
+            "type": "string"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "source_task_binding": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Task Binding"
+          }
+        },
+        "required": [
+          "checkpoint_digest",
+          "project_id",
+          "source_client_id",
+          "source_task_binding"
+        ],
+        "title": "MemoryCheckpointResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "c404f1300b32501bbfe6beb558efe4541c9d9a6a67ae5d56810fb5ca72878e98",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "memory_checkpoint",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.checkpoint",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "memory_checkpoint.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index bounded attributed locators and typed links to existing project records.",
+      "inputSchema": {
+        "$defs": {
+          "MemoryEdge": {
+            "additionalProperties": false,
+            "properties": {
+              "evidence": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "kind": {
+                "enum": [
+                  "DERIVED_FROM",
+                  "EVIDENCES",
+                  "LEARNED_FROM",
+                  "MAPS_TO",
+                  "RELATED_TO",
+                  "REVOKES",
+                  "SUPERSEDES",
+                  "SUPPRESSES"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "source_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Source Id",
+                "type": "string"
+              },
+              "target_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Target Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "source_id",
+              "target_id",
+              "kind",
+              "evidence"
+            ],
+            "title": "MemoryEdge",
+            "type": "object"
+          },
+          "MemoryLocator": {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Label",
+                "type": "string"
+              },
+              "reference": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "search_terms": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 24,
+                "title": "Search Terms",
+                "type": "array"
+              }
+            },
+            "required": [
+              "reference",
+              "label"
+            ],
+            "title": "MemoryLocator",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/$defs/MemoryEdge"
+            },
+            "maxItems": 100,
+            "title": "Edges",
+            "type": "array"
+          },
+          "locators": {
+            "items": {
+              "$ref": "#/$defs/MemoryLocator"
+            },
+            "maxItems": 100,
+            "title": "Locators",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "title": "MemoryIngest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "memory_ingest",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "const": "project_memory",
+            "default": "project_memory",
+            "title": "Authority",
+            "type": "string"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "edge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Edge Ids",
+            "type": "array"
+          },
+          "head": {
+            "title": "Head",
+            "type": "string"
+          },
+          "link_semantics": {
+            "default": "agent_report",
+            "enum": [
+              "agent_report",
+              "engine_verified_exit"
+            ],
+            "title": "Link Semantics",
+            "type": "string"
+          },
+          "locator_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Locator Ids",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_authorities_mutated": {
+            "default": false,
+            "title": "Source Authorities Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "locator_ids",
+          "edge_ids",
+          "head"
+        ],
+        "title": "MemoryIngested",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7ca3a34e16f65051a08d8da7cdbd67fa85cc4b03efb80a6aa69bab0b17fd31c8",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "memory_ingest",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.ingest",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "memory_ingest.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Search a bounded project-local locator slice without loading source payloads.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "include_history": {
+            "default": false,
+            "title": "Include History",
+            "type": "boolean"
+          },
+          "kinds": {
+            "items": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Kinds",
+            "type": "array"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 32768,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          }
+        },
+        "title": "MemoryRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "memory_read",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "const": "project_memory",
+            "default": "project_memory",
+            "title": "Authority",
+            "type": "string"
+          },
+          "head": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head"
+          },
+          "locators": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Locators",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "query_mutated_storage": {
+            "default": false,
+            "title": "Query Mutated Storage",
+            "type": "boolean"
+          },
+          "raw_source_payloads_returned": {
+            "default": false,
+            "title": "Raw Source Payloads Returned",
+            "type": "boolean"
+          },
+          "search_engine": {
+            "const": "sqlite_fts5_bm25",
+            "default": "sqlite_fts5_bm25",
+            "title": "Search Engine",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "locators",
+          "head",
+          "truncated"
+        ],
+        "title": "MemoryPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "memory",
+      "project_required": true,
+      "project_search": {
+        "basis": "sqlite_fts5_bm25",
+        "collection": null,
+        "current_action": null,
+        "current_items": null,
+        "items": "locators",
+        "lanes": [
+          "memory"
+        ],
+        "match_mode": null,
+        "rerank_text": null
+      },
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "0d277f8548d70efecf566af4644273de352f812d261f815bc069d2d6007185e9",
+          "owner": "memory",
+          "version": 1
+        },
+        {
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+          "owner": "plan",
+          "version": 1
+        },
+        {
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+          "owner": "plan",
+          "version": 2
+        },
+        {
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+          "owner": "plan",
+          "version": 3
+        },
+        {
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c",
+          "owner": "lineage",
+          "version": 1
+        },
+        {
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38",
+          "owner": "learning",
+          "version": 1
+        },
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "482b2df25bd30134a6cb7080c2c3f1a106dda1f170d5d89f56f551f4a4f757f5",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "memory_read",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "memory_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read a checkpoint slice with explicit attribution and current compatibility.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Checkpoint Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "checkpoint_digest"
+        ],
+        "title": "MemoryRehydrate",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "memory_rehydrate",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint": {
+            "additionalProperties": true,
+            "title": "Checkpoint",
+            "type": "object"
+          },
+          "current_plan_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Plan Revision"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "lineage_head_changed": {
+            "title": "Lineage Head Changed",
+            "type": "boolean"
+          },
+          "locators": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Locators",
+            "type": "array"
+          },
+          "memory_head_changed": {
+            "title": "Memory Head Changed",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_compatible": {
+            "title": "Plan Compatible",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "receiver_client_id": {
+            "title": "Receiver Client Id",
+            "type": "string"
+          },
+          "source_authorities_mutated": {
+            "default": false,
+            "title": "Source Authorities Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "checkpoint",
+          "locators",
+          "current_plan_revision",
+          "plan_compatible",
+          "memory_head_changed",
+          "lineage_head_changed",
+          "receiver_client_id"
+        ],
+        "title": "MemoryContinuity",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7db5a17a2a6091444bbf8450ac67a9be479e86779cadbbe38b12d4cf6ce51bb2",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "memory_rehydrate",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "memory_rehydrate.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "memory"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Record two locators and one evidence-backed Project Memory link atomically; derive endpoint identities inside the engine.",
+      "inputSchema": {
+        "$defs": {
+          "MemoryLocator": {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Label",
+                "type": "string"
+              },
+              "reference": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "search_terms": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 24,
+                "title": "Search Terms",
+                "type": "array"
+              }
+            },
+            "required": [
+              "reference",
+              "label"
+            ],
+            "title": "MemoryLocator",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "edge_type": {
+            "enum": [
+              "DERIVED_FROM",
+              "EVIDENCES",
+              "LEARNED_FROM",
+              "MAPS_TO",
+              "RELATED_TO",
+              "REVOKES",
+              "SUPERSEDES",
+              "SUPPRESSES"
+            ],
+            "title": "Edge Type",
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/$defs/MemoryReference"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/MemoryLocator"
+          },
+          "target": {
+            "$ref": "#/$defs/MemoryLocator"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "edge_type",
+          "evidence"
+        ],
+        "title": "MemoryRecordLink",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "project_memory_record_link",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "const": "project_memory",
+            "default": "project_memory",
+            "title": "Authority",
+            "type": "string"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "edge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Edge Ids",
+            "type": "array"
+          },
+          "head": {
+            "title": "Head",
+            "type": "string"
+          },
+          "link_semantics": {
+            "default": "agent_report",
+            "enum": [
+              "agent_report",
+              "engine_verified_exit"
+            ],
+            "title": "Link Semantics",
+            "type": "string"
+          },
+          "locator_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Locator Ids",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_authorities_mutated": {
+            "default": false,
+            "title": "Source Authorities Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "locator_ids",
+          "edge_ids",
+          "head"
+        ],
+        "title": "MemoryIngested",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "memory",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "13da279160386b197c81d191d49c4360a73a2c716f6331f4b1172fd3689143e6",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_memory_record_link",
+        "profile": "memory",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.record_link",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_memory_record_link.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "memory"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "ContextIndexExecutionResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "receipt_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt Sha256",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        },
+        "tool_id": {
+          "title": "Tool Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "operation",
+        "result",
+        "receipt_sha256"
+      ],
+      "title": "ContextIndexExecutionResult",
+      "type": "object"
+    },
+    "ContextIndexQueryRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Authority Id",
+          "type": "string"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_response_bytes": {
+          "default": 2097152,
+          "maximum": 8388608,
+          "minimum": 1024,
+          "title": "Max Response Bytes",
+          "type": "integer"
+        },
+        "plugin_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{2,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plugin Id"
+        },
+        "query_text": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Text"
+        },
+        "query_vector": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4096,
+          "minItems": 1,
+          "title": "Query Vector",
+          "type": "array"
+        },
+        "resource_id": {
+          "maxLength": 384,
+          "minLength": 3,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "sqlite_identity_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sqlite Identity Sha256",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 20,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "tool_id": {
+          "enum": [
+            "Pinecone",
+            "Weaviate",
+            "Milvus",
+            "OpenSearch"
+          ],
+          "title": "Tool Id",
+          "type": "string"
+        },
+        "top_k": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Top K",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_id",
+        "lane_id",
+        "authority_id",
+        "resource_id",
+        "sqlite_identity_sha256",
+        "source_sha256",
+        "query_vector"
+      ],
+      "title": "ContextIndexQueryRequest",
+      "type": "object"
+    },
+    "ContextIndexSyncRequest": {
+      "$defs": {
+        "ContextIndexRecord": {
+          "additionalProperties": false,
+          "properties": {
+            "record_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Record Id",
+              "type": "string"
+            },
+            "text": {
+              "default": "",
+              "maxLength": 32768,
+              "title": "Text",
+              "type": "string"
+            },
+            "vector": {
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4096,
+              "minItems": 1,
+              "title": "Vector",
+              "type": "array"
+            }
+          },
+          "required": [
+            "record_id",
+            "vector"
+          ],
+          "title": "ContextIndexRecord",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "authority_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Authority Id",
+          "type": "string"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_response_bytes": {
+          "default": 2097152,
+          "maximum": 8388608,
+          "minimum": 1024,
+          "title": "Max Response Bytes",
+          "type": "integer"
+        },
+        "operation": {
+          "enum": [
+            "upsert_changed",
+            "delete_identity"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "plugin_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{2,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plugin Id"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/ContextIndexRecord"
+          },
+          "maxItems": 100,
+          "title": "Records",
+          "type": "array"
+        },
+        "resource_id": {
+          "maxLength": 384,
+          "minLength": 3,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "sqlite_identity_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sqlite Identity Sha256",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 20,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "tool_id": {
+          "enum": [
+            "Pinecone",
+            "Weaviate",
+            "Milvus",
+            "OpenSearch"
+          ],
+          "title": "Tool Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "lane_id",
+        "authority_id",
+        "resource_id",
+        "sqlite_identity_sha256",
+        "source_sha256",
+        "operation"
+      ],
+      "title": "ContextIndexSyncRequest",
+      "type": "object"
+    },
+    "MemoryCheckpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "locator_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Locator Ids",
+          "type": "array"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "locator_ids"
+      ],
+      "title": "MemoryCheckpoint",
+      "type": "object"
+    },
+    "MemoryCheckpointResult": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_digest": {
+          "title": "Checkpoint Digest",
+          "type": "string"
+        },
+        "host_session_attached": {
+          "default": false,
+          "title": "Host Session Attached",
+          "type": "boolean"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "source_client_id": {
+          "title": "Source Client Id",
+          "type": "string"
+        },
+        "source_task_binding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Task Binding"
+        }
+      },
+      "required": [
+        "checkpoint_digest",
+        "project_id",
+        "source_client_id",
+        "source_task_binding"
+      ],
+      "title": "MemoryCheckpointResult",
+      "type": "object"
+    },
+    "MemoryContinuity": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint": {
+          "additionalProperties": true,
+          "title": "Checkpoint",
+          "type": "object"
+        },
+        "current_plan_revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Current Plan Revision"
+        },
+        "host_session_attached": {
+          "default": false,
+          "title": "Host Session Attached",
+          "type": "boolean"
+        },
+        "lineage_head_changed": {
+          "title": "Lineage Head Changed",
+          "type": "boolean"
+        },
+        "locators": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Locators",
+          "type": "array"
+        },
+        "memory_head_changed": {
+          "title": "Memory Head Changed",
+          "type": "boolean"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "plan_compatible": {
+          "title": "Plan Compatible",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "receiver_client_id": {
+          "title": "Receiver Client Id",
+          "type": "string"
+        },
+        "source_authorities_mutated": {
+          "default": false,
+          "title": "Source Authorities Mutated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "checkpoint",
+        "locators",
+        "current_plan_revision",
+        "plan_compatible",
+        "memory_head_changed",
+        "lineage_head_changed",
+        "receiver_client_id"
+      ],
+      "title": "MemoryContinuity",
+      "type": "object"
+    },
+    "MemoryIngest": {
+      "$defs": {
+        "MemoryEdge": {
+          "additionalProperties": false,
+          "properties": {
+            "evidence": {
+              "$ref": "#/$defs/MemoryReference"
+            },
+            "kind": {
+              "enum": [
+                "DERIVED_FROM",
+                "EVIDENCES",
+                "LEARNED_FROM",
+                "MAPS_TO",
+                "RELATED_TO",
+                "REVOKES",
+                "SUPERSEDES",
+                "SUPPRESSES"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "source_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Id",
+              "type": "string"
+            },
+            "target_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Target Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_id",
+            "target_id",
+            "kind",
+            "evidence"
+          ],
+          "title": "MemoryEdge",
+          "type": "object"
+        },
+        "MemoryLocator": {
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "reference": {
+              "$ref": "#/$defs/MemoryReference"
+            },
+            "search_terms": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 24,
+              "title": "Search Terms",
+              "type": "array"
+            }
+          },
+          "required": [
+            "reference",
+            "label"
+          ],
+          "title": "MemoryLocator",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/MemoryEdge"
+          },
+          "maxItems": 100,
+          "title": "Edges",
+          "type": "array"
+        },
+        "locators": {
+          "items": {
+            "$ref": "#/$defs/MemoryLocator"
+          },
+          "maxItems": 100,
+          "title": "Locators",
+          "type": "array"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "title": "MemoryIngest",
+      "type": "object"
+    },
+    "MemoryIngested": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "const": "project_memory",
+          "default": "project_memory",
+          "title": "Authority",
+          "type": "string"
+        },
+        "duplicate": {
+          "default": false,
+          "title": "Duplicate",
+          "type": "boolean"
+        },
+        "edge_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Edge Ids",
+          "type": "array"
+        },
+        "head": {
+          "title": "Head",
+          "type": "string"
+        },
+        "link_semantics": {
+          "default": "agent_report",
+          "enum": [
+            "agent_report",
+            "engine_verified_exit"
+          ],
+          "title": "Link Semantics",
+          "type": "string"
+        },
+        "locator_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Locator Ids",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "source_authorities_mutated": {
+          "default": false,
+          "title": "Source Authorities Mutated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "locator_ids",
+        "edge_ids",
+        "head"
+      ],
+      "title": "MemoryIngested",
+      "type": "object"
+    },
+    "MemoryPage": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "const": "project_memory",
+          "default": "project_memory",
+          "title": "Authority",
+          "type": "string"
+        },
+        "head": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Head"
+        },
+        "locators": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Locators",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "query_mutated_storage": {
+          "default": false,
+          "title": "Query Mutated Storage",
+          "type": "boolean"
+        },
+        "raw_source_payloads_returned": {
+          "default": false,
+          "title": "Raw Source Payloads Returned",
+          "type": "boolean"
+        },
+        "search_engine": {
+          "const": "sqlite_fts5_bm25",
+          "default": "sqlite_fts5_bm25",
+          "title": "Search Engine",
+          "type": "string"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "locators",
+        "head",
+        "truncated"
+      ],
+      "title": "MemoryPage",
+      "type": "object"
+    },
+    "MemoryRead": {
+      "additionalProperties": false,
+      "properties": {
+        "include_history": {
+          "default": false,
+          "title": "Include History",
+          "type": "boolean"
+        },
+        "kinds": {
+          "items": {
+            "enum": [
+              "plan_task",
+              "lineage_event",
+              "learning_version",
+              "receipt",
+              "source_object",
+              "canon_exchange"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Kinds",
+          "type": "array"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 32768,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        }
+      },
+      "title": "MemoryRead",
+      "type": "object"
+    },
+    "MemoryRecordLink": {
+      "$defs": {
+        "MemoryLocator": {
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "reference": {
+              "$ref": "#/$defs/MemoryReference"
+            },
+            "search_terms": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 24,
+              "title": "Search Terms",
+              "type": "array"
+            }
+          },
+          "required": [
+            "reference",
+            "label"
+          ],
+          "title": "MemoryLocator",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "edge_type": {
+          "enum": [
+            "DERIVED_FROM",
+            "EVIDENCES",
+            "LEARNED_FROM",
+            "MAPS_TO",
+            "RELATED_TO",
+            "REVOKES",
+            "SUPERSEDES",
+            "SUPPRESSES"
+          ],
+          "title": "Edge Type",
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/MemoryReference"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/MemoryLocator"
+        },
+        "target": {
+          "$ref": "#/$defs/MemoryLocator"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "edge_type",
+        "evidence"
+      ],
+      "title": "MemoryRecordLink",
+      "type": "object"
+    },
+    "MemoryRehydrate": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Checkpoint Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checkpoint_digest"
+      ],
+      "title": "MemoryRehydrate",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "memory"
+}

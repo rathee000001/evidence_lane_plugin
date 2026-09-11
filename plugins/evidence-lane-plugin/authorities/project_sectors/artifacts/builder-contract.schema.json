@@ -1,28 +1,38 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Artifacts builder binding request",
-  "type": "object",
-  "required": [
-    "lane_id",
-    "source_paths",
-    "bundle_arguments"
-  ],
+  "additionalProperties": false,
   "properties": {
-    "lane_id": {
-      "const": "artifacts"
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Task Id",
+      "type": "string"
     },
-    "source_paths": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+    "plan_revision": {
+      "minimum": 1,
+      "title": "Plan Revision",
+      "type": "integer"
     },
-    "bundle_arguments": {
-      "type": "object"
+    "contract_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Contract Digest",
+      "type": "string"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "BC39913AF090BE21C05BB6B603A2F91DA1F487ED7B0DF09AA942CA46F1E20D09"
+  "required": [
+    "task_id",
+    "plan_revision",
+    "contract_digest"
+  ],
+  "title": "Artifacts planned builder arguments",
+  "type": "object",
+  "x-public-action": "delta_enter_planned",
+  "x-sector-lane": "artifacts",
+  "x-operation-actions": [
+    "artifacts_index",
+    "artifacts_index_media",
+    "artifacts_refresh",
+    "artifacts_refresh_media",
+    "source_snapshot_retire"
+  ],
+  "x-project-id-required": true
 }

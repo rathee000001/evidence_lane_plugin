@@ -1,0 +1,133 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "data_excel",
+        "default": "data_excel",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 45,
+        "maximum": 120,
+        "minimum": 5,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256"
+    ],
+    "title": "DataExcelSpreadsheetRecalculate",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "spreadsheet_recalculate",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "data_excel",
+          "data"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "TabularResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "spreadsheet",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "769c51f0c08a605ec16df8448c0c6125ef05f2c487f97f4c4774083d903b05b3",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "spreadsheet_recalculate",
+    "profile": "spreadsheet",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.spreadsheet_rendering:recalculate",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "spreadsheet_recalculate.calc",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "LibreOffice"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "spreadsheet_recalculate"
+    ]
+  },
+  "verification_checks": [
+    "tabular_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "spreadsheet_recalculate"
+  ],
+  "workflow": "build"
+}

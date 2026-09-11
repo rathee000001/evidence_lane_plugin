@@ -1,0 +1,107 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Cancel an unconsumed continuation owned by this source client.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Continuation Digest",
+        "type": "string"
+      },
+      "continuation_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "continuation_id",
+      "continuation_digest",
+      "reason"
+    ],
+    "title": "ContinuationCancel",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "continuation_cancel",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_id": {
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "state": {
+        "default": "cancelled",
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "continuation_id"
+    ],
+    "title": "ContinuationCancelled",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "continuity",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "28cf1d80646a4c4c2f56b2bb7eb61b122e821c00f867b1316cd3f1088232e92d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "continuation_cancel",
+    "profile": "continuity",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "continuation_cancel.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "state-travel"
+}

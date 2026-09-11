@@ -1,0 +1,180 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Snapshot explicitly admitted Power BI files, report metadata and native TOM model definitions in their separate lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "companion_files": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 127,
+        "title": "Companion Files",
+        "type": "array"
+      },
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "filename": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Filename",
+        "type": "string"
+      },
+      "inspect_models": {
+        "default": true,
+        "title": "Inspect Models",
+        "type": "boolean"
+      },
+      "lane_id": {
+        "const": "power_bi",
+        "default": "power_bi",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_file_bytes": {
+        "default": 8388608,
+        "maximum": 16777216,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "max_rows_per_table": {
+        "default": 20,
+        "maximum": 1000,
+        "minimum": 0,
+        "title": "Max Rows Per Table",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "filename"
+    ],
+    "title": "PowerBiIndex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "powerbi_index",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "power_bi",
+        "default": "power_bi",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PowerBiResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "filename"
+  ],
+  "permission": "write",
+  "profile": "power_bi",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "source_materialization": {
+    "auxiliary_paths": [],
+    "execution": "current_plan_delta",
+    "group_limit": 1,
+    "path_argument": "filename",
+    "preparation_is_execution": false
+  },
+  "source_routes": {
+    "implicit_global_default": false,
+    "lanes": [
+      "power_bi"
+    ],
+    "path_fields": [
+      "filename"
+    ],
+    "selection": "delta_enter.source_route"
+  },
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "01dc841c0c023510491cbb30bafb47a8b2b0ba4e44d9b3f2e7a10fd6d2491023",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "powerbi_index",
+    "profile": "power_bi",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+        "route_id": "powerbi_index.native",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "PowerBI_TOM",
+          "PBIXRay",
+          "JSONSchema"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "powerbi_parse_file"
+    ]
+  },
+  "verification_checks": [
+    "powerbi_snapshot_integrity",
+    "powerbi_source_hash_unchanged"
+  ],
+  "worker_operations": [
+    "powerbi_parse_file"
+  ],
+  "workflow": "source-intake"
+}

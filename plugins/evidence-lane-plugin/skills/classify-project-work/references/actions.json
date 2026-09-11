@@ -1,0 +1,24 @@
+{
+  "action_set_digest": "fe02b13f94a593b804d077c0fddf095662bd93873cbc7bf1af55689f08cae7eb",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
+      "input_schema_digest": "949468654a4af500c4f976f22eadb12d19244196029d4849f9f330f259e6749c",
+      "mutates": false,
+      "name": "mode_classify",
+      "output_schema_digest": "5a818313833cdeba7f69d68a1e45ab8d82d908d7f9092ee330bc1e7981bd681d",
+      "permission": "read",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "mode"
+}

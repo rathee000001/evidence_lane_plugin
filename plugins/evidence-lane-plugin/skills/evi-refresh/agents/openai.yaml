@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Refresh"
-  short_description: "Route three distinct refresh workflows"
-  default_prompt: "Use $evi-refresh to classify and run exactly one current refresh path: Source Intake steer refresh, adaptive Delta-exit append refresh, or full-PV-HIL Project Overlay refresh."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

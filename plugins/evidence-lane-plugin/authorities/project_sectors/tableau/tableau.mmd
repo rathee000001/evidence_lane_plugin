@@ -1,0 +1,81 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=EE368A8F934BA88887F238BEE2798B97A27873D46C260496489DF8AF1D7D1BB4
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  t_tableau_calculation["tableau_calculation<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_chunk["tableau_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
+  t_tableau_chunk_fts["tableau_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
+  t_tableau_column["tableau_column<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_connection["tableau_connection<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_current["tableau_current<br/>tableau_id, snapshot_id"]:::table
+  t_tableau_dashboard["tableau_dashboard<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_datasource["tableau_datasource<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_export["tableau_export<br/>export_id, snapshot_id, destination, before_sha256, after_sha256, effect_id, created_at"]:::table
+  t_tableau_file["tableau_file<br/>tableau_id, logical_name, source_path, origin, created_at"]:::table
+  t_tableau_filter["tableau_filter<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_hyper_column["tableau_hyper_column<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_hyper_row["tableau_hyper_row<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_hyper_schema["tableau_hyper_schema<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_hyper_table["tableau_hyper_table<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_layout["tableau_layout<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_mark["tableau_mark<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_opaque["tableau_opaque<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_package_member["tableau_package_member<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_parameter["tableau_parameter<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_relationship["tableau_relationship<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_sheet["tableau_sheet<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_story["tableau_story<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_tableau_structure["tableau_structure<br/>snapshot_id, facts_object, fidelity_json"]:::table
+  t_tableau_version["tableau_version<br/>snapshot_id, tableau_id, generation, previous_snapshot, manifest_object, raw_object, facts_object, parser_contract, created_at"]:::table
+  t_tableau_workbook["tableau_workbook<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_selector_retirement -->|"proof_object"| t_objects
+  t_selector_retirement -->|"snapshot_id"| t_objects
+  t_tableau_calculation -->|"snapshot_id"| t_tableau_version
+  t_tableau_chunk -->|"text_object"| t_objects
+  t_tableau_chunk -->|"snapshot_id"| t_tableau_version
+  t_tableau_column -->|"snapshot_id"| t_tableau_version
+  t_tableau_connection -->|"snapshot_id"| t_tableau_version
+  t_tableau_current -->|"snapshot_id"| t_tableau_version
+  t_tableau_current -->|"tableau_id"| t_tableau_file
+  t_tableau_dashboard -->|"snapshot_id"| t_tableau_version
+  t_tableau_datasource -->|"snapshot_id"| t_tableau_version
+  t_tableau_export -->|"snapshot_id"| t_tableau_version
+  t_tableau_filter -->|"snapshot_id"| t_tableau_version
+  t_tableau_hyper_column -->|"snapshot_id"| t_tableau_version
+  t_tableau_hyper_row -->|"snapshot_id"| t_tableau_version
+  t_tableau_hyper_schema -->|"snapshot_id"| t_tableau_version
+  t_tableau_hyper_table -->|"snapshot_id"| t_tableau_version
+  t_tableau_layout -->|"snapshot_id"| t_tableau_version
+  t_tableau_mark -->|"snapshot_id"| t_tableau_version
+  t_tableau_opaque -->|"snapshot_id"| t_tableau_version
+  t_tableau_package_member -->|"snapshot_id"| t_tableau_version
+  t_tableau_parameter -->|"snapshot_id"| t_tableau_version
+  t_tableau_relationship -->|"snapshot_id"| t_tableau_version
+  t_tableau_sheet -->|"snapshot_id"| t_tableau_version
+  t_tableau_story -->|"snapshot_id"| t_tableau_version
+  t_tableau_structure -->|"facts_object"| t_objects
+  t_tableau_structure -->|"snapshot_id"| t_tableau_version
+  t_tableau_version -->|"facts_object"| t_objects
+  t_tableau_version -->|"raw_object"| t_objects
+  t_tableau_version -->|"manifest_object"| t_objects
+  t_tableau_version -->|"previous_snapshot"| t_tableau_version
+  t_tableau_version -->|"tableau_id"| t_tableau_file
+  t_tableau_workbook -->|"snapshot_id"| t_tableau_version

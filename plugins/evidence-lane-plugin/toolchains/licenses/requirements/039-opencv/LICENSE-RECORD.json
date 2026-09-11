@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 39,
   "tool": "OpenCV",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "49394DEED0B0DB26C7631BDB9516ECB0717032D6778CC7BA451311390310032D"
+  "historical_ordinal": 39,
+  "catalog_ordinal": 38,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "2f3e51c1b3f0f639932e40d97073d8e4c825f2a16bedb2b3b3801b49d8e17139"
 }

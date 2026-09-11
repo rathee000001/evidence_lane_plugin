@@ -1,0 +1,223 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read explicit authorized projects in place with bounded attributed owner views.",
+  "inputSchema": {
+    "$defs": {
+      "JsonValue": {},
+      "OwnerQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Action",
+            "type": "string"
+          },
+          "arguments": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Arguments",
+            "type": "object"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "OwnerQuery",
+        "type": "object"
+      },
+      "ProjectQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_plan_revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Plan Revision"
+          },
+          "project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "queries": {
+            "items": {
+              "$ref": "#/$defs/OwnerQuery"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Queries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "queries"
+        ],
+        "title": "ProjectQuery",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "max_bytes": {
+        "default": 131072,
+        "maximum": 262144,
+        "minimum": 2048,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "projects": {
+        "items": {
+          "$ref": "#/$defs/ProjectQuery"
+        },
+        "maxItems": 4,
+        "minItems": 2,
+        "title": "Projects",
+        "type": "array"
+      },
+      "require_links": {
+        "default": false,
+        "title": "Require Links",
+        "type": "boolean"
+      },
+      "timeout_ms": {
+        "default": 10000,
+        "maximum": 30000,
+        "minimum": 100,
+        "title": "Timeout Ms",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "projects"
+    ],
+    "title": "CrossProjectQuery",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "cross_project_query",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "databases_merged": {
+        "const": false,
+        "default": false,
+        "title": "Databases Merged",
+        "type": "boolean"
+      },
+      "elapsed_ms": {
+        "title": "Elapsed Ms",
+        "type": "integer"
+      },
+      "mutation_performed": {
+        "const": false,
+        "default": false,
+        "title": "Mutation Performed",
+        "type": "boolean"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "projects": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Projects",
+        "type": "array"
+      },
+      "refresh_performed": {
+        "const": false,
+        "default": false,
+        "title": "Refresh Performed",
+        "type": "boolean"
+      },
+      "snapshot_scope": {
+        "const": "independent_project_reads_with_unchanged_plan_and_schema",
+        "default": "independent_project_reads_with_unchanged_plan_and_schema",
+        "title": "Snapshot Scope",
+        "type": "string"
+      },
+      "source_client_id": {
+        "title": "Source Client Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "source_client_id",
+      "projects",
+      "observed_at",
+      "elapsed_ms"
+    ],
+    "title": "CrossProjectPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "projects",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "163da55d048e3d52a0495603be565b812855b18ab1f706c4c9053155d0e7294a",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "cross_project_query",
+    "profile": "projects",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "cross_project_query.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "universe"
+}

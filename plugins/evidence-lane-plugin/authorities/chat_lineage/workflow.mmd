@@ -1,0 +1,60 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=E7610A5CE6FB0FF648B0B3B3D51EE69BDEF4599B55FF3BAE1071E874FC778CD7
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  sdk["Authenticated SDK and native MCP client"]:::default
+  read["Exact selected scope and bounded recorded evidence"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
+  delta["Current stored Plan operation and Delta admission"]:::default
+  owner["chat_lineage current executable owner"]:::default
+  action_capture_bind["capture_bind"]:::default
+  action_continuation_accept["continuation_accept"]:::default
+  action_continuation_cancel["continuation_cancel"]:::default
+  action_continuation_context["continuation_context"]:::default
+  action_continuation_offer["continuation_offer"]:::default
+  action_continuation_read["continuation_read"]:::default
+  action_lineage_read["lineage_read"]:::default
+  action_lineage_record["lineage_record"]:::default
+  action_prompt_index_status["prompt_index_status"]:::default
+  action_task_classify["task_classify"]:::default
+  sdk -->|"write"| action_capture_bind
+  action_capture_bind -->|"boot"| writer
+  sdk -->|"write"| action_continuation_accept
+  action_continuation_accept -->|"state-travel"| writer
+  sdk -->|"write"| action_continuation_cancel
+  action_continuation_cancel -->|"state-travel"| writer
+  sdk -->|"read"| action_continuation_context
+  action_continuation_context -->|"state-travel"| read
+  sdk -->|"write"| action_continuation_offer
+  action_continuation_offer -->|"state-travel"| writer
+  sdk -->|"read"| action_continuation_read
+  action_continuation_read -->|"state-travel"| read
+  sdk -->|"read"| action_lineage_read
+  action_lineage_read -->|"lifecycle"| read
+  sdk -->|"write"| action_lineage_record
+  action_lineage_record -->|"lifecycle"| writer
+  sdk -->|"read"| action_prompt_index_status
+  action_prompt_index_status -->|"source-intake"| read
+  sdk -->|"write"| action_task_classify
+  action_task_classify -->|"lifecycle"| writer
+  writer -->|"owned mutation and attributed result"| owner
+  owner -->|"published state"| read
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_capture_bind ~~~ action_continuation_accept
+  action_continuation_cancel ~~~ action_continuation_context
+  action_continuation_read ~~~ action_lineage_read
+  action_prompt_index_status ~~~ action_task_classify
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -4,98 +4,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "3.0.0"
-description = "Private registry-driven Evidence Lane plugin with secret-safe intake, reconciled SQLite topology, automatic SDK routing, candidate overlays, and exact-APPROVE HIL."
+version = "4.0.1"
+description = "Local project state and verified sequential work for Codex."
 readme = "README.md"
-requires-python = ">=3.11"
-license = "LicenseRef-Proprietary"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
 license-files = ["LICENSE.md"]
-authors = [{ name = "Praveen Rathee" }]
-dependencies = [
-  "aiofiles==25.1.0",
-  "anyio==4.14.2",
-  "apsw==3.53.4.0",
-  "beautifulsoup4==4.15.0",
-  "cryptography==50.0.0",
-  "ddgs==9.16.0",
-  "defusedxml==0.7.1",
-  "docling==2.123.0",
-  "duckdb==1.5.5",
-  "faiss-cpu==1.15.0",
-  "fastapi==0.141.1",
-  "fastmcp==3.4.7",
-  "GitPython==3.1.60",
-  "graphviz==0.21",
-  "html2text==2025.4.15",
-  "huggingface-hub==1.28.0",
-  "imageio-ffmpeg==0.6.0",
-  "httpx==0.28.1",
-  "langchain==1.3.17",
-  "langchain-core==1.6.1",
-  "langfuse==4.15.1",
-  "langgraph==1.2.11",
-  "langsmith==0.11.2",
-  "llama-index-core==0.14.23",
-  "lxml==6.1.2",
-  "markdownify==1.2.3",
-  "mcp==1.28.1",
-  "numpy==2.4.6",
-  "pydantic==2.13.4",
-  "pydantic-settings==2.14.2",
-  "onnxruntime==1.28.0",
-  "orjson==3.12.0",
-  "opencv-python-headless==5.0.0.93",
-  "openai-agents==0.22.0",
-  "opentelemetry-exporter-otlp-proto-http==1.44.0",
-  "opentelemetry-sdk==1.44.0",
-  "openpyxl==3.1.5",
-  "pandas==3.0.5",
-  "polars==1.44.1",
-  "pdfplumber==0.11.10",
-  "Pillow==12.3.0",
-  "pyarrow==25.0.0",
-  "PyJWT[crypto]==2.13.0",
-  "pypdf==6.15.0",
-  "pypdfium2==5.12.1",
-  "pytesseract==0.3.13",
-  "PyGithub==2.10.0",
-  "PyMuPDF==1.28.2",
-  "pywin32==312; sys_platform == 'win32'",
-  "python-calamine==0.8.2",
-  "python-dotenv==1.2.2",
-  "python-multipart==0.0.32",
-  "rapidocr==3.9.2",
-  "rank-bm25==0.2.2",
-  "rapidfuzz==3.14.5",
-  "readability-lxml==0.8.4.1",
-  "requests==2.34.2",
-  "sentence-transformers==6.0.0",
-  "sqlalchemy==2.0.52",
-  "starlette==1.6.0",
-  "sqlite-vec==0.1.9",
-  "tableauhyperapi==0.0.26359",
-  "tenacity==9.1.4",
-  "tldextract==5.3.2",
-  "trafilatura==2.2.0",
-  "tree-sitter==0.26.0",
-  "tree-sitter-language-pack==1.14.3",
-  "uvicorn==0.51.0",
-  "validators==0.35.0",
-  "psutil==7.2.2",
-  "rustworkx==0.18.1",
-]
+dependencies = ["pydantic==2.13.4", "mcp==1.28.1", "httpx==0.28.1", "defusedxml==0.7.1", "uvicorn==0.52.4", "langgraph==1.2.11", "langchain-core==1.6.1", "graphviz==0.21", "jsonschema==4.26.0"]
 
 [project.optional-dependencies]
-dev = [
-  "jsonschema==4.26.0",
-  "mypy==2.3.1",
-  "pip-tools==7.6.1",
-  "pytest==9.1.1",
-  "ruff==0.16.4",
-]
+dev = ["pytest==9.1.1", "ruff==0.16.4", "PyYAML==6.0.3", "mypy==2.3.1"]
 
 [project.scripts]
-evidence-lane-plugin = "evidence_lane_plugin.cli:main"
+evidence-lane = "evidence_lane_plugin.cli:main"
+evidence-lane-engine = "evidence_lane_plugin.service:main"
+evidence-lane-recovery = "evidence_lane_plugin.database_recovery:recovery_main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -104,8 +27,20 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-evidence_lane_plugin = [
-  "module-registry.v1.json",
-  "runtime-public-catalog.v1.json",
-  "schema.sql",
-]
+evidence_lane_plugin = ["migrations/*.sql", "studio/*", "studio/assets/*", "contracts/*.json", "native/*.java", "contracts/powerbi-schemas/*.json", "contracts/powerbi-schemas/LICENSE.txt"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.14"
+ignore_missing_imports = true
+no_site_packages = true
+cache_dir = "../../.work/mypy-package"
+files = ["src/evidence_lane_plugin"]

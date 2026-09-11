@@ -1,0 +1,193 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish native BIM or schema-valid PBIP/PBIR packages, or exact model/report/resource member changes; rendering and DAX execution remain separate.",
+  "inputSchema": {
+    "$defs": {
+      "PowerBiPartReplacement": {
+        "additionalProperties": false,
+        "properties": {
+          "content_base64": {
+            "anyOf": [
+              {
+                "maxLength": 11184812,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Base64"
+          },
+          "content_utf8": {
+            "anyOf": [
+              {
+                "maxLength": 1048576,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Utf8"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          },
+          "part": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Part",
+            "type": "string"
+          }
+        },
+        "required": [
+          "part"
+        ],
+        "title": "PowerBiPartReplacement",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "power_bi",
+        "default": "power_bi",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "replacements": {
+        "items": {
+          "$ref": "#/$defs/PowerBiPartReplacement"
+        },
+        "maxItems": 64,
+        "minItems": 1,
+        "title": "Replacements",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256",
+      "replacements"
+    ],
+    "title": "PowerBiEdit",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "powerbi_edit",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "power_bi",
+        "default": "power_bi",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PowerBiResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "power_bi",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "d87d841150f9b7e56c99f43198d91f3359c31321b089f4e2567208625dd373db",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "powerbi_edit",
+    "profile": "power_bi",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.powerbi_profile:edit_powerbi",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "powerbi_edit.native",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "PowerBI_TOM",
+          "JSONSchema"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "powerbi_edit"
+    ]
+  },
+  "verification_checks": [
+    "powerbi_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "powerbi_edit"
+  ],
+  "workflow": "build"
+}

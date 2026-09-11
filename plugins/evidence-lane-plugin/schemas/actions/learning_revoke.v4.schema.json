@@ -1,0 +1,117 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Digest",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "version_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Version Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "version_id",
+      "expected_digest",
+      "reason"
+    ],
+    "title": "LearningRevoke",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "learning_revoke",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "automatic_reactivation": {
+        "default": false,
+        "title": "Automatic Reactivation",
+        "type": "boolean"
+      },
+      "lesson_key": {
+        "title": "Lesson Key",
+        "type": "string"
+      },
+      "state": {
+        "default": "revoked",
+        "title": "State",
+        "type": "string"
+      },
+      "version_id": {
+        "title": "Version Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "version_id",
+      "lesson_key"
+    ],
+    "title": "LearningRevoked",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "learning",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "learning_revoke",
+    "profile": "learning",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.revoke",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "learning_revoke.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "learning"
+}

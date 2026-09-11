@@ -1,0 +1,169 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Reindex the exact restored source root and retain its file and extraction coverage before Plan refresh.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "max_files": {
+        "default": 5000,
+        "maximum": 25000,
+        "minimum": 1,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "max_total_bytes": {
+        "default": 67108864,
+        "maximum": 268435456,
+        "minimum": 8388608,
+        "title": "Max Total Bytes",
+        "type": "integer"
+      },
+      "restore_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Restore Digest",
+        "type": "string"
+      }
+    },
+    "required": [
+      "restore_digest"
+    ],
+    "title": "RestorationReindex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "restoration_reindex",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "all_language_semantics_verified": {
+        "default": false,
+        "title": "All Language Semantics Verified",
+        "type": "boolean"
+      },
+      "batch_id": {
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "coverage_states": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "title": "Coverage States",
+        "type": "object"
+      },
+      "file_count": {
+        "title": "File Count",
+        "type": "integer"
+      },
+      "generation": {
+        "title": "Generation",
+        "type": "integer"
+      },
+      "graph_id": {
+        "title": "Graph Id",
+        "type": "string"
+      },
+      "parsed_file_count": {
+        "title": "Parsed File Count",
+        "type": "integer"
+      },
+      "plan_refresh_required": {
+        "default": true,
+        "title": "Plan Refresh Required",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "reindex_digest": {
+        "title": "Reindex Digest",
+        "type": "string"
+      },
+      "restore_digest": {
+        "title": "Restore Digest",
+        "type": "string"
+      },
+      "scope": {
+        "default": "registered_source_members_and_source_graph_extraction",
+        "title": "Scope",
+        "type": "string"
+      },
+      "source_bytes_mutated": {
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      },
+      "source_root": {
+        "title": "Source Root",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "generation",
+      "restore_digest",
+      "reindex_digest",
+      "source_root",
+      "batch_id",
+      "graph_id",
+      "file_count",
+      "parsed_file_count",
+      "coverage_states"
+    ],
+    "title": "RestorationReindexed",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Git"
+  ],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "05e27a4de27c5f06258a3017eee990cca3150018c7a9802d65133eb5e8984964",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "restoration_reindex",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.reindex",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "restoration_reindex.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

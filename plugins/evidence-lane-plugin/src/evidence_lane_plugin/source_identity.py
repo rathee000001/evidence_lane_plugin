@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import sqlite3
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -12,10 +11,13 @@ from typing import Any
 from .errors import require
 from .hashing import canonical_json_bytes, sha256_bytes
 from .source_authority import (
+    _connect,
     initialize_source_authority_registry,
     load_source_batch,
     snapshot_source_authority_registry,
+    source_authority_write,
 )
+from .storage import LaneStore, ProjectStore
 from .timeutil import utc_now
 
 SOURCE_IDENTITY_MATRIX_SCHEMA = "evidence-lane.source-identity-matrix.v1"
@@ -57,12 +59,7 @@ _FORBIDDEN_COLLAPSE_RELATIONS = frozenset({"ALIAS_OF", "EQUIVALENT_TO", "SAME_AS
 _ENDPOINT_TYPES = frozenset({"ENTITY", "SOURCE"})
 
 
-def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=5000")
-    return connection
+
 
 
 def _canonical_text(value: Any) -> str:
@@ -323,8 +320,9 @@ def _compile_relation(
     }
 
 
+@source_authority_write
 def register_source_identity_matrix(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     *,
     entities: list[dict[str, Any]],
@@ -482,7 +480,7 @@ def register_source_identity_matrix(
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt_id = f"source_identity_{receipt_sha256[:32].lower()}"
 
-    with _connect(target) as connection:
+    with _connect(target, write=True) as connection:
         existing_receipt = connection.execute(
             "SELECT receipt_json FROM source_identity_receipt WHERE matrix_sha256=?",
             (matrix_sha256,),
@@ -504,7 +502,7 @@ def register_source_identity_matrix(
                     target, batch_id
                 ),
             }
-        with connection:
+        with target.transaction():
             for entity in compiled_entities:
                 prior = connection.execute(
                     "SELECT entity_sha256 FROM source_identity_entity WHERE entity_id=?",

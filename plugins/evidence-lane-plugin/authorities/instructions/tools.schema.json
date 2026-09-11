@@ -1,23 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "instructions tools.json",
   "type": "object",
   "required": [
     "schema",
-    "status",
-    "authority_id"
+    "owner_id",
+    "runtime",
+    "builder",
+    "reader",
+    "actions",
+    "views",
+    "dependency_installation_inferred",
+    "planned_actions",
+    "planned_entrypoint",
+    "shared_toolchain"
   ],
   "properties": {
     "schema": {
-      "const": "evidence-lane.installed-non-sqlite-authority-tools.v1"
+      "const": "evidence-lane.authority-tooling.v4"
     },
-    "status": {
-      "const": "PASS"
-    },
-    "authority_id": {
+    "owner_id": {
       "const": "instructions"
+    },
+    "dependency_installation_inferred": {
+      "const": false
+    },
+    "actions": {
+      "type": "array"
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "004DC35D15508CA1DAF5A8C2E26C8063CC60C2E6D7218CA6290E50C306DA153C"
+  "title": "instructions tooling"
 }

@@ -1,9 +1,0 @@
-{
-  "schema": "evidence-lane.sdk-uop-authority-binding.v1",
-  "status": "PASS",
-  "authority_root": "uop",
-  "authority_manifest_sha256": "7EC43F6A458842B6D22FB0668943BB7FE37300258A592FFCE80E0C5CC4641068",
-  "scope": "INSTALLATION_SCOPED_AI_ACTION_PLANE",
-  "project_authority": false,
-  "receipt_sha256": "6437319C4567CCADAC9DD90692247697842BE789D79038370FDF7D964ED4014C"
-}

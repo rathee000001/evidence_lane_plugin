@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/install/first-detection-installation.v4.schema.json",
+  "title": "Evidence Lane active shared installation v4",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "installation_root",
+    "active_release",
+    "release_binding_sha256",
+    "release_receipt_sha256",
+    "entrypoints",
+    "shared_once_across_projects",
+    "project_state_root",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.first-detection-installation.v4"
+    },
+    "status": {
+      "const": "ACTIVE_RELEASE"
+    },
+    "installation_root": {
+      "type": "string",
+      "minLength": 3
+    },
+    "active_release": {
+      "type": "string",
+      "pattern": "^releases/v4\\.0\\.1-[0-9a-f]{16}$"
+    },
+    "release_binding_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "release_receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "entrypoints": {
+      "type": "object",
+      "required": [
+        "runtime_python",
+        "runtime_pythonw",
+        "plugin_root",
+        "studio_launcher_executable",
+        "mcp_launcher",
+        "engine_launcher"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "shared_once_across_projects": {
+      "const": true
+    },
+    "project_state_root": {
+      "type": "null"
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}

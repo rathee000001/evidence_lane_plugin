@@ -1,0 +1,101 @@
+{
+  "schema": "evidence-lane.authority-workflow-package.v4",
+  "owner_id": "session_authority",
+  "source_package_folder": "authorities/session_authority",
+  "modules": [
+    "evidence_lane_plugin.session_authority"
+  ],
+  "storage": "authorities/receipts/receipts_authority_v001.sqlite sessions schema owner",
+  "separate_database": false,
+  "installed_execution_claimed": false,
+  "members": [
+    {
+      "path": "authorities/session_authority/README.md",
+      "sha256": "2f0aa995f67c00c8187568acc6be169bce756ec802f6bb8a2f613a4aefe615ed"
+    },
+    {
+      "path": "authorities/session_authority/build-refresh-contract.schema.json",
+      "sha256": "75cfad7af4dcc8377907164eb58a8f80729d22ab833f2b26fb1a06586057d98d"
+    },
+    {
+      "path": "authorities/session_authority/builder.py",
+      "sha256": "3249c9c0d205c5a9cfa28673e1a13c9905a140ccbf87f339955187a59cb0dd14"
+    },
+    {
+      "path": "authorities/session_authority/installation-layout.v4.json",
+      "sha256": "d34115344544af31b6cc8bd41032729d77db71b215c96323662295aab3fe38f7"
+    },
+    {
+      "path": "authorities/session_authority/manifest.schema.json",
+      "sha256": "f6ffaa90218b714122f4c30b1ae5d419627f06d3407fab804f32251a6209d714"
+    },
+    {
+      "path": "authorities/session_authority/pointer-contract.schema.json",
+      "sha256": "e909af7bebc48ebf49defbf19eecd6a3691dcade85a26df19bb955323b1029c0"
+    },
+    {
+      "path": "authorities/session_authority/pointer-contract.v4.json",
+      "sha256": "6497b0fe1be4c428ed49f5066e4c75f5f15dcedeccf391dbef812374f30cfdc3"
+    },
+    {
+      "path": "authorities/session_authority/reader-contract.schema.json",
+      "sha256": "59b5a62c9ddaa9a2db35ea89bdb8bea63686db7a53430b32e31012b9fb0a17c8"
+    },
+    {
+      "path": "authorities/session_authority/reader.py",
+      "sha256": "b1f64973c814093f8ee6c63e6814dd728eca3a029528e1caa0ddeef916163d80"
+    },
+    {
+      "path": "authorities/session_authority/refresh-receipt.schema.json",
+      "sha256": "773a0fcb4c86d3dd6b1f64e30c88e76b9aa7353a4c2e26a0005e3b1642327f66"
+    },
+    {
+      "path": "authorities/session_authority/runtime-binding.schema.json",
+      "sha256": "0b48ffb7c1af284436703592671110e3c282f9ee1821a7cf15cc6c64ef8b15ed"
+    },
+    {
+      "path": "authorities/session_authority/runtime-binding.v4.json",
+      "sha256": "216ee3199c42bcd867d7966aff9d4745e241b5c93d0a23cf338fc0fd39835f01"
+    },
+    {
+      "path": "authorities/session_authority/runtime.py",
+      "sha256": "b10f7ce53a7aa5b2da1fbe3ea96869289627b66398446f407de470dec513872d"
+    },
+    {
+      "path": "authorities/session_authority/schema.sql",
+      "sha256": "fa01fea7d5df53cc903958dba3a7226d999b43d8311be490340f24694b2d4fc9"
+    },
+    {
+      "path": "authorities/session_authority/session-authority.dot",
+      "sha256": "67d2ce985aefe284b7f347a1beb46c266d25d174e96e6671316b6c0731a373cc"
+    },
+    {
+      "path": "authorities/session_authority/session-authority.mmd",
+      "sha256": "6a13d261b666a9b5d07e7730b9d6cce8ce80a763ce8d394fdca54921412733a1"
+    },
+    {
+      "path": "authorities/session_authority/session-authority.tools.json",
+      "sha256": "977a1a591d293f776b62115aafdb53cedaa462700b6b4db1725df7691d0f80b4"
+    },
+    {
+      "path": "authorities/session_authority/sqlite-schema.v4.json",
+      "sha256": "097f2948cc015aee664b2016e9db966a166bd32bcbe800604d2c2ae0ad87fc9f"
+    },
+    {
+      "path": "authorities/session_authority/tools.schema.json",
+      "sha256": "d498572eb5107fe5fd55f8f624d18d03665b377134776b6535a7e22101c17454"
+    },
+    {
+      "path": "authorities/session_authority/workflow.dot",
+      "sha256": "31cb354b06e704d9710493a6962d041edd8a4da9bb2f178a80e3f6764e282006"
+    },
+    {
+      "path": "authorities/session_authority/workflow.mmd",
+      "sha256": "3306fa2f250d204bb566a122347ace3610aacc037e93c528bdae97f81cf7032e"
+    },
+    {
+      "path": "authorities/session_authority/workflow.v4.json",
+      "sha256": "72424f8df273cc25a74c1631982a8792e780d06ea7f5f406ae8b75c4cd7bf7b1"
+    }
+  ]
+}

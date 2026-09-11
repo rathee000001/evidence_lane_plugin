@@ -1,0 +1,737 @@
+{
+  "schema": "evidence-lane.sector-workflow.v4",
+  "lane_id": "tableau",
+  "source_package_folder": "authorities/project_sectors/tableau",
+  "external_project_folder": "sectors/tableau",
+  "actions": [
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_current",
+      "profile": "tableau",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_current",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_current.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "c9222d546a67960284644518ed69f5af12655d1fd3020ded5a4d32036c4953b6"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ]
+    },
+    {
+      "name": "tableau_edit",
+      "profile": "tableau",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_edit",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_edit.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:edit_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "071a9e1a78dff9a8ba9daa594c148568f8dda116c871c42b03e6a8ec73782b0e"
+      },
+      "verification_checks": [
+        "tableau_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_export",
+      "profile": "tableau",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_export",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_export.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:export_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tableau_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "tableau.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "tableau_export.view",
+            "adapter": "evidence_lane_plugin.tableau_profile:export_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tableau_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "tableau.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "tableau_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bf90c8b363e4bf8856ed94b3e7ad63def2a7cd87aeb6638cfa98ef87c4173d37"
+      },
+      "verification_checks": [
+        "tableau_export_hash_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_generate",
+      "profile": "tableau",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_generate",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_generate.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:generate_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "c467a1a23caf7c3901f8d3fb6e5d07b95b4334e5de0e627b03f50d0d88ff8ea3"
+      },
+      "verification_checks": [
+        "tableau_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_index",
+      "profile": "tableau",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_index",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_index.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:index_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "f6104788cef0b618ed1a9d765e8005abdc2b32eab057518274faa5a9aee3f582"
+      },
+      "verification_checks": [
+        "tableau_snapshot_integrity",
+        "tableau_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_query",
+      "profile": "tableau",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_query",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_query.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "be493a7383da0278cd995d002e3c0c2a1612d10747b1a7884a7ecf3fa781255e"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ]
+    },
+    {
+      "name": "tableau_read",
+      "profile": "tableau",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_read",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_read.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "bd5b287b5059869789fc2660b5718c3b5f70cc0603d21009c05b9ef97a7fae14"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ]
+    },
+    {
+      "name": "tableau_refresh",
+      "profile": "tableau",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_refresh",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_refresh.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:index_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7642b54d97e021423a3548ed868e76c79c181e429446ae5b1016ca0b1c771f0c"
+      },
+      "verification_checks": [
+        "tableau_snapshot_integrity",
+        "tableau_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "tableau.structure",
+      "lane_id": "tableau",
+      "folder": "sectors/tableau",
+      "version": 1,
+      "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
+      "consumer": "artifact_export",
+      "implementation_digest": "e962bf6dd006d079c76b4d7771062c8871ea956fd9810d9036ba73df174eb0fb",
+      "files": {
+        "mmd": "tableau.mmd",
+        "dot": "tableau.dot",
+        "pointer": "tableau.pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "tableau"
+      ],
+      "node_kinds": [
+        "tableau",
+        "tableau_workbook",
+        "tableau_datasource",
+        "tableau_sheet",
+        "tableau_dashboard",
+        "tableau_story",
+        "tableau_connection",
+        "tableau_relationship",
+        "tableau_hyper_schema",
+        "tableau_hyper_table"
+      ],
+      "edge_kinds": [
+        "CONTAINS"
+      ],
+      "schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_tableau",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 31,
+    "edge_count": 33,
+    "group_count": 0,
+    "semantic_topology_sha256": "6762322B021FABA510056A3E60323CF5D90665029228AB08DBD59733AC506E53",
+    "mmd_sha256": "145E004DA43DB6F4C71F1A7E3AD978319D3B08BA43713E3534AA5F4DB91BA6A0",
+    "dot_sha256": "8AA5F4CC9E67D7C6C16BD2E6CFC70BB2A94885AA22A7F19C4DDAEC34D8626F00",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "EE368A8F934BA88887F238BEE2798B97A27873D46C260496489DF8AF1D7D1BB4",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "A8D3C19A2C3E8C6CA856998A96A88DA27ED78939CF77990E72B95C6324B927B6"
+  },
+  "workflow_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_tableau",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 14,
+    "edge_count": 26,
+    "group_count": 0,
+    "semantic_topology_sha256": "51511850A1CD27C00EAC5F10DADA95DFAB1F3BBEF6E4827AEF54C0A6C56EE016",
+    "mmd_sha256": "D0E3C5F183ADFEB64CDF98C1794C9AFBAE3277CE5562F9D4ED5D8602C8191BED",
+    "dot_sha256": "ED1D52BF0F4C982966E5B4BB071EF825B9749B8832A767E79E189DFE7CF92853",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "251228330302064E28AFA91B712D7BD2F4032EA7A0F4D0C885A89BA0C9442861",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 4,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "DBAEC10732414FBBC75693694011FDE1AECEB3FA4913BB60565AF3818B1CCDBD"
+  },
+  "graph_role": "source_package_schema_and_executable_routes",
+  "project_data_copied": false
+}

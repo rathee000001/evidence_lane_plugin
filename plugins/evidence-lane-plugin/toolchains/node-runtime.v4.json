@@ -1,0 +1,48 @@
+{
+  "schema": "evidence-lane.node-runtime.v4",
+  "status": "COMPLETE_PREINSTALL_INPUT",
+  "release_component": "node-runtime",
+  "platform": "windows-x86_64",
+  "node": {
+    "version": "24.15.0",
+    "archive": "node-v24.15.0-win-x64.zip",
+    "upstream_url": "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip",
+    "bytes": 36465163,
+    "sha256": "cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0e62",
+    "upstream_sha256_manifest": "https://nodejs.org/dist/v24.15.0/SHASUMS256.txt",
+    "upstream_sha256_manifest_bytes": 2967,
+    "upstream_sha256_manifest_sha256": "1e812945dee26c3e4ca41a8c0b582668ff2401ba0ae727a122300c0e8514edb0",
+    "license": "MIT"
+  },
+  "npm": {
+    "version": "11.12.1",
+    "source": "bundled_with_node"
+  },
+  "mermaid_cli": {
+    "package": "@mermaid-js/mermaid-cli",
+    "version": "11.16.0",
+    "package_json": "toolchains/node-runtime.package.json",
+    "package_json_sha256": "81aace3e681b5380dfd9a975314e46d2f7d0df593dabd1749a610c2b37590c6a",
+    "package_lock": "toolchains/node-runtime.package-lock.json",
+    "package_lock_sha256": "25a39466e04322fdc22cfcdae4954abb9b16dcfb79bbe4339a6fdc8c8af247bb",
+    "locked_package_count": 201,
+    "install_scripts_during_release_build": false,
+    "install_during_first_detection": false
+  },
+  "browser": {
+    "family": "chrome-headless-shell",
+    "version": "152.0.7977.75",
+    "upstream_url": "https://storage.googleapis.com/chrome-for-testing-public/152.0.7977.75/win64/chrome-headless-shell-win64.zip",
+    "archive": "chrome-headless-shell-152.0.7977.75-win64.zip",
+    "bytes": 119668468,
+    "sha256": "97bf78fdb5eba45b19ba875e2215cf02813c576780ad406ad7d2a003eef4b956",
+    "installed_executable": "toolchains/node/chrome-headless-shell/chrome-headless-shell.exe",
+    "license_file": "toolchains/node/chrome-headless-shell/LICENSE.headless_shell",
+    "release_component_file_manifest_required": true,
+    "first_detection_download_allowed": false,
+    "operation_download_allowed": false
+  },
+  "release_rule": "Build inputs may be acquired and verified before the immutable candidate; first detection receives only the same-repository component archive and its exact file manifest.",
+  "installation_state": "not_installed",
+  "installed_execution_claimed": false
+}

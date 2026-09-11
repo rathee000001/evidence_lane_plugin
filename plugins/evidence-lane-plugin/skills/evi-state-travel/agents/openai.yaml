@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane State Travel"
-  short_description: "Resume exact work in a fresh task"
-  default_prompt: "Use $evi-state-travel to transfer and resume the exact verified work boundary in one fresh task."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

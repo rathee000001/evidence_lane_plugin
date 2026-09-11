@@ -1,44 +1,41 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Data / Excel / CSV installed surface manifest",
   "type": "object",
   "required": [
     "schema",
-    "status",
     "lane_id",
-    "sqlite_filename",
-    "sqlite_integrity",
+    "source_package_folder",
+    "folder",
+    "folder_role",
+    "database",
+    "files",
+    "migrations",
+    "actions",
     "members",
-    "separate_sqlite_authority",
-    "live_project_bytes_in_template"
+    "project_data_packaged"
   ],
   "properties": {
     "schema": {
-      "const": "evidence-lane.installed-lane-surface.v1"
-    },
-    "status": {
-      "const": "PASS"
+      "const": "evidence-lane.sector-package.v4"
     },
     "lane_id": {
       "const": "data_excel"
     },
-    "sqlite_filename": {
-      "const": "data_excel_sector_v001.sqlite"
+    "source_package_folder": {
+      "const": "authorities/project_sectors/data_excel"
     },
-    "sqlite_integrity": {
-      "const": "ok"
+    "folder": {
+      "const": "sectors/data_excel"
+    },
+    "folder_role": {
+      "const": "external_project_state"
     },
     "members": {
       "type": "array",
       "minItems": 1
     },
-    "separate_sqlite_authority": {
-      "const": true
-    },
-    "live_project_bytes_in_template": {
+    "project_data_packaged": {
       "const": false
     }
-  },
-  "additionalProperties": true,
-  "receipt_sha256": "476558372F71974A53909DDA2A7F82D6A929FEFFC7C033E3D466C91C5F62DC45"
+  }
 }

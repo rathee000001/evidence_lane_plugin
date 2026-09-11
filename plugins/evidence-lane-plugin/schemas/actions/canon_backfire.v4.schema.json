@@ -1,0 +1,389 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.",
+  "inputSchema": {
+    "$defs": {
+      "CanonPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 32,
+            "title": "Fields",
+            "type": "object"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/$defs/MemoryReference"
+            },
+            "maxItems": 20,
+            "title": "References",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary"
+        ],
+        "title": "CanonPayload",
+        "type": "object"
+      },
+      "CanonTaskEndpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "participant_id"
+        ],
+        "title": "CanonTaskEndpoint",
+        "type": "object"
+      },
+      "MemoryReference": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Digest",
+            "type": "string"
+          },
+          "key": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "plan_task",
+              "lineage_event",
+              "learning_version",
+              "receipt",
+              "source_object",
+              "canon_exchange"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lane_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Lane Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Revision"
+          }
+        },
+        "required": [
+          "kind",
+          "key",
+          "digest"
+        ],
+        "title": "MemoryReference",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "admitted_envelope_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Admitted Envelope Digest",
+        "type": "string"
+      },
+      "admitted_exchange_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Admitted Exchange Id",
+        "type": "string"
+      },
+      "dependency_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "Dependency Ids",
+        "type": "array"
+      },
+      "expires_at": {
+        "maxLength": 40,
+        "minLength": 1,
+        "title": "Expires At",
+        "type": "string"
+      },
+      "failure_class": {
+        "enum": [
+          "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+          "MISSING_INFORMATION_FROM_SOURCE",
+          "NEW_REQUIREMENT_FROM_SOURCE",
+          "LINKED_TASK_INPUT_REQUIRED"
+        ],
+        "title": "Failure Class",
+        "type": "string"
+      },
+      "payload": {
+        "$ref": "#/$defs/CanonPayload"
+      },
+      "recipient": {
+        "$ref": "#/$defs/CanonTaskEndpoint"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "requested_contract": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Requested Contract",
+        "type": "string"
+      },
+      "requested_revision": {
+        "maximum": 1000000,
+        "minimum": 2,
+        "title": "Requested Revision",
+        "type": "integer"
+      },
+      "return_contract": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Return Contract",
+        "type": "string"
+      },
+      "return_route": {
+        "$ref": "#/$defs/CanonTaskEndpoint"
+      },
+      "trace": {
+        "items": {
+          "$ref": "#/$defs/CanonTaskEndpoint"
+        },
+        "maxItems": 30,
+        "title": "Trace",
+        "type": "array"
+      }
+    },
+    "required": [
+      "admitted_exchange_id",
+      "admitted_envelope_digest",
+      "failure_class",
+      "recipient",
+      "requested_contract",
+      "requested_revision",
+      "payload",
+      "return_route",
+      "return_contract",
+      "expires_at"
+    ],
+    "title": "CanonBackfire",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "canon_backfire",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "artifact_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Artifact Path"
+      },
+      "authority": {
+        "const": "canon",
+        "default": "canon",
+        "title": "Authority",
+        "type": "string"
+      },
+      "automatic_retry_allowed": {
+        "const": false,
+        "default": false,
+        "title": "Automatic Retry Allowed",
+        "type": "boolean"
+      },
+      "compatibility_reasons": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Compatibility Reasons",
+        "type": "array"
+      },
+      "dedup_key": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Dedup Key",
+        "type": "string"
+      },
+      "duplicate": {
+        "default": false,
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "envelope_digest": {
+        "title": "Envelope Digest",
+        "type": "string"
+      },
+      "exchange_id": {
+        "title": "Exchange Id",
+        "type": "string"
+      },
+      "local_role": {
+        "default": "both",
+        "enum": [
+          "outbox",
+          "inbox",
+          "both"
+        ],
+        "title": "Local Role",
+        "type": "string"
+      },
+      "plan_mutated": {
+        "default": false,
+        "title": "Plan Mutated",
+        "type": "boolean"
+      },
+      "receiver_decision_required": {
+        "default": false,
+        "title": "Receiver Decision Required",
+        "type": "boolean"
+      },
+      "source_write_granted": {
+        "default": false,
+        "title": "Source Write Granted",
+        "type": "boolean"
+      },
+      "state": {
+        "enum": [
+          "sealed",
+          "received",
+          "admitted",
+          "rejected",
+          "needs_clarification",
+          "superseded"
+        ],
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "exchange_id",
+      "envelope_digest",
+      "state",
+      "dedup_key"
+    ],
+    "title": "CanonOperationSent",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "canon",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4141a89c67c4df11d82cd54641fecdf5b6c42b55b8989c96028e2a2362645307",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "canon_backfire",
+    "profile": "canon",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "canon_backfire.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "canon"
+}

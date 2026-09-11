@@ -4,7 +4,14 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "agent/**"
+      - "codex/**"
+    paths:
+      - '**/*.py'
+      - '**/*.js'
+      - '**/*.mjs'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '.github/workflows/evidence-lane-codeql.yml'
 
 permissions:
   actions: read

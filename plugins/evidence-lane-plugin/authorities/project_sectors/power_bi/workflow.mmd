@@ -1,0 +1,66 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=7289A95899810F7D1B7BC31854D4924DAA04231FBC4EBFBB12DF5635F951F3BC
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  lane["power_bi owning database and immutable files"]:::default
+  delta["Exact current Plan and normal Delta admission"]:::default
+  verify["Owning acceptance checks and verified Delta exit"]:::default
+  read["Scoped authenticated SDK read"]:::default
+  action_powerbi_current["powerbi_current"]:::default
+  action_powerbi_edit["powerbi_edit"]:::default
+  action_powerbi_export["powerbi_export"]:::default
+  action_powerbi_generate["powerbi_generate"]:::default
+  action_powerbi_index["powerbi_index"]:::default
+  action_powerbi_query["powerbi_query"]:::default
+  action_powerbi_read["powerbi_read"]:::default
+  action_powerbi_refresh["powerbi_refresh"]:::default
+  action_powerbi_schema["powerbi_schema"]:::default
+  action_source_snapshot_retire["source_snapshot_retire"]:::default
+  action_source_snapshot_state["source_snapshot_state"]:::default
+  read -->|"read"| action_powerbi_current
+  lane -->|"bounded recorded evidence"| action_powerbi_current
+  delta -->|"power_bi"| action_powerbi_edit
+  action_powerbi_edit -->|"owned publication"| lane
+  action_powerbi_edit -->|"powerbi_snapshot_integrity"| verify
+  delta -->|"power_bi"| action_powerbi_export
+  action_powerbi_export -->|"owned publication"| lane
+  action_powerbi_export -->|"powerbi_export_hash_verified"| verify
+  delta -->|"power_bi"| action_powerbi_generate
+  action_powerbi_generate -->|"owned publication"| lane
+  action_powerbi_generate -->|"powerbi_snapshot_integrity"| verify
+  delta -->|"power_bi"| action_powerbi_index
+  action_powerbi_index -->|"owned publication"| lane
+  action_powerbi_index -->|"powerbi_snapshot_integrity, powerbi_source_hash_unchanged"| verify
+  read -->|"read"| action_powerbi_query
+  lane -->|"bounded recorded evidence"| action_powerbi_query
+  read -->|"read"| action_powerbi_read
+  lane -->|"bounded recorded evidence"| action_powerbi_read
+  delta -->|"power_bi"| action_powerbi_refresh
+  action_powerbi_refresh -->|"owned publication"| lane
+  action_powerbi_refresh -->|"powerbi_snapshot_integrity, powerbi_source_hash_unchanged"| verify
+  read -->|"read"| action_powerbi_schema
+  lane -->|"bounded recorded evidence"| action_powerbi_schema
+  delta -->|"sources"| action_source_snapshot_retire
+  action_source_snapshot_retire -->|"owned publication"| lane
+  action_source_snapshot_retire -->|"source_selector_retirement_verified"| verify
+  read -->|"read"| action_source_snapshot_state
+  lane -->|"bounded recorded evidence"| action_source_snapshot_state
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_powerbi_current ~~~ action_powerbi_query
+  action_powerbi_schema ~~~ action_source_snapshot_state
+  action_powerbi_export ~~~ action_powerbi_generate
+  action_powerbi_refresh ~~~ action_source_snapshot_retire
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

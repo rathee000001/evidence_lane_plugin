@@ -1,39 +1,1566 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_authority bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "authority_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_cross_project_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "cross_project_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CrossProjectQuery"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_cross_project_query",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "project_authority"
+    "AuthorityRequest_git_restore_preview": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "git_restore_preview",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/GitRestoreSelection"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_git_restore_preview",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_lane_catalog": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_catalog",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LaneCatalogRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_catalog",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "fts5",
-        "bm25",
-        "hybrid"
-      ]
+    "AuthorityRequest_lane_fetch": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_fetch",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LaneFetchRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_fetch",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "AuthorityRequest_lane_search": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_search",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LaneSearchRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_search",
+      "type": "object"
+    },
+    "AuthorityRequest_lane_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LaneStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_status",
+      "type": "object"
+    },
+    "AuthorityRequest_project_backup_verify": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_backup_verify",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/BackupVerify"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_backup_verify",
+      "type": "object"
+    },
+    "AuthorityRequest_project_catalog": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_catalog",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectCatalogRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_catalog",
+      "type": "object"
+    },
+    "AuthorityRequest_project_recovery_inspect": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_recovery_inspect",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/RecoveryInspect"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_recovery_inspect",
+      "type": "object"
+    },
+    "AuthorityRequest_project_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/Empty"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_status",
+      "type": "object"
+    },
+    "AuthorityRequest_pv_diff": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "pv_diff",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/Diff"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_pv_diff",
+      "type": "object"
+    },
+    "AuthorityRequest_pv_history": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "pv_history",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/History"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_pv_history",
+      "type": "object"
+    },
+    "AuthorityRequest_pv_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "pv_summary",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/Summary"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_pv_summary",
+      "type": "object"
+    },
+    "AuthorityRequest_restoration_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "restoration_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/RestorationRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_restoration_read",
+      "type": "object"
+    },
+    "AuthorityRequest_search": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "search",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectSearchRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_search",
+      "type": "object"
+    },
+    "AuthorityRequest_storage_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "storage_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/StorageStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_storage_status",
+      "type": "object"
+    },
+    "BackupVerify": {
+      "additionalProperties": false,
+      "properties": {
+        "backup_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Backup Root",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backup_root",
+        "manifest_digest"
+      ],
+      "title": "BackupVerify",
+      "type": "object"
+    },
+    "CrossProjectQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "projects": {
+          "items": {
+            "$ref": "#/$defs/ProjectQuery"
+          },
+          "maxItems": 4,
+          "minItems": 2,
+          "title": "Projects",
+          "type": "array"
+        },
+        "require_links": {
+          "default": false,
+          "title": "Require Links",
+          "type": "boolean"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "projects"
+      ],
+      "title": "CrossProjectQuery",
+      "type": "object"
+    },
+    "Diff": {
+      "additionalProperties": false,
+      "properties": {
+        "max_commits": {
+          "default": 128,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Commits",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 1048576,
+          "maximum": 2097152,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "left_root": {
+          "$ref": "#/$defs/RootReference"
+        },
+        "right_root": {
+          "$ref": "#/$defs/RootReference"
+        }
+      },
+      "required": [
+        "left_root",
+        "right_root"
+      ],
+      "title": "Diff",
+      "type": "object"
+    },
+    "Empty": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Empty",
+      "type": "object"
+    },
+    "GitRestoreSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "commit",
+        "destination_root"
+      ],
+      "title": "GitRestoreSelection",
+      "type": "object"
+    },
+    "History": {
+      "additionalProperties": false,
+      "properties": {
+        "max_commits": {
+          "default": 128,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Commits",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 1048576,
+          "maximum": 2097152,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "title": "History",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "LaneCatalogRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Lane Ids",
+          "type": "array"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "authority",
+                "sector"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "include_schema": {
+          "default": false,
+          "title": "Include Schema",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 1048576,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "LaneCatalogRequest",
+      "type": "object"
+    },
+    "LaneFetchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "representation": {
+          "default": "primary",
+          "enum": [
+            "primary",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "byte_offset": {
+          "default": 0,
+          "maximum": 33554432,
+          "minimum": 0,
+          "title": "Byte Offset",
+          "type": "integer"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "max_lines": {
+          "default": 400,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "default": 262144,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "path"
+      ],
+      "title": "LaneFetchRequest",
+      "type": "object"
+    },
+    "LaneSearchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "snapshot_limit": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Snapshot Limit",
+          "type": "integer"
+        },
+        "snapshot_offset": {
+          "default": 0,
+          "maximum": 127,
+          "minimum": 0,
+          "title": "Snapshot Offset",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "retrieval": {
+          "default": "fts5",
+          "enum": [
+            "fts5",
+            "bm25",
+            "tfidf",
+            "hybrid",
+            "rank_bm25"
+          ],
+          "title": "Retrieval",
+          "type": "string"
+        },
+        "candidate_limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Candidate Limit",
+          "type": "integer"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "lane_id"
+      ],
+      "title": "LaneSearchRequest",
+      "type": "object"
+    },
+    "LaneStatusRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "include_views": {
+          "default": true,
+          "title": "Include Views",
+          "type": "boolean"
+        },
+        "max_views": {
+          "default": 8,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Views",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id"
+      ],
+      "title": "LaneStatusRequest",
+      "type": "object"
+    },
+    "OwnerQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "title": "OwnerQuery",
+      "type": "object"
+    },
+    "ProjectCatalogRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "offset": {
+          "default": 0,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "ProjectCatalogRequest",
+      "type": "object"
+    },
+    "ProjectQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "queries": {
+          "items": {
+            "$ref": "#/$defs/OwnerQuery"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Queries",
+          "type": "array"
+        },
+        "expected_plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Plan Revision"
+        }
+      },
+      "required": [
+        "project_id",
+        "queries"
+      ],
+      "title": "ProjectQuery",
+      "type": "object"
+    },
+    "ProjectSearchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "snapshot_limit": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Snapshot Limit",
+          "type": "integer"
+        },
+        "snapshot_offset": {
+          "default": 0,
+          "maximum": 127,
+          "minimum": 0,
+          "title": "Snapshot Offset",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "retrieval": {
+          "default": "fts5",
+          "enum": [
+            "fts5",
+            "bm25",
+            "tfidf",
+            "hybrid",
+            "rank_bm25"
+          ],
+          "title": "Retrieval",
+          "type": "string"
+        },
+        "candidate_limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Candidate Limit",
+          "type": "integer"
+        },
+        "lane_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Lane Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "ProjectSearchRequest",
+      "type": "object"
+    },
+    "RecoveryInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "sample_limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 0,
+          "title": "Sample Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RecoveryInspect",
+      "type": "object"
+    },
+    "RestorationRead": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 10,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RestorationRead",
+      "type": "object"
+    },
+    "RootReference": {
+      "additionalProperties": false,
+      "properties": {
+        "singleton": {
+          "const": 1,
+          "default": 1,
+          "title": "Singleton",
+          "type": "integer"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "head_digest": {
+          "pattern": "^(?:[0-9a-f]{64})?$",
+          "title": "Head Digest",
+          "type": "string"
+        },
+        "commit_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commit Id"
+        }
+      },
+      "required": [
+        "revision",
+        "head_digest",
+        "commit_id"
+      ],
+      "title": "RootReference",
+      "type": "object"
+    },
+    "StorageStatusRequest": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "StorageStatusRequest",
+      "type": "object"
+    },
+    "Summary": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "default": 67108864,
+          "maximum": 134217728,
+          "minimum": 1024,
+          "title": "Max Read Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "Summary",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "5904604CD5987B0951E277C8995AA2FC4806999B287B660C346FF43DC7005211"
+  "discriminator": {
+    "mapping": {
+      "cross_project_query": "#/$defs/AuthorityRequest_cross_project_query",
+      "git_restore_preview": "#/$defs/AuthorityRequest_git_restore_preview",
+      "lane_catalog": "#/$defs/AuthorityRequest_lane_catalog",
+      "lane_fetch": "#/$defs/AuthorityRequest_lane_fetch",
+      "lane_search": "#/$defs/AuthorityRequest_lane_search",
+      "lane_status": "#/$defs/AuthorityRequest_lane_status",
+      "project_backup_verify": "#/$defs/AuthorityRequest_project_backup_verify",
+      "project_catalog": "#/$defs/AuthorityRequest_project_catalog",
+      "project_recovery_inspect": "#/$defs/AuthorityRequest_project_recovery_inspect",
+      "project_status": "#/$defs/AuthorityRequest_project_status",
+      "pv_diff": "#/$defs/AuthorityRequest_pv_diff",
+      "pv_history": "#/$defs/AuthorityRequest_pv_history",
+      "pv_summary": "#/$defs/AuthorityRequest_pv_summary",
+      "restoration_read": "#/$defs/AuthorityRequest_restoration_read",
+      "search": "#/$defs/AuthorityRequest_search",
+      "storage_status": "#/$defs/AuthorityRequest_storage_status"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_cross_project_query"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_git_restore_preview"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_catalog"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_fetch"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_search"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_status"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_backup_verify"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_catalog"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_recovery_inspect"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_status"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_pv_diff"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_pv_history"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_pv_summary"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_restoration_read"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_search"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_storage_status"
+    }
+  ],
+  "title": "project_authority typed SDK requests"
 }

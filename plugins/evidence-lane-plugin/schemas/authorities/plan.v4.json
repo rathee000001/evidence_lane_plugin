@@ -1,0 +1,73 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "plan",
+  "members": [
+    {
+      "path": "authorities/plan/build-refresh-contract.schema.json",
+      "sha256": "3f8292cf2bb290679e8c53c2b56b9582390bec8bd73254556ad77d0be9056ad4"
+    },
+    {
+      "path": "authorities/plan/dot-artifact.schema.json",
+      "sha256": "191755e3a783a3ec1be95297c6f5c73ece658e825c0f423ab5748f7660907fd5"
+    },
+    {
+      "path": "authorities/plan/manifest.schema.json",
+      "sha256": "c7ccee9c1eb70d8ee811b71be7297eb937013e54d7ecdbe2b36c6c172db3e086"
+    },
+    {
+      "path": "authorities/plan/manifest.v4.json",
+      "sha256": "82a76f0d6840f7c6d9b869983cef95198c1e0acee68fd1d95b17f74e489e2294"
+    },
+    {
+      "path": "authorities/plan/migration-history.json",
+      "sha256": "ee1a1488475b07d29880e70979e9bda8526917fee29a0d88873321f4558159ae"
+    },
+    {
+      "path": "authorities/plan/mmd-artifact.schema.json",
+      "sha256": "ab2379afbcd423f9f2e3f809e527acea6376c3b0f1bc7e36e08e31f02105c7d7"
+    },
+    {
+      "path": "authorities/plan/pointer-contract.schema.json",
+      "sha256": "374294a0647c4d674cb364684c3ffba458b45135e17e923a035529ea2f522a4e"
+    },
+    {
+      "path": "authorities/plan/pointer-contract.v4.json",
+      "sha256": "12a69643c377972f158ac027724d36b8de08f4fb6009ad5e67e5b454472a4352"
+    },
+    {
+      "path": "authorities/plan/reader-contract.schema.json",
+      "sha256": "8e8507fdb8cee3aaf2d9ff9a638710e83fcfb1603a8e2d18a331713ff63d79fe"
+    },
+    {
+      "path": "authorities/plan/refresh-receipt.schema.json",
+      "sha256": "483cda143ba522c7ba7f5f3112275cbfe93391696c798a5ebbcb3dfd30f5d3b6"
+    },
+    {
+      "path": "authorities/plan/runtime-binding.schema.json",
+      "sha256": "6cfb7737d92137d082df0bf13714e90a2697d4f8187c2a2cff410461915ac1fa"
+    },
+    {
+      "path": "authorities/plan/runtime-binding.v4.json",
+      "sha256": "e526b9ebbc41b42e4bd453892fe9d15195dcfd368b5aae5dc156c127908fa4bf"
+    },
+    {
+      "path": "authorities/plan/schema.sql",
+      "sha256": "9d58a7e8c73ae1c8902cf20d40aca1fc62f9c1b1c86908a1f241ed4653eab1f1"
+    },
+    {
+      "path": "authorities/plan/sqlite-artifact.schema.json",
+      "sha256": "f7dab3ff3892af9f5e223343837a55fdfbec9ab14ccf98acafd9bed824025ee0"
+    },
+    {
+      "path": "authorities/plan/sqlite-schema.v4.json",
+      "sha256": "76b41b16a959e0676ac7e97ebc28358000bd06aca5bd9e8614c5f379a5c4e686"
+    },
+    {
+      "path": "authorities/plan/tools.schema.json",
+      "sha256": "4683cef470819762975e42dd34b41f1c8a2def3e0c1141241cf3fb53929f5a91"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

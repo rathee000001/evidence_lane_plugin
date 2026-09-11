@@ -1,0 +1,29 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "sdk",
+  "members": [
+    {
+      "path": "schemas/action-request.v4.schema.json",
+      "sha256": "6b4087ddf9dd62ee02c701365fb67359c9102f48e1786ee965e2d1e216f1e6d3"
+    },
+    {
+      "path": "schemas/action-response.v4.schema.json",
+      "sha256": "d7b92858d4d64f33f20fa3876a64b1e979b66bb08880e2105787a9f6548f9f2b"
+    },
+    {
+      "path": "sdk/actions/action-manifest.v4.json",
+      "sha256": "167b2cde41d610dca72a831f8fa81f4c44039e77b91bc2583b9b4710f6502836"
+    },
+    {
+      "path": "sdk/evidence_lane_sdk.py",
+      "sha256": "ca84053b538a4860127c55145d2239021a3917f7b0f714ec5d44c591dfb4c480"
+    },
+    {
+      "path": "src/evidence_lane_plugin/sdk.py",
+      "sha256": "9de60100f824a20be01b4f0ff14f1fb0cd1258241c1ae420f477c111665df9f7"
+    }
+  ],
+  "purpose": "Outer typed SDK, internal dispatcher and complete executable family bindings",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

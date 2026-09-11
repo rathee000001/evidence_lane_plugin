@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "SectorArgs_powerbi_current_power_bi": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "power_bi",
+          "default": "power_bi",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "SectorArgs_powerbi_current_power_bi",
+      "type": "object"
+    },
+    "SectorArgs_powerbi_query_power_bi": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "power_bi",
+          "default": "power_bi",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "project",
+            "report",
+            "page",
+            "visual",
+            "model",
+            "table",
+            "column",
+            "measure",
+            "relationship",
+            "partition",
+            "expression",
+            "role",
+            "hierarchy",
+            "data_source",
+            "perspective",
+            "culture",
+            "annotation",
+            "bookmark",
+            "filter",
+            "theme",
+            "model_metadata",
+            "model_row",
+            "reference",
+            "package_member",
+            "opaque"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_powerbi_query_power_bi",
+      "type": "object"
+    },
+    "SectorArgs_powerbi_read_power_bi": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "power_bi",
+          "default": "power_bi",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "representation": {
+          "default": "power_bi",
+          "enum": [
+            "power_bi",
+            "original_source",
+            "member",
+            "original_member"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "member": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Member"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 33554432,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_powerbi_read_power_bi",
+      "type": "object"
+    },
+    "SectorArgs_powerbi_schema_power_bi": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "power_bi",
+          "default": "power_bi",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "schema_uri": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Schema Uri"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "SectorArgs_powerbi_schema_power_bi",
+      "type": "object"
+    },
+    "SectorArgs_source_snapshot_state_power_bi": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "power_bi",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_power_bi",
+      "type": "object"
+    },
+    "SectorRequest_powerbi_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "powerbi_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_powerbi_current_power_bi"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_powerbi_current",
+      "type": "object"
+    },
+    "SectorRequest_powerbi_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "powerbi_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_powerbi_query_power_bi"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_powerbi_query",
+      "type": "object"
+    },
+    "SectorRequest_powerbi_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "powerbi_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_powerbi_read_power_bi"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_powerbi_read",
+      "type": "object"
+    },
+    "SectorRequest_powerbi_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "powerbi_schema",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_powerbi_schema_power_bi"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_powerbi_schema",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_power_bi"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "powerbi_current": "#/$defs/SectorRequest_powerbi_current",
+      "powerbi_query": "#/$defs/SectorRequest_powerbi_query",
+      "powerbi_read": "#/$defs/SectorRequest_powerbi_read",
+      "powerbi_schema": "#/$defs/SectorRequest_powerbi_schema",
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_powerbi_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_powerbi_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_powerbi_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_powerbi_schema"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    }
+  ],
+  "title": "Power BI typed reader requests"
+}

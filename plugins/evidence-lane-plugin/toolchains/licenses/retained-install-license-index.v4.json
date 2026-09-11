@@ -1,0 +1,1148 @@
+{
+  "schema": "evidence-lane.retained-install-license-index.v4",
+  "status": "COMPLETE_PREINSTALL_SOURCE_EVIDENCE",
+  "retained_tool_count": 103,
+  "removed_office_tools_absent": true,
+  "records": [
+    {
+      "tool_id": "Git",
+      "license_expression_or_terms": "GPL-2.0-only",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f99f5f8ef16710372748d2fa118ef3e52c37ca4646b1d218766560aa06b90021",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Python",
+      "license_expression_or_terms": "PSF-2.0",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "af27f3c09dbe145cf063bc623fb59e6b11cb8d2c1bba0322432842126f521094",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "hashlib_pathlib",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/003-hashlib-pathlib/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "52fa65d413c84a786742d89e5555179ca8a3cde9ea9991fedd82a225e6c02538",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SQLite_CAS",
+      "license_expression_or_terms": "LicenseRef-SQLite-Public-Domain AND MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "2a71c3a5769e9f14a05b7e70750720c853d2bf971f2e8f5ae20456623a76e943",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SQLite_FTS5_BM25",
+      "license_expression_or_terms": "LicenseRef-SQLite-Public-Domain AND MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "22b0d2def5c759e2af8f9c28f347bd8064c0d6a1eb869205f701fb3a57de87c7",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "APSW_SQLite_engine",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "03c0b67047ef3f3e491e1726fed9972f5f35dce27e502eeb292cc02c934dd8a4",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "deterministic_TFIDF",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/007-deterministic-tfidf/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "46cf115a2ccaacbea9b2441889a10fafcbe09a019a9062b2d5dbf1717dc4f141",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "LangGraph_Mermaid_engine",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "bb821a3f6f5b49ed0d92de9eef99d3372b709ac9354a12abfb689108a568bc10",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Python_Graphviz_DOT_engine",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "c7b852079dfa86285ba61f25dca6169d215f73345bae33b3a1dd2445db8072ba",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "LlamaIndex_SQLite_indexer",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "81abcf84b70a85758243d253a558859666262813d7592a9a233509879731bc6d",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Mermaid_CLI_mmdc",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "8e1c2355e73f51ed2596a44ab1e462c5fea035b4b08b24d3d8a9ed02306801c7",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Graphviz_dot",
+      "license_expression_or_terms": "EPL-1.0",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/012-graphviz-dot/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "93d5aa9fd1e484204a7d5db7c4d4bb67928a442bc9ebb5acdb10f289ae89975e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Python_structural_parser",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/013-python-structural-parser/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "5e37303bb377936b1259980116600b4b73151ebd0658d92c64c7e494200dbb44",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "NodeJS_TypeScript",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/015-nodejs-typescript/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0da46d82efbe016e0a75f9587141b91c5ae25d02bfc915b141e3966069a156e5",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pytest",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ea9f72189d667a3fdd9c7d741da5777930a284d5e99f29a6e4ac11ea5320ac81",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Ruff",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "436b132e1ca1597a92f8b85bd71e5147c77c86ba6ff62a15b2a23de1d571ce05",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "MyPy",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ac477818e44f7ccad8348088bfe00ebe85b5e2fa20c96c2d14e7dc66b7965386",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Secret_redactor",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/019-secret-redactor/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "d58af6468aa9acb65d92239dc18f1d56c3322b6dd2095a2b4ac1ba71c98f2e4f",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Hash_chain_writer",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/020-hash-chain-writer/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "010b0a6fe6db7777b31762e3068cfc6e1f331d5265841422bfb243233c60821a",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "ENV_UOP_classifier",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/021-env-uop-classifier/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "59d58db2ad88e582537836a2fc19e71a2cb022cae815e43a587363c1a1092148",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "DOCX_OpenXML",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/023-docx-openxml/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "8888724f250d54cb21e8dc6e08b5922ccc92b43ebcc0afcc147d0219e8530396",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "defusedxml",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "13c31445b77a53f37f1ac5be522575b12e126481cfc6c3ec50a434b9df474fab",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "OpenXML_CSV_JSON_parser",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/025-openxml-csv-json-parser/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "83514628e1cdc33e8ea3c4d5a4e1dfac7d54014ffa017b280152295e113ddd40",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "openpyxl",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0bc6d53873c91da113c59d0160f098ecc89eb051e0356fa4d3a03428ae463e59",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pandas",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "7d16726b77a59f56dd83c260109b7a20cd72bae37b54327b8d2ed7e266906a4c",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "python_calamine",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f47254c479c7f9737cd2cb9006212871b70db12768e3926600f1499f162ac17e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pyarrow",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a848d55fa59f468ef99751c087300ce7dd8333f6c82c5c66666b4509b1b8694b",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PPTX_OpenXML",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/030-pptx-openxml/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ab9c9e2223554a158b2f96b26d2cef8ee54e4939c18f4a66e5fde0cb2b3c004f",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pypdf",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "8311fdbc4b812c82937b32e36ea4694c3126e3278101d53e37e77ac7a089603b",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pypdfium2",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "1a7c6a87bd44f8ca76d68b1a810004a580ec454b4414038539f23dc5100ec7ec",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pdfplumber",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "cb230142c35fe85eb9a4c19349faf850a6d42aaa4700aa7d4228b6b7a38f021e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "RapidOCR_ONNX_Runtime",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0e34b228be7aa68c7a6c7e02d2fa0d682963ef7b28b408642582285923d91559",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "pytesseract_Tesseract",
+      "license_expression_or_terms": "Apache-2.0",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/035-pytesseract-tesseract/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "90da0e345fd7a7de82007fd05079f36e96bb5df4776d7dd126cf8522a67b1db3",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Pillow",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "05019afb24cea2943b3041b73d9cf37f69d74028af0988ae2810d9a389c6d426",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Poppler_pdftotext_pdfinfo",
+      "license_expression_or_terms": "GPL-2.0-or-later",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/037-poppler-pdftotext-pdfinfo/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "b8df1136e9ada642fd995b744caadf624422f33b81d1b758e1bbc0eb14ed5781",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Ghostscript",
+      "license_expression_or_terms": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/038-ghostscript/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "93bf8ddee60375b5788d46fefda0e80c96d2ab359eae6c9890f85bec7a5efeee",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": true
+    },
+    {
+      "tool_id": "OpenCV",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "c5a8718bba8d620bf73ca4f49ff9e6acf2488170baa0492351589a467d06778a",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Custom_schema_compiler",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/040-custom-schema-compiler/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "e00b6a2c216963b6274e827594eecc3c1f2e9f33ef1a055396d4c7797805a040",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SQLite_immutable_URI_reader",
+      "license_expression_or_terms": "LicenseRef-SQLite-Public-Domain AND MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ea0a0361f2f3ddc2062bbdbff8231a2b1c52b409bb1ab096c21960625f43d12b",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Safe_archive_intake",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/042-safe-archive-intake/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "36090ee3c342193887c3a0b14c32153af402febea4c1f1a4c198ac7d667c1907",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Citation_binder",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/043-citation-binder/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "4ac56e6c45c3c9d3032d812936f2cc11a94f41143ff2dff5107f8e88791aaeda",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Project_inventory",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/044-project-inventory/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a4520a4759ce3c46e3a40efd9b9026e12a313e307f750bfa51a891b0df8f894f",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Git_detector",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/045-git-detector/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "cadbeb53884df7d3eaaadd87ee25bc71b2e16d0a7cdc42abbe712ce4236a6511",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Compatibility_mapper",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/046-compatibility-mapper/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "565539d40bbf738fa1b3a5aa756bcf7aa7973a622a6c1d15d3cd4b2c4fadef3e",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "MCP_Python_SDK",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "640c005707e6401b236beb347bd118fed442e8ab5bd5fa9d30876d7138967dcd",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Pydantic",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "da11742720d993d2c982ddada04b9098926a0b9e4a5c6bb9972b2f9c7a989df5",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "HTTPX",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "2d98098f4711755f9a4a83c0bb31b893bc37f0a2a09dcf38984d38d5367a8689",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Cryptography_PyJWT",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "87e0c90f24d5d49975c86f3da236b3e55ac2591b3b6a86cd55363b0967af2d8e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PowerShell_Win32_APIs",
+      "license_expression_or_terms": "HOST_PLATFORM_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/051-powershell-win32-apis/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "2146d11ec9579c358db08f41236ffed6b813f148d6c9bb5f90a04cd0770210fa",
+      "redistributed_by_release_asset": false,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "ripgrep_15_2_0",
+      "license_expression_or_terms": "MIT OR Unlicense",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/052-ripgrep-15-2-0/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "274b2092ccaf2ff015935f96835c7b66863c1a9edfda7aaf36d736faf6ec8c97",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SevenZip_NSIS_extractor",
+      "license_expression_or_terms": "LicenseRef-7-Zip",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "c8bc64299f33b54ad73d95ad33ccbdcd38be823a89112fe7fc3d382e54914b63",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "jq",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f0bfbdd4588410f063521b0be3d4aeb1c6cd2733def15d8830642e2879845cfb",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "FFmpeg",
+      "license_expression_or_terms": "BSD-2-Clause wrapper; bundled FFmpeg license reported at install",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/055-ffmpeg/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "c8e9c0cc8ff542cd525e6b57c7de909410e23871d7980a25e21cb8ee15702a4e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PyMuPDF",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "48c14a61aebf123a3d51ff6c18e2a8194b691f4c537e93e06bb814c5728824f5",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Docling",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "cab30d8e15fc43169049b9da051cdec4614e569d271aeb8fbcd1759877dab0e9",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "lxml",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f69119a2586111c27eb0739007082f7125e225286a32f43a8a8fc5e04204d352",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "BeautifulSoup4",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f18980d1af58de95c92fd77cbd87dd52a530b0bfd47eaaed3dde45d8568a98b6",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "markdownify",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "fe629d598810c60b722be9abca80bc6d6c7bd1a938c39fdd9ee87c0f2f15a7de",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "html2text",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "d9fa8e2cf2dd9efa0e3323c6decc881fe81f13981ac9b22405187d98fd195d2b",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "trafilatura",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "5242d3f9d8ec9093244ae22cc932d0fafd684800913ba5b1fc60751f1c2c8d4c",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "DuckDB",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "3f5eb345b38a0dcdf106d6bcd47da23905f9123cf098f09b4ec322691fbf0983",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SQLAlchemy",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a69cd0acdb63847b3fcc92b13d914f9eacc75d6817413420f41b3fefbcbfb429",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Tableau_Hyper_API",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "41bea87381751f6bf4e1bf8a3b64b580be47a8b5334e51810fd220a75b8565ef",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "LangChain",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "32ff9f336fb2fe934e8d5eacf213475accd9a8193e6e983344a1c1f6b68e4f3b",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "SentenceTransformers",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "e4fb0a6748cdbffd047127e1de2496ea007a411061fa3ff2f658f2a087a5efe2",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "FAISS_CPU",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "81c2e79d92190d0eef79342a5d6e41c4435d2c74e6a0b12c19f543dabd989374",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "rank_bm25",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/069-rank-bm25/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "27510906e96d655c32ee87528f23598be7a615500092c10dc1cbb6ca38c5eb6b",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "FastAPI",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/070-fastapi/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ec6aea18fdf7daa00cf225ab486c47125b1f733bbdc3085facdba7080b6ad695",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Uvicorn",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/071-uvicorn/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a4e650452533fa4d08ec9b888de10debd1f05b7fa5d538ad62123bbf8ed6b959",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Pydantic_Settings",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/072-pydantic-settings/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "70a75aba126eb2e9c3562200eedbbe6af4398bb1368a25c5980a79b0c7354db9",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "python_multipart",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/073-python-multipart/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "08d779ab5220e23beb00df8e4f293a232d88fbe980572aa4bb804be71fa7053d",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Requests",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/074-requests/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "b3347fcab3616729a301794f2673e1bccccbb16c5e9818ea28b2696c8f5b9514",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "aiofiles",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/075-aiofiles/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "466be72b7f43e10b9f58900d92879f254b55396b6afacfe080f0c6287e3c7ebf",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "orjson",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/076-orjson/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "184c3bdb6cdc109a895cc31dd34c340f509fd21bff5f2e2a3178b145ec38a793",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "python_dotenv",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/077-python-dotenv/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "52c47e4c1fd9c32408193bab5d9850c09344b9d6549f6608f942ab897f2da0cc",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Tenacity",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/078-tenacity/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "6a53f1378735638ae585ddad57a364095c72ff7ce8e85393b21ccac219869fb3",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "DDGS",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/080-ddgs/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "2416ada5618ca09873bfabc98f23347dd0ec1c5598b7b2b3b47fe03add9aa25d",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PyGithub",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/081-pygithub/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "61f33fd00ab8aefa63bfb1a239a33515185dd764771c34067e6c58611478845c",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "GitPython",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/082-gitpython/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0f225016b0a7bcff1c784c8b6b72d88750c1764f08ea70537832100899209d75",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "tldextract",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/083-tldextract/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "cde7dd430098fabffc5315fba76d2bf9899bc8bd60068338a70355e5bec06479",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "validators",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/084-validators/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "503d1f9228c94818b613cbd21801a9400cbea6d99db7e6da5533306090a1e306",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "readability_lxml",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/085-readability-lxml/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "c400d8a33cc8ae76b9d8e783c90724a56749068626136a56e2f7f59e4050b8b0",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Polars",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/086-polars/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "ebf8409172820d0960007d6c419e530055412d4af0a251d04469c7ec48829b6e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "TreeSitter_LanguagePack",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/087-treesitter-languagepack/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a2d6e90ffb9e4551d28cfd25b966c887826c542695cd47c15b0d75e895e04474",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "rustworkx",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/089-rustworkx/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "e86b67a53d42f2448d809cd6588523b992c33fb7f691afc09fbd705ba14f5953",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "sqlite_vec",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/090-sqlite-vec/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "8cef26f8f9b7461b35360b82be361fe43d858462f2d43288b8f38f23f3bc4d80",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "HuggingFace_Hub_ModelSnapshot",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/091-huggingface-hub-modelsnapshot/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "328daa064ddac21a71f3fb44be702c441c72409c2891ea6361fa65fd7e7fef65",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "NextJS_React_ThreeJS_FramerMotion",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/092-nextjs-react-threejs-framermotion/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "f0ecca36bd4774f04378fe8711ce52dd757ae931364f00bac337285b55b7bcdc",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "OpenAI_Agents_SDK",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/095-openai-agents-sdk/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "b7752273b13072f26ff269452b2460fdb912cdd4b1113ffbfe97764d866e5ca9",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "FastMCP",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/096-fastmcp/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "20e7997e3a1fc1b4b0bbde8900c84d385ad4fbc9e24b68bc422ec201c1ccd5d5",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Pinecone",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/101-pinecone/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0652988cec8971f9ce42b44dc953e09dcdfad2f8540a438e7b4ae62264c5932e",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Weaviate",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/102-weaviate/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "a849b980b611d98033bda518e331f033a2ef299d6637869d2ff9249fa08c5fd1",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Milvus",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/103-milvus/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "4e86fe7f027e167eb79ff88773e72dca4c7b81c79cdc6063568608634077062b",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "OpenSearch",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/104-opensearch/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "8f3c5e8147ff13b481a925ef468adb403eedf8dffa8cc53b48c9238daff1affd",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "LangSmith",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/105-langsmith/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "e22de88035fdb3b335554e67a58e411a86b5a3f4f918d66e5c882ede2be78728",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Langfuse",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/109-langfuse/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "440f95351d75bc9b0e1b4068a422f63277394addfb79624fd6f4f5c68c37ac67",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "OpenTelemetry",
+      "license_expression_or_terms": "EXACT_INSTALLED_DISTRIBUTION_METADATA",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/111-opentelemetry/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "0bdbf826be48effc31526fcc59543eececa6fcae8e1607a2c7f99ae150bb9a14",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "Grafana",
+      "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
+      "evidence_paths": [
+        "toolchains/licenses/requirements/112-grafana/LICENSE-RECORD.json"
+      ],
+      "evidence_sha256": "15ea870cff8b2e4673ab73b181e8351a41708b20c40da1914fd92b57e8ef3e20",
+      "redistributed_by_release_asset": false,
+      "configuration_only": true,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "LibreOffice",
+      "license_expression_or_terms": "MPL-2.0 AND LGPL-3.0-or-later",
+      "evidence_paths": [
+        "toolchains/native-tools.v4.json"
+      ],
+      "evidence_sha256": "e39db0dca03903af93d204694c4e9ea1c9ab09b13e6623ce56739050abb2a120",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PowerBI_TOM",
+      "license_expression_or_terms": "LicenseRef-Microsoft-AnalysisServices",
+      "evidence_paths": [
+        "toolchains/native-tools.v4.json",
+        "toolchains/powerbi-adapter/packages.lock.json"
+      ],
+      "evidence_sha256": "472b87e98fac541a8cd764cdb88c4ac5336917bbab1caf9307d349a1408f278e",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "PBIXRay",
+      "license_expression_or_terms": "LicenseRef-Bundled-Python-and-Package-Licenses",
+      "evidence_paths": [
+        "toolchains/native-tools.v4.json",
+        "toolchains/powerbi-pbix-runtime.v4.json"
+      ],
+      "evidence_sha256": "52c6d2f15f7205ad10bac3d84e2a387c69131f1bd2d0b56de54e1ae527da1429",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "JSONSchema",
+      "license_expression_or_terms": "MIT",
+      "evidence_paths": [
+        "toolchains/tool-definitions.v4.json",
+        "toolchains/locks/tools.lock.txt"
+      ],
+      "evidence_sha256": "26b4b0b8b7574e5d0a3219c6d55e20d12acfa568f912e6512c155a96d58ad91c",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    },
+    {
+      "tool_id": "ReportLab",
+      "license_expression_or_terms": "BSD-3-Clause",
+      "evidence_paths": [
+        "toolchains/tool-definitions.v4.json",
+        "toolchains/locks/tools.lock.txt"
+      ],
+      "evidence_sha256": "26b4b0b8b7574e5d0a3219c6d55e20d12acfa568f912e6512c155a96d58ad91c",
+      "redistributed_by_release_asset": true,
+      "configuration_only": false,
+      "license_grant_required": false
+    }
+  ],
+  "installed_license_receipt_required": true,
+  "external_service_terms_remain_external": true,
+  "receipt_sha256": "f067483ed99c0f6c58d8974576dd37d244d61d54b270c97b8378db20434f399e"
+}

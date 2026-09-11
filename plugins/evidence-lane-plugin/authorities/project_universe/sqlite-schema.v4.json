@@ -1,0 +1,498 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "universe",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "bbcc09c2a1485082b1752c749a7f8046ceb87646d51483cef1845f4f8ac0b594",
+  "tables": [
+    {
+      "name": "federation_grants",
+      "type": "table",
+      "sql": "CREATE TABLE federation_grants (grant_id TEXT PRIMARY KEY,\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "grant_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_identity",
+      "type": "table",
+      "sql": "CREATE TABLE federation_identity (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n        federation_id TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "federation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_lane_heads",
+      "type": "table",
+      "sql": "CREATE TABLE federation_lane_heads (project_id TEXT NOT NULL, lane_id TEXT NOT NULL,\n        mini_brain_id TEXT NOT NULL REFERENCES federation_mini_brains(mini_brain_id), PRIMARY KEY(project_id,lane_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "mini_brain_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_links",
+      "type": "table",
+      "sql": "CREATE TABLE federation_links (edge_id TEXT PRIMARY KEY, grant_id TEXT NOT NULL REFERENCES federation_grants(grant_id),\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "grant_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_member_history",
+      "type": "table",
+      "sql": "CREATE TABLE federation_member_history (project_id TEXT NOT NULL, version INTEGER NOT NULL,\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL, PRIMARY KEY(project_id,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_members",
+      "type": "table",
+      "sql": "CREATE TABLE federation_members (project_id TEXT PRIMARY KEY, version INTEGER NOT NULL,\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_mini_brains",
+      "type": "table",
+      "sql": "CREATE TABLE federation_mini_brains (mini_brain_id TEXT PRIMARY KEY, project_id TEXT NOT NULL,\n        lane_id TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "mini_brain_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "federation_revocations",
+      "type": "table",
+      "sql": "CREATE TABLE federation_revocations (grant_id TEXT PRIMARY KEY REFERENCES federation_grants(grant_id),\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "grant_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "universe_link_events",
+      "type": "table",
+      "sql": "CREATE TABLE universe_link_events (\n        sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n        actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n        body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n        previous_digest TEXT, digest TEXT NOT NULL UNIQUE)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "input_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "universe_links",
+      "type": "table",
+      "sql": "CREATE TABLE universe_links (\n        target_project_id TEXT PRIMARY KEY, version INTEGER NOT NULL CHECK(version>0),\n        state TEXT NOT NULL CHECK(state IN ('linked','unlinked')),\n        binding_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "target_project_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "federation_lane_heads",
+      "target": "federation_mini_brains",
+      "column": "mini_brain_id",
+      "target_column": "mini_brain_id"
+    },
+    {
+      "source": "federation_links",
+      "target": "federation_grants",
+      "column": "grant_id",
+      "target_column": "grant_id"
+    },
+    {
+      "source": "federation_revocations",
+      "target": "federation_grants",
+      "column": "grant_id",
+      "target_column": "grant_id"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

@@ -1,0 +1,175 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Retrieve a bounded project-local slice of verified execution observations.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "anyOf": [
+          {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Action"
+      },
+      "include_history": {
+        "default": false,
+        "title": "Include History",
+        "type": "boolean"
+      },
+      "limit": {
+        "default": 8,
+        "maximum": 20,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "profile": {
+        "anyOf": [
+          {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Profile"
+      },
+      "query": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query"
+      }
+    },
+    "title": "LearningRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "learning_read",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority": {
+        "default": "project_learning",
+        "title": "Authority",
+        "type": "string"
+      },
+      "basis": {
+        "default": "verified_execution_observations_not_generalized_causal_claims",
+        "title": "Basis",
+        "type": "string"
+      },
+      "lessons": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Lessons",
+        "type": "array"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_truth_mutated": {
+        "default": false,
+        "title": "Project Truth Mutated",
+        "type": "boolean"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "lessons",
+      "truncated"
+    ],
+    "title": "LearningPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "learning",
+  "project_required": true,
+  "project_search": {
+    "basis": "sqlite_fts5_bm25",
+    "collection": null,
+    "current_action": null,
+    "current_items": null,
+    "items": "lessons",
+    "lanes": [
+      "learning"
+    ],
+    "match_mode": null,
+    "rerank_text": null
+  },
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38",
+      "owner": "learning",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "learning_read",
+    "profile": "learning",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "learning_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "learning"
+}

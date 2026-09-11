@@ -1,0 +1,141 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "after_id": {
+        "default": "",
+        "maxLength": 64,
+        "title": "After Id",
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 65536,
+        "maximum": 262144,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      }
+    },
+    "title": "ConnectorRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "connector_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "backend_execution_authorized": {
+        "const": false,
+        "default": false,
+        "title": "Backend Execution Authorized",
+        "type": "boolean"
+      },
+      "next_after_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Next After Id"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "registrations": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Registrations",
+        "type": "array"
+      },
+      "scopes": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Scopes",
+        "type": "object"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "registrations",
+      "next_after_id",
+      "truncated",
+      "scopes"
+    ],
+    "title": "ConnectorPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "extensions",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "0067319fb14f2b6edfc9d98b269bd6ffd789b14c62d1705ca328ef1afe5c75ab",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "connector_read",
+    "profile": "extensions",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.connector_governance:register_connector_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "connector_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "plugin"
+}

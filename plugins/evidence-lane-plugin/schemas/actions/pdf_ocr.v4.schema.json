@@ -1,0 +1,214 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish bounded page derivatives tied to immutable PDF source bytes.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "dpi": {
+        "default": 144,
+        "maximum": 300,
+        "minimum": 72,
+        "title": "Dpi",
+        "type": "integer"
+      },
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "language": {
+        "default": "eng",
+        "pattern": "^[a-z]{3}(?:\\+[a-z]{3}){0,3}$",
+        "title": "Language",
+        "type": "string"
+      },
+      "max_pixels_per_page": {
+        "default": 12000000,
+        "maximum": 25000000,
+        "minimum": 1000,
+        "title": "Max Pixels Per Page",
+        "type": "integer"
+      },
+      "min_confidence": {
+        "default": 0.5,
+        "maximum": 1,
+        "minimum": 0,
+        "title": "Min Confidence",
+        "type": "number"
+      },
+      "mode": {
+        "default": "text_poor_pages",
+        "enum": [
+          "text_poor_pages",
+          "all_selected_pages"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "native_character_threshold": {
+        "default": 10,
+        "maximum": 1000,
+        "minimum": 0,
+        "title": "Native Character Threshold",
+        "type": "integer"
+      },
+      "pages": {
+        "items": {
+          "type": "integer"
+        },
+        "maxItems": 50,
+        "minItems": 1,
+        "title": "Pages",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "pages"
+    ],
+    "title": "PdfOcr",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "pdf_ocr",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PdfResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "pdf_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7f11837caa5b2de710ec08334ee3a6454210b6f9af780398e8844b8bbfdeaeec",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "pdf_ocr",
+    "profile": "pdf_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.pdf_derivatives:ocr",
+        "argument_suffixes": {},
+        "argument_values": {
+          "language": [
+            "eng"
+          ]
+        },
+        "compute": {
+          "action_class": "OCR_MEDIA",
+          "fallback_policy": "before_first_invocation_only",
+          "memory_basis": "adapter_conservative_reservation",
+          "providers": [
+            "CPU",
+            "DIRECTML"
+          ],
+          "required_vram_mib": 2048,
+          "runtime_operation": "rapidocr_lines",
+          "selection_is_execution": false,
+          "worker_operation": "pdf_ocr"
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pdf_ocr.rapidocr",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pypdfium2",
+          "Pillow",
+          "OpenCV",
+          "RapidOCR_ONNX_Runtime"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.pdf_derivatives:ocr_tesseract",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pdf_ocr.tesseract",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pypdfium2",
+          "Pillow",
+          "pytesseract_Tesseract"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "pdf_ocr"
+    ]
+  },
+  "verification_checks": [
+    "pdf_ocr_integrity"
+  ],
+  "worker_operations": [
+    "pdf_ocr"
+  ],
+  "workflow": "source-intake"
+}

@@ -1,0 +1,469 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Parse exact exported bytes and renew Sources, destination facts and existing lane views with the selected native parser.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Sha256"
+      },
+      "filename": {
+        "maxLength": 2048,
+        "minLength": 1,
+        "title": "Filename",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "filename"
+    ],
+    "title": "MediaExport",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "media_export",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "MediaResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "filename"
+  ],
+  "permission": "write",
+  "profile": "images_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "ac47062eda1c4ae58ed382367618d45125cd38530808f8db102f3f66941abafb",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "media_export",
+    "profile": "images_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".bmp",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".tif",
+            ".tiff",
+            ".webp"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.raster",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".svg"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.vector",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "defusedxml"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".avi",
+            ".flac",
+            ".m4a",
+            ".mkv",
+            ".mov",
+            ".mp3",
+            ".mp4",
+            ".ogg",
+            ".wav",
+            ".webm"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.container",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "FFmpeg"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".bmp",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".tif",
+            ".tiff",
+            ".webp"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.raster_view",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow",
+          "LangGraph_Mermaid_engine",
+          "Python_Graphviz_DOT_engine",
+          "rustworkx"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes",
+          "render_lane_view"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".svg"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.vector_view",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "defusedxml",
+          "LangGraph_Mermaid_engine",
+          "Python_Graphviz_DOT_engine",
+          "rustworkx"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes",
+          "render_lane_view"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_profile:export_media",
+        "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+        "argument_suffixes": {
+          "filename": [
+            ".avi",
+            ".flac",
+            ".m4a",
+            ".mkv",
+            ".mov",
+            ".mp3",
+            ".mp4",
+            ".ogg",
+            ".wav",
+            ".webm"
+          ]
+        },
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_export.container_view",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "FFmpeg",
+          "LangGraph_Mermaid_engine",
+          "Python_Graphviz_DOT_engine",
+          "rustworkx"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "images_ocr.structure"
+        },
+        "worker_operations": [
+          "media_parse_bytes",
+          "render_lane_view"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "media_parse_bytes",
+      "render_lane_view"
+    ]
+  },
+  "verification_checks": [
+    "media_export_hash_verified"
+  ],
+  "worker_operations": [
+    "media_parse_bytes",
+    "render_lane_view"
+  ],
+  "workflow": "build"
+}

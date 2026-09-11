@@ -1,23 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "agent_learning"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.agent_learning"
-    },
-    "source_sha256": {
-      "const": "BF75C699067155F4C0CD3E757954F9BC99372B485F400811AC4C659F0D3A9572"
-    }
+  "const": {
+    "owner_id": "learning",
+    "modules": [
+      "evidence_lane_plugin.agent_learning"
+    ],
+    "storage": "authorities/learning/learning_authority_v001.sqlite with files and schema history in authorities/learning",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "01FAEB9111E726598271EAE6788175B2124453B642DB9ED13CE49920CB583FF5"
+  "title": "learning canonical runtime binding"
 }

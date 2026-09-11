@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/Interrupt/handler.py",
+  "event": "Interrupt",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/Interrupt/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/Interrupt/handler.py",
+      "sha256": "9f2b52ab2bce4736fed9d59dd58a9c61a82afbfb9afc11a20e445e433a356d83"
+    },
+    {
+      "path": "hooks/events/Interrupt/event.schema.json",
+      "sha256": "c7c50752061c12ba877a6c63bb95b7af3f54df08d3f3d81025b3f83916a7dec8"
+    },
+    {
+      "path": "hooks/events/Interrupt/pipeline.v4.json",
+      "sha256": "634d6be94c228272d53f990a12bdbab74232739833c0b624bdfc39ec60772794"
+    },
+    {
+      "path": "hooks/events/Interrupt/README.md",
+      "sha256": "559707a9dae0b89964acdf3685c76ce63e4fcec4ebcc8de3ab3e7b719d83ef56"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 11,
+  "pipeline": "hooks/events/Interrupt/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

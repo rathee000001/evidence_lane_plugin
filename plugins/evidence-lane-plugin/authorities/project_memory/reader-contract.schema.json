@@ -1,39 +1,203 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_memory bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "authority_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_memory_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "memory_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MemoryRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_memory_read",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "project_memory"
+    "AuthorityRequest_memory_rehydrate": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "memory_rehydrate",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MemoryRehydrate"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_memory_rehydrate",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "MemoryRead": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "kinds": {
+          "items": {
+            "enum": [
+              "plan_task",
+              "lineage_event",
+              "learning_version",
+              "receipt",
+              "source_object",
+              "canon_exchange"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Kinds",
+          "type": "array"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "include_history": {
+          "default": false,
+          "title": "Include History",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 32768,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "MemoryRead",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "fts5",
-        "bm25",
-        "hybrid"
-      ]
-    },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "MemoryRehydrate": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Checkpoint Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checkpoint_digest"
+      ],
+      "title": "MemoryRehydrate",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "447F8F80BEEBDD52F1E238286A6DC28DCEAD5DBEC559F43D525AA4760A2DD548"
+  "discriminator": {
+    "mapping": {
+      "memory_read": "#/$defs/AuthorityRequest_memory_read",
+      "memory_rehydrate": "#/$defs/AuthorityRequest_memory_rehydrate"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_memory_read"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_memory_rehydrate"
+    }
+  ],
+  "title": "memory typed SDK requests"
 }

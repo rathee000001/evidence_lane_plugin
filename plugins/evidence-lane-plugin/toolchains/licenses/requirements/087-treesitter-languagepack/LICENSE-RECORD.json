@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 87,
   "tool": "TreeSitter_LanguagePack",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "8A475B442BA5F117FD24211672A43B934E69F7CC617608A6F58E44B14C85EBBC"
+  "historical_ordinal": 87,
+  "catalog_ordinal": 85,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "da82029ec4f5c6afbf709ddfd91b2632783be2b2d9bdc67a38e35d3a41a20bdc"
 }

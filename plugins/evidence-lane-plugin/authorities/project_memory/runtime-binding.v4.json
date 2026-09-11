@@ -1,0 +1,9 @@
+{
+  "owner_id": "memory",
+  "modules": [
+    "evidence_lane_plugin.project_memory"
+  ],
+  "storage": "authorities/memory/memory_authority_v001.sqlite with files and schema history in authorities/memory",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

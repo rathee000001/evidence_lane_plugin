@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 111,
   "tool": "OpenTelemetry",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "4822DF78E7B1240CE3F56C87949656E048F2E9680292081725C36EDF24D2A3C7"
+  "historical_ordinal": 111,
+  "catalog_ordinal": 98,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "1278cadb922539f6b313737574fa770e42f504c3659b371443359b3a32f43050"
 }

@@ -1,0 +1,6730 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.",
+      "inputSchema": {
+        "$defs": {
+          "CanonPayload": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxProperties": 32,
+                "title": "Fields",
+                "type": "object"
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/MemoryReference"
+                },
+                "maxItems": 20,
+                "title": "References",
+                "type": "array"
+              },
+              "summary": {
+                "maxLength": 4000,
+                "minLength": 1,
+                "title": "Summary",
+                "type": "string"
+              }
+            },
+            "required": [
+              "summary"
+            ],
+            "title": "CanonPayload",
+            "type": "object"
+          },
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "admitted_envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Admitted Envelope Digest",
+            "type": "string"
+          },
+          "admitted_exchange_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Admitted Exchange Id",
+            "type": "string"
+          },
+          "dependency_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Dependency Ids",
+            "type": "array"
+          },
+          "expires_at": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Expires At",
+            "type": "string"
+          },
+          "failure_class": {
+            "enum": [
+              "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+              "MISSING_INFORMATION_FROM_SOURCE",
+              "NEW_REQUIREMENT_FROM_SOURCE",
+              "LINKED_TASK_INPUT_REQUIRED"
+            ],
+            "title": "Failure Class",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/$defs/CanonPayload"
+          },
+          "recipient": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "requested_contract": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Requested Contract",
+            "type": "string"
+          },
+          "requested_revision": {
+            "maximum": 1000000,
+            "minimum": 2,
+            "title": "Requested Revision",
+            "type": "integer"
+          },
+          "return_contract": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Return Contract",
+            "type": "string"
+          },
+          "return_route": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/$defs/CanonTaskEndpoint"
+            },
+            "maxItems": 30,
+            "title": "Trace",
+            "type": "array"
+          }
+        },
+        "required": [
+          "admitted_exchange_id",
+          "admitted_envelope_digest",
+          "failure_class",
+          "recipient",
+          "requested_contract",
+          "requested_revision",
+          "payload",
+          "return_route",
+          "return_contract",
+          "expires_at"
+        ],
+        "title": "CanonBackfire",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_backfire",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Path"
+          },
+          "authority": {
+            "const": "canon",
+            "default": "canon",
+            "title": "Authority",
+            "type": "string"
+          },
+          "automatic_retry_allowed": {
+            "const": false,
+            "default": false,
+            "title": "Automatic Retry Allowed",
+            "type": "boolean"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Compatibility Reasons",
+            "type": "array"
+          },
+          "dedup_key": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Dedup Key",
+            "type": "string"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "local_role": {
+            "default": "both",
+            "enum": [
+              "outbox",
+              "inbox",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "receiver_decision_required": {
+            "default": false,
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_write_granted": {
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "state",
+          "dedup_key"
+        ],
+        "title": "CanonOperationSent",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "4141a89c67c4df11d82cd54641fecdf5b6c42b55b8989c96028e2a2362645307",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_backfire",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_backfire.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Classify a proposed Canon message against the current receiver contract without storing or admitting it.",
+      "inputSchema": {
+        "$defs": {
+          "CanonBackfireDetails": {
+            "additionalProperties": false,
+            "properties": {
+              "admitted_envelope_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Admitted Envelope Digest",
+                "type": "string"
+              },
+              "admitted_exchange_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Admitted Exchange Id",
+                "type": "string"
+              },
+              "automatic_retry_allowed": {
+                "const": false,
+                "default": false,
+                "title": "Automatic Retry Allowed",
+                "type": "boolean"
+              },
+              "dependency_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "title": "Dependency Ids",
+                "type": "array"
+              },
+              "failure_class": {
+                "enum": [
+                  "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+                  "MISSING_INFORMATION_FROM_SOURCE",
+                  "NEW_REQUIREMENT_FROM_SOURCE",
+                  "LINKED_TASK_INPUT_REQUIRED"
+                ],
+                "title": "Failure Class",
+                "type": "string"
+              },
+              "requested_revision": {
+                "maximum": 1000000,
+                "minimum": 2,
+                "title": "Requested Revision",
+                "type": "integer"
+              },
+              "return_route": {
+                "$ref": "#/$defs/CanonTaskEndpoint"
+              },
+              "trace": {
+                "items": {
+                  "$ref": "#/$defs/CanonTaskEndpoint"
+                },
+                "maxItems": 32,
+                "title": "Trace",
+                "type": "array"
+              }
+            },
+            "required": [
+              "admitted_exchange_id",
+              "admitted_envelope_digest",
+              "failure_class",
+              "requested_revision",
+              "return_route"
+            ],
+            "title": "CanonBackfireDetails",
+            "type": "object"
+          },
+          "CanonPayload": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxProperties": 32,
+                "title": "Fields",
+                "type": "object"
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/MemoryReference"
+                },
+                "maxItems": 20,
+                "title": "References",
+                "type": "array"
+              },
+              "summary": {
+                "maxLength": 4000,
+                "minLength": 1,
+                "title": "Summary",
+                "type": "string"
+              }
+            },
+            "required": [
+              "summary"
+            ],
+            "title": "CanonPayload",
+            "type": "object"
+          },
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "backfire": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CanonBackfireDetails"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "destination_project_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Destination Project Id"
+          },
+          "edge_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Edge Id"
+          },
+          "expected_contract": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Contract"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          },
+          "kind": {
+            "enum": [
+              "requirements",
+              "evidence",
+              "correction",
+              "plan_proposal",
+              "result",
+              "clarification",
+              "backfire"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/$defs/CanonPayload"
+          },
+          "receiver_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Receiver Id",
+            "type": "string"
+          },
+          "reply_to": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reply To"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "return_contract": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Return Contract"
+          },
+          "sender_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Sender Id",
+            "type": "string"
+          },
+          "supersedes": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Supersedes"
+          }
+        },
+        "required": [
+          "sender_id",
+          "receiver_id",
+          "kind",
+          "payload"
+        ],
+        "title": "CanonSend",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_classify",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "admission_performed": {
+            "const": false,
+            "default": false,
+            "title": "Admission Performed",
+            "type": "boolean"
+          },
+          "automatic_admission_permitted": {
+            "title": "Automatic Admission Permitted",
+            "type": "boolean"
+          },
+          "classification": {
+            "enum": [
+              "expected",
+              "undefined_or_incompatible"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "expected_contract": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Contract"
+          },
+          "message_digest": {
+            "title": "Message Digest",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "receiver_decision_required": {
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "message_digest",
+          "classification",
+          "reasons",
+          "expected_contract",
+          "observed_at",
+          "automatic_admission_permitted",
+          "receiver_decision_required"
+        ],
+        "title": "CanonClassification",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "ded19645576908ad4178ee6ba03c093e28b83191d7f21b5f74688038c5afab4e",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_classify",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_classify.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Admit, reject or request clarification on the exact receiver-owned input.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "admit",
+              "reject",
+              "clarify"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "incompatible_input_decision": {
+            "anyOf": [
+              {
+                "const": "ACCEPT",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Incompatible Input Decision"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "expected_version",
+          "decision",
+          "reason"
+        ],
+        "title": "CanonDecide",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_decide",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Compatibility Reasons",
+            "type": "array"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "incompatible_input_decision": {
+            "anyOf": [
+              {
+                "const": "ACCEPT",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Incompatible Input Decision"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reason"
+          },
+          "receiver_id": {
+            "title": "Receiver Id",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "state",
+          "version",
+          "receiver_id"
+        ],
+        "title": "CanonDecisionResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "e6a8331516f1b0deedfd202d75f0d31573829797758debec86107eea5eb0489e",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_decide",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_decide.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Version the receiver-owned typed expected-input contract.",
+      "inputSchema": {
+        "$defs": {
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "auto_admit": {
+            "default": false,
+            "title": "Auto Admit",
+            "type": "boolean"
+          },
+          "contract_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Contract Key",
+            "type": "string"
+          },
+          "expected_version": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "fields": {
+            "additionalProperties": {
+              "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "null"
+              ],
+              "type": "string"
+            },
+            "maxProperties": 32,
+            "title": "Fields",
+            "type": "object"
+          },
+          "kinds": {
+            "items": {
+              "enum": [
+                "requirements",
+                "evidence",
+                "correction",
+                "plan_proposal",
+                "result",
+                "clarification",
+                "backfire"
+              ],
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 1,
+            "title": "Kinds",
+            "type": "array"
+          },
+          "max_bytes": {
+            "default": 32768,
+            "maximum": 65536,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "receiver_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Receiver Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "required_reference_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Required Reference Kinds",
+            "type": "array"
+          },
+          "sender_endpoints": {
+            "items": {
+              "$ref": "#/$defs/CanonTaskEndpoint"
+            },
+            "maxItems": 32,
+            "title": "Sender Endpoints",
+            "type": "array"
+          },
+          "sender_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Sender Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "receiver_id",
+          "contract_key",
+          "kinds"
+        ],
+        "title": "CanonExpected",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_expect",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "contract": {
+            "additionalProperties": true,
+            "title": "Contract",
+            "type": "object"
+          },
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "contract_digest",
+          "version",
+          "contract"
+        ],
+        "title": "CanonContractResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "80d0d0d1aefc220157a10cebe43a4ccdc4b7d33081d11640933e6e64c6632e0f",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_expect",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_expect.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 16384,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "record_limit": {
+            "default": 5000,
+            "maximum": 50000,
+            "minimum": 1,
+            "title": "Record Limit",
+            "type": "integer"
+          }
+        },
+        "title": "CanonTaskGraphRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_graph",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "cross_project_graph_complete": {
+            "const": false,
+            "default": false,
+            "title": "Cross Project Graph Complete",
+            "type": "boolean"
+          },
+          "cycle_check_scope": {
+            "const": "all_edges_recorded_in_selected_project",
+            "default": "all_edges_recorded_in_selected_project",
+            "title": "Cycle Check Scope",
+            "type": "string"
+          },
+          "cycles_allowed": {
+            "const": false,
+            "default": false,
+            "title": "Cycles Allowed",
+            "type": "boolean"
+          },
+          "edges": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "fan_in_supported": {
+            "const": true,
+            "default": true,
+            "title": "Fan In Supported",
+            "type": "boolean"
+          },
+          "fan_out_supported": {
+            "const": true,
+            "default": true,
+            "title": "Fan Out Supported",
+            "type": "boolean"
+          },
+          "graph_digest": {
+            "title": "Graph Digest",
+            "type": "string"
+          },
+          "history": {
+            "additionalProperties": true,
+            "title": "History",
+            "type": "object"
+          },
+          "missing_returns": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Missing Returns",
+            "type": "array"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "nodes",
+          "edges",
+          "missing_returns",
+          "history",
+          "graph_digest"
+        ],
+        "title": "CanonTaskGraph",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d577320e53130614b0728a150c8b0d23e3fd336f6b794f779a06c2da7c9e5b4c",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_graph",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_graph.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "after_event_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Event Sequence",
+            "type": "integer"
+          },
+          "after_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Sequence",
+            "type": "integer"
+          },
+          "events_per_packet": {
+            "default": 50,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Events Per Packet",
+            "type": "integer"
+          },
+          "exchange_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exchange Id"
+          },
+          "history_limit": {
+            "default": 50000,
+            "maximum": 50000,
+            "minimum": 1,
+            "title": "History Limit",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 100,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 1048576,
+            "minimum": 16384,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "receiver_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Receiver Id"
+          },
+          "states": {
+            "items": {
+              "enum": [
+                "sealed",
+                "received",
+                "admitted",
+                "rejected",
+                "needs_clarification",
+                "superseded"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "States",
+            "type": "array"
+          }
+        },
+        "title": "CanonInbox",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_inbox",
+      "outputSchema": {
+        "$defs": {
+          "CanonParticipant": {
+            "additionalProperties": false,
+            "properties": {
+              "host_task_created": {
+                "default": false,
+                "title": "Host Task Created",
+                "type": "boolean"
+              },
+              "identity_evidence": {
+                "const": "engine_client_ownership_with_optional_host_claim",
+                "default": "engine_client_ownership_with_optional_host_claim",
+                "title": "Identity Evidence",
+                "type": "string"
+              },
+              "label": {
+                "title": "Label",
+                "type": "string"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "owner_client_id": {
+                "title": "Owner Client Id",
+                "type": "string"
+              },
+              "owner_generation": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Owner Generation",
+                "type": "integer"
+              },
+              "participant_id": {
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reported_host_task_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Reported Host Task Id"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id",
+              "owner_client_id",
+              "label",
+              "reported_host_task_id"
+            ],
+            "title": "CanonParticipant",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "history": {
+            "additionalProperties": true,
+            "title": "History",
+            "type": "object"
+          },
+          "last_sequence": {
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "packet_count": {
+            "title": "Packet Count",
+            "type": "integer"
+          },
+          "packets": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Packets",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "projection_digest": {
+            "title": "Projection Digest",
+            "type": "string"
+          },
+          "raw_payload_returned": {
+            "const": false,
+            "default": false,
+            "title": "Raw Payload Returned",
+            "type": "boolean"
+          },
+          "receiver": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CanonParticipant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "receiver",
+          "packets",
+          "packet_count",
+          "last_sequence",
+          "truncated",
+          "history",
+          "projection_digest"
+        ],
+        "title": "CanonInboxPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7376844655e6809ada6098a8ccbfc8c164588a604bed623e6f16773bb3a80dcf",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_inbox",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_inbox.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Verify bounded Canon database, schema, object digests and event-chain state without modifying it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "record_limit": {
+            "default": 50000,
+            "maximum": 50000,
+            "minimum": 1,
+            "title": "Record Limit",
+            "type": "integer"
+          }
+        },
+        "title": "CanonInspect",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_inspect",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "applied_migrations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Applied Migrations",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "foreign_key_errors": {
+            "items": {
+              "items": {},
+              "type": "array"
+            },
+            "title": "Foreign Key Errors",
+            "type": "array"
+          },
+          "historical_supersession_links_unavailable": {
+            "title": "Historical Supersession Links Unavailable",
+            "type": "integer"
+          },
+          "history": {
+            "additionalProperties": true,
+            "title": "History",
+            "type": "object"
+          },
+          "initialized": {
+            "title": "Initialized",
+            "type": "boolean"
+          },
+          "integrity": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Integrity",
+            "type": "array"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "objects_verified": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Objects Verified",
+            "type": "object"
+          },
+          "packet_states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Packet States",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "projection_digest": {
+            "title": "Projection Digest",
+            "type": "string"
+          },
+          "raw_payload_returned": {
+            "const": false,
+            "default": false,
+            "title": "Raw Payload Returned",
+            "type": "boolean"
+          },
+          "schema_contract": {
+            "additionalProperties": true,
+            "title": "Schema Contract",
+            "type": "object"
+          },
+          "unverified_scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unverified Scope",
+            "type": "array"
+          },
+          "verified_scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Verified Scope",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "initialized",
+          "counts",
+          "packet_states",
+          "integrity",
+          "foreign_key_errors",
+          "history",
+          "applied_migrations",
+          "schema_contract",
+          "objects_verified",
+          "historical_supersession_links_unavailable",
+          "verified_scope",
+          "unverified_scope",
+          "projection_digest"
+        ],
+        "title": "CanonInspection",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d43d08549ef7e8485258cb6f36ba761e1c1feb5eacb346f948dc6c7086af5727",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_inspect",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_inspect.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Register a project participant owned by this engine client; does not create a host task.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "reported_host_task_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reported Host Task Id"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "CanonJoin",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_join",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "host_task_created": {
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "identity_evidence": {
+            "const": "engine_client_ownership_with_optional_host_claim",
+            "default": "engine_client_ownership_with_optional_host_claim",
+            "title": "Identity Evidence",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "owner_client_id": {
+            "title": "Owner Client Id",
+            "type": "string"
+          },
+          "owner_generation": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Owner Generation",
+            "type": "integer"
+          },
+          "participant_id": {
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reported_host_task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Host Task Id"
+          }
+        },
+        "required": [
+          "project_id",
+          "participant_id",
+          "owner_client_id",
+          "label",
+          "reported_host_task_id"
+        ],
+        "title": "CanonParticipant",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "dde6b7cb544debffd206d5997f3cce2d43bfbca8187acf9da4440511a6455173",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_join",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_join.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Preview an exact foreign source packet against the current receiving project without storing or admitting it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_project_id",
+          "exchange_id",
+          "envelope_digest"
+        ],
+        "title": "CanonReceive",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_packet_classify",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "admission_performed": {
+            "const": false,
+            "default": false,
+            "title": "Admission Performed",
+            "type": "boolean"
+          },
+          "automatic_admission_permitted": {
+            "title": "Automatic Admission Permitted",
+            "type": "boolean"
+          },
+          "classification": {
+            "enum": [
+              "expected",
+              "undefined_or_incompatible"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "expected_contract": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Contract"
+          },
+          "message_digest": {
+            "title": "Message Digest",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "receiver_decision_required": {
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_project_id": {
+            "title": "Source Project Id",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "message_digest",
+          "classification",
+          "reasons",
+          "expected_contract",
+          "observed_at",
+          "automatic_admission_permitted",
+          "receiver_decision_required",
+          "source_project_id",
+          "exchange_id",
+          "envelope_digest"
+        ],
+        "title": "CanonPacketClassification",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "2ae62f9a849f05fb312e13d04b2e748e672ac18b6cad55a6d0b672c0f2686e83",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_packet_classify",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.classify_packet",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_packet_classify.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Inspect bounded project participants, expected inputs and exchange history.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "after_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Sequence",
+            "type": "integer"
+          },
+          "include_payload": {
+            "default": false,
+            "title": "Include Payload",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 131072,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "participant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Participant Id"
+          }
+        },
+        "title": "CanonRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "canon_read",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "const": "canon",
+            "default": "canon",
+            "title": "Authority",
+            "type": "string"
+          },
+          "contracts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Contracts",
+            "type": "array"
+          },
+          "contracts_truncated": {
+            "title": "Contracts Truncated",
+            "type": "boolean"
+          },
+          "exchanges": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Exchanges",
+            "type": "array"
+          },
+          "last_sequence": {
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "participants": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Participants",
+            "type": "array"
+          },
+          "participants_truncated": {
+            "title": "Participants Truncated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "participants",
+          "contracts",
+          "exchanges",
+          "last_sequence",
+          "truncated",
+          "participants_truncated",
+          "contracts_truncated"
+        ],
+        "title": "CanonPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b47c18072b52a6581635abbd4c5826518e8a9999c9f2fbc4ebf9db7a4533e1d1",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_read",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Receive an exact source-sealed packet as its destination participant; never mutate the source project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_project_id",
+          "exchange_id",
+          "envelope_digest"
+        ],
+        "title": "CanonReceive",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_receive",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Path"
+          },
+          "authority": {
+            "const": "canon",
+            "default": "canon",
+            "title": "Authority",
+            "type": "string"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Compatibility Reasons",
+            "type": "array"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "local_role": {
+            "default": "both",
+            "enum": [
+              "outbox",
+              "inbox",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "receiver_decision_required": {
+            "default": false,
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_write_granted": {
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "state"
+        ],
+        "title": "CanonSent",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "bfe70237e90df6f446c70086eb4de2652bc326be70fa1ee9670477f827cdf056",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_receive",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_receive.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.",
+      "inputSchema": {
+        "$defs": {
+          "CanonBackfireDetails": {
+            "additionalProperties": false,
+            "properties": {
+              "admitted_envelope_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Admitted Envelope Digest",
+                "type": "string"
+              },
+              "admitted_exchange_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Admitted Exchange Id",
+                "type": "string"
+              },
+              "automatic_retry_allowed": {
+                "const": false,
+                "default": false,
+                "title": "Automatic Retry Allowed",
+                "type": "boolean"
+              },
+              "dependency_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "title": "Dependency Ids",
+                "type": "array"
+              },
+              "failure_class": {
+                "enum": [
+                  "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+                  "MISSING_INFORMATION_FROM_SOURCE",
+                  "NEW_REQUIREMENT_FROM_SOURCE",
+                  "LINKED_TASK_INPUT_REQUIRED"
+                ],
+                "title": "Failure Class",
+                "type": "string"
+              },
+              "requested_revision": {
+                "maximum": 1000000,
+                "minimum": 2,
+                "title": "Requested Revision",
+                "type": "integer"
+              },
+              "return_route": {
+                "$ref": "#/$defs/CanonTaskEndpoint"
+              },
+              "trace": {
+                "items": {
+                  "$ref": "#/$defs/CanonTaskEndpoint"
+                },
+                "maxItems": 32,
+                "title": "Trace",
+                "type": "array"
+              }
+            },
+            "required": [
+              "admitted_exchange_id",
+              "admitted_envelope_digest",
+              "failure_class",
+              "requested_revision",
+              "return_route"
+            ],
+            "title": "CanonBackfireDetails",
+            "type": "object"
+          },
+          "CanonPayload": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxProperties": 32,
+                "title": "Fields",
+                "type": "object"
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/MemoryReference"
+                },
+                "maxItems": 20,
+                "title": "References",
+                "type": "array"
+              },
+              "summary": {
+                "maxLength": 4000,
+                "minLength": 1,
+                "title": "Summary",
+                "type": "string"
+              }
+            },
+            "required": [
+              "summary"
+            ],
+            "title": "CanonPayload",
+            "type": "object"
+          },
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "backfire": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CanonBackfireDetails"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "destination_project_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Destination Project Id"
+          },
+          "edge_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Edge Id"
+          },
+          "expected_contract": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Contract"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          },
+          "kind": {
+            "enum": [
+              "requirements",
+              "evidence",
+              "correction",
+              "plan_proposal",
+              "result",
+              "clarification",
+              "backfire"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/$defs/CanonPayload"
+          },
+          "receiver_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Receiver Id",
+            "type": "string"
+          },
+          "reply_to": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reply To"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "return_contract": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Return Contract"
+          },
+          "sender_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Sender Id",
+            "type": "string"
+          },
+          "supersedes": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Supersedes"
+          }
+        },
+        "required": [
+          "sender_id",
+          "receiver_id",
+          "kind",
+          "payload"
+        ],
+        "title": "CanonSend",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_send",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Path"
+          },
+          "authority": {
+            "const": "canon",
+            "default": "canon",
+            "title": "Authority",
+            "type": "string"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Compatibility Reasons",
+            "type": "array"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "local_role": {
+            "default": "both",
+            "enum": [
+              "outbox",
+              "inbox",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "receiver_decision_required": {
+            "default": false,
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_write_granted": {
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "state"
+        ],
+        "title": "CanonSent",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "909b609c10b97d4e64bafcd787728410c923439be1013edcf2db3b9c5a350719",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_send",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_send.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "successor_envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Successor Envelope Digest",
+            "type": "string"
+          },
+          "successor_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Successor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "expected_version",
+          "successor_id",
+          "successor_envelope_digest"
+        ],
+        "title": "CanonSupersede",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_supersede",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_basis": {
+            "enum": [
+              "receiver_explicit",
+              "receiver_expected_contract",
+              "receiver_correction_admission"
+            ],
+            "title": "Decision Basis",
+            "type": "string"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "receiver_id": {
+            "title": "Receiver Id",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "const": "superseded",
+            "default": "superseded",
+            "title": "State",
+            "type": "string"
+          },
+          "successor_envelope_digest": {
+            "title": "Successor Envelope Digest",
+            "type": "string"
+          },
+          "successor_id": {
+            "title": "Successor Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "successor_id",
+          "successor_envelope_digest",
+          "receiver_id",
+          "version",
+          "decision_basis"
+        ],
+        "title": "CanonSuperseded",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b5110f7fdb2b17e6d452a99a79972d5e9e8671c6663f1c8c73729061598d5c39",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_supersede",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_supersede.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "edge_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Edge Digest",
+            "type": "string"
+          },
+          "edge_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_project_id",
+          "edge_id",
+          "edge_digest"
+        ],
+        "title": "CanonTaskEdgeBind",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_task_edge_bind",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "title": "Artifact Path",
+            "type": "string"
+          },
+          "contract_hash_evidence": {
+            "const": "declared_scope_verified_when_used_by_exchange",
+            "default": "declared_scope_verified_when_used_by_exchange",
+            "title": "Contract Hash Evidence",
+            "type": "string"
+          },
+          "destination_bound": {
+            "title": "Destination Bound",
+            "type": "boolean"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "edge": {
+            "additionalProperties": true,
+            "title": "Edge",
+            "type": "object"
+          },
+          "edge_digest": {
+            "title": "Edge Digest",
+            "type": "string"
+          },
+          "edge_id": {
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "host_task_created": {
+            "const": false,
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "local_role": {
+            "enum": [
+              "source",
+              "destination",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "edge_id",
+          "edge_digest",
+          "edge",
+          "artifact_path",
+          "local_role",
+          "destination_bound"
+        ],
+        "title": "CanonTaskEdgeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "317d9302ff41db3b47750348ff8d29b1f088cb0d171ca4f8c22593148eab716a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_task_edge_bind",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_bind",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_task_edge_bind.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.",
+      "inputSchema": {
+        "$defs": {
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "dependency_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Dependency Ids",
+            "type": "array"
+          },
+          "destination": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "direction": {
+            "default": "downstream",
+            "enum": [
+              "upstream",
+              "downstream",
+              "lateral"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "edge_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "edge_revision": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Edge Revision",
+            "type": "integer"
+          },
+          "expected_return_contract": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Return Contract",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          },
+          "permitted_actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Actions",
+            "type": "array"
+          },
+          "permitted_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Paths",
+            "type": "array"
+          },
+          "permitted_tools": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Tools",
+            "type": "array"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Schema Digest",
+            "type": "string"
+          },
+          "scope_class": {
+            "default": "read_only",
+            "enum": [
+              "read_only",
+              "governed_read_write"
+            ],
+            "title": "Scope Class",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "task_mode": {
+            "default": "top_level_task",
+            "enum": [
+              "top_level_task",
+              "subagent"
+            ],
+            "title": "Task Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "destination",
+          "contract_digest",
+          "schema_digest",
+          "expected_return_contract"
+        ],
+        "title": "CanonTaskEdgeRegister",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_task_edge_register",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "title": "Artifact Path",
+            "type": "string"
+          },
+          "contract_hash_evidence": {
+            "const": "declared_scope_verified_when_used_by_exchange",
+            "default": "declared_scope_verified_when_used_by_exchange",
+            "title": "Contract Hash Evidence",
+            "type": "string"
+          },
+          "destination_bound": {
+            "title": "Destination Bound",
+            "type": "boolean"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "edge": {
+            "additionalProperties": true,
+            "title": "Edge",
+            "type": "object"
+          },
+          "edge_digest": {
+            "title": "Edge Digest",
+            "type": "string"
+          },
+          "edge_id": {
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "host_task_created": {
+            "const": false,
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "local_role": {
+            "enum": [
+              "source",
+              "destination",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "edge_id",
+          "edge_digest",
+          "edge",
+          "artifact_path",
+          "local_role",
+          "destination_bound"
+        ],
+        "title": "CanonTaskEdgeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d17e1d264e1a7d4c8c79c29905e8ea009ea8c90964a1d74ddf7ea907dc5b9171",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_task_edge_register",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_register",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_task_edge_register.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.",
+      "inputSchema": {
+        "$defs": {
+          "CanonPayload": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxProperties": 32,
+                "title": "Fields",
+                "type": "object"
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/MemoryReference"
+                },
+                "maxItems": 20,
+                "title": "References",
+                "type": "array"
+              },
+              "summary": {
+                "maxLength": 4000,
+                "minLength": 1,
+                "title": "Summary",
+                "type": "string"
+              }
+            },
+            "required": [
+              "summary"
+            ],
+            "title": "CanonPayload",
+            "type": "object"
+          },
+          "MemoryReference": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Digest",
+                "type": "string"
+              },
+              "key": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "plan_task",
+                  "lineage_event",
+                  "learning_version",
+                  "receipt",
+                  "source_object",
+                  "canon_exchange"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "lane_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lane Id"
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Profile"
+              },
+              "revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision"
+              }
+            },
+            "required": [
+              "kind",
+              "key",
+              "digest"
+            ],
+            "title": "MemoryReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "edge_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          },
+          "payload": {
+            "$ref": "#/$defs/CanonPayload"
+          },
+          "reply_to": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Reply To",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "edge_id",
+          "reply_to",
+          "payload"
+        ],
+        "title": "CanonTaskResult",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "canon_task_result",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Artifact Path"
+          },
+          "authority": {
+            "const": "canon",
+            "default": "canon",
+            "title": "Authority",
+            "type": "string"
+          },
+          "automatic_retry_allowed": {
+            "const": false,
+            "default": false,
+            "title": "Automatic Retry Allowed",
+            "type": "boolean"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Compatibility Reasons",
+            "type": "array"
+          },
+          "dedup_key": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Dedup Key",
+            "type": "string"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "envelope_digest": {
+            "title": "Envelope Digest",
+            "type": "string"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "local_role": {
+            "default": "both",
+            "enum": [
+              "outbox",
+              "inbox",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "receiver_decision_required": {
+            "default": false,
+            "title": "Receiver Decision Required",
+            "type": "boolean"
+          },
+          "source_write_granted": {
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exchange_id",
+          "envelope_digest",
+          "state",
+          "dedup_key"
+        ],
+        "title": "CanonOperationSent",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "canon",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "dd2c36a5107e019087997247d5792373ce60ce5051ef4a62eb70b2517147b3be",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "canon_task_result",
+        "profile": "canon",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "canon_task_result.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "canon"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "CanonBackfire": {
+      "$defs": {
+        "CanonPayload": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "maxProperties": 32,
+              "title": "Fields",
+              "type": "object"
+            },
+            "references": {
+              "items": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "maxItems": 20,
+              "title": "References",
+              "type": "array"
+            },
+            "summary": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "summary"
+          ],
+          "title": "CanonPayload",
+          "type": "object"
+        },
+        "CanonTaskEndpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id"
+          ],
+          "title": "CanonTaskEndpoint",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "admitted_envelope_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Admitted Envelope Digest",
+          "type": "string"
+        },
+        "admitted_exchange_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Admitted Exchange Id",
+          "type": "string"
+        },
+        "dependency_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Dependency Ids",
+          "type": "array"
+        },
+        "expires_at": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Expires At",
+          "type": "string"
+        },
+        "failure_class": {
+          "enum": [
+            "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+            "MISSING_INFORMATION_FROM_SOURCE",
+            "NEW_REQUIREMENT_FROM_SOURCE",
+            "LINKED_TASK_INPUT_REQUIRED"
+          ],
+          "title": "Failure Class",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/CanonPayload"
+        },
+        "recipient": {
+          "$ref": "#/$defs/CanonTaskEndpoint"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "requested_contract": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Requested Contract",
+          "type": "string"
+        },
+        "requested_revision": {
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Requested Revision",
+          "type": "integer"
+        },
+        "return_contract": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Return Contract",
+          "type": "string"
+        },
+        "return_route": {
+          "$ref": "#/$defs/CanonTaskEndpoint"
+        },
+        "trace": {
+          "items": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "maxItems": 30,
+          "title": "Trace",
+          "type": "array"
+        }
+      },
+      "required": [
+        "admitted_exchange_id",
+        "admitted_envelope_digest",
+        "failure_class",
+        "recipient",
+        "requested_contract",
+        "requested_revision",
+        "payload",
+        "return_route",
+        "return_contract",
+        "expires_at"
+      ],
+      "title": "CanonBackfire",
+      "type": "object"
+    },
+    "CanonClassification": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_performed": {
+          "const": false,
+          "default": false,
+          "title": "Admission Performed",
+          "type": "boolean"
+        },
+        "automatic_admission_permitted": {
+          "title": "Automatic Admission Permitted",
+          "type": "boolean"
+        },
+        "classification": {
+          "enum": [
+            "expected",
+            "undefined_or_incompatible"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "expected_contract": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Contract"
+        },
+        "message_digest": {
+          "title": "Message Digest",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "receiver_decision_required": {
+          "title": "Receiver Decision Required",
+          "type": "boolean"
+        },
+        "source_write_granted": {
+          "const": false,
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "message_digest",
+        "classification",
+        "reasons",
+        "expected_contract",
+        "observed_at",
+        "automatic_admission_permitted",
+        "receiver_decision_required"
+      ],
+      "title": "CanonClassification",
+      "type": "object"
+    },
+    "CanonContractResult": {
+      "additionalProperties": false,
+      "properties": {
+        "contract": {
+          "additionalProperties": true,
+          "title": "Contract",
+          "type": "object"
+        },
+        "contract_digest": {
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "contract_digest",
+        "version",
+        "contract"
+      ],
+      "title": "CanonContractResult",
+      "type": "object"
+    },
+    "CanonDecide": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "admit",
+            "reject",
+            "clarify"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "envelope_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "incompatible_input_decision": {
+          "anyOf": [
+            {
+              "const": "ACCEPT",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incompatible Input Decision"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "envelope_digest",
+        "expected_version",
+        "decision",
+        "reason"
+      ],
+      "title": "CanonDecide",
+      "type": "object"
+    },
+    "CanonDecisionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "compatibility_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Compatibility Reasons",
+          "type": "array"
+        },
+        "exchange_id": {
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "incompatible_input_decision": {
+          "anyOf": [
+            {
+              "const": "ACCEPT",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incompatible Input Decision"
+        },
+        "plan_mutated": {
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "receiver_id": {
+          "title": "Receiver Id",
+          "type": "string"
+        },
+        "source_write_granted": {
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "sealed",
+            "received",
+            "admitted",
+            "rejected",
+            "needs_clarification",
+            "superseded"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "state",
+        "version",
+        "receiver_id"
+      ],
+      "title": "CanonDecisionResult",
+      "type": "object"
+    },
+    "CanonExpected": {
+      "$defs": {
+        "CanonTaskEndpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id"
+          ],
+          "title": "CanonTaskEndpoint",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "auto_admit": {
+          "default": false,
+          "title": "Auto Admit",
+          "type": "boolean"
+        },
+        "contract_key": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Contract Key",
+          "type": "string"
+        },
+        "expected_version": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "fields": {
+          "additionalProperties": {
+            "enum": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "null"
+            ],
+            "type": "string"
+          },
+          "maxProperties": 32,
+          "title": "Fields",
+          "type": "object"
+        },
+        "kinds": {
+          "items": {
+            "enum": [
+              "requirements",
+              "evidence",
+              "correction",
+              "plan_proposal",
+              "result",
+              "clarification",
+              "backfire"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Kinds",
+          "type": "array"
+        },
+        "max_bytes": {
+          "default": 32768,
+          "maximum": 65536,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "receiver_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Receiver Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "required_reference_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Required Reference Kinds",
+          "type": "array"
+        },
+        "sender_endpoints": {
+          "items": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "maxItems": 32,
+          "title": "Sender Endpoints",
+          "type": "array"
+        },
+        "sender_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Sender Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "receiver_id",
+        "contract_key",
+        "kinds"
+      ],
+      "title": "CanonExpected",
+      "type": "object"
+    },
+    "CanonInbox": {
+      "additionalProperties": false,
+      "properties": {
+        "after_event_sequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "After Event Sequence",
+          "type": "integer"
+        },
+        "after_sequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "After Sequence",
+          "type": "integer"
+        },
+        "events_per_packet": {
+          "default": 50,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Events Per Packet",
+          "type": "integer"
+        },
+        "exchange_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Id"
+        },
+        "history_limit": {
+          "default": 50000,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "History Limit",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 1048576,
+          "minimum": 16384,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "receiver_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receiver Id"
+        },
+        "states": {
+          "items": {
+            "enum": [
+              "sealed",
+              "received",
+              "admitted",
+              "rejected",
+              "needs_clarification",
+              "superseded"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "States",
+          "type": "array"
+        }
+      },
+      "title": "CanonInbox",
+      "type": "object"
+    },
+    "CanonInboxPage": {
+      "$defs": {
+        "CanonParticipant": {
+          "additionalProperties": false,
+          "properties": {
+            "host_task_created": {
+              "default": false,
+              "title": "Host Task Created",
+              "type": "boolean"
+            },
+            "identity_evidence": {
+              "const": "engine_client_ownership_with_optional_host_claim",
+              "default": "engine_client_ownership_with_optional_host_claim",
+              "title": "Identity Evidence",
+              "type": "string"
+            },
+            "label": {
+              "title": "Label",
+              "type": "string"
+            },
+            "native_task_attestation": {
+              "const": "not_provided",
+              "default": "not_provided",
+              "title": "Native Task Attestation",
+              "type": "string"
+            },
+            "owner_client_id": {
+              "title": "Owner Client Id",
+              "type": "string"
+            },
+            "owner_generation": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Owner Generation",
+              "type": "integer"
+            },
+            "participant_id": {
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "title": "Project Id",
+              "type": "string"
+            },
+            "reported_host_task_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reported Host Task Id"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id",
+            "owner_client_id",
+            "label",
+            "reported_host_task_id"
+          ],
+          "title": "CanonParticipant",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "history": {
+          "additionalProperties": true,
+          "title": "History",
+          "type": "object"
+        },
+        "last_sequence": {
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "packet_count": {
+          "title": "Packet Count",
+          "type": "integer"
+        },
+        "packets": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Packets",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        },
+        "projection_digest": {
+          "title": "Projection Digest",
+          "type": "string"
+        },
+        "raw_payload_returned": {
+          "const": false,
+          "default": false,
+          "title": "Raw Payload Returned",
+          "type": "boolean"
+        },
+        "receiver": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CanonParticipant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "receiver",
+        "packets",
+        "packet_count",
+        "last_sequence",
+        "truncated",
+        "history",
+        "projection_digest"
+      ],
+      "title": "CanonInboxPage",
+      "type": "object"
+    },
+    "CanonInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "record_limit": {
+          "default": 50000,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Record Limit",
+          "type": "integer"
+        }
+      },
+      "title": "CanonInspect",
+      "type": "object"
+    },
+    "CanonInspection": {
+      "additionalProperties": false,
+      "properties": {
+        "applied_migrations": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Applied Migrations",
+          "type": "array"
+        },
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "foreign_key_errors": {
+          "items": {
+            "items": {},
+            "type": "array"
+          },
+          "title": "Foreign Key Errors",
+          "type": "array"
+        },
+        "historical_supersession_links_unavailable": {
+          "title": "Historical Supersession Links Unavailable",
+          "type": "integer"
+        },
+        "history": {
+          "additionalProperties": true,
+          "title": "History",
+          "type": "object"
+        },
+        "initialized": {
+          "title": "Initialized",
+          "type": "boolean"
+        },
+        "integrity": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Integrity",
+          "type": "array"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "objects_verified": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Objects Verified",
+          "type": "object"
+        },
+        "packet_states": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Packet States",
+          "type": "object"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        },
+        "projection_digest": {
+          "title": "Projection Digest",
+          "type": "string"
+        },
+        "raw_payload_returned": {
+          "const": false,
+          "default": false,
+          "title": "Raw Payload Returned",
+          "type": "boolean"
+        },
+        "schema_contract": {
+          "additionalProperties": true,
+          "title": "Schema Contract",
+          "type": "object"
+        },
+        "unverified_scope": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unverified Scope",
+          "type": "array"
+        },
+        "verified_scope": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Verified Scope",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id",
+        "initialized",
+        "counts",
+        "packet_states",
+        "integrity",
+        "foreign_key_errors",
+        "history",
+        "applied_migrations",
+        "schema_contract",
+        "objects_verified",
+        "historical_supersession_links_unavailable",
+        "verified_scope",
+        "unverified_scope",
+        "projection_digest"
+      ],
+      "title": "CanonInspection",
+      "type": "object"
+    },
+    "CanonJoin": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "reported_host_task_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Host Task Id"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "CanonJoin",
+      "type": "object"
+    },
+    "CanonOperationSent": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Path"
+        },
+        "authority": {
+          "const": "canon",
+          "default": "canon",
+          "title": "Authority",
+          "type": "string"
+        },
+        "automatic_retry_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Retry Allowed",
+          "type": "boolean"
+        },
+        "compatibility_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Compatibility Reasons",
+          "type": "array"
+        },
+        "dedup_key": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dedup Key",
+          "type": "string"
+        },
+        "duplicate": {
+          "default": false,
+          "title": "Duplicate",
+          "type": "boolean"
+        },
+        "envelope_digest": {
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "local_role": {
+          "default": "both",
+          "enum": [
+            "outbox",
+            "inbox",
+            "both"
+          ],
+          "title": "Local Role",
+          "type": "string"
+        },
+        "plan_mutated": {
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "receiver_decision_required": {
+          "default": false,
+          "title": "Receiver Decision Required",
+          "type": "boolean"
+        },
+        "source_write_granted": {
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "sealed",
+            "received",
+            "admitted",
+            "rejected",
+            "needs_clarification",
+            "superseded"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "envelope_digest",
+        "state",
+        "dedup_key"
+      ],
+      "title": "CanonOperationSent",
+      "type": "object"
+    },
+    "CanonPacketClassification": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_performed": {
+          "const": false,
+          "default": false,
+          "title": "Admission Performed",
+          "type": "boolean"
+        },
+        "automatic_admission_permitted": {
+          "title": "Automatic Admission Permitted",
+          "type": "boolean"
+        },
+        "classification": {
+          "enum": [
+            "expected",
+            "undefined_or_incompatible"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "envelope_digest": {
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "expected_contract": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Contract"
+        },
+        "message_digest": {
+          "title": "Message Digest",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "receiver_decision_required": {
+          "title": "Receiver Decision Required",
+          "type": "boolean"
+        },
+        "source_project_id": {
+          "title": "Source Project Id",
+          "type": "string"
+        },
+        "source_write_granted": {
+          "const": false,
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "message_digest",
+        "classification",
+        "reasons",
+        "expected_contract",
+        "observed_at",
+        "automatic_admission_permitted",
+        "receiver_decision_required",
+        "source_project_id",
+        "exchange_id",
+        "envelope_digest"
+      ],
+      "title": "CanonPacketClassification",
+      "type": "object"
+    },
+    "CanonPage": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "const": "canon",
+          "default": "canon",
+          "title": "Authority",
+          "type": "string"
+        },
+        "contracts": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Contracts",
+          "type": "array"
+        },
+        "contracts_truncated": {
+          "title": "Contracts Truncated",
+          "type": "boolean"
+        },
+        "exchanges": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Exchanges",
+          "type": "array"
+        },
+        "last_sequence": {
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "participants": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Participants",
+          "type": "array"
+        },
+        "participants_truncated": {
+          "title": "Participants Truncated",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "participants",
+        "contracts",
+        "exchanges",
+        "last_sequence",
+        "truncated",
+        "participants_truncated",
+        "contracts_truncated"
+      ],
+      "title": "CanonPage",
+      "type": "object"
+    },
+    "CanonParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "host_task_created": {
+          "default": false,
+          "title": "Host Task Created",
+          "type": "boolean"
+        },
+        "identity_evidence": {
+          "const": "engine_client_ownership_with_optional_host_claim",
+          "default": "engine_client_ownership_with_optional_host_claim",
+          "title": "Identity Evidence",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "owner_client_id": {
+          "title": "Owner Client Id",
+          "type": "string"
+        },
+        "owner_generation": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Owner Generation",
+          "type": "integer"
+        },
+        "participant_id": {
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "reported_host_task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reported Host Task Id"
+        }
+      },
+      "required": [
+        "project_id",
+        "participant_id",
+        "owner_client_id",
+        "label",
+        "reported_host_task_id"
+      ],
+      "title": "CanonParticipant",
+      "type": "object"
+    },
+    "CanonRead": {
+      "additionalProperties": false,
+      "properties": {
+        "after_sequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "After Sequence",
+          "type": "integer"
+        },
+        "include_payload": {
+          "default": false,
+          "title": "Include Payload",
+          "type": "boolean"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 131072,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "participant_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participant Id"
+        }
+      },
+      "title": "CanonRead",
+      "type": "object"
+    },
+    "CanonReceive": {
+      "additionalProperties": false,
+      "properties": {
+        "envelope_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source_project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_project_id",
+        "exchange_id",
+        "envelope_digest"
+      ],
+      "title": "CanonReceive",
+      "type": "object"
+    },
+    "CanonSend": {
+      "$defs": {
+        "CanonBackfireDetails": {
+          "additionalProperties": false,
+          "properties": {
+            "admitted_envelope_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Admitted Envelope Digest",
+              "type": "string"
+            },
+            "admitted_exchange_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Admitted Exchange Id",
+              "type": "string"
+            },
+            "automatic_retry_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Automatic Retry Allowed",
+              "type": "boolean"
+            },
+            "dependency_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Dependency Ids",
+              "type": "array"
+            },
+            "failure_class": {
+              "enum": [
+                "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+                "MISSING_INFORMATION_FROM_SOURCE",
+                "NEW_REQUIREMENT_FROM_SOURCE",
+                "LINKED_TASK_INPUT_REQUIRED"
+              ],
+              "title": "Failure Class",
+              "type": "string"
+            },
+            "requested_revision": {
+              "maximum": 1000000,
+              "minimum": 2,
+              "title": "Requested Revision",
+              "type": "integer"
+            },
+            "return_route": {
+              "$ref": "#/$defs/CanonTaskEndpoint"
+            },
+            "trace": {
+              "items": {
+                "$ref": "#/$defs/CanonTaskEndpoint"
+              },
+              "maxItems": 32,
+              "title": "Trace",
+              "type": "array"
+            }
+          },
+          "required": [
+            "admitted_exchange_id",
+            "admitted_envelope_digest",
+            "failure_class",
+            "requested_revision",
+            "return_route"
+          ],
+          "title": "CanonBackfireDetails",
+          "type": "object"
+        },
+        "CanonPayload": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "maxProperties": 32,
+              "title": "Fields",
+              "type": "object"
+            },
+            "references": {
+              "items": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "maxItems": 20,
+              "title": "References",
+              "type": "array"
+            },
+            "summary": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "summary"
+          ],
+          "title": "CanonPayload",
+          "type": "object"
+        },
+        "CanonTaskEndpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id"
+          ],
+          "title": "CanonTaskEndpoint",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "backfire": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CanonBackfireDetails"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "destination_project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination Project Id"
+        },
+        "edge_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edge Id"
+        },
+        "expected_contract": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Contract"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "kind": {
+          "enum": [
+            "requirements",
+            "evidence",
+            "correction",
+            "plan_proposal",
+            "result",
+            "clarification",
+            "backfire"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/CanonPayload"
+        },
+        "receiver_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Receiver Id",
+          "type": "string"
+        },
+        "reply_to": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reply To"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "return_contract": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Return Contract"
+        },
+        "sender_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Sender Id",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes"
+        }
+      },
+      "required": [
+        "sender_id",
+        "receiver_id",
+        "kind",
+        "payload"
+      ],
+      "title": "CanonSend",
+      "type": "object"
+    },
+    "CanonSent": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Path"
+        },
+        "authority": {
+          "const": "canon",
+          "default": "canon",
+          "title": "Authority",
+          "type": "string"
+        },
+        "compatibility_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Compatibility Reasons",
+          "type": "array"
+        },
+        "duplicate": {
+          "default": false,
+          "title": "Duplicate",
+          "type": "boolean"
+        },
+        "envelope_digest": {
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "local_role": {
+          "default": "both",
+          "enum": [
+            "outbox",
+            "inbox",
+            "both"
+          ],
+          "title": "Local Role",
+          "type": "string"
+        },
+        "plan_mutated": {
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "receiver_decision_required": {
+          "default": false,
+          "title": "Receiver Decision Required",
+          "type": "boolean"
+        },
+        "source_write_granted": {
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "sealed",
+            "received",
+            "admitted",
+            "rejected",
+            "needs_clarification",
+            "superseded"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "envelope_digest",
+        "state"
+      ],
+      "title": "CanonSent",
+      "type": "object"
+    },
+    "CanonSupersede": {
+      "additionalProperties": false,
+      "properties": {
+        "envelope_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "successor_envelope_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Successor Envelope Digest",
+          "type": "string"
+        },
+        "successor_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Successor Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "envelope_digest",
+        "expected_version",
+        "successor_id",
+        "successor_envelope_digest"
+      ],
+      "title": "CanonSupersede",
+      "type": "object"
+    },
+    "CanonSuperseded": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_basis": {
+          "enum": [
+            "receiver_explicit",
+            "receiver_expected_contract",
+            "receiver_correction_admission"
+          ],
+          "title": "Decision Basis",
+          "type": "string"
+        },
+        "duplicate": {
+          "default": false,
+          "title": "Duplicate",
+          "type": "boolean"
+        },
+        "envelope_digest": {
+          "title": "Envelope Digest",
+          "type": "string"
+        },
+        "exchange_id": {
+          "title": "Exchange Id",
+          "type": "string"
+        },
+        "plan_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "receiver_id": {
+          "title": "Receiver Id",
+          "type": "string"
+        },
+        "source_write_granted": {
+          "const": false,
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        },
+        "state": {
+          "const": "superseded",
+          "default": "superseded",
+          "title": "State",
+          "type": "string"
+        },
+        "successor_envelope_digest": {
+          "title": "Successor Envelope Digest",
+          "type": "string"
+        },
+        "successor_id": {
+          "title": "Successor Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "exchange_id",
+        "envelope_digest",
+        "successor_id",
+        "successor_envelope_digest",
+        "receiver_id",
+        "version",
+        "decision_basis"
+      ],
+      "title": "CanonSuperseded",
+      "type": "object"
+    },
+    "CanonTaskEdgeBind": {
+      "additionalProperties": false,
+      "properties": {
+        "edge_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Edge Digest",
+          "type": "string"
+        },
+        "edge_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source_project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_project_id",
+        "edge_id",
+        "edge_digest"
+      ],
+      "title": "CanonTaskEdgeBind",
+      "type": "object"
+    },
+    "CanonTaskEdgeRegister": {
+      "$defs": {
+        "CanonTaskEndpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id"
+          ],
+          "title": "CanonTaskEndpoint",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "dependency_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Dependency Ids",
+          "type": "array"
+        },
+        "destination": {
+          "$ref": "#/$defs/CanonTaskEndpoint"
+        },
+        "direction": {
+          "default": "downstream",
+          "enum": [
+            "upstream",
+            "downstream",
+            "lateral"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "edge_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "edge_revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Edge Revision",
+          "type": "integer"
+        },
+        "expected_return_contract": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Return Contract",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "permitted_actions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Permitted Actions",
+          "type": "array"
+        },
+        "permitted_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Permitted Paths",
+          "type": "array"
+        },
+        "permitted_tools": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Permitted Tools",
+          "type": "array"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Digest",
+          "type": "string"
+        },
+        "scope_class": {
+          "default": "read_only",
+          "enum": [
+            "read_only",
+            "governed_read_write"
+          ],
+          "title": "Scope Class",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "task_mode": {
+          "default": "top_level_task",
+          "enum": [
+            "top_level_task",
+            "subagent"
+          ],
+          "title": "Task Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "destination",
+        "contract_digest",
+        "schema_digest",
+        "expected_return_contract"
+      ],
+      "title": "CanonTaskEdgeRegister",
+      "type": "object"
+    },
+    "CanonTaskEdgeResult": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_path": {
+          "title": "Artifact Path",
+          "type": "string"
+        },
+        "contract_hash_evidence": {
+          "const": "declared_scope_verified_when_used_by_exchange",
+          "default": "declared_scope_verified_when_used_by_exchange",
+          "title": "Contract Hash Evidence",
+          "type": "string"
+        },
+        "destination_bound": {
+          "title": "Destination Bound",
+          "type": "boolean"
+        },
+        "duplicate": {
+          "default": false,
+          "title": "Duplicate",
+          "type": "boolean"
+        },
+        "edge": {
+          "additionalProperties": true,
+          "title": "Edge",
+          "type": "object"
+        },
+        "edge_digest": {
+          "title": "Edge Digest",
+          "type": "string"
+        },
+        "edge_id": {
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "host_task_created": {
+          "const": false,
+          "default": false,
+          "title": "Host Task Created",
+          "type": "boolean"
+        },
+        "local_role": {
+          "enum": [
+            "source",
+            "destination",
+            "both"
+          ],
+          "title": "Local Role",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "plan_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Plan Mutated",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "source_write_granted": {
+          "const": false,
+          "default": false,
+          "title": "Source Write Granted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "edge_id",
+        "edge_digest",
+        "edge",
+        "artifact_path",
+        "local_role",
+        "destination_bound"
+      ],
+      "title": "CanonTaskEdgeResult",
+      "type": "object"
+    },
+    "CanonTaskGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "cross_project_graph_complete": {
+          "const": false,
+          "default": false,
+          "title": "Cross Project Graph Complete",
+          "type": "boolean"
+        },
+        "cycle_check_scope": {
+          "const": "all_edges_recorded_in_selected_project",
+          "default": "all_edges_recorded_in_selected_project",
+          "title": "Cycle Check Scope",
+          "type": "string"
+        },
+        "cycles_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Cycles Allowed",
+          "type": "boolean"
+        },
+        "edges": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "fan_in_supported": {
+          "const": true,
+          "default": true,
+          "title": "Fan In Supported",
+          "type": "boolean"
+        },
+        "fan_out_supported": {
+          "const": true,
+          "default": true,
+          "title": "Fan Out Supported",
+          "type": "boolean"
+        },
+        "graph_digest": {
+          "title": "Graph Digest",
+          "type": "string"
+        },
+        "history": {
+          "additionalProperties": true,
+          "title": "History",
+          "type": "object"
+        },
+        "missing_returns": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Missing Returns",
+          "type": "array"
+        },
+        "native_task_attestation": {
+          "const": "not_provided",
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "nodes",
+        "edges",
+        "missing_returns",
+        "history",
+        "graph_digest"
+      ],
+      "title": "CanonTaskGraph",
+      "type": "object"
+    },
+    "CanonTaskGraphRead": {
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 16384,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "record_limit": {
+          "default": 5000,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Record Limit",
+          "type": "integer"
+        }
+      },
+      "title": "CanonTaskGraphRead",
+      "type": "object"
+    },
+    "CanonTaskResult": {
+      "$defs": {
+        "CanonPayload": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "maxProperties": 32,
+              "title": "Fields",
+              "type": "object"
+            },
+            "references": {
+              "items": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "maxItems": 20,
+              "title": "References",
+              "type": "array"
+            },
+            "summary": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "summary"
+          ],
+          "title": "CanonPayload",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "edge_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "payload": {
+          "$ref": "#/$defs/CanonPayload"
+        },
+        "reply_to": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Reply To",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "edge_id",
+        "reply_to",
+        "payload"
+      ],
+      "title": "CanonTaskResult",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "canon"
+}

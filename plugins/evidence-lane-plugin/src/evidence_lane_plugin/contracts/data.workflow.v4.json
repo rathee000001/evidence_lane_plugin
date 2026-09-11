@@ -1,0 +1,3176 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": true,
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "DataSelection",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "data_current",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+          "owner": "data",
+          "version": 1
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "f86a62f13513e48dc2078388abb5f0d1d64d80752ad2b71b92167f7d78bfc583",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_current",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_current.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "DataExport",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_export",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "75750868e71878a9a72e8a6e07196b27c48f248e1568d08ed9f5688c1ae320bd",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "data_export",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_export.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "data.structure"
+            },
+            "worker_operations": [
+              "tabular_parse_content"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_export.native_view",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "data.structure"
+            },
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_export.native_arrow",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "data.structure"
+            },
+            "worker_operations": [
+              "tabular_parse_content"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_export.native_arrow_view",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "pyarrow",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "data.structure"
+            },
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_parse_content",
+          "render_lane_view"
+        ]
+      },
+      "verification_checks": [
+        "tabular_export_hash_verified"
+      ],
+      "worker_operations": [
+        "tabular_parse_content",
+        "render_lane_view"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Generate a new immutable lane-owned file under the format-specific contract.",
+      "inputSchema": {
+        "$defs": {
+          "Value": {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number",
+                  "boolean",
+                  "null",
+                  "date",
+                  "datetime",
+                  "time",
+                  "iso_date",
+                  "error",
+                  "duration_seconds",
+                  "binary",
+                  "json",
+                  "missing",
+                  "nonfinite"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Value"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Columns",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^/\\\\:]+\\.(json|jsonl|csv|tsv)$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "$ref": "#/$defs/Value"
+              },
+              "type": "array"
+            },
+            "maxItems": 2000,
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "logical_name",
+          "columns",
+          "rows"
+        ],
+        "title": "DataDataGenerate",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_generate",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "66fba8f1f8f1927ddcafd4ee5f927b0eb7cd3d9cedc4c5f855a171e72f109d32",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_generate",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:generate",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_generate.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "data_generate"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "worker_operations": [
+        "data_generate"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot exact file bytes and bounded facts in the separate data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(csv|tsv|json|jsonl)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DataIndexRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_index",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_materialization": {
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "group_limit": 1,
+        "path_argument": "filename",
+        "preparation_is_execution": false
+      },
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "data"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "09fcd880904f9578443830c34b8e23e6ec7680e0566b4ed25dfebc58befa2f38",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_index",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_index.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot exact file bytes and bounded facts in the separate data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(parquet|arrow|feather)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DataIndexArrowRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_index_arrow",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "data"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "8361e18666adc4712f4c9bc28a80beb5fbe71285edf5ea06f29f336a5fb5ccdd",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_index_arrow",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_index_arrow.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_columns": {
+            "default": 64,
+            "maximum": 256,
+            "minimum": 1,
+            "title": "Max Columns",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 200,
+            "maximum": 2000,
+            "minimum": 1,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataInspection",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_inspect_duckdb",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d14d0a0b0c5cf78e24ca606af6dd996824c0698c451df759d652556767eb08d7",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_inspect_duckdb",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_inspect_duckdb.library",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "DuckDB",
+              "pyarrow"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_inspect"
+        ]
+      },
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "worker_operations": [
+        "tabular_inspect"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_columns": {
+            "default": 64,
+            "maximum": 256,
+            "minimum": 1,
+            "title": "Max Columns",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 200,
+            "maximum": 2000,
+            "minimum": 1,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataInspection",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_inspect_pandas",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "04969fc8bee7dbc4d62c1ef5bebcfc2698235c4d79bab6389a45d65a36ac5ade",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_inspect_pandas",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_inspect_pandas.library",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "pandas"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_inspect"
+        ]
+      },
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "worker_operations": [
+        "tabular_inspect"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_columns": {
+            "default": 64,
+            "maximum": 256,
+            "minimum": 1,
+            "title": "Max Columns",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 200,
+            "maximum": 2000,
+            "minimum": 1,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataInspection",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_inspect_polars",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b98cb29ef97b2d7032a7cda10b3a69da746170aa478bb3580d69badb03a971c8",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_inspect_polars",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_inspect_polars.library",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "Polars"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_inspect"
+        ]
+      },
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "worker_operations": [
+        "tabular_inspect"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read an exact library inspection and its source binding.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "derivative_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Derivative Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "derivative_id"
+        ],
+        "title": "DataInspectionRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "data_inspection_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+          "owner": "data",
+          "version": 1
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "3a328cf9c63c4907e7ac8dbab931501c7623fbcb65ace459de510cf9bf3b2fbe",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_inspection_read",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_inspection:register_inspections.<locals>.reader",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_inspection_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "table",
+              "column",
+              "row",
+              "lineage"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "part": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Part"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "data_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "data",
+      "project_required": true,
+      "project_search": {
+        "basis": "sqlite_fts5_bm25",
+        "collection": "text",
+        "current_action": "data_current",
+        "current_items": "files",
+        "items": "rows",
+        "lanes": [
+          "data"
+        ],
+        "match_mode": "any",
+        "rerank_text": "text"
+      },
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+          "owner": "data",
+          "version": 1
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "1e5df8b30817c3ed07bd50c4949359d67bdc3cb6a9ff006d86a8c21044d9ff35",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_query",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read bounded identities, typed facts or exact historical bytes from the data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 8388608,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "representation": {
+            "default": "snapshot",
+            "enum": [
+              "snapshot",
+              "original_source"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DataRead",
+        "type": "object"
+      },
+      "lane_fetch": {
+        "digest_result": "sha256",
+        "lanes": [
+          "data"
+        ],
+        "offset_argument": "offset",
+        "path_argument": null,
+        "path_prefix": "",
+        "path_result": "logical_name",
+        "primary_representation": "snapshot",
+        "size_result": "total_bytes"
+      },
+      "mutates": false,
+      "name": "data_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+          "owner": "data",
+          "version": 1
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "da5e605f7a7506c17090e2b17d513e0359998274d3309a3a64345046e0dee71f",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_read",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot exact file bytes and bounded facts in the separate data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(csv|tsv|json|jsonl)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DataRefreshRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_refresh",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "data"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "676662f1581beb95e7c52fb7e44044a41cdc169cafc8a7fecc0d10faa08b8527",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_refresh",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_refresh.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "workflow": "refresh"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot exact file bytes and bounded facts in the separate data lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?i)\\.(parquet|arrow|feather)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DataRefreshArrowRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_refresh_arrow",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "data"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "9cc6f36bef03a08d05da5d6974c0ebed519d2fd9a997e6e79c28ffdcfaaaf640",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_refresh_arrow",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_refresh_arrow.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "tabular_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "tabular_parse_file"
+      ],
+      "workflow": "refresh"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Select, filter, sort or explicitly cast a complete bounded dataset into a separately versioned result.",
+      "inputSchema": {
+        "$defs": {
+          "Cast": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "maxLength": 256,
+                "minLength": 1,
+                "title": "Column",
+                "type": "string"
+              },
+              "target": {
+                "const": "text",
+                "default": "text",
+                "title": "Target",
+                "type": "string"
+              }
+            },
+            "required": [
+              "column"
+            ],
+            "title": "Cast",
+            "type": "object"
+          },
+          "Filter": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "maxLength": 256,
+                "minLength": 1,
+                "title": "Column",
+                "type": "string"
+              },
+              "operator": {
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "is_null"
+                ],
+                "title": "Operator",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/Value"
+              }
+            },
+            "required": [
+              "column",
+              "operator"
+            ],
+            "title": "Filter",
+            "type": "object"
+          },
+          "Sort": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "maxLength": 256,
+                "minLength": 1,
+                "title": "Column",
+                "type": "string"
+              },
+              "descending": {
+                "default": false,
+                "title": "Descending",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "column"
+            ],
+            "title": "Sort",
+            "type": "object"
+          },
+          "Value": {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number",
+                  "boolean",
+                  "null",
+                  "date",
+                  "datetime",
+                  "time",
+                  "iso_date",
+                  "error",
+                  "duration_seconds",
+                  "binary",
+                  "json",
+                  "missing",
+                  "nonfinite"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Value"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "casts": {
+            "items": {
+              "$ref": "#/$defs/Cast"
+            },
+            "maxItems": 256,
+            "title": "Casts",
+            "type": "array"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "title": "Columns",
+            "type": "array"
+          },
+          "expected_output_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Output Snapshot"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "filters": {
+            "items": {
+              "$ref": "#/$defs/Filter"
+            },
+            "maxItems": 16,
+            "title": "Filters",
+            "type": "array"
+          },
+          "lane_id": {
+            "const": "data",
+            "default": "data",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^/\\\\:]+\\.(json|jsonl|csv|tsv)$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/$defs/Sort"
+            },
+            "maxItems": 8,
+            "title": "Sort",
+            "type": "array"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256",
+          "logical_name"
+        ],
+        "title": "DataDataTransform",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "data_transform",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "data_excel",
+              "data"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "TabularResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "data",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "765e311b09878921883563ac012806d53c6f84e8402da692d29212af1da78406",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "data_transform",
+        "profile": "data",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.tabular_profile:transform_data",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "data_transform.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "data_transform"
+        ]
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "worker_operations": [
+        "data_transform"
+      ],
+      "workflow": "build"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "DataDataGenerate": {
+      "$defs": {
+        "Value": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "text",
+                "number",
+                "boolean",
+                "null",
+                "date",
+                "datetime",
+                "time",
+                "iso_date",
+                "error",
+                "duration_seconds",
+                "binary",
+                "json",
+                "missing",
+                "nonfinite"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "title": "Value",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "logical_name": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[^/\\\\:]+\\.(json|jsonl|csv|tsv)$",
+          "title": "Logical Name",
+          "type": "string"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "$ref": "#/$defs/Value"
+            },
+            "type": "array"
+          },
+          "maxItems": 2000,
+          "title": "Rows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "logical_name",
+        "columns",
+        "rows"
+      ],
+      "title": "DataDataGenerate",
+      "type": "object"
+    },
+    "DataDataTransform": {
+      "$defs": {
+        "Cast": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "target": {
+              "const": "text",
+              "default": "text",
+              "title": "Target",
+              "type": "string"
+            }
+          },
+          "required": [
+            "column"
+          ],
+          "title": "Cast",
+          "type": "object"
+        },
+        "Filter": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "operator": {
+              "enum": [
+                "equals",
+                "not_equals",
+                "is_null"
+              ],
+              "title": "Operator",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/Value"
+            }
+          },
+          "required": [
+            "column",
+            "operator"
+          ],
+          "title": "Filter",
+          "type": "object"
+        },
+        "Sort": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "descending": {
+              "default": false,
+              "title": "Descending",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "column"
+          ],
+          "title": "Sort",
+          "type": "object"
+        },
+        "Value": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "text",
+                "number",
+                "boolean",
+                "null",
+                "date",
+                "datetime",
+                "time",
+                "iso_date",
+                "error",
+                "duration_seconds",
+                "binary",
+                "json",
+                "missing",
+                "nonfinite"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "title": "Value",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "casts": {
+          "items": {
+            "$ref": "#/$defs/Cast"
+          },
+          "maxItems": 256,
+          "title": "Casts",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Columns",
+          "type": "array"
+        },
+        "expected_output_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Output Snapshot"
+        },
+        "expected_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        },
+        "filters": {
+          "items": {
+            "$ref": "#/$defs/Filter"
+          },
+          "maxItems": 16,
+          "title": "Filters",
+          "type": "array"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "logical_name": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[^/\\\\:]+\\.(json|jsonl|csv|tsv)$",
+          "title": "Logical Name",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "sort": {
+          "items": {
+            "$ref": "#/$defs/Sort"
+          },
+          "maxItems": 8,
+          "title": "Sort",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "expected_sha256",
+        "logical_name"
+      ],
+      "title": "DataDataTransform",
+      "type": "object"
+    },
+    "DataExport": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Sha256"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "filename"
+      ],
+      "title": "DataExport",
+      "type": "object"
+    },
+    "DataIndexArrowRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "pattern": "(?i)\\.(parquet|arrow|feather)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DataIndexArrowRequest",
+      "type": "object"
+    },
+    "DataIndexRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "pattern": "(?i)\\.(csv|tsv|json|jsonl)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DataIndexRequest",
+      "type": "object"
+    },
+    "DataInspection": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_columns": {
+          "default": 64,
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Max Columns",
+          "type": "integer"
+        },
+        "max_rows": {
+          "default": 200,
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Rows",
+          "type": "integer"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DataInspection",
+      "type": "object"
+    },
+    "DataInspectionRead": {
+      "additionalProperties": false,
+      "properties": {
+        "derivative_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Derivative Id",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "derivative_id"
+      ],
+      "title": "DataInspectionRead",
+      "type": "object"
+    },
+    "DataQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "table",
+            "column",
+            "row",
+            "lineage"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "part": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Part"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DataQuery",
+      "type": "object"
+    },
+    "DataRead": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "representation": {
+          "default": "snapshot",
+          "enum": [
+            "snapshot",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DataRead",
+      "type": "object"
+    },
+    "DataRefreshArrowRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "pattern": "(?i)\\.(parquet|arrow|feather)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DataRefreshArrowRequest",
+      "type": "object"
+    },
+    "DataRefreshRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "pattern": "(?i)\\.(csv|tsv|json|jsonl)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DataRefreshRequest",
+      "type": "object"
+    },
+    "DataSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data",
+          "default": "data",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "DataSelection",
+      "type": "object"
+    },
+    "TabularResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "enum": [
+            "data_excel",
+            "data"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "lane_id",
+        "operation",
+        "result"
+      ],
+      "title": "TabularResult",
+      "type": "object"
+    }
+  },
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "installed_native_execution_verified": false,
+  "lane_id": "data",
+  "schema": "evidence-lane.data-workflow.v4"
+}

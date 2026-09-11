@@ -1,0 +1,198 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read the project compute preference without claiming a successful backend selection.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "AcceleratorRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "accelerator_read",
+  "outputSchema": {
+    "$defs": {
+      "AcceleratorConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "action_classes": {
+            "items": {
+              "enum": [
+                "RETRIEVAL",
+                "OCR_MEDIA",
+                "EVALUATION"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Action Classes",
+            "type": "array"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Device Id"
+          },
+          "enabled_vendor_plugins": {
+            "items": {
+              "enum": [
+                "nvidia",
+                "amd"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Enabled Vendor Plugins",
+            "type": "array"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "memory_budget_percent": {
+            "default": 80,
+            "maximum": 95,
+            "minimum": 1,
+            "title": "Memory Budget Percent",
+            "type": "integer"
+          },
+          "purpose": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "requested_profile": {
+            "default": "cpu",
+            "enum": [
+              "cpu",
+              "auto",
+              "nvidia",
+              "amd"
+            ],
+            "title": "Requested Profile",
+            "type": "string"
+          },
+          "temperature_limit_c": {
+            "default": 83,
+            "maximum": 110,
+            "minimum": 30,
+            "title": "Temperature Limit C",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "purpose",
+          "action_classes",
+          "expires_at"
+        ],
+        "title": "AcceleratorConfig",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "backend_selection_verified": {
+        "const": false,
+        "default": false,
+        "title": "Backend Selection Verified",
+        "type": "boolean"
+      },
+      "config": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/AcceleratorConfig"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Digest"
+      },
+      "requested_profile": {
+        "title": "Requested Profile",
+        "type": "string"
+      },
+      "revision": {
+        "title": "Revision",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "revision",
+      "requested_profile"
+    ],
+    "title": "AcceleratorSettings",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "runtime",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "626023f8ae6fc6892fd0afc73750a52dec70edfe92bafff393c0320519caf8e1",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "accelerator_read",
+    "profile": "runtime",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.accelerators:register_accelerator_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "accelerator_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "toolchain"
+}

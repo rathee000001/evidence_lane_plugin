@@ -1,24 +1,21 @@
-<!-- evidence-lane-public-docs-full-refresh: 3.0.0 / R265-current-route-v2; license terms unchanged -->
+# MIT License
 
-# Proprietary source license and rights notice
+Copyright (c) 2026 Praveen Rathee
 
-Copyright © 2026 Praveen Rathee. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The Evidence Lane source, documentation, original artwork, schemas, lifecycle
-design, and project-specific artifacts in this repository are proprietary unless
-a file expressly states otherwise. Access for evaluation, private collaboration,
-or testing does not grant permission to copy, redistribute, publish, sublicense,
-commercialize, create derivative releases, or expose private project material.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-No patent, trademark, copyright, trade-secret, database, or other intellectual
-property right is transferred by access to this repository. No HIL decision,
-candidate package, Git branch, installation, or deployment changes that rule.
-
-Third-party software, services, models, assets, and trademarks remain governed by their respective owners' terms, licenses, and rights. Evidence Lane grants no rights over them.
-
-Their inclusion or use does not transfer ownership of Evidence Lane, and this
-notice does not replace their terms. Model and tool assistance does not create
-project authorship or acceptance authority.
-
-For permission beyond private evaluation, obtain a separate written agreement
-from Praveen Rathee.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

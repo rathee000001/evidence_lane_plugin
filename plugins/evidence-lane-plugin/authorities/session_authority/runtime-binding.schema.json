@@ -1,23 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "session_authority runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "session_authority"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.session_authority"
-    },
-    "source_sha256": {
-      "const": "2A2B10C1E0C174A86412F0F5C5839FA602109E7A346F181579DCC09666FCA2AB"
-    }
+  "const": {
+    "owner_id": "session_authority",
+    "modules": [
+      "evidence_lane_plugin.session_authority"
+    ],
+    "storage": "authorities/receipts/receipts_authority_v001.sqlite sessions schema owner",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "DE0B7FB95DBCB0F7900E2302E7873CC4C205FA643A9C0708FF5A1CE7859BAC9C"
+  "title": "session_authority canonical runtime binding"
 }

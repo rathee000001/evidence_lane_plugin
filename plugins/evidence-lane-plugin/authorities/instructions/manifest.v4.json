@@ -1,0 +1,81 @@
+{
+  "schema": "evidence-lane.authority-workflow-package.v4",
+  "owner_id": "instructions",
+  "source_package_folder": "authorities/instructions",
+  "modules": [
+    "evidence_lane_plugin.agent_configuration"
+  ],
+  "storage": "Scoped instruction and separate workspace/host recall files; no database",
+  "separate_database": false,
+  "installed_execution_claimed": false,
+  "members": [
+    {
+      "path": "authorities/instructions/README.md",
+      "sha256": "900e5b2d3aafda7f7e01886571624c41ca1115c3237c336999718f6686c76538"
+    },
+    {
+      "path": "authorities/instructions/authority-contract.schema.json",
+      "sha256": "d545613e247fcb8654af815639774317966cfb04343d2575ad3050e6d44c8fad"
+    },
+    {
+      "path": "authorities/instructions/authority-contract.v4.json",
+      "sha256": "b08897108e4a63e847c48f27d298c36e7afbe78b779ced3252940c42ec924782"
+    },
+    {
+      "path": "authorities/instructions/build-refresh-contract.schema.json",
+      "sha256": "68251578825b5efb7595c50df85d72c92b4d52cfc8c93809bff75afef5dc3a88"
+    },
+    {
+      "path": "authorities/instructions/builder.py",
+      "sha256": "f12eccbdde4146f228e334415f3f82c04e5688dbbaad0e14664ca878f525db17"
+    },
+    {
+      "path": "authorities/instructions/manifest.schema.json",
+      "sha256": "6d8aef1dd723e80a4586d7a9648a9fb5cdea072e723073e1af86d9b9d30c6234"
+    },
+    {
+      "path": "authorities/instructions/reader-contract.schema.json",
+      "sha256": "898c116cf58e907efbd8af0889394f85d8e9246e531c143c111857d2b685505b"
+    },
+    {
+      "path": "authorities/instructions/reader.py",
+      "sha256": "655dc94e145b46ed407cdaa7e962507257f5e3f5db222f4d5abfb832c2e1bba2"
+    },
+    {
+      "path": "authorities/instructions/refresh-receipt.schema.json",
+      "sha256": "186600eab40eb7ecb0fa51782b44f2d6bc28339ab38b7b96f8241a6c8b8ab29a"
+    },
+    {
+      "path": "authorities/instructions/runtime-binding.schema.json",
+      "sha256": "30fab867819a5c175d0bc208b749fbac6baff8b6414288d8b0e61362b7bf4f9c"
+    },
+    {
+      "path": "authorities/instructions/runtime-binding.v4.json",
+      "sha256": "0aa068b4dc2383933f4079c82803aee2cee06144380190798ec8cd9b5abdf06f"
+    },
+    {
+      "path": "authorities/instructions/runtime.py",
+      "sha256": "a5ab0aef2eb283cf696c94c0e5292cf7ab5ecdae2d09865f7a80187addaf56ff"
+    },
+    {
+      "path": "authorities/instructions/tools.json",
+      "sha256": "b3518211d6c283c9b670d34fa5ba0248ad629d41627fcffe11c7d2ce29c034f2"
+    },
+    {
+      "path": "authorities/instructions/tools.schema.json",
+      "sha256": "802c82f75b7273e6a37468537227753344f37ed9c5606e6dc11f326fd8c66bc0"
+    },
+    {
+      "path": "authorities/instructions/workflow.dot",
+      "sha256": "c3d4ccc7ecc03a7ca01dea71fdb09e47eef6ec8019016d3b32a288af75996f0d"
+    },
+    {
+      "path": "authorities/instructions/workflow.mmd",
+      "sha256": "1579a643e563a81e6a2b31fc7bb10ae652d3a5d971b0df0d50ea671c1a9fba9c"
+    },
+    {
+      "path": "authorities/instructions/workflow.v4.json",
+      "sha256": "4d9c75da4ebce72396ec6946fe3c5ba868c8d318022085a4445660d99b485f68"
+    }
+  ]
+}

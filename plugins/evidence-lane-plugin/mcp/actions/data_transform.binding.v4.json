@@ -1,0 +1,434 @@
+{
+  "action": "data_transform",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/data_transform.action.v4.json",
+  "sdk_binding_sha256": "8aff31ea70de70ec9a0d97a7aa290535f90eabd0b375ff3c537ca2681e68b16b",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Select, filter, sort or explicitly cast a complete bounded dataset into a separately versioned result.",
+    "inputSchema": {
+      "$defs": {
+        "Cast": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "target": {
+              "const": "text",
+              "default": "text",
+              "title": "Target",
+              "type": "string"
+            }
+          },
+          "required": [
+            "column"
+          ],
+          "title": "Cast",
+          "type": "object"
+        },
+        "Filter": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "operator": {
+              "enum": [
+                "equals",
+                "not_equals",
+                "is_null"
+              ],
+              "title": "Operator",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/Value"
+            }
+          },
+          "required": [
+            "column",
+            "operator"
+          ],
+          "title": "Filter",
+          "type": "object"
+        },
+        "Sort": {
+          "additionalProperties": false,
+          "properties": {
+            "column": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Column",
+              "type": "string"
+            },
+            "descending": {
+              "default": false,
+              "title": "Descending",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "column"
+          ],
+          "title": "Sort",
+          "type": "object"
+        },
+        "Value": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "text",
+                "number",
+                "boolean",
+                "null",
+                "date",
+                "datetime",
+                "time",
+                "iso_date",
+                "error",
+                "duration_seconds",
+                "binary",
+                "json",
+                "missing",
+                "nonfinite"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "title": "Value",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "casts": {
+              "items": {
+                "$ref": "#/$defs/Cast"
+              },
+              "maxItems": 256,
+              "title": "Casts",
+              "type": "array"
+            },
+            "columns": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 256,
+              "title": "Columns",
+              "type": "array"
+            },
+            "expected_output_snapshot": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Output Snapshot"
+            },
+            "expected_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Expected Sha256",
+              "type": "string"
+            },
+            "filters": {
+              "items": {
+                "$ref": "#/$defs/Filter"
+              },
+              "maxItems": 16,
+              "title": "Filters",
+              "type": "array"
+            },
+            "lane_id": {
+              "const": "data",
+              "default": "data",
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "logical_name": {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[^/\\\\:]+\\.(json|jsonl|csv|tsv)$",
+              "title": "Logical Name",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "sort": {
+              "items": {
+                "$ref": "#/$defs/Sort"
+              },
+              "maxItems": 8,
+              "title": "Sort",
+              "type": "array"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "expected_sha256",
+            "logical_name"
+          ],
+          "title": "DataDataTransform",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "data_transform",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

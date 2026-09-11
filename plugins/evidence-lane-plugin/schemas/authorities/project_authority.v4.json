@@ -1,0 +1,53 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "project_authority",
+  "members": [
+    {
+      "path": "authorities/project_authority/build-refresh-contract.schema.json",
+      "sha256": "6b9f6b7fe6b86a50fb5be424ffcec8cd26dc06ddb1146cd0829daa2cdfa13112"
+    },
+    {
+      "path": "authorities/project_authority/live-root-layout.schema.json",
+      "sha256": "00d2a32be6dd019a3d4f3644da9e1eaec2909dd7edca06125c7f87bb32d03f27"
+    },
+    {
+      "path": "authorities/project_authority/manifest.schema.json",
+      "sha256": "e947fc001bbd012a6737ab1b4e700d6e3f8a37a92207afe1d788939b0a357bfc"
+    },
+    {
+      "path": "authorities/project_authority/manifest.v4.json",
+      "sha256": "d8c2e6a1f758b01f4e1a8667599d6b0c43975deb6277a7b9c74dd9e8a4023102"
+    },
+    {
+      "path": "authorities/project_authority/reader-contract.schema.json",
+      "sha256": "4aab0b3c93bf9a148959faa2d8ae82329b89c148bfc79f90237a7ea74db0b2ea"
+    },
+    {
+      "path": "authorities/project_authority/refresh-receipt.schema.json",
+      "sha256": "67deb3c5b2cd3b7fd875c818fd9d89817c1a251f454f50d2b905e0a692624523"
+    },
+    {
+      "path": "authorities/project_authority/runtime-binding.schema.json",
+      "sha256": "8b22efcf0632bbc7e3801fd98c1c7f7050fa5af7d72ba927ac9df0b1b44b79c2"
+    },
+    {
+      "path": "authorities/project_authority/runtime-binding.v4.json",
+      "sha256": "87bd0a38235e5843a734b7a8fe4fda2ef1e817acdfa2d9e40cbdd34640cf126e"
+    },
+    {
+      "path": "authorities/project_authority/schema.sql",
+      "sha256": "0e22957988d25f703c0f40ef105245337eaab1929f1ae51dd19d5f946c177529"
+    },
+    {
+      "path": "authorities/project_authority/sqlite-schema.v4.json",
+      "sha256": "18c0e3283f05a1d46a4df76a196ce68d7099e8f65222026008be605c97408696"
+    },
+    {
+      "path": "authorities/project_authority/tools.schema.json",
+      "sha256": "2eabf0dcf320dc961ca8939f46538a2d05b3c8582836482050a3b7c27ac22ad2"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

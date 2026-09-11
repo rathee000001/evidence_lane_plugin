@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "core_interpreter": "CPython 3.14 on Windows AMD64",
+  "isolation": "Each provider uses its own exact dependency lock and interpreter. Optional dependencies are not imported into the engine.",
+  "runtime_families": {
+    "cpu": {"python": "3.14", "runtime": "torch 2.13.0+cpu", "qualification": "Measured operation and installed RECORD integrity passed on this host"},
+    "cuda": {"python": "3.14", "runtime": "torch 2.13.0+cu130", "qualification": "Measured operation and installed RECORD integrity passed on NVIDIA RTX 5060 driver 591.74", "device_binding": "Exact NVIDIA UUID observed by driver inventory and PyTorch"},
+    "directml": {"python": "3.12", "runtime": "onnxruntime-directml 1.24.4", "qualification": "Measured numerical probe and all three RapidOCR model forwards passed on NVIDIA RTX 5060 driver 591.74", "supported_vendors": ["NVIDIA", "AMD"], "device_binding": "NVIDIA GPU UUID mapped through the CUDA driver to its exact DXGI LUID; AMD uses its exact boot-local DXGI LUID", "execution_evidence": "Every RapidOCR model profile contains DirectML nodes; attributed CPU support nodes are counted separately"},
+    "rocm": {"python": "3.12", "runtime": "torch 2.9.1+rocm7.2.1 with ROCm SDK 7.2.1", "qualification": "Conditional AMD Windows environment; no AMD hardware qualification on the development host", "publisher_prerequisite": "AMD-supported Windows 11 hardware and driver for ROCm 7.2.1; this recipe does not install or change a driver", "device_binding": "Exact runtime UUID required; unavailable identity prevents admission"}
+  },
+  "measurement_limits": [
+    "A small operation proves provider execution only for that operation, environment and device at the recorded time.",
+    "Full profile workloads require their own execution checks.",
+    "DXGI inventory does not provide global used VRAM, temperature or throttle status. These remain unavailable; the strict accelerator budget policy falls back to CPU until a supported telemetry source supplies all required measurements.",
+    "AMD SMI is a Linux interface; do not advertise it as measured native Windows telemetry.",
+    "ROCm and DirectML execution on AMD hardware has not been tested on this NVIDIA-only machine. DirectML execution on NVIDIA is measured separately from CUDA."
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/windows/ai/faq",
+    "https://onnxruntime.ai/docs/execution-providers/DirectML-ExecutionProvider.html",
+    "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2.1/docs/install/installrad/windows/install-pytorch.html",
+    "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2.1/docs/compatibility/compatibilityrad/windows/windows_compatibility.html",
+    "https://rocm.docs.amd.com/projects/amdsmi/en/latest/install/install.html",
+    "https://docs.nvidia.com/deploy/nvidia-smi/index.html"
+  ]
+}

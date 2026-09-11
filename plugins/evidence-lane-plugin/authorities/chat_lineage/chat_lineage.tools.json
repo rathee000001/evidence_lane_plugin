@@ -1,0 +1,511 @@
+{
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "chat_lineage",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
+    {
+      "name": "capture_bind",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "chatlineage",
+      "workflow": "boot",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "capture_bind",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "capture_bind.engine",
+            "adapter": "evidence_lane_plugin.capture_routing:CaptureRouter.bind",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2edf8b24abefa7d7d770cb575a765c73bfbe1ae3dc5932a19a0096b128f68cdf"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "continuation_accept",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_accept",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_accept.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b73b55c1fb1dde978212ebd3a2dd796dee738c07eca8a7942276fe905ea67ff5"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "continuation_cancel",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_cancel",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_cancel.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "28cf1d80646a4c4c2f56b2bb7eb61b122e821c00f867b1316cd3f1088232e92d"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "continuation_context",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_context",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_context.engine",
+            "adapter": "evidence_lane_plugin.canon_runtime_continuity:register_continuation_context.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "1ca69edd5422374171f892c3aac5a0f19055bca7c4f7e95a029ac6bb81fb8f18"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "continuation_offer",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_offer",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_offer.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "1ed02188041722ee5b130c59a80b636fe98912a7ebf8e38a1d8c1e719427a732"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "continuation_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_read",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_read.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "87a205d3c9ae34fe843346443331887fbfeb4118f12d41abbff7babbf5e0a09b"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "lineage_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "chatlineage",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "lineage_read",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "lineage_read.engine",
+            "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2879ddaca16fa7b3353286114f1c793c54e4e19aa160d43d12b38b8d3ba9ca5e"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "lineage_record",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "chatlineage",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "lineage_record",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "lineage_record.engine",
+            "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.append",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f08384de72bfa55d05a3cb0d958999a2aa35ccb92368db3f00145f9e2d8cc357"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "prompt_index_status",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "chat_lineage",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "prompt_index_status",
+        "profile": "chat_lineage",
+        "routes": [
+          {
+            "route_id": "prompt_index_status.engine",
+            "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "fcfb3642fdd4ab461aa72e1453c306bd8f94ea0747c3d37f8b8efe2eed958da6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_classify",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "chat_lineage",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_classify",
+        "profile": "chat_lineage",
+        "routes": [
+          {
+            "route_id": "task_classify.engine",
+            "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.classify",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "a6fc81fae848bc1057d0d719394b2f6c7cb37352dcc8daac1cd916a58b8bd614"
+      },
+      "verification_checks": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "chat_lineage.ancestry",
+      "lane_id": "chat_lineage",
+      "folder": "authorities/chat_lineage",
+      "version": 1,
+      "meaning": "Visible conversation events and their recorded parent ancestry.",
+      "consumer": "artifact_export",
+      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "files": {
+        "mmd": "chat_lineage.mmd",
+        "dot": "chat_lineage.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "lineage"
+      ],
+      "node_kinds": [
+        "lineage_event"
+      ],
+      "edge_kinds": [
+        "PARENT_OF"
+      ],
+      "schemas": [
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "dependency_installation_inferred": false,
+  "planned_actions": [],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
+}

@@ -1,0 +1,53 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "transports",
+  "members": [
+    {
+      "path": "schemas/transports/hook-envelope.v4.schema.json",
+      "sha256": "4491c406bb34caa61caa4cbbae19c0d0dd103aa5456994755a4b1aa931c5ae62"
+    },
+    {
+      "path": "schemas/transports/local-connect.v4.schema.json",
+      "sha256": "d41cc2cdc595060e0ad297100b406c385c8f42e5490133f924881d7051bc23f4"
+    },
+    {
+      "path": "schemas/transports/remote-action.v4.schema.json",
+      "sha256": "2f8c3a7232da3d78d1fd2f4068f953eef72df7d6ca8a40cb777e7193bd260a53"
+    },
+    {
+      "path": "schemas/transports/remote-capture.v4.schema.json",
+      "sha256": "4a8a87620d09129f4e6346860f6c7ce6822bbe3c2cd310d832d529fccf3100ab"
+    },
+    {
+      "path": "schemas/transports/remote-client-config.v4.schema.json",
+      "sha256": "4442a38454c1cc1a1dad773fa07614d87c8e897a88376306b0f472e75510a6fd"
+    },
+    {
+      "path": "schemas/transports/remote-connect.v4.schema.json",
+      "sha256": "0ee4f3b6fd00afd7c271c31e866ece42ac0450c056ff3a9023fffb22a09f4c62"
+    },
+    {
+      "path": "schemas/transports/remote-connection.v4.schema.json",
+      "sha256": "6af298c075e31e68c96a7a3717c7d065b19060b9415d7a39ae3f84fbae2d79a1"
+    },
+    {
+      "path": "schemas/transports/remote-discover.v4.schema.json",
+      "sha256": "8bd2e0a9776604cbb5f7881c773cca2223c5c5534712015c7c72a2c96ead2a3b"
+    },
+    {
+      "path": "schemas/transports/remote-policy.v4.schema.json",
+      "sha256": "5b37a996e663c512ebf450aaabc9d3a9f9df595b222089aae1060893fafb0a0a"
+    },
+    {
+      "path": "schemas/transports/remote-probe-verification.v4.schema.json",
+      "sha256": "33f34776f4682d34c236d4e2bae0e2cb8a8ba0d1b5dc3da87b5b929ffe01fe63"
+    },
+    {
+      "path": "schemas/transports/remote-probe.v4.schema.json",
+      "sha256": "b491cd1e7d03ea7c621db51d2a2f2436876b3679e2b73e7d65cb905bac592581"
+    }
+  ],
+  "purpose": "Complete transports schema family",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

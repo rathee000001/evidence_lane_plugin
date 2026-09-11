@@ -1,0 +1,172 @@
+{
+  "schema": "evidence-lane.authority-pointer-contract.v4",
+  "lane_id": "memory",
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "memory",
+    "folder": "authorities/memory",
+    "files_root": "authorities/memory/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "memory_authority_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "records_sources_links_and_attribution"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "memory.mmd",
+      "dot": "memory.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact bounded attributed Memory slice, never host MEMORY.md"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "166FCEE43DF23C3A11496D723A181FF23B78C27147EF2CC323914CF8211B69D3"
+  },
+  "views": [
+    {
+      "view_id": "memory.links",
+      "lane_id": "memory",
+      "folder": "authorities/memory",
+      "version": 1,
+      "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
+      "consumer": "artifact_export",
+      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "files": {
+        "mmd": "memory.mmd",
+        "dot": "memory.dot",
+        "pointer": "memory-pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "memory",
+        "plan",
+        "learning",
+        "canon"
+      ],
+      "node_kinds": [
+        "memory_locator"
+      ],
+      "edge_kinds": [
+        "DERIVED_FROM",
+        "EVIDENCES",
+        "LEARNED_FROM",
+        "MAPS_TO",
+        "RELATED_TO",
+        "REVOKES",
+        "SUPERSEDES",
+        "SUPPRESSES"
+      ],
+      "schemas": [
+        {
+          "owner": "memory",
+          "version": 1,
+          "digest": "0d277f8548d70efecf566af4644273de352f812d261f815bc069d2d6007185e9"
+        },
+        {
+          "owner": "plan",
+          "version": 1,
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c"
+        },
+        {
+          "owner": "plan",
+          "version": 2,
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543"
+        },
+        {
+          "owner": "plan",
+          "version": 3,
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79"
+        },
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        },
+        {
+          "owner": "canon",
+          "version": 1,
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7"
+        },
+        {
+          "owner": "canon",
+          "version": 2,
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb"
+        },
+        {
+          "owner": "canon",
+          "version": 3,
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11"
+        },
+        {
+          "owner": "canon",
+          "version": 4,
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da"
+        },
+        {
+          "owner": "canon",
+          "version": 5,
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393"
+        },
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "role": "Exact immutable selected-view navigation; never a second current-state authority",
+  "automatic_bundle": false
+}

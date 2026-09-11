@@ -1,0 +1,13 @@
+{
+  "schema": "evidence-lane.package-self-test-policy.v4",
+  "scope": "bounded executable plugin package and distribution contracts",
+  "tests": [
+    "test_package_architecture.py",
+    "test_hook_event_packages.py",
+    "test_sdk_imports.py",
+    "test_plan_projection_contract.py"
+  ],
+  "root_test_role": "broader repository integration, format, security and candidate CI",
+  "package_test_role": "independent installed-source structure, imports and bounded contract behavior",
+  "installed_native_execution_claimed": false
+}

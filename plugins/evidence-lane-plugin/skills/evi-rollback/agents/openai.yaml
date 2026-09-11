@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Rollback"
-  short_description: "Select a Plan-stamped rollback state"
-  default_prompt: "Use $evi-rollback to select a full-PV or sub-PV logical state from Plan stamps; treat hard ZIP or Git restore as a separate explicit transaction."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

@@ -1,40 +1,549 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Data / Excel / CSV bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "lane_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "SectorArgs_source_snapshot_state_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_data_excel",
+      "type": "object"
     },
-    "lane_id": {
-      "const": "data_excel"
+    "SectorArgs_spreadsheet_current_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "default": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "SectorArgs_spreadsheet_current_data_excel",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "SectorArgs_spreadsheet_inspection_read_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "default": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "derivative_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Derivative Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "derivative_id"
+      ],
+      "title": "SectorArgs_spreadsheet_inspection_read_data_excel",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "SectorArgs_spreadsheet_query_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "default": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "workbook",
+            "sheet",
+            "cell",
+            "formula",
+            "defined_name",
+            "merged_range",
+            "validation",
+            "hyperlink",
+            "relationship",
+            "table",
+            "chart"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "part": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Part"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_spreadsheet_query_data_excel",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "SectorArgs_spreadsheet_read_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "default": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "representation": {
+          "default": "snapshot",
+          "enum": [
+            "snapshot",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_spreadsheet_read_data_excel",
+      "type": "object"
+    },
+    "SectorArgs_spreadsheet_render_read_data_excel": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "data_excel",
+          "default": "data_excel",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "derivative_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Derivative Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "derivative_id"
+      ],
+      "title": "SectorArgs_spreadsheet_render_read_data_excel",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
+    },
+    "SectorRequest_spreadsheet_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "spreadsheet_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_spreadsheet_current_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_spreadsheet_current",
+      "type": "object"
+    },
+    "SectorRequest_spreadsheet_inspection_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "spreadsheet_inspection_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_spreadsheet_inspection_read_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_spreadsheet_inspection_read",
+      "type": "object"
+    },
+    "SectorRequest_spreadsheet_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "spreadsheet_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_spreadsheet_query_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_spreadsheet_query",
+      "type": "object"
+    },
+    "SectorRequest_spreadsheet_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "spreadsheet_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_spreadsheet_read_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_spreadsheet_read",
+      "type": "object"
+    },
+    "SectorRequest_spreadsheet_render_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "spreadsheet_render_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_spreadsheet_render_read_data_excel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_spreadsheet_render_read",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "AA9A989185C4CFEE69956D2FED6FDFDD741529C86FF4AF269EAD23C88A3F069A"
+  "discriminator": {
+    "mapping": {
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state",
+      "spreadsheet_current": "#/$defs/SectorRequest_spreadsheet_current",
+      "spreadsheet_inspection_read": "#/$defs/SectorRequest_spreadsheet_inspection_read",
+      "spreadsheet_query": "#/$defs/SectorRequest_spreadsheet_query",
+      "spreadsheet_read": "#/$defs/SectorRequest_spreadsheet_read",
+      "spreadsheet_render_read": "#/$defs/SectorRequest_spreadsheet_render_read"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_spreadsheet_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_spreadsheet_inspection_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_spreadsheet_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_spreadsheet_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_spreadsheet_render_read"
+    }
+  ],
+  "title": "Excel typed reader requests"
 }

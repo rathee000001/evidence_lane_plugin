@@ -1,28 +1,20 @@
-name: Evidence Lane governed CI adapter
-description: Run one fixed Code-mode CI profile and emit a sealed execution receipt.
+name: Evidence Lane repository CI
+description: Run one explicit maintainer regression profile; no user-project configuration or installation.
 inputs:
   profile:
-    description: Fixed bounded profile from the governed quality, lifecycle, lane, source, smoke, or preview set.
+    description: Exact profile from .github/maintainer-ci.v4.json.
     required: true
   python_executable:
-    description: Python executable path used by the fixed Python profiles.
+    description: Python 3.14 executable selected by the repository workflow.
     required: false
     default: python
-  pnpm_executable:
-    description: pnpm executable path used by the fixed preview profile.
-    required: false
-    default: pnpm
-  receipt_path:
-    description: Workspace-relative JSON receipt path.
-    required: false
-    default: .runtime/ci/evidence-lane-ci-receipt.json
 outputs:
   status:
-    description: PASS or BLOCKED.
+    description: passed, failed or blocked for the selected regression profile.
   receipt_sha256:
-    description: Canonical SHA-256 of the receipt body.
+    description: SHA-256 of the measured result file, not an approval or native attestation.
   receipt_path:
-    description: Workspace-relative receipt path.
+    description: Repository-relative result path under .work/ci.
 runs:
   using: node24
   main: src/main.mjs

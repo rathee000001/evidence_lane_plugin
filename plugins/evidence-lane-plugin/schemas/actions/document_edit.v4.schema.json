@@ -1,0 +1,183 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish a new immutable lane-owned DOCX version with explicit structural and layout fidelity.",
+  "inputSchema": {
+    "$defs": {
+      "ParagraphReplacement": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "default": "Evidence Lane",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Author",
+            "type": "string"
+          },
+          "expected_text": {
+            "maxLength": 32768,
+            "title": "Expected Text",
+            "type": "string"
+          },
+          "paragraph_index": {
+            "maximum": 8191,
+            "minimum": 0,
+            "title": "Paragraph Index",
+            "type": "integer"
+          },
+          "part": {
+            "default": "word/document.xml",
+            "pattern": "^word/(document|header\\d+|footer\\d+)\\.xml$",
+            "title": "Part",
+            "type": "string"
+          },
+          "replacement_text": {
+            "maxLength": 32768,
+            "title": "Replacement Text",
+            "type": "string"
+          },
+          "tracked": {
+            "default": false,
+            "title": "Tracked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "paragraph_index",
+          "expected_text",
+          "replacement_text"
+        ],
+        "title": "ParagraphReplacement",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "docs",
+        "default": "docs",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "replacements": {
+        "items": {
+          "$ref": "#/$defs/ParagraphReplacement"
+        },
+        "maxItems": 32,
+        "minItems": 1,
+        "title": "Replacements",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256",
+      "replacements"
+    ],
+    "title": "DocumentEdit",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "document_edit",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "docs",
+        "default": "docs",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "DocumentResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "document",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9a91c622dc4de6fc717ceb85ed5877c4b752c22345bbc2bcfcb3766d50ba60c1",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "document_edit",
+    "profile": "document",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.document_profile:edit_document",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "document_edit.native_document",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "lxml"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "document_edit"
+    ]
+  },
+  "verification_checks": [
+    "document_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "document_edit"
+  ],
+  "workflow": "build"
+}

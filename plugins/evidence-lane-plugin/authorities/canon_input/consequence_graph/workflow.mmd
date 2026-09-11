@@ -1,0 +1,48 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=78DF007A597BDBC8491BC779D7F1563474A0D7F6DD3118E0317D0029739C3E71
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  sdk["Authenticated SDK and native MCP client"]:::default
+  read["Exact selected scope and bounded recorded evidence"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
+  delta["Current stored Plan operation and Delta admission"]:::default
+  owner["canon_consequence_graph current executable owner"]:::default
+  action_canon_backfire["canon_backfire"]:::default
+  action_canon_graph["canon_graph"]:::default
+  action_canon_inspect["canon_inspect"]:::default
+  action_canon_task_edge_bind["canon_task_edge_bind"]:::default
+  action_canon_task_edge_register["canon_task_edge_register"]:::default
+  action_canon_task_result["canon_task_result"]:::default
+  sdk -->|"write"| action_canon_backfire
+  action_canon_backfire -->|"canon"| writer
+  sdk -->|"read"| action_canon_graph
+  action_canon_graph -->|"canon"| read
+  sdk -->|"read"| action_canon_inspect
+  action_canon_inspect -->|"canon"| read
+  sdk -->|"write"| action_canon_task_edge_bind
+  action_canon_task_edge_bind -->|"canon"| writer
+  sdk -->|"write"| action_canon_task_edge_register
+  action_canon_task_edge_register -->|"canon"| writer
+  sdk -->|"write"| action_canon_task_result
+  action_canon_task_result -->|"canon"| writer
+  writer -->|"owned mutation and attributed result"| owner
+  owner -->|"published state"| read
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_canon_backfire ~~~ action_canon_graph
+  action_canon_graph ~~~ action_canon_inspect
+  action_canon_task_edge_bind ~~~ action_canon_task_edge_register
+  action_canon_task_edge_register ~~~ action_canon_task_result
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

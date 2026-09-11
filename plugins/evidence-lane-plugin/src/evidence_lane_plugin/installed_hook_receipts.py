@@ -1,10 +1,9 @@
-"""Fail-closed receipts for Codex-installed lifecycle hooks.
+"""Validate and correlate supplied hook observations without host attestation.
 
-Configuration validation proves what the package declares.  This module is
-deliberately separate: it validates the host's ``hooks/list`` readback and
-correlates later host start/completion observations with those exact installed
-hook keys and hashes.  A package declaration or a test run can never be
-relabeled as installed-host invocation proof.
+The current hook owner defines the selected events. These pure helpers check
+supplied inventory/notification identities and construct requests; they neither
+call a native host API nor establish where their inputs came from. Actual
+installed-host proof requires a separately attributed native transport result.
 """
 
 from __future__ import annotations
@@ -12,6 +11,8 @@ from __future__ import annotations
 import os
 import re
 from collections.abc import Iterable, Mapping
+from copy import deepcopy
+from itertools import islice
 from pathlib import Path
 from typing import Any
 
@@ -20,27 +21,18 @@ from .hook_contract import HOOK_EVENT_NAMES
 from .redaction import redact
 
 INSTALLED_HOOK_INVENTORY_SCHEMA = (
-    "evidence-lane.codex-installed-hook-inventory.v1"
+    "evidence-lane.codex-installed-hook-inventory.v4"
 )
 INSTALLED_HOOK_INVOCATION_SCHEMA = (
-    "evidence-lane.codex-installed-hook-invocation.v1"
+    "evidence-lane.codex-installed-hook-invocation.v4"
 )
-HOOK_FAILURE_FAILBACK_SCHEMA = "evidence-lane.codex-hook-failure-failback.v1"
-HOOK_UI_PROJECTION_SCHEMA = "evidence-lane.codex-hook-ui-projection.v1"
+HOOK_FAILURE_FAILBACK_SCHEMA = "evidence-lane.codex-hook-failure-failback.v4"
+HOOK_UI_PROJECTION_SCHEMA = "evidence-lane.codex-hook-ui-projection.v4"
+HOOK_DIAGNOSTIC_SCHEMA = "evidence-lane.codex-installed-hook-diagnostic.v4"
 
-_HOST_EVENT_NAMES = {
-    "SessionStart": "sessionStart",
-    "SubagentStart": "subagentStart",
-    "UserPromptSubmit": "userPromptSubmit",
-    "PreToolUse": "preToolUse",
-    "PermissionRequest": "permissionRequest",
-    "PostToolUse": "postToolUse",
-    "PreCompact": "preCompact",
-    "PostCompact": "postCompact",
-    "SubagentStop": "subagentStop",
-    "Stop": "stop",
-    "SessionEnd": "sessionEnd",
-}
+# The retained App Server payload adapter uses lower-camel event names.
+# Selection comes from the current package owner, never a second event list.
+_HOST_EVENT_NAMES = {name: name[0].lower() + name[1:] for name in HOOK_EVENT_NAMES}
 _CANONICAL_EVENT_NAMES = {value: key for key, value in _HOST_EVENT_NAMES.items()}
 _HOST_EVENT_ORDER = tuple(_HOST_EVENT_NAMES[name] for name in HOOK_EVENT_NAMES)
 _HASH = re.compile(r"sha256:[0-9a-f]{64}")
@@ -56,6 +48,26 @@ _FORBIDDEN_OBSERVATION_KEYS = {
 
 class InstalledHookReceiptError(ValueError):
     """Raised when host readback or invocation evidence is not exact."""
+
+
+def _bounded_rows(values: Iterable[Any], limit: int, code: str) -> list[Any]:
+    rows = list(islice(values, limit + 1))
+    if len(rows) > limit:
+        raise InstalledHookReceiptError(code)
+    return rows
+
+
+def _validate_receipt(receipt: Mapping[str, Any], schema: str, hash_key: str) -> None:
+    if not isinstance(receipt, Mapping) or receipt.get("schema") != schema:
+        raise InstalledHookReceiptError("HOOK_RECEIPT_SCHEMA_INVALID")
+    unsigned = dict(receipt)
+    claimed = unsigned.pop(hash_key, None)
+    try:
+        actual = sha256_bytes(canonical_json_bytes(unsigned))
+    except (ValueError, TypeError, RecursionError):
+        raise InstalledHookReceiptError("HOOK_RECEIPT_INTEGRITY_INVALID") from None
+    if claimed != actual:
+        raise InstalledHookReceiptError("HOOK_RECEIPT_INTEGRITY_INVALID")
 
 
 def _redacted_text(value: Any) -> str:
@@ -85,7 +97,7 @@ def _result_data(reply: Mapping[str, Any]) -> list[Any]:
     else:
         source = reply
     data = source.get("data")
-    if not isinstance(data, list):
+    if not isinstance(data, list) or len(data) > 128:
         raise InstalledHookReceiptError("HOOKS_LIST_DATA_REQUIRED")
     return data
 
@@ -106,7 +118,7 @@ def _required_event_order(
 
     if required_events is None:
         return HOOK_EVENT_NAMES
-    requested = tuple(str(value) for value in required_events)
+    requested = tuple(str(value) for value in _bounded_rows(required_events, 128, "REQUIRED_HOOK_EVENTS_INVALID"))
     if not requested or len(requested) != len(set(requested)):
         raise InstalledHookReceiptError("REQUIRED_HOOK_EVENTS_INVALID")
     unknown = set(requested).difference(HOOK_EVENT_NAMES)
@@ -139,6 +151,8 @@ def validate_installed_hook_inventory(
         row
         for row in _result_data(reply)
         if isinstance(row, Mapping)
+        and isinstance(row.get("cwd"), str)
+        and bool(row["cwd"].strip())
         and _workspace_key(str(row.get("cwd") or "")) == expected_workspace
     ]
     if len(entries) != 1:
@@ -149,7 +163,9 @@ def validate_installed_hook_inventory(
     if entry.get("warnings"):
         raise InstalledHookReceiptError("INSTALLED_HOOK_WARNINGS_PRESENT")
 
-    all_hooks = [row for row in entry.get("hooks") or [] if isinstance(row, Mapping)]
+    all_hooks = _bounded_rows(entry.get("hooks") or [], 1024, "INSTALLED_HOOK_COUNT_MISMATCH")
+    if any(not isinstance(row, Mapping) for row in all_hooks):
+        raise InstalledHookReceiptError("INSTALLED_HOOK_AUTHORITY_MISMATCH")
     conflicting = {
         str(row.get("pluginId") or "")
         for row in all_hooks
@@ -163,6 +179,11 @@ def validate_installed_hook_inventory(
     ]
     if len(hooks) < len(HOOK_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_HOOK_COUNT_MISMATCH")
+    keys = [row.get("key") for row in hooks]
+    if any(not isinstance(key, str) or not key or len(key) > 1024 for key in keys):
+        raise InstalledHookReceiptError("INSTALLED_HOOK_AUTHORITY_MISMATCH")
+    if len(set(keys)) != len(hooks):
+        raise InstalledHookReceiptError("INSTALLED_HOOK_KEYS_DUPLICATED")
 
     by_event: dict[str, list[Mapping[str, Any]]] = {
         event_name: [] for event_name in HOOK_EVENT_NAMES
@@ -234,6 +255,8 @@ def validate_installed_hook_inventory(
     body: dict[str, Any] = {
         "schema": INSTALLED_HOOK_INVENTORY_SCHEMA,
         "status": "PASS",
+        "validation_scope": "SUPPLIED_HOOK_INVENTORY",
+        "native_host_readback_verified": False,
         "plugin_selector": plugin_selector,
         "workspace_sha256": sha256_bytes(expected_workspace.encode("utf-8")),
         "hook_count": len(HOOK_EVENT_NAMES),
@@ -273,24 +296,29 @@ def build_installed_hook_diagnostic_receipt(
         row
         for row in _result_data(reply)
         if isinstance(row, Mapping)
+        and isinstance(row.get("cwd"), str)
+        and bool(row["cwd"].strip())
         and _workspace_key(str(row.get("cwd") or "")) == expected_workspace
     ]
     if len(entries) != 1:
         raise InstalledHookReceiptError("ONE_HOOK_WORKSPACE_REQUIRED")
     entry = entries[0]
+    raw_hooks = _bounded_rows(entry.get("hooks") or [], 1024, "HOOK_DIAGNOSTIC_BUDGET")
+    raw_errors = _bounded_rows(entry.get("errors") or [], 128, "HOOK_DIAGNOSTIC_BUDGET")
+    raw_warnings = _bounded_rows(entry.get("warnings") or [], 128, "HOOK_DIAGNOSTIC_BUDGET")
     path_aliases: dict[str, str] = {
         str(entry.get("cwd") or ""): (
             "[WORKSPACE_PATH_SHA256="
             f"{sha256_bytes(expected_workspace.encode('utf-8'))}]"
         )
     }
-    for hook in entry.get("hooks") or []:
+    for hook in raw_hooks:
         if isinstance(hook, Mapping) and hook.get("sourcePath"):
             raw_path = str(hook["sourcePath"])
             path_aliases[raw_path] = (
                 f"[HOOK_SOURCE_PATH_SHA256={_source_path_hash(raw_path)}]"
             )
-    for error in entry.get("errors") or []:
+    for error in raw_errors:
         if isinstance(error, Mapping) and error.get("path"):
             raw_path = str(error["path"])
             path_aliases[raw_path] = (
@@ -304,10 +332,10 @@ def build_installed_hook_diagnostic_receipt(
             ),
             "message_sha256": sha256_bytes(str(message).encode("utf-8")),
         }
-        for message in entry.get("warnings") or []
+        for message in raw_warnings
     ]
     error_records: list[dict[str, Any]] = []
-    for error in entry.get("errors") or []:
+    for error in raw_errors:
         if not isinstance(error, Mapping):
             raise InstalledHookReceiptError("INSTALLED_HOOK_ERROR_INVALID")
         message = str(error.get("message") or "")
@@ -324,7 +352,7 @@ def build_installed_hook_diagnostic_receipt(
             }
         )
     hook_records: list[dict[str, Any]] = []
-    for hook in entry.get("hooks") or []:
+    for hook in raw_hooks:
         if not isinstance(hook, Mapping) or hook.get("pluginId") != plugin_selector:
             continue
         command = str(hook.get("command") or "")
@@ -399,7 +427,9 @@ def build_installed_hook_diagnostic_receipt(
             }
         )
     body: dict[str, Any] = {
-        "schema": "evidence-lane.codex-installed-hook-diagnostic.v1",
+        "schema": HOOK_DIAGNOSTIC_SCHEMA,
+        "validation_scope": "SUPPLIED_HOOK_DIAGNOSTIC",
+        "native_host_readback_verified": False,
         "status": (
             "PASS" if not warning_records and not error_records else "HOST_LOAD_ISSUE"
         ),
@@ -447,10 +477,11 @@ def build_host_hook_ui_projection_receipt(
 
     if (
         diagnostic.get("schema")
-        != "evidence-lane.codex-installed-hook-diagnostic.v1"
+        != HOOK_DIAGNOSTIC_SCHEMA
         or diagnostic.get("status") != "PASS"
     ):
         raise InstalledHookReceiptError("PASSING_HOOK_DIAGNOSTIC_REQUIRED")
+    _validate_receipt(diagnostic, HOOK_DIAGNOSTIC_SCHEMA, "diagnostic_receipt_sha256")
     hooks = [
         row
         for row in diagnostic.get("hooks") or []
@@ -468,7 +499,7 @@ def build_host_hook_ui_projection_receipt(
     ):
         raise InstalledHookReceiptError("INSTALLED_HOOK_DIAGNOSTIC_INCOMPLETE")
 
-    visible = tuple(str(value) for value in visible_host_events)
+    visible = tuple(str(value) for value in _bounded_rows(visible_host_events, 128, "HOST_HOOK_UI_EVENT_ORDER_INVALID"))
     if (
         len(visible) != len(set(visible))
         or not set(visible).issubset(_HOST_EVENT_ORDER)
@@ -491,6 +522,8 @@ def build_host_hook_ui_projection_receipt(
     limited = bool(missing or generic_titles)
     body: dict[str, Any] = {
         "schema": HOOK_UI_PROJECTION_SCHEMA,
+        "validation_scope": "SUPPLIED_INVENTORY_AND_UI_OBSERVATIONS",
+        "native_host_readback_verified": False,
         "status": "HOST_UI_PROJECTION_LIMITED" if limited else "PASS",
         "installed_hook_diagnostic_receipt_sha256": diagnostic.get(
             "diagnostic_receipt_sha256"
@@ -531,25 +564,25 @@ def build_invocation_receipt_from_codex_notifications(
     *,
     host_session_id: str,
 ) -> dict[str, Any]:
-    """Seal actual Codex hook start/completion notifications.
+    """Correlate supplied Codex-format hook start/completion notifications.
 
     Only protocol-owned identity and timing fields are consumed. Hook output,
     raw source paths, thread IDs, turn IDs, and host-session IDs are never
     copied into the receipt.
     """
 
-    if not host_session_id:
+    if not isinstance(host_session_id, str) or not 1 <= len(host_session_id) <= 256:
         raise InstalledHookReceiptError("HOST_SESSION_ID_REQUIRED")
     if (
         inventory.get("schema") != INSTALLED_HOOK_INVENTORY_SCHEMA
         or inventory.get("status") != "PASS"
     ):
         raise InstalledHookReceiptError("PASSING_INSTALLED_INVENTORY_REQUIRED")
-    expected_by_host = {
-        str(row.get("host_event_name") or ""): row
-        for row in inventory.get("records") or []
-        if isinstance(row, Mapping)
-    }
+    _validate_receipt(inventory, INSTALLED_HOOK_INVENTORY_SCHEMA, "inventory_receipt_sha256")
+    records = inventory.get("records") or []
+    expected_by_host: dict[str, list[Mapping[str, Any]]] = {}
+    for row in records:
+        expected_by_host.setdefault(str(row.get("host_event_name") or ""), []).append(row)
     if set(expected_by_host) != set(_CANONICAL_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
     required_order = _required_event_order(inventory.get("required_event_order"))
@@ -557,7 +590,9 @@ def build_invocation_receipt_from_codex_notifications(
 
     started: dict[str, dict[str, Any]] = {}
     completed: dict[str, dict[str, Any]] = {}
-    for notification in notifications:
+    for notification in _bounded_rows(notifications, 4096, "HOOK_NOTIFICATION_BUDGET"):
+        if not isinstance(notification, Mapping):
+            raise InstalledHookReceiptError("HOOK_NOTIFICATION_PARAMS_REQUIRED")
         method = str(notification.get("method") or "")
         if method not in {"hook/started", "hook/completed"}:
             continue
@@ -568,12 +603,16 @@ def build_invocation_receipt_from_codex_notifications(
         if not isinstance(run, Mapping):
             raise InstalledHookReceiptError("HOOK_NOTIFICATION_RUN_REQUIRED")
         host_event = str(run.get("eventName") or "")
-        reference = expected_by_host.get(host_event)
         if host_event not in required_hosts:
             continue
         run_id = str(run.get("id") or "")
         thread_id = str(params.get("threadId") or "")
         source_path = str(run.get("sourcePath") or "")
+        candidates = [row for row in expected_by_host[host_event]
+            if source_path and row.get("source_path_sha256") == _source_path_hash(source_path)]
+        if len(candidates) > 1:
+            raise InstalledHookReceiptError("HOOK_NOTIFICATION_HANDLER_AMBIGUOUS")
+        reference = candidates[0] if candidates else None
         started_at = run.get("startedAt")
         if (
             reference is None
@@ -584,7 +623,7 @@ def build_invocation_receipt_from_codex_notifications(
             or run.get("source") != "plugin"
             or run.get("handlerType") != "command"
             or run.get("executionMode") not in {"sync", "async"}
-            or not isinstance(started_at, int)
+            or type(started_at) is not int
             or started_at < 0
             or not source_path
             or _source_path_hash(source_path)
@@ -593,6 +632,7 @@ def build_invocation_receipt_from_codex_notifications(
             raise InstalledHookReceiptError("HOOK_NOTIFICATION_IDENTITY_MISMATCH")
         sanitized = {
             "run_id": run_id,
+            "hook_key": reference["hook_key"],
             "host_event_name": host_event,
             "event_name": _CANONICAL_EVENT_NAMES[host_event],
             "started_at": started_at,
@@ -617,9 +657,9 @@ def build_invocation_receipt_from_codex_notifications(
         duration_ms = run.get("durationMs")
         if (
             run.get("status") != "completed"
-            or not isinstance(completed_at, int)
+            or type(completed_at) is not int
             or completed_at < started_at
-            or not isinstance(duration_ms, int)
+            or type(duration_ms) is not int
             or duration_ms < 0
         ):
             raise InstalledHookReceiptError("HOOK_COMPLETED_NOTIFICATION_INVALID")
@@ -631,7 +671,7 @@ def build_invocation_receipt_from_codex_notifications(
             "duration_ms": duration_ms,
         }
 
-    paired_by_event: dict[str, list[dict[str, Any]]] = {}
+    paired_by_key: dict[str, list[dict[str, Any]]] = {}
     for run_id, finish in completed.items():
         start = started.get(run_id)
         if start is None:
@@ -640,6 +680,7 @@ def build_invocation_receipt_from_codex_notifications(
             start[key] != finish[key]
             for key in (
                 "host_event_name",
+                "hook_key",
                 "event_name",
                 "started_at",
                 "thread_id_sha256",
@@ -647,18 +688,20 @@ def build_invocation_receipt_from_codex_notifications(
             )
         ):
             raise InstalledHookReceiptError("HOOK_NOTIFICATION_CORRELATION_MISMATCH")
-        paired_by_event.setdefault(finish["event_name"], []).append(finish)
+        paired_by_key.setdefault(finish["hook_key"], []).append(finish)
 
     observations: list[dict[str, Any]] = []
-    for event_name in required_order:
-        pairs = paired_by_event.get(event_name) or []
+    for reference in records:
+        event_name = reference["event_name"]
+        if event_name not in required_order:
+            continue
+        pairs = paired_by_key.get(reference["hook_key"]) or []
         if not pairs:
             continue
         selected = max(
             pairs,
             key=lambda row: (row["completed_at"], row["started_at"], row["run_id"]),
         )
-        reference = expected_by_host[_HOST_EVENT_NAMES[event_name]]
         observations.append(
             {
                 "event_name": event_name,
@@ -676,11 +719,11 @@ def build_invocation_receipt_from_codex_notifications(
             }
         )
     receipt = build_installed_hook_invocation_receipt(inventory, observations)
-    receipt["source"] = "CODEX_APP_SERVER_HOOK_NOTIFICATIONS"
+    receipt["source"] = "SUPPLIED_CODEX_APP_SERVER_HOOK_NOTIFICATIONS"
     receipt["raw_source_paths_included"] = False
     receipt["raw_thread_or_turn_ids_included"] = False
     receipt["raw_hook_output_included"] = False
-    receipt["notification_pair_count"] = sum(len(rows) for rows in paired_by_event.values())
+    receipt["notification_pair_count"] = sum(len(rows) for rows in paired_by_key.values())
     receipt.pop("invocation_receipt_sha256")
     receipt["invocation_receipt_sha256"] = sha256_bytes(canonical_json_bytes(receipt))
     return receipt
@@ -690,11 +733,10 @@ def build_installed_hook_invocation_receipt(
     inventory: Mapping[str, Any],
     observations: Iterable[Mapping[str, Any]],
 ) -> dict[str, Any]:
-    """Correlate real host start/completion observations with installed hooks.
+    """Correlate supplied start/completion observations with inventory records.
 
-    Missing event observations yield ``PENDING_INSTALLED_INVOCATION``.  They do
-    not become a synthetic PASS and do not become ``HOST_CAPABILITY_UNAVAILABLE``
-    merely because the event has not happened during the observation window.
+    Missing events remain pending. Complete correlation does not attest a native
+    transport, installed execution, or the supplied host-session identity.
     """
 
     if (
@@ -702,6 +744,7 @@ def build_installed_hook_invocation_receipt(
         or inventory.get("status") != "PASS"
     ):
         raise InstalledHookReceiptError("PASSING_INSTALLED_INVENTORY_REQUIRED")
+    _validate_receipt(inventory, INSTALLED_HOOK_INVENTORY_SCHEMA, "inventory_receipt_sha256")
     expected_records = [
         row for row in inventory.get("records") or [] if isinstance(row, Mapping)
     ]
@@ -725,7 +768,9 @@ def build_installed_hook_invocation_receipt(
     required_order = _required_event_order(inventory.get("required_event_order"))
     required = set(required_order)
     observed: dict[str, dict[str, Any]] = {}
-    for observation in observations:
+    for observation in _bounded_rows(observations, 1024, "HOOK_OBSERVATION_BUDGET"):
+        if not isinstance(observation, Mapping):
+            raise InstalledHookReceiptError("HOOK_OBSERVATION_EVENT_INVALID")
         if any(
             str(key).casefold() in _FORBIDDEN_OBSERVATION_KEYS
             for key in observation
@@ -779,12 +824,12 @@ def build_installed_hook_invocation_receipt(
                 record[key] = normalized
         if "duration_ms" in observation:
             duration_ms = observation["duration_ms"]
-            if not isinstance(duration_ms, int) or duration_ms < 0:
+            if type(duration_ms) is not int or duration_ms < 0:
                 raise InstalledHookReceiptError("HOOK_OBSERVATION_DURATION_INVALID")
             record["duration_ms"] = duration_ms
         if "matching_completed_run_count" in observation:
             matching_count = observation["matching_completed_run_count"]
-            if not isinstance(matching_count, int) or matching_count < 1:
+            if type(matching_count) is not int or matching_count < 1:
                 raise InstalledHookReceiptError("HOOK_OBSERVATION_COUNT_INVALID")
             record["matching_completed_run_count"] = matching_count
         observed[hook_key] = record
@@ -811,7 +856,9 @@ def build_installed_hook_invocation_receipt(
     ]
     body: dict[str, Any] = {
         "schema": INSTALLED_HOOK_INVOCATION_SCHEMA,
-        "status": "PASS" if not missing else "PENDING_INSTALLED_INVOCATION",
+        "status": "OBSERVATIONS_CORRELATED" if not missing else "PENDING_OBSERVATIONS",
+        "validation_scope": "SUPPLIED_INVENTORY_AND_INVOCATION_OBSERVATIONS",
+        "native_host_readback_verified": False,
         "inventory_receipt_sha256": inventory["inventory_receipt_sha256"],
         "plugin_selector": inventory["plugin_selector"],
         "event_order": list(required_order),
@@ -825,7 +872,8 @@ def build_installed_hook_invocation_receipt(
         "required_handler_action_count": sum(
             len(expected_by_event[name]) for name in required_order
         ),
-        "installed_invocation_proof_complete": not missing,
+        "observation_correlation_complete": not missing,
+        "installed_invocation_proof_complete": False,
         "unobserved_events_relabelled_unavailable": False,
         "configuration_only_relabelled_as_invocation": False,
         "raw_payload_included": False,
@@ -839,12 +887,17 @@ def build_independent_hook_failback_request(
     *,
     event_name: str,
     failure_code: str,
+    current_hook_state: Mapping[str, Any],
+    expected_config_version: str,
+    hook_key: str | None = None,
 ) -> dict[str, Any]:
     """Build one CAS-ready native request that disables only a failed hook.
 
     This is a request contract, not evidence that the host write succeeded.
     The installer/runtime owner must execute it through ``config/batchWrite``
     with a fresh compare-and-swap baseline and then re-read ``hooks/list``.
+    The full supplied state is preserved, including other plugins and user
+    hooks. This helper cannot verify that baseline's native provenance.
     """
 
     if (
@@ -852,6 +905,7 @@ def build_independent_hook_failback_request(
         or inventory.get("status") != "PASS"
     ):
         raise InstalledHookReceiptError("PASSING_INSTALLED_INVENTORY_REQUIRED")
+    _validate_receipt(inventory, INSTALLED_HOOK_INVENTORY_SCHEMA, "inventory_receipt_sha256")
     if event_name not in HOOK_EVENT_NAMES:
         raise InstalledHookReceiptError("FAILED_HOOK_EVENT_INVALID")
     normalized_failure = str(failure_code or "").strip()
@@ -862,43 +916,60 @@ def build_independent_hook_failback_request(
         for row in inventory.get("records") or []
         if isinstance(row, Mapping)
     ]
-    if tuple(str(row.get("event_name") or "") for row in records) != HOOK_EVENT_NAMES:
+    if {str(row.get("event_name") or "") for row in records} != set(HOOK_EVENT_NAMES):
         raise InstalledHookReceiptError("INSTALLED_INVENTORY_RECORDS_INCOMPLETE")
-    target = next(row for row in records if row["event_name"] == event_name)
-    hook_key = str(target.get("hook_key") or "")
+    targets = [row for row in records if row["event_name"] == event_name
+        and (hook_key is None or row["hook_key"] == hook_key)]
+    if len(targets) != 1:
+        raise InstalledHookReceiptError("FAILED_HOOK_SELECTION_REQUIRED")
+    target = targets[0]
+    selected_key = str(target.get("hook_key") or "")
     current_hash = str(target.get("current_hash") or "")
-    if not hook_key or _HASH.fullmatch(current_hash) is None:
+    if not selected_key or _HASH.fullmatch(current_hash) is None:
         raise InstalledHookReceiptError("FAILED_HOOK_AUTHORITY_INVALID")
+    if (not isinstance(current_hook_state, Mapping) or not 1 <= len(current_hook_state) <= 4096
+            or not isinstance(expected_config_version, str)
+            or re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9:._-]{1,255}', expected_config_version) is None):
+        raise InstalledHookReceiptError("HOOK_CONFIG_BASELINE_REQUIRED")
+    for key, value in current_hook_state.items():
+        if (not isinstance(key, str) or not 1 <= len(key) <= 1024 or not isinstance(value, Mapping)
+                or not value or set(value) - {"trusted_hash", "enabled"}
+                or (value.get("trusted_hash") is not None and (not isinstance(value["trusted_hash"], str)
+                    or _HASH.fullmatch(value["trusted_hash"]) is None))
+                or ("enabled" in value and type(value["enabled"]) is not bool)):
+            raise InstalledHookReceiptError("HOOK_CONFIG_BASELINE_INVALID")
+    baseline = {key: dict(value) for key, value in current_hook_state.items()}
+    for row in records:
+        observed = baseline.get(row["hook_key"], {})
+        if observed.get("trusted_hash") != row["current_hash"] or observed.get("enabled", True) != row["enabled"]:
+            raise InstalledHookReceiptError("HOOK_CONFIG_BASELINE_MISMATCH")
+    desired = deepcopy(baseline)
+    desired[selected_key]["enabled"] = False
     body: dict[str, Any] = {
         "schema": HOOK_FAILURE_FAILBACK_SCHEMA,
-        "status": "PASS",
+        "status": "REQUEST_PREPARED",
         "action": "DISABLE_EXACT_FAILED_HOOK",
         "supported_codex_api": "config/batchWrite",
+        "native_api_availability_verified": False,
+        "native_config_baseline_verified": False,
+        "expected_config_version": expected_config_version,
+        "config_state_baseline_sha256": sha256_bytes(canonical_json_bytes(baseline)),
         "compare_and_swap_required": True,
         "post_write_hooks_list_readback_required": True,
         "plugin_selector": inventory.get("plugin_selector"),
         "inventory_receipt_sha256": inventory.get("inventory_receipt_sha256"),
         "event_name": event_name,
         "host_event_name": _HOST_EVENT_NAMES[event_name],
-        "hook_key": hook_key,
+        "hook_key": selected_key,
         "current_hash": current_hash,
         "failure_code": normalized_failure,
         "config_edit": {
             "keyPath": "hooks.state",
             "mergeStrategy": "replace",
-            "value": {
-                str(row["hook_key"]): {
-                    "trusted_hash": str(row["current_hash"]),
-                    "enabled": (
-                        False
-                        if row["event_name"] == event_name
-                        else bool(row["enabled"])
-                    ),
-                }
-                for row in records
-            },
+            "value": desired,
         },
-        "target_hook_enabled_after_write": False,
+        "requested_target_enabled": False,
+        "target_hook_enabled_after_write": None,
         "target_hook_trust_preserved": True,
         "unrelated_hook_state_mutated": False,
         "plugin_enablement_mutated": False,

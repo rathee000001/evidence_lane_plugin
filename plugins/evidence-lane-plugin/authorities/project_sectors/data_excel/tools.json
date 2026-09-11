@@ -1,535 +1,1143 @@
 {
-  "schema": "evidence-lane.installed-lane-tooling.v1",
-  "status": "PASS",
+  "schema": "evidence-lane.installed-lane-tooling.v4",
   "lane_id": "data_excel",
   "builder": "builder.py:build_lane_sources",
-  "reader": "reader.py:LaneReader",
-  "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
-  "retrieval_modes": [
-    "hybrid",
-    "fts5",
-    "bm25",
-    "tfidf"
-  ],
-  "json_build_refresh_tooling": [
-    "lane_pointer.json",
-    "refresh_receipt.json",
-    "lane_manifest.json"
-  ],
-  "canonical_shared_modules": {
-    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
-    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
-    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
-    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
-  },
-  "registry_linked_workflow": {
-    "schema": "evidence-lane.lane-registry-linked-workflow.v1",
-    "status": "PASS",
-    "lane_id": "data_excel",
-    "eligible_tools": [
-      "hashlib_pathlib",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
-      "Secret_redactor",
-      "OpenXML_CSV_JSON_parser",
-      "openpyxl",
-      "pandas",
-      "python_calamine",
-      "pyarrow",
-      "DuckDB",
-      "SQLAlchemy",
-      "Tableau_Hyper_API",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "Polars",
-      "rustworkx",
-      "sqlite_vec"
-    ],
-    "eligible_tool_count": 24,
-    "task_execution_tools": [
-      "hashlib_pathlib",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
-      "Secret_redactor",
-      "OpenXML_CSV_JSON_parser",
-      "openpyxl",
-      "pandas",
-      "python_calamine",
-      "pyarrow",
-      "DuckDB",
-      "SQLAlchemy",
-      "Tableau_Hyper_API",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "Polars",
-      "rustworkx",
-      "sqlite_vec"
-    ],
-    "transport_orchestration_adapters": [],
-    "external_services_or_stores": [
-      "PostgreSQL_MCP_Server",
-      "Pinecone",
-      "Weaviate",
-      "Milvus",
-      "OpenSearch"
-    ],
-    "observability_evaluation_attachments": [
-      "Langfuse",
-      "OpenTelemetry"
-    ],
-    "tool_role_classes_are_mutually_exclusive": true,
-    "action_classes": [
-      "DATA",
-      "DOCUMENT",
-      "GRAPH",
-      "RETRIEVAL",
-      "SOURCE_ROUTING"
-    ],
-    "eligible_public_actions": [
-      "adaptive_delta_exit",
-      "ai_toolchain_route",
-      "brain_scaling_select",
-      "canon_graph",
-      "canon_inbox",
-      "canon_inspect",
-      "connector_plugin_catalog",
-      "connector_plugin_settings",
-      "fetch",
-      "lane_catalog",
-      "lane_fetch",
-      "lane_search",
-      "lane_status",
-      "learning_inspect",
-      "learning_retrieve",
-      "lifecycle_transition_law",
-      "project_memory_query",
-      "project_recipe_compile",
-      "project_register",
-      "prompt_index_status",
-      "pv_build_initial",
-      "pv_diff",
-      "pv_enroll_project",
-      "pv_query",
-      "pv_status",
-      "pv_summary",
-      "pv_task_backlog",
-      "render_project_panel",
-      "render_runtime_panel",
-      "runtime_activation_status",
-      "runtime_doctor",
-      "search",
-      "session_flash_status",
-      "source_graph_build",
-      "source_graph_diff",
-      "source_graph_impact",
-      "source_intake_classify",
-      "source_intake_schema_configure",
-      "source_sqlite_inspect",
-      "storage_connector_inspect"
-    ],
-    "eligible_public_action_count": 40,
-    "eligible_skill_workflows": [
-      {
-        "skill": "evi",
-        "workflow": "exact-fuse"
-      },
-      {
-        "skill": "evi",
-        "workflow": "governance-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "lane-evidence-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "live-root-authority-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "live-root-current-authority-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evi",
-        "workflow": "same-host-next-turn"
-      },
-      {
-        "skill": "evi-additional-plugin",
-        "workflow": "register-connector"
-      },
-      {
-        "skill": "evi-bigger-universe",
-        "workflow": "explicit-hash-only-cross-project-link"
-      },
-      {
-        "skill": "evi-bigger-universe",
-        "workflow": "register-changed-project-mini-brain-heads"
-      },
-      {
-        "skill": "evi-boot",
-        "workflow": "boot-or-resume"
-      },
-      {
-        "skill": "evi-boot",
-        "workflow": "project-enrollment"
-      },
-      {
-        "skill": "evi-brain-scaling",
-        "workflow": "deterministic-indexed-brain-slice-selection"
-      },
-      {
-        "skill": "evi-build",
-        "workflow": "physically-final-pv-hil-presentation-only"
-      },
-      {
-        "skill": "evi-build",
-        "workflow": "source-intake-backed-pv0-bootstrap"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-authority-read"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-backfire"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-contract"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-decision"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-envelope"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-result"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-state-travel-continuity"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-task-edge"
-      },
-      {
-        "skill": "evi-drop-additional-plugin",
-        "workflow": "drop-connector"
-      },
-      {
-        "skill": "evi-exit-boot",
-        "workflow": "close-session"
-      },
-      {
-        "skill": "evi-formula",
-        "workflow": "bounded-env-uop-formula-execution"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "dual-hil-intent-classification"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "dual-hil-non-promotion-decision"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "exact-learning-then-project-approval-promotion"
-      },
-      {
-        "skill": "evi-instructions",
-        "workflow": "agents-and-host-memory-read"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-authority-read"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-candidate"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-host-memory-import"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-revoke"
-      },
-      {
-        "skill": "evi-memory",
-        "workflow": "project-memory-authority-read"
-      },
-      {
-        "skill": "evi-memory",
-        "workflow": "project-memory-link"
-      },
-      {
-        "skill": "evi-mode",
-        "workflow": "classify-mode"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "classify-plan-mode"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "live-current-authority-read"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "live-plan-authority-read"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "persist-plan"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "change-connector-registration"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "inspect-connectors"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "route-connector"
-      },
-      {
-        "skill": "evi-project-recipe",
-        "workflow": "project-type-source-and-lane-recipe-compilation"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "adaptive-delta-exit-append-refresh"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "hil-live-root-project-overlay-proposal"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-      },
-      {
-        "skill": "evi-rollback",
-        "workflow": "pointer-rollback"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "bounded-source-retrieval"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "classify-source-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "custom-schema-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "git-read-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-graph-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-identity-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-route-configuration"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "sqlite-source-intake"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-activation-verification"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-existing-session-attachment"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-locked-flash"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-runtime-doctor"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-force-same-worktree-state-travel"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "post-entry-plan-authority-read"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "state-travel-plan-steer"
-      },
-      {
-        "skill": "evi-storage",
-        "workflow": "inspect-storage"
-      },
-      {
-        "skill": "evi-storage",
-        "workflow": "select-storage"
-      },
-      {
-        "skill": "evi-toolchain",
-        "workflow": "conditional-codex-toolchain-routing"
-      },
-      {
-        "skill": "evi-universe",
-        "workflow": "project-universe-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "boot-or-resume"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "exact-fuse"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "governed-git-delivery"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-current-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "record-task-activity"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "same-host-next-turn"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "task-execution"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "two-trigger-render-dispatch"
-      }
-    ],
-    "eligible_skill_workflow_count": 79,
-    "current_registry_counts": {
-      "tool_requirements": 119,
-      "mcp_actions": 91,
-      "governed_skills": 26,
-      "hook_events": 11
+  "reader": "reader.py:read_lane_source",
+  "runtime": "runtime.py",
+  "actions": [
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
     },
-    "counts_are_current_snapshot_not_ceiling": true,
-    "all_required_linked_steps_run": true,
-    "unrelated_tools_run": false,
-    "env_selects_applicable_capabilities": true,
-    "uop_governs_operators_gates_and_fallbacks": true,
-    "internal_sdk_owns_execution": true,
-    "outer_sdk_selects_local_or_transport_route": true,
-    "mcp_action_inventory_is_not_tool_requirement_inventory": true,
-    "source_registries": {
-      "tool_requirements": {
-        "path": "toolchains/tool-requirement-matrix.v1.json",
-        "sha256": "5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A",
-        "direct_hash_embedded": true
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
       },
-      "tool_routing": {
-        "path": "toolchains/tool-execution-routing.v1.json",
-        "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
-        "direct_hash_embedded": true
-      },
-      "unified_pairing": {
-        "path": "toolchains/unified-tool-workflow-pairing.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      },
-      "public_actions": {
-        "path": "schemas/public-action-schemas.v001.json",
-        "sha256": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
-        "direct_hash_embedded": true
-      },
-      "skills": {
-        "path": "skills/skill-surface-registry.v1.json",
-        "sha256": "25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09",
-        "direct_hash_embedded": true
-      },
-      "hooks": {
-        "path": "hooks/hook-event-registry.v1.json",
-        "sha256": "67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549",
-        "direct_hash_embedded": true
-      },
-      "sdk": {
-        "path": "sdk/sdk-manifest.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      },
-      "mcp": {
-        "path": "mcp/mcp-manifest.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      }
+      "verification_checks": [],
+      "read_schemas": []
     },
-    "receipt_sha256": "58502CC3058E161E2840CC5B5ABA3E647C90ECEE686A88E37C3B08E4A0E9E038"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/project_sectors/data_excel/workflow.v1.json",
-    "mmd": "authorities/project_sectors/data_excel/workflow.mmd",
-    "dot": "authorities/project_sectors/data_excel/workflow.dot",
-    "json_sha256": "A0EE25A88FC6769DE3B12A7DC93250A251497D9CEF910069FFA36BC3A3FBDC1F",
-    "mmd_sha256": "9A8015B83DCCCC4EF6396BD485E6B91FA61B8938DF9CA0DCBC98FB0089471107",
-    "dot_sha256": "6D4C059C3DF1C828724F2CAC3FA248B8633B1707FF18BBB6BAE0EEBABE3B5153"
-  },
-  "receipt_sha256": "546D6FB968E8D9722257733EF97441391AAC7B09104253CAF13EFCCF6618FEE7"
+    {
+      "name": "spreadsheet_current",
+      "profile": "spreadsheet",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_current",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_current.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f01bad1fcd2e75d2b10eccecd05389a97d94365e795af92c9d9554c8bfe3a004"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_edit",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_edit",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_edit.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:edit",
+            "tool_ids": [
+              "Python",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d571acc6238c27ee0c52de60a63b54cf0fbc0217218ade31159f2f3fefca41a4"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_export",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_export",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_export.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_view",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_values",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "spreadsheet_export.native_values_view",
+            "adapter": "evidence_lane_plugin.tabular_profile:export",
+            "tool_ids": [
+              "Python",
+              "python_calamine",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tabular_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "data_excel.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "tabular_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "e7ebc696c555b5525e973af0c729364c2ffb056558c66e0fb4f2d484061fe096"
+      },
+      "verification_checks": [
+        "tabular_export_hash_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_generate",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_generate",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_generate.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:generate",
+            "tool_ids": [
+              "Python",
+              "openpyxl"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "3d73845dd9d8945f10a5ec1d1bc0ffe30068ddf1fdb7715b1c3b6622dcbd862b"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_index",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_index",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_index.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d90fd37e2876e5b91eb41ee0c860bada233578f08c5d2499f95e6f7c05f245a1"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_index_values",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_index_values",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_index_values.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "5e921f6c397e8a74affd3315a3fcfc761e54b22e6ffb1d4a12280fd8b28c6109"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_inspect_openpyxl",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspect_openpyxl",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspect_openpyxl.library",
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "tool_ids": [
+              "Python",
+              "openpyxl"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_inspect"
+        ],
+        "installation_implied": false,
+        "contract_digest": "5f6fa0cf9494d58b18b4fd69eeb2a72336155a201054ffae278cb24a5f3fb7eb"
+      },
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_inspect_pandas",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspect_pandas",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspect_pandas.library",
+            "adapter": "evidence_lane_plugin.tabular_inspection:inspect_snapshot",
+            "tool_ids": [
+              "Python",
+              "pandas"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_inspect"
+        ],
+        "installation_implied": false,
+        "contract_digest": "9164260da1b100fde3a868ffe73dd11cf72fd45ca1718bb02100664a6a1c00e9"
+      },
+      "verification_checks": [
+        "tabular_inspection_reconciled"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_inspection_read",
+      "profile": "spreadsheet",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_inspection_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_inspection_read.engine",
+            "adapter": "evidence_lane_plugin.tabular_inspection:register_inspections.<locals>.reader",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "22fba0536fa1802b33284f35985ea022acda0dc6cc806f522bd10901be290964"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_query",
+      "profile": "spreadsheet",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_query",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_query.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4a9b6707e37afe59e2b014491239c7f504306f42f72d78ec7223c08a78f2ba1a"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_read",
+      "profile": "spreadsheet",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_read.engine",
+            "adapter": "evidence_lane_plugin.tabular_profile:register_tabular_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9b1ad0ad7618ad5874a1bf8621311248a966bd27567ea232255174271e32db58"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet_recalculate",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_recalculate",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_recalculate.calc",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:recalculate",
+            "tool_ids": [
+              "Python",
+              "LibreOffice"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_recalculate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "769c51f0c08a605ec16df8448c0c6125ef05f2c487f97f4c4774083d903b05b3"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_refresh",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_refresh",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_refresh.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bb64a6aa57a41e523884516d76a6b8af3939e3b2b8cdc9cf3749a441e851cefb"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_refresh_values",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_refresh_values",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_refresh_values.native",
+            "adapter": "evidence_lane_plugin.tabular_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tabular_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "1d8d9d9f901a0f89b526add6c1dd804a235ba99c2050b4382909a2549646c153"
+      },
+      "verification_checks": [
+        "tabular_snapshot_integrity",
+        "tabular_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_render",
+      "profile": "spreadsheet",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_render",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_render.calc",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:render",
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "pypdfium2"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "spreadsheet_render"
+        ],
+        "installation_implied": false,
+        "contract_digest": "02c638cd848b403417c177e4c9aac887c5e0f78f777d68ffa657cba75340250e"
+      },
+      "verification_checks": [
+        "spreadsheet_render_bytes_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "spreadsheet_render_read",
+      "profile": "spreadsheet",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "spreadsheet_render_read",
+        "profile": "spreadsheet",
+        "routes": [
+          {
+            "route_id": "spreadsheet_render_read.engine",
+            "adapter": "evidence_lane_plugin.spreadsheet_rendering:register_spreadsheet_rendering.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3a55261bb63a752112d34b6df98d7a73de6c335a99ff4382ce6cee81b9d723cc"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ]
+    }
+  ],
+  "views": [
+    {
+      "view_id": "data_excel.structure",
+      "lane_id": "data_excel",
+      "folder": "sectors/data_excel",
+      "version": 1,
+      "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
+      "consumer": "artifact_export",
+      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "files": {
+        "mmd": "data_excel.mmd",
+        "dot": "data_excel.dot",
+        "pointer": "data_excel.pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "data_excel"
+      ],
+      "node_kinds": [
+        "source",
+        "sheet",
+        "table",
+        "column",
+        "formula",
+        "query",
+        "reference"
+      ],
+      "edge_kinds": [
+        "CONTAINS",
+        "REFERENCES",
+        "RELATES",
+        "DERIVES"
+      ],
+      "schemas": [
+        {
+          "owner": "dataexcel",
+          "version": 1,
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "workflow": "workflow.v4.json",
+  "workflow_mmd": "workflow.mmd",
+  "workflow_dot": "workflow.dot",
+  "dependency_installation_inferred": false,
+  "runtime_state_folder": "sectors/data_excel",
+  "source_package_folder": "authorities/project_sectors/data_excel"
 }

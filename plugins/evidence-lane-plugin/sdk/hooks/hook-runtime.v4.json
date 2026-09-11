@@ -1,0 +1,69 @@
+{
+  "event_count": 12,
+  "events": [
+    {
+      "event": "SessionStart",
+      "path": "sdk/hooks/events/SessionStart.v4.json",
+      "sha256": "fd0c9f95258927e50b546b4a6adda6ccaffbce60de013ce5102ff0691114c382"
+    },
+    {
+      "event": "SubagentStart",
+      "path": "sdk/hooks/events/SubagentStart.v4.json",
+      "sha256": "b197e077c2188b927aca4f767ccd631ce3c04b705636c7384c8518dfd1800a42"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "path": "sdk/hooks/events/UserPromptSubmit.v4.json",
+      "sha256": "be4591c7057826e3beb5d66d3d5b4092168a6a9592c727f2c9a9fd5e1651d39a"
+    },
+    {
+      "event": "PreToolUse",
+      "path": "sdk/hooks/events/PreToolUse.v4.json",
+      "sha256": "5ebfa0355d4d8d026225d1f2e33b1bfe5acf9e2d92526c0f5fbe350c5afddf50"
+    },
+    {
+      "event": "PermissionRequest",
+      "path": "sdk/hooks/events/PermissionRequest.v4.json",
+      "sha256": "7ae1d3f00bdc6d0151d25c3edcff47a6aee27657486f2fe35b2f127f329cbe9e"
+    },
+    {
+      "event": "PostToolUse",
+      "path": "sdk/hooks/events/PostToolUse.v4.json",
+      "sha256": "f6a6d466de93be1bf37c8e435e3e466e6c319d7f08e5afa9cacbf7edef171ceb"
+    },
+    {
+      "event": "PreCompact",
+      "path": "sdk/hooks/events/PreCompact.v4.json",
+      "sha256": "bebb62eaf08afd02949a4120c1d653390a5bed2d6efd7747b377b59e5a666262"
+    },
+    {
+      "event": "PostCompact",
+      "path": "sdk/hooks/events/PostCompact.v4.json",
+      "sha256": "0f737066c0da306a734d24d3a9ad0b75c5234675505018b8aed25cd3525681fc"
+    },
+    {
+      "event": "Stop",
+      "path": "sdk/hooks/events/Stop.v4.json",
+      "sha256": "a9850449a733148f9fa2f0b16e5514e3492460a589b7550b4663ae67101e7c1d"
+    },
+    {
+      "event": "SubagentStop",
+      "path": "sdk/hooks/events/SubagentStop.v4.json",
+      "sha256": "8a10c71e662517327236be22f6f23dba673477d886a8af892a1784b6e0ecce4e"
+    },
+    {
+      "event": "Interrupt",
+      "path": "sdk/hooks/events/Interrupt.v4.json",
+      "sha256": "56422b05f8a10aeafe3a2284aa9d43591e8136419f28c917ec4c212f1f63831b"
+    },
+    {
+      "event": "SessionEnd",
+      "path": "sdk/hooks/events/SessionEnd.v4.json",
+      "sha256": "bdc052346378fbc0962559fbe5498f329e940f5f1b38b3b36758b2f6349bcef1"
+    }
+  ],
+  "native_installation_verified": false,
+  "runtime": "sdk/hooks/runtime.py",
+  "schema": "evidence-lane.sdk-hook-runtime.v4",
+  "shared_implementation": "src/evidence_lane_plugin/hook_contract.py"
+}

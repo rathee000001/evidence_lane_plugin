@@ -1,131 +1,158 @@
-#!/usr/bin/env python3
-"""Audit governed Evidence Lane skill packages and generated registry identity."""
+"""Audit first-class skill packages against their actual engine registry.
 
+The default is the strict final-package gate. --active-surface checks only the
+declared retained files while the user's final-purge step remains pending.
+"""
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
+import sys
+import tempfile
 from pathlib import Path
-from typing import Any
+
+import yaml
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-SKILLS_ROOT = PLUGIN_ROOT / "skills"
-SHARED_BOUNDARY = (
-    "../evidence-lane-code-lifecycle/references/shared-boundaries.md"
-)
-FORBIDDEN_PATTERNS = {
-    "full-lifecycle-eager-load": r"evidence-lane-code-lifecycle/SKILL\.md",
-    "retired-command-layer": r"(?:command[- ]layer|MCP/SDK/skill/command)",
-    "stale-action-count": r"twenty[- ]seven reads",
-    "fixed-primary-ordinal": r"(?:seventh primary|ninth MCP|sixth MCP)",
-    "engulf-double-count": r"(?:eighteen|18).*plus Project Engulf",
-    "mixed-host-memory": r"ChatGPT/Codex",
-}
+SOURCE = PLUGIN_ROOT / 'src'
+sys.path.insert(0, str(SOURCE))
+from evidence_lane_plugin.engine import Engine
+from evidence_lane_plugin.registry import WORKFLOWS
+from evidence_lane_plugin.storage import reject_links
+from evidence_lane_plugin.workflow_surface import digest, skill_action_reference
 
 
-def _frontmatter(text: str) -> dict[str, str]:
-    lines = text.splitlines()
-    if len(lines) < 3 or lines[0].strip() != "---":
-        return {}
-    try:
-        end = lines.index("---", 1)
-    except ValueError:
-        return {}
-    values: dict[str, str] = {}
-    for line in lines[1:end]:
-        if ":" not in line:
-            continue
-        key, raw = line.split(":", 1)
-        value = raw.strip()
-        if value.startswith('"') and value.endswith('"'):
-            value = str(json.loads(value))
-        elif value.startswith("'") and value.endswith("'"):
-            value = value[1:-1].replace("''", "'")
-        values[key.strip()] = value
-    return values
+def _members(folder, plugin):
+    result = []
+    for path in sorted(folder.rglob('*')):
+        reject_links(path, plugin)
+        if path.is_file():
+            result.append({'path':path.relative_to(plugin).as_posix(), 'bytes':path.stat().st_size,
+                           'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+    return result
 
 
-def _openai_metadata(text: str) -> tuple[str, str]:
-    short = re.search(r'^\s*short_description:\s*["\']?([^\r\n"\']+)', text, re.MULTILINE)
-    prompt = re.search(r'^\s*default_prompt:\s*["\']?([^\r\n]+)', text, re.MULTILINE)
-    return (
-        short.group(1).strip() if short else "",
-        prompt.group(1).strip().strip('"\'') if prompt else "",
-    )
+def audit(plugin_root=PLUGIN_ROOT, *, registry=None, active_surface=False):
+    plugin_root = plugin_root.resolve()
+    if registry is None:
+        with tempfile.TemporaryDirectory(prefix='evi-skill-audit-') as temporary:
+            registry = Engine(Path(temporary)).registry
+    issues = []
+    def issue(skill, code):
+        issues.append({'skill':skill, 'code':code})
+    root = plugin_root / 'skills'
+    surface = json.loads((root / 'skill-surface-registry.v4.json').read_text(encoding='utf-8'))
+    if surface['digest'] != digest({k:v for k,v in surface.items() if k != 'digest'}):
+        issue('*', 'catalog-digest-mismatch')
+    expected_names = {item.skill for item in WORKFLOWS}
+    actual_names = {path.parent.name for path in root.glob('*/SKILL.md')}
+    if (not expected_names <= actual_names if active_surface else actual_names != expected_names):
+        issue('*', 'skill-set-mismatch')
+    if {item['name'] for item in surface['skills']} != expected_names:
+        issue('*', 'catalog-skill-set-mismatch')
+    if len(surface['skills']) != len(expected_names) or surface['skill_count'] != len(expected_names):
+        issue('*', 'catalog-skill-count-mismatch')
+    records = {item['name']:item for item in surface['skills']}
+    declared = {row['path'] for item in surface['skills'] for row in item['members']}
+    if len(declared) != sum(len(item['members']) for item in surface['skills']):
+        issue('*', 'duplicate-package-member')
+    extra_members = []
+    for definition in WORKFLOWS:
+        name = definition.skill
+        folder = root / name
+        try:
+            text = (folder / 'SKILL.md').read_text(encoding='utf-8')
+            if not text.startswith('---\n'):
+                raise ValueError('frontmatter')
+            metadata = yaml.safe_load(text.split('---\n', 2)[1])
+            if metadata.get('name') != name or metadata.get('description') != definition.description:
+                issue(name, 'discovery-metadata-mismatch')
+            ui = yaml.safe_load((folder / 'agents/openai.yaml').read_text(encoding='utf-8'))
+            if ui['interface']['display_name'] != definition.title or ui['interface']['default_prompt'] != definition.default_prompt:
+                issue(name, 'ui-metadata-mismatch')
+            if not 25 <= len(ui['interface']['short_description']) <= 64:
+                issue(name, 'ui-description-length')
+            actual = json.loads((folder / 'references/actions.json').read_text(encoding='utf-8'))
+            if actual != skill_action_reference(registry, definition.name):
+                issue(name, 'live-action-reference-mismatch')
+            mandatory = {f'skills/{name}/{value}' for value in ('SKILL.md', 'references/actions.json', 'agents/openai.yaml')}
+            if definition.name == 'lifecycle':
+                mandatory.add(f'skills/{name}/references/shared-boundaries.md')
+            selected = records[name]['members']
+            required = {row['path'] for row in selected}
+            if not mandatory <= required:
+                issue(name, 'active-member-set-mismatch')
+            for member in required - mandatory:
+                resource = (plugin_root / member).resolve()
+                if (not resource.is_relative_to((folder / 'references').resolve())
+                        or resource.suffix not in {'.md', '.json'}):
+                    issue(name, 'invalid-procedure-member')
+            all_members = _members(folder, plugin_root)
+            extras = [row['path'] for row in all_members if row['path'] not in required]
+            extra_members.extend(extras)
+            if [row for row in all_members if row['path'] in required] != selected:
+                issue(name, 'package-member-integrity')
+            if extras and not active_surface:
+                issue(name, 'unreferenced-files-pending-final-purge')
+            actions = [item['name'] for item in registry.schemas() if item['workflow'] == definition.name]
+            if records[name].get('workflow') != definition.name:
+                issue(name, 'workflow-owner-mismatch')
+            if records[name].get('source_skill') != definition.source_skill:
+                issue(name, 'original-skill-provenance-mismatch')
+            if records[name]['actions'] != actions:
+                issue(name, 'action-membership-mismatch')
+            # Follow the entrypoint's actual reference graph. Declaring a file
+            # in the manifest does not make otherwise unreachable guidance usable.
+            reachable = set()
+            pending = [folder / 'SKILL.md']
+            while pending:
+                document = pending.pop()
+                identity = document.relative_to(plugin_root).as_posix()
+                if identity in reachable:
+                    continue
+                reachable.add(identity)
+                if document.suffix != '.md':
+                    continue
+                for reference in re.findall(r'\[[^\]]+\]\(([^)]+)\)', document.read_text(encoding='utf-8')):
+                    if '://' in reference or reference.startswith('#'):
+                        continue
+                    target = (document.parent / reference.split('#',1)[0]).resolve()
+                    if (not target.is_relative_to(root.resolve()) or not target.is_file()
+                            or target.relative_to(plugin_root).as_posix() not in declared):
+                        issue(name, 'standalone-reference-unavailable')
+                    else:
+                        pending.append(target)
+            if (required - {f'skills/{name}/agents/openai.yaml'}) - reachable:
+                issue(name, 'unreachable-procedure-member')
+        except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError):
+            issue(name, 'invalid-skill-package')
+    mirror = json.loads((plugin_root / 'schemas/skills/skill-registry.v4.json').read_text(encoding='utf-8'))
+    if mirror != surface:
+        issue('*', 'schema-projection-mismatch')
+    workflows = json.loads((plugin_root / 'sdk/workflows/skill-workflow-registry.v4.json').read_text(encoding='utf-8'))
+    if workflows.get('workflows') != registry.workflow_schemas() or workflows.get('skill_surface_digest') != surface['digest']:
+        issue('*', 'sdk-projection-mismatch')
+    return {'schema':'evidence-lane.governed-skill-audit.v4', 'status':'PASS' if not issues else 'FAIL',
+            'scope': 'retained_active_surface' if active_surface else 'complete_skill_package',
+            'skill_count':len(expected_names), 'physical_skill_count':len(actual_names),
+            'registry_skill_count':len(expected_names), 'issues':issues,
+            'retired_skill_directories': sorted(actual_names - expected_names),
+            'unreferenced_retained_skill_files': sorted(extra_members),
+            'workflows_without_actions': [row['name'] for row in registry.workflow_schemas() if not row['actions']],
+            'native_prompt_verified':False, 'installation_verified':False}
 
 
-def _local_references(skill_dir: Path, text: str) -> list[tuple[str, Path]]:
-    refs: list[tuple[str, Path]] = []
-    for match in re.finditer(r'`((?:\.\./|references/|scripts/|assets/)[^`]+)`', text):
-        relative = match.group(1)
-        if any(token in relative for token in ("<", ">", "*", "?", "|")):
-            continue
-        refs.append((relative, (skill_dir / Path(relative)).resolve()))
-    return refs
-
-
-def audit(plugin_root: Path = PLUGIN_ROOT) -> dict[str, Any]:
-    skills_root = plugin_root / "skills"
-    registry_path = plugin_root / "schemas" / "skills" / "skill-registry.v1.json"
-    registry = json.loads(registry_path.read_text(encoding="utf-8"))
-    registry_names = {str(item["name"]) for item in registry.get("skills", [])}
-    directories = sorted(
-        path for path in skills_root.iterdir() if path.is_dir() and (path / "SKILL.md").is_file()
-    )
-    directory_names = {path.name for path in directories}
-    issues: list[dict[str, str]] = []
-
-    for missing in sorted(registry_names - directory_names):
-        issues.append({"skill": missing, "code": "missing-directory", "detail": missing})
-    for extra in sorted(directory_names - registry_names):
-        issues.append({"skill": extra, "code": "unregistered-directory", "detail": extra})
-
-    for skill_dir in directories:
-        name = skill_dir.name
-        skill_path = skill_dir / "SKILL.md"
-        agent_path = skill_dir / "agents" / "openai.yaml"
-        text = skill_path.read_text(encoding="utf-8")
-        meta = _frontmatter(text)
-        if meta.get("name") != name:
-            issues.append({"skill": name, "code": "name-mismatch", "detail": meta.get("name", "")})
-        description = meta.get("description", "")
-        if not description or len(description) > 1024:
-            issues.append({"skill": name, "code": "bad-description", "detail": str(len(description))})
-        if not agent_path.is_file():
-            issues.append({"skill": name, "code": "missing-openai-yaml", "detail": agent_path.as_posix()})
-        else:
-            short, prompt = _openai_metadata(agent_path.read_text(encoding="utf-8"))
-            if not 25 <= len(short) <= 64:
-                issues.append({"skill": name, "code": "bad-short-description", "detail": str(len(short))})
-            if f"${name}" not in prompt:
-                issues.append({"skill": name, "code": "default-prompt-missing-skill", "detail": prompt})
-        if name != "evidence-lane-code-lifecycle" and SHARED_BOUNDARY not in text:
-            issues.append({"skill": name, "code": "missing-shared-boundary", "detail": SHARED_BOUNDARY})
-        for code, pattern in FORBIDDEN_PATTERNS.items():
-            if re.search(pattern, text, re.IGNORECASE):
-                issues.append({"skill": name, "code": code, "detail": pattern})
-        for relative, resolved in _local_references(skill_dir, text):
-            if not resolved.exists():
-                issues.append({"skill": name, "code": "missing-reference", "detail": relative})
-
-    return {
-        "schema": "evidence-lane.governed-skill-audit.v1",
-        "status": "PASS" if not issues else "FAIL",
-        "skill_count": len(directories),
-        "registry_skill_count": len(registry_names),
-        "issues": issues,
-    }
-
-
-def main() -> int:
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--plugin-root", type=Path, default=PLUGIN_ROOT)
+    parser.add_argument('--plugin-root', type=Path, default=PLUGIN_ROOT)
+    parser.add_argument('--active-surface', action='store_true')
     args = parser.parse_args()
-    result = audit(args.plugin_root.resolve())
-    print(json.dumps(result, indent=2, sort_keys=True))
-    return 0 if result["status"] == "PASS" else 1
+    result = audit(args.plugin_root, active_surface=args.active_surface)
+    print(json.dumps(result, indent=2))
+    return 0 if result['status'] == 'PASS' else 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

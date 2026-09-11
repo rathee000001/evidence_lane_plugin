@@ -1,0 +1,9 @@
+{
+  "owner_id": "learning",
+  "modules": [
+    "evidence_lane_plugin.agent_learning"
+  ],
+  "storage": "authorities/learning/learning_authority_v001.sqlite with files and schema history in authorities/learning",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

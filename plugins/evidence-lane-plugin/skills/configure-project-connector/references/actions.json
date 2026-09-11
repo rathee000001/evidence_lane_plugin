@@ -1,0 +1,24 @@
+{
+  "action_set_digest": "0d35b00d60791ed7a81c5c6a6a9c25ad02fc56f5be2387032bb7dc0b2c4d184c",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Add or configure one versioned project extension grant without executing its backend.",
+      "input_schema_digest": "3bb4174f8a6f99bffad118d8bc4456eb37ac2a03452230473aee153e22643b95",
+      "mutates": true,
+      "name": "connector_configure",
+      "output_schema_digest": "095f6ffb2ba444ce1f65a84e604485d463e5ad429072f3388c48e1543bf9ac77",
+      "permission": "admin",
+      "profile": "extensions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "additional-plugin"
+}

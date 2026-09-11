@@ -1,0 +1,346 @@
+{
+  "action": "custom_lane_configure",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/custom_lane_configure.action.v4.json",
+  "sdk_binding_sha256": "16bb66db34b07b003098540df8f42722b4fea4da62f80574e14a24ed0d1eebb0",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Register or version one named Custom lane and its bounded retained-parser adapter; allocate its own database and files.",
+    "inputSchema": {
+      "$defs": {
+        "Adapter": {
+          "additionalProperties": false,
+          "properties": {
+            "extensions": {
+              "items": {
+                "pattern": "^\\.[a-z0-9]{1,15}$",
+                "type": "string"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "title": "Extensions",
+              "type": "array"
+            },
+            "max_file_bytes": {
+              "default": 1048576,
+              "maximum": 8388608,
+              "minimum": 1,
+              "title": "Max File Bytes",
+              "type": "integer"
+            },
+            "parser": {
+              "enum": [
+                "auto",
+                "text",
+                "json",
+                "notebook",
+                "archive",
+                "sqlite",
+                "opaque",
+                "document",
+                "presentation",
+                "spreadsheet",
+                "data",
+                "pdf_pymupdf",
+                "pdf_pypdf",
+                "pdf_pdfplumber",
+                "media"
+              ],
+              "title": "Parser",
+              "type": "string"
+            },
+            "sqlite_rows": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 0,
+              "title": "Sqlite Rows",
+              "type": "integer"
+            },
+            "sqlite_tables": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Sqlite Tables",
+              "type": "array"
+            }
+          },
+          "required": [
+            "parser",
+            "extensions"
+          ],
+          "title": "Adapter",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "adapter": {
+              "$ref": "#/$defs/Adapter"
+            },
+            "description": {
+              "default": "",
+              "maxLength": 1000,
+              "title": "Description",
+              "type": "string"
+            },
+            "display_name": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Display Name",
+              "type": "string"
+            },
+            "expected_contract": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Contract"
+            },
+            "lane_id": {
+              "pattern": "^custom__[a-z][a-z0-9_]{0,39}$",
+              "title": "Lane Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "lane_id",
+            "display_name",
+            "adapter"
+          ],
+          "title": "Configure",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "custom_lane_configure",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

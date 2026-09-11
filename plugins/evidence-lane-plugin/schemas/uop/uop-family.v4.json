@@ -1,0 +1,29 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "uop",
+  "members": [
+    {
+      "path": "src/evidence_lane_plugin/codex_action_plane.py",
+      "sha256": "ebffb1179b94a782fba8e6d9b275b13dd13f7bc4e94a8ddc2a07affec4c176a8"
+    },
+    {
+      "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+    },
+    {
+      "path": "src/evidence_lane_plugin/env_uop_tool_routing.py",
+      "sha256": "11a30029ee38ed81a873fde7e0a45c3b1a0804c7e1ccd73f272aa346b84b1038"
+    },
+    {
+      "path": "uop/codex-operation-policy.v4.json",
+      "sha256": "762dd200850e010bb0156fb394fe195b871bff7d9b8329684cae75409d8ab81e"
+    },
+    {
+      "path": "uop/uop_sqlite.sqlite",
+      "sha256": "7640805960c7026beb144473cb102f3264f79d8adab7f59d957287a63a98d3c6"
+    }
+  ],
+  "purpose": "Locked operation policy, gates and typed execution bindings",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

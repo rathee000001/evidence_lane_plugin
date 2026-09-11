@@ -1,0 +1,45 @@
+{
+  "repository": "https://github.com/Hugoberry/pbixray",
+  "commit": "c5da940b45d2806c8f8d3e109f0d1909117a7db0",
+  "scope": "Internal native format qualification only",
+  "license_sha256": "eb8284ead8d423c5ae411fa59e9f47eed7e2539a321b353f92af33adc27cfe2a",
+  "files": [
+    {
+      "file": "abc.pbix",
+      "source_url": "https://raw.githubusercontent.com/Hugoberry/pbixray/c5da940b45d2806c8f8d3e109f0d1909117a7db0/data/abc.pbix",
+      "git_blob": "52d9ed9006a3e56c1265cf521df9beccc66820bc",
+      "sha256": "2772b9c786e72b9c9b2970e81c41a084d9142bcfc1ed8672a2f1bf1562b37ffa",
+      "bytes": 24325
+    },
+    {
+      "file": "empty-schema-calc-only.pbix",
+      "source_url": "https://raw.githubusercontent.com/Hugoberry/pbixray/c5da940b45d2806c8f8d3e109f0d1909117a7db0/data/empty-schema-calc-only.pbix",
+      "git_blob": "bd6e8afacdf4e2129373467f6c3a247c7dfd10d7",
+      "sha256": "00803417fe55b63907eaa12d90900df57c4599659ff5647645ad9631431cb659",
+      "bytes": 28929
+    },
+    {
+      "file": "live-connection-pbiservice.pbix",
+      "source_url": "https://raw.githubusercontent.com/Hugoberry/pbixray/c5da940b45d2806c8f8d3e109f0d1909117a7db0/data/live-connection-pbiservice.pbix",
+      "git_blob": "0a0776a6b2d8d07dd1fd0b7555a61cab1a8e3509",
+      "sha256": "0d38e0d6c7f7b0678f6fa5afd9b7ec52600148e846ecf99e7e017fe9d145ad5b",
+      "bytes": 9773
+    },
+    {
+      "file": "ols-sample-report.pbix",
+      "source_url": "https://raw.githubusercontent.com/Hugoberry/pbixray/c5da940b45d2806c8f8d3e109f0d1909117a7db0/data/ols-sample-report.pbix",
+      "git_blob": "5060648ea525ffd2f3896fc8479e1f4b7bbed155",
+      "sha256": "bdffa3a070b657653bebd5f787a3f3868d7235379c2cb7444deed26b9ae7b668",
+      "bytes": 1116307
+    },
+    {
+      "file": "old-schema17-DataTable.pbix",
+      "source_url": "https://raw.githubusercontent.com/Hugoberry/pbixray/c5da940b45d2806c8f8d3e109f0d1909117a7db0/data/old-schema17-DataTable.pbix",
+      "git_blob": "9ea99a553272d5c6e7529e08d689e2bc30a0bbd7",
+      "sha256": "ae2dfa1eb5c648afd98acce7704fda64bae4844dcbd6409c287c56cd7aaf173e",
+      "bytes": 266273
+    }
+  ],
+  "license_file": "LICENSE.pbixray.txt",
+  "license": "MIT; preserve upstream copyright and permission notice"
+}

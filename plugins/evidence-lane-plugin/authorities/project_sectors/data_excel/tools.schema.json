@@ -1,25 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Data / Excel / CSV lane tools",
   "type": "object",
   "required": [
     "schema",
-    "status",
     "lane_id",
     "builder",
     "reader",
-    "query_traversal",
-    "retrieval_modes",
-    "canonical_shared_modules",
-    "registry_linked_workflow",
-    "dedicated_workflow"
+    "runtime",
+    "actions",
+    "views",
+    "workflow",
+    "workflow_mmd",
+    "workflow_dot",
+    "dependency_installation_inferred",
+    "runtime_state_folder",
+    "source_package_folder"
   ],
   "properties": {
     "schema": {
-      "const": "evidence-lane.installed-lane-tooling.v1"
-    },
-    "status": {
-      "const": "PASS"
+      "const": "evidence-lane.installed-lane-tooling.v4"
     },
     "lane_id": {
       "const": "data_excel"
@@ -28,40 +27,18 @@
       "const": "builder.py:build_lane_sources"
     },
     "reader": {
-      "const": "reader.py:LaneReader"
+      "const": "reader.py:read_lane_source"
     },
-    "query_traversal": {
-      "type": "string",
-      "minLength": 1
+    "actions": {
+      "type": "array",
+      "minItems": 1
     },
-    "retrieval_modes": {
-      "const": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "views": {
+      "type": "array"
     },
-    "canonical_shared_modules": {
-      "type": "object"
-    },
-    "registry_linked_workflow": {
-      "type": "object",
-      "required": [
-        "schema",
-        "status",
-        "lane_id",
-        "eligible_tools",
-        "eligible_public_actions",
-        "eligible_skill_workflows",
-        "current_registry_counts",
-        "counts_are_current_snapshot_not_ceiling"
-      ]
-    },
-    "dedicated_workflow": {
-      "type": "object"
+    "dependency_installation_inferred": {
+      "const": false
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "7421B67652ABA564B74080E6E187DE6ACD553FA30FFF2DEB3B10E75AA6652384"
+  "title": "Excel current lane tooling"
 }

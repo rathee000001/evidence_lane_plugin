@@ -1,0 +1,374 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Query one exact rebuildable remote context index while retaining SQLite and source-hash authority.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority_id": {
+        "maxLength": 128,
+        "minLength": 1,
+        "title": "Authority Id",
+        "type": "string"
+      },
+      "lane_id": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_response_bytes": {
+        "default": 2097152,
+        "maximum": 8388608,
+        "minimum": 1024,
+        "title": "Max Response Bytes",
+        "type": "integer"
+      },
+      "plugin_id": {
+        "anyOf": [
+          {
+            "pattern": "^[a-z][a-z0-9-]{2,63}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plugin Id"
+      },
+      "query_text": {
+        "anyOf": [
+          {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query Text"
+      },
+      "query_vector": {
+        "items": {
+          "type": "number"
+        },
+        "maxItems": 4096,
+        "minItems": 1,
+        "title": "Query Vector",
+        "type": "array"
+      },
+      "resource_id": {
+        "maxLength": 384,
+        "minLength": 3,
+        "title": "Resource Id",
+        "type": "string"
+      },
+      "source_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Sha256",
+        "type": "string"
+      },
+      "sqlite_identity_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Sqlite Identity Sha256",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 20,
+        "exclusiveMinimum": 0,
+        "maximum": 60,
+        "title": "Timeout Seconds",
+        "type": "number"
+      },
+      "tool_id": {
+        "enum": [
+          "Pinecone",
+          "Weaviate",
+          "Milvus",
+          "OpenSearch"
+        ],
+        "title": "Tool Id",
+        "type": "string"
+      },
+      "top_k": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Top K",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "tool_id",
+      "lane_id",
+      "authority_id",
+      "resource_id",
+      "sqlite_identity_sha256",
+      "source_sha256",
+      "query_vector"
+    ],
+    "title": "ContextIndexQueryRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "context_index_query",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "receipt_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Receipt Sha256",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "tool_id": {
+        "title": "Tool Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool_id",
+      "operation",
+      "result",
+      "receipt_sha256"
+    ],
+    "title": "ContextIndexExecutionResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "tools",
+  "profile": "memory",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Python",
+    "HTTPX"
+  ],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "77b0f39c01fe31b909f525d80ffb0a1f09367df0ba6874c1a7a4188b55f7b3a9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "context_index_query",
+    "profile": "memory",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+        "argument_suffixes": {},
+        "argument_values": {
+          "tool_id": [
+            "Pinecone"
+          ]
+        },
+        "extension": {
+          "backend_id": "pinecone.data-plane-rest",
+          "backend_runtime": "python",
+          "backend_version": "2025-10",
+          "capability": "context_index",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "selected_by_action",
+          "lane_field": "lane_id",
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "resource_id"
+          ],
+          "role": "context_index_result",
+          "role_schema": {
+            "operation": "text",
+            "receipt_sha256": "blob_hash",
+            "result": "json",
+            "tool_id": "text"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "context_index.pinecone",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "Pinecone"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+        "argument_suffixes": {},
+        "argument_values": {
+          "tool_id": [
+            "Weaviate"
+          ]
+        },
+        "extension": {
+          "backend_id": "weaviate.rest-graphql",
+          "backend_runtime": "python",
+          "backend_version": "v1",
+          "capability": "context_index",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "selected_by_action",
+          "lane_field": "lane_id",
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "resource_id"
+          ],
+          "role": "context_index_result",
+          "role_schema": {
+            "operation": "text",
+            "receipt_sha256": "blob_hash",
+            "result": "json",
+            "tool_id": "text"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "context_index.weaviate",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "Weaviate"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+        "argument_suffixes": {},
+        "argument_values": {
+          "tool_id": [
+            "Milvus"
+          ]
+        },
+        "extension": {
+          "backend_id": "milvus.rest",
+          "backend_runtime": "python",
+          "backend_version": "v2",
+          "capability": "context_index",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "selected_by_action",
+          "lane_field": "lane_id",
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "resource_id"
+          ],
+          "role": "context_index_result",
+          "role_schema": {
+            "operation": "text",
+            "receipt_sha256": "blob_hash",
+            "result": "json",
+            "tool_id": "text"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "context_index.milvus",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "Milvus"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+        "argument_suffixes": {},
+        "argument_values": {
+          "tool_id": [
+            "OpenSearch"
+          ]
+        },
+        "extension": {
+          "backend_id": "opensearch.rest",
+          "backend_runtime": "python",
+          "backend_version": "v2",
+          "capability": "context_index",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "selected_by_action",
+          "lane_field": "lane_id",
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "resource_id"
+          ],
+          "role": "context_index_result",
+          "role_schema": {
+            "operation": "text",
+            "receipt_sha256": "blob_hash",
+            "result": "json",
+            "tool_id": "text"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "context_index.opensearch",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "OpenSearch"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [
+    "context_index_result_binding"
+  ],
+  "worker_operations": [],
+  "workflow": "memory"
+}

@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AuthorityRequest_canon_graph": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "canon_graph",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CanonTaskGraphRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_canon_graph",
+      "type": "object"
+    },
+    "AuthorityRequest_canon_inspect": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "canon_inspect",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CanonInspect"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_canon_inspect",
+      "type": "object"
+    },
+    "CanonInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "record_limit": {
+          "default": 50000,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Record Limit",
+          "type": "integer"
+        }
+      },
+      "title": "CanonInspect",
+      "type": "object"
+    },
+    "CanonTaskGraphRead": {
+      "additionalProperties": false,
+      "properties": {
+        "record_limit": {
+          "default": 5000,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Record Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 16384,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "CanonTaskGraphRead",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "canon_graph": "#/$defs/AuthorityRequest_canon_graph",
+      "canon_inspect": "#/$defs/AuthorityRequest_canon_inspect"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_canon_graph"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_canon_inspect"
+    }
+  ],
+  "title": "canon_consequence_graph typed SDK requests"
+}

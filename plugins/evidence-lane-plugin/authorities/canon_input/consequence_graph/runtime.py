@@ -1,8 +1,5 @@
-"""Binding to the canonical Canon consequence graph implementation."""
+"""Canon consequence/task graph uses the same owning Canon database."""
+from evidence_lane_plugin.canon_consequence_graph import canon_pointer, canon_view
+from evidence_lane_plugin.canon_task_graph import CanonStore, CanonTaskGraph, CanonTaskGraphRead
 
-from evidence_lane_plugin import canon_consequence_graph
-
-AUTHORITY_ID = "canon_consequence_graph"
-CANONICAL_MODULE = canon_consequence_graph
-
-__all__ = ["AUTHORITY_ID", "CANONICAL_MODULE"]
+__all__ = ['CanonStore', 'CanonTaskGraph', 'CanonTaskGraphRead', 'canon_pointer', 'canon_view']

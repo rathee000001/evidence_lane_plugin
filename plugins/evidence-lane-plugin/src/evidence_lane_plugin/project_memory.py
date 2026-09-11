@@ -1,1947 +1,692 @@
-"""First-class bounded Project Memory authority.
+"""Bounded Project Memory locators, typed links and attributed continuity.
 
-Project Memory stores only content-addressed locators, typed edges, bounded
-query receipts, and compaction continuity records.  It is independent from
-Project Truth, Agent Learning, Canon, ChatLineage, and host-managed memory.
-Legacy locator rows created inside the Agent Learning ledger are copied with
-their original identities and immutable migration provenance; all new Memory
-writes are owned here.
+Adapts the base owner's content identities, FTS5/BM25 retrieval, suppression and
+checkpoint slices. Memory indexes references, never imports other authorities
+or reads host memory. Queries and rehydration do not write or attach a task.
 """
-
 from __future__ import annotations
 
 import json
 import re
-import sqlite3
-from collections.abc import Mapping
-from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any, cast
+import time
+from contextlib import nullcontext
+from typing import Literal
+from uuid import UUID, uuid4, uuid5
 
-from .errors import require
-from .graph_pipeline import SemanticGraph
-from .hashing import (
-    atomic_write_bytes,
-    atomic_write_json,
-    canonical_json_bytes,
-    sha256_bytes,
-    sha256_file,
-)
-from .lanes import CANONICAL_LANE_IDS
-from .package_root import resolve_plugin_root
-from .project_authority import resolved_plan_runtime_path
+from pydantic import Field, model_validator
+
+from .errors import LaneError
+from .lanes import LANE_REGISTRY, is_named_custom_lane
+from .migrations import Migration, apply_migrations
+from .plan_runtime import TASK_ID_PATTERN, PlanStore, content_digest
 from .redaction import contains_secret
+from .registry import ActionSpec, Contract, SearchRoute
+from .sdk import UUID_PATTERN
+from .storage import LaneStore, json_text, now
 
-MEMORY_AUTHORITY_SCHEMA = "evidence-lane.project-memory-authority.v1"
-MEMORY_LOCATOR_SCHEMA = "evidence-lane.memory-locator.v1"
-MEMORY_EDGE_SCHEMA = "evidence-lane.memory-edge.v1"
-MEMORY_HEAD_SCHEMA = "evidence-lane.project-memory-head.v1"
-MEMORY_MANIFEST_SCHEMA = "evidence-lane.project-memory-manifest.v1"
-MEMORY_QUERY_RECEIPT_SCHEMA = "evidence-lane.memory-query-receipt.v1"
-MEMORY_MIGRATION_RECEIPT_SCHEMA = "evidence-lane.memory-migration-receipt.v1"
-MEMORY_CHECKPOINT_SCHEMA = "evidence-lane.memory-compaction-checkpoint.v1"
-MEMORY_REHYDRATION_SCHEMA = "evidence-lane.memory-rehydration-receipt.v1"
-MEMORY_TOOLS_SCHEMA = "evidence-lane.project-memory-tools.v1"
-
-_SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
-_PV_RE = re.compile(r"^PV[1-9][0-9]*$")
-_TASK_UUID_RE = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-)
-_LOCATOR_KEYS = {
-    "sector",
-    "locator_kind",
-    "locator_value",
-    "revision_sha256",
-    "label",
-    "search_terms",
-}
-_EDGE_TYPES = {
-    "DERIVED_FROM",
-    "EVIDENCES",
-    "LEARNED_FROM",
-    "MAPS_TO",
-    "RELATED_TO",
-    "REVOKES",
-    "SUPERSEDES",
-    "SUPPRESSES",
-}
-_SUPPRESSING_EDGE_TYPES = {"REVOKES", "SUPERSEDES", "SUPPRESSES"}
-_AUTHORITY_PREFIXES = {
-    "CHAT_LINEAGE": "chat-lineage://",
-    "PLAN": "plan://",
-    "PROJECT_TRUTH": "project-truth://",
-    "CANON": "canon://",
-    "AGENT_LEARNING": "learning://",
-    "PROJECT_UNIVERSE": "universe://",
-    "PROJECT_OVERLAY": "project-overlay://",
-    "PROJECT_ROOT": "project-root://",
-    "RECEIPTS": "receipts://",
-    "HOST_MEMORY": "host-memory-import://",
-}
-MEMORY_SECTOR_LOCATOR_PREFIXES = {
-    **_AUTHORITY_PREFIXES,
-    **{
-        f"LANE_{lane_id.upper()}": f"sector://{lane_id.lower()}/"
-        for lane_id in CANONICAL_LANE_IDS
-    },
-}
+DIGEST = r'^[0-9a-f]{64}$'
+ReferenceKind = Literal['plan_task', 'lineage_event', 'learning_version', 'receipt', 'source_object', 'canon_exchange']
+EdgeKind = Literal['DERIVED_FROM', 'EVIDENCES', 'LEARNED_FROM', 'MAPS_TO', 'RELATED_TO', 'REVOKES', 'SUPERSEDES', 'SUPPRESSES']
+SUPPRESSING = ('REVOKES', 'SUPERSEDES', 'SUPPRESSES')
 
 
-def _agent_learning_ledger_path(root: Path) -> Path:
-    """Resolve the single AI Learning ledger with a pre-migration fallback."""
+class MemoryReference(Contract):
+    kind: ReferenceKind
+    key: str = Field(pattern=TASK_ID_PATTERN)
+    digest: str = Field(pattern=DIGEST)
+    revision: int | None = Field(default=None, ge=1)
+    profile: str | None = Field(default=None, pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    lane_id: str | None = Field(default=None, pattern=r'^[a-z][a-z0-9_]{0,63}$')
 
-    canonical = root / "ai_learning" / "agent-learning.sqlite"
-    legacy = root / "learning" / "agent-learning.sqlite"
-    require(
-        not (canonical.is_file() and legacy.is_file()),
-        "MEMORY_AGENT_LEARNING_AUTHORITY_DUPLICATED",
-        "Project Memory found both canonical and legacy Agent Learning ledgers.",
-        status="MISMATCH",
-        canonical_path=str(canonical),
-        legacy_path=str(legacy),
-    )
-    return canonical if canonical.is_file() or not legacy.is_file() else legacy
-
-
-def _sha256(value: Any, *, field: str) -> str:
-    exact = str(value or "").strip().upper()
-    require(
-        bool(_SHA256_RE.fullmatch(exact)),
-        "MEMORY_SHA256_INVALID",
-        "A Project Memory identity is not one exact SHA-256.",
-        status="MISMATCH",
-        field=field,
-    )
-    return exact
+    @model_validator(mode='after')
+    def relevant_fields(self):
+        if (self.kind == 'plan_task') != (self.revision is not None):
+            raise ValueError('Only a Plan task reference requires a revision')
+        if (self.kind == 'source_object') != (self.profile is not None):
+            raise ValueError('Only a source object requires an attributed profile')
+        if self.kind == 'source_object' and self.key != self.digest:
+            raise ValueError('A source object key must be its digest')
+        if (self.kind == 'source_object') != (self.lane_id is not None):
+            raise ValueError('Only a source object requires its explicit owning lane')
+        if self.lane_id is not None and self.lane_id not in LANE_REGISTRY and not is_named_custom_lane(self.lane_id):
+            raise ValueError('Use the canonical retained lane that owns this object')
+        return self
 
 
-def _timestamp(value: Any, *, field: str) -> str:
-    exact = str(value or "").strip()
-    require(
-        bool(exact),
-        "MEMORY_TIMESTAMP_REQUIRED",
-        "A Project Memory timestamp is required.",
-        status="BLOCKED",
-        field=field,
-    )
-    try:
-        parsed = datetime.fromisoformat(exact)
-    except ValueError as exc:
-        require(
-            False,
-            "MEMORY_TIMESTAMP_INVALID",
-            "A Project Memory timestamp is not valid ISO-8601.",
-            status="MISMATCH",
-            field=field,
-        )
-        raise AssertionError("unreachable") from exc
-    require(
-        parsed.tzinfo is not None,
-        "MEMORY_TIMESTAMP_TIMEZONE_REQUIRED",
-        "A Project Memory timestamp requires an explicit timezone.",
-        status="MISMATCH",
-        field=field,
-    )
-    return (
-        parsed.astimezone(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
-    )
+class MemoryLocator(Contract):
+    reference: MemoryReference
+    label: str = Field(min_length=1, max_length=200)
+    search_terms: list[str] = Field(default_factory=list, max_length=24)
+
+    @model_validator(mode='after')
+    def bounded_metadata(self):
+        if (not self.label.strip() or len(set(self.search_terms)) != len(self.search_terms)
+                or any(not term.strip() or len(term) > 192 for term in self.search_terms)
+                or len(self.model_dump_json().encode()) > 8192):
+            raise ValueError('Use distinct, bounded locator labels and terms')
+        if contains_secret(self.model_dump()):
+            raise ValueError('Secrets cannot enter Memory locator metadata')
+        return self
 
 
-def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "MEMORY_PROJECT_ROOT_MISMATCH",
-        "The Project Memory root does not match the exact project identity.",
-        status="MISMATCH",
-        project_id=project_id,
-    )
-    return root
+class MemoryEdge(Contract):
+    source_id: str = Field(pattern=DIGEST)
+    target_id: str = Field(pattern=DIGEST)
+    kind: EdgeKind
+    evidence: MemoryReference
+
+    @model_validator(mode='after')
+    def distinct_endpoints(self):
+        if self.source_id == self.target_id:
+            raise ValueError('An edge must connect distinct locators')
+        return self
 
 
-def _memory_root(root: Path) -> Path:
-    return root / "memory"
+class MemoryIngest(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    locators: list[MemoryLocator] = Field(default_factory=list, max_length=100)
+    edges: list[MemoryEdge] = Field(default_factory=list, max_length=100)
+
+    @model_validator(mode='after')
+    def bounded_batch(self):
+        if not (self.locators or self.edges) or len(self.model_dump_json().encode()) > 262_144:
+            raise ValueError('Provide a nonempty batch within 256 KiB')
+        return self
 
 
-def _database_path(root: Path) -> Path:
-    return _memory_root(root) / "memory.sqlite"
+class MemoryIngested(Contract):
+    project_id: str
+    locator_ids: list[str]
+    edge_ids: list[str]
+    head: str
+    duplicate: bool = False
+    authority: Literal['project_memory'] = 'project_memory'
+    link_semantics: Literal['agent_report', 'engine_verified_exit'] = 'agent_report'
+    source_authorities_mutated: bool = False
 
 
-def _schema_asset() -> tuple[Path, str]:
-    candidates = (
-        resolve_plugin_root(__file__)
-        / "schemas"
-        / "memory"
-        / "project-memory.v1.sql",
-    )
-    path = next((candidate for candidate in candidates if candidate.is_file()), None)
-    require(
-        path is not None,
-        "MEMORY_SCHEMA_ASSET_MISSING",
-        "The first-class Project Memory SQL asset is missing.",
-        status="MISMATCH",
-    )
-    exact = cast(Path, path)
-    return exact, exact.read_text(encoding="utf-8")
+class MemoryRecordLink(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    source: MemoryLocator
+    target: MemoryLocator
+    edge_type: EdgeKind
+    evidence: MemoryReference
+
+    @model_validator(mode='after')
+    def distinct_locators(self):
+        if self.source == self.target:
+            raise ValueError('A link must connect distinct locators')
+        return self
 
 
-def _connect(root: Path) -> sqlite3.Connection:
-    path = _database_path(root)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path, timeout=30)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA journal_mode=DELETE")
-    connection.execute("PRAGMA synchronous=FULL")
-    schema_path, sql = _schema_asset()
-    ddl_sha256 = sha256_file(schema_path)
-    metadata = connection.execute(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='memory_schema_metadata'"
-    ).fetchone()
-    if metadata is None:
+class MemoryRead(Contract):
+    query: str | None = Field(default=None, min_length=1, max_length=500)
+    kinds: list[ReferenceKind] = Field(default_factory=list, max_length=6)
+    profile: str | None = Field(default=None, pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    limit: int = Field(default=8, ge=1, le=20)
+    include_history: bool = False
+    max_bytes: int = Field(default=65_536, ge=32_768, le=262_144)
+
+
+class MemoryPage(Contract):
+    project_id: str
+    locators: list[dict]
+    head: str | None
+    truncated: bool
+    search_engine: Literal['sqlite_fts5_bm25'] = 'sqlite_fts5_bm25'
+    authority: Literal['project_memory'] = 'project_memory'
+    raw_source_payloads_returned: bool = False
+    query_mutated_storage: bool = False
+
+
+class MemoryCheckpoint(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    task_id: str = Field(pattern=TASK_ID_PATTERN)
+    plan_revision: int = Field(ge=1)
+    contract_digest: str = Field(pattern=DIGEST)
+    locator_ids: list[str] = Field(max_length=20)
+
+    @model_validator(mode='after')
+    def unique_ids(self):
+        if len(set(self.locator_ids)) != len(self.locator_ids) or any(not re.fullmatch(DIGEST, key) for key in self.locator_ids):
+            raise ValueError('Select distinct locator digests')
+        return self
+
+
+class MemoryCheckpointResult(Contract):
+    checkpoint_digest: str
+    project_id: str
+    source_client_id: str
+    source_task_binding: str | None
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+    host_session_attached: bool = False
+
+
+class MemoryRehydrate(Contract):
+    checkpoint_digest: str = Field(pattern=DIGEST)
+
+
+class MemoryContinuity(Contract):
+    project_id: str
+    checkpoint: dict
+    locators: list[dict]
+    current_plan_revision: int | None
+    plan_compatible: bool
+    memory_head_changed: bool
+    lineage_head_changed: bool
+    receiver_client_id: str
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+    host_session_attached: bool = False
+    source_authorities_mutated: bool = False
+
+
+MEMORY_MIGRATIONS = (Migration('memory', 1, 'Bounded locators, typed edges, immutable events and checkpoint slices', (
+    """CREATE TABLE memory_locators (locator_id TEXT PRIMARY KEY, reference_kind TEXT NOT NULL,
+       reference_key TEXT NOT NULL, reference_digest TEXT NOT NULL, reference_revision INTEGER, profile TEXT,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)), row_digest TEXT NOT NULL,
+       created_at TEXT NOT NULL)""",
+    'CREATE INDEX memory_reference ON memory_locators(reference_kind,reference_key,reference_revision)',
+    "CREATE VIRTUAL TABLE memory_fts USING fts5(locator_id UNINDEXED,label,text,tokenize='unicode61')",
+    """CREATE TABLE memory_edges (edge_id TEXT PRIMARY KEY, source_id TEXT NOT NULL REFERENCES memory_locators(locator_id),
+       target_id TEXT NOT NULL REFERENCES memory_locators(locator_id), kind TEXT NOT NULL,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)), row_digest TEXT NOT NULL, created_at TEXT NOT NULL)""",
+    'CREATE INDEX memory_edge_target ON memory_edges(target_id,kind)',
+    'CREATE INDEX memory_edge_source ON memory_edges(source_id,kind)',
+    """CREATE TABLE memory_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
+       kind TEXT NOT NULL, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,
+       result_json TEXT NOT NULL CHECK(json_valid(result_json)), previous_digest TEXT,
+       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)""",
+    """CREATE TABLE memory_checkpoints (checkpoint_digest TEXT PRIMARY KEY,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)))""",
+)),)
+
+
+def locator_identity(project_id, locator):
+    return content_digest({'project_id': project_id, 'locator': locator.model_dump()})
+
+
+class ProjectMemory:
+    def __init__(self, store):
+        self.project = store.project if isinstance(store, LaneStore) else store
+        self.store = self.project.lane('memory')
+
+    def initialize(self, lease):
+        if lease.store.root != self.store.root or lease.store.project_id != self.store.project_id:
+            raise LaneError('WRITER_PROJECT_MISMATCH', 'The Memory writer belongs to another project.')
+        lease.check()
+        apply_migrations(self.store, MEMORY_MIGRATIONS, writer=lease)
+
+    @staticmethod
+    def _table(connection, name):
+        return connection.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?", (name,)).fetchone() is not None
+
+    @staticmethod
+    def _head(connection):
+        row = connection.execute('SELECT digest FROM memory_events ORDER BY sequence DESC LIMIT 1').fetchone()
+        return row[0] if row else None
+
+    def _plan_head(self, connection):
+        with self.project.lane('plan').connection(read_only=True) as plan:
+            if not self._table(plan, 'plan_current'):
+                return None
+            row = plan.execute('SELECT revision FROM plan_current WHERE singleton=1').fetchone()
+            return row[0] if row else None
+
+    def _lineage_head(self, connection):
+        with self.project.lane('chat_lineage').connection(read_only=True) as lineage:
+            if not self._table(lineage, 'lineage_events'):
+                return None
+            row = lineage.execute('SELECT cursor FROM lineage_events ORDER BY sequence DESC LIMIT 1').fetchone()
+            return row[0] if row else None
+
+    def _reference(self, connection, ref):
+        """Verify the reference against its owner; do not import source content."""
+        lane_id = {'plan_task': 'plan', 'lineage_event': 'chat_lineage',
+                   'learning_version': 'learning', 'receipt': 'receipts',
+                   'canon_exchange': 'canon', 'source_object': ref.lane_id}[ref.kind]
         try:
-            connection.executescript(sql)
-            connection.execute(
-                "INSERT INTO memory_schema_metadata VALUES(1,?,?,?)",
-                (MEMORY_AUTHORITY_SCHEMA, 1, ddl_sha256),
-            )
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            connection.close()
+            selected = self.project.lane(lane_id)
+        except LaneError as error:
+            if error.code == 'LANE_NOT_INITIALIZED':
+                raise LaneError('MEMORY_SOURCE_MISMATCH', 'The referenced lane has no recorded source.') from None
             raise
-    else:
-        row = connection.execute(
-            "SELECT schema_id,schema_version,ddl_sha256 "
-            "FROM memory_schema_metadata WHERE singleton=1"
-        ).fetchone()
-        require(
-            row is not None
-            and str(row["schema_id"]) == MEMORY_AUTHORITY_SCHEMA
-            and int(row["schema_version"]) == 1
-            and str(row["ddl_sha256"]) == ddl_sha256,
-            "MEMORY_SCHEMA_VERSION_MISMATCH",
-            "The Project Memory schema is missing, newer, or byte-drifted.",
-            status="MISMATCH",
-        )
-    return connection
+        with selected.connection(read_only=True) as owner:
+            return self._owned_reference(owner, ref)
+
+    def _owned_reference(self, connection, ref):
+        row, actual, state = None, None, 'recorded'
+        if ref.kind == 'plan_task' and self._table(connection, 'plan_tasks'):
+            row = connection.execute('SELECT * FROM plan_tasks WHERE revision=? AND task_id=?', (ref.revision, ref.key)).fetchone()
+            if row:
+                try:
+                    actual = PlanStore._view(row, connection=connection).contract_digest
+                except (LaneError, ValueError):
+                    raise LaneError('MEMORY_SOURCE_INTEGRITY', 'The Plan contract or dependency identity is inconsistent.') from None
+                state = row['state'] if ref.revision == self._plan_head(connection) else 'historical'
+        elif ref.kind == 'lineage_event' and self._table(connection, 'lineage_events'):
+            from .lineage import ChatLineage
+            row = connection.execute('SELECT * FROM lineage_events WHERE event_id=?', (ref.key,)).fetchone()
+            if row:
+                ChatLineage.validate_row(row)
+                actual = row['cursor']
+        elif ref.kind == 'learning_version' and self._table(connection, 'learning_versions'):
+            row = connection.execute('SELECT * FROM learning_versions WHERE version_id=?', (ref.key,)).fetchone()
+            if row:
+                actual, state = row['content_digest'], row['state']
+                # Source remains a Learning observation, never a Memory-owned conclusion.
+                if content_digest(json.loads(row['scope_json'])) != row['lesson_key']:
+                    raise LaneError('MEMORY_SOURCE_INTEGRITY', 'The Learning scope identity is inconsistent.')
+        elif ref.kind == 'receipt':
+            row = connection.execute('SELECT * FROM receipts WHERE receipt_id=?', (ref.key,)).fetchone()
+            if row:
+                actual = content_digest(json.loads(row['body_json']))
+        elif ref.kind == 'source_object':
+            row = connection.execute('SELECT digest FROM objects WHERE digest=?', (ref.key,)).fetchone()
+            if row:
+                actual, state = row[0], 'registered_content_reference'
+        elif ref.kind == 'canon_exchange' and self._table(connection, 'canon_exchanges'):
+            from .canon_task_graph import CanonStore
+            row, _ = CanonStore(self.store).exchange(connection, ref.key)
+            actual, state = row['envelope_digest'], row['state']
+        if row is None or actual != ref.digest:
+            raise LaneError('MEMORY_SOURCE_MISMATCH', 'The reference must match an existing record in this project.')
+        return {'source_state': state, 'source_content_returned': False,
+                'source_bytes_reverified': False, 'profile_attribution': 'agent_report' if ref.profile else None}
+
+    @staticmethod
+    def _event(connection, request_id, kind, actor_id, input_digest, result):
+        previous = connection.execute('SELECT sequence,digest FROM memory_events ORDER BY sequence DESC LIMIT 1').fetchone()
+        body = {'sequence': previous['sequence'] + 1 if previous else 1, 'request_id': request_id,
+                'kind': kind, 'actor_id': actor_id, 'input_digest': input_digest, 'result_json': json_text(result),
+                'previous_digest': previous['digest'] if previous else None, 'created_at': now()}
+        digest = content_digest(body)
+        connection.execute('INSERT INTO memory_events VALUES(?,?,?,?,?,?,?,?,?)',
+            (body['sequence'], request_id, kind, actor_id, input_digest, body['result_json'], body['previous_digest'], digest, body['created_at']))
+        return digest
+
+    @staticmethod
+    def _replay(connection, request_id, kind, actor_id, input_digest):
+        row = connection.execute('SELECT * FROM memory_events WHERE request_id=?', (request_id,)).fetchone()
+        if row:
+            if row['kind'] != kind or row['actor_id'] != actor_id or row['input_digest'] != input_digest:
+                raise LaneError('MEMORY_REQUEST_CONFLICT', 'This request ID belongs to different Memory content or attribution.')
+            value = dict(row)
+            digest = value.pop('digest')
+            if content_digest(value) != digest:
+                raise LaneError('MEMORY_HISTORY_INTEGRITY', 'The recorded Memory event is inconsistent.')
+            return row
+        return None
+
+    def ingest(self, request, lease, *, actor_id):
+        return self._ingest(request, lease, actor_id=actor_id, operation='ingest')
+
+    def record_link(self, request, lease, *, actor_id):
+        request = MemoryRecordLink.model_validate(request.model_dump())
+        edge = MemoryEdge(source_id=locator_identity(self.store.project_id, request.source),
+            target_id=locator_identity(self.store.project_id, request.target),
+            kind=request.edge_type, evidence=request.evidence)
+        batch = MemoryIngest(request_id=request.request_id, locators=[request.source, request.target], edges=[edge])
+        return self._ingest(batch, lease, actor_id=actor_id, operation='record_link')
+
+    def _ingest(self, request, lease, *, actor_id, operation, transaction=None,
+                provenance='agent_report'):
+        request = MemoryIngest.model_validate(request.model_dump())
+        self.initialize(lease)
+        input_digest = content_digest(request.model_dump())
+        with nullcontext(transaction) if transaction is not None else lease.transaction('memory') as connection:
+            lease.check(connection)
+            self.store.require_transaction(connection)
+            previous = self._replay(connection, request.request_id, operation, actor_id, input_digest)
+            if previous:
+                return MemoryIngested(**json.loads(previous['result_json']), head=previous['digest'], duplicate=True)
+            locator_ids, edge_ids = [], []
+            for locator in request.locators:
+                ref = locator.reference
+                self._reference(connection, ref)
+                identity = locator_identity(self.store.project_id, locator)
+                locator_ids.append(identity)
+                existing = connection.execute('SELECT * FROM memory_locators WHERE locator_id=?', (identity,)).fetchone()
+                if existing:
+                    self._locator(connection, existing)
+                    continue
+                stamp = now()
+                body = {'project_id': self.store.project_id, 'locator': locator.model_dump(),
+                        'source_client_id': actor_id, 'metadata_provenance': provenance, 'created_at': stamp}
+                connection.execute('INSERT INTO memory_locators VALUES(?,?,?,?,?,?,?,?,?)',
+                    (identity, ref.kind, ref.key, ref.digest, ref.revision, ref.profile, json_text(body), content_digest(body), stamp))
+                connection.execute('INSERT INTO memory_fts VALUES(?,?,?)',
+                    (identity, locator.label, ' '.join([ref.kind, ref.profile or '', *locator.search_terms])))
+            for edge in request.edges:
+                for key in (edge.source_id, edge.target_id):
+                    row = connection.execute('SELECT * FROM memory_locators WHERE locator_id=?', (key,)).fetchone()
+                    if row is None:
+                        raise LaneError('MEMORY_EDGE_ENDPOINT_MISSING', 'Both endpoints must exist in this project and batch.')
+                    self._locator(connection, row)
+                self._reference(connection, edge.evidence)
+                identity = content_digest({'project_id': self.store.project_id, 'edge': edge.model_dump()})
+                edge_ids.append(identity)
+                existing = connection.execute('SELECT * FROM memory_edges WHERE edge_id=?', (identity,)).fetchone()
+                if existing:
+                    self._edge(connection, existing)
+                    continue
+                stamp = now()
+                body = {'project_id': self.store.project_id, 'edge': edge.model_dump(),
+                        'source_client_id': actor_id, 'semantics_provenance': provenance, 'created_at': stamp}
+                connection.execute('INSERT INTO memory_edges VALUES(?,?,?,?,?,?,?)',
+                    (identity, edge.source_id, edge.target_id, edge.kind, json_text(body), content_digest(body), stamp))
+            result = {'project_id': self.store.project_id, 'locator_ids': locator_ids, 'edge_ids': edge_ids}
+            if provenance != 'agent_report':
+                result['link_semantics'] = provenance
+            head = self._event(connection, request.request_id, operation, actor_id, input_digest, result)
+            receipt_kind = {'record_link': 'project_memory_record_link',
+                            'verified_exit': 'delta_exit_memory_refreshed'}.get(operation, 'memory_ingest')
+            self.store.append_receipt(receipt_kind, {**result, 'memory_head': head, 'source_client_id': actor_id}, connection=connection)
+        return MemoryIngested(**result, head=head)
+
+    def _verified_exit_batch(self, job_id, receipt_id):
+        """Derive a fixed-size reference batch from the actual completion owners."""
+        def require(condition):
+            if not condition:
+                raise LaneError('MEMORY_VERIFIED_EXIT_REQUIRED', 'Memory requires matching Plan, Receipt and Learning exit evidence.')
+
+        with self.project.lane('receipts').connection(read_only=True) as receipts:
+            row = receipts.execute("SELECT body_json FROM receipts WHERE receipt_id=? AND kind='delta_exit_verified' "
+                "AND length(CAST(body_json AS BLOB))<=262144", (receipt_id,)).fetchone()
+        require(row is not None)
+        receipt = json.loads(row[0])
+        require(receipt.get('project_id') == self.project.project_id and receipt.get('job_id') == job_id
+            and receipt.get('status') == 'passed' and receipt.get('memory_refresh_policy') == 'verified_exit_memory_v1')
+        with self.project.lane('plan').connection(read_only=True) as plan:
+            row = plan.execute('SELECT x.receipt_id,x.verification_object,d.state,d.task_id,d.plan_revision,'
+                'd.contract_digest,d.result_object FROM delta_exits x JOIN delta_runs d ON d.job_id=x.job_id '
+                'WHERE x.job_id=?', (job_id,)).fetchone()
+        require(row is not None and row['state'] == 'verified' and row['receipt_id'] == receipt_id
+            and all(row[key] == receipt.get(key) for key in
+                ('task_id', 'plan_revision', 'contract_digest', 'verification_object', 'result_object')))
+        with self.project.lane('learning').connection(read_only=True) as learning:
+            learned = learning.execute('SELECT * FROM learning_versions WHERE source_job_id=?', (job_id,)).fetchall()
+        require(len(learned) == 1 and learned[0]['source_receipt_id'] == receipt_id)
+        learned = learned[0]
+        learning_store = self.project.lane('learning')
+        path = learning_store.object_path(learned['content_digest'])
+        require(path.is_file() and path.stat().st_size <= 65_536)
+        observation = json.loads(learning_store.read_object(learned['content_digest']))
+        scope = observation.get('scope', {})
+        require(observation.get('project_id') == self.project.project_id and observation.get('source_job_id') == job_id
+            and observation.get('source_task_id') == row['task_id'] and observation.get('plan_revision') == row['plan_revision']
+            and observation.get('verification_object') == row['verification_object']
+            and observation.get('result_object') == row['result_object']
+            and observation.get('engine_instance') == receipt.get('engine_instance')
+            and json_text(scope) == learned['scope_json'] and content_digest(scope) == learned['lesson_key']
+            and scope.get('profile') == learned['profile'] and scope.get('action') == learned['action'])
+        task_ref = MemoryReference(kind='plan_task', key=row['task_id'], revision=row['plan_revision'], digest=row['contract_digest'])
+        receipt_ref = MemoryReference(kind='receipt', key=receipt_id, digest=content_digest(receipt))
+        learning_ref = MemoryReference(kind='learning_version', key=learned['version_id'], digest=learned['content_digest'])
+        result_ref = MemoryReference(kind='source_object', key=row['result_object'], digest=row['result_object'],
+            profile=learned['profile'], lane_id='plan')
+        # Labels deliberately contain no prompt, source payload, path or check output.
+        locators = [MemoryLocator(reference=ref, label=label, search_terms=['verified', 'completion'])
+            for ref, label in ((task_ref, 'Verified Plan task'), (receipt_ref, 'Verified Delta exit receipt'),
+                (learning_ref, 'Learning observation from verified exit'), (result_ref, 'Addressed Delta result'))]
+        identities = [locator_identity(self.project.project_id, locator) for locator in locators]
+        edges = [MemoryEdge(source_id=identities[source], target_id=identities[target], kind=kind, evidence=receipt_ref)
+            for source, target, kind in ((1, 0, 'EVIDENCES'), (2, 1, 'LEARNED_FROM'), (2, 3, 'DERIVED_FROM'))]
+        return MemoryIngest(request_id=str(uuid5(UUID(self.project.project_id), 'verified-exit:' + job_id)),
+            locators=locators, edges=edges)
+
+    def record_verified_exit(self, job_id, receipt_id, lease, *, transaction):
+        """Index this exit atomically; this is an engine hook, not a public write action."""
+        lease.check(transaction)
+        self.store.require_transaction(transaction)
+        request = self._verified_exit_batch(job_id, receipt_id)
+        result = self._ingest(request, lease, actor_id='engine_verified_exit', operation='verified_exit',
+            transaction=transaction, provenance='engine_verified_exit')
+        return self.read_verified_exit(job_id, receipt_id).model_copy(update={'duplicate': result.duplicate})
+
+    def read_verified_exit(self, job_id, receipt_id):
+        """Verify the bounded recorded reference batch without refreshing it."""
+        request = self._verified_exit_batch(job_id, receipt_id)
+        with self.store.connection(read_only=True) as connection:
+            row = self._replay(connection, request.request_id, 'verified_exit', 'engine_verified_exit',
+                               content_digest(request.model_dump())) if self._table(connection, 'memory_events') else None
+            if row is None:
+                raise LaneError('MEMORY_EXIT_INTEGRITY', 'The declared verified-exit Memory refresh is missing.')
+            result = MemoryIngested(**json.loads(row['result_json']), head=row['digest'])
+            expected_locators = [locator_identity(self.project.project_id, locator) for locator in request.locators]
+            expected_edges = [content_digest({'project_id': self.project.project_id, 'edge': edge.model_dump()})
+                for edge in request.edges]
+            if (result.project_id != self.project.project_id or result.locator_ids != expected_locators
+                    or result.edge_ids != expected_edges or result.link_semantics != 'engine_verified_exit'):
+                raise LaneError('MEMORY_EXIT_INTEGRITY', 'The recorded Memory refresh differs from its completion evidence.')
+            for table, column, identities, reader in (
+                    ('memory_locators', 'locator_id', expected_locators, self._locator),
+                    ('memory_edges', 'edge_id', expected_edges, self._edge)):
+                for identity in identities:
+                    member = connection.execute(f'SELECT * FROM {table} WHERE {column}=?', (identity,)).fetchone()
+                    if member is None:
+                        raise LaneError('MEMORY_EXIT_INTEGRITY', 'A verified-exit Memory reference is missing.')
+                    reader(connection, member)
+            with self.project.lane('receipts').connection(read_only=True) as receipts:
+                receipts_rows = receipts.execute("SELECT body_json FROM receipts WHERE kind='delta_exit_memory_refreshed' "
+                    "AND json_extract(body_json,'$.memory_head')=? LIMIT 2", (result.head,)).fetchall()
+            expected_receipt = {key: value for key, value in result.model_dump().items()
+                if key in {'project_id', 'locator_ids', 'edge_ids', 'link_semantics'}}
+            expected_receipt.update(memory_head=result.head, source_client_id='engine_verified_exit', owner_lane='memory')
+            if (len(receipts_rows) != 1 or len(receipts_rows[0][0].encode()) > 65_536
+                    or json.loads(receipts_rows[0][0]) != expected_receipt):
+                raise LaneError('MEMORY_EXIT_INTEGRITY', 'The Memory refresh receipt differs from the recorded event.')
+        return result
+
+    def _locator(self, connection, row):
+        body = json.loads(row['body_json'])
+        locator = MemoryLocator.model_validate(body.get('locator'))
+        ref = locator.reference
+        if (content_digest(body) != row['row_digest'] or body.get('project_id') != self.store.project_id
+                or locator_identity(self.store.project_id, locator) != row['locator_id']
+                or tuple(row[key] for key in ('reference_kind', 'reference_key', 'reference_digest', 'reference_revision', 'profile'))
+                   != (ref.kind, ref.key, ref.digest, ref.revision, ref.profile) or body.get('created_at') != row['created_at']):
+            raise LaneError('MEMORY_LOCATOR_INTEGRITY', 'A stored Memory locator differs from its bounded identity.')
+        source = self._reference(connection, ref)
+        if ref.profile and body.get('metadata_provenance') == 'engine_verified_exit':
+            source['profile_attribution'] = 'engine_verified_exit'
+        return {'locator_id': row['locator_id'], **body, **source}
+
+    def _edge(self, connection, row):
+        body = json.loads(row['body_json'])
+        edge = MemoryEdge.model_validate(body.get('edge'))
+        if (content_digest(body) != row['row_digest'] or body.get('project_id') != self.store.project_id
+                or content_digest({'project_id': self.store.project_id, 'edge': edge.model_dump()}) != row['edge_id']
+                or (row['source_id'], row['target_id'], row['kind']) != (edge.source_id, edge.target_id, edge.kind)):
+            raise LaneError('MEMORY_EDGE_INTEGRITY', 'A stored Memory edge differs from its identity.')
+        self._reference(connection, edge.evidence)
+        return {'edge_id': row['edge_id'], **body}
+
+    def _item(self, connection, row):
+        item = self._locator(connection, row)
+        edges = connection.execute('SELECT * FROM memory_edges WHERE source_id=? OR target_id=? ORDER BY created_at,edge_id LIMIT 9',
+                                   (row['locator_id'], row['locator_id'])).fetchall()
+        item['edges'] = [self._edge(connection, edge) for edge in edges[:8]]
+        item['edges_truncated'] = len(edges) > 8
+        item['suppressed'] = connection.execute("SELECT 1 FROM memory_edges WHERE target_id=? AND kind IN ('REVOKES','SUPERSEDES','SUPPRESSES') LIMIT 1",
+                                               (row['locator_id'],)).fetchone() is not None
+        return item
+
+    def read(self, request=None):
+        request = request or MemoryRead()
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            if not self._table(connection, 'memory_locators'):
+                return MemoryPage(project_id=self.store.project_id, locators=[], head=None, truncated=False)
+            deadline = time.monotonic() + 5
+            connection.set_progress_handler(lambda: int(time.monotonic() > deadline), 10_000)
+            conditions, parameters, join, order = ['1=1'], [], '', 'm.created_at DESC,m.locator_id'
+            if request.query:
+                terms = sorted(set(re.findall(r'\w+', request.query, re.UNICODE)))[:16]
+                if not terms:
+                    raise LaneError('MEMORY_QUERY_TERMS_REQUIRED', 'Use a query with indexable terms.')
+                join = ' JOIN memory_fts f ON f.locator_id=m.locator_id'
+                conditions.append('memory_fts MATCH ?')
+                parameters.append(' OR '.join('"' + term + '"' for term in terms))
+                order = 'bm25(memory_fts,0,5,2),m.locator_id'
+            if request.kinds:
+                conditions.append('m.reference_kind IN (' + ','.join('?' for _ in request.kinds) + ')')
+                parameters.extend(request.kinds)
+            if request.profile:
+                conditions.append('m.profile=?')
+                parameters.append(request.profile)
+            if not request.include_history:
+                # Local scope and suppression stay indexed. Cross-authority
+                # state is checked before the result limit under the same Root
+                # PV pin, with an explicit candidate/time bound.
+                conditions.append("NOT EXISTS(SELECT 1 FROM memory_edges e WHERE e.target_id=m.locator_id AND e.kind IN ('REVOKES','SUPERSEDES','SUPPRESSES'))")
+                conditions.append("(m.reference_kind!='plan_task' OR m.reference_revision=?)")
+                parameters.append(self._plan_head(connection))
+            rows = connection.execute('SELECT m.* FROM memory_locators m' + join + ' WHERE ' + ' AND '.join(conditions)
+                                      + ' ORDER BY ' + order + ' LIMIT ?', [*parameters, 1025]).fetchall()
+            selected, size = [], 0
+            truncated = len(rows) > 1024
+            for row in rows[:1024]:
+                if time.monotonic() >= deadline:
+                    truncated = True
+                    break
+                item = self._item(connection, row)
+                if not request.include_history and (
+                    row['reference_kind'] == 'learning_version' and item['source_state'] != 'active'
+                    or row['reference_kind'] == 'canon_exchange' and item['source_state'] in {'rejected', 'superseded'}
+                ):
+                    continue
+                size += len(json_text(item).encode())
+                if len(selected) == request.limit or size > request.max_bytes:
+                    truncated = True
+                    break
+                selected.append(item)
+            return MemoryPage(project_id=self.store.project_id, locators=selected, head=self._head(connection), truncated=truncated)
+
+    def checkpoint(self, request, lease, *, actor_id, source_task_binding=None):
+        self.initialize(lease)
+        input_digest = content_digest({'request': request.model_dump(), 'source_task_binding': source_task_binding})
+        with lease.transaction('memory') as connection:
+            previous = self._replay(connection, request.request_id, 'checkpoint', actor_id, input_digest)
+            if previous:
+                return MemoryCheckpointResult(**json.loads(previous['result_json']))
+            task_ref = MemoryReference(kind='plan_task', key=request.task_id, revision=request.plan_revision, digest=request.contract_digest)
+            self._reference(connection, task_ref)
+            if request.plan_revision != self._plan_head(connection):
+                raise LaneError('MEMORY_CHECKPOINT_STALE_PLAN', 'A new checkpoint must bind the current Plan revision.')
+            locators = []
+            for key in request.locator_ids:
+                row = connection.execute('SELECT * FROM memory_locators WHERE locator_id=?', (key,)).fetchone()
+                if row is None:
+                    raise LaneError('MEMORY_CHECKPOINT_LOCATOR_MISSING', 'Select locators from this project.')
+                self._locator(connection, row)
+                locators.append({'locator_id': key, 'row_digest': row['row_digest']})
+            body = {'project_id': self.store.project_id, 'source_client_id': actor_id, 'source_task_binding': source_task_binding,
+                    'task': task_ref.model_dump(), 'memory_head': self._head(connection), 'lineage_head': self._lineage_head(connection),
+                    'locators': locators, 'created_at': now(), 'native_task_attestation': 'not_provided', 'host_session_attached': False}
+            digest = content_digest(body)
+            connection.execute('INSERT INTO memory_checkpoints VALUES(?,?)', (digest, json_text(body)))
+            result = MemoryCheckpointResult(checkpoint_digest=digest, project_id=self.store.project_id,
+                source_client_id=actor_id, source_task_binding=source_task_binding)
+            self._event(connection, request.request_id, 'checkpoint', actor_id, input_digest, result.model_dump())
+            return result
+
+    def rehydrate(self, request, *, receiver_client_id):
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            row = connection.execute('SELECT * FROM memory_checkpoints WHERE checkpoint_digest=?', (request.checkpoint_digest,)).fetchone() if self._table(connection, 'memory_checkpoints') else None
+            if row is None:
+                raise LaneError('MEMORY_CHECKPOINT_NOT_FOUND', 'The checkpoint is not stored in this project.')
+            body = json.loads(row['body_json'])
+            if content_digest(body) != request.checkpoint_digest or body.get('project_id') != self.store.project_id:
+                raise LaneError('MEMORY_CHECKPOINT_INTEGRITY', 'The checkpoint content differs from its identity.')
+            task = MemoryReference.model_validate(body['task'])
+            self._reference(connection, task)
+            locators = []
+            for item in body['locators']:
+                row = connection.execute('SELECT * FROM memory_locators WHERE locator_id=?', (item['locator_id'],)).fetchone()
+                if row is None or row['row_digest'] != item['row_digest']:
+                    raise LaneError('MEMORY_CHECKPOINT_INTEGRITY', 'The checkpoint locator slice is inconsistent.')
+                locators.append(self._locator(connection, row))
+            # Ignore checkpoint-only events when comparing indexed Memory content.
+            sealed = connection.execute('SELECT sequence FROM memory_events WHERE digest=?', (body['memory_head'],)).fetchone()
+            changed = bool(connection.execute("SELECT 1 FROM memory_events WHERE kind IN ('ingest','record_link','verified_exit') AND sequence>? LIMIT 1", (sealed[0] if sealed else 0,)).fetchone())
+            current = self._plan_head(connection)
+            return MemoryContinuity(project_id=self.store.project_id, checkpoint=body, locators=locators,
+                current_plan_revision=current, plan_compatible=current == task.revision, memory_head_changed=changed,
+                lineage_head_changed=self._lineage_head(connection) != body['lineage_head'], receiver_client_id=receiver_client_id)
+
+    def verify_history(self, *, limit=50_000):
+        if not 1 <= limit <= 50_000:
+            raise LaneError('MEMORY_HISTORY_BUDGET', 'Select a bounded history verification limit.')
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            rows = connection.execute('SELECT * FROM memory_events ORDER BY sequence LIMIT ?', (limit + 1,)).fetchall() if self._table(connection, 'memory_events') else []
+            if len(rows) > limit:
+                raise LaneError('MEMORY_HISTORY_BUDGET', 'The Memory history exceeds the selected budget.')
+            previous = None
+            for sequence, row in enumerate(rows, 1):
+                body = dict(row)
+                digest = body.pop('digest')
+                if row['sequence'] != sequence or row['previous_digest'] != previous or content_digest(body) != digest:
+                    raise LaneError('MEMORY_HISTORY_INTEGRITY', 'The Memory event chain is inconsistent.')
+                previous = digest
+            return {'events_verified': len(rows), 'head': previous}
 
 
-def _json(path: Path, *, code: str) -> dict[str, Any]:
-    require(path.is_file(), code, "A required Project Memory input is missing.")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        require(
-            False,
-            code,
-            "A required Project Memory input is invalid JSON.",
-            status="MISMATCH",
-            path=str(path),
-            error_type=type(exc).__name__,
-        )
-        raise AssertionError("unreachable") from exc
-    require(isinstance(value, dict), code, "Project Memory JSON must be one object.")
-    return cast(dict[str, Any], value)
+def memory_view(store, scope):
+    from .lane_contract import ViewGraph
+    page = ProjectMemory(store).read(MemoryRead(limit=min(scope.node_limit, 20), query=scope.query,
+                                              include_history=scope.include_history))
+    graph = ViewGraph(store.project_id, scope)
+    ids = {}
+    for item in page.locators:
+        ids[item['locator_id']] = graph.node('memory_locator', item['locator_id'], item['locator']['label'],
+            state='suppressed' if item['suppressed'] else item['source_state'],
+            locator={'reference': item['locator']['reference'], 'source_client_id': item['source_client_id']})
+    for item in page.locators:
+        for edge in item['edges']:
+            graph.edge(ids.get(edge['edge']['source_id']), ids.get(edge['edge']['target_id']), edge['edge']['kind'],
+                       provenance=edge['semantics_provenance'], evidence=edge['edge']['evidence'])
+        graph.truncated |= item['edges_truncated']
+    graph.truncated |= page.truncated
+    return graph.result()
 
 
-def _immutable_json(path: Path, value: dict[str, Any]) -> None:
-    encoded = canonical_json_bytes(value)
-    if path.exists():
-        require(
-            path.read_bytes() == encoded,
-            "MEMORY_IMMUTABLE_ARTIFACT_CONFLICT",
-            "A content-addressed Project Memory artifact has different bytes.",
-            status="MISMATCH",
-            path=str(path),
-        )
-        return
-    atomic_write_json(path, value)
+def register_memory_actions(engine):
+    from .agent_learning import LEARNING_MIGRATIONS
+    from .canon_task_graph import CANON_MIGRATIONS
+    from .lineage import LINEAGE_MIGRATIONS
+    from .plan_runtime import PLAN_MIGRATIONS
+    read_schemas = (*MEMORY_MIGRATIONS, *PLAN_MIGRATIONS, *LINEAGE_MIGRATIONS, *LEARNING_MIGRATIONS, *CANON_MIGRATIONS)
+    def ingest(context, request):
+        store = engine.directory.open(context.project_id, write=True)
+        with engine.project_work.mutation(store) as lease:
+            return ProjectMemory(store).ingest(request, lease, actor_id=context.client_id)
 
+    def record_link(context, request):
+        store = engine.directory.open(context.project_id, write=True)
+        with engine.project_work.mutation(store) as lease:
+            return ProjectMemory(store).record_link(request, lease, actor_id=context.client_id)
 
-def _normalize_locator(
-    value: Mapping[str, Any], *, project_id: str, recorded_at: str
-) -> dict[str, Any]:
-    require(
-        set(value) == _LOCATOR_KEYS,
-        "MEMORY_LOCATOR_SHAPE_INVALID",
-        "A Project Memory locator requires only the governed locator fields.",
-        status="BLOCKED",
-    )
-    sector = str(value["sector"]).strip().upper()
-    locator_kind = str(value["locator_kind"]).strip().upper()
-    locator_value = str(value["locator_value"]).strip()
-    label = str(value["label"]).strip()
-    terms = value["search_terms"]
-    require(
-        sector in MEMORY_SECTOR_LOCATOR_PREFIXES
-        and bool(re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", locator_kind))
-        and locator_value.startswith(MEMORY_SECTOR_LOCATOR_PREFIXES[sector])
-        and len(locator_value) <= 512
-        and 1 <= len(label) <= 200
-        and isinstance(terms, list)
-        and 1 <= len(terms) <= 24,
-        "MEMORY_LOCATOR_BOUNDARY_INVALID",
-        "A Project Memory locator must use one typed URI and bounded labels.",
-        status="BLOCKED",
-    )
-    exact_terms = [str(item).strip() for item in terms]
-    require(
-        all(exact_terms)
-        and all(len(item) <= 192 for item in exact_terms)
-        and len(exact_terms) == len(set(exact_terms)),
-        "MEMORY_SEARCH_TERMS_INVALID",
-        "Project Memory search terms must be nonempty, bounded, and unique.",
-        status="BLOCKED",
-    )
-    revision_sha256 = _sha256(
-        value["revision_sha256"], field="memory_locator_revision_sha256"
-    )
-    search_text = " ".join([label, sector, locator_kind, *exact_terms])
-    require(
-        len(search_text) <= 2048
-        and not contains_secret(
-            {
-                "locator_value": locator_value,
-                "label": label,
-                "search_terms": exact_terms,
-            }
-        ),
-        "MEMORY_LOCATOR_CONTENT_BLOCKED",
-        "Secrets or unbounded source content cannot enter Project Memory.",
-        status="BLOCKED",
-    )
-    body: dict[str, Any] = {
-        "schema": MEMORY_LOCATOR_SCHEMA,
-        "project_id": project_id,
-        "sector": sector,
-        "locator_kind": locator_kind,
-        "locator_value": locator_value,
-        "revision_sha256": revision_sha256,
-        "label": label,
-        "search_text": search_text,
-        "recorded_at": recorded_at,
-        "raw_payload_stored": False,
-        "private_reasoning_stored": False,
-    }
-    digest = sha256_bytes(canonical_json_bytes(body))
-    return {
-        **body,
-        "locator_id": f"memloc_{digest[:24].lower()}",
-        "locator_sha256": digest,
-    }
+    def checkpoint(context, request):
+        store = engine.directory.open(context.project_id, write=True)
+        with engine.project_work.mutation(store) as lease:
+            return ProjectMemory(store).checkpoint(request, lease, actor_id=context.client_id, source_task_binding=context.native_task_id)
 
-
-def _verify_locator(locator: Mapping[str, Any]) -> None:
-    claimed = _sha256(locator.get("locator_sha256"), field="locator_sha256")
-    body = {
-        key: value
-        for key, value in locator.items()
-        if key not in {"locator_id", "locator_sha256"}
-    }
-    sector = str(locator.get("sector") or "")
-    require(
-        locator.get("schema") == MEMORY_LOCATOR_SCHEMA
-        and sector in MEMORY_SECTOR_LOCATOR_PREFIXES
-        and str(locator.get("locator_value") or "").startswith(
-            MEMORY_SECTOR_LOCATOR_PREFIXES[sector]
-        )
-        and locator.get("raw_payload_stored") is False
-        and locator.get("private_reasoning_stored") is False
-        and claimed == sha256_bytes(canonical_json_bytes(body))
-        and locator.get("locator_id") == f"memloc_{claimed[:24].lower()}",
-        "MEMORY_LOCATOR_IDENTITY_MISMATCH",
-        "A stored Project Memory locator failed its bounded identity contract.",
-        status="MISMATCH",
-    )
-
-
-def _insert_locator(
-    connection: sqlite3.Connection,
-    locator: dict[str, Any],
-    *,
-    provenance: Mapping[str, Any],
-) -> bool:
-    _verify_locator(locator)
-    existing = connection.execute(
-        "SELECT locator_json,provenance_json FROM memory_locator WHERE locator_id=?",
-        (locator["locator_id"],),
-    ).fetchone()
-    if existing is not None:
-        require(
-            canonical_json_bytes(json.loads(str(existing["locator_json"])))
-            == canonical_json_bytes(locator),
-            "MEMORY_LOCATOR_IDENTITY_CONFLICT",
-            "One Project Memory locator ID maps to different bytes.",
-            status="MISMATCH",
-        )
-        return False
-    connection.execute(
-        """
-        INSERT INTO memory_locator(
-            locator_id,project_id,sector,locator_kind,locator_value,
-            revision_sha256,label,search_text,locator_sha256,locator_json,
-            provenance_json,recorded_at
-        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
-        """,
-        (
-            locator["locator_id"],
-            locator["project_id"],
-            locator["sector"],
-            locator["locator_kind"],
-            locator["locator_value"],
-            locator["revision_sha256"],
-            locator["label"],
-            locator["search_text"],
-            locator["locator_sha256"],
-            canonical_json_bytes(locator).decode("utf-8"),
-            canonical_json_bytes(dict(provenance)).decode("utf-8"),
-            locator["recorded_at"],
-        ),
-    )
-    connection.execute(
-        "INSERT INTO memory_locator_fts VALUES(?,?,?,?,?,?)",
-        (
-            locator["locator_id"],
-            locator["project_id"],
-            locator["sector"],
-            locator["locator_kind"],
-            locator["label"],
-            locator["search_text"],
-        ),
-    )
-    return True
-
-
-def _resolve_locator(
-    connection: sqlite3.Connection,
-    locator: dict[str, Any],
-    *,
-    provenance: Mapping[str, Any],
-) -> tuple[dict[str, Any], bool]:
-    """Reuse one semantic locator even when a later refresh has a new timestamp."""
-
-    row = connection.execute(
-        """
-        SELECT locator_json FROM memory_locator
-        WHERE project_id=? AND sector=? AND locator_kind=?
-          AND locator_value=? AND revision_sha256=? AND label=? AND search_text=?
-        ORDER BY recorded_at, locator_id LIMIT 1
-        """,
-        (
-            locator["project_id"],
-            locator["sector"],
-            locator["locator_kind"],
-            locator["locator_value"],
-            locator["revision_sha256"],
-            locator["label"],
-            locator["search_text"],
-        ),
-    ).fetchone()
-    if row is not None:
-        existing = cast(dict[str, Any], json.loads(str(row["locator_json"])))
-        _verify_locator(existing)
-        return existing, False
-    return locator, _insert_locator(connection, locator, provenance=provenance)
-
-
-def _edge(
-    *,
-    project_id: str,
-    source_locator_id: str,
-    target_locator_id: str,
-    edge_type: str,
-    evidence_sha256: str,
-    recorded_at: str,
-) -> dict[str, Any]:
-    exact_type = str(edge_type).strip().upper()
-    require(
-        exact_type in _EDGE_TYPES and source_locator_id != target_locator_id,
-        "MEMORY_EDGE_INVALID",
-        "A Project Memory edge must be typed and connect distinct locators.",
-        status="BLOCKED",
-    )
-    body: dict[str, Any] = {
-        "schema": MEMORY_EDGE_SCHEMA,
-        "project_id": project_id,
-        "source_locator_id": source_locator_id,
-        "target_locator_id": target_locator_id,
-        "edge_type": exact_type,
-        "evidence_sha256": _sha256(
-            evidence_sha256, field="memory_edge_evidence_sha256"
-        ),
-        "recorded_at": recorded_at,
-        "raw_payload_stored": False,
-        "private_reasoning_stored": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
-    digest = sha256_bytes(canonical_json_bytes(body))
-    return {
-        **body,
-        "edge_id": f"memedge_{digest[:24].lower()}",
-        "edge_sha256": digest,
-    }
-
-
-def _insert_edge(connection: sqlite3.Connection, edge: dict[str, Any]) -> bool:
-    existing = connection.execute(
-        "SELECT edge_json FROM memory_edge WHERE edge_id=?", (edge["edge_id"],)
-    ).fetchone()
-    if existing is not None:
-        require(
-            canonical_json_bytes(json.loads(str(existing["edge_json"])))
-            == canonical_json_bytes(edge),
-            "MEMORY_EDGE_IDENTITY_CONFLICT",
-            "One Project Memory edge ID maps to different bytes.",
-            status="MISMATCH",
-        )
-        return False
-    connection.execute(
-        """
-        INSERT INTO memory_edge(
-            edge_id,project_id,source_locator_id,target_locator_id,edge_type,
-            evidence_sha256,edge_sha256,edge_json,recorded_at
-        ) VALUES(?,?,?,?,?,?,?,?,?)
-        """,
-        (
-            edge["edge_id"],
-            edge["project_id"],
-            edge["source_locator_id"],
-            edge["target_locator_id"],
-            edge["edge_type"],
-            edge["evidence_sha256"],
-            edge["edge_sha256"],
-            canonical_json_bytes(edge).decode("utf-8"),
-            edge["recorded_at"],
-        ),
-    )
-    return True
-
-
-def _resolve_edge(
-    connection: sqlite3.Connection, edge: dict[str, Any]
-) -> tuple[dict[str, Any], bool]:
-    """Reuse one semantic edge instead of duplicating it on a later refresh."""
-
-    row = connection.execute(
-        """
-        SELECT edge_json FROM memory_edge
-        WHERE project_id=? AND source_locator_id=? AND target_locator_id=?
-          AND edge_type=? AND evidence_sha256=?
-        ORDER BY recorded_at, edge_id LIMIT 1
-        """,
-        (
-            edge["project_id"],
-            edge["source_locator_id"],
-            edge["target_locator_id"],
-            edge["edge_type"],
-            edge["evidence_sha256"],
-        ),
-    ).fetchone()
-    if row is not None:
-        return cast(dict[str, Any], json.loads(str(row["edge_json"]))), False
-    return edge, _insert_edge(connection, edge)
-
-
-def _legacy_memory_rows(
-    root: Path,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]:
-    path = _agent_learning_ledger_path(root)
-    if not path.is_file():
-        return [], [], None
-    digest = sha256_file(path)
-    connection = sqlite3.connect(
-        f"file:{path.as_posix()}?mode=ro&immutable=1", uri=True
-    )
-    connection.row_factory = sqlite3.Row
-    try:
-        tables = {
-            str(row[0])
-            for row in connection.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
-        }
-        if not {"memory_locator", "memory_edge"} <= tables:
-            return [], [], digest
-        locators = [
-            cast(dict[str, Any], json.loads(str(row["locator_json"])))
-            for row in connection.execute(
-                "SELECT locator_json FROM memory_locator ORDER BY locator_id"
-            ).fetchall()
-        ]
-        edges = [
-            cast(dict[str, Any], json.loads(str(row["edge_json"])))
-            for row in connection.execute(
-                "SELECT edge_json FROM memory_edge ORDER BY edge_id"
-            ).fetchall()
-        ]
-        return locators, edges, digest
-    finally:
-        connection.close()
-
-
-def _migrate_legacy_memory(
-    connection: sqlite3.Connection, *, root: Path, project_id: str
-) -> dict[str, Any]:
-    locators, edges, source_sha256 = _legacy_memory_rows(root)
-    if source_sha256 is None:
-        return {
-            "state": "NO_LEGACY_MEMORY_LEDGER",
-            "locator_count": 0,
-            "edge_count": 0,
-            "receipt_sha256": None,
-        }
-    inserted_locator_count = 0
-    inserted_edge_count = 0
-    for locator in locators:
-        require(
-            locator.get("project_id") == project_id,
-            "MEMORY_LEGACY_PROJECT_MISMATCH",
-            "A legacy Memory locator belongs to another project.",
-            status="MISMATCH",
-        )
-        inserted_locator_count += int(
-            _insert_locator(
-                connection,
-                locator,
-                provenance={
-                    "source_authority": "LEGACY_AGENT_LEARNING_MEMORY_V2",
-                    "source_ledger_sha256": source_sha256,
-                    "logical_record_id": locator["locator_id"],
-                    "copied_not_moved": True,
-                },
-            )
-        )
-    for edge in edges:
-        inserted_edge_count += int(_insert_edge(connection, edge))
-    body = {
-        "schema": MEMORY_MIGRATION_RECEIPT_SCHEMA,
-        "status": "PASS",
-        "project_id": project_id,
-        "source_authority": "LEGACY_AGENT_LEARNING_MEMORY_V2",
-        "source_ledger_sha256": source_sha256,
-        "legacy_locator_count": len(locators),
-        "legacy_edge_count": len(edges),
-        "inserted_locator_count": inserted_locator_count,
-        "inserted_edge_count": inserted_edge_count,
-        "legacy_rows_retained": True,
-        "active_memory_owner": "PROJECT_MEMORY",
-        "logical_loss": False,
-        "logical_duplication": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
-    receipt_sha256 = sha256_bytes(canonical_json_bytes(body))
-    receipt = {**body, "receipt_sha256": receipt_sha256}
-    existing = connection.execute(
-        "SELECT receipt_json FROM memory_migration_receipt WHERE source_ledger_sha256=?",
-        (source_sha256,),
-    ).fetchone()
-    if existing is None:
-        connection.execute(
-            "INSERT INTO memory_migration_receipt VALUES(?,?,?,?,?,?)",
-            (
-                source_sha256,
-                project_id,
-                len(locators),
-                len(edges),
-                receipt_sha256,
-                canonical_json_bytes(receipt).decode("utf-8"),
-            ),
-        )
-    else:
-        previous = cast(dict[str, Any], json.loads(str(existing["receipt_json"])))
-        require(
-            previous["legacy_locator_count"] == len(locators)
-            and previous["legacy_edge_count"] == len(edges),
-            "MEMORY_LEGACY_MIGRATION_REPLAY_MISMATCH",
-            "A repeated legacy Memory migration changed its logical source rows.",
-            status="MISMATCH",
-        )
-        receipt_sha256 = str(previous["receipt_sha256"])
-    return {
-        "state": "LEGACY_MEMORY_COPIED" if locators or edges else "LEGACY_MEMORY_EMPTY",
-        "locator_count": len(locators),
-        "edge_count": len(edges),
-        "inserted_locator_count": inserted_locator_count,
-        "inserted_edge_count": inserted_edge_count,
-        "receipt_sha256": receipt_sha256,
-        "source_ledger_sha256": source_sha256,
-    }
-
-
-def _plan_identity(root: Path, *, active_plan_task_id: str) -> tuple[str, str, int]:
-    path = resolved_plan_runtime_path(root)
-    require(
-        path.is_file(),
-        "MEMORY_PLAN_AUTHORITY_REQUIRED",
-        "Project Memory requires the live Plan SQLite authority.",
-        status="BLOCKED",
-    )
-    digest = sha256_file(path)
-    connection = sqlite3.connect(
-        f"file:{path.as_posix()}?mode=ro&immutable=1", uri=True
-    )
-    connection.row_factory = sqlite3.Row
-    try:
-        rows = connection.execute(
-            "SELECT task_id,task_contract_sha256,row_number FROM plan_execution_row "
-            "WHERE lifecycle_status='ACTIVE' AND effective_for_execution=1"
-        ).fetchall()
-    finally:
-        connection.close()
-    require(
-        len(rows) == 1 and str(rows[0]["task_id"]) == active_plan_task_id,
-        "MEMORY_ACTIVE_PLAN_TASK_MISMATCH",
-        "Project Memory requires one exact active Plan task.",
-        status="MISMATCH",
-        expected_active_task_id=active_plan_task_id,
-        active_task_ids=[str(row["task_id"]) for row in rows],
-    )
-    row_number = int(rows[0]["row_number"] or 0)
-    require(
-        row_number > 0,
-        "MEMORY_ACTIVE_PLAN_ROW_REQUIRED",
-        "Project Memory requires the active Plan row number.",
-        status="MISMATCH",
-    )
-    return (
-        digest,
-        _sha256(rows[0]["task_contract_sha256"], field="task_contract"),
-        row_number,
-    )
-
-
-def _authority_locators(
-    root: Path,
-    *,
-    project_id: str,
-    accepted_pv: str,
-    pointer_generation: int,
-    accepted_manifest_sha256: str,
-    active_plan_task_id: str,
-    active_plan_row: int,
-    plan_sha256: str,
-    task_contract_sha256: str,
-    lineage_head_sha256: str,
-    recorded_at: str,
-) -> list[tuple[dict[str, Any], dict[str, Any]]]:
-    layout_path = root / "project_authority.json"
-    layout = _json(layout_path, code="MEMORY_PROJECT_LAYOUT_REQUIRED")
-    pointer = cast(dict[str, Any], layout.get("accepted_pointer") or {})
-    require(
-        layout.get("project_id") == project_id
-        and pointer.get("accepted_pv") == accepted_pv
-        and int(pointer.get("generation") or 0) == pointer_generation
-        and pointer.get("accepted_manifest_sha256") == accepted_manifest_sha256,
-        "MEMORY_ACCEPTED_POINTER_MISMATCH",
-        "Project Memory cannot bind a different accepted pointer baseline.",
-        status="MISMATCH",
-    )
-    values: list[tuple[dict[str, Any], dict[str, Any]]] = []
-
-    def add(value: dict[str, Any], source: str, source_sha256: str) -> None:
-        values.append(
-            (
-                _normalize_locator(
-                    value, project_id=project_id, recorded_at=recorded_at
-                ),
-                {
-                    "source_authority": source,
-                    "source_sha256": source_sha256,
-                    "bounded_locator_only": True,
-                },
-            )
-        )
-
-    add(
-        {
-            "sector": "PROJECT_TRUTH",
-            "locator_kind": "ACCEPTED_POINTER",
-            "locator_value": (
-                f"project-truth://{project_id}/{accepted_pv}/generation/{pointer_generation}"
-            ),
-            "revision_sha256": accepted_manifest_sha256,
-            "label": f"{accepted_pv} generation {pointer_generation} accepted baseline",
-            "search_terms": ["project", "truth", "accepted", accepted_pv.lower()],
-        },
-        "PROJECT_AUTHORITY_LAYOUT",
-        sha256_file(layout_path),
-    )
-    add(
-        {
-            "sector": "PLAN",
-            "locator_kind": "ACTIVE_TASK",
-            "locator_value": f"plan://task/{active_plan_task_id}",
-            "revision_sha256": task_contract_sha256,
-            "label": f"Active Plan R{active_plan_row} task {active_plan_task_id}",
-            "search_terms": [
-                "plan",
-                "active",
-                "task",
-                f"r{active_plan_row}",
-                active_plan_task_id,
-            ],
-        },
-        "PLAN_SQLITE",
-        plan_sha256,
-    )
-    for lane_id in CANONICAL_LANE_IDS:
-        path = root / "sectors" / lane_id / "authority.ref.json"
-        require(
-            path.is_file(),
-            "MEMORY_SECTOR_REFERENCE_REQUIRED",
-            "Project Memory requires every governed sector reference.",
-            status="BLOCKED",
-            lane_id=lane_id,
-        )
-        digest = sha256_file(path)
-        add(
-            {
-                "sector": f"LANE_{lane_id.upper()}",
-                "locator_kind": "SECTOR_AUTHORITY",
-                "locator_value": f"sector://{lane_id.lower()}/authority",
-                "revision_sha256": digest,
-                "label": f"{lane_id} project sector authority",
-                "search_terms": ["sector", "lane", lane_id.lower(), "authority"],
-            },
-            "PROJECT_SECTOR_REFERENCE",
-            digest,
-        )
-    learning_path = _agent_learning_ledger_path(root)
-    if learning_path.is_file():
-        digest = sha256_file(learning_path)
-        add(
-            {
-                "sector": "AGENT_LEARNING",
-                "locator_kind": "LEARNING_AUTHORITY",
-                "locator_value": f"learning://authority/{digest}",
-                "revision_sha256": digest,
-                "label": "Agent Learning authority",
-                "search_terms": ["agent", "learning", "authority", accepted_pv.lower()],
-            },
-            "AGENT_LEARNING_SQLITE",
-            digest,
-        )
-    canon_path = root / "canon" / "consequence-graph-current.json"
-    if canon_path.is_file():
-        digest = sha256_file(canon_path)
-        add(
-            {
-                "sector": "CANON",
-                "locator_kind": "CONSEQUENCE_GRAPH_POINTER",
-                "locator_value": f"canon://consequence-graph/{digest}",
-                "revision_sha256": digest,
-                "label": "Canon consequence graph pointer",
-                "search_terms": ["canon", "consequence", "graph", "pointer"],
-            },
-            "CANON_CONSEQUENCE_POINTER",
-            digest,
-        )
-    overlay_files = sorted(
-        path
-        for path in (root / "project_overlay").rglob("*")
-        if path.is_file()
-    )
-    if overlay_files:
-        digest = sha256_bytes(
-            canonical_json_bytes(
-                {
-                    path.relative_to(root / "project_overlay").as_posix(): sha256_file(
-                        path
-                    )
-                    for path in overlay_files[:512]
-                }
-            )
-        )
-        add(
-            {
-                "sector": "PROJECT_OVERLAY",
-                "locator_kind": "PV_CHANGE_OVERLAY_AUTHORITY",
-                "locator_value": f"project-overlay://authority/{digest}",
-                "revision_sha256": digest,
-                "label": "Progressive Project PV change and blast-radius overlay",
-                "search_terms": [
-                    "project",
-                    "overlay",
-                    "pv",
-                    "change",
-                    "blast",
-                    "radius",
-                ],
-            },
-            "PROJECT_OVERLAY_ROOT_SET",
-            digest,
-        )
-    root_manifest = root / "PROJECT_AUTHORITY_MANIFEST.json"
-    if root_manifest.is_file():
-        digest = sha256_file(root_manifest)
-        add(
-            {
-                "sector": "PROJECT_ROOT",
-                "locator_kind": "LIVE_ROOT_AUTHORITY_MANIFEST",
-                "locator_value": f"project-root://authority/{digest}",
-                "revision_sha256": digest,
-                "label": "Live project root authority manifest",
-                "search_terms": ["live", "project", "root", "authority", "manifest"],
-            },
-            "PROJECT_ROOT_AUTHORITY_MANIFEST",
-            digest,
-        )
-    universe_files = sorted((root / "universe").glob("*.json"))
-    if universe_files:
-        digest = sha256_bytes(
-            canonical_json_bytes(
-                {path.name: sha256_file(path) for path in universe_files[:128]}
-            )
-        )
-        add(
-            {
-                "sector": "PROJECT_UNIVERSE",
-                "locator_kind": "UNIVERSE_AUTHORITY",
-                "locator_value": f"universe://authority/{digest}",
-                "revision_sha256": digest,
-                "label": "Project Universe authority",
-                "search_terms": ["project", "universe", "graph", "telemetry"],
-            },
-            "PROJECT_UNIVERSE_JSON_SET",
-            digest,
-        )
-    receipt_files = sorted((root / "receipts").glob("*.json"))
-    if receipt_files:
-        digest = sha256_bytes(
-            canonical_json_bytes(
-                {path.name: sha256_file(path) for path in receipt_files[:512]}
-            )
-        )
-        add(
-            {
-                "sector": "RECEIPTS",
-                "locator_kind": "RECEIPT_AUTHORITY",
-                "locator_value": f"receipts://authority/{digest}",
-                "revision_sha256": digest,
-                "label": "Project receipt authority",
-                "search_terms": ["project", "receipts", "evidence", "authority"],
-            },
-            "PROJECT_RECEIPT_SET",
-            digest,
-        )
-    add(
-        {
-            "sector": "CHAT_LINEAGE",
-            "locator_kind": "LINEAGE_HEAD",
-            "locator_value": f"chat-lineage://head/{lineage_head_sha256}",
-            "revision_sha256": lineage_head_sha256,
-            "label": "Bounded ChatLineage head",
-            "search_terms": ["chat", "lineage", "head", "continuity"],
-        },
-        "CHAT_LINEAGE_HEAD",
-        lineage_head_sha256,
-    )
-    return values
-
-
-def _current_head(connection: sqlite3.Connection) -> dict[str, Any]:
-    row = connection.execute(
-        "SELECT head_json FROM memory_authority_head ORDER BY rowid DESC LIMIT 1"
-    ).fetchone()
-    require(
-        row is not None,
-        "MEMORY_HEAD_REQUIRED",
-        "Project Memory has not been bootstrapped.",
-        status="BLOCKED",
-    )
-    return cast(dict[str, Any], json.loads(str(row["head_json"])))
-
-
-def _render_graph_pair(
-    locators: list[dict[str, Any]], edges: list[dict[str, Any]]
-) -> tuple[str, str, dict[str, Any]]:
-    graph = SemanticGraph(
-        "ProjectMemory",
-        direction="LR",
-        role="AUTHORITY_TRAVERSAL",
-    )
-    for locator in locators:
-        graph.add_node(
-            str(locator["locator_id"]),
-            f"{locator['sector']}\n{locator['label']}",
-            "retrieval",
-        )
-    for edge in edges:
-        graph.add_edge(
-            str(edge["source_locator_id"]),
-            str(edge["target_locator_id"]),
-            str(edge["edge_type"]),
-        )
-    return graph.render_pair()
-
-
-def _refresh_projections(root: Path) -> dict[str, Any]:
-    connection = _connect(root)
-    try:
-        head = _current_head(connection)
-        locators = [
-            cast(dict[str, Any], json.loads(str(row["locator_json"])))
-            for row in connection.execute(
-                "SELECT locator_json FROM memory_locator ORDER BY locator_id"
-            ).fetchall()
-        ]
-        edges = [
-            cast(dict[str, Any], json.loads(str(row["edge_json"])))
-            for row in connection.execute(
-                "SELECT edge_json FROM memory_edge ORDER BY edge_id"
-            ).fetchall()
-        ]
-    finally:
-        connection.close()
-    memory_root = _memory_root(root)
-    atomic_write_json(memory_root / "head.json", head)
-    atomic_write_json(
-        memory_root / "memory.json",
-        {
-            "schema": MEMORY_AUTHORITY_SCHEMA,
-            "project_id": head["project_id"],
-            "memory_head_sha256": head["head_sha256"],
-            "locators": locators,
-            "edges": edges,
-            "raw_source_payloads_stored": False,
-            "private_reasoning_stored": False,
-        },
-    )
-    atomic_write_json(
-        memory_root / "memory.tools.json",
-        {
-            "schema": MEMORY_TOOLS_SCHEMA,
-            "query": {
-                "engine": "SQLITE_FTS5_BM25",
-                "bounded_limit": [1, 20],
-                "sector_filter": sorted(MEMORY_SECTOR_LOCATOR_PREFIXES),
-            },
-            "compaction": {
-                "precompact": "SEAL_EXACT_MEMORY_HEAD_AND_BOUNDED_LOCATORS",
-                "postcompact": "VERIFY_HEAD_AND_REHYDRATE_BOUNDED_LOCATORS",
-                "controls_host_wording": False,
-            },
-            "public_tool_count_changed": False,
-        },
-    )
-    memory_mmd, memory_dot, graph_pipeline_receipt = _render_graph_pair(
-        locators, edges
-    )
-    atomic_write_bytes(memory_root / "memory.mmd", memory_mmd.encode("utf-8"))
-    atomic_write_bytes(memory_root / "memory.dot", memory_dot.encode("utf-8"))
-    member_names = (
-        "memory.sqlite",
-        "memory.json",
-        "memory.mmd",
-        "memory.dot",
-        "memory.tools.json",
-        "head.json",
-    )
-    members = [
-        {
-            "path": name,
-            "bytes": (memory_root / name).stat().st_size,
-            "sha256": sha256_file(memory_root / name),
-        }
-        for name in member_names
-    ]
-    manifest = {
-        "schema": MEMORY_MANIFEST_SCHEMA,
-        "project_id": head["project_id"],
-        "memory_head_sha256": head["head_sha256"],
-        "counts": {"locator_count": len(locators), "edge_count": len(edges)},
-        "members": members,
-        "graph_pipeline_receipt": graph_pipeline_receipt,
-        "raw_source_payloads_stored": False,
-        "full_memory_loaded_into_model_context": False,
-    }
-    atomic_write_json(memory_root / "memory.manifest.json", manifest)
-    return {
-        "memory_head_sha256": head["head_sha256"],
-        "manifest_sha256": sha256_file(memory_root / "memory.manifest.json"),
-        "counts": manifest["counts"],
-    }
-
-
-def _authority_effects(project_memory: str = "NONE") -> dict[str, str]:
-    return {
-        "project_truth": "NONE",
-        "canon_input": "NONE",
-        "agent_learning": "NONE",
-        "project_memory": project_memory,
-        "chat_lineage": "NONE",
-        "host_entry_continuity": "NONE",
-    }
-
-
-def bootstrap_project_memory(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    accepted_pv: str,
-    pointer_generation: int,
-    accepted_manifest_sha256: str,
-    active_plan_task_id: str,
-    lineage_head_sha256: str,
-    recorded_at: str,
-) -> dict[str, Any]:
-    """Build or refresh the bounded Memory dossier from exact live authorities."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact_pv = str(accepted_pv).strip().upper()
-    require(
-        bool(_PV_RE.fullmatch(exact_pv)) and pointer_generation > 0,
-        "MEMORY_ACCEPTED_POINTER_INVALID",
-        "Project Memory requires one accepted PV and positive generation.",
-        status="MISMATCH",
-    )
-    exact_manifest = _sha256(accepted_manifest_sha256, field="accepted_manifest_sha256")
-    exact_lineage = _sha256(lineage_head_sha256, field="lineage_head_sha256")
-    exact_recorded_at = _timestamp(recorded_at, field="memory_recorded_at")
-    plan_sha256, task_contract_sha256, active_plan_row = _plan_identity(
-        root, active_plan_task_id=active_plan_task_id
-    )
-    authority_locators = _authority_locators(
-        root,
-        project_id=project_id,
-        accepted_pv=exact_pv,
-        pointer_generation=pointer_generation,
-        accepted_manifest_sha256=exact_manifest,
-        active_plan_task_id=active_plan_task_id,
-        active_plan_row=active_plan_row,
-        plan_sha256=plan_sha256,
-        task_contract_sha256=task_contract_sha256,
-        lineage_head_sha256=exact_lineage,
-        recorded_at=exact_recorded_at,
-    )
-    connection = _connect(root)
-    inserted_locators = 0
-    inserted_edges = 0
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        migration = _migrate_legacy_memory(connection, root=root, project_id=project_id)
-        resolved_authority_locators: list[
-            tuple[dict[str, Any], dict[str, Any]]
-        ] = []
-        for locator, provenance in authority_locators:
-            resolved, inserted = _resolve_locator(
-                connection, locator, provenance=provenance
-            )
-            inserted_locators += int(inserted)
-            resolved_authority_locators.append((resolved, provenance))
-        authority_locators = resolved_authority_locators
-        by_sector = {locator["sector"]: locator for locator, _ in authority_locators}
-        truth = by_sector["PROJECT_TRUTH"]
-        plan = by_sector["PLAN"]
-        structural_edges = [
-            _edge(
-                project_id=project_id,
-                source_locator_id=truth["locator_id"],
-                target_locator_id=plan["locator_id"],
-                edge_type="MAPS_TO",
-                evidence_sha256=exact_manifest,
-                recorded_at=exact_recorded_at,
-            )
-        ]
-        for locator, _ in authority_locators:
-            if locator["locator_id"] in {truth["locator_id"], plan["locator_id"]}:
-                continue
-            structural_edges.append(
-                _edge(
-                    project_id=project_id,
-                    source_locator_id=plan["locator_id"],
-                    target_locator_id=locator["locator_id"],
-                    edge_type="RELATED_TO",
-                    evidence_sha256=str(locator["revision_sha256"]),
-                    recorded_at=exact_recorded_at,
-                )
-            )
-        for edge in structural_edges:
-            _, inserted = _resolve_edge(connection, edge)
-            inserted_edges += int(inserted)
-        locator_hashes = [
-            str(row[0])
-            for row in connection.execute(
-                "SELECT locator_sha256 FROM memory_locator ORDER BY locator_id"
-            ).fetchall()
-        ]
-        edge_hashes = [
-            str(row[0])
-            for row in connection.execute(
-                "SELECT edge_sha256 FROM memory_edge ORDER BY edge_id"
-            ).fetchall()
-        ]
-        head_body = {
-            "schema": MEMORY_HEAD_SCHEMA,
-            "project_id": project_id,
-            "accepted_pv": exact_pv,
-            "pointer_generation": pointer_generation,
-            "accepted_manifest_sha256": exact_manifest,
-            "active_plan_task_id": active_plan_task_id,
-            "plan_runtime_projection_sha256": plan_sha256,
-            "lineage_head_sha256": exact_lineage,
-            "locator_count": len(locator_hashes),
-            "edge_count": len(edge_hashes),
-            "locator_set_sha256": sha256_bytes(canonical_json_bytes(locator_hashes)),
-            "edge_set_sha256": sha256_bytes(canonical_json_bytes(edge_hashes)),
-            "recorded_at": exact_recorded_at,
-            "raw_source_payloads_stored": False,
-            "project_truth_pointer_moved": False,
-        }
-        head_sha256 = sha256_bytes(canonical_json_bytes(head_body))
-        head = {**head_body, "head_sha256": head_sha256}
-        existing = connection.execute(
-            "SELECT head_json FROM memory_authority_head WHERE head_sha256=?",
-            (head_sha256,),
-        ).fetchone()
-        if existing is None:
-            connection.execute(
-                "INSERT INTO memory_authority_head VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-                (
-                    head_sha256,
-                    project_id,
-                    len(locator_hashes),
-                    len(edge_hashes),
-                    exact_pv,
-                    pointer_generation,
-                    exact_manifest,
-                    active_plan_task_id,
-                    plan_sha256,
-                    exact_lineage,
-                    canonical_json_bytes(head).decode("utf-8"),
-                    exact_recorded_at,
-                ),
-            )
-        else:
-            require(
-                canonical_json_bytes(json.loads(str(existing["head_json"])))
-                == canonical_json_bytes(head),
-                "MEMORY_HEAD_IDENTITY_CONFLICT",
-                "One Project Memory head maps to different bytes.",
-                status="MISMATCH",
-            )
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-    projection = _refresh_projections(root)
-    return {
-        "status": "PASS",
-        "state": (
-            "MEMORY_AUTHORITY_CREATED"
-            if inserted_locators or inserted_edges
-            else "MEMORY_AUTHORITY_REUSED"
-        ),
-        "project_id": project_id,
-        "memory_head_sha256": projection["memory_head_sha256"],
-        "manifest_sha256": projection["manifest_sha256"],
-        "counts": projection["counts"],
-        "legacy_migration": migration,
-        "inserted_locator_count": inserted_locators,
-        "inserted_edge_count": inserted_edges,
-        "authority_effects": _authority_effects("MEMORY_REFRESHED"),
-        "raw_source_payloads_stored": False,
-        "full_memory_loaded_into_model_context": False,
-        "project_candidate_created": False,
-        "hil_invoked": False,
-        "project_truth_pointer_moved": False,
-        "controls_codex_host_wording": False,
-    }
-
-
-def inspect_project_memory(
-    project_root: str | Path, *, project_id: str
-) -> dict[str, Any]:
-    """Inspect the current Memory head and projection hashes without graph output."""
-
-    root = _project_root(project_root, project_id=project_id)
-    path = _database_path(root)
-    if not path.is_file():
-        return {
-            "status": "PASS",
-            "state": "NO_PROJECT_MEMORY",
-            "project_id": project_id,
-            "counts": {"locator_count": 0, "edge_count": 0},
-            "authority_effects": _authority_effects(),
-            "full_memory_loaded_into_model_context": False,
-        }
-    connection = _connect(root)
-    try:
-        integrity = [
-            str(row[0]) for row in connection.execute("PRAGMA integrity_check")
-        ]
-        foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
-        head = _current_head(connection)
-    finally:
-        connection.close()
-    require(
-        integrity == ["ok"] and not foreign_keys,
-        "MEMORY_SQLITE_INVALID",
-        "Project Memory failed SQLite integrity or foreign-key checks.",
-        status="FAIL",
-    )
-    manifest_path = _memory_root(root) / "memory.manifest.json"
-    manifest = _json(manifest_path, code="MEMORY_MANIFEST_REQUIRED")
-    require(
-        manifest.get("schema") == MEMORY_MANIFEST_SCHEMA
-        and manifest.get("project_id") == project_id
-        and manifest.get("memory_head_sha256") == head["head_sha256"],
-        "MEMORY_MANIFEST_MISMATCH",
-        "The Project Memory manifest does not match the current head.",
-        status="MISMATCH",
-    )
-    for member in manifest.get("members") or []:
-        member_path = _memory_root(root) / str(member.get("path") or "")
-        require(
-            member_path.is_file() and sha256_file(member_path) == member.get("sha256"),
-            "MEMORY_MANIFEST_MEMBER_MISMATCH",
-            "A Project Memory projection member failed its hash check.",
-            status="MISMATCH",
-            member=member.get("path"),
-        )
-    return {
-        "status": "PASS",
-        "state": "PROJECT_MEMORY_READY",
-        "project_id": project_id,
-        "memory_head_sha256": head["head_sha256"],
-        "accepted_pv": head["accepted_pv"],
-        "pointer_generation": head["pointer_generation"],
-        "active_plan_task_id": head["active_plan_task_id"],
-        "plan_runtime_projection_sha256": head["plan_runtime_projection_sha256"],
-        "lineage_head_sha256": head["lineage_head_sha256"],
-        "counts": {
-            "locator_count": head["locator_count"],
-            "edge_count": head["edge_count"],
-        },
-        "manifest_sha256": sha256_file(manifest_path),
-        "schema_asset_sha256": sha256_file(_schema_asset()[0]),
-        "authority_effects": _authority_effects(),
-        "raw_source_payloads_stored": False,
-        "full_memory_loaded_into_model_context": False,
-        "project_truth_pointer_moved": False,
-    }
-
-
-def record_memory_link(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    source: dict[str, Any],
-    target: dict[str, Any],
-    edge_type: str,
-    evidence_sha256: str,
-    recorded_at: str,
-) -> dict[str, Any]:
-    """Append one Memory-owned locator edge without storing source payloads."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact_recorded_at = _timestamp(recorded_at, field="memory_link_recorded_at")
-    source_locator = _normalize_locator(
-        source, project_id=project_id, recorded_at=exact_recorded_at
-    )
-    target_locator = _normalize_locator(
-        target, project_id=project_id, recorded_at=exact_recorded_at
-    )
-    connection = _connect(root)
-    try:
-        _current_head(connection)
-        connection.execute("BEGIN IMMEDIATE")
-        source_locator, source_inserted = _resolve_locator(
-            connection,
-            source_locator,
-            provenance={"source_authority": "EXPLICIT_MEMORY_LINK"},
-        )
-        target_locator, target_inserted = _resolve_locator(
-            connection,
-            target_locator,
-            provenance={"source_authority": "EXPLICIT_MEMORY_LINK"},
-        )
-        inserted_locator_count = int(source_inserted) + int(target_inserted)
-        edge = _edge(
-            project_id=project_id,
-            source_locator_id=source_locator["locator_id"],
-            target_locator_id=target_locator["locator_id"],
-            edge_type=edge_type,
-            evidence_sha256=evidence_sha256,
-            recorded_at=exact_recorded_at,
-        )
-        edge, inserted_edge = _resolve_edge(connection, edge)
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-    projection = _refresh_head_after_link(root, recorded_at=exact_recorded_at)
-    return {
-        "status": "PASS",
-        "state": "MEMORY_LINK_RECORDED" if inserted_edge else "MEMORY_LINK_REUSED",
-        "project_id": project_id,
-        "source_locator_id": source_locator["locator_id"],
-        "source_sector": source_locator["sector"],
-        "target_locator_id": target_locator["locator_id"],
-        "target_sector": target_locator["sector"],
-        "edge_id": edge["edge_id"],
-        "edge_type": edge["edge_type"],
-        "edge_sha256": edge["edge_sha256"],
-        "inserted_locator_count": inserted_locator_count,
-        "idempotent_reuse": not inserted_edge,
-        "memory_head_sha256": projection["memory_head_sha256"],
-        "manifest_sha256": projection["manifest_sha256"],
-        "authority_effects": _authority_effects("MEMORY_LINK_APPENDED"),
-        "raw_payload_stored": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
-
-
-def _refresh_head_after_link(root: Path, *, recorded_at: str) -> dict[str, Any]:
-    connection = _connect(root)
-    try:
-        prior = _current_head(connection)
-        locator_hashes = [
-            str(row[0])
-            for row in connection.execute(
-                "SELECT locator_sha256 FROM memory_locator ORDER BY locator_id"
-            ).fetchall()
-        ]
-        edge_hashes = [
-            str(row[0])
-            for row in connection.execute(
-                "SELECT edge_sha256 FROM memory_edge ORDER BY edge_id"
-            ).fetchall()
-        ]
-        body = {
-            key: prior[key]
-            for key in (
-                "schema",
-                "project_id",
-                "accepted_pv",
-                "pointer_generation",
-                "accepted_manifest_sha256",
-                "active_plan_task_id",
-                "plan_runtime_projection_sha256",
-                "lineage_head_sha256",
-            )
-        }
-        body.update(
-            {
-                "locator_count": len(locator_hashes),
-                "edge_count": len(edge_hashes),
-                "locator_set_sha256": sha256_bytes(
-                    canonical_json_bytes(locator_hashes)
-                ),
-                "edge_set_sha256": sha256_bytes(canonical_json_bytes(edge_hashes)),
-                "recorded_at": recorded_at,
-                "raw_source_payloads_stored": False,
-                "project_truth_pointer_moved": False,
-            }
-        )
-        digest = sha256_bytes(canonical_json_bytes(body))
-        head = {**body, "head_sha256": digest}
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            "INSERT OR IGNORE INTO memory_authority_head VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-            (
-                digest,
-                head["project_id"],
-                len(locator_hashes),
-                len(edge_hashes),
-                head["accepted_pv"],
-                head["pointer_generation"],
-                head["accepted_manifest_sha256"],
-                head["active_plan_task_id"],
-                head["plan_runtime_projection_sha256"],
-                head["lineage_head_sha256"],
-                canonical_json_bytes(head).decode("utf-8"),
-                recorded_at,
-            ),
-        )
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-    return _refresh_projections(root)
-
-
-def query_memory_graph(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    query: str,
-    as_of: str,
-    sectors: list[str] | None = None,
-    limit: int = 8,
-) -> dict[str, Any]:
-    """Return one bounded FTS5/BM25 locator slice with typed edges."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact_as_of = _timestamp(as_of, field="memory_query_as_of")
-    exact_query = str(query).strip().lower()
-    require(
-        bool(exact_query) and 1 <= limit <= 20,
-        "MEMORY_QUERY_BOUNDS_INVALID",
-        "A Memory query requires text and a limit from one to twenty.",
-        status="BLOCKED",
-    )
-    query_terms = sorted(set(re.findall(r"[a-z0-9_]+", exact_query)))
-    require(
-        bool(query_terms),
-        "MEMORY_QUERY_TERMS_REQUIRED",
-        "The Memory query has no indexable FTS5 term.",
-        status="BLOCKED",
-    )
-    requested_sectors = {
-        str(item).strip().upper() for item in (sectors or []) if str(item).strip()
-    }
-    require(
-        requested_sectors <= set(MEMORY_SECTOR_LOCATOR_PREFIXES),
-        "MEMORY_QUERY_SECTOR_INVALID",
-        "A Memory query requested an unknown project sector.",
-        status="BLOCKED",
-    )
-    match_query = " OR ".join(f'"{term}"' for term in query_terms)
-    connection = _connect(root)
-    selected: list[dict[str, Any]] = []
-    suppressed: list[dict[str, Any]] = []
-    seen_semantic_locators: set[tuple[str, str, str, str, str]] = set()
-    try:
-        head = _current_head(connection)
-        rows = connection.execute(
-            """
-            SELECT locator.locator_id,locator.sector,locator.locator_kind,
-                   locator.locator_value,locator.revision_sha256,locator.label,
-                   bm25(memory_locator_fts,0.0,0.0,1.0,1.0,5.0,2.0) AS rank
-            FROM memory_locator_fts
-            JOIN memory_locator AS locator
-              ON locator.locator_id=memory_locator_fts.locator_id
-            WHERE memory_locator_fts MATCH ?
-              AND memory_locator_fts.project_id=?
-              AND locator.recorded_at<=?
-            ORDER BY rank,locator.locator_id
-            LIMIT ?
-            """,
-            (match_query, project_id, exact_as_of, min(80, limit * 4)),
-        ).fetchall()
-        candidates = [
-            row
-            for row in rows
-            if not requested_sectors or str(row["sector"]) in requested_sectors
-        ]
-        candidate_ids = [str(row["locator_id"]) for row in candidates]
-        suppression: dict[str, list[str]] = {}
-        if candidate_ids:
-            placeholders = ",".join("?" for _ in candidate_ids)
-            for row in connection.execute(
-                f"""
-                SELECT target_locator_id,edge_type FROM memory_edge
-                WHERE project_id=? AND recorded_at<=?
-                  AND edge_type IN ('REVOKES','SUPERSEDES','SUPPRESSES')
-                  AND target_locator_id IN ({placeholders})
-                ORDER BY recorded_at,edge_id
-                """,
-                (project_id, exact_as_of, *candidate_ids),
-            ).fetchall():
-                suppression.setdefault(str(row["target_locator_id"]), []).append(
-                    str(row["edge_type"])
-                )
-        for row in candidates:
-            locator_id = str(row["locator_id"])
-            if (
-                str(row["locator_kind"]) == "ACTIVE_TASK"
-                and str(row["locator_value"])
-                != f"plan://task/{head['active_plan_task_id']}"
-            ):
-                if len(suppressed) < limit:
-                    suppressed.append(
-                        {
-                            "locator_id": locator_id,
-                            "state": "STALE_ACTIVE_TASK_LOCATOR",
-                            "reason": "MEMORY_HEAD_ACTIVE_TASK_MISMATCH",
-                            "current_active_task_locator_sha256": sha256_bytes(
-                                f"plan://task/{head['active_plan_task_id']}".encode()
-                            ),
-                        }
-                    )
-                continue
-            semantic_key = (
-                str(row["sector"]),
-                str(row["locator_kind"]),
-                str(row["locator_value"]),
-                str(row["revision_sha256"]),
-                str(row["label"]),
-            )
-            if semantic_key in seen_semantic_locators:
-                continue
-            seen_semantic_locators.add(semantic_key)
-            if locator_id in suppression:
-                if len(suppressed) < limit:
-                    suppressed.append(
-                        {
-                            "locator_id": locator_id,
-                            "state": "SUPPRESSED_MEMORY_LOCATOR",
-                            "edge_types": suppression[locator_id],
-                        }
-                    )
-                continue
-            linked = connection.execute(
-                """
-                SELECT edge_id,edge_type,source_locator_id,target_locator_id,
-                       evidence_sha256
-                FROM memory_edge
-                WHERE project_id=? AND recorded_at<=?
-                  AND (source_locator_id=? OR target_locator_id=?)
-                ORDER BY recorded_at,edge_id LIMIT 8
-                """,
-                (project_id, exact_as_of, locator_id, locator_id),
-            ).fetchall()
-            selected.append(
-                {
-                    "locator_id": locator_id,
-                    "sector": str(row["sector"]),
-                    "locator_kind": str(row["locator_kind"]),
-                    "locator_value": str(row["locator_value"]),
-                    "revision_sha256": str(row["revision_sha256"]),
-                    "label": str(row["label"]),
-                    "rank": float(row["rank"]),
-                    "edges": [
-                        {
-                            "edge_id": str(edge["edge_id"]),
-                            "edge_type": str(edge["edge_type"]),
-                            "source_locator_id": str(edge["source_locator_id"]),
-                            "target_locator_id": str(edge["target_locator_id"]),
-                            "evidence_sha256": str(edge["evidence_sha256"]),
-                        }
-                        for edge in linked
-                    ],
-                }
-            )
-            if len(selected) >= limit:
-                break
-    finally:
-        connection.close()
-    receipt_body = {
-        "schema": MEMORY_QUERY_RECEIPT_SCHEMA,
-        "project_id": project_id,
-        "memory_head_sha256": head["head_sha256"],
-        "as_of": exact_as_of,
-        "query_sha256": sha256_bytes(exact_query.encode("utf-8")),
-        "requested_sectors": sorted(requested_sectors),
-        "hit_count": len(selected),
-        "suppressed_count": len(suppressed),
-        "full_memory_loaded_into_model_context": False,
-        "raw_database_or_markdown_returned": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
-    return {
-        "status": "PASS",
-        "result": "HIT" if selected else "NO_HIT",
-        "hits": selected,
-        "suppressed": suppressed,
-        "receipt": {
-            **receipt_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-        },
-        "search_engine": "SQLITE_FTS5_BM25",
-        "authority_effects": _authority_effects(),
-        "full_memory_loaded_into_model_context": False,
-        "raw_database_or_markdown_returned": False,
-    }
-
-
-def seal_memory_checkpoint(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    host_task_uuid: str,
-    host_task_deep_link: str,
-    active_plan_task_id: str,
-    lineage_head_sha256: str,
-    query: str,
-    limit: int,
-    sealed_at: str,
-) -> dict[str, Any]:
-    """Seal the exact Memory head and one bounded reentry locator slice."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact_task_uuid = str(host_task_uuid).strip().lower()
-    exact_deep_link = str(host_task_deep_link).strip()
-    require(
-        bool(_TASK_UUID_RE.fullmatch(exact_task_uuid))
-        and exact_deep_link == f"codex://threads/{exact_task_uuid}",
-        "MEMORY_CHECKPOINT_HOST_TASK_MISMATCH",
-        "A Memory checkpoint requires one exact host task UUID and deep link.",
-        status="MISMATCH",
-    )
-    exact_lineage = _sha256(lineage_head_sha256, field="lineage_head_sha256")
-    exact_sealed_at = _timestamp(sealed_at, field="memory_checkpoint_sealed_at")
-    plan_sha256, _, _ = _plan_identity(
-        root, active_plan_task_id=active_plan_task_id
-    )
-    query_result = query_memory_graph(
-        root,
-        project_id=project_id,
-        query=query,
-        as_of=exact_sealed_at,
-        limit=limit,
-    )
-    connection = _connect(root)
-    try:
-        head = _current_head(connection)
-        require(
-            head["active_plan_task_id"] == active_plan_task_id
-            and head["plan_runtime_projection_sha256"] == plan_sha256
-            and head["lineage_head_sha256"] == exact_lineage,
-            "MEMORY_CHECKPOINT_AUTHORITY_MISMATCH",
-            "The live Plan or ChatLineage identity differs from the Memory head.",
-            status="MISMATCH",
-        )
-        body = {
-            "schema": MEMORY_CHECKPOINT_SCHEMA,
-            "status": "PASS",
-            "project_id": project_id,
-            "memory_head_sha256": head["head_sha256"],
-            "host_task_uuid": exact_task_uuid,
-            "host_task_deep_link": exact_deep_link,
-            "active_plan_task_id": active_plan_task_id,
-            "plan_runtime_projection_sha256": plan_sha256,
-            "lineage_head_sha256": exact_lineage,
-            "bounded_locator_ids": [hit["locator_id"] for hit in query_result["hits"]],
-            "query_receipt_sha256": query_result["receipt"]["receipt_sha256"],
-            "sealed_at": exact_sealed_at,
-            "full_transcript_replay_required": False,
-            "raw_source_payloads_stored": False,
-            "controls_codex_host_wording": False,
-            "project_truth_pointer_moved": False,
-            "candidate_created": False,
-            "hil_invoked": False,
-        }
-        checkpoint_sha256 = sha256_bytes(canonical_json_bytes(body))
-        checkpoint = {**body, "checkpoint_sha256": checkpoint_sha256}
-        connection.execute("BEGIN IMMEDIATE")
-        existing = connection.execute(
-            "SELECT checkpoint_json FROM memory_compaction_checkpoint "
-            "WHERE checkpoint_sha256=?",
-            (checkpoint_sha256,),
-        ).fetchone()
-        if existing is None:
-            connection.execute(
-                "INSERT INTO memory_compaction_checkpoint VALUES(?,?,?,?,?,?,?,?,?,?)",
-                (
-                    checkpoint_sha256,
-                    project_id,
-                    head["head_sha256"],
-                    exact_task_uuid,
-                    exact_deep_link,
-                    active_plan_task_id,
-                    plan_sha256,
-                    exact_lineage,
-                    canonical_json_bytes(checkpoint).decode("utf-8"),
-                    exact_sealed_at,
-                ),
-            )
-        else:
-            require(
-                canonical_json_bytes(json.loads(str(existing["checkpoint_json"])))
-                == canonical_json_bytes(checkpoint),
-                "MEMORY_CHECKPOINT_IDENTITY_CONFLICT",
-                "One Memory checkpoint identity maps to different bytes.",
-                status="MISMATCH",
-            )
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-    _immutable_json(
-        _memory_root(root) / "checkpoints" / f"{checkpoint_sha256}.json",
-        checkpoint,
-    )
-    projection = _refresh_projections(root)
-    return {
-        "status": "PASS",
-        "state": "MEMORY_CHECKPOINT_SEALED",
-        "project_id": project_id,
-        "checkpoint_sha256": checkpoint_sha256,
-        "memory_head_sha256": head["head_sha256"],
-        "bounded_locators": query_result["hits"],
-        "bounded_locator_count": len(query_result["hits"]),
-        "manifest_sha256": projection["manifest_sha256"],
-        "authority_effects": _authority_effects("COMPACTION_CHECKPOINT_SEALED"),
-        "full_transcript_replay_required": False,
-        "controls_codex_host_wording": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
-
-
-def rehydrate_memory_checkpoint(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    checkpoint_sha256: str,
-    host_task_uuid: str,
-    host_task_deep_link: str,
-    active_plan_task_id: str,
-    lineage_head_sha256: str,
-    rehydrated_at: str,
-) -> dict[str, Any]:
-    """Verify one sealed Memory checkpoint and return only its locator slice."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact_checkpoint = _sha256(checkpoint_sha256, field="checkpoint_sha256")
-    path = _memory_root(root) / "checkpoints" / f"{exact_checkpoint}.json"
-    checkpoint = _json(path, code="MEMORY_CHECKPOINT_REQUIRED")
-    body = {
-        key: value for key, value in checkpoint.items() if key != "checkpoint_sha256"
-    }
-    exact_task_uuid = str(host_task_uuid).strip().lower()
-    exact_deep_link = str(host_task_deep_link).strip()
-    exact_lineage = _sha256(lineage_head_sha256, field="lineage_head_sha256")
-    exact_rehydrated_at = _timestamp(
-        rehydrated_at, field="memory_checkpoint_rehydrated_at"
-    )
-    require(
-        checkpoint.get("schema") == MEMORY_CHECKPOINT_SCHEMA
-        and checkpoint.get("project_id") == project_id
-        and checkpoint.get("checkpoint_sha256") == exact_checkpoint
-        and sha256_bytes(canonical_json_bytes(body)) == exact_checkpoint
-        and checkpoint.get("host_task_uuid") == exact_task_uuid
-        and checkpoint.get("host_task_deep_link") == exact_deep_link
-        and checkpoint.get("active_plan_task_id") == active_plan_task_id
-        and checkpoint.get("lineage_head_sha256") == exact_lineage,
-        "MEMORY_REHYDRATION_BINDING_MISMATCH",
-        "The Memory checkpoint does not match the exact reentry binding.",
-        status="MISMATCH",
-    )
-    plan_sha256, _, _ = _plan_identity(
-        root, active_plan_task_id=active_plan_task_id
-    )
-    connection = _connect(root)
-    try:
-        head = _current_head(connection)
-        require(
-            head["head_sha256"] == checkpoint["memory_head_sha256"]
-            and plan_sha256 == checkpoint["plan_runtime_projection_sha256"]
-            and head["lineage_head_sha256"] == exact_lineage,
-            "MEMORY_REHYDRATION_HEAD_MISMATCH",
-            "Project Memory, Plan, or ChatLineage changed after checkpoint sealing.",
-            status="MISMATCH",
-        )
-        locators: list[dict[str, Any]] = []
-        for locator_id in checkpoint["bounded_locator_ids"]:
-            row = connection.execute(
-                "SELECT locator_json FROM memory_locator WHERE locator_id=?",
-                (locator_id,),
-            ).fetchone()
-            require(
-                row is not None,
-                "MEMORY_REHYDRATION_LOCATOR_MISSING",
-                "A sealed Memory locator is no longer available.",
-                status="MISMATCH",
-            )
-            locator = cast(dict[str, Any], json.loads(str(row["locator_json"])))
-            locators.append(
-                {
-                    key: locator[key]
-                    for key in (
-                        "locator_id",
-                        "sector",
-                        "locator_kind",
-                        "locator_value",
-                        "revision_sha256",
-                        "label",
-                    )
-                }
-            )
-        receipt_body = {
-            "schema": MEMORY_REHYDRATION_SCHEMA,
-            "status": "PASS",
-            "project_id": project_id,
-            "checkpoint_sha256": exact_checkpoint,
-            "memory_head_sha256": head["head_sha256"],
-            "host_task_uuid": exact_task_uuid,
-            "active_plan_task_id": active_plan_task_id,
-            "plan_runtime_projection_sha256": plan_sha256,
-            "lineage_head_sha256": exact_lineage,
-            "rehydrated_locator_count": len(locators),
-            "rehydrated_locator_set_sha256": sha256_bytes(
-                canonical_json_bytes(locators)
-            ),
-            "rehydrated_at": exact_rehydrated_at,
-            "full_transcript_replayed": False,
-            "raw_source_payloads_returned": False,
-            "controls_codex_host_wording": False,
-            "project_truth_pointer_moved": False,
-            "candidate_created": False,
-            "hil_invoked": False,
-        }
-        receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_body))
-        receipt = {**receipt_body, "receipt_sha256": receipt_sha256}
-        connection.execute("BEGIN IMMEDIATE")
-        existing = connection.execute(
-            "SELECT receipt_json FROM memory_rehydration_receipt WHERE receipt_sha256=?",
-            (receipt_sha256,),
-        ).fetchone()
-        if existing is None:
-            connection.execute(
-                "INSERT INTO memory_rehydration_receipt VALUES(?,?,?,?,?,?)",
-                (
-                    receipt_sha256,
-                    exact_checkpoint,
-                    project_id,
-                    head["head_sha256"],
-                    canonical_json_bytes(receipt).decode("utf-8"),
-                    exact_rehydrated_at,
-                ),
-            )
-        else:
-            require(
-                canonical_json_bytes(json.loads(str(existing["receipt_json"])))
-                == canonical_json_bytes(receipt),
-                "MEMORY_REHYDRATION_RECEIPT_CONFLICT",
-                "One Memory rehydration receipt maps to different bytes.",
-                status="MISMATCH",
-            )
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-    _immutable_json(
-        _memory_root(root) / "rehydration" / f"{receipt_sha256}.json", receipt
-    )
-    projection = _refresh_projections(root)
-    return {
-        "status": "PASS",
-        "state": "MEMORY_CHECKPOINT_REHYDRATED",
-        "project_id": project_id,
-        "checkpoint_sha256": exact_checkpoint,
-        "memory_head_sha256": head["head_sha256"],
-        "locators": locators,
-        "receipt_sha256": receipt_sha256,
-        "manifest_sha256": projection["manifest_sha256"],
-        "authority_effects": _authority_effects("COMPACTION_CHECKPOINT_REHYDRATED"),
-        "full_transcript_replayed": False,
-        "raw_source_payloads_returned": False,
-        "controls_codex_host_wording": False,
-        "project_truth_pointer_moved": False,
-        "candidate_created": False,
-        "hil_invoked": False,
-    }
+    engine.registry.register(ActionSpec('memory_ingest', 'Index bounded attributed locators and typed links to existing project records.',
+        MemoryIngest, MemoryIngested, ingest, permission='write', profile='memory', mutates=True, workflow='memory'))
+    engine.registry.register(ActionSpec('project_memory_record_link',
+        'Record two locators and one evidence-backed Project Memory link atomically; derive endpoint identities inside the engine.',
+        MemoryRecordLink, MemoryIngested, record_link, permission='write', profile='memory', mutates=True, workflow='memory'))
+    engine.registry.register(ActionSpec('memory_read', 'Search a bounded project-local locator slice without loading source payloads.',
+        MemoryRead, MemoryPage, lambda context, request: ProjectMemory(engine.directory.open(context.project_id)).read(request),
+        profile='memory', queryable_in_delta=True, cross_project_read=True, read_migrations=read_schemas, workflow='memory',
+        search=SearchRoute(('memory',), 'locators')))
+    engine.registry.register(ActionSpec('memory_checkpoint', 'Pin a bounded Memory slice to current Plan and attributed visible lineage.',
+        MemoryCheckpoint, MemoryCheckpointResult, checkpoint, permission='write', profile='memory', mutates=True, workflow='memory'))
+    engine.registry.register(ActionSpec('memory_rehydrate', 'Read a checkpoint slice with explicit attribution and current compatibility.',
+        MemoryRehydrate, MemoryContinuity, lambda context, request: ProjectMemory(engine.directory.open(context.project_id)).rehydrate(request, receiver_client_id=context.client_id),
+        profile='memory', queryable_in_delta=True, workflow='memory'))

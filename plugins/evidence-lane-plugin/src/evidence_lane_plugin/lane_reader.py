@@ -1,2177 +1,598 @@
-"""Bounded FTS5/BM25 + TF-IDF reads over universal lane SQLite authorities."""
+"""Explicit bounded reads across separately selected project authorities.
 
+Adapts LaneReader's authorization, budgets and attribution to v4 registry owner
+actions. No legacy lane/PV database is opened, refreshed, attached or copied.
+"""
 from __future__ import annotations
 
+import hashlib
 import json
-import math
 import re
-import sqlite3
 import time
-from collections import Counter
-from collections.abc import Callable
-from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
-from pathlib import Path
-from threading import Event
-from typing import Any, cast
+from contextlib import nullcontext
+from dataclasses import replace
+from pathlib import PurePosixPath
+from typing import Literal
 
-from .compact_storage import decompress_exact_bytes, read_source_record
-from .errors import EvidenceLaneError, require
-from .freshness import (
-    evaluate_freshness,
-    evaluate_working_lane_freshness,
-    result_status,
-)
-from .hashing import canonical_json_bytes, sha256_bytes
-from .lane_engine import validate_lane_bundle
-from .lane_traversal import validate_lane_query_traversal
-from .lanes import LANE_REGISTRY, LaneRegistryError, catalog, get_lane
-from .project_authority import is_working_sector_operational_member
-from .store import ProjectStore
+from pydantic import Field, JsonValue, model_validator
 
-_TOKEN_RE = re.compile(r"[\w][\w.-]{1,63}", flags=re.UNICODE)
-_PUBLIC_ID_CHARS = set(
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
-)
-
-MAX_PARALLEL_LANE_QUERIES = 8
-MAX_PARALLEL_LANE_WORKERS = 4
-MAX_PARALLEL_LANE_QUERY_CHARS = 2_000
-DEFAULT_PARALLEL_LANE_TIMEOUT_MS = 5_000
-MAX_PARALLEL_LANE_TIMEOUT_MS = 60_000
-DEFAULT_PARALLEL_AGGREGATE_RESULTS = 100
-MAX_PARALLEL_AGGREGATE_RESULTS = 200
-
-MIN_CROSS_LANE_COUNT = 2
-MAX_CROSS_LANE_COUNT = MAX_PARALLEL_LANE_QUERIES
-DEFAULT_CROSS_LANE_RELATIONS = 100
-MAX_CROSS_LANE_RELATIONS = 200
-DEFAULT_CROSS_LANE_CONFLICTS = 100
-MAX_CROSS_LANE_CONFLICTS = 200
-DEFAULT_CROSS_LANE_SYNTHESIS = 50
-MAX_CROSS_LANE_SYNTHESIS = 100
-CROSS_LANE_RELATION_TYPES = (
-    "EXACT_SOURCE_SHA256",
-    "EXACT_CHUNK_SHA256",
-    "EXACT_PATH_LOCATOR",
-)
-
-MIN_CROSS_PROJECTS = 2
-MAX_CROSS_PROJECTS = 4
-DEFAULT_CROSS_PROJECT_WORKERS = 2
-MAX_CROSS_PROJECT_WORKERS = 2
-DEFAULT_CROSS_PROJECT_TIMEOUT_MS = 30_000
-MAX_CROSS_PROJECT_TIMEOUT_MS = 120_000
-DEFAULT_CROSS_PROJECT_RESULTS = 200
-MAX_CROSS_PROJECT_RESULTS = 400
+from .errors import LaneError
+from .lanes import get_lane, is_named_custom_lane, lane_family
+from .migrations import read_compatibility, verify_schema_history_files
+from .registry import ActionSpec, Contract
+from .sdk import UUID_PATTERN
+from .storage import FORMAT_VERSION, bounded_project_read, json_text, now
+from .tool_routes import ToolRoute
 
 
-def _live_working_bundle_read_boundary(
-    validation: dict[str, Any],
-) -> tuple[bool, list[str]]:
-    """Accept only mutable operational-wrapper drift for live lane reads."""
+class SearchBounds(Contract):
+    query: str = Field(min_length=1, max_length=500)
+    limit: int = Field(default=8, ge=1, le=20)
+    snapshot_limit: int = Field(default=4, ge=1, le=8)
+    snapshot_offset: int = Field(default=0, ge=0, le=127)
+    timeout_ms: int = Field(default=10_000, ge=100, le=30_000)
+    max_bytes: int = Field(default=131_072, ge=4096, le=262_144)
+    retrieval: Literal['fts5', 'bm25', 'tfidf', 'hybrid', 'rank_bm25'] = 'fts5'
+    candidate_limit: int = Field(default=20, ge=1, le=100)
 
-    if validation.get("valid") is True:
-        return True, []
-    checksum_mismatches = dict(validation.get("checksum_mismatches") or {})
-    drift_paths = sorted(checksum_mismatches)
-    operational_only = bool(drift_paths) and all(
-        is_working_sector_operational_member(path) for path in drift_paths
-    )
-    valid = bool(
-        operational_only
-        and not validation.get("lane_manifest_errors")
-        and all(
-            lane.get("valid") is True
-            for lane in dict(validation.get("lanes") or {}).values()
-        )
-        and validation.get("lane_emission_contract_valid") is True
-        and validation.get("lane_directory_set_valid") is True
-        and validation.get("parallel_execution_valid") is True
-        and validation.get("topology_valid") is True
-        and validation.get("source_routes_valid") is True
-        and dict(validation.get("lane_disposition_contract") or {}).get("valid")
-        is True
-    )
-    return valid, drift_paths if valid else []
+    @model_validator(mode='after')
+    def lexical_terms(self):
+        if not 1 <= len(re.findall(r'\w+', self.query, flags=re.UNICODE)) <= 12:
+            raise ValueError('Use one to twelve literal lexical terms')
+        if self.retrieval in {'tfidf', 'hybrid', 'rank_bm25'} and self.candidate_limit < self.limit:
+            raise ValueError('The candidate limit must cover the selected result limit')
+        return self
+
+
+class LaneSearchRequest(SearchBounds):
+    lane_id: str = Field(pattern=r'^[a-z][a-z0-9_]{0,63}$')
+
+
+class SearchPage(Contract):
+    project_id: str
+    root_pv: dict[str, JsonValue]
+    plan_boundary: dict[str, JsonValue]
+    query: str
+    retrieval: str
+    arms: list[dict[str, JsonValue]]
+    registered_lanes: list[str]
+    complete_within_selected_scope: bool
+    owner_calls: int
+    elapsed_ms: int
+    observed_at: str
+    snapshot_scope: Literal['one_published_root_and_independent_owner_reads'] = 'one_published_root_and_independent_owner_reads'
+    source_currentness: Literal['not_rechecked'] = 'not_rechecked'
+    ranking_scope: Literal['within_each_owner_snapshot_only'] = 'within_each_owner_snapshot_only'
+    mutation_performed: Literal[False] = False
+    refresh_performed: Literal[False] = False
+    databases_merged: Literal[False] = False
+
+
+class LaneCatalogRequest(Contract):
+    lane_ids: list[str] = Field(default_factory=list, max_length=32)
+    kind: Literal['authority', 'sector'] | None = None
+    include_schema: bool = False
+    max_bytes: int = Field(default=131_072, ge=4096, le=1_048_576)
+
+
+class LaneCatalogPage(Contract):
+    lanes: list[dict[str, JsonValue]]
+    lane_count: int
+    registry_digest: str
+    availability_basis: Literal['registered_contracts_only'] = 'registered_contracts_only'
+    installed_readiness_verified: Literal[False] = False
+
+
+class LaneStatusRequest(Contract):
+    lane_id: str = Field(pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    include_views: bool = True
+    max_views: int = Field(default=8, ge=1, le=16)
+    timeout_ms: int = Field(default=10_000, ge=100, le=30_000)
+    max_bytes: int = Field(default=262_144, ge=4096, le=1_048_576)
+
+
+class LaneReadResult(Contract):
+    project_id: str
+    lane_id: str
+    operation: Literal['lane_status', 'lane_fetch']
+    root_pv: dict[str, JsonValue]
+    result: dict[str, JsonValue]
+    source_currentness: Literal['not_rechecked'] = 'not_rechecked'
+    mutation_performed: Literal[False] = False
+    refresh_performed: Literal[False] = False
+
+
+class LaneFetchRequest(Contract):
+    lane_id: str = Field(pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    snapshot_id: str = Field(pattern=r'^[0-9a-f]{64}$')
+    path: str = Field(min_length=1, max_length=1000)
+    representation: Literal['primary', 'original_source'] = 'primary'
+    byte_offset: int = Field(default=0, ge=0, le=33_554_432)
+    start_line: int | None = Field(default=None, ge=1)
+    end_line: int | None = Field(default=None, ge=1)
+    max_lines: int = Field(default=400, ge=1, le=1000)
+    max_bytes: int = Field(default=65_536, ge=1024, le=131_072)
+    timeout_ms: int = Field(default=10_000, ge=100, le=30_000)
+    max_output_bytes: int = Field(default=262_144, ge=4096, le=262_144)
+
+    @model_validator(mode='after')
+    def exact_path(self):
+        path = self.path.replace('\\', '/')
+        if (PurePosixPath(path).is_absolute() or ':' in path or '\x00' in path
+                or any(part in {'', '.', '..'} for part in path.split('/'))):
+            raise ValueError('Use an exact relative stored source path')
+        if self.end_line is not None and self.end_line < (self.start_line or 1):
+            raise ValueError('The line range must be ordered')
+        return self
+
+
+class OwnerQuery(Contract):
+    action: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
+    arguments: dict[str, JsonValue] = Field(default_factory=dict)
+
+
+class ProjectQuery(Contract):
+    project_id: str = Field(pattern=UUID_PATTERN)
+    queries: list[OwnerQuery] = Field(min_length=1, max_length=4)
+    expected_plan_revision: int | None = Field(default=None, ge=1)
+
+
+class CrossProjectQuery(Contract):
+    projects: list[ProjectQuery] = Field(min_length=2, max_length=4)
+    require_links: bool = False
+    timeout_ms: int = Field(default=10_000, ge=100, le=30_000)
+    max_bytes: int = Field(default=131_072, ge=2048, le=262_144)
+
+    @model_validator(mode="after")
+    def bounded_selection(self):
+        if len({item.project_id for item in self.projects}) != len(self.projects):
+            raise ValueError("Select each project exactly once")
+        if sum(len(item.queries) for item in self.projects) > 8:
+            raise ValueError("Select at most eight owner queries in total")
+        if len(json_text(self.model_dump()).encode()) > 32_768:
+            raise ValueError("Cross-project query arguments exceed their budget")
+        return self
+
+
+class CrossProjectPage(Contract):
+    project_id: str
+    source_client_id: str
+    projects: list[dict[str, JsonValue]]
+    observed_at: str
+    elapsed_ms: int
+    snapshot_scope: Literal["independent_project_reads_with_unchanged_plan_and_schema"] = "independent_project_reads_with_unchanged_plan_and_schema"
+    mutation_performed: Literal[False] = False
+    refresh_performed: Literal[False] = False
+    databases_merged: Literal[False] = False
+
+
+def digest(value):
+    return hashlib.sha256(json_text(value).encode()).hexdigest()
+
+
+def plan_boundary(store):
+    from .plan_runtime import PLAN_MIGRATIONS
+    read_compatibility(store, PLAN_MIGRATIONS)
+    with store.lane('plan').connection(read_only=True) as connection:
+        connection.execute("BEGIN")
+        if not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='plan_current'").fetchone():
+            return {"revision": None, "event_head": None}
+        row = connection.execute("SELECT revision FROM plan_current WHERE singleton=1").fetchone()
+        event = connection.execute("SELECT digest FROM plan_events ORDER BY sequence DESC LIMIT 1").fetchone()
+        return {"revision": row[0] if row else None, "event_head": event[0] if event else None}
+
+
+def lexical_tool_routes(name, handler):
+    return (ToolRoute(name + '.sqlite_lexical', handler, ('Python', 'SQLite_FTS5_BM25'),
+        argument_values=(('retrieval', ('fts5', 'bm25', 'tfidf', 'hybrid')),)),
+        ToolRoute(name + '.rank_bm25', handler, ('Python', 'SQLite_FTS5_BM25', 'rank_bm25'),
+            argument_values=(('retrieval', ('rank_bm25',)),)))
 
 
 class LaneReader:
-    def __init__(
-        self,
-        store: ProjectStore,
-        *,
-        cross_project_authorizer: Callable[[dict[str, Any]], dict[str, Any]]
-        | None = None,
-    ) -> None:
-        self.store = store
-        self.cross_project_authorizer = cross_project_authorizer
+    def __init__(self, engine):
+        self.engine = engine
 
     @staticmethod
-    def _lane_traversal_contract(
-        lane_root: Path,
-        lane: Any,
-    ) -> dict[str, Any]:
-        """Use pointer, MMD, DOT, tools, and SQLite as one query support system."""
-        return validate_lane_query_traversal(lane_root, lane)
+    def _select_lanes(lane_ids):
+        from .lanes import LANE_REGISTRY
+        if not lane_ids or len(set(lane_ids)) != len(lane_ids) or any(
+                lane not in LANE_REGISTRY and not is_named_custom_lane(lane) for lane in lane_ids):
+            raise LaneError('SEARCH_LANES_INVALID', 'Select distinct canonical retained lanes.')
+        return [get_lane(key) for key in lane_ids]
 
-    def _resolve(
-        self,
-        project_id: str,
-        lane_alias: str,
-        pv_ref: str | None,
-    ) -> tuple[Path, str, Any, dict[str, Any]]:
-        require(
-            pv_ref is None,
-            "LANE_ARCHIVE_QUERY_OBSOLETE",
-            "Lane reads query the live project root; accepted ZIPs are HIL-only.",
-            status="BLOCKED",
-            requested_ref=pv_ref,
-        )
-        lanes_root = self.store.project_root(project_id) / "sectors"
-        require(
-            lanes_root.is_dir() and (lanes_root / "manifest.json").is_file(),
-            "LIVE_ROOT_SECTORS_REQUIRED",
-            "The live project root has no materialized sector authority.",
-            status="MISMATCH",
-        )
-        authority_ref = ""
-        validation = validate_lane_bundle(lanes_root)
-        readable, operational_drift_paths = _live_working_bundle_read_boundary(
-            validation
-        )
-        require(
-            readable,
-            "LANE_BUNDLE_INVALID",
-            "The selected PV lane bundle failed validation.",
-            status="FAIL",
-            validation=validation,
-        )
-        bundle = json.loads((lanes_root / "manifest.json").read_text(encoding="utf-8"))
-        bundle["operational_checksum_drift_ignored"] = bool(
-            operational_drift_paths
-        )
-        bundle["operational_checksum_drift_paths"] = operational_drift_paths
-        if pv_ref is None and lanes_root.name == "sectors":
-            authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
-        lane = get_lane(lane_alias, code_mode=bundle["code_mode"])
-        return lanes_root, authority_ref, lane, bundle
+    def _catalog_row(self, lane, *, include_schema=False):
+        from .lanes import lane_artifact_contract, lane_schema_asset
+        searches = [spec for spec in self.engine.registry.search_actions() if lane_family(lane.canonical_lane_id) in spec.search.lanes]
+        fetches = [spec for spec in self.engine.registry.fetch_actions() if lane_family(lane.canonical_lane_id) in spec.fetch.lanes]
+        def route(spec, kind):
+            return {'action': spec.name, 'workflow': spec.workflow, 'schema_digest': digest(spec.schema()),
+                'contract': getattr(spec, kind).schema()}
+        row = {'definition': lane.as_dict(), 'search': [route(spec, 'search') for spec in searches],
+            'fetch': [route(spec, 'fetch') for spec in fetches],
+            'views': [spec for spec in self.engine.registry.view_schemas() if spec['lane_id'] == lane.canonical_lane_id],
+            'artifact_roles': lane_artifact_contract(lane.canonical_lane_id)}
+        if include_schema:
+            row['declared_schema'] = lane_schema_asset(lane.canonical_lane_id)
+        if is_named_custom_lane(lane.canonical_lane_id):
+            row['views'] = [self.engine.registry.get_view(lane.canonical_lane_id + '.structure').schema()]
+        return json.loads(json_text(row))
 
-    def _freshness(
-        self,
-        project_id: str,
-        lanes_root: Path,
-        authority_ref: str,
-    ) -> dict[str, Any]:
-        if lanes_root.name == "sectors":
-            return evaluate_working_lane_freshness(
-                self.store,
-                project_id,
-                lanes_root,
-                bounded_dirty_read=True,
-            )
-        return evaluate_freshness(
-            self.store,
-            project_id,
-            lanes_root.parent,
-            bounded_dirty_read=True,
-        )
+    def lane_catalog(self, context, request):
+        from .lanes import LANE_REGISTRY
+        lane_ids = list(LANE_REGISTRY)
+        if context.project_id:
+            store = self.engine.directory.open(context.project_id)
+            from .custom_lanes import ReadRegistrations, records
+            page = records(store, ReadRegistrations(limit=100, max_bytes=262_144))
+            lane_ids.extend(row['lane_id'] for row in page['rows'])
+            if page['next_offset'] is not None and not request.lane_ids:
+                raise LaneError('LANE_CATALOG_INSTANCE_BUDGET', 'Select named lane IDs from the paginated Custom registration reader.')
+        selected = self._select_lanes(request.lane_ids or lane_ids)
+        rows = [self._catalog_row(lane, include_schema=request.include_schema) for lane in selected
+                if request.kind is None or lane.kind == request.kind]
+        result = LaneCatalogPage(lanes=rows, lane_count=len(rows), registry_digest=digest(rows))
+        self._search_output_budget(result.model_dump(mode='json'), request.max_bytes)
+        return result
 
-    def lane_catalog(self) -> dict[str, Any]:
-        return {
-            "status": "PASS",
-            "lane_count": len(LANE_REGISTRY),
-            "lanes": catalog(),
-            "single_registry": True,
-            "command_alias_table_outside_registry": False,
-        }
+    def _owner_read(self, context, store, spec, arguments, deadline, maximum):
+        if not spec.queryable_in_delta or not spec.project_required:
+            raise LaneError('INVALID_OWNER_READ', 'Select a registered project read operation.')
+        if time.monotonic() >= deadline:
+            raise LaneError('QUERY_TIMEOUT', 'The selected lane read exceeded its time budget.')
+        if context.execution is not None:
+            context.execution._before_more_work()
+            context.execution.guard.spend_call()
+        self.engine.registry.validate(spec.name, arguments, context)
+        target = store.lane(arguments['lane_id']) if is_named_custom_lane(arguments.get('lane_id')) else store
+        schemas = read_compatibility(target, spec.read_migrations)
+        value = self.engine.registry.execute(spec.name, arguments, context)
+        if value.get('project_id') != store.project_id:
+            raise LaneError('SEARCH_OWNER_BINDING', 'The owning reader returned a different project.')
+        self._search_output_budget(value, maximum)
+        if read_compatibility(target, spec.read_migrations) != schemas:
+            raise LaneError('QUERY_SCHEMA_CHANGED', 'The owning schema changed during the read.')
+        if time.monotonic() >= deadline:
+            raise LaneError('QUERY_TIMEOUT', 'The selected lane read exceeded its time budget.')
+        return value, schemas
 
-    def lane_status(
-        self,
-        project_id: str,
-        lane_alias: str,
-        *,
-        pv_ref: str | None = None,
-    ) -> dict[str, Any]:
-        lanes_root, authority_ref, lane, bundle = self._resolve(
-            project_id, lane_alias, pv_ref
-        )
-        lane_root = lanes_root / lane.canonical_lane_id
-        manifest = json.loads(
-            (lane_root / "lane_manifest.json").read_text(encoding="utf-8")
-        )
-        pointer = json.loads(
-            (lane_root / "lane_pointer.json").read_text(encoding="utf-8")
-        )
-        refresh = json.loads(
-            (lane_root / "refresh_receipt.json").read_text(encoding="utf-8")
-        )
-        tools = json.loads((lane_root / "tools.json").read_text(encoding="utf-8"))
-        traversal = self._lane_traversal_contract(lane_root, lane)
-        freshness = self._freshness(project_id, lanes_root, authority_ref)
-        return {
-            "status": result_status("PASS", freshness),
-            "project_id": project_id,
-            "pv_ref": authority_ref,
-            "lane": lane.as_dict(),
-            "bundle": {
-                "schema": bundle["schema"],
-                "code_mode": bundle["code_mode"],
-                "bundle_sha256": bundle["bundle_sha256"],
-                "summary": bundle["summary"],
-                "operational_checksum_drift_ignored": bundle[
-                    "operational_checksum_drift_ignored"
-                ],
-                "operational_checksum_drift_paths": bundle[
-                    "operational_checksum_drift_paths"
-                ],
-            },
-            "lane_manifest": manifest,
-            "lane_pointer": pointer,
-            "refresh": refresh,
-            "tools": tools,
-            "traversal": traversal,
-            "freshness": freshness,
-        }
+    def lane_status(self, context, request):
+        from .universe_snapshot import root_reference
+        lane_definition = self._select_lanes([request.lane_id])[0]
+        store = self.engine.directory.open(context.project_id)
+        deadline = time.monotonic() + request.timeout_ms / 1000
+        with bounded_project_read(store.root, deadline):
+            root = root_reference(store)
+            boundary = plan_boundary(store)
+            if context.expected_revision is not None and boundary['revision'] != context.expected_revision:
+                raise LaneError('QUERY_PLAN_REVISION_MISMATCH', 'Read the selected current Plan revision.')
+            selected = next((row for row in store.lane_catalog() if row['lane_id'] == request.lane_id), None)
+            body = {'catalog': self._catalog_row(lane_definition), 'initialized': selected is not None,
+                'published_lane': selected, 'plan_boundary': boundary, 'objects_verified': False,
+                'database_head_verified': False, 'schema_history_verified': False, 'views': []}
+            if selected is not None:
+                lane = store.lane(request.lane_id)
+                with lane.connection(read_only=True) as connection:
+                    connection.execute('BEGIN')
+                    schemas = [dict(row) for row in connection.execute(
+                        'SELECT owner,version,digest FROM schema_migrations ORDER BY owner,version LIMIT 257')]
+                    if len(schemas) > 256:
+                        raise LaneError('LANE_STATUS_SCHEMA_BUDGET', 'Use a bounded schema-history inspection.')
+                    verify_schema_history_files(lane, connection)
+                    count, size = connection.execute('SELECT COUNT(*),COALESCE(SUM(size_bytes),0) FROM objects').fetchone()
+                body.update({'schema_history': schemas, 'schema_history_digest': digest(schemas),
+                    'object_references': count, 'referenced_bytes': size, 'schema_history_verified': True,
+                    'database_head_verified': selected['head_digest'] is not None})
+                if request.include_views:
+                    views = body['catalog']['views']
+                    if len(views) > request.max_views:
+                        raise LaneError('LANE_STATUS_VIEW_BUDGET', 'Select a smaller view inspection or increase max_views.')
+                    spec = self.engine.registry.get('lane_view_read')
+                    for view in views:
+                        value, _ = self._owner_read(context, store, spec,
+                            {'view_id': view['view_id'], 'include_content': False,
+                             'max_bytes': min(request.max_bytes, 262144)}, deadline, request.max_bytes)
+                        body['views'].append(value)
+            if root_reference(store) != root or plan_boundary(store) != boundary:
+                raise LaneError('QUERY_PLAN_CHANGED', 'The selected publication or Plan changed during status.')
+            if context.authorize is not None:
+                context.authorize('read')
+            result = LaneReadResult(project_id=store.project_id, lane_id=request.lane_id,
+                operation='lane_status', root_pv=root, result=body)
+            self._search_output_budget(result.model_dump(mode='json'), request.max_bytes)
+            return result
 
-    @staticmethod
-    def _fts_query(query: str) -> tuple[str, list[str]]:
-        terms = [token.lower() for token in _TOKEN_RE.findall(query)][:12]
-        require(
-            bool(terms),
-            "LANE_QUERY_EMPTY",
-            "Lane search requires at least one lexical term.",
-            status="EMPTY",
-        )
-        fts = " OR ".join(f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms)
-        return fts, terms
+    def fetch_source(self, context, request):
+        from .universe_snapshot import root_reference
+        self._select_lanes([request.lane_id])
+        spec = next((spec for spec in self.engine.registry.fetch_actions() if lane_family(request.lane_id) in spec.fetch.lanes), None)
+        if spec is None:
+            raise LaneError('LANE_FETCH_UNAVAILABLE', 'This lane has no registered immutable source-byte reader.')
+        route = spec.fetch
+        path = request.path.replace('\\', '/')
+        arguments = self._lane_arguments(spec, request.lane_id) | {'snapshot_id': request.snapshot_id,
+            route.offset_argument: request.byte_offset, 'max_bytes': request.max_bytes}
+        if route.primary_representation:
+            arguments['representation'] = route.primary_representation if request.representation == 'primary' else 'original_source'
+        if route.path_argument:
+            arguments[route.path_argument] = route.path_prefix + path
+        if request.start_line is not None or request.end_line is not None or request.max_lines != 400:
+            if not {'start_line', 'end_line', 'max_lines'} <= set(spec.input_model.model_fields):
+                raise LaneError('LANE_FETCH_LINE_RANGE_UNSUPPORTED', 'Use byte ranges for this owning format.')
+            arguments.update(start_line=request.start_line, end_line=request.end_line, max_lines=request.max_lines)
+        self.engine.registry.validate(spec.name, arguments, context)
+        store = self.engine.directory.open(context.project_id)
+        deadline = time.monotonic() + request.timeout_ms / 1000
+        with bounded_project_read(store.root, deadline):
+            root, boundary = root_reference(store), plan_boundary(store)
+            if context.expected_revision is not None and boundary['revision'] != context.expected_revision:
+                raise LaneError('QUERY_PLAN_REVISION_MISMATCH', 'Read the selected current Plan revision.')
+            value, schemas = self._owner_read(context, store, spec, arguments, deadline, request.max_output_bytes)
+            payload = value.get('result', value)
+            if str(payload.get(route.path_result, '')).replace('\\', '/') != path:
+                raise LaneError('LANE_FETCH_PATH_MISMATCH', 'The snapshot representation belongs to a different stored source path.')
+            search = next((item for item in self.engine.registry.search_actions() if lane_family(request.lane_id) in item.search.lanes), None)
+            body = {'snapshot_id': request.snapshot_id, 'path': path, 'requested_representation': request.representation,
+                'action': spec.name, 'arguments': arguments, 'schema_compatibility': schemas,
+                'result_digest': digest(value), 'read': value,
+                'typed_facts_action': search.name if search else None, 'plan_boundary': boundary}
+            if root_reference(store) != root or plan_boundary(store) != boundary:
+                raise LaneError('QUERY_PLAN_CHANGED', 'The selected publication or Plan changed during fetch.')
+            if context.authorize is not None:
+                context.authorize('read')
+            result = LaneReadResult(project_id=store.project_id, lane_id=request.lane_id,
+                operation='lane_fetch', root_pv=root, result=body)
+            self._search_output_budget(result.model_dump(mode='json'), request.max_output_bytes)
+            return result
 
-    def search(
-        self,
-        project_id: str,
-        lane_alias: str,
-        query: str,
-        *,
-        pv_ref: str | None = None,
-        limit: int = 20,
-        retrieval: str = "hybrid",
-    ) -> dict[str, Any]:
-        require(
-            1 <= limit <= 100,
-            "LANE_SEARCH_LIMIT_INVALID",
-            "Lane search limit must be between 1 and 100.",
-            status="BLOCKED",
-        )
-        require(
-            retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
-            "LANE_RETRIEVAL_INVALID",
-            "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
-            status="BLOCKED",
-        )
-        lanes_root, authority_ref, lane, _ = self._resolve(
-            project_id, lane_alias, pv_ref
-        )
-        lane_root = lanes_root / lane.canonical_lane_id
-        database_path = lane_root / lane.sqlite_filename
-        traversal = self._lane_traversal_contract(lane_root, lane)
-        fts_table = str(traversal["selected_fts_table"])
-        fts_query, terms = self._fts_query(query)
-        connection = sqlite3.connect(
-            f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
-            uri=True,
-        )
-        connection.row_factory = sqlite3.Row
-        bm25_rows: list[dict[str, Any]] = []
-        if retrieval in {"hybrid", "fts5", "bm25", "tfidf"}:
-            # The table identifier comes from the immutable validated registry.
-            bm25_sql = (
-                "SELECT c.chunk_id AS chunk_id, s.path AS path, "  # nosec B608
-                "c.locator AS locator, c.sha256 AS chunk_sha256, "
-                "cas.size_bytes AS chunk_size_bytes, "
-                "cas.compression AS chunk_compression, "
-                "cas.compressed_text AS chunk_compressed_text, "
-                f"bm25({fts_table}) AS bm25_rank, "
-                "s.sha256 AS source_sha256, "
-                "s.parser_state AS parser_state "
-                f"FROM {fts_table} f "
-                "JOIN chunk_index c ON c.chunk_id="
-                "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
-                "JOIN chunk_content_cas cas ON cas.sha256=c.sha256 "
-                "JOIN source_registry s ON s.source_id=c.source_id "
-                f"WHERE {fts_table} MATCH ? "
-                "ORDER BY bm25_rank, path, locator, chunk_id LIMIT ?"
-            )
-            bm25_rows = []
-            for raw_row in connection.execute(
-                bm25_sql,
-                (fts_query, min(1_000, max(limit * 8, 100))),
-            ):
-                row = dict(raw_row)
-                full_text = decompress_exact_bytes(
-                    compression=str(row.pop("chunk_compression")),
-                    payload=bytes(row.pop("chunk_compressed_text")),
-                    expected_size=int(row.pop("chunk_size_bytes")),
-                    expected_sha256=str(row["chunk_sha256"]),
-                ).decode("utf-8")
-                bm25_rows.append(
-                    {
-                        **row,
-                        "snippet": full_text[:1000],
-                        "full_text": full_text,
-                    }
-                )
-        tfidf_rows = []
-        if retrieval in {"hybrid", "tfidf"}:
-            counters = []
-            document_frequency: Counter[str] = Counter()
-            for row in bm25_rows:
-                counter = Counter(
-                    token.lower()
-                    for token in _TOKEN_RE.findall(str(row["full_text"]))
-                )
-                counters.append((row, counter))
-                document_frequency.update(term for term in terms if counter[term])
-            document_count = len(counters)
-            scored = []
-            for row, counter in counters:
-                token_count = max(sum(counter.values()), 1)
-                score = sum(
-                    (counter[term] / token_count)
-                    * (math.log((1 + document_count) / (1 + document_frequency[term])) + 1.0)
-                    for term in terms
-                )
-                scored.append({**row, "tfidf_score": score})
-            tfidf_rows = sorted(
-                scored,
-                key=lambda row: (-float(row["tfidf_score"]), row["path"], row["chunk_id"]),
-            )[: limit * 3]
-        connection.close()
+    def search(self, context, request):
+        return self.search_lanes(context, request, [request.lane_id])
 
-        merged: dict[int, dict[str, Any]] = {}
-        for rank_index, row in enumerate(bm25_rows, start=1):
-            chunk_id = int(row["chunk_id"])
-            merged[chunk_id] = {
-                **row,
-                "bm25_position": rank_index,
-                "tfidf_position": None,
-                "tfidf_score": None,
-            }
-        for rank_index, row in enumerate(tfidf_rows, start=1):
-            chunk_id = int(row["chunk_id"])
-            target = merged.setdefault(
-                chunk_id,
-                {
-                    **row,
-                    "bm25_rank": None,
-                    "bm25_position": None,
-                },
-            )
-            target["tfidf_position"] = rank_index
-            target["tfidf_score"] = row["tfidf_score"]
-            target.setdefault("snippet", row["snippet"])
-        for row in merged.values():
-            row.pop("full_text", None)
-            positions = [
-                position
-                for position in (row.get("bm25_position"), row.get("tfidf_position"))
-                if position is not None
-            ]
-            row["hybrid_rank_score"] = sum(
-                1.0 / (60 + position) for position in positions
-            )
-            row["ref_id"] = f"lane:{lane.canonical_lane_id}:chunk:{row['chunk_id']}"
-        if retrieval in {"fts5", "bm25"}:
-            ordered = sorted(
-                merged.values(),
-                key=lambda row: (
-                    row.get("bm25_position") or 10**9,
-                    row["path"],
-                    row["chunk_id"],
-                ),
-            )
-        elif retrieval == "tfidf":
-            ordered = sorted(
-                merged.values(),
-                key=lambda row: (
-                    row.get("tfidf_position") or 10**9,
-                    row["path"],
-                    row["chunk_id"],
-                ),
-            )
-        else:
-            ordered = sorted(
-                merged.values(),
-                key=lambda row: (
-                    -row["hybrid_rank_score"],
-                    row["path"],
-                    row["chunk_id"],
-                ),
-            )
-        freshness = self._freshness(project_id, lanes_root, authority_ref)
-        results = ordered[:limit]
-        return {
-            "status": result_status("PASS", freshness),
-            "result_state": "HITS" if results else "EMPTY",
-            "project_id": project_id,
-            "pv_ref": authority_ref,
-            "lane": lane.as_dict(),
-            "query": query,
-            "terms": terms,
-            "retrieval": retrieval,
-            "ranking": {
-                "fts5": (
-                    "SQLite FTS5 unicode61 MATCH with deterministic lexical "
-                    "term normalization and BM25 ordering"
-                ),
-                "bm25": "SQLite FTS5 bm25; lower raw rank is better",
-                "tfidf": (
-                    "bounded query-time tf=count/tokens; "
-                    "idf=ln((1+candidate_N)/(1+candidate_df))+1 over FTS candidates"
-                ),
-                "tfidf_materialized_vector_rows": False,
-                "hybrid": "reciprocal-rank fusion with k=60",
-                "bm25_mislabeled_as_tfidf": False,
-            },
-            "traversal": traversal,
-            "results": results,
-            "freshness": freshness,
-        }
-
-    def _parallel_bundle(
-        self,
-        project_id: str,
-        pv_ref: str | None,
-    ) -> dict[str, Any]:
-        require(
-            pv_ref is None,
-            "LANE_ARCHIVE_QUERY_OBSOLETE",
-            "Parallel lane reads query the live project root; accepted ZIPs are HIL-only.",
-            status="BLOCKED",
-            requested_ref=pv_ref,
-        )
-        lanes_root = self.store.project_root(project_id) / "sectors"
-        require(
-            lanes_root.is_dir() and (lanes_root / "manifest.json").is_file(),
-            "LIVE_ROOT_SECTORS_REQUIRED",
-            "The live project root has no materialized sector authority.",
-            status="MISMATCH",
-        )
-        authority_ref = ""
-        validation = validate_lane_bundle(lanes_root)
-        readable, operational_drift_paths = _live_working_bundle_read_boundary(
-            validation
-        )
-        require(
-            readable,
-            "LANE_BUNDLE_INVALID",
-            "The selected PV lane bundle failed validation.",
-            status="FAIL",
-            validation=validation,
-        )
-        bundle = json.loads(
-            (lanes_root / "manifest.json").read_text(encoding="utf-8")
-        )
-        bundle["operational_checksum_drift_ignored"] = bool(
-            operational_drift_paths
-        )
-        bundle["operational_checksum_drift_paths"] = operational_drift_paths
-        if pv_ref is None and lanes_root.name == "sectors":
-            authority_ref = str(bundle.get("proposed_pv") or "WORKING_SECTORS")
-        return {**bundle, "_resolved_pv_ref": authority_ref}
-
-    @staticmethod
-    def _parallel_integer(
-        value: Any,
-        *,
-        field: str,
-        minimum: int,
-        maximum: int,
-    ) -> int:
-        require(
-            isinstance(value, int) and not isinstance(value, bool),
-            "LANE_PARALLEL_BUDGET_INVALID",
-            "Parallel lane-query budgets must be exact integers.",
-            status="BLOCKED",
-            field=field,
-        )
-        exact = int(value)
-        require(
-            minimum <= exact <= maximum,
-            "LANE_PARALLEL_BUDGET_INVALID",
-            "A parallel lane-query budget is outside its enforced range.",
-            status="BLOCKED",
-            field=field,
-            minimum=minimum,
-            maximum=maximum,
-            value=exact,
-        )
-        return exact
-
-    def _parallel_search_worker(
-        self,
-        *,
-        project_id: str,
-        pv_ref: str | None,
-        job: dict[str, Any],
-        cancel_event: Event,
-    ) -> dict[str, Any]:
-        if cancel_event.is_set():
-            return {"kind": "CANCELLED", "completed_at": time.monotonic()}
-        try:
-            result = self.search(
-                project_id,
-                str(job["canonical_lane_id"]),
-                str(job["query"]),
-                pv_ref=pv_ref,
-                limit=int(job["result_limit"]),
-                retrieval=str(job["retrieval"]),
-            )
-        except EvidenceLaneError as error:
-            return {
-                "kind": "ERROR",
-                "completed_at": time.monotonic(),
-                "error": error.as_dict(),
-            }
-        except Exception as error:  # noqa: BLE001  # pragma: no cover
-            return {
-                "kind": "ERROR",
-                "completed_at": time.monotonic(),
-                "error": {
-                    "code": "LANE_PARALLEL_WORKER_FAILED",
-                    "message": "A bounded lane-query worker failed unexpectedly.",
-                    "status": "FAIL",
-                    "details": {"exception_type": type(error).__name__},
-                },
-            }
-        return {
-            "kind": "RESULT",
-            "completed_at": time.monotonic(),
-            "result": result,
-        }
-
-    def search_parallel(
-        self,
-        project_id: str,
-        lane_queries: list[dict[str, Any]],
-        *,
-        pv_ref: str | None = None,
-        max_workers: int = MAX_PARALLEL_LANE_WORKERS,
-        aggregate_limit: int = DEFAULT_PARALLEL_AGGREGATE_RESULTS,
-        cancel_event: Event | None = None,
-    ) -> dict[str, Any]:
-        """Run one bounded, deterministic, read-only fan-out over one PV."""
-
-        require(
-            isinstance(lane_queries, list)
-            and 1 <= len(lane_queries) <= MAX_PARALLEL_LANE_QUERIES,
-            "LANE_PARALLEL_QUERY_COUNT_INVALID",
-            "Parallel lane search requires between one and eight lane queries.",
-            status="BLOCKED",
-            count=len(lane_queries) if isinstance(lane_queries, list) else None,
-        )
-        worker_count = self._parallel_integer(
-            max_workers,
-            field="max_workers",
-            minimum=1,
-            maximum=MAX_PARALLEL_LANE_WORKERS,
-        )
-        aggregate_result_limit = self._parallel_integer(
-            aggregate_limit,
-            field="aggregate_limit",
-            minimum=1,
-            maximum=MAX_PARALLEL_AGGREGATE_RESULTS,
-        )
-        bundle = self._parallel_bundle(project_id, pv_ref)
-        resolved_pv_ref = str(bundle["_resolved_pv_ref"])
-        bundle_sha256 = str(bundle.get("bundle_sha256") or "")
-        require(
-            bool(resolved_pv_ref) and len(bundle_sha256) == 64,
-            "LANE_PARALLEL_PV_BINDING_INVALID",
-            "Parallel lane search could not bind one exact validated PV bundle.",
-            status="MISMATCH",
-        )
-        authority_binding = {
-            "project_id": project_id,
-            "live_root_authority_ref": resolved_pv_ref,
-            "bundle_sha256": bundle_sha256,
-            "code_mode": str(bundle["code_mode"]),
-        }
-        cancellation = cancel_event or Event()
-
-        jobs_by_sha256: dict[str, dict[str, Any]] = {}
-        jobs: list[dict[str, Any]] = []
-        for input_index, raw in enumerate(lane_queries):
-            require(
-                isinstance(raw, dict),
-                "LANE_PARALLEL_QUERY_INVALID",
-                "Every parallel lane query must be one structured object.",
-                status="BLOCKED",
-                input_index=input_index,
-            )
-            unknown_fields = sorted(
-                set(raw) - {"lane", "query", "retrieval", "limit", "timeout_ms"}
-            )
-            require(
-                not unknown_fields,
-                "LANE_PARALLEL_QUERY_FIELD_UNSUPPORTED",
-                "A parallel lane query contains unsupported fields.",
-                status="BLOCKED",
-                input_index=input_index,
-                fields=unknown_fields,
-            )
-            lane_alias = str(raw.get("lane") or "").strip()
-            query = str(raw.get("query") or "").strip()
-            require(
-                bool(lane_alias)
-                and len(lane_alias) <= 128
-                and bool(query)
-                and len(query) <= MAX_PARALLEL_LANE_QUERY_CHARS,
-                "LANE_PARALLEL_QUERY_INVALID",
-                "Every parallel lane query requires a bounded exact lane and query.",
-                status="BLOCKED",
-                input_index=input_index,
-            )
-            try:
-                lane = get_lane(lane_alias, code_mode=str(bundle["code_mode"]))
-            except LaneRegistryError as error:
-                raise EvidenceLaneError(
-                    code="LANE_PARALLEL_LANE_INVALID",
-                    message="A parallel lane query names an unsupported lane.",
-                    status="BLOCKED",
-                    details={"input_index": input_index, "lane": lane_alias},
-                ) from error
-            self._fts_query(query)
-            retrieval = str(raw.get("retrieval") or "hybrid").strip().lower()
-            require(
-                retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
-                "LANE_RETRIEVAL_INVALID",
-                "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
-                status="BLOCKED",
-                input_index=input_index,
-            )
-            result_limit = self._parallel_integer(
-                raw.get("limit", 20),
-                field=f"lane_queries[{input_index}].limit",
-                minimum=1,
-                maximum=100,
-            )
-            timeout_ms = self._parallel_integer(
-                raw.get("timeout_ms", DEFAULT_PARALLEL_LANE_TIMEOUT_MS),
-                field=f"lane_queries[{input_index}].timeout_ms",
-                minimum=1,
-                maximum=MAX_PARALLEL_LANE_TIMEOUT_MS,
-            )
-            identity = {
-                "project_id": project_id,
-                "live_root_authority_ref": resolved_pv_ref,
-                "canonical_lane_id": lane.canonical_lane_id,
-                "query": query,
-                "retrieval": retrieval,
-                "result_limit": result_limit,
-                "timeout_ms": timeout_ms,
-            }
-            request_sha256 = sha256_bytes(canonical_json_bytes(identity))
-            existing = jobs_by_sha256.get(request_sha256)
-            if existing is not None:
-                existing["input_indexes"].append(input_index)
+    def search_lanes(self, context, request, lane_ids):
+        """Read separate registered owners; never synthesize a shared index."""
+        from .universe_snapshot import root_reference
+        self._select_lanes(lane_ids)
+        started = time.monotonic()
+        deadline = started + request.timeout_ms / 1000
+        routes = {lane: spec for spec in self.engine.registry.search_actions() for lane in spec.search.lanes}
+        selected = [(lane, routes.get(lane_family(lane))) for lane in lane_ids]
+        rerank = request.retrieval in {'tfidf', 'hybrid', 'rank_bm25'}
+        def method_available(spec):
+            return spec is not None and ((not rerank or spec.search.rerank_text is not None)
+                and (request.retrieval != 'bm25' or spec.search.basis == 'sqlite_fts5_bm25'))
+        # Check permission for every owning read before returning any results.
+        for lane_id, spec in selected:
+            if not method_available(spec):
                 continue
-            job = {
-                **identity,
-                "request_sha256": request_sha256,
-                "input_indexes": [input_index],
-                "lane_alias": lane_alias,
-            }
-            jobs_by_sha256[request_sha256] = job
-            jobs.append(job)
+            arguments = self._search_arguments(spec, request, lane_id)
+            if spec.search.current_action:
+                arguments['snapshot_id'] = '0' * 64  # Schema validation only, never an executed selection.
+                current = self.engine.registry.get(spec.search.current_action)
+                self.engine.registry.validate(current.name, self._lane_arguments(current, lane_id), context)
+            self.engine.registry.validate(spec.name, arguments, context)
+        store = self.engine.directory.open(context.project_id)
+        calls = 0
 
-        request_receipts: list[dict[str, Any]] = []
-        lane_results: dict[str, dict[str, Any]] = {}
-        if cancellation.is_set():
-            for job in jobs:
-                request_receipts.append(
-                    {
-                        **job,
-                        "status": "CANCELLED",
-                        "within_time_budget": True,
-                        "result_count": 0,
-                        "result_sha256": None,
-                    }
-                )
-        else:
-            executor = ThreadPoolExecutor(
-                max_workers=min(worker_count, len(jobs)),
-                thread_name_prefix="evidence-lane-query",
-            )
-            pending: dict[Future[dict[str, Any]], dict[str, Any]] = {}
-            deadlines: dict[Future[dict[str, Any]], float] = {}
-            try:
-                for job in jobs:
-                    submitted_at = time.monotonic()
-                    future = executor.submit(
-                        self._parallel_search_worker,
-                        project_id=project_id,
-                        # The validated bundle above is the live-root binding.
-                        # Passing its continuity label back through ``pv_ref``
-                        # would incorrectly re-enter the retired archive route.
-                        pv_ref=None,
-                        job=job,
-                        cancel_event=cancellation,
-                    )
-                    pending[future] = job
-                    deadlines[future] = submitted_at + (
-                        cast(int, job["timeout_ms"]) / 1_000
-                    )
+        def invoke(spec, arguments):
+            nonlocal calls
+            calls += 1
+            return self._owner_read(context, store, spec, arguments, deadline, request.max_bytes)
 
-                while pending:
-                    if cancellation.is_set():
-                        for future, job in list(pending.items()):
-                            future.cancel()
-                            request_receipts.append(
-                                {
-                                    **job,
-                                    "status": "CANCELLED",
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                }
-                            )
-                            pending.pop(future)
-                        break
-
-                    now = time.monotonic()
-                    expired = [
-                        future
-                        for future in pending
-                        if not future.done() and now >= deadlines[future]
-                    ]
-                    for future in expired:
-                        job = pending.pop(future)
-                        future.cancel()
-                        request_receipts.append(
-                            {
-                                **job,
-                                "status": "TIMEOUT",
-                                "within_time_budget": False,
-                                "result_count": 0,
-                                "result_sha256": None,
-                            }
-                        )
-                    if not pending:
-                        break
-
-                    nearest = min(deadlines[future] for future in pending)
-                    wait_seconds = max(0.0, min(0.05, nearest - time.monotonic()))
-                    completed, _ = wait(
-                        tuple(pending),
-                        timeout=wait_seconds,
-                        return_when=FIRST_COMPLETED,
-                    )
-                    for future in completed:
-                        job = pending.pop(future)
-                        worker = future.result()
-                        if float(worker["completed_at"]) > deadlines[future]:
-                            request_receipts.append(
-                                {
-                                    **job,
-                                    "status": "TIMEOUT",
-                                    "within_time_budget": False,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                }
-                            )
-                            continue
-                        if worker["kind"] == "CANCELLED":
-                            request_receipts.append(
-                                {
-                                    **job,
-                                    "status": "CANCELLED",
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                }
-                            )
-                            continue
-                        if worker["kind"] == "ERROR":
-                            worker_error = dict(worker["error"])
-                            request_receipts.append(
-                                {
-                                    **job,
-                                    "status": str(
-                                        worker_error.get("status") or "FAIL"
-                                    ),
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                    "error": worker_error,
-                                }
-                            )
-                            continue
-                        result = dict(worker["result"])
-                        lane_results[str(job["request_sha256"])] = result
-                        result_count = len(result.get("results") or [])
-                        execution_status = str(result.get("status") or "FAIL")
-                        receipt_status = (
-                            "EMPTY"
-                            if execution_status == "PASS" and result_count == 0
-                            else execution_status
-                        )
-                        request_receipts.append(
-                            {
-                                **job,
-                                "status": receipt_status,
-                                "within_time_budget": True,
-                                "result_count": result_count,
-                                "result_sha256": sha256_bytes(
-                                    canonical_json_bytes(result)
-                                ),
-                            }
-                        )
-            finally:
-                executor.shutdown(wait=False, cancel_futures=True)
-
-        request_receipts.sort(key=lambda row: int(row["input_indexes"][0]))
-        aggregate: list[dict[str, Any]] = []
-        aggregate_by_key: dict[str, dict[str, Any]] = {}
-        pre_dedupe_count = 0
-        for receipt in request_receipts:
-            lane_result = lane_results.get(str(receipt["request_sha256"]))
-            if lane_result is None:
-                continue
-            result_project_id = str(lane_result.get("project_id") or project_id)
-            result_pv_ref = str(lane_result.get("pv_ref") or resolved_pv_ref)
-            lane_id = str(
-                (lane_result.get("lane") or {}).get("canonical_lane_id")
-                or receipt["canonical_lane_id"]
-            )
-            for hit in lane_result.get("results") or []:
-                pre_dedupe_count += 1
-                identity = {
-                    "project_id": result_project_id,
-                    "live_root_authority_ref": result_pv_ref,
-                    "canonical_lane_id": lane_id,
-                    "ref_id": hit.get("ref_id"),
-                    "path": hit.get("path"),
-                    "locator": hit.get("locator"),
-                    "source_sha256": hit.get("source_sha256"),
-                    "chunk_sha256": hit.get("chunk_sha256"),
-                }
-                dedupe_key = sha256_bytes(canonical_json_bytes(identity))
-                existing = aggregate_by_key.get(dedupe_key)
-                if existing is not None:
-                    existing["request_indexes"] = sorted(
-                        set(existing["request_indexes"])
-                        | set(receipt["input_indexes"])
-                    )
+        arms = []
+        policy = self.engine.registry.control_plane
+        policy_batch = policy.readonly_batch(context.project_id) if policy is not None else nullcontext()
+        with bounded_project_read(store.root, deadline), policy_batch:
+            boundary = plan_boundary(store)
+            if context.expected_revision is not None and boundary['revision'] != context.expected_revision:
+                raise LaneError('QUERY_PLAN_REVISION_MISMATCH', 'Search requires the selected current Plan revision.')
+            root = root_reference(store)
+            for lane_id, spec in selected:
+                if not method_available(spec):
+                    arms.append({'lane_id': lane_id, 'state': 'unavailable',
+                        'reason': 'no_registered_content_search' if spec is None else 'requested_ranking_not_supported',
+                        'owner_search_action': spec.name if spec else None,
+                        'searched': False, 'hit_count': 0, 'queries': [], 'truncated': False})
                     continue
-                projected = {
-                    **dict(hit),
-                    "project_id": result_project_id,
-                    "live_root_authority_ref": result_pv_ref,
-                    "canonical_lane_id": lane_id,
-                    "request_indexes": list(receipt["input_indexes"]),
-                    "dedupe_key_sha256": dedupe_key,
-                }
-                aggregate_by_key[dedupe_key] = projected
-                aggregate.append(projected)
-
-        unique_result_count = len(aggregate)
-        aggregate_truncated = unique_result_count > aggregate_result_limit
-        if aggregate_truncated:
-            aggregate = aggregate[:aggregate_result_limit]
-
-        statuses = [str(receipt["status"]) for receipt in request_receipts]
-        if statuses and all(status == "CANCELLED" for status in statuses):
-            status = "CANCELLED"
-        elif any(item not in {"PASS", "EMPTY", "STALE"} for item in statuses):
-            status = "PARTIAL"
-        elif any(item == "STALE" for item in statuses):
-            status = "STALE"
-        elif aggregate:
-            status = "PASS"
-        else:
-            status = "EMPTY"
-
-        result_sha256 = sha256_bytes(canonical_json_bytes(aggregate))
-        receipt_body = {
-            "schema": "evidence-lane.parallel-lane-query-receipt.v1",
-            "status": status,
-            "project_id": project_id,
-            "live_root_authority_ref": resolved_pv_ref,
-            "bundle_sha256": bundle_sha256,
-            "authority_binding_sha256": sha256_bytes(
-                canonical_json_bytes(authority_binding)
-            ),
-            "ordering": "INPUT_INDEX_THEN_SOURCE_RANK",
-            "dedupe_identity": [
-                "project_id",
-                "live_root_authority_ref",
-                "canonical_lane_id",
-                "ref_id",
-                "path",
-                "locator",
-                "source_sha256",
-                "chunk_sha256",
-            ],
-            "budgets": {
-                "maximum_queries": MAX_PARALLEL_LANE_QUERIES,
-                "maximum_workers": MAX_PARALLEL_LANE_WORKERS,
-                "selected_workers": min(worker_count, len(jobs)),
-                "maximum_timeout_ms": MAX_PARALLEL_LANE_TIMEOUT_MS,
-                "maximum_results_per_lane": 100,
-                "selected_aggregate_limit": aggregate_result_limit,
-                "maximum_aggregate_results": MAX_PARALLEL_AGGREGATE_RESULTS,
-            },
-            "input_query_count": len(lane_queries),
-            "executed_query_count": len(jobs),
-            "deduplicated_input_count": len(lane_queries) - len(jobs),
-            "result_count_before_dedupe": pre_dedupe_count,
-            "unique_result_count_before_aggregate_limit": unique_result_count,
-            "result_count": len(aggregate),
-            "aggregate_truncated": aggregate_truncated,
-            "aggregate_omitted_count": unique_result_count - len(aggregate),
-            "aggregate_results_sha256": result_sha256,
-            "request_receipts": request_receipts,
-        }
-        receipt = {
-            **receipt_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-        }
-        return {
-            "schema": "evidence-lane.parallel-lane-query.v1",
-            "status": status,
-            "project_id": project_id,
-            "live_root_authority_ref": resolved_pv_ref,
-            "bundle_sha256": bundle_sha256,
-            "results": aggregate,
-            "receipt": receipt,
-        }
+                route = spec.search
+                candidates = [None]
+                catalog_digest, catalog_truncated, more_snapshots = None, False, False
+                current_value = None
+                owner_initialized = True
+                if route.current_action:
+                    current = self.engine.registry.get(route.current_action)
+                    current_value, _ = invoke(current, self._lane_arguments(current, lane_id))
+                    payload = current_value.get('result', current_value)
+                    rows = payload.get(route.current_items)
+                    if not isinstance(rows, list) or len(rows) > 128:
+                        raise LaneError('SEARCH_ROUTE_RESULT', 'The owning snapshot catalog violates its declared search route.')
+                    candidates = rows[request.snapshot_offset:request.snapshot_offset + request.snapshot_limit]
+                    catalog_digest = digest(current_value)
+                    catalog_truncated = bool(payload.get('truncated', False))
+                    more_snapshots = len(rows) > request.snapshot_offset + len(candidates)
+                queries, hit_count = [], 0
+                truncated = catalog_truncated or more_snapshots
+                for snapshot in candidates:
+                    arguments = self._search_arguments(spec, request, lane_id)
+                    if snapshot is not None:
+                        arguments['snapshot_id'] = snapshot['snapshot_id']
+                    value, schemas = invoke(spec, arguments)
+                    own_schemas = [row for row in schemas if row['owner'] in get_lane(lane_id).schema_owners]
+                    owner_initialized = not own_schemas or any(row['status'] != 'not_initialized' for row in own_schemas)
+                    payload = value.get('result', value)
+                    hits = payload.get(route.items)
+                    if not isinstance(hits, list) or len(hits) > arguments['limit']:
+                        raise LaneError('SEARCH_ROUTE_RESULT', 'The owning reader violates its declared bounded hit collection.')
+                    ranking = None
+                    if rerank:
+                        from .hybrid_retrieval import rank_owner_candidates
+                        try:
+                            ranking = rank_owner_candidates(request.query, hits, text_field=route.rerank_text,
+                                method=request.retrieval, limit=request.limit)
+                        except ValueError as error:
+                            raise LaneError('SEARCH_RANKING_INVALID', str(error)) from None
+                    hit_count += min(len(hits), request.limit)
+                    truncated |= (bool(payload.get('truncated', False))
+                        or payload.get('next_offset') is not None or len(hits) > request.limit)
+                    queries.append({'action': spec.name, 'arguments': arguments, 'schema_compatibility': schemas,
+                        'snapshot_id': arguments.get('snapshot_id'), 'result_digest': digest(value), 'result': value,
+                        'ranking': ranking, 'owner_result_unchanged': True,
+                        'candidate_limit_requested': request.candidate_limit if rerank else None,
+                        'candidate_limit_used': arguments['limit'] if rerank else None})
+                    self._search_output_budget([*arms, queries], request.max_bytes)
+                if current_value is not None:
+                    observed, _ = invoke(current, self._lane_arguments(current, lane_id))
+                    if observed != current_value:
+                        raise LaneError('SEARCH_CURRENT_CHANGED', 'The lane snapshot selection changed during search.')
+                state = 'hit' if hit_count else 'no_hit'
+                if not owner_initialized or (current_value is not None and not current_value.get('result', current_value).get('initialized', True)):
+                    state = 'uninitialized'
+                arms.append({'lane_id': lane_id, 'state': state, 'searched': bool(candidates),
+                    'search_basis': route.basis, 'match_mode': 'any_literal_term',
+                    'content_scope': 'primary_snapshot_text' if route.current_action else 'current_authority_records',
+                    'hit_count': hit_count, 'queries': queries, 'truncated': truncated,
+                    'current_catalog_digest': catalog_digest, 'catalog_truncated': catalog_truncated,
+                    'snapshot_offset': request.snapshot_offset if route.current_action else None,
+                    'next_snapshot_offset': request.snapshot_offset + len(candidates) if more_snapshots else None,
+                    'snapshot_catalog_limit': 128 if route.current_action else None})
+                self._search_output_budget(arms, request.max_bytes)
+            if plan_boundary(store) != boundary or root_reference(store) != root:
+                raise LaneError('QUERY_PLAN_CHANGED', 'The project publication or Plan changed during search.')
+            if context.authorize is not None:
+                context.authorize('read')
+        if time.monotonic() >= deadline:
+            raise LaneError('QUERY_TIMEOUT', 'The selected lane read exceeded its time budget.')
+        page = SearchPage(project_id=store.project_id, root_pv=root, plan_boundary=boundary, query=request.query,
+            retrieval=request.retrieval,
+            arms=arms, registered_lanes=sorted(routes), owner_calls=calls, observed_at=now(),
+            complete_within_selected_scope=all(arm['state'] not in {'unavailable', 'uninitialized'} and not arm['truncated'] for arm in arms),
+            elapsed_ms=int((time.monotonic() - started) * 1000))
+        self._search_output_budget(page.model_dump(mode='json'), request.max_bytes)
+        return page
 
     @staticmethod
-    def _cross_lane_groups(
-        results: list[dict[str, Any]],
-        *,
-        relation_type: str,
-    ) -> list[tuple[str, list[dict[str, Any]]]]:
-        grouped: dict[str, list[dict[str, Any]]] = {}
-        for result in results:
-            authority = result["authority_provenance"]
-            if relation_type == "EXACT_SOURCE_SHA256":
-                value: Any = authority["source_sha256"]
-            elif relation_type == "EXACT_CHUNK_SHA256":
-                value = authority["chunk_sha256"]
-            elif relation_type == "EXACT_PATH_LOCATOR":
-                value = {
-                    "path": authority["path"],
-                    "locator": authority["locator"],
-                }
-            else:  # The caller validates the closed relation-type vocabulary.
-                raise AssertionError(f"Unsupported cross-lane relation {relation_type}")
-            key_sha256 = sha256_bytes(canonical_json_bytes(value))
-            grouped.setdefault(key_sha256, []).append(result)
-        return sorted(grouped.items())
+    def _lane_arguments(spec, lane_id):
+        return {'lane_id': lane_id} if 'lane_id' in spec.input_model.model_fields else {}
+
+    @classmethod
+    def _search_arguments(cls, spec, request, lane_id):
+        limit = request.limit
+        if request.retrieval in {'tfidf', 'hybrid', 'rank_bm25'}:
+            maximum = spec.input_model.model_json_schema()['properties']['limit'].get('maximum', 20)
+            limit = min(request.candidate_limit, maximum)
+        arguments = cls._lane_arguments(spec, lane_id) | {'query': request.query, 'limit': limit}
+        if spec.search.collection:
+            arguments['collection'] = spec.search.collection
+        if spec.search.match_mode:
+            arguments['match_mode'] = spec.search.match_mode
+        if 'max_bytes' in spec.input_model.model_fields:
+            properties = spec.input_model.model_json_schema()['properties']['max_bytes']
+            arguments['max_bytes'] = max(properties.get('minimum', 0), min(request.max_bytes, 65_536))
+        return arguments
 
     @staticmethod
-    def _cross_lane_conflict_groups(
-        results: list[dict[str, Any]],
-        *,
-        conflict_type: str,
-    ) -> list[tuple[str, list[dict[str, Any]]]]:
-        grouped: dict[str, list[dict[str, Any]]] = {}
-        for result in results:
-            authority = result["authority_provenance"]
-            if conflict_type == "PATH_LOCATOR_CONTENT_CONFLICT":
-                basis: Any = {
-                    "path": authority["path"],
-                    "locator": authority["locator"],
-                }
-            elif conflict_type == "SOURCE_LOCATOR_CONTENT_CONFLICT":
-                basis = {
-                    "source_sha256": authority["source_sha256"],
-                    "locator": authority["locator"],
-                }
-            else:  # The caller owns the closed conflict-type vocabulary.
-                raise AssertionError(f"Unsupported cross-lane conflict {conflict_type}")
-            basis_sha256 = sha256_bytes(canonical_json_bytes(basis))
-            grouped.setdefault(basis_sha256, []).append(result)
-        return sorted(grouped.items())
+    def _search_output_budget(value, maximum):
+        if len(json_text(value).encode()) > maximum:
+            raise LaneError('QUERY_OUTPUT_BUDGET', 'Reduce the selected lanes, snapshots or per-snapshot hit limit.')
 
-    def search_cross_lane(
-        self,
-        project_id: str,
-        lane_set: list[str],
-        query: str,
-        *,
-        pv_ref: str | None = None,
-        retrieval: str = "hybrid",
-        result_limit_per_lane: int = 20,
-        timeout_ms_per_lane: int = DEFAULT_PARALLEL_LANE_TIMEOUT_MS,
-        max_workers: int = MAX_PARALLEL_LANE_WORKERS,
-        aggregate_limit: int | None = None,
-        relation_types: list[str] | None = None,
-        relation_limit: int = DEFAULT_CROSS_LANE_RELATIONS,
-        conflict_limit: int = DEFAULT_CROSS_LANE_CONFLICTS,
-        synthesis_limit: int = DEFAULT_CROSS_LANE_SYNTHESIS,
-        cancel_event: Event | None = None,
-    ) -> dict[str, Any]:
-        """Join independently ranked evidence from an explicit set of lanes."""
+    def _context(self, context, project_id):
+        if context.project_context is None:
+            raise LaneError("CROSS_PROJECT_AUTHORIZATION_UNAVAILABLE", "This connection cannot authorize additional project selections.")
+        target = context.project_context(project_id, "read")
+        if (target.project_id != project_id or target.client_id != context.client_id
+                or "read" not in target.permissions or target.authorize is None):
+            raise LaneError("CROSS_PROJECT_AUTHORIZATION_INVALID", "The target context must preserve the authenticated principal and exact project.")
+        allowed = context.allowed_actions
+        if target.allowed_actions is not None:
+            allowed = target.allowed_actions if allowed is None else allowed & target.allowed_actions
+        return replace(target, permissions=frozenset({"read"}), allowed_actions=allowed,
+                       execution=None, expected_revision=None, project_context=None)
 
-        require(
-            isinstance(lane_set, list)
-            and MIN_CROSS_LANE_COUNT <= len(lane_set) <= MAX_CROSS_LANE_COUNT,
-            "CROSS_LANE_SET_COUNT_INVALID",
-            "Cross-lane search requires an explicit set of two to eight lanes.",
-            status="BLOCKED",
-            count=len(lane_set) if isinstance(lane_set, list) else None,
-        )
-        normalized_query = str(query or "").strip()
-        require(
-            bool(normalized_query)
-            and len(normalized_query) <= MAX_PARALLEL_LANE_QUERY_CHARS,
-            "CROSS_LANE_QUERY_INVALID",
-            "Cross-lane search requires one bounded lexical query.",
-            status="BLOCKED",
-        )
-        self._fts_query(normalized_query)
-        require(
-            retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
-            "LANE_RETRIEVAL_INVALID",
-            "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
-            status="BLOCKED",
-        )
-        per_lane_limit = self._parallel_integer(
-            result_limit_per_lane,
-            field="result_limit_per_lane",
-            minimum=1,
-            maximum=100,
-        )
-        per_lane_timeout = self._parallel_integer(
-            timeout_ms_per_lane,
-            field="timeout_ms_per_lane",
-            minimum=1,
-            maximum=MAX_PARALLEL_LANE_TIMEOUT_MS,
-        )
-        selected_relation_limit = self._parallel_integer(
-            relation_limit,
-            field="relation_limit",
-            minimum=1,
-            maximum=MAX_CROSS_LANE_RELATIONS,
-        )
-        selected_conflict_limit = self._parallel_integer(
-            conflict_limit,
-            field="conflict_limit",
-            minimum=1,
-            maximum=MAX_CROSS_LANE_CONFLICTS,
-        )
-        selected_synthesis_limit = self._parallel_integer(
-            synthesis_limit,
-            field="synthesis_limit",
-            minimum=1,
-            maximum=MAX_CROSS_LANE_SYNTHESIS,
-        )
+    def search_cross_project(self, context, request):
+        from .project_universe import ProjectUniverse
+        started = time.monotonic()
+        deadline = started + request.timeout_ms / 1000
+        source = self.engine.directory.open(context.project_id)
+        selected = []
+        # Validate every project selection and action before reading any results.
+        for project in request.projects:
+            target_context = self._context(context, project.project_id)
+            store = self.engine.directory.open(project.project_id)
+            link = ProjectUniverse(source).binding(store) if request.require_links and store.project_id != source.project_id else None
+            for query in project.queries:
+                spec = self.engine.registry.get(query.action)
+                if not spec.cross_project_read:
+                    raise LaneError("NOT_A_CROSS_PROJECT_QUERY", "Select an explicitly admitted read-only owner query.")
+                self.engine.registry.validate(query.action, query.arguments, target_context)
+            selected.append((project, store, link))
+        values, observations = [], []
+        for project, store, link in selected:
+            target_context = self._context(context, project.project_id)
+            with bounded_project_read(store.root, deadline):
+                boundary = plan_boundary(store)
+                if project.expected_plan_revision is not None and boundary["revision"] != project.expected_plan_revision:
+                    raise LaneError("QUERY_PLAN_REVISION_MISMATCH", "The selected project does not have the requested current Plan revision.")
+                results = []
+                for query in project.queries:
+                    spec = self.engine.registry.get(query.action)
+                    schemas = read_compatibility(store, spec.read_migrations)
+                    result = self.engine.registry.execute(query.action, query.arguments,
+                        replace(target_context, expected_revision=project.expected_plan_revision))
+                    if time.monotonic() >= deadline:
+                        raise LaneError("QUERY_TIMEOUT", "The query exceeded its selected time budget.")
+                    if read_compatibility(store, spec.read_migrations) != schemas:
+                        raise LaneError("QUERY_SCHEMA_CHANGED", "The selected owner schema changed during the read.")
+                    results.append({"action": query.action, "arguments_digest": digest(query.arguments),
+                        "schema_compatibility": schemas, "result_digest": digest(result), "result": result})
+                if plan_boundary(store) != boundary:
+                    raise LaneError("QUERY_PLAN_CHANGED", "The project's Plan changed while its owner snapshots were read.")
+            self._context(context, project.project_id)
+            values.append({"project_id": store.project_id, "state_root": str(store.root),
+                "source_root": str(store.source_root), "format_version": FORMAT_VERSION,
+                "plan_boundary": boundary, "link": link, "queries": results})
+            if len(json_text(values).encode()) > request.max_bytes - 1024:
+                raise LaneError("QUERY_OUTPUT_BUDGET", "Reduce the selected projects, query pages or requested payloads.")
+            observations.append((store, boundary, link, results))
+        # Recheck earlier targets after later reads; never return under revoked
+        # authorization, changed root binding, stale link, Plan or owner schema.
+        if context.authorize is not None:
+            context.authorize("read")
+        for store, boundary, link, results in observations:
+            self._context(context, store.project_id)
+            current = self.engine.directory.open(store.project_id)
+            if current.root != store.root or current.source_root != store.source_root:
+                raise LaneError("QUERY_PROJECT_CHANGED", "A selected project binding changed during the query.")
+            if link is not None and ProjectUniverse(source).binding(current) != link:
+                raise LaneError("QUERY_LINK_CHANGED", "The selected project link changed during the query.")
+            with bounded_project_read(store.root, deadline):
+                if plan_boundary(current) != boundary:
+                    raise LaneError("QUERY_PLAN_CHANGED", "A selected project's Plan changed during the query.")
+                for result in results:
+                    schemas = self.engine.registry.get(result["action"]).read_migrations
+                    if read_compatibility(current, schemas) != result["schema_compatibility"]:
+                        raise LaneError("QUERY_SCHEMA_CHANGED", "A selected owner schema changed during the query.")
+        page = CrossProjectPage(project_id=source.project_id, source_client_id=context.client_id,
+            projects=values, observed_at=now(), elapsed_ms=int((time.monotonic() - started) * 1000))
+        if len(json_text(page.model_dump()).encode()) > request.max_bytes:
+            raise LaneError("QUERY_OUTPUT_BUDGET", "The attributed response exceeds its output budget.")
+        return page
 
-        bundle = self._parallel_bundle(project_id, pv_ref)
-        resolved_pv_ref = str(bundle["_resolved_pv_ref"])
-        bundle_sha256 = str(bundle.get("bundle_sha256") or "")
-        canonical_lanes: list[str] = []
-        for lane_index, raw_lane in enumerate(lane_set):
-            require(
-                isinstance(raw_lane, str) and bool(raw_lane.strip()),
-                "CROSS_LANE_SET_INVALID",
-                "Every cross-lane set member must be one exact lane identifier.",
-                status="BLOCKED",
-                lane_index=lane_index,
-            )
-            try:
-                lane = get_lane(raw_lane.strip(), code_mode=str(bundle["code_mode"]))
-            except LaneRegistryError as error:
-                raise EvidenceLaneError(
-                    code="CROSS_LANE_SET_INVALID",
-                    message="A cross-lane set member is unsupported by this PV.",
-                    status="BLOCKED",
-                    details={"lane_index": lane_index, "lane": raw_lane},
-                ) from error
-            canonical_lanes.append(lane.canonical_lane_id)
-        require(
-            len(set(canonical_lanes)) == len(canonical_lanes),
-            "CROSS_LANE_SET_DUPLICATE",
-            "A cross-lane set must contain unique canonical lanes.",
-            status="BLOCKED",
-            canonical_lane_set=canonical_lanes,
-        )
 
-        required_aggregate_limit = len(canonical_lanes) * per_lane_limit
-        require(
-            required_aggregate_limit <= MAX_PARALLEL_AGGREGATE_RESULTS,
-            "CROSS_LANE_AGGREGATE_BUDGET_INVALID",
-            "The selected per-lane result budget exceeds the bounded cross-lane aggregate.",
-            status="BLOCKED",
-            lane_count=len(canonical_lanes),
-            result_limit_per_lane=per_lane_limit,
-            required_aggregate_limit=required_aggregate_limit,
-            maximum_aggregate_limit=MAX_PARALLEL_AGGREGATE_RESULTS,
-        )
-        selected_aggregate_limit = (
-            required_aggregate_limit
-            if aggregate_limit is None
-            else self._parallel_integer(
-                aggregate_limit,
-                field="aggregate_limit",
-                minimum=1,
-                maximum=MAX_PARALLEL_AGGREGATE_RESULTS,
-            )
-        )
-        require(
-            selected_aggregate_limit >= required_aggregate_limit,
-            "CROSS_LANE_AGGREGATE_BUDGET_INVALID",
-            "The aggregate result budget must cover every explicit lane budget.",
-            status="BLOCKED",
-            lane_count=len(canonical_lanes),
-            result_limit_per_lane=per_lane_limit,
-            required_aggregate_limit=required_aggregate_limit,
-            selected_aggregate_limit=selected_aggregate_limit,
-        )
-
-        selected_relation_types = list(
-            CROSS_LANE_RELATION_TYPES if relation_types is None else relation_types
-        )
-        require(
-            bool(selected_relation_types)
-            and all(isinstance(item, str) for item in selected_relation_types)
-            and len(set(selected_relation_types)) == len(selected_relation_types)
-            and set(selected_relation_types).issubset(CROSS_LANE_RELATION_TYPES),
-            "CROSS_LANE_RELATION_TYPE_INVALID",
-            "Cross-lane joins require a unique non-empty allowlisted relation set.",
-            status="BLOCKED",
-            supported_relation_types=list(CROSS_LANE_RELATION_TYPES),
-        )
-
-        lane_queries = [
-            {
-                "lane": lane_id,
-                "query": normalized_query,
-                "retrieval": retrieval,
-                "limit": per_lane_limit,
-                "timeout_ms": per_lane_timeout,
-            }
-            for lane_id in canonical_lanes
-        ]
-        parallel = self.search_parallel(
-            project_id,
-            lane_queries,
-            pv_ref=None,
-            max_workers=max_workers,
-            aggregate_limit=selected_aggregate_limit,
-            cancel_event=cancel_event,
-        )
-
-        lane_positions = {lane_id: index for index, lane_id in enumerate(canonical_lanes)}
-        lane_ranks = {lane_id: 0 for lane_id in canonical_lanes}
-        results: list[dict[str, Any]] = []
-        for raw_result in parallel["results"]:
-            result = dict(raw_result)
-            lane_id = str(result.get("canonical_lane_id") or "")
-            require(
-                lane_id in lane_positions,
-                "CROSS_LANE_RESULT_AUTHORITY_INVALID",
-                "A cross-lane result is outside the explicit canonical lane set.",
-                status="MISMATCH",
-                canonical_lane_id=lane_id,
-            )
-            source_sha256 = str(result.get("source_sha256") or "")
-            chunk_sha256 = str(result.get("chunk_sha256") or "")
-            require(
-                len(source_sha256) == 64
-                and len(chunk_sha256) == 64
-                and bool(result.get("ref_id"))
-                and bool(result.get("path"))
-                and bool(result.get("locator")),
-                "CROSS_LANE_RESULT_AUTHORITY_INVALID",
-                "Every cross-lane result must carry complete immutable authority provenance.",
-                status="MISMATCH",
-                canonical_lane_id=lane_id,
-            )
-            lane_ranks[lane_id] += 1
-            authority = {
-                "project_id": project_id,
-                "live_root_authority_ref": resolved_pv_ref,
-                "bundle_sha256": bundle_sha256,
-                "canonical_lane_id": lane_id,
-                "ref_id": str(result["ref_id"]),
-                "path": str(result["path"]),
-                "locator": str(result["locator"]),
-                "source_sha256": source_sha256,
-                "chunk_sha256": chunk_sha256,
-                "parser_state": str(result.get("parser_state") or "UNKNOWN"),
-            }
-            authority_sha256 = sha256_bytes(canonical_json_bytes(authority))
-            result.pop("request_indexes", None)
-            result.pop("dedupe_key_sha256", None)
-            results.append(
-                {
-                    **result,
-                    "lane_rank": lane_ranks[lane_id],
-                    "rank_domain": f"LANE:{lane_id}",
-                    "cross_lane_score": None,
-                    "result_id": f"cross-lane-result:{authority_sha256}",
-                    "authority_provenance": authority,
-                    "authority_provenance_sha256": authority_sha256,
-                }
-            )
-        results.sort(
-            key=lambda result: (
-                lane_positions[str(result["canonical_lane_id"])],
-                int(result["lane_rank"]),
-                str(result["result_id"]),
-            )
-        )
-
-        all_relations: list[dict[str, Any]] = []
-        for relation_type in selected_relation_types:
-            for key_sha256, members in self._cross_lane_groups(
-                results, relation_type=relation_type
-            ):
-                lane_ids = sorted(
-                    {str(member["canonical_lane_id"]) for member in members},
-                    key=lane_positions.__getitem__,
-                )
-                if len(lane_ids) < 2:
-                    continue
-                member_ids = [str(member["result_id"]) for member in members]
-                relation_body = {
-                    "relation_type": relation_type,
-                    "relation_key_sha256": key_sha256,
-                    "lane_ids": lane_ids,
-                    "member_result_ids": member_ids,
-                    "member_count": len(member_ids),
-                }
-                relation_sha256 = sha256_bytes(canonical_json_bytes(relation_body))
-                all_relations.append(
-                    {
-                        **relation_body,
-                        "relation_id": f"cross-lane-relation:{relation_sha256}",
-                        "relation_sha256": relation_sha256,
-                    }
-                )
-        all_relations.sort(key=lambda item: (item["relation_type"], item["relation_id"]))
-        relations = all_relations[:selected_relation_limit]
-
-        all_conflicts: list[dict[str, Any]] = []
-        for conflict_type in (
-            "PATH_LOCATOR_CONTENT_CONFLICT",
-            "SOURCE_LOCATOR_CONTENT_CONFLICT",
-        ):
-            for basis_sha256, members in self._cross_lane_conflict_groups(
-                results, conflict_type=conflict_type
-            ):
-                lane_ids = sorted(
-                    {str(member["canonical_lane_id"]) for member in members},
-                    key=lane_positions.__getitem__,
-                )
-                observed_chunks = sorted(
-                    {
-                        str(member["authority_provenance"]["chunk_sha256"])
-                        for member in members
-                    }
-                )
-                if len(lane_ids) < 2 or len(observed_chunks) < 2:
-                    continue
-                member_ids = [str(member["result_id"]) for member in members]
-                conflict_body = {
-                    "conflict_type": conflict_type,
-                    "basis_sha256": basis_sha256,
-                    "lane_ids": lane_ids,
-                    "member_result_ids": member_ids,
-                    "observed_chunk_sha256": observed_chunks,
-                    "member_count": len(member_ids),
-                }
-                conflict_sha256 = sha256_bytes(canonical_json_bytes(conflict_body))
-                all_conflicts.append(
-                    {
-                        **conflict_body,
-                        "conflict_id": f"cross-lane-conflict:{conflict_sha256}",
-                        "conflict_sha256": conflict_sha256,
-                    }
-                )
-        all_conflicts.sort(key=lambda item: (item["conflict_type"], item["conflict_id"]))
-        conflicts = all_conflicts[:selected_conflict_limit]
-
-        synthesis_candidates = [
-            {
-                "kind": "EXPLICIT_CONFLICT",
-                "source_id": item["conflict_id"],
-                "basis_type": item["conflict_type"],
-                "lane_ids": item["lane_ids"],
-                "member_result_ids": item["member_result_ids"],
-                "statement": "Exact authority keys disagree on immutable chunk bytes.",
-            }
-            for item in conflicts
-        ]
-        synthesis_candidates.extend(
-            {
-                "kind": "SUPPORTED_RELATION",
-                "source_id": item["relation_id"],
-                "basis_type": item["relation_type"],
-                "lane_ids": item["lane_ids"],
-                "member_result_ids": item["member_result_ids"],
-                "statement": "Exact immutable authority keys connect these lane results.",
-            }
-            for item in relations
-        )
-        synthesis = synthesis_candidates[:selected_synthesis_limit]
-
-        source_status = str(parallel["status"])
-        if source_status in {"PARTIAL", "CANCELLED"}:
-            status = source_status
-        elif conflicts:
-            status = "CONFLICT"
-        else:
-            status = source_status
-        results_sha256 = sha256_bytes(canonical_json_bytes(results))
-        relations_sha256 = sha256_bytes(canonical_json_bytes(relations))
-        conflicts_sha256 = sha256_bytes(canonical_json_bytes(conflicts))
-        synthesis_sha256 = sha256_bytes(canonical_json_bytes(synthesis))
-        lane_receipts = [
-            {
-                key: request[key]
-                for key in (
-                    "canonical_lane_id",
-                    "request_sha256",
-                    "status",
-                    "within_time_budget",
-                    "result_count",
-                    "result_sha256",
-                )
-            }
-            for request in parallel["receipt"]["request_receipts"]
-        ]
-        lane_receipts_sha256 = sha256_bytes(canonical_json_bytes(lane_receipts))
-        receipt_body = {
-            "schema": "evidence-lane.cross-lane-query-receipt.v1",
-            "status": status,
-            "source_status": source_status,
-            "project_id": project_id,
-            "live_root_authority_ref": resolved_pv_ref,
-            "bundle_sha256": bundle_sha256,
-            "canonical_lane_set": canonical_lanes,
-            "query": normalized_query,
-            "retrieval": retrieval,
-            "rank_contract": "INDEPENDENT_PER_LANE_SOURCE_RANK_ONLY",
-            "cross_lane_score_emitted": False,
-            "relation_types": selected_relation_types,
-            "parallel_receipt_sha256": parallel["receipt"]["receipt_sha256"],
-            "lane_receipts_sha256": lane_receipts_sha256,
-            "budgets": {
-                "result_limit_per_lane": per_lane_limit,
-                "timeout_ms_per_lane": per_lane_timeout,
-                "aggregate_limit": int(parallel["receipt"]["budgets"]["selected_aggregate_limit"]),
-                "required_aggregate_limit": required_aggregate_limit,
-                "relation_limit": selected_relation_limit,
-                "conflict_limit": selected_conflict_limit,
-                "synthesis_limit": selected_synthesis_limit,
-            },
-            "result_count": len(results),
-            "relation_count_before_limit": len(all_relations),
-            "relation_count": len(relations),
-            "relation_omitted_count": len(all_relations) - len(relations),
-            "conflict_count_before_limit": len(all_conflicts),
-            "conflict_count": len(conflicts),
-            "conflict_omitted_count": len(all_conflicts) - len(conflicts),
-            "synthesis_count_before_limit": len(synthesis_candidates),
-            "synthesis_count": len(synthesis),
-            "synthesis_omitted_count": len(synthesis_candidates) - len(synthesis),
-            "results_sha256": results_sha256,
-            "relations_sha256": relations_sha256,
-            "conflicts_sha256": conflicts_sha256,
-            "synthesis_sha256": synthesis_sha256,
-            "synthesis_mode": "EVIDENCE_ONLY_NO_SEMANTIC_INFERENCE",
-        }
-        receipt = {
-            **receipt_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-        }
-        return {
-            "schema": "evidence-lane.cross-lane-query.v1",
-            "status": status,
-            "source_status": source_status,
-            "project_id": project_id,
-            "live_root_authority_ref": resolved_pv_ref,
-            "bundle_sha256": bundle_sha256,
-            "canonical_lane_set": canonical_lanes,
-            "query": normalized_query,
-            "rank_contract": "INDEPENDENT_PER_LANE_SOURCE_RANK_ONLY",
-            "lane_receipts": lane_receipts,
-            "results": results,
-            "relations": relations,
-            "conflicts": conflicts,
-            "synthesis": synthesis,
-            "receipt": receipt,
-        }
-
-    def _cross_project_permission(
-        self,
-        *,
-        principal_id: str,
-        project_id: str,
-        live_root_authority_ref: str,
-    ) -> dict[str, Any]:
-        require(
-            self.cross_project_authorizer is not None,
-            "CROSS_PROJECT_PERMISSION_PROVIDER_REQUIRED",
-            "Cross-project reads require an explicit host permission provider.",
-            status="BLOCKED",
-            project_id=project_id,
-        )
-        request = {
-            "schema": "evidence-lane.cross-project-read-request.v1",
-            "principal_id": principal_id,
-            "project_id": project_id,
-            "live_root_authority_ref": live_root_authority_ref,
-            "scope": "READ_LIVE_PROJECT_ROOT",
-        }
-        authorizer = cast(
-            Callable[[dict[str, Any]], dict[str, Any]],
-            self.cross_project_authorizer,
-        )
-        grant = authorizer(request)
-        require(
-            isinstance(grant, dict),
-            "CROSS_PROJECT_PERMISSION_GRANT_INVALID",
-            "The cross-project permission provider returned no structured grant.",
-            status="BLOCKED",
-            project_id=project_id,
-        )
-        allowed_fields = {
-            "schema",
-            "status",
-            "principal_id",
-            "project_id",
-            "live_root_authority_ref",
-            "scope",
-            "grant_id",
-            "grant_sha256",
-        }
-        require(
-            set(grant) == allowed_fields,
-            "CROSS_PROJECT_PERMISSION_GRANT_INVALID",
-            "A permission grant must contain only the exact public grant fields.",
-            status="BLOCKED",
-            project_id=project_id,
-            fields=sorted(grant),
-        )
-        grant_body = {
-            key: grant[key] for key in sorted(allowed_fields - {"grant_sha256"})
-        }
-        grant_sha256 = sha256_bytes(canonical_json_bytes(grant_body))
-        grant_id = str(grant.get("grant_id") or "")
-        require(
-            grant.get("schema") == "evidence-lane.cross-project-read-grant.v1"
-            and grant.get("status") == "PASS"
-            and grant.get("principal_id") == principal_id
-            and grant.get("project_id") == project_id
-            and grant.get("live_root_authority_ref") == live_root_authority_ref
-            and grant.get("scope") == "READ_LIVE_PROJECT_ROOT"
-            and bool(grant_id)
-            and len(grant_id) <= 128
-            and all(character in _PUBLIC_ID_CHARS for character in grant_id)
-            and grant.get("grant_sha256") == grant_sha256,
-            "CROSS_PROJECT_PERMISSION_GRANT_INVALID",
-            "The permission grant does not seal the exact principal, project, live-root authority, and read scope.",
-            status="BLOCKED",
-            project_id=project_id,
-        )
-        return {
-            "schema": str(grant["schema"]),
-            "status": "PASS",
-            "principal_id": principal_id,
-            "project_id": project_id,
-            "live_root_authority_ref": live_root_authority_ref,
-            "scope": "READ_LIVE_PROJECT_ROOT",
-            "grant_id": grant_id,
-            "grant_sha256": grant_sha256,
-        }
-
-    def _cross_project_worker(
-        self,
-        *,
-        job: dict[str, Any],
-        cancel_event: Event,
-    ) -> dict[str, Any]:
-        if cancel_event.is_set():
-            return {"kind": "CANCELLED", "completed_at": time.monotonic()}
-        try:
-            result = self.search_parallel(
-                str(job["project_id"]),
-                list(job["lane_queries"]),
-                pv_ref=None,
-                max_workers=int(job["lane_workers"]),
-                aggregate_limit=int(job["project_result_limit"]),
-                cancel_event=cancel_event,
-            )
-        except EvidenceLaneError as error:
-            return {
-                "kind": "ERROR",
-                "completed_at": time.monotonic(),
-                "error": error.as_dict(),
-            }
-        except Exception as error:  # noqa: BLE001  # pragma: no cover
-            return {
-                "kind": "ERROR",
-                "completed_at": time.monotonic(),
-                "error": {
-                    "code": "CROSS_PROJECT_WORKER_FAILED",
-                    "message": "A bounded cross-project query worker failed unexpectedly.",
-                    "status": "FAIL",
-                    "details": {"exception_type": type(error).__name__},
-                },
-            }
-        return {
-            "kind": "RESULT",
-            "completed_at": time.monotonic(),
-            "result": result,
-        }
-
-    def search_cross_project(
-        self,
-        principal_id: str,
-        project_queries: list[dict[str, Any]],
-        *,
-        max_project_workers: int = DEFAULT_CROSS_PROJECT_WORKERS,
-        overall_result_limit: int = DEFAULT_CROSS_PROJECT_RESULTS,
-        cancel_event: Event | None = None,
-    ) -> dict[str, Any]:
-        """Read explicit live project roots without weakening isolation."""
-
-        exact_principal = str(principal_id or "").strip()
-        require(
-            bool(exact_principal)
-            and len(exact_principal) <= 128
-            and all(character in _PUBLIC_ID_CHARS for character in exact_principal),
-            "CROSS_PROJECT_PRINCIPAL_INVALID",
-            "Cross-project reads require one bounded explicit principal ID.",
-            status="BLOCKED",
-        )
-        require(
-            isinstance(project_queries, list)
-            and MIN_CROSS_PROJECTS <= len(project_queries) <= MAX_CROSS_PROJECTS,
-            "CROSS_PROJECT_SET_COUNT_INVALID",
-            "Cross-project search requires an explicit set of two to four projects.",
-            status="BLOCKED",
-            count=len(project_queries) if isinstance(project_queries, list) else None,
-        )
-        selected_project_workers = self._parallel_integer(
-            max_project_workers,
-            field="max_project_workers",
-            minimum=1,
-            maximum=MAX_CROSS_PROJECT_WORKERS,
-        )
-        selected_overall_limit = self._parallel_integer(
-            overall_result_limit,
-            field="overall_result_limit",
-            minimum=1,
-            maximum=MAX_CROSS_PROJECT_RESULTS,
-        )
-
-        jobs: list[dict[str, Any]] = []
-        canonical_project_keys: set[str] = set()
-        allowed_project_fields = {
-            "project_id",
-            "lane_queries",
-            "project_timeout_ms",
-            "project_result_limit",
-            "lane_workers",
-        }
-        for project_index, raw in enumerate(project_queries):
-            require(
-                isinstance(raw, dict),
-                "CROSS_PROJECT_QUERY_INVALID",
-                "Every cross-project query must be one structured object.",
-                status="BLOCKED",
-                project_index=project_index,
-            )
-            unknown_fields = sorted(set(raw) - allowed_project_fields)
-            require(
-                not unknown_fields,
-                "CROSS_PROJECT_QUERY_FIELD_UNSUPPORTED",
-                "A cross-project query contains unsupported fields.",
-                status="BLOCKED",
-                project_index=project_index,
-                fields=unknown_fields,
-            )
-            project_id = self.store.validate_project_id(
-                str(raw.get("project_id") or "").strip()
-            )
-            comparison_key = self.store.canonical_project_key(project_id)
-            require(
-                comparison_key not in canonical_project_keys,
-                "CROSS_PROJECT_SET_DUPLICATE",
-                "The explicit project set contains a duplicate canonical project ID.",
-                status="BLOCKED",
-                project_id=project_id,
-            )
-            canonical_project_keys.add(comparison_key)
-            config = self.store.config(project_id)
-            require(
-                config.enabled is True,
-                "CROSS_PROJECT_DISABLED",
-                "A disabled project cannot participate in a cross-project read.",
-                status="BLOCKED",
-                project_id=project_id,
-            )
-            bundle = self._parallel_bundle(project_id, None)
-            live_root_authority_ref = str(bundle["_resolved_pv_ref"])
-            require(
-                bool(live_root_authority_ref),
-                "CROSS_PROJECT_LIVE_ROOT_BINDING_MISMATCH",
-                "A cross-project query did not resolve one exact live-root authority.",
-                status="MISMATCH",
-                project_id=project_id,
-                live_root_authority_ref=live_root_authority_ref,
-            )
-            permission = self._cross_project_permission(
-                principal_id=exact_principal,
-                project_id=project_id,
-                live_root_authority_ref=live_root_authority_ref,
-            )
-            project_timeout_ms = self._parallel_integer(
-                raw.get("project_timeout_ms", DEFAULT_CROSS_PROJECT_TIMEOUT_MS),
-                field=f"project_queries[{project_index}].project_timeout_ms",
-                minimum=1,
-                maximum=MAX_CROSS_PROJECT_TIMEOUT_MS,
-            )
-            project_result_limit = self._parallel_integer(
-                raw.get("project_result_limit", DEFAULT_PARALLEL_AGGREGATE_RESULTS),
-                field=f"project_queries[{project_index}].project_result_limit",
-                minimum=1,
-                maximum=MAX_PARALLEL_AGGREGATE_RESULTS,
-            )
-            lane_workers = self._parallel_integer(
-                raw.get("lane_workers", MAX_PARALLEL_LANE_WORKERS),
-                field=f"project_queries[{project_index}].lane_workers",
-                minimum=1,
-                maximum=MAX_PARALLEL_LANE_WORKERS,
-            )
-            raw_lane_queries = raw.get("lane_queries")
-            require(
-                isinstance(raw_lane_queries, list)
-                and 1 <= len(raw_lane_queries) <= MAX_PARALLEL_LANE_QUERIES,
-                "CROSS_PROJECT_LANE_QUERY_COUNT_INVALID",
-                "Every project requires between one and eight explicit lane queries.",
-                status="BLOCKED",
-                project_id=project_id,
-            )
-            lane_queries = cast(list[dict[str, Any]], raw_lane_queries)
-            normalized_lane_queries: list[dict[str, Any]] = []
-            for lane_index, lane_query in enumerate(lane_queries):
-                require(
-                    isinstance(lane_query, dict),
-                    "CROSS_PROJECT_LANE_QUERY_INVALID",
-                    "Every project lane query must be one structured object.",
-                    status="BLOCKED",
-                    project_id=project_id,
-                    lane_index=lane_index,
-                )
-                unknown_lane_fields = sorted(
-                    set(lane_query)
-                    - {"lane", "query", "retrieval", "limit", "timeout_ms"}
-                )
-                require(
-                    not unknown_lane_fields,
-                    "CROSS_PROJECT_LANE_QUERY_FIELD_UNSUPPORTED",
-                    "A project lane query contains unsupported fields.",
-                    status="BLOCKED",
-                    project_id=project_id,
-                    lane_index=lane_index,
-                    fields=unknown_lane_fields,
-                )
-                lane_alias = str(lane_query.get("lane") or "").strip()
-                query = str(lane_query.get("query") or "").strip()
-                require(
-                    bool(lane_alias)
-                    and len(lane_alias) <= 128
-                    and bool(query)
-                    and len(query) <= MAX_PARALLEL_LANE_QUERY_CHARS,
-                    "CROSS_PROJECT_LANE_QUERY_INVALID",
-                    "Every project lane query requires a bounded lane and query.",
-                    status="BLOCKED",
-                    project_id=project_id,
-                    lane_index=lane_index,
-                )
-                try:
-                    lane = get_lane(lane_alias, code_mode=str(bundle["code_mode"]))
-                except LaneRegistryError as error:
-                    raise EvidenceLaneError(
-                        code="CROSS_PROJECT_LANE_QUERY_INVALID",
-                        message="A project lane query names an unsupported lane.",
-                        status="BLOCKED",
-                        details={
-                            "project_id": project_id,
-                            "lane_index": lane_index,
-                            "lane": lane_alias,
-                        },
-                    ) from error
-                self._fts_query(query)
-                retrieval = str(lane_query.get("retrieval") or "hybrid").lower()
-                require(
-                    retrieval in {"hybrid", "fts5", "bm25", "tfidf"},
-                    "LANE_RETRIEVAL_INVALID",
-                    "Lane retrieval must be hybrid, fts5, bm25, or tfidf.",
-                    status="BLOCKED",
-                    project_id=project_id,
-                    lane_index=lane_index,
-                )
-                result_limit = self._parallel_integer(
-                    lane_query.get("limit", 20),
-                    field=(
-                        f"project_queries[{project_index}]."
-                        f"lane_queries[{lane_index}].limit"
-                    ),
-                    minimum=1,
-                    maximum=100,
-                )
-                timeout_ms = self._parallel_integer(
-                    lane_query.get("timeout_ms", DEFAULT_PARALLEL_LANE_TIMEOUT_MS),
-                    field=(
-                        f"project_queries[{project_index}]."
-                        f"lane_queries[{lane_index}].timeout_ms"
-                    ),
-                    minimum=1,
-                    maximum=MAX_PARALLEL_LANE_TIMEOUT_MS,
-                )
-                require(
-                    timeout_ms <= project_timeout_ms,
-                    "CROSS_PROJECT_TIMEOUT_HIERARCHY_INVALID",
-                    "A lane timeout cannot exceed its enclosing project timeout.",
-                    status="BLOCKED",
-                    project_id=project_id,
-                    lane_index=lane_index,
-                )
-                normalized_lane_queries.append(
-                    {
-                        "lane": lane.canonical_lane_id,
-                        "query": query,
-                        "retrieval": retrieval,
-                        "limit": result_limit,
-                        "timeout_ms": timeout_ms,
-                    }
-                )
-            required_project_result_limit = sum(
-                int(lane_query["limit"]) for lane_query in normalized_lane_queries
-            )
-            require(
-                required_project_result_limit <= MAX_PARALLEL_AGGREGATE_RESULTS
-                and project_result_limit >= required_project_result_limit,
-                "CROSS_PROJECT_RESULT_BUDGET_INVALID",
-                "A project result budget must cover every explicit lane-query budget.",
-                status="BLOCKED",
-                project_id=project_id,
-                required_project_result_limit=required_project_result_limit,
-                selected_project_result_limit=project_result_limit,
-                maximum_project_result_limit=MAX_PARALLEL_AGGREGATE_RESULTS,
-            )
-            authority_binding = {
-                "project_id": project_id,
-                "live_root_authority_ref": live_root_authority_ref,
-                "bundle_sha256": str(bundle["bundle_sha256"]),
-                "permission_grant_sha256": permission["grant_sha256"],
-                "accepted_archive_opened": False,
-                "accepted_archive_queried": False,
-            }
-            jobs.append(
-                {
-                    "project_index": project_index,
-                    "project_id": project_id,
-                    "live_root_authority_ref": live_root_authority_ref,
-                    "bundle_sha256": str(bundle["bundle_sha256"]),
-                    "permission": permission,
-                    "authority_binding_sha256": sha256_bytes(
-                        canonical_json_bytes(authority_binding)
-                    ),
-                    "project_timeout_ms": project_timeout_ms,
-                    "project_result_limit": project_result_limit,
-                    "required_project_result_limit": required_project_result_limit,
-                    "lane_workers": lane_workers,
-                    "lane_queries": normalized_lane_queries,
-                }
-            )
-
-        required_overall_result_limit = sum(
-            int(job["project_result_limit"]) for job in jobs
-        )
-        require(
-            required_overall_result_limit <= MAX_CROSS_PROJECT_RESULTS
-            and selected_overall_limit >= required_overall_result_limit,
-            "CROSS_PROJECT_OVERALL_BUDGET_INVALID",
-            "The overall result budget must cover every explicit project budget.",
-            status="BLOCKED",
-            required_overall_result_limit=required_overall_result_limit,
-            selected_overall_result_limit=selected_overall_limit,
-            maximum_overall_result_limit=MAX_CROSS_PROJECT_RESULTS,
-        )
-
-        cancellation = cancel_event or Event()
-        project_receipts: list[dict[str, Any]] = []
-        project_results: dict[int, dict[str, Any]] = {}
-        if cancellation.is_set():
-            for job in jobs:
-                project_receipts.append(
-                    {
-                        **job,
-                        "status": "CANCELLED",
-                        "within_time_budget": True,
-                        "result_count": 0,
-                        "result_sha256": None,
-                        "lane_receipts": [],
-                    }
-                )
-        else:
-            executor = ThreadPoolExecutor(
-                max_workers=min(selected_project_workers, len(jobs)),
-                thread_name_prefix="evidence-cross-project-query",
-            )
-            pending: dict[Future[dict[str, Any]], dict[str, Any]] = {}
-            deadlines: dict[Future[dict[str, Any]], float] = {}
-            project_cancellations: dict[Future[dict[str, Any]], Event] = {}
-            try:
-                for job in jobs:
-                    project_cancellation = Event()
-                    submitted_at = time.monotonic()
-                    future = executor.submit(
-                        self._cross_project_worker,
-                        job=job,
-                        cancel_event=project_cancellation,
-                    )
-                    pending[future] = job
-                    deadlines[future] = submitted_at + (
-                        int(job["project_timeout_ms"]) / 1_000
-                    )
-                    project_cancellations[future] = project_cancellation
-                while pending:
-                    if cancellation.is_set():
-                        for future, job in list(pending.items()):
-                            project_cancellations[future].set()
-                            future.cancel()
-                            project_receipts.append(
-                                {
-                                    **job,
-                                    "status": "CANCELLED",
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                    "lane_receipts": [],
-                                }
-                            )
-                            pending.pop(future)
-                        break
-                    now = time.monotonic()
-                    expired = [
-                        future
-                        for future in pending
-                        if not future.done() and now >= deadlines[future]
-                    ]
-                    for future in expired:
-                        job = pending.pop(future)
-                        project_cancellations[future].set()
-                        future.cancel()
-                        project_receipts.append(
-                            {
-                                **job,
-                                "status": "TIMEOUT",
-                                "within_time_budget": False,
-                                "result_count": 0,
-                                "result_sha256": None,
-                                "lane_receipts": [],
-                            }
-                        )
-                    if not pending:
-                        break
-                    nearest = min(deadlines[future] for future in pending)
-                    wait_seconds = max(0.0, min(0.05, nearest - time.monotonic()))
-                    completed, _ = wait(
-                        tuple(pending),
-                        timeout=wait_seconds,
-                        return_when=FIRST_COMPLETED,
-                    )
-                    for future in completed:
-                        job = pending.pop(future)
-                        worker = future.result()
-                        if float(worker["completed_at"]) > deadlines[future]:
-                            project_cancellations[future].set()
-                            project_receipts.append(
-                                {
-                                    **job,
-                                    "status": "TIMEOUT",
-                                    "within_time_budget": False,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                    "lane_receipts": [],
-                                }
-                            )
-                            continue
-                        if worker["kind"] == "CANCELLED":
-                            project_receipts.append(
-                                {
-                                    **job,
-                                    "status": "CANCELLED",
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                    "lane_receipts": [],
-                                }
-                            )
-                            continue
-                        if worker["kind"] == "ERROR":
-                            worker_error = dict(worker["error"])
-                            project_receipts.append(
-                                {
-                                    **job,
-                                    "status": str(
-                                        worker_error.get("status") or "FAIL"
-                                    ),
-                                    "within_time_budget": True,
-                                    "result_count": 0,
-                                    "result_sha256": None,
-                                    "lane_receipts": [],
-                                    "error": worker_error,
-                                }
-                            )
-                            continue
-                        result = dict(worker["result"])
-                        project_results[int(job["project_index"])] = result
-                        project_receipts.append(
-                            {
-                                **job,
-                                "status": str(result.get("status") or "FAIL"),
-                                "within_time_budget": True,
-                                "result_count": len(result.get("results") or []),
-                                "result_sha256": sha256_bytes(
-                                    canonical_json_bytes(result)
-                                ),
-                                "lane_receipts": list(
-                                    result["receipt"]["request_receipts"]
-                                ),
-                            }
-                        )
-            finally:
-                executor.shutdown(wait=False, cancel_futures=True)
-
-        project_receipts.sort(key=lambda row: int(row["project_index"]))
-        results: list[dict[str, Any]] = []
-        for project_receipt in project_receipts:
-            project_index = int(project_receipt["project_index"])
-            project_result = project_results.get(project_index)
-            if project_result is None:
-                continue
-            for project_rank, raw_result in enumerate(
-                project_result.get("results") or [], start=1
-            ):
-                result = dict(raw_result)
-                require(
-                    result.get("project_id") == project_receipt["project_id"]
-                    and result.get("live_root_authority_ref")
-                    == project_receipt["live_root_authority_ref"]
-                    and bool(str(result.get("canonical_lane_id") or ""))
-                    and bool(str(result.get("ref_id") or ""))
-                    and bool(str(result.get("path") or ""))
-                    and bool(str(result.get("locator") or ""))
-                    and len(str(result.get("source_sha256") or "")) == 64
-                    and len(str(result.get("chunk_sha256") or "")) == 64,
-                    "CROSS_PROJECT_RESULT_AUTHORITY_INVALID",
-                    "A cross-project result is not bound to its exact project and live-root authority.",
-                    status="MISMATCH",
-                    project_id=project_receipt["project_id"],
-                )
-                authority = {
-                    "project_id": str(project_receipt["project_id"]),
-                    "live_root_authority_ref": str(
-                        project_receipt["live_root_authority_ref"]
-                    ),
-                    "bundle_sha256": str(project_receipt["bundle_sha256"]),
-                    "permission_grant_sha256": str(
-                        project_receipt["permission"]["grant_sha256"]
-                    ),
-                    "canonical_lane_id": str(result["canonical_lane_id"]),
-                    "ref_id": str(result["ref_id"]),
-                    "path": str(result["path"]),
-                    "locator": str(result["locator"]),
-                    "source_sha256": str(result["source_sha256"]),
-                    "chunk_sha256": str(result["chunk_sha256"]),
-                }
-                authority_sha256 = sha256_bytes(canonical_json_bytes(authority))
-                results.append(
-                    {
-                        **result,
-                        "project_index": project_index,
-                        "project_rank": project_rank,
-                        "rank_domain": (
-                            f"PROJECT:{project_receipt['project_id']}:"
-                            "PARALLEL_AGGREGATE_SOURCE_ORDER"
-                        ),
-                        "cross_project_score": None,
-                        "cross_project_authority": authority,
-                        "cross_project_authority_sha256": authority_sha256,
-                    }
-                )
-        result_count_before_limit = len(results)
-        results = results[:selected_overall_limit]
-
-        statuses = [str(receipt["status"]) for receipt in project_receipts]
-        if statuses and all(status == "CANCELLED" for status in statuses):
-            status = "CANCELLED"
-        elif any(item not in {"PASS", "EMPTY", "STALE"} for item in statuses):
-            status = "PARTIAL"
-        elif any(item == "STALE" for item in statuses):
-            status = "STALE"
-        elif results:
-            status = "PASS"
-        else:
-            status = "EMPTY"
-
-        public_project_receipts = [
-            {
-                key: receipt[key]
-                for key in (
-                    "project_index",
-                    "project_id",
-                    "live_root_authority_ref",
-                    "bundle_sha256",
-                    "permission",
-                    "authority_binding_sha256",
-                    "project_timeout_ms",
-                    "project_result_limit",
-                    "required_project_result_limit",
-                    "lane_workers",
-                    "status",
-                    "within_time_budget",
-                    "result_count",
-                    "result_sha256",
-                    "lane_receipts",
-                )
-            }
-            | ({"error": receipt["error"]} if "error" in receipt else {})
-            for receipt in project_receipts
-        ]
-        results_sha256 = sha256_bytes(canonical_json_bytes(results))
-        project_receipts_sha256 = sha256_bytes(
-            canonical_json_bytes(public_project_receipts)
-        )
-        receipt_body = {
-            "schema": "evidence-lane.cross-project-query-receipt.v1",
-            "status": status,
-            "principal_id": exact_principal,
-            "project_set": [str(job["project_id"]) for job in jobs],
-            "ranking": "SEPARATE_PROJECT_AGGREGATE_RANK_DOMAINS",
-            "cross_project_score_emitted": False,
-            "budgets": {
-                "maximum_projects": MAX_CROSS_PROJECTS,
-                "selected_project_workers": min(
-                    selected_project_workers, len(jobs)
-                ),
-                "maximum_project_timeout_ms": MAX_CROSS_PROJECT_TIMEOUT_MS,
-                "selected_overall_result_limit": selected_overall_limit,
-                "required_overall_result_limit": required_overall_result_limit,
-                "maximum_overall_results": MAX_CROSS_PROJECT_RESULTS,
-            },
-            "result_count_before_limit": result_count_before_limit,
-            "result_count": len(results),
-            "results_truncated": result_count_before_limit > len(results),
-            "result_omitted_count": result_count_before_limit - len(results),
-            "project_receipts_sha256": project_receipts_sha256,
-            "results_sha256": results_sha256,
-            "permission_provider_required": True,
-            "implicit_project_discovery": False,
-            "default_single_project_isolation_preserved": True,
-            "accepted_archive_opened": False,
-            "accepted_archive_queried": False,
-        }
-        receipt = {
-            **receipt_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-        }
-        return {
-            "schema": "evidence-lane.cross-project-query.v1",
-            "status": status,
-            "principal_id": exact_principal,
-            "project_set": [str(job["project_id"]) for job in jobs],
-            "rank_contract": "SEPARATE_PROJECT_AGGREGATE_RANK_DOMAINS",
-            "project_receipts": public_project_receipts,
-            "results": results,
-            "receipt": receipt,
-            "accepted_archive_opened": False,
-            "accepted_archive_queried": False,
-        }
-
-    def fetch_source(
-        self,
-        project_id: str,
-        lane_alias: str,
-        path: str,
-        *,
-        pv_ref: str | None = None,
-        max_bytes: int = 100_000,
-    ) -> dict[str, Any]:
-        require(
-            1 <= max_bytes <= 1_000_000,
-            "LANE_FETCH_LIMIT_INVALID",
-            "Lane fetch max_bytes must be between 1 and 1,000,000.",
-            status="BLOCKED",
-        )
-        lanes_root, authority_ref, lane, _ = self._resolve(
-            project_id, lane_alias, pv_ref
-        )
-        lane_root = lanes_root / lane.canonical_lane_id
-        database_path = lane_root / lane.sqlite_filename
-        traversal = self._lane_traversal_contract(lane_root, lane)
-        connection = sqlite3.connect(
-            f"file:{database_path.resolve().as_posix()}?mode=ro&immutable=1",
-            uri=True,
-        )
-        connection.row_factory = sqlite3.Row
-        row, data = read_source_record(
-            connection,
-            path=path.replace("\\", "/"),
-        )
-        if row is None or data is None:
-            raise EvidenceLaneError(
-                code="LANE_SOURCE_NOT_FOUND",
-                message="The requested source is not registered in this lane.",
-                status="EMPTY",
-                details={"path": path},
-            )
-        facts = [
-            {
-                **dict(fact),
-                "payload": json.loads(fact["payload_json"]),
-            }
-            for fact in connection.execute(
-                """
-                SELECT kind, locator, payload_json
-                FROM structured_fact WHERE source_id=?
-                ORDER BY fact_id LIMIT 200
-                """,
-                (row["source_id"],),
-            )
-        ]
-        connection.close()
-        if row["encoding"]:
-            content = data[:max_bytes].decode(row["encoding"], errors="replace")
-            representation = "text"
-        else:
-            content = None
-            representation = "binary_exact_bytes_not_returned"
-        freshness = self._freshness(project_id, lanes_root, authority_ref)
-        return {
-            "status": result_status("PASS", freshness),
-            "project_id": project_id,
-            "pv_ref": authority_ref,
-            "lane": lane.as_dict(),
-            "path": row["path"],
-            "size_bytes": row["size_bytes"],
-            "sha256": row["sha256"],
-            "mime_type": row["mime_type"],
-            "parser_state": row["parser_state"],
-            "representation": representation,
-            "content": content,
-            "truncated": len(data) > max_bytes,
-            "facts": facts,
-            "traversal": traversal,
-            "freshness": freshness,
-        }
+def register_cross_project_actions(engine):
+    reader = LaneReader(engine)
+    engine.registry.register(ActionSpec('lane_catalog', 'Discover canonical authority/sector definitions and their registered search, fetch and view contracts.',
+        LaneCatalogRequest, LaneCatalogPage, reader.lane_catalog, project_required=False,
+        profile='projects', queryable_in_delta=True, workflow='evi'))
+    engine.registry.register(ActionSpec('lane_status', 'Inspect one physical lane, its published database head, schema history and stored view freshness without refresh.',
+        LaneStatusRequest, LaneReadResult, reader.lane_status,
+        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='evi'))
+    engine.registry.register(ActionSpec('lane_fetch', 'Fetch bounded immutable source bytes through the owning lane using an exact snapshot and path.',
+        LaneFetchRequest, LaneReadResult, reader.fetch_source,
+        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='source-intake'))
+    search = reader.search
+    engine.registry.register(ActionSpec('lane_search', 'Search one separate lane through its current registered owner and disclose snapshot coverage.',
+        LaneSearchRequest, SearchPage, search,
+        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evi',
+        tool_routes=lexical_tool_routes('lane_search', search)))
+    engine.registry.register(ActionSpec("cross_project_query", "Read explicit authorized projects in place with bounded attributed owner views.",
+        CrossProjectQuery, CrossProjectPage, LaneReader(engine).search_cross_project,
+        profile="projects", queryable_in_delta=True, workflow='universe'))

@@ -1,0 +1,2534 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Administratively cancel an exact stale, unconsumed continuation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "reason"
+        ],
+        "title": "ContinuationCancel",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_recovery_cancel",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "cancelled",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id"
+        ],
+        "title": "ContinuationCancelled",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "aaa5b3aee0cf3ced14314875f5930ceead4cdb5b37dea9462da26af68e9b535b",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_recovery_cancel",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.cancel_recovery",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_recovery_cancel.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Administratively offer exact participant reassignment after client-session loss; destination acceptance is still required.",
+      "inputSchema": {
+        "$defs": {
+          "ContinuationOffer": {
+            "additionalProperties": false,
+            "properties": {
+              "contract_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Contract Digest",
+                "type": "string"
+              },
+              "destination_participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Destination Participant Id",
+                "type": "string"
+              },
+              "expires_in_seconds": {
+                "default": 3600,
+                "maximum": 86400,
+                "minimum": 30,
+                "title": "Expires In Seconds",
+                "type": "integer"
+              },
+              "memory_checkpoint": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Memory Checkpoint"
+              },
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              },
+              "plan_revision": {
+                "minimum": 1,
+                "title": "Plan Revision",
+                "type": "integer"
+              },
+              "request_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Request Id",
+                "type": "string"
+              },
+              "require_native_attestation": {
+                "default": false,
+                "title": "Require Native Attestation",
+                "type": "boolean"
+              },
+              "task_id": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "title": "Task Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "participant_id",
+              "destination_participant_id",
+              "plan_revision",
+              "task_id",
+              "contract_digest"
+            ],
+            "title": "ContinuationOffer",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "expected_destination_participant_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Destination Participant Digest",
+            "type": "string"
+          },
+          "expected_source_participant_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Source Participant Digest",
+            "type": "string"
+          },
+          "offer": {
+            "$ref": "#/$defs/ContinuationOffer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "offer",
+          "expected_source_participant_digest",
+          "expected_destination_participant_digest",
+          "reason"
+        ],
+        "title": "ContinuationRecoveryOffer",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "continuation_recovery_offer",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          },
+          "continuation_digest": {
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "host_task_created": {
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "identity_scope": {
+            "default": "authenticated_engine_clients",
+            "title": "Identity Scope",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "offered",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "source_client_id",
+          "destination_client_id",
+          "expires_at"
+        ],
+        "title": "ContinuationOffered",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "4d0d6f17f9eb17ff130b10bd1c80abe13241a19f88a424c302fa47c7392368ab",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "continuation_recovery_offer",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.recover",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "continuation_recovery_offer.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Restore a fresh local Git workspace and require a new source-bound Plan revision.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Commit",
+            "type": "string"
+          },
+          "destination_root": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Destination Root",
+            "type": "string"
+          },
+          "expected_preview_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Preview Digest",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch",
+          "commit",
+          "destination_root",
+          "expected_preview_digest"
+        ],
+        "title": "GitRestoreExecute",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "git_restore",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "clients_must_reconnect": {
+            "default": true,
+            "title": "Clients Must Reconnect",
+            "type": "boolean"
+          },
+          "commit": {
+            "title": "Commit",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_refresh_required": {
+            "default": true,
+            "title": "Plan Refresh Required",
+            "type": "boolean"
+          },
+          "previous_source_root": {
+            "title": "Previous Source Root",
+            "type": "string"
+          },
+          "project_history_rewound": {
+            "default": false,
+            "title": "Project History Rewound",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "restore_digest": {
+            "title": "Restore Digest",
+            "type": "string"
+          },
+          "source_code_reindexed": {
+            "default": false,
+            "title": "Source Code Reindexed",
+            "type": "boolean"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "source_workspace_reset": {
+            "default": false,
+            "title": "Source Workspace Reset",
+            "type": "boolean"
+          },
+          "tree": {
+            "title": "Tree",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "request_id",
+          "generation",
+          "restore_digest",
+          "previous_source_root",
+          "source_root",
+          "commit",
+          "tree"
+        ],
+        "title": "GitRestored",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Git"
+      ],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "40ddd1763808bb8a9e16ec509348d104db02180c1b77dd77193ceb9ce671f850",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "git_restore",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.execute.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "git_restore.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Abandon a pending restoration record while preserving all files.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_preview_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Preview Digest",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_preview_digest"
+        ],
+        "title": "RestoreAbandon",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "git_restore_abandon",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "files_removed": {
+            "default": false,
+            "title": "Files Removed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "abandoned",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "title": "RestoreAbandoned",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "c6923a77ab64675290b1be8e34e2b7cc7b70c307951a231aab0df695b975f713",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "git_restore_abandon",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.abandon",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "git_restore_abandon.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect an exact local Git commit and fresh workspace restoration.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Commit",
+            "type": "string"
+          },
+          "destination_root": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Destination Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch",
+          "commit",
+          "destination_root"
+        ],
+        "title": "GitRestoreSelection",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "git_restore_preview",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "destination_root": {
+            "title": "Destination Root",
+            "type": "string"
+          },
+          "external_filters_enabled": {
+            "default": false,
+            "title": "External Filters Enabled",
+            "type": "boolean"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "lfs_objects_downloaded": {
+            "default": false,
+            "title": "Lfs Objects Downloaded",
+            "type": "boolean"
+          },
+          "plan_boundary": {
+            "additionalProperties": true,
+            "title": "Plan Boundary",
+            "type": "object"
+          },
+          "preview_digest": {
+            "title": "Preview Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "selection": {
+            "additionalProperties": true,
+            "title": "Selection",
+            "type": "object"
+          },
+          "source_code_reindexed": {
+            "default": false,
+            "title": "Source Code Reindexed",
+            "type": "boolean"
+          },
+          "source_identity": {
+            "additionalProperties": true,
+            "title": "Source Identity",
+            "type": "object"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "source_workspace_reset": {
+            "default": false,
+            "title": "Source Workspace Reset",
+            "type": "boolean"
+          },
+          "submodules_initialized": {
+            "default": false,
+            "title": "Submodules Initialized",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "preview_digest",
+          "source_root",
+          "destination_root",
+          "source_identity",
+          "selection",
+          "plan_boundary",
+          "generation"
+        ],
+        "title": "GitRestorePreview",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Git"
+      ],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "7c8fea57b896a37905677cc5d426628edad721724541a4055bc4ecb65a3e9f63",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "git_restore_preview",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.preview",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "git_restore_preview.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Verify a recorded fresh workspace and finish its source change without rerunning clone.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Commit",
+            "type": "string"
+          },
+          "destination_root": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Destination Root",
+            "type": "string"
+          },
+          "expected_preview_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Preview Digest",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch",
+          "commit",
+          "destination_root",
+          "expected_preview_digest"
+        ],
+        "title": "GitRestoreExecute",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "git_restore_reconcile",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "clients_must_reconnect": {
+            "default": true,
+            "title": "Clients Must Reconnect",
+            "type": "boolean"
+          },
+          "commit": {
+            "title": "Commit",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "plan_refresh_required": {
+            "default": true,
+            "title": "Plan Refresh Required",
+            "type": "boolean"
+          },
+          "previous_source_root": {
+            "title": "Previous Source Root",
+            "type": "string"
+          },
+          "project_history_rewound": {
+            "default": false,
+            "title": "Project History Rewound",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "restore_digest": {
+            "title": "Restore Digest",
+            "type": "string"
+          },
+          "source_code_reindexed": {
+            "default": false,
+            "title": "Source Code Reindexed",
+            "type": "boolean"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "source_workspace_reset": {
+            "default": false,
+            "title": "Source Workspace Reset",
+            "type": "boolean"
+          },
+          "tree": {
+            "title": "Tree",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "request_id",
+          "generation",
+          "restore_digest",
+          "previous_source_root",
+          "source_root",
+          "commit",
+          "tree"
+        ],
+        "title": "GitRestored",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Git"
+      ],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "050492becbc7b76f4c40d34e103e0d3b18ad93ca3643d9052fe396b85248588d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "git_restore_reconcile",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.execute.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "git_restore_reconcile.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Create and verify a consistent project database and registered-file backup.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "destination_root": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Destination Root",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "destination_root"
+        ],
+        "title": "BackupRequest",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "project_backup",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "backup_root": {
+            "title": "Backup Root",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "database_digest": {
+            "title": "Database Digest",
+            "type": "string"
+          },
+          "file_count": {
+            "title": "File Count",
+            "type": "integer"
+          },
+          "lane_count": {
+            "default": 0,
+            "title": "Lane Count",
+            "type": "integer"
+          },
+          "live_source_workspace_copied": {
+            "default": false,
+            "title": "Live Source Workspace Copied",
+            "type": "boolean"
+          },
+          "manifest_digest": {
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "root_pv": {
+            "additionalProperties": true,
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "runtime_credentials_included": {
+            "default": false,
+            "title": "Runtime Credentials Included",
+            "type": "boolean"
+          },
+          "scope": {
+            "default": "coherent_root_pv_separate_lane_databases_registered_files_and_schema_view_history",
+            "title": "Scope",
+            "type": "string"
+          },
+          "total_bytes": {
+            "title": "Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "request_id",
+          "backup_root",
+          "manifest_digest",
+          "database_digest",
+          "file_count",
+          "total_bytes",
+          "created_at"
+        ],
+        "title": "BackupResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "02eba1b323a0c8c57a46ccfaaa8ceb1fc1df5343bd06f0f908e3c46aed296457",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_backup",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.backup",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_backup.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Hash-check an exact project backup without restoring it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "backup_root": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Backup Root",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backup_root",
+          "manifest_digest"
+        ],
+        "title": "BackupVerify",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "project_backup_verify",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "file_count": {
+            "title": "File Count",
+            "type": "integer"
+          },
+          "lane_count": {
+            "default": 0,
+            "title": "Lane Count",
+            "type": "integer"
+          },
+          "manifest_digest": {
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_mutated": {
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "root_pv": {
+            "additionalProperties": true,
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "sqlite_integrity": {
+            "default": "ok",
+            "title": "Sqlite Integrity",
+            "type": "string"
+          },
+          "total_bytes": {
+            "title": "Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "manifest_digest",
+          "file_count",
+          "total_bytes"
+        ],
+        "title": "BackupVerified",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "admin",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "85560b598d7a02439b460a724eb728b317dd452eb72b54ef02a321387798fa0e",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_backup_verify",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.verify",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_backup_verify.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect registered files, unregistered leftovers and database recovery status without repair.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "sample_limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 0,
+            "title": "Sample Limit",
+            "type": "integer"
+          }
+        },
+        "title": "RecoveryInspect",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "project_recovery_inspect",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "database_recovery": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Database Recovery"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "registered_bytes": {
+            "title": "Registered Bytes",
+            "type": "integer"
+          },
+          "registered_file_count": {
+            "title": "Registered File Count",
+            "type": "integer"
+          },
+          "repairs_performed": {
+            "default": false,
+            "title": "Repairs Performed",
+            "type": "boolean"
+          },
+          "unregistered_file_count": {
+            "title": "Unregistered File Count",
+            "type": "integer"
+          },
+          "unregistered_sample": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unregistered Sample",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "registered_file_count",
+          "registered_bytes",
+          "unregistered_file_count",
+          "unregistered_sample",
+          "database_recovery"
+        ],
+        "title": "RecoveryInspection",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "ba947761a5c72e4f47c4d8edcaae00d2cfe8a13925af058bc948c695e066d32d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_recovery_inspect",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_recovery_inspect.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read source restoration history and the Plan refresh boundary.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "RestorationRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "restoration_read",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "control": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "requests": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Requests",
+            "type": "array"
+          },
+          "source_reindex": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Reindex"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "source_root",
+          "control",
+          "requests",
+          "history"
+        ],
+        "title": "RestorationState",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "8b4fca83241a0d7a0006c9622e4f17a550bc2c00b220d8c31c28b36a1313290a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "restoration_read",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "restoration_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Reindex the exact restored source root and retain its file and extraction coverage before Plan refresh.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_files": {
+            "default": 5000,
+            "maximum": 25000,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 67108864,
+            "maximum": 268435456,
+            "minimum": 8388608,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "restore_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Restore Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "restore_digest"
+        ],
+        "title": "RestorationReindex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "restoration_reindex",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "all_language_semantics_verified": {
+            "default": false,
+            "title": "All Language Semantics Verified",
+            "type": "boolean"
+          },
+          "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "coverage_states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Coverage States",
+            "type": "object"
+          },
+          "file_count": {
+            "title": "File Count",
+            "type": "integer"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "graph_id": {
+            "title": "Graph Id",
+            "type": "string"
+          },
+          "parsed_file_count": {
+            "title": "Parsed File Count",
+            "type": "integer"
+          },
+          "plan_refresh_required": {
+            "default": true,
+            "title": "Plan Refresh Required",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reindex_digest": {
+            "title": "Reindex Digest",
+            "type": "string"
+          },
+          "restore_digest": {
+            "title": "Restore Digest",
+            "type": "string"
+          },
+          "scope": {
+            "default": "registered_source_members_and_source_graph_extraction",
+            "title": "Scope",
+            "type": "string"
+          },
+          "source_bytes_mutated": {
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "generation",
+          "restore_digest",
+          "reindex_digest",
+          "source_root",
+          "batch_id",
+          "graph_id",
+          "file_count",
+          "parsed_file_count",
+          "coverage_states"
+        ],
+        "title": "RestorationReindexed",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "recovery",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Git"
+      ],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "05e27a4de27c5f06258a3017eee990cca3150018c7a9802d65133eb5e8984964",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "restoration_reindex",
+        "profile": "recovery",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.reindex",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "restoration_reindex.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "recover"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "BackupRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination_root"
+      ],
+      "title": "BackupRequest",
+      "type": "object"
+    },
+    "BackupResult": {
+      "additionalProperties": false,
+      "properties": {
+        "backup_root": {
+          "title": "Backup Root",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "database_digest": {
+          "title": "Database Digest",
+          "type": "string"
+        },
+        "file_count": {
+          "title": "File Count",
+          "type": "integer"
+        },
+        "lane_count": {
+          "default": 0,
+          "title": "Lane Count",
+          "type": "integer"
+        },
+        "live_source_workspace_copied": {
+          "default": false,
+          "title": "Live Source Workspace Copied",
+          "type": "boolean"
+        },
+        "manifest_digest": {
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "root_pv": {
+          "additionalProperties": true,
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "runtime_credentials_included": {
+          "default": false,
+          "title": "Runtime Credentials Included",
+          "type": "boolean"
+        },
+        "scope": {
+          "default": "coherent_root_pv_separate_lane_databases_registered_files_and_schema_view_history",
+          "title": "Scope",
+          "type": "string"
+        },
+        "total_bytes": {
+          "title": "Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "request_id",
+        "backup_root",
+        "manifest_digest",
+        "database_digest",
+        "file_count",
+        "total_bytes",
+        "created_at"
+      ],
+      "title": "BackupResult",
+      "type": "object"
+    },
+    "BackupVerified": {
+      "additionalProperties": false,
+      "properties": {
+        "file_count": {
+          "title": "File Count",
+          "type": "integer"
+        },
+        "lane_count": {
+          "default": 0,
+          "title": "Lane Count",
+          "type": "integer"
+        },
+        "manifest_digest": {
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_mutated": {
+          "default": false,
+          "title": "Project Mutated",
+          "type": "boolean"
+        },
+        "root_pv": {
+          "additionalProperties": true,
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "sqlite_integrity": {
+          "default": "ok",
+          "title": "Sqlite Integrity",
+          "type": "string"
+        },
+        "total_bytes": {
+          "title": "Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "manifest_digest",
+        "file_count",
+        "total_bytes"
+      ],
+      "title": "BackupVerified",
+      "type": "object"
+    },
+    "BackupVerify": {
+      "additionalProperties": false,
+      "properties": {
+        "backup_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Backup Root",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backup_root",
+        "manifest_digest"
+      ],
+      "title": "BackupVerify",
+      "type": "object"
+    },
+    "ContinuationCancel": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "reason"
+      ],
+      "title": "ContinuationCancel",
+      "type": "object"
+    },
+    "ContinuationCancelled": {
+      "additionalProperties": false,
+      "properties": {
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "state": {
+          "default": "cancelled",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id"
+      ],
+      "title": "ContinuationCancelled",
+      "type": "object"
+    },
+    "ContinuationOffered": {
+      "additionalProperties": false,
+      "properties": {
+        "canon_checkpoint_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canon Checkpoint Digest"
+        },
+        "continuation_digest": {
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "destination_client_id": {
+          "title": "Destination Client Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "string"
+        },
+        "host_task_created": {
+          "default": false,
+          "title": "Host Task Created",
+          "type": "boolean"
+        },
+        "identity_scope": {
+          "default": "authenticated_engine_clients",
+          "title": "Identity Scope",
+          "type": "string"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "source_client_id": {
+          "title": "Source Client Id",
+          "type": "string"
+        },
+        "state": {
+          "default": "offered",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "source_client_id",
+        "destination_client_id",
+        "expires_at"
+      ],
+      "title": "ContinuationOffered",
+      "type": "object"
+    },
+    "ContinuationRecoveryOffer": {
+      "$defs": {
+        "ContinuationOffer": {
+          "additionalProperties": false,
+          "properties": {
+            "contract_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Contract Digest",
+              "type": "string"
+            },
+            "destination_participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Destination Participant Id",
+              "type": "string"
+            },
+            "expires_in_seconds": {
+              "default": 3600,
+              "maximum": 86400,
+              "minimum": 30,
+              "title": "Expires In Seconds",
+              "type": "integer"
+            },
+            "memory_checkpoint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Memory Checkpoint"
+            },
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "plan_revision": {
+              "minimum": 1,
+              "title": "Plan Revision",
+              "type": "integer"
+            },
+            "request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Request Id",
+              "type": "string"
+            },
+            "require_native_attestation": {
+              "default": false,
+              "title": "Require Native Attestation",
+              "type": "boolean"
+            },
+            "task_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "participant_id",
+            "destination_participant_id",
+            "plan_revision",
+            "task_id",
+            "contract_digest"
+          ],
+          "title": "ContinuationOffer",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "expected_destination_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Destination Participant Digest",
+          "type": "string"
+        },
+        "expected_source_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Source Participant Digest",
+          "type": "string"
+        },
+        "offer": {
+          "$ref": "#/$defs/ContinuationOffer"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "offer",
+        "expected_source_participant_digest",
+        "expected_destination_participant_digest",
+        "reason"
+      ],
+      "title": "ContinuationRecoveryOffer",
+      "type": "object"
+    },
+    "GitRestoreExecute": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        },
+        "expected_preview_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Preview Digest",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "commit",
+        "destination_root",
+        "expected_preview_digest"
+      ],
+      "title": "GitRestoreExecute",
+      "type": "object"
+    },
+    "GitRestorePreview": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_root": {
+          "title": "Destination Root",
+          "type": "string"
+        },
+        "external_filters_enabled": {
+          "default": false,
+          "title": "External Filters Enabled",
+          "type": "boolean"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "lfs_objects_downloaded": {
+          "default": false,
+          "title": "Lfs Objects Downloaded",
+          "type": "boolean"
+        },
+        "plan_boundary": {
+          "additionalProperties": true,
+          "title": "Plan Boundary",
+          "type": "object"
+        },
+        "preview_digest": {
+          "title": "Preview Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "selection": {
+          "additionalProperties": true,
+          "title": "Selection",
+          "type": "object"
+        },
+        "source_code_reindexed": {
+          "default": false,
+          "title": "Source Code Reindexed",
+          "type": "boolean"
+        },
+        "source_identity": {
+          "additionalProperties": true,
+          "title": "Source Identity",
+          "type": "object"
+        },
+        "source_root": {
+          "title": "Source Root",
+          "type": "string"
+        },
+        "source_workspace_reset": {
+          "default": false,
+          "title": "Source Workspace Reset",
+          "type": "boolean"
+        },
+        "submodules_initialized": {
+          "default": false,
+          "title": "Submodules Initialized",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "preview_digest",
+        "source_root",
+        "destination_root",
+        "source_identity",
+        "selection",
+        "plan_boundary",
+        "generation"
+      ],
+      "title": "GitRestorePreview",
+      "type": "object"
+    },
+    "GitRestoreSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "commit",
+        "destination_root"
+      ],
+      "title": "GitRestoreSelection",
+      "type": "object"
+    },
+    "GitRestored": {
+      "additionalProperties": false,
+      "properties": {
+        "clients_must_reconnect": {
+          "default": true,
+          "title": "Clients Must Reconnect",
+          "type": "boolean"
+        },
+        "commit": {
+          "title": "Commit",
+          "type": "string"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "native_task_attestation": {
+          "default": "not_provided",
+          "title": "Native Task Attestation",
+          "type": "string"
+        },
+        "plan_refresh_required": {
+          "default": true,
+          "title": "Plan Refresh Required",
+          "type": "boolean"
+        },
+        "previous_source_root": {
+          "title": "Previous Source Root",
+          "type": "string"
+        },
+        "project_history_rewound": {
+          "default": false,
+          "title": "Project History Rewound",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "restore_digest": {
+          "title": "Restore Digest",
+          "type": "string"
+        },
+        "source_code_reindexed": {
+          "default": false,
+          "title": "Source Code Reindexed",
+          "type": "boolean"
+        },
+        "source_root": {
+          "title": "Source Root",
+          "type": "string"
+        },
+        "source_workspace_reset": {
+          "default": false,
+          "title": "Source Workspace Reset",
+          "type": "boolean"
+        },
+        "tree": {
+          "title": "Tree",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "request_id",
+        "generation",
+        "restore_digest",
+        "previous_source_root",
+        "source_root",
+        "commit",
+        "tree"
+      ],
+      "title": "GitRestored",
+      "type": "object"
+    },
+    "RecoveryInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "sample_limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 0,
+          "title": "Sample Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RecoveryInspect",
+      "type": "object"
+    },
+    "RecoveryInspection": {
+      "additionalProperties": false,
+      "properties": {
+        "database_recovery": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Database Recovery"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "registered_bytes": {
+          "title": "Registered Bytes",
+          "type": "integer"
+        },
+        "registered_file_count": {
+          "title": "Registered File Count",
+          "type": "integer"
+        },
+        "repairs_performed": {
+          "default": false,
+          "title": "Repairs Performed",
+          "type": "boolean"
+        },
+        "unregistered_file_count": {
+          "title": "Unregistered File Count",
+          "type": "integer"
+        },
+        "unregistered_sample": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unregistered Sample",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id",
+        "registered_file_count",
+        "registered_bytes",
+        "unregistered_file_count",
+        "unregistered_sample",
+        "database_recovery"
+      ],
+      "title": "RecoveryInspection",
+      "type": "object"
+    },
+    "RestorationRead": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 10,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RestorationRead",
+      "type": "object"
+    },
+    "RestorationReindex": {
+      "additionalProperties": false,
+      "properties": {
+        "max_files": {
+          "default": 5000,
+          "maximum": 25000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 268435456,
+          "minimum": 8388608,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "restore_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Restore Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "restore_digest"
+      ],
+      "title": "RestorationReindex",
+      "type": "object"
+    },
+    "RestorationReindexed": {
+      "additionalProperties": false,
+      "properties": {
+        "all_language_semantics_verified": {
+          "default": false,
+          "title": "All Language Semantics Verified",
+          "type": "boolean"
+        },
+        "batch_id": {
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "coverage_states": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Coverage States",
+          "type": "object"
+        },
+        "file_count": {
+          "title": "File Count",
+          "type": "integer"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "graph_id": {
+          "title": "Graph Id",
+          "type": "string"
+        },
+        "parsed_file_count": {
+          "title": "Parsed File Count",
+          "type": "integer"
+        },
+        "plan_refresh_required": {
+          "default": true,
+          "title": "Plan Refresh Required",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "reindex_digest": {
+          "title": "Reindex Digest",
+          "type": "string"
+        },
+        "restore_digest": {
+          "title": "Restore Digest",
+          "type": "string"
+        },
+        "scope": {
+          "default": "registered_source_members_and_source_graph_extraction",
+          "title": "Scope",
+          "type": "string"
+        },
+        "source_bytes_mutated": {
+          "default": false,
+          "title": "Source Bytes Mutated",
+          "type": "boolean"
+        },
+        "source_root": {
+          "title": "Source Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "generation",
+        "restore_digest",
+        "reindex_digest",
+        "source_root",
+        "batch_id",
+        "graph_id",
+        "file_count",
+        "parsed_file_count",
+        "coverage_states"
+      ],
+      "title": "RestorationReindexed",
+      "type": "object"
+    },
+    "RestorationState": {
+      "additionalProperties": false,
+      "properties": {
+        "control": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Control"
+        },
+        "history": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "History",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "requests": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Requests",
+          "type": "array"
+        },
+        "source_reindex": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Reindex"
+        },
+        "source_root": {
+          "title": "Source Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "source_root",
+        "control",
+        "requests",
+        "history"
+      ],
+      "title": "RestorationState",
+      "type": "object"
+    },
+    "RestoreAbandon": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_preview_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Preview Digest",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_preview_digest"
+      ],
+      "title": "RestoreAbandon",
+      "type": "object"
+    },
+    "RestoreAbandoned": {
+      "additionalProperties": false,
+      "properties": {
+        "files_removed": {
+          "default": false,
+          "title": "Files Removed",
+          "type": "boolean"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "state": {
+          "default": "abandoned",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id"
+      ],
+      "title": "RestoreAbandoned",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "recovery"
+}

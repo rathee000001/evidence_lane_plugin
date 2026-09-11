@@ -1,0 +1,256 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "description": "One pre-existing LangSmith run receives one bounded numeric feedback row.",
+    "properties": {
+      "action_name": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "title": "Action Name",
+        "type": "string"
+      },
+      "action_schema_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Action Schema Sha256",
+        "type": "string"
+      },
+      "dataset_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Dataset Sha256",
+        "type": "string"
+      },
+      "feedback_key": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,63}$",
+        "title": "Feedback Key",
+        "type": "string"
+      },
+      "lane_id": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_request_bytes": {
+        "default": 131072,
+        "maximum": 262144,
+        "minimum": 4096,
+        "title": "Max Request Bytes",
+        "type": "integer"
+      },
+      "max_response_bytes": {
+        "default": 1048576,
+        "maximum": 4194304,
+        "minimum": 1024,
+        "title": "Max Response Bytes",
+        "type": "integer"
+      },
+      "observed_at_unix_nano": {
+        "maximum": 4102444800000000000,
+        "minimum": 1,
+        "title": "Observed At Unix Nano",
+        "type": "integer"
+      },
+      "plugin_id": {
+        "anyOf": [
+          {
+            "pattern": "^[a-z][a-z0-9-]{2,63}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plugin Id"
+      },
+      "redaction_receipt_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Redaction Receipt Sha256",
+        "type": "string"
+      },
+      "resource_id": {
+        "maxLength": 266,
+        "minLength": 13,
+        "title": "Resource Id",
+        "type": "string"
+      },
+      "route_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Route Sha256",
+        "type": "string"
+      },
+      "run_id": {
+        "maxLength": 36,
+        "minLength": 36,
+        "title": "Run Id",
+        "type": "string"
+      },
+      "score": {
+        "maximum": 1.0,
+        "minimum": 0.0,
+        "title": "Score",
+        "type": "number"
+      },
+      "session_id": {
+        "maxLength": 36,
+        "minLength": 36,
+        "title": "Session Id",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 20,
+        "exclusiveMinimum": 0,
+        "maximum": 60,
+        "title": "Timeout Seconds",
+        "type": "number"
+      },
+      "tool_id": {
+        "const": "LangSmith",
+        "title": "Tool Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool_id",
+      "lane_id",
+      "resource_id",
+      "action_name",
+      "run_id",
+      "session_id",
+      "feedback_key",
+      "score",
+      "observed_at_unix_nano",
+      "action_schema_sha256",
+      "route_sha256",
+      "dataset_sha256",
+      "redaction_receipt_sha256"
+    ],
+    "title": "EvaluationFeedbackRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "evaluation_feedback_export",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "delivery": {
+        "additionalProperties": true,
+        "title": "Delivery",
+        "type": "object"
+      },
+      "kind": {
+        "enum": [
+          "evaluation",
+          "observability"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "receipt_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Receipt Sha256",
+        "type": "string"
+      },
+      "tool_id": {
+        "enum": [
+          "LangSmith",
+          "OpenTelemetry",
+          "Langfuse",
+          "Grafana"
+        ],
+        "title": "Tool Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "tool_id",
+      "kind",
+      "delivery",
+      "receipt_sha256"
+    ],
+    "title": "ExternalEvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "publish",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Python",
+    "HTTPX"
+  ],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "afa77f8340bc6bcc1174a60565140a7dd16facec31094c0e06d6d22cb88097a7",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "evaluation_feedback_export",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.evaluation_toolchain:register_evaluation_actions.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {
+          "tool_id": [
+            "LangSmith"
+          ]
+        },
+        "extension": {
+          "backend_id": "langsmith.feedback-rest",
+          "backend_runtime": "python",
+          "backend_version": "v1",
+          "capability": "evaluation_feedback",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "selected_by_action",
+          "lane_field": "lane_id",
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "resource_id"
+          ],
+          "role": "evaluation_feedback_receipt",
+          "role_schema": {
+            "delivery": "json",
+            "kind": "text",
+            "receipt_sha256": "blob_hash",
+            "tool_id": "text"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "evaluation_feedback_export.langsmith",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "LangSmith"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [
+    "external_evidence_receipt"
+  ],
+  "worker_operations": [],
+  "workflow": "toolchain"
+}

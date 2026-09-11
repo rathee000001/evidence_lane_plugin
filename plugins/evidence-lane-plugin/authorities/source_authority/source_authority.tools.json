@@ -1,547 +1,1398 @@
 {
-  "schema": "evidence-lane.installed-authority-tools.v1",
-  "status": "PASS",
-  "authority_id": "source_authority",
-  "database": "source_authority.sqlite",
-  "query_order": [
-    "source_authority.mmd",
-    "source_authority.dot",
-    "source_authority.sqlite"
-  ],
-  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
-  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
-  "runtime_binding": "runtime.py",
-  "builder_binding": "builder.py:refresh",
-  "reader_binding": "reader.py:validate",
-  "linked_public_actions": [
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "sources",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
     {
-      "name": "fetch",
-      "schema_sha256": "85170F97BAAAA6E30450D78CD1B2FBD1A2A14F057A0AE507E6C4E20F56DB32A8",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "fetch"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "custom_lane_configure",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "custom_lane_configure",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 15
+            "route_id": "custom_lane_configure.engine",
+            "adapter": "evidence_lane_plugin.custom_lanes:register_custom_lane_actions.<locals>.configure",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "bbbe64cfd32befb3f5238293243aa786c98792f61cfe3acc54a928b06194f45d"
+      },
+      "verification_checks": []
     },
     {
-      "name": "lane_catalog",
-      "schema_sha256": "3CE47DDFDC25D90856C0392F118487335EBD6D331D7D4795876F73089C3AEA61",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "lane_catalog"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "custom_lanes_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "custom_lanes_read",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "lane-evidence-read",
-            "order": 6
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-route-configuration",
-            "order": 9
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "task-execution",
-            "order": 9
+            "route_id": "custom_lanes_read.engine",
+            "adapter": "evidence_lane_plugin.custom_lanes:register_custom_lane_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "5ffc46c76d14ec0abe71e99f73f7011e7191e3fcdae63163ae7edeb8db81031d"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "enroll_project",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "code",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "enroll_project",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "enroll_project.exact_git",
+            "adapter": "evidence_lane_plugin.enrollment:enroll_project",
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4fa9530742884d7f1f76ef586ad7d121558258e9233fb2352c9af92b1eb708da"
+      },
+      "verification_checks": [
+        "git_enrollment_identity",
+        "git_branch_authority_integrity",
+        "git_enrolled_source_fingerprint"
+      ]
+    },
+    {
+      "name": "fetch",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "code",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "fetch",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "fetch.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "580664b25232b1a5d57c74e2259b551f86e5504cf6fd4b22bcf30e912a988f16"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "git_branch_authority",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "core",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "git_branch_authority",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "git_branch_authority.engine",
+            "adapter": "evidence_lane_plugin.enrollment:register_git_sync_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9ac5f85ea35e9ad19b7abce9a84f8801fe2910dc123ce2e58268d0f3d909532b"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "git_sync_selected",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "code",
+      "workflow": "lifecycle",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "git_sync_selected",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "git_sync_selected.exact_git",
+            "adapter": "evidence_lane_plugin.enrollment:sync_selected_branch",
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b08216b22a8534d8cbc39614dbdc013a75d1ad8f505c423cfb59fdaf4dfba8bd"
+      },
+      "verification_checks": [
+        "git_selected_source_identity",
+        "git_branch_authority_integrity",
+        "git_changed_source_fingerprint"
+      ]
     },
     {
       "name": "lane_configure_routes",
-      "schema_sha256": "0BF0762ADEF79F2E015AE30A48BDDFC5D8F249A713C078FB32B42E59983B96C3",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "lane_configure_routes"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "lane_configure_routes",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-route-configuration",
-            "order": 10
+            "route_id": "lane_configure_routes.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "896f0a2bac29cd16e8544b8a5b6893a3764f79f8bc22c89cdcca46c6f147a81f"
+      },
+      "verification_checks": []
     },
     {
-      "name": "lane_fetch",
-      "schema_sha256": "D04A51C8DDBF2BD67B9FA72F4F533272230A37892E2317E3198EE79D2C67B62F",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "lane_fetch"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_classify",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_classify",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "lane-evidence-read",
-            "order": 9
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 15
+            "route_id": "source_classify.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2bd6533c365a4e2e5df6bdcfc7d29f024f8361a039d1aae377a248398387bd04"
+      },
+      "verification_checks": []
     },
     {
-      "name": "lane_search",
-      "schema_sha256": "298AA70EF6AA1227B07667AA4F7EB49DB2B8155E6ED2BDF56A68DA77E9C29EC0",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "lane_search"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_crosswalk",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_crosswalk",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "lane-evidence-read",
-            "order": 8
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 14
+            "route_id": "source_crosswalk.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "937a245491b2e24c2f9ece33773473169c2c5e10dbd47c4e3110d17840034f22"
+      },
+      "verification_checks": []
     },
     {
-      "name": "lane_status",
-      "schema_sha256": "A16EC2DD96C9EF3EB3684E75A798D31470741F13DDE101475F99B000D20A11EE",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "lane_status"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_git_history",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_git_history",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "lane-evidence-read",
-            "order": 7
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 12
+            "route_id": "source_git_history.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ea0ecb8444b21f6c1e5f3187e15309cef434f528ee93be7dfba58838cafb4ab5"
+      },
+      "verification_checks": []
     },
     {
-      "name": "prompt_index_status",
-      "schema_sha256": "7168DD8E69E353ABAAAFD021D9E5C7BA4190FB56C1C88C840864A861AAEE5B36",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "prompt_index_status"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_git_impact",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_git_impact",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 13
+            "route_id": "source_git_impact.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "fea1d7e3ed1a3558ad08aa7ab645922044231a58ecb0521f59ca9e0c5efa0a10"
+      },
+      "verification_checks": []
     },
     {
-      "name": "search",
-      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "search"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_graph",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_graph",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 14
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
+            "route_id": "source_graph.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
-    {
-      "name": "source_custom_schema_compile",
-      "schema_sha256": "75DBD5618758A4A4C33F0BF93C4C770D746534D7B0D7A403B36C69A4B29D3696",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_custom_schema_compile"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "custom-schema-intake",
-            "order": 6
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "source_git_commit_impact",
-      "schema_sha256": "0E5CAF7DF39E4D4A812B94D8958B69399DD18CCA96EDCA9E4B28923322D2287D",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_git_commit_impact"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "git-read-intake",
-            "order": 5
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "source_git_history_build",
-      "schema_sha256": "B053EB091AE5290127000452B72E8E7D81F23EC609D6600A4C64C26699DD5FE1",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_git_history_build"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "git-read-intake",
-            "order": 4
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "source_graph_build",
-      "schema_sha256": "F71727B9AEAF773C8185207FF223360AB2387BEEBB1AD7A8A601C684318A1D7D",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_graph_build"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-graph-intake",
-            "order": 7
-          }
-        ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "279d608be9686d8920a3694d03dbf39d93b5c8d9fa53c4d9fff84bba3fbe3eb9"
+      },
+      "verification_checks": []
     },
     {
       "name": "source_graph_diff",
-      "schema_sha256": "5D0A07071D0422E7190C8897B8FDC627FFD2A87AEF915B56FEA82FB12F0DBD4C",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_graph_diff"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_graph_diff",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-graph-intake",
-            "order": 8
+            "route_id": "source_graph_diff.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "6ef53edab2541774d6052c4fc91daa0a7a305df09eae5e06b0a58ea7cddd23e2"
+      },
+      "verification_checks": []
     },
     {
       "name": "source_graph_impact",
-      "schema_sha256": "5BC430CA60C5C8C5E40EE66087355C1B03B39F103C69B74B4EF801EEEAD3E451",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_graph_impact"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_graph_impact",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-graph-intake",
-            "order": 8
+            "route_id": "source_graph_impact.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "0bc19538d35a1f5f434e367df49f21aad1ffc6419b417daabb76fd1f7a03459e"
+      },
+      "verification_checks": []
     },
     {
-      "name": "source_identity_register",
-      "schema_sha256": "BB6742DF7A8BE678C5967E753B8ABFE7CA3BE54752556445CAD7C2BEA3AD1DEF",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_identity_register"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_identity",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_identity",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-identity-intake",
-            "order": 2
+            "route_id": "source_identity.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2a312bad269750ce6c645ee5e85148e691e489e2fee809d30fd739b4825b27b7"
+      },
+      "verification_checks": []
     },
     {
-      "name": "source_intake_classify",
-      "schema_sha256": "CBE89FF15C6A4AD750C1D4D17C6F987420D6A3946573FA2ABB4E2FD1715E0F8A",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_intake_classify"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_inspect_sqlite",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_inspect_sqlite",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-refresh",
-            "workflow": "steer-prompt-source-intake-refresh-working-sectors",
-            "order": 1
+            "route_id": "source_inspect_sqlite.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4528e2dd46b3a50e7fd017221104dacfb67fe4053cbc901f7e27c96fe5cb7ae2"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_materialization_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_materialization_read",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_materialization_read.engine",
+            "adapter": "evidence_lane_plugin.source_materialization:SourceMaterialization.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b3b5c1ad41c91d714b6143acbcb82269269f07d474cd146d6ccc8c1456a84090"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_materialization_reconcile",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_materialization_reconcile",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_materialization_reconcile.engine",
+            "adapter": "evidence_lane_plugin.source_materialization:SourceMaterialization.reconcile",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "0d2bbf06b0fb07b30fa0cc2ab5d0ffe74acf70b10d4f863baafd5be01102a5ba"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_materialize",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_materialize",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_materialize.engine",
+            "adapter": "evidence_lane_plugin.source_materialization:SourceMaterialization.start",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9a48a5b7182e70b6a02e4d8b8f0a5ae47b9c360494cbc217fbabd1380b471288"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_preparation_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_preparation_read",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_preparation_read.engine",
+            "adapter": "evidence_lane_plugin.source_preparation:register_preparation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "897f522229af13c5bf46e555271c66ff7256c297285feedd0d4e39b34173707c"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_prepare_refresh",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "refresh",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_prepare_refresh",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_prepare_refresh.engine",
+            "adapter": "evidence_lane_plugin.source_preparation:register_preparation_actions.<locals>.prepare",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "e5696186f1f98ebba58e3445a46932e51250f0a3ee4e045a8816d7ec57525c5d"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_prepare_tasks",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_prepare_tasks",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_prepare_tasks.engine",
+            "adapter": "evidence_lane_plugin.source_preparation:register_preparation_actions.<locals>.prepare",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9276481d9598df83e57acc6886a2ed357855a78172ffd22b97b9ff3df70da3c9"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_read",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_read.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "e49d47387df4888ec92410c5779b8569062491e94b2d581385237b03eebd5527"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_reconcile_archives",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_reconcile_archives",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_reconcile_archives.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "a29078006854047c4cebf2a6c34b12eee4493f265b86f92fec2ba3fb82a9375b"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_register",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_register",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_register.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "c61ee14cddd034fc59a487d37fa06e7f352825a5312ac14e833731ef811ea172"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_routes_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_routes_read",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_routes_read.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "a841a8852691a755c45e4b5e7a467999f17966a42d019bc10269f32e00e91cc6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_schema_configure",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_schema_configure",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_schema_configure.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "61e4f42a235dfe4239d46ca3488e7185c4aa16766893cdee40655d5b808655db"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_schema_map",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_schema_map",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_schema_map.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "8aa553e6792b797ebfd1e5ffa1b2b3b203a3c964b68281c7bfd345d2fc350bc3"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "source_snapshot_retire",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "refresh",
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
           },
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "classify-source-intake",
-            "order": 1
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ]
     },
     {
-      "name": "source_intake_schema_configure",
-      "schema_sha256": "4911ACA559DAF9C937F8951C9A66C1AD578B5848FF78E9BF4D961E00D66B42AA",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_intake_schema_configure"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_snapshot_state",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "refresh",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "source-route-configuration",
-            "order": 11
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": []
     },
     {
-      "name": "source_sqlite_inspect",
-      "schema_sha256": "FC8B4242F2AA3AD6A8C969274C3264C29204307204D8C89F2B567EA01CD5AEE9",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "source_sqlite_inspect"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "source_verify",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "sources",
+      "workflow": "source-intake",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_verify",
+        "profile": "sources",
+        "routes": [
           {
-            "owner_skill": "evi-source-intake",
-            "workflow": "sqlite-source-intake",
-            "order": 3
+            "route_id": "source_verify.engine",
+            "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "bd1e03ebd286551883773e0696b6d136914b0ea355f60e2cec6823abcfcff7f2"
+      },
+      "verification_checks": []
     }
   ],
-  "linked_skills": {
-    "skills/evi-source-intake/SKILL.md": "D44181F373D2CD235D43818AC06FBC10928E996BAA97C17FD9DB8A30C43F6E88"
-  },
-  "canonical_source_hashes": {
-    "src/evidence_lane_plugin/source_authority.py": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C",
-    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47",
-    "src/evidence_lane_plugin/source_sqlite.py": "BF37120483C38595A70C43C9B3AAA3702C5B066FDBD9EC9788292D6A1DC65913",
-    "src/evidence_lane_plugin/source_graph.py": "F35D98CC8F32A21E767627DBFE5CA125776AA03BC1158187EB040FDF29A9E708",
-    "src/evidence_lane_plugin/source_git_history.py": "DD37FDA11721249BE3E4CA6A2164C3F77201793742A827951A64750A08BA34E4",
-    "src/evidence_lane_plugin/source_identity.py": "0905E1CBC5217A71714586E0D30FB2116D926E00EB17F2AFC9FD4D1A1058700C",
-    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
-  },
-  "linked_subauthorities": [],
-  "llama_index_refresh_receipt": {
-    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
-    "status": "PASS",
-    "sequence": 1,
-    "authority_id": "source_authority",
-    "source_count": 1,
-    "node_count": 1,
-    "indexed_table_count": 1,
-    "indexed_tables": [
-      "registry_meta"
-    ],
-    "llama_index_core_version": "0.14.23",
-    "node_parser": "SentenceSplitter(480,64)",
-    "sqlite_backend": "FTS5_BM25",
-    "sqlite_remains_authority": true,
-    "mmd_dot_remain_traversal_maps": true,
-    "prior_receipt_sha256": null,
-    "recorded_at": "2000-01-01T00:00:00Z",
-    "receipt_sha256": "5C7D8FC6746A66BE4543E2DDDE4408F04F9B14C4EE74FEB44001EDF93E9B32B6"
-  },
-  "graph_pipeline_receipt": {
-    "schema": "evidence-lane.semantic-graph-pipeline.v1",
-    "status": "PASS",
-    "graph": "source_authority_authority",
-    "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 533,
-    "edge_count": 599,
-    "group_count": 1,
-    "semantic_topology_sha256": "25598DB02838F46C427BB96CFEB13B4DA7C3D653E4A92233F4F6AE3635F61610",
-    "mmd_sha256": "59228CF4EBA798950B6E59BFCDDEDAAF3466C3588FBB01688F1245260A554D3D",
-    "dot_sha256": "A5C52B840B7027B7AE40328E1EEA4D0882BFE3E7F4B6A0EFDE220670151F3070",
-    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
-    "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "8556CD2A4925F192100883B1FB81A31D6AE47106A8D292826F3E6B2E6DE3A259",
-    "dot_exporter": "PYTHON_GRAPHVIZ",
-    "python_graphviz_version": "0.21",
-    "native_graphviz_dot_available": false,
-    "native_graphviz_hidden_runtime_available": false,
-    "native_graphviz_validation": null,
-    "graph_analysis": {
-      "status": "UNAVAILABLE",
-      "engine": "rustworkx",
-      "authority_replaced": false
-    },
-    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
-    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
-    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 387,
-    "balanced_two_dimensional_projection": true,
-    "layout_constraints_change_semantic_topology": false,
-    "mmd_and_dot_are_sqlite_traversal_maps": true,
-    "sqlite_authority_replaced": false,
-    "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "A9302C89A934792F637834E4C5CC50B03D9D1265FC1C28E97555DF55AE892150"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/source_authority/workflow.v1.json",
-    "mmd": "authorities/source_authority/workflow.mmd",
-    "dot": "authorities/source_authority/workflow.dot",
-    "json_sha256": "9B598699D7FF9695D1D0101617D42175DC752254A1AD490C635AD421F4B0A420",
-    "mmd_sha256": "FEF95E5343C500E9C29DA26E06A71A447533A55077F2BD76FED7BE55695C58EF",
-    "dot_sha256": "098821593DC29DE473AC527C828909D719B687B2BD4BB339DD52C66438FD8F2B"
-  },
-  "receipt_sha256": "081AEAD50CCC8B9447885C139CF00436D94C68E60034A9AD51FDB9BC9CBC97D5"
+  "views": [],
+  "dependency_installation_inferred": false,
+  "planned_actions": [
+    "enroll_project",
+    "git_sync_selected",
+    "source_snapshot_retire"
+  ],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
 }

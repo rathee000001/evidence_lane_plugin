@@ -1,0 +1,383 @@
+{
+  "schema": "evidence-lane.maintainer-ci.v4",
+  "project_defaults": false,
+  "coverage": {
+    "kind": "explicit_engine_control_storage_protocol_and_reproducible_format_regression",
+    "full_retained_format_coverage": false,
+    "full_native_toolchain_coverage": false,
+    "installed_native_coverage": false,
+    "remaining_qualification": [
+      "D116 full retained-feature parity and original quality/type-check behavior",
+      "D121 complete shared runtime and asset-dependent CI contracts",
+      "D086 full candidate",
+      "Post-install native qualification"
+    ],
+    "retained_format_profiles": [
+      "format_code",
+      "format_documents",
+      "format_presentations",
+      "format_sources",
+      "format_tableau",
+      "format_tabular"
+    ],
+    "separate_asset_qualification": [
+      "Office rendering/conversion/recalculation",
+      "Docling document/presentation/PDF enrichment",
+      "PowerBI TOM/PBIX assets",
+      "PDF vendor codecs/OCR/model assets",
+      "Media FFmpeg/OCR assets",
+      "Code grammar/model assets and mixed syntax scopes"
+    ]
+  },
+  "profiles": {
+    "ci": {
+      "tests": [
+        "tests/test_maintainer_ci_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "engine": {
+      "tests": [
+        "tests/test_registry.py",
+        "tests/test_engine.py",
+        "tests/test_workers.py",
+        "tests/test_jobs.py",
+        "tests/test_quiescence.py",
+        "tests/test_host_routing.py",
+        "tests/test_connections.py",
+        "tests/test_runtime_health.py",
+        "tests/test_opencv_contract_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "plan": {
+      "tests": [
+        "tests/test_plan_authority.py",
+        "tests/test_plan_operation_v4.py",
+        "tests/test_plan_replacement.py",
+        "tests/test_delta_entry.py",
+        "tests/test_delta_exit.py",
+        "tests/test_delta_validation_v4.py",
+        "tests/test_validation_policy_v4.py",
+        "tests/test_git_process_ownership_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "storage": {
+      "tests": [
+        "tests/test_storage.py",
+        "tests/test_migrations.py",
+        "tests/test_lane_transactions.py",
+        "tests/test_separate_lane_storage.py",
+        "tests/test_separate_recovery_v4.py",
+        "tests/test_separate_plan_foundation.py",
+        "tests/test_database_recovery_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "protocol": {
+      "tests": [
+        "tests/test_sdk.py",
+        "tests/test_local_transport.py",
+        "tests/test_native_workflow_bindings.py",
+        "tests/test_first_class_entry_v4.py",
+        "tests/test_remote_api.py",
+        "tests/test_remote_sessions_v4.py",
+        "tests/test_endpoint_credentials_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "package": {
+      "tests": [
+        "tests/test_build.py",
+        "tests/test_first_class_skills.py",
+        "tests/test_skill_procedure_parity_v4.py",
+        "tests/test_lane_contract_generator_v4.py",
+        "tests/test_env_uop_framework_v4.py",
+        "tests/test_office_scope_v4.py",
+        "tests/test_final_workspace_purge_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_documents": {
+      "tests": [
+        "tests/test_document_profile_v4.py",
+        "tests/test_document_verification_v4.py",
+        "tests/test_document_resource_boundaries_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_presentations": {
+      "tests": [
+        "tests/test_presentation_profile_v4.py",
+        "tests/test_presentation_fidelity_v4.py",
+        "tests/test_presentation_boundaries_v4.py",
+        "tests/test_presentation_show_boolean_v4.py",
+        "tests/test_presentation_package_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_tabular": {
+      "tests": [
+        "tests/test_tabular_profile_v4.py",
+        "tests/test_tabular_parsers_v4.py",
+        "tests/test_tabular_fidelity_v4.py",
+        "tests/test_tabular_generation_v4.py",
+        "tests/test_tabular_inspection_v4.py",
+        "tests/test_tabular_persistence_v4.py",
+        "tests/test_tabular_protocol_v4.py",
+        "tests/test_tabular_export_refresh_v4.py",
+        "tests/test_tabular_source_refresh_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_tableau": {
+      "tests": [
+        "tests/test_tableau_parsers_v4.py",
+        "tests/test_tableau_profile_v4.py",
+        "tests/test_tableau_hyper_v4.py",
+        "tests/test_tableau_package_v4.py",
+        "tests/test_tableau_runtime_bootstrap_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_code": {
+      "tests": [
+        "tests/test_code_profile_v4.py",
+        "tests/test_code_verification_v4.py",
+        "tests/test_code_incremental_refresh_v4.py",
+        "tests/test_code_edit_refresh_v4.py"
+      ],
+      "timeout_seconds": 1800
+    },
+    "format_sources": {
+      "tests": [
+        "tests/test_evidence_sectors_v4.py",
+        "tests/test_evidence_views_v4.py",
+        "tests/test_artifact_intake_v4.py",
+        "tests/test_artifact_protocol_v4.py",
+        "tests/test_research_web_v4.py",
+        "tests/test_research_discovery_v4.py",
+        "tests/test_research_attribution_v4.py",
+        "tests/test_research_protocol_v4.py",
+        "tests/test_custom_source_schema_v4.py",
+        "tests/test_custom_instances_v4.py",
+        "tests/test_custom_protocol_v4.py"
+      ],
+      "timeout_seconds": 1800
+    }
+  },
+  "rules": [
+    {
+      "paths": [
+        "README.md",
+        "LICENSE.md",
+        "NOTICE.md",
+        "docs/**/*.md",
+        ".github/copilot-instructions.md"
+      ],
+      "profiles": [
+        "ci"
+      ]
+    },
+    {
+      "paths": [
+        "apps/**"
+      ],
+      "profiles": [
+        "ci"
+      ],
+      "scope": "Separate Studio/site build qualification; this job covers the plugin regression only."
+    },
+    {
+      "paths": [
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/plan_runtime.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/acceptance.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/adaptive_delta_*.py"
+      ],
+      "profiles": [
+        "plan",
+        "engine",
+        "storage",
+        "protocol",
+        "format_code",
+        "format_documents",
+        "format_presentations",
+        "format_sources",
+        "format_tableau",
+        "format_tabular"
+      ]
+    },
+    {
+      "paths": [
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/storage.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/migrations.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/lane_transactions.py"
+      ],
+      "profiles": [
+        "storage",
+        "plan",
+        "engine",
+        "protocol",
+        "package",
+        "format_code",
+        "format_documents",
+        "format_presentations",
+        "format_sources",
+        "format_tableau",
+        "format_tabular"
+      ]
+    },
+    {
+      "paths": [
+        "plugins/evidence-lane-plugin/skills/**",
+        "plugins/evidence-lane-plugin/schemas/**",
+        "plugins/evidence-lane-plugin/sdk/**",
+        "plugins/evidence-lane-plugin/mcp/**",
+        "plugins/evidence-lane-plugin/manifests/**"
+      ],
+      "profiles": [
+        "package",
+        "protocol",
+        "plan",
+        "format_code",
+        "format_documents",
+        "format_presentations",
+        "format_sources",
+        "format_tableau",
+        "format_tabular"
+      ]
+    },
+    {
+      "paths": [
+        "tests/test_code_profile_v4.py",
+        "tests/test_code_verification_v4.py",
+        "tests/test_code_incremental_refresh_v4.py",
+        "tests/test_code_edit_refresh_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/code_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/dependency_detection.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/local_code/**",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/github_code/**"
+      ],
+      "profiles": [
+        "format_code",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    },
+    {
+      "paths": [
+        "tests/test_document_profile_v4.py",
+        "tests/test_document_verification_v4.py",
+        "tests/test_document_resource_boundaries_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/document_*.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/docs/**"
+      ],
+      "profiles": [
+        "format_documents",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    },
+    {
+      "paths": [
+        "tests/test_presentation_profile_v4.py",
+        "tests/test_presentation_fidelity_v4.py",
+        "tests/test_presentation_boundaries_v4.py",
+        "tests/test_presentation_show_boolean_v4.py",
+        "tests/test_presentation_package_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/presentation_*.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/ppt/**"
+      ],
+      "profiles": [
+        "format_presentations",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    },
+    {
+      "paths": [
+        "tests/test_tabular_profile_v4.py",
+        "tests/test_tabular_parsers_v4.py",
+        "tests/test_tabular_fidelity_v4.py",
+        "tests/test_tabular_generation_v4.py",
+        "tests/test_tabular_inspection_v4.py",
+        "tests/test_tabular_persistence_v4.py",
+        "tests/test_tabular_protocol_v4.py",
+        "tests/test_tabular_export_refresh_v4.py",
+        "tests/test_tabular_source_refresh_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/spreadsheet_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/structured_data.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/tabular_*.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/data_excel/**",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/data/**"
+      ],
+      "profiles": [
+        "format_tabular",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    },
+    {
+      "paths": [
+        "tests/test_tableau_parsers_v4.py",
+        "tests/test_tableau_profile_v4.py",
+        "tests/test_tableau_hyper_v4.py",
+        "tests/test_tableau_package_v4.py",
+        "tests/test_tableau_runtime_bootstrap_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/tableau_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/data_toolchain.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/tableau/**"
+      ],
+      "profiles": [
+        "format_tableau",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    },
+    {
+      "paths": [
+        "tests/test_evidence_sectors_v4.py",
+        "tests/test_evidence_views_v4.py",
+        "tests/test_artifact_intake_v4.py",
+        "tests/test_artifact_protocol_v4.py",
+        "tests/test_research_web_v4.py",
+        "tests/test_research_discovery_v4.py",
+        "tests/test_research_attribution_v4.py",
+        "tests/test_research_protocol_v4.py",
+        "tests/test_custom_source_schema_v4.py",
+        "tests/test_custom_instances_v4.py",
+        "tests/test_custom_protocol_v4.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/research_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/sector_evidence_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/custom_source_*.py",
+        "plugins/evidence-lane-plugin/src/evidence_lane_plugin/custom_instances.py",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/research/**",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/artifacts/**",
+        "plugins/evidence-lane-plugin/authorities/project_sectors/custom/**"
+      ],
+      "profiles": [
+        "format_sources",
+        "engine",
+        "protocol",
+        "package"
+      ],
+      "scope": "Retained format owner and its direct engine/protocol/package contracts."
+    }
+  ],
+  "unmatched_changes": "all_declared_profiles",
+  "missing_comparison": "all_declared_profiles",
+  "skip_policy": "A selected profile with any skipped, failed or errored tests is not passed.",
+  "package_test_inventory": "plugins/evidence-lane-plugin/tests/test-surface-policy.v4.json",
+  "test_inventory_owner": "profiles in this file; every declared root test must exist"
+}

@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 8,
   "tool": "LangGraph_Mermaid_engine",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "E0DF24B97EC1E43D16A7A23D947D0B6164141946B14FD6E413F4FDC67AF49231"
+  "historical_ordinal": 8,
+  "catalog_ordinal": 8,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "9b8f9c009d0bc61aea51c0b873f64b5404c8df4e2ccd88c8d2cc4475db2fe528"
 }

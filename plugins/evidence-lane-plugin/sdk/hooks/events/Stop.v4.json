@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/Stop/handler.py",
+  "event": "Stop",
+  "event_contract": "hooks/events/Stop/event.v4.json",
+  "event_contract_sha256": "d1d9f3b93e0c3e268bfe7d83577354860188ec16426140d3e72da97f910f14b1",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/Stop.v4.schema.json",
+  "input_schema_sha256": "e23b500827978d6d7786e61a94f60fa0d3b98b3eba607d6449dc73acf5d49b0c",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

@@ -1,17 +1,10 @@
-"""Lane-specific binding to the canonical shared lane bundle builder."""
+"""artifacts: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import build_sector_source
 
-from evidence_lane_plugin.lane_engine import build_lane_bundle
+LANE_ID = 'artifacts'
+ACTION_LANES = {'artifacts_index': 'artifacts', 'artifacts_index_media': 'artifacts', 'artifacts_refresh': 'artifacts', 'artifacts_refresh_media': 'artifacts', 'source_snapshot_retire': 'artifacts'}
 
-LANE_ID = "artifacts"
-
-def build_lane_sources(*, source_paths, source_overrides=None, **kwargs):
-    paths = tuple(dict.fromkeys(str(path) for path in source_paths))
-    overrides = dict(source_overrides or {})
-    overrides.update({path: LANE_ID for path in paths})
-    return build_lane_bundle(
-        source_paths_override=paths,
-        source_overrides=overrides,
-        **kwargs,
-    )
+def build_lane_sources(client, **arguments):
+    return build_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
 __all__ = ["LANE_ID", "build_lane_sources"]

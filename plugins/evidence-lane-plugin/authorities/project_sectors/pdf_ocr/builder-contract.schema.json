@@ -1,28 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "PDF / OCR builder binding request",
-  "type": "object",
-  "required": [
-    "lane_id",
-    "source_paths",
-    "bundle_arguments"
-  ],
+  "additionalProperties": false,
   "properties": {
-    "lane_id": {
-      "const": "pdf_ocr"
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Task Id",
+      "type": "string"
     },
-    "source_paths": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+    "plan_revision": {
+      "minimum": 1,
+      "title": "Plan Revision",
+      "type": "integer"
     },
-    "bundle_arguments": {
-      "type": "object"
+    "contract_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Contract Digest",
+      "type": "string"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "9854D6AC2A936F659C53CF774A22DA1C764B3C851DE17C26F55EF7A21B328184"
+  "required": [
+    "task_id",
+    "plan_revision",
+    "contract_digest"
+  ],
+  "title": "PDF / OCR planned builder arguments",
+  "type": "object",
+  "x-public-action": "delta_enter_planned",
+  "x-sector-lane": "pdf_ocr",
+  "x-operation-actions": [
+    "pdf_edit",
+    "pdf_enrich",
+    "pdf_export",
+    "pdf_generate",
+    "pdf_index",
+    "pdf_ocr",
+    "pdf_refresh",
+    "pdf_render",
+    "source_snapshot_retire"
+  ],
+  "x-project-id-required": true
 }

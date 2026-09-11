@@ -1,0 +1,52 @@
+{
+  "action_set_digest": "244b85dc28f010d622e0205db558f4ca1243ec0c1fb378fb8a32ee318d8cbb20",
+  "actions": [
+    {
+      "cross_project_read": true,
+      "description": "Retrieve a bounded project-local slice of verified execution observations.",
+      "input_schema_digest": "98ab6a78e6c20c530edf27917738d01f29a73788598b2315d0a9fb9ec49385e9",
+      "mutates": false,
+      "name": "learning_read",
+      "output_schema_digest": "af2b0570b725a48ac6045df0bb9f15219fd0117a6da6ff69e6815dcb19422350",
+      "permission": "read",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Record explicit host-memory provenance and its exact Plan-task link without reading host memory or creating Learning.",
+      "input_schema_digest": "d3209c6a4516e0adb50383471632aea90ee92e990c005222ba9fbb055e6a7653",
+      "mutates": true,
+      "name": "learning_record_host_memory_import",
+      "output_schema_digest": "8391c9b73c11252b6ccd675d59f0455ab0b4e58e74353c2b6a34944d419c5bce",
+      "permission": "write",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
+      "input_schema_digest": "62f012067a57ccf292ffff5c3bb73c44e140d61ce28eea6194b92806e0cd9261",
+      "mutates": true,
+      "name": "learning_revoke",
+      "output_schema_digest": "480a683a867eac3329de340890d81df0915b909e5606f2510fe6a1f7be55b555",
+      "permission": "write",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "learning"
+}

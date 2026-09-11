@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "plan",
+  "members": [
+    {
+      "path": "authorities/plan/migration-history.json",
+      "sha256": "ee1a1488475b07d29880e70979e9bda8526917fee29a0d88873321f4558159ae"
+    },
+    {
+      "path": "authorities/plan/schema.sql",
+      "sha256": "9d58a7e8c73ae1c8902cf20d40aca1fc62f9c1b1c86908a1f241ed4653eab1f1"
+    },
+    {
+      "path": "sdk/plan/runtime.py",
+      "sha256": "2c23e733f1a8d3193151dae00c81729202d612dbb805a385b714d7c8d6266e8b"
+    },
+    {
+      "path": "src/evidence_lane_plugin/plan_runtime.py",
+      "sha256": "8e9b3e7ff5eab135512806c1662d7d68ead3212a85e0907c928c85cdf793878b"
+    }
+  ],
+  "purpose": "Authoritative project Plan database and exact full host Plan projection",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

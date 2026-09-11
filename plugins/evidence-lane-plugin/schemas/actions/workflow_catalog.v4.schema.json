@@ -1,0 +1,150 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Discover current public workflows and their registered actions without granting access.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "workflow": {
+        "anyOf": [
+          {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "enum": [
+          "evi",
+          "boot",
+          "build",
+          "plan",
+          "source-intake",
+          "canon",
+          "memory",
+          "learning",
+          "instructions",
+          "project-recipe",
+          "mode",
+          "brain-scaling",
+          "refresh",
+          "plugin",
+          "additional-plugin",
+          "drop-additional-plugin",
+          "toolchain",
+          "storage",
+          "universe",
+          "bigger-universe",
+          "state-travel",
+          "recover",
+          "exit-boot",
+          "lifecycle",
+          null
+        ],
+        "title": "Workflow"
+      }
+    },
+    "title": "WorkflowQuery",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "workflow_catalog",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "authority": {
+        "const": "engine_typed_action_registry",
+        "default": "engine_typed_action_registry",
+        "title": "Authority",
+        "type": "string"
+      },
+      "native_installation_verified": {
+        "const": false,
+        "default": false,
+        "title": "Native Installation Verified",
+        "type": "boolean"
+      },
+      "permission_granted": {
+        "const": false,
+        "default": false,
+        "title": "Permission Granted",
+        "type": "boolean"
+      },
+      "schema_version": {
+        "const": 4,
+        "default": 4,
+        "title": "Schema Version",
+        "type": "integer"
+      },
+      "workflows": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Workflows",
+        "type": "array"
+      }
+    },
+    "required": [
+      "workflows"
+    ],
+    "title": "WorkflowCatalog",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "3b3f0464d702d341ba06cf767750c454c1b902d5db7155285805940880eedc9f",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "workflow_catalog",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.workflow_surface:register_workflow_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "workflow_catalog.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/SubagentStart/handler.py",
+  "event": "SubagentStart",
+  "event_contract": "hooks/events/SubagentStart/event.v4.json",
+  "event_contract_sha256": "b460ad188e7d3a3233153e6b6e110927c5dabf0691894f72b7eabb5ba367451f",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/SubagentStart.v4.schema.json",
+  "input_schema_sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

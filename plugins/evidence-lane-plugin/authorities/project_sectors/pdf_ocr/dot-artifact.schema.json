@@ -1,45 +1,74 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "pdf_ocr DOT_TRAVERSAL_MAP artifact receipt",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "pdf_ocr"
-    },
-    "artifact_path": {
-      "const": "pdf_ocr.dot"
-    },
-    "artifact_role": {
-      "const": "DOT_TRAVERSAL_MAP"
-    },
-    "syntax": {
-      "const": "GRAPHVIZ_DOT"
-    },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "topology_reconciliation.validate_dot"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "$defs": {
+    "JsonValue": {}
   },
   "additionalProperties": false,
-  "receipt_sha256": "82CDE65ECC9DC2B51BE0CF8A9E7FC0BF915A29583866C330E40D6DFB0F18AC9C"
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "PDF / OCR selected DOT publication",
+  "type": "object",
+  "x-format": "dot",
+  "x-lane-id": "pdf_ocr",
+  "x-selection-policy": "Only explicitly selected lane formats; natural artifacts remain separate."
 }

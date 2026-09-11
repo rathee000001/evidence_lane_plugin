@@ -1,294 +1,57 @@
 {
-  "schema": "evidence-lane.installed-non-sqlite-authority-tools.v1",
-  "status": "PASS",
-  "authority_id": "instructions",
-  "runtime_binding": "runtime.py",
-  "linked_public_actions": [
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "instructions",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
     {
-      "name": "pv_query",
-      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_query"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
+      "name": "instructions_inspect",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "core",
+      "workflow": "instructions",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "instructions_inspect",
+        "profile": "core",
+        "routes": [
           {
-            "owner_skill": "evi",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 8
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
+            "route_id": "instructions_inspect.engine",
+            "adapter": "evidence_lane_plugin.agent_configuration:register_instruction_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_status",
-      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_status"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 6
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_task_backlog",
-      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_task_backlog"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 7
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "search",
-      "schema_sha256": "76F9448249D205764772262F4B673798BE5724E2F6B7162B34E3A8F8F8BE6FC1",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-source-intake",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "search"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-source-intake",
-            "workflow": "bounded-source-retrieval",
-            "order": 14
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          }
-        ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ffb6ed314bb59c33f79ac998d9b127beeec990f2a61be7e65a09200aae5f83fe"
+      },
+      "verification_checks": []
     }
   ],
-  "linked_skills": {
-    "skills/evi-instructions/SKILL.md": "E809865F1946D47E77253F4E9FA13F064A3417ECEA8F31C14C20FFDC35279366"
-  },
-  "canonical_source_hashes": {
-    "src/evidence_lane_plugin/agent_configuration.py": "FADD455E568DCE125B8E581B028E7987D04D6E70D6A538A3FEC0D2AE793B49B3",
-    "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886"
-  },
-  "sqlite_authority_owned": false,
-  "graph_pipeline_receipt": {
-    "schema": "evidence-lane.semantic-graph-pipeline.v1",
-    "status": "PASS",
-    "graph": "instructions_authority",
-    "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 3,
-    "edge_count": 2,
-    "group_count": 0,
-    "semantic_topology_sha256": "58FC9E2BBA93074ED5A6166273BF7C6D1BFDEE72E9C413DD1715E47696D98CF0",
-    "mmd_sha256": "98E76DBF3F2D5985C65EA2B9BA15896EFC841D79F65E057F6B0037FBBFE7A9CD",
-    "dot_sha256": "2882598004FF4CD996B9FD364C2901CC46F5EAA7BB2668F7D015DACCC6C507F5",
-    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
-    "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "28F35FCC10312D614ED5FE6686EEF681F2F2B8AA4279F0EE6B54D56D5A64608F",
-    "dot_exporter": "PYTHON_GRAPHVIZ",
-    "python_graphviz_version": "0.21",
-    "native_graphviz_dot_available": false,
-    "native_graphviz_hidden_runtime_available": false,
-    "native_graphviz_validation": null,
-    "graph_analysis": {
-      "status": "UNAVAILABLE",
-      "engine": "rustworkx",
-      "authority_replaced": false
-    },
-    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
-    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
-    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 0,
-    "balanced_two_dimensional_projection": true,
-    "layout_constraints_change_semantic_topology": false,
-    "mmd_and_dot_are_sqlite_traversal_maps": true,
-    "sqlite_authority_replaced": false,
-    "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "5E52EED70A186C5D02A58C04430F2591DCC36B006CBC19AD6C0F25D880575AFF"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/instructions/workflow.v1.json",
-    "mmd": "authorities/instructions/workflow.mmd",
-    "dot": "authorities/instructions/workflow.dot",
-    "json_sha256": "96D7D82FABAF3EBD391A88F1DBFA2795DAECB6CEB65B7315D2E92199C3B31777",
-    "mmd_sha256": "0C4CB802BA979C80EF5879B2EA8E57087753DB70B832BD855781DBDF5F4F2CFF",
-    "dot_sha256": "3A489B38EE048A3F7709A372C6D5E37FA134021DC18D530431F7373CF86A3F95"
-  },
-  "receipt_sha256": "FB41ED2FBD09A87050CC828E5ADC1239B8C454E2BF21345CAABB61C20DF9D5DC"
+  "views": [],
+  "dependency_installation_inferred": false,
+  "planned_actions": [],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
 }

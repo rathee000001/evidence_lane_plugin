@@ -1,0 +1,88 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "local_code",
+  "source_package_folder": "authorities/project_sectors/local_code",
+  "project_state_folder": "sectors/local_code",
+  "database": "sectors/local_code/local_code_sector_v001.sqlite",
+  "files": "sectors/local_code/files",
+  "schema_history": "sectors/local_code/schema-history",
+  "migrations": [
+    {
+      "owner": "localcode",
+      "version": 1,
+      "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
+    },
+    {
+      "owner": "localcode",
+      "version": 2,
+      "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
+    },
+    {
+      "owner": "localcode",
+      "version": 3,
+      "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
+    },
+    {
+      "owner": "localcodeselector",
+      "version": 1,
+      "digest": "368e6d500fb900847c7ac388a185903852af05426e97d18a61fb11ba51260d80"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "local_code",
+    "folder": "sectors/local_code",
+    "files_root": "sectors/local_code/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "local_code_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "repository_commit_file_symbol_route_dependency_artifact"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "local_code.mmd",
+      "dot": "local_code.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact indexed working-tree source hashes"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "08DA284D12F301A06AA2A5582560BE9D71EA8956EDCFBCFAC18E98C4034D6358"
+  },
+  "actions": [
+    "code_apply",
+    "code_current",
+    "code_impact",
+    "code_index",
+    "code_index_syntax",
+    "code_query",
+    "code_read",
+    "code_refresh",
+    "code_semantic_index",
+    "code_semantic_query",
+    "code_semantic_query_faiss",
+    "code_semantic_query_vec",
+    "fetch",
+    "pv_summary",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

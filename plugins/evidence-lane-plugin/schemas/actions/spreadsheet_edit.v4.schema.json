@@ -1,0 +1,242 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Replace exact existing OpenXML cells while preserving other package members and invalidating stale formula caches.",
+  "inputSchema": {
+    "$defs": {
+      "CellReplacement": {
+        "additionalProperties": false,
+        "properties": {
+          "cell": {
+            "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+            "title": "Cell",
+            "type": "string"
+          },
+          "expected_formula": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Formula"
+          },
+          "expected_value": {
+            "$ref": "#/$defs/Value"
+          },
+          "replacement_formula": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Replacement Formula"
+          },
+          "replacement_value": {
+            "$ref": "#/$defs/Value"
+          },
+          "sheet": {
+            "maxLength": 31,
+            "minLength": 1,
+            "title": "Sheet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sheet",
+          "cell",
+          "expected_value",
+          "replacement_value"
+        ],
+        "title": "CellReplacement",
+        "type": "object"
+      },
+      "Value": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "number",
+              "boolean",
+              "null",
+              "date",
+              "datetime",
+              "time",
+              "iso_date",
+              "error",
+              "duration_seconds",
+              "binary",
+              "json",
+              "missing",
+              "nonfinite"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "title": "Value",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "data_excel",
+        "default": "data_excel",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "replacements": {
+        "items": {
+          "$ref": "#/$defs/CellReplacement"
+        },
+        "maxItems": 128,
+        "minItems": 1,
+        "title": "Replacements",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256",
+      "replacements"
+    ],
+    "title": "DataExcelSpreadsheetEdit",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "spreadsheet_edit",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "data_excel",
+          "data"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "TabularResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "spreadsheet",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "d571acc6238c27ee0c52de60a63b54cf0fbc0217218ade31159f2f3fefca41a4",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "spreadsheet_edit",
+    "profile": "spreadsheet",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tabular_profile:edit",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "spreadsheet_edit.native",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "lxml"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "spreadsheet_edit"
+    ]
+  },
+  "verification_checks": [
+    "tabular_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "spreadsheet_edit"
+  ],
+  "workflow": "build"
+}

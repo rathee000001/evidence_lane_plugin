@@ -1,45 +1,45 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning installed authority manifest",
   "type": "object",
   "required": [
     "schema",
-    "status",
     "authority_id",
-    "database",
-    "database_sha256",
+    "source_package_folder",
+    "project_state_folder",
+    "runtime_module",
+    "schema_contract",
+    "artifacts",
+    "migration_bindings",
+    "foundation_schema_owners",
+    "foundation_schema_source",
+    "migration_history",
+    "runtime_database_packaged",
+    "installed_execution_claimed",
+    "actions",
+    "views",
     "members",
-    "live_project_bytes_in_template",
-    "authority_merged_with_sector_or_peer"
+    "runtime_binding"
   ],
   "properties": {
     "schema": {
-      "const": "evidence-lane.installed-authority-surface.v1"
-    },
-    "status": {
-      "const": "PASS"
+      "const": "evidence-lane.authority-package.v4"
     },
     "authority_id": {
-      "const": "agent_learning"
+      "const": "learning"
     },
-    "database": {
-      "const": "agent-learning.sqlite"
+    "source_package_folder": {
+      "const": "authorities/agent_learning"
     },
-    "database_sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
+    "project_state_folder": {
+      "const": "authorities/learning"
+    },
+    "runtime_database_packaged": {
+      "const": false
     },
     "members": {
       "type": "array",
       "minItems": 1
-    },
-    "live_project_bytes_in_template": {
-      "const": false
-    },
-    "authority_merged_with_sector_or_peer": {
-      "const": false
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "70BF8156E09441548F7FE0984DDE6521AB316B7E06EE0F857AD884FD70D72159"
+  "title": "learning current authority manifest"
 }

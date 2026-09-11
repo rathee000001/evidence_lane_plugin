@@ -1,11 +1,8 @@
-"""Binding to the canonical non-sector authority implementation."""
+"""Project coordination binds the sole Root PV and the existing project writer."""
+from evidence_lane_plugin.coordination import ProjectCoordinator
+from evidence_lane_plugin.lane_transactions import coordinated_transaction, recover_transactions
+from evidence_lane_plugin.storage import ProjectStore, project_snapshot
+from evidence_lane_plugin.writers import WriterLease
 
-from importlib import import_module
-
-AUTHORITY_ID = "project_authority"
-CANONICAL_MODULE = "evidence_lane_plugin.project_authority"
-
-def canonical_module():
-    return import_module(CANONICAL_MODULE)
-
-__all__ = ["AUTHORITY_ID", "CANONICAL_MODULE", "canonical_module"]
+__all__ = ['ProjectCoordinator', 'ProjectStore', 'WriterLease', 'coordinated_transaction',
+           'project_snapshot', 'recover_transactions']

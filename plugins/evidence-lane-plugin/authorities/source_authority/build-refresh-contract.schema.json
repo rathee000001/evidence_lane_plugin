@@ -1,25 +1,2145 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "source_authority support refresh request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "project_root",
-    "authority_id"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "Adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "parser": {
+          "enum": [
+            "auto",
+            "text",
+            "json",
+            "notebook",
+            "archive",
+            "sqlite",
+            "opaque",
+            "document",
+            "presentation",
+            "spreadsheet",
+            "data",
+            "pdf_pymupdf",
+            "pdf_pypdf",
+            "pdf_pdfplumber",
+            "media"
+          ],
+          "title": "Parser",
+          "type": "string"
+        },
+        "extensions": {
+          "items": {
+            "pattern": "^\\.[a-z0-9]{1,15}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Extensions",
+          "type": "array"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "sqlite_tables": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Sqlite Tables",
+          "type": "array"
+        },
+        "sqlite_rows": {
+          "default": 100,
+          "maximum": 200,
+          "minimum": 0,
+          "title": "Sqlite Rows",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "parser",
+        "extensions"
+      ],
+      "title": "Adapter",
+      "type": "object"
     },
-    "project_root": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_custom_lane_configure": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "custom_lane_configure",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/Configure"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_custom_lane_configure",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "source_authority"
+    "AuthorityRequest_lane_configure_routes": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_configure_routes",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceRouteConfigure"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_configure_routes",
+      "type": "object"
+    },
+    "AuthorityRequest_source_crosswalk": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_crosswalk",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceCrosswalkRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_crosswalk",
+      "type": "object"
+    },
+    "AuthorityRequest_source_git_history": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_git_history",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceGitRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_git_history",
+      "type": "object"
+    },
+    "AuthorityRequest_source_git_impact": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_git_impact",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceGitImpactRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_git_impact",
+      "type": "object"
+    },
+    "AuthorityRequest_source_graph": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_graph",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceGraphRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_graph",
+      "type": "object"
+    },
+    "AuthorityRequest_source_graph_diff": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_graph_diff",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceGraphDiffRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_graph_diff",
+      "type": "object"
+    },
+    "AuthorityRequest_source_graph_impact": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_graph_impact",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceGraphImpactRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_graph_impact",
+      "type": "object"
+    },
+    "AuthorityRequest_source_identity": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_identity",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceIdentityRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_identity",
+      "type": "object"
+    },
+    "AuthorityRequest_source_inspect_sqlite": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_inspect_sqlite",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceSQLiteRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_inspect_sqlite",
+      "type": "object"
+    },
+    "AuthorityRequest_source_materialization_reconcile": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_materialization_reconcile",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MaterializationRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_materialization_reconcile",
+      "type": "object"
+    },
+    "AuthorityRequest_source_materialize": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_materialize",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceMaterialize"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_materialize",
+      "type": "object"
+    },
+    "AuthorityRequest_source_prepare_refresh": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_prepare_refresh",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceRefreshPrepare"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_prepare_refresh",
+      "type": "object"
+    },
+    "AuthorityRequest_source_prepare_tasks": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_prepare_tasks",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourcePrepare"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_prepare_tasks",
+      "type": "object"
+    },
+    "AuthorityRequest_source_reconcile_archives": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_reconcile_archives",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceBatchRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_reconcile_archives",
+      "type": "object"
+    },
+    "AuthorityRequest_source_register": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_register",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceIntakeRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_register",
+      "type": "object"
+    },
+    "AuthorityRequest_source_schema_configure": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_schema_configure",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceSchemaConfigureRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_schema_configure",
+      "type": "object"
+    },
+    "AuthorityRequest_source_schema_map": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_schema_map",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SourceSchemaRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_source_schema_map",
+      "type": "object"
+    },
+    "Configure": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "pattern": "^custom__[a-z][a-z0-9_]{0,39}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "display_name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Description",
+          "type": "string"
+        },
+        "adapter": {
+          "$ref": "#/$defs/Adapter"
+        },
+        "expected_contract": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Contract"
+        }
+      },
+      "required": [
+        "lane_id",
+        "display_name",
+        "adapter"
+      ],
+      "title": "Configure",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "MaterializationRead": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id"
+      ],
+      "title": "MaterializationRead",
+      "type": "object"
+    },
+    "SnapshotSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SnapshotSelection",
+      "type": "object"
+    },
+    "SourceBatchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batch_id"
+      ],
+      "title": "SourceBatchRequest",
+      "type": "object"
+    },
+    "SourceCrosswalkRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "crosswalk_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Crosswalk Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batch_id",
+        "crosswalk_path"
+      ],
+      "title": "SourceCrosswalkRequest",
+      "type": "object"
+    },
+    "SourceGitImpactRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "graph_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Graph Id",
+          "type": "string"
+        },
+        "commit_sha": {
+          "pattern": "^[0-9a-f]{40,64}$",
+          "title": "Commit Sha",
+          "type": "string"
+        },
+        "parent_ordinal": {
+          "default": 0,
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Parent Ordinal",
+          "type": "integer"
+        },
+        "relations": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 160,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:-]+$",
+                "type": "string"
+              },
+              "maxItems": 64,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relations"
+        },
+        "direction": {
+          "default": "UPSTREAM",
+          "enum": [
+            "UPSTREAM",
+            "DOWNSTREAM",
+            "BOTH"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "max_depth": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_nodes": {
+          "default": 1000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Nodes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "graph_id",
+        "commit_sha"
+      ],
+      "title": "SourceGitImpactRequest",
+      "type": "object"
+    },
+    "SourceGitRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "occurrence_ordinal": {
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Occurrence Ordinal",
+          "type": "integer"
+        },
+        "max_refs": {
+          "default": 1000,
+          "maximum": 20000,
+          "minimum": 1,
+          "title": "Max Refs",
+          "type": "integer"
+        },
+        "max_commits": {
+          "default": 1000,
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Max Commits",
+          "type": "integer"
+        },
+        "max_objects": {
+          "default": 20000,
+          "maximum": 2000000,
+          "minimum": 1,
+          "title": "Max Objects",
+          "type": "integer"
+        },
+        "max_tree_entries": {
+          "default": 50000,
+          "maximum": 5000000,
+          "minimum": 1,
+          "title": "Max Tree Entries",
+          "type": "integer"
+        },
+        "max_file_changes": {
+          "default": 20000,
+          "maximum": 2000000,
+          "minimum": 1,
+          "title": "Max File Changes",
+          "type": "integer"
+        },
+        "max_hunks": {
+          "default": 20000,
+          "maximum": 2000000,
+          "minimum": 1,
+          "title": "Max Hunks",
+          "type": "integer"
+        },
+        "max_changed_lines": {
+          "default": 50000,
+          "maximum": 5000000,
+          "minimum": 1,
+          "title": "Max Changed Lines",
+          "type": "integer"
+        },
+        "max_patch_bytes": {
+          "default": 33554432,
+          "maximum": 2147483648,
+          "minimum": 1,
+          "title": "Max Patch Bytes",
+          "type": "integer"
+        },
+        "max_single_object_bytes": {
+          "default": 8388608,
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Single Object Bytes",
+          "type": "integer"
+        },
+        "max_total_object_bytes": {
+          "default": 67108864,
+          "maximum": 8589934592,
+          "minimum": 1,
+          "title": "Max Total Object Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "batch_id",
+        "occurrence_ordinal"
+      ],
+      "title": "SourceGitRequest",
+      "type": "object"
+    },
+    "SourceGraphDiffRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "from_graph_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "From Graph Id",
+          "type": "string"
+        },
+        "to_graph_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "To Graph Id",
+          "type": "string"
+        },
+        "sample_limit": {
+          "default": 100,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Sample Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "from_graph_id",
+        "to_graph_id"
+      ],
+      "title": "SourceGraphDiffRequest",
+      "type": "object"
+    },
+    "SourceGraphImpactRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "graph_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Graph Id",
+          "type": "string"
+        },
+        "seed_node_ids": {
+          "items": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:-]+$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Seed Node Ids",
+          "type": "array"
+        },
+        "relations": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 160,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:-]+$",
+                "type": "string"
+              },
+              "maxItems": 64,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relations"
+        },
+        "direction": {
+          "default": "UPSTREAM",
+          "enum": [
+            "UPSTREAM",
+            "DOWNSTREAM",
+            "BOTH"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "max_depth": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_nodes": {
+          "default": 1000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Nodes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "graph_id",
+        "seed_node_ids"
+      ],
+      "title": "SourceGraphImpactRequest",
+      "type": "object"
+    },
+    "SourceGraphRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "occurrence_ordinals": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 256,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 256,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Occurrence Ordinals"
+        },
+        "member_path_prefixes": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 4096,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 256,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Member Path Prefixes"
+        },
+        "max_files": {
+          "default": 2000,
+          "maximum": 25000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "default": 4194304,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_nodes": {
+          "default": 20000,
+          "maximum": 500000,
+          "minimum": 1,
+          "title": "Max Nodes",
+          "type": "integer"
+        },
+        "max_edges": {
+          "default": 40000,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Edges",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "batch_id"
+      ],
+      "title": "SourceGraphRequest",
+      "type": "object"
+    },
+    "SourceIdentityRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "entities": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 256,
+          "title": "Entities",
+          "type": "array"
+        },
+        "profiles": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 256,
+          "title": "Profiles",
+          "type": "array"
+        },
+        "relations": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 1024,
+          "title": "Relations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "batch_id",
+        "entities",
+        "profiles",
+        "relations"
+      ],
+      "title": "SourceIdentityRequest",
+      "type": "object"
+    },
+    "SourceIntakeRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        },
+        "code_mode": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Mode",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 256,
+          "title": "Overrides",
+          "type": "object"
+        },
+        "git_mode": {
+          "default": "AUTO",
+          "enum": [
+            "AUTO",
+            "REQUIRED",
+            "DISABLED"
+          ],
+          "title": "Git Mode",
+          "type": "string"
+        },
+        "source_assertions": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxProperties": 256,
+          "title": "Source Assertions",
+          "type": "object"
+        },
+        "parent_route_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Route Id"
+        }
+      },
+      "required": [
+        "sources"
+      ],
+      "title": "SourceIntakeRequest",
+      "type": "object"
+    },
+    "SourceMaterialize": {
+      "additionalProperties": false,
+      "properties": {
+        "preparation_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Preparation Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "plan_document_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Document Digest",
+          "type": "string"
+        },
+        "max_seconds": {
+          "default": 3600,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        },
+        "max_coverage_calls": {
+          "default": 4096,
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Max Coverage Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "preparation_id",
+        "plan_revision",
+        "plan_document_digest"
+      ],
+      "title": "SourceMaterialize",
+      "type": "object"
+    },
+    "SourcePrepare": {
+      "additionalProperties": false,
+      "properties": {
+        "selection": {
+          "$ref": "#/$defs/SourceRouteSelection"
+        },
+        "code_mode": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Mode",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 2000,
+          "title": "Overrides",
+          "type": "object"
+        },
+        "lane_options": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxProperties": 64,
+          "title": "Lane Options",
+          "type": "object"
+        },
+        "budget": {
+          "$ref": "#/$defs/TaskBudget"
+        },
+        "max_files": {
+          "default": 2000,
+          "maximum": 25000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "default": 8388608,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "max_seconds": {
+          "default": 120,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "selection"
+      ],
+      "title": "SourcePrepare",
+      "type": "object"
+    },
+    "SourceRefreshPrepare": {
+      "additionalProperties": false,
+      "properties": {
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRouteSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "code_mode": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Mode",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 2000,
+          "title": "Overrides",
+          "type": "object"
+        },
+        "lane_options": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxProperties": 64,
+          "title": "Lane Options",
+          "type": "object"
+        },
+        "budget": {
+          "$ref": "#/$defs/TaskBudget"
+        },
+        "max_files": {
+          "default": 2000,
+          "maximum": 25000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "default": 8388608,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "max_seconds": {
+          "default": 120,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        },
+        "baseline_snapshots": {
+          "items": {
+            "$ref": "#/$defs/SnapshotSelection"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Baseline Snapshots",
+          "type": "array"
+        },
+        "git_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Git Snapshot Id"
+        }
+      },
+      "required": [
+        "baseline_snapshots"
+      ],
+      "title": "SourceRefreshPrepare",
+      "type": "object"
+    },
+    "SourceRouteConfigure": {
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        },
+        "code_mode": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Mode",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 100,
+          "minProperties": 1,
+          "title": "Overrides",
+          "type": "object"
+        },
+        "git_mode": {
+          "default": "AUTO",
+          "enum": [
+            "AUTO",
+            "REQUIRED",
+            "DISABLED"
+          ],
+          "title": "Git Mode",
+          "type": "string"
+        },
+        "source_assertions": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxProperties": 256,
+          "title": "Source Assertions",
+          "type": "object"
+        },
+        "parent_route_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Route Id"
+        }
+      },
+      "required": [
+        "sources",
+        "overrides"
+      ],
+      "title": "SourceRouteConfigure",
+      "type": "object"
+    },
+    "SourceRouteSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "route_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Route Id",
+          "type": "string"
+        },
+        "occurrence_ordinals": {
+          "items": {
+            "maximum": 256,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Occurrence Ordinals",
+          "type": "array"
+        }
+      },
+      "required": [
+        "route_id",
+        "occurrence_ordinals"
+      ],
+      "title": "SourceRouteSelection",
+      "type": "object"
+    },
+    "SourceSQLiteRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "max_embedded_member_bytes": {
+          "default": 67108864,
+          "maximum": 805306368,
+          "minimum": 1,
+          "title": "Max Embedded Member Bytes",
+          "type": "integer"
+        },
+        "exact_count_max_database_bytes": {
+          "default": 8388608,
+          "maximum": 33554432,
+          "minimum": 1,
+          "title": "Exact Count Max Database Bytes",
+          "type": "integer"
+        },
+        "max_assets": {
+          "default": 512,
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Max Assets",
+          "type": "integer"
+        },
+        "max_total_input_bytes": {
+          "default": 268435456,
+          "maximum": 4294967296,
+          "minimum": 1,
+          "title": "Max Total Input Bytes",
+          "type": "integer"
+        },
+        "max_metadata_bytes": {
+          "default": 8388608,
+          "maximum": 33554432,
+          "minimum": 1024,
+          "title": "Max Metadata Bytes",
+          "type": "integer"
+        },
+        "max_batch_vm_steps": {
+          "default": 40000000,
+          "maximum": 200000000,
+          "minimum": 1000,
+          "title": "Max Batch Vm Steps",
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "default": 15,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Timeout Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "batch_id"
+      ],
+      "title": "SourceSQLiteRequest",
+      "type": "object"
+    },
+    "SourceSchemaConfigureRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "definition": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Definition",
+          "type": "object"
+        },
+        "operation": {
+          "enum": [
+            "ADD",
+            "MODIFY"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "pill_name": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Pill Name",
+          "type": "string"
+        },
+        "expected_previous_schema_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-fA-F]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Previous Schema Sha256"
+        }
+      },
+      "required": [
+        "batch_id",
+        "definition",
+        "operation",
+        "pill_name"
+      ],
+      "title": "SourceSchemaConfigureRequest",
+      "type": "object"
+    },
+    "SourceSchemaRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Batch Id",
+          "type": "string"
+        },
+        "definition": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Definition",
+          "type": "object"
+        }
+      },
+      "required": [
+        "batch_id",
+        "definition"
+      ],
+      "title": "SourceSchemaRequest",
+      "type": "object"
+    },
+    "TaskBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_seconds": {
+          "default": 300,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        },
+        "max_tool_calls": {
+          "default": 64,
+          "maximum": 1024,
+          "minimum": 1,
+          "title": "Max Tool Calls",
+          "type": "integer"
+        },
+        "max_input_bytes": {
+          "default": 1048576,
+          "maximum": 67108864,
+          "minimum": 1,
+          "title": "Max Input Bytes",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "default": 4194304,
+          "maximum": 67108864,
+          "minimum": 1,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "TaskBudget",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "2678AAEF07811CFF5538F2EBC99EF595F54D603173B7B0E80C8E16A292651649"
+  "discriminator": {
+    "mapping": {
+      "custom_lane_configure": "#/$defs/AuthorityRequest_custom_lane_configure",
+      "lane_configure_routes": "#/$defs/AuthorityRequest_lane_configure_routes",
+      "source_crosswalk": "#/$defs/AuthorityRequest_source_crosswalk",
+      "source_git_history": "#/$defs/AuthorityRequest_source_git_history",
+      "source_git_impact": "#/$defs/AuthorityRequest_source_git_impact",
+      "source_graph": "#/$defs/AuthorityRequest_source_graph",
+      "source_graph_diff": "#/$defs/AuthorityRequest_source_graph_diff",
+      "source_graph_impact": "#/$defs/AuthorityRequest_source_graph_impact",
+      "source_identity": "#/$defs/AuthorityRequest_source_identity",
+      "source_inspect_sqlite": "#/$defs/AuthorityRequest_source_inspect_sqlite",
+      "source_materialization_reconcile": "#/$defs/AuthorityRequest_source_materialization_reconcile",
+      "source_materialize": "#/$defs/AuthorityRequest_source_materialize",
+      "source_prepare_refresh": "#/$defs/AuthorityRequest_source_prepare_refresh",
+      "source_prepare_tasks": "#/$defs/AuthorityRequest_source_prepare_tasks",
+      "source_reconcile_archives": "#/$defs/AuthorityRequest_source_reconcile_archives",
+      "source_register": "#/$defs/AuthorityRequest_source_register",
+      "source_schema_configure": "#/$defs/AuthorityRequest_source_schema_configure",
+      "source_schema_map": "#/$defs/AuthorityRequest_source_schema_map"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_custom_lane_configure"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_configure_routes"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_crosswalk"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_git_history"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_git_impact"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_graph"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_graph_diff"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_graph_impact"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_identity"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_inspect_sqlite"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_materialization_reconcile"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_materialize"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_prepare_refresh"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_prepare_tasks"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_reconcile_archives"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_register"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_schema_configure"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_source_schema_map"
+    }
+  ],
+  "title": "sources typed SDK requests"
 }

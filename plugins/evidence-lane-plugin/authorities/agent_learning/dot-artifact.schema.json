@@ -1,45 +1,144 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning DOT_TRAVERSAL_MAP artifact receipt",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "agent_learning"
-    },
-    "artifact_path": {
-      "const": "agent-learning.dot"
-    },
-    "artifact_role": {
-      "const": "DOT_TRAVERSAL_MAP"
-    },
-    "syntax": {
-      "const": "GRAPHVIZ_DOT"
-    },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "authority_support.validate_authority_support"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "$defs": {
+    "JsonValue": {}
   },
   "additionalProperties": false,
-  "receipt_sha256": "BBC54024C1A0D68D83031DA857BFFA2A334DF3C4EADA2129587810356BB9F9C1"
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "learning selected project graph publication",
+  "type": "object",
+  "x-format": "dot",
+  "x-lane-id": "learning",
+  "x-view-contracts": [
+    {
+      "view_id": "learning.provenance",
+      "lane_id": "learning",
+      "folder": "authorities/learning",
+      "version": 1,
+      "meaning": "Verified observations, their exact source receipts and version relationships.",
+      "consumer": "artifact_export",
+      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "files": {
+        "mmd": "agent-learning.mmd",
+        "dot": "agent-learning.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "learning"
+      ],
+      "node_kinds": [
+        "learning_version",
+        "verified_exit"
+      ],
+      "edge_kinds": [
+        "VERIFIED_SOURCE_OF",
+        "PREVIOUS_VERSION"
+      ],
+      "schemas": [
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "x-automatic-refresh": false
 }

@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 96,
   "tool": "FastMCP",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "5C28ED3E464E0DF323853F2D2E7B0149C143282EFC6F7AB4019AF512C07F6FFC"
+  "historical_ordinal": 96,
+  "catalog_ordinal": 91,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "519dd5628688b4416978dd6e6ba1bee9f2603371119ba64c209caa27bf6fe75f"
 }

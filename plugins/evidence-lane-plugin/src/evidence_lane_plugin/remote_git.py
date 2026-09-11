@@ -1,353 +1,343 @@
-"""Policy-authorized remote Git test-branch push controller."""
+"""Original prepared-push owner, bound to current Plan, Sources and Receipts.
 
+Consume before mutation, journal the effect, and confirm exact remote readback.
+No automatic replay, protected-branch push, force update or main merge.
+"""
 from __future__ import annotations
 
 import json
+import os
+import re
+import shlex
 from pathlib import Path
-from typing import Any
+from typing import Literal
+from uuid import uuid4
 
-from .errors import EvidenceLaneError, require
-from .git_adapter import (
-    inspect_repository,
-    remote_push,
-    resolve_local_ref_identity,
-    resolve_named_remote_identity,
-    validate_remote_ref,
+from pydantic import Field, field_validator
+
+from .enrollment import (
+    _authentication,
+    _authority_matches,
+    _bounded_source,
+    _confirm,
+    branch_identity,
+    current_branch_authority,
 )
+from .errors import LaneError
+from .git_adapter import resolve_git_executable, workflow_git
 from .github_automation_governance import inspect_agent_output
-from .hashing import atomic_write_json
-from .ids import prefixed_id
-from .store import ProjectStore
-from .timeutil import utc_now
-from .website_plan_projection import require_website_plan_projection_for_push
+from .migrations import Migration, apply_migrations, read_compatibility
+from .plan_runtime import content_digest
+from .projects import ProjectAccess
+from .registry import ActionSpec, Contract
+from .storage import json_text, now, project_snapshot
+from .tool_routes import ToolRoute
+from .website_plan_projection import require_current_website_plan_for_push
+
+PUSH_MIGRATIONS = (Migration('gitpush', 1, 'One-use prepared pushes and append-only outcome history', (
+    """CREATE TABLE gitpush_events (action_id TEXT NOT NULL, sequence INTEGER NOT NULL,
+       digest TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       PRIMARY KEY(action_id,sequence))""",
+    """CREATE TABLE gitpush_current (action_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL,
+       digest TEXT NOT NULL, FOREIGN KEY(action_id,sequence) REFERENCES gitpush_events(action_id,sequence))""",
+)),)
+
+
+class PushPrepare(Contract):
+    branch: str = Field(min_length=1, max_length=200)
+    remote: str = Field(default='origin', pattern=r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$')
+    expected_remote_url: str = Field(min_length=1, max_length=2000)
+    expected_commit: str = Field(pattern=r'^[0-9a-f]{40}(?:[0-9a-f]{24})?$')
+    expected_remote_commit: str | None = Field(pattern=r'^[0-9a-f]{40}(?:[0-9a-f]{24})?$')
+    expected_authority_digest: str = Field(pattern=r'^[0-9a-f]{64}$')
+    authentication: Literal['none', 'host_git_credential_manager', 'host_openssh_agent'] = 'none'
+
+    @field_validator('branch', 'expected_remote_url')
+    @classmethod
+    def no_controls(cls, value):
+        if any(ord(c) < 32 or ord(c) == 127 for c in value):
+            raise ValueError('Use an exact selection without control characters')
+        return value
+
+
+class PushExecute(Contract):
+    action_id: str = Field(pattern=r'^[0-9a-f-]{36}$')
+    prepared_digest: str = Field(pattern=r'^[0-9a-f]{64}$')
+    expected_remote_url: str = Field(min_length=1, max_length=2000)
+
+
+class PushRead(Contract):
+    action_id: str = Field(pattern=r'^[0-9a-f-]{36}$')
+
+
+class PushResult(Contract):
+    project_id: str
+    action_id: str
+    digest: str
+    action: dict
+
+
+class PushState(Contract):
+    project_id: str
+    record: dict | None
+    live_remote_observed: bool = False
+
+
+def push_record(store, action_id, connection=None):
+    lane = store.lane('receipts')
+    if connection is None:
+        if read_compatibility(lane, PUSH_MIGRATIONS)[0]['status'] == 'not_initialized':
+            return None
+        with lane.connection(read_only=True) as db:
+            return push_record(store, action_id, db)
+    head = connection.execute('SELECT * FROM gitpush_current WHERE action_id=?', (action_id,)).fetchone()
+    if head is None:
+        return None
+    rows = connection.execute('SELECT * FROM gitpush_events WHERE action_id=? ORDER BY sequence LIMIT 4', (action_id,)).fetchall()
+    if len(rows) > 3:
+        raise LaneError('REMOTE_ACTION_INTEGRITY', 'A one-use push cannot have more than three state transitions.')
+    previous = None
+    for sequence, row in enumerate(rows, start=1):
+        body = json.loads(row['body_json'])
+        if (sequence != row['sequence'] or body.get('sequence') != sequence or body.get('action_id') != action_id
+                or body.get('project_id') != store.project_id or body.get('previous_digest') != previous
+                or row['digest'] != content_digest(body)):
+            raise LaneError('REMOTE_ACTION_INTEGRITY', 'The prepared push event chain failed verification.')
+        previous = row['digest']
+    if not rows or head['digest'] != previous or head['sequence'] != len(rows):
+        raise LaneError('REMOTE_ACTION_INTEGRITY', 'The prepared push current reference failed verification.')
+    return {'digest': previous, 'body': body}
+
+
+def append_push(context, body, previous=None):
+    execution, store = context.execution, context.execution.store
+    execution._before_more_work()
+    apply_migrations(store, PUSH_MIGRATIONS, writer=execution.lease)
+    with execution.lease.transaction('receipts') as db:
+        current = push_record(store, body['action_id'], db)
+        if (current['digest'] if current else None) != previous:
+            raise LaneError('REMOTE_ACTION_STATE_CHANGED', 'Read the exact push state before another transition.')
+        event = {**body, 'sequence': current['body']['sequence'] + 1 if current else 1,
+            'previous_digest': previous, 'recorded_at': now()}
+        digest = content_digest(event)
+        db.execute('INSERT INTO gitpush_events VALUES(?,?,?,?)',
+            (event['action_id'], event['sequence'], digest, json_text(event)))
+        db.execute('INSERT INTO gitpush_current VALUES(?,?,?) ON CONFLICT(action_id) DO UPDATE '
+            'SET sequence=excluded.sequence,digest=excluded.digest', (event['action_id'], event['sequence'], digest))
+        store.append_receipt('remote_git_push_' + event['state'],
+            {'action_id': event['action_id'], 'digest': digest}, connection=db)
+    return {'digest': digest, 'body': event}
 
 
 class RemoteGitController:
-    def __init__(self, store: ProjectStore) -> None:
-        self.store = store
-
-    def _path(self, project_id: str, action_id: str) -> Path:
-        return (
-            self.store.project_root(project_id)
-            / "receipts"
-            / f"{action_id}.remote-git.json"
-        )
+    def __init__(self, context):
+        self.context = context
+        self.execution = context.execution
+        self.store = self.execution.store
+        self.repository = self.store.source_root
+        self.access = ProjectAccess(self.store)
 
     @staticmethod
-    def _branch_name(value: str) -> str:
-        return value.removeprefix("refs/heads/")
+    def _require_automatic_test_branch(branch):
+        protected = {'main', 'master', 'develop', 'development', 'production', 'prod', 'release', 'stable'}
+        if (branch in protected or branch.startswith(('release/', 'hotfix/'))
+                or not branch.startswith(('agent/', 'test/', 'tests/', 'feature/', 'fix/', 'chore/', 'codex/'))):
+            raise LaneError('REMOTE_PROTECTED_OR_NON_TEST_BRANCH_BLOCKED',
+                'Push requires the exact registered non-protected development branch.')
 
-    @classmethod
-    def _require_automatic_test_branch(
-        cls,
-        *,
-        local_ref: str,
-        remote_branch: str,
-        allowed_branches: list[str],
-    ) -> str:
-        local_branch = cls._branch_name(local_ref)
-        exact_branch = cls._branch_name(remote_branch)
-        allowed = [cls._branch_name(value) for value in allowed_branches]
-        protected = {
-            "main",
-            "master",
-            "develop",
-            "development",
-            "production",
-            "prod",
-            "release",
-            "stable",
-        }
-        test_prefixes = (
-            "agent/",
-            "test/",
-            "tests/",
-            "feature/",
-            "fix/",
-            "chore/",
-        )
-        require(
-            allowed == [exact_branch],
-            "REMOTE_TEST_BRANCH_NOT_EXACT_PROJECT_AUTHORITY",
-            "Automatic remote push requires the exact sole registered project branch.",
-            status="BLOCKED",
-            registered_branches=allowed,
-            requested_branch=exact_branch,
-        )
-        require(
-            local_branch == exact_branch,
-            "REMOTE_TEST_BRANCH_LOCAL_REF_MISMATCH",
-            "Automatic remote push requires the local and remote branch names to match.",
-            status="BLOCKED",
-            local_branch=local_branch,
-            remote_branch=exact_branch,
-        )
-        require(
-            exact_branch not in protected
-            and not exact_branch.startswith(("release/", "hotfix/"))
-            and exact_branch.startswith(test_prefixes),
-            "REMOTE_PROTECTED_OR_NON_TEST_BRANCH_BLOCKED",
-            "Automatic remote push is limited to a named non-protected test branch.",
-            status="BLOCKED",
-            remote_branch=exact_branch,
-            supported_prefixes=list(test_prefixes),
-        )
-        return exact_branch
+    def transport(self, url, authentication, expected_provider=None):
+        source, kind = _bounded_source(url)
+        local = kind == 'LOCAL_GIT_SOURCE'
+        if local and authentication != 'none':
+            raise LaneError('GIT_CREDENTIAL_PROVIDER_INCOMPATIBLE', 'Local Git does not use network credentials.')
+        def check_access():
+            for permission in ('read', 'publish'):
+                if permission not in self.context.permissions:
+                    raise LaneError('PERMISSION_DENIED', 'This client lacks the required Git read or publish permission.')
+                self.context.authorize(permission)
+                self.access.authorize(self.context.client_id, permission, path=self.repository)
+                if local:
+                    self.access.authorize(self.context.client_id, permission, path=Path(source))
+            if not local:
+                if 'network' not in self.context.permissions:
+                    raise LaneError('PERMISSION_DENIED', 'Network Git requires this client network permission.')
+                self.context.authorize('network')
+                self.access.authorize(self.context.client_id, 'network')
+        check_access()
+        self.execution.guard.extension_checks.append(check_access)
+        self.source, self.local, self.https, self.ssh = source, local, kind == 'CREDENTIAL_FREE_HTTPS', kind == 'SSH_GIT_SOURCE'
+        self.provider = _authentication(self.repository, kind, authentication)
+        if expected_provider is not None and self.provider != expected_provider:
+            raise LaneError('GIT_CREDENTIAL_PROVIDER_CHANGED', 'The prepared Git credential provider changed.')
+        if local and self.run(['rev-parse', '--is-bare-repository'], repository=Path(source)).stdout.strip() != 'true':
+            raise LaneError('REMOTE_LOCAL_BARE_REQUIRED', 'A local push destination must be an explicitly granted bare Git repository.')
 
-    def prepare_push(
-        self,
-        project_id: str,
-        *,
-        requested_by: str,
-        remote: str,
-        local_ref: str,
-        remote_branch: str,
-    ) -> dict[str, Any]:
-        pointer = self.store.pointer(project_id)
-        require(
-            pointer.accepted_pv is not None,
-            "REMOTE_WRITE_REQUIRES_ACCEPTED_PV",
-            "Remote Git actions require an accepted PV.",
-            status="BLOCKED",
-        )
-        safe_remote = validate_remote_ref(remote, field="remote")
-        safe_local = validate_remote_ref(local_ref, field="local_ref")
-        safe_branch = validate_remote_ref(remote_branch, field="remote_branch")
-        config = self.store.config(project_id)
-        exact_branch = self._require_automatic_test_branch(
-            local_ref=safe_local,
-            remote_branch=safe_branch,
-            allowed_branches=config.allowed_branches,
-        )
-        local_commit, local_tree = resolve_local_ref_identity(
-            config.repository_path,
-            local_ref=safe_local,
-        )
-        repository_identity = inspect_repository(
-            config.repository_path,
-            expected_owner=config.expected_owner,
-            expected_name=config.expected_name,
-            expected_branch=exact_branch,
-            expected_commit=local_commit,
-        )
-        require(
-            repository_identity.tree_sha == local_tree,
-            "REMOTE_REPOSITORY_TREE_IDENTITY_MISMATCH",
-            "The governed repository tree does not match the prepared local ref.",
-            status="MISMATCH",
-        )
-        website_plan_gate = require_website_plan_projection_for_push(
-            self.store,
-            project_id=project_id,
-            repository=config.repository_path,
-            commit=local_commit,
-        )
-        remote_identity = resolve_named_remote_identity(
-            config.repository_path,
-            remote=safe_remote,
-            expected_owner=config.expected_owner,
-            expected_name=config.expected_name,
-        )
-        action_id = prefixed_id("remote_action")
-        payload = {
-            "schema": "evidence-lane.remote-git-action.v2",
-            "action_id": action_id,
-            "action": "PUSH_BRANCH",
-            "project_id": project_id,
-            "accepted_pv": pointer.accepted_pv,
-            "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-            "pointer_generation": pointer.generation,
-            "remote": safe_remote,
-            "remote_identity": remote_identity,
-            "repository_identity": {
-                "owner": repository_identity.owner,
-                "name": repository_identity.name,
-                "branch": repository_identity.branch,
-                "commit_sha": repository_identity.commit_sha,
-                "tree_sha": repository_identity.tree_sha,
-            },
-            "local_ref": safe_local,
-            "local_commit": local_commit,
-            "local_tree": local_tree,
-            "remote_branch": exact_branch,
-            "website_plan_gate": website_plan_gate,
-            "requested_by": requested_by,
-            "prepared_at": utc_now(),
-            "authorization": {
-                "policy": "EXACT_REGISTERED_NON_PROTECTED_TEST_BRANCH",
-                "automatic_branch_push_authorized": True,
-                "one_use_confirmation_required": False,
-                "credentials_source": "HOST_MANAGED_GIT_CREDENTIAL_PROVIDER",
-                "credential_requested_or_stored": False,
-                "main_branch_push_authorized": False,
-                "merge_authorized": False,
-                "pull_request_acceptance_authorized": False,
-            },
-            "status": "PREPARED_AUTO_AUTHORIZED_TEST_BRANCH",
-        }
-        atomic_write_json(self._path(project_id, action_id), payload)
-        return {
-            "status": "PASS",
-            "action": payload,
-            "confirmation_token": None,
-            "next_action": "EXECUTE_PREAUTHORIZED_EXACT_TEST_BRANCH_PUSH",
-        }
+    def run(self, arguments, *, repository=None, check=True, transport=False):
+        self.execution.guard.spend_call()
+        return workflow_git(repository or self.repository, arguments, check=check,
+            tick=self.execution._before_more_work, https=self.https if transport else False,
+            credential_provider=self.provider if transport and self.https else None,
+            ssh_provider=self.provider if transport and self.ssh else None)
 
-    def execute_push(
-        self,
-        project_id: str,
-        *,
-        action_id: str,
-        executed_by: str,
-    ) -> dict[str, Any]:
-        path = self._path(project_id, action_id)
-        require(
-            path.is_file(),
-            "REMOTE_ACTION_NOT_FOUND",
-            "The prepared remote Git action does not exist.",
-            status="MISMATCH",
-        )
-        action = json.loads(path.read_text(encoding="utf-8"))
-        require(
-            action["status"] == "PREPARED_AUTO_AUTHORIZED_TEST_BRANCH",
-            "REMOTE_ACTION_ALREADY_CONSUMED",
-            "The remote Git action is no longer pending.",
-            status="BLOCKED",
-        )
-        pointer = self.store.pointer(project_id)
-        require(
-            pointer.accepted_pv == action["accepted_pv"]
-            and pointer.accepted_manifest_sha256 == action["accepted_manifest_sha256"]
-            and pointer.generation == action["pointer_generation"],
-            "REMOTE_ACTION_POINTER_STALE",
-            "The accepted pointer changed after the remote action was prepared.",
-            status="STALE",
-        )
-        config = self.store.config(project_id)
-        self._require_automatic_test_branch(
-            local_ref=action["local_ref"],
-            remote_branch=action["remote_branch"],
-            allowed_branches=config.allowed_branches,
-        )
-        pinned_commit = action.get("local_commit")
-        pinned_tree = action.get("local_tree")
-        if not (
-            isinstance(pinned_commit, str)
-            and isinstance(pinned_tree, str)
-            and len(pinned_commit) in {40, 64}
-            and len(pinned_tree) in {40, 64}
-        ):
-            action.update(
-                {
-                    "status": "BLOCKED_MISSING_COMMIT_BINDING",
-                    "executed_by": executed_by,
-                    "blocked_at": utc_now(),
-                }
-            )
-            atomic_write_json(path, action)
-            raise EvidenceLaneError(
-                "REMOTE_ACTION_COMMIT_BINDING_MISSING",
-                "The prepared remote Git action is not bound to an exact commit and tree.",
-                status="BLOCKED",
-            )
-        observed_commit, observed_tree = resolve_local_ref_identity(
-            config.repository_path,
-            local_ref=action["local_ref"],
-        )
-        if observed_commit != pinned_commit or observed_tree != pinned_tree:
-            action.update(
-                {
-                    "status": "STALE_LOCAL_REF_MOVED",
-                    "executed_by": executed_by,
-                    "stale_at": utc_now(),
-                    "observed_local_commit": observed_commit,
-                    "observed_local_tree": observed_tree,
-                }
-            )
-            atomic_write_json(path, action)
-            raise EvidenceLaneError(
-                "REMOTE_ACTION_SOURCE_STALE",
-                "The prepared local Git ref moved after the push was prepared.",
-                status="STALE",
-                details={
-                    "expected_commit": pinned_commit,
-                    "observed_commit": observed_commit,
-                },
-            )
-        repository_identity = inspect_repository(
-            config.repository_path,
-            expected_owner=config.expected_owner,
-            expected_name=config.expected_name,
-            expected_branch=action["remote_branch"],
-            expected_commit=pinned_commit,
-        )
-        current_remote_identity = resolve_named_remote_identity(
-            config.repository_path,
-            remote=action["remote"],
-            expected_owner=config.expected_owner,
-            expected_name=config.expected_name,
-        )
-        require(
-            repository_identity.tree_sha == pinned_tree
-            and action.get("remote_identity") == current_remote_identity
-            and action.get("repository_identity")
-            == {
-                "owner": repository_identity.owner,
-                "name": repository_identity.name,
-                "branch": repository_identity.branch,
-                "commit_sha": repository_identity.commit_sha,
-                "tree_sha": repository_identity.tree_sha,
-            },
-            "REMOTE_ACTION_REPOSITORY_OR_REMOTE_STALE",
-            "The governed repository or selected remote changed after preparation.",
-            status="STALE",
-        )
-        current_website_plan_gate = require_website_plan_projection_for_push(
-            self.store,
-            project_id=project_id,
-            repository=config.repository_path,
-            commit=pinned_commit,
-        )
-        require(
-            action.get("website_plan_gate") == current_website_plan_gate,
-            "REMOTE_WEBSITE_PLAN_GATE_STALE_AFTER_PREPARE",
-            "The canonical Plan changed after the remote push was prepared.",
-            status="STALE",
-            prepared_website_plan_gate=action.get("website_plan_gate"),
-            current_website_plan_gate=current_website_plan_gate,
-        )
-        result = remote_push(
-            config.repository_path,
-            remote=action["remote"],
-            local_ref=pinned_commit,
-            remote_ref=action["remote_branch"],
-        )
-        combined_output = result.stdout
-        if result.stderr:
-            combined_output = f"{combined_output}\n[stderr]\n{result.stderr}"
-        output_security = inspect_agent_output(combined_output)
-        action.update(
-            {
-                "status": "EXECUTED" if result.returncode == 0 else "FAILED",
-                "executed_by": executed_by,
-                "executed_at": utc_now(),
-                "git_returncode": result.returncode,
-                "git_stdout": output_security["safe_output"],
-                "output_security": output_security,
-            }
-        )
-        atomic_write_json(path, action)
-        if result.returncode != 0:
-            raise EvidenceLaneError(
-                "REMOTE_GIT_PUSH_FAILED",
-                "The exact preauthorized test-branch push failed and the prepared action was consumed.",
-                status="FAIL",
-                details={
-                    "action_id": action_id,
-                    "git_returncode": result.returncode,
-                    "output_security_receipt_sha256": output_security[
-                        "receipt_sha256"
-                    ],
-                },
-            )
-        return {"status": "PASS", "action": action}
+    def observe(self, branch, remote, url):
+        self.execution.guard.spend_call()
+        return branch_identity(self.repository, branch, remote, url, tick=self.execution._before_more_work)
+
+    def remote_head(self, branch):
+        result = self.run(['ls-remote', '--refs', '--heads', '--', self.source, 'refs/heads/' + branch], transport=True)
+        rows = result.stdout.splitlines()
+        if not rows:
+            return None
+        if (len(rows) != 1 or len(rows[0].split('\t')) != 2
+                or rows[0].split('\t')[1] != 'refs/heads/' + branch
+                or not re.fullmatch(r'[0-9a-f]{40}(?:[0-9a-f]{24})?', rows[0].split('\t')[0])):
+            raise LaneError('REMOTE_REF_READBACK_INVALID', 'The exact remote ref readback is invalid or ambiguous.')
+        return rows[0].split('\t')[0]
+
+    def published_paths(self, commit, remote_commit):
+        if remote_commit is not None:
+            if self.run(['cat-file', '-e', remote_commit + '^{commit}'], check=False).returncode:
+                raise LaneError('REMOTE_COMMIT_NOT_LOCAL', 'Sync the exact remote commit before preparing its fast-forward.')
+            if self.run(['merge-base', '--is-ancestor', remote_commit, commit], check=False).returncode:
+                raise LaneError('REMOTE_PUSH_NOT_FAST_FORWARD', 'The selected push must fast-forward the remote branch.')
+            arguments = ['diff', '--no-ext-diff', '--no-textconv', '--no-renames', '--name-only', '-z', remote_commit, commit, '--']
+        else:
+            arguments = ['ls-tree', '-r', '--name-only', '-z', commit]
+        paths = list(filter(None, self.run(arguments).stdout.split('\0')))
+        if len(paths) > 25000:
+            raise LaneError('REMOTE_PUSH_PATH_BUDGET', 'Select a push within 25,000 changed paths.')
+        for relative in paths:
+            path = self.execution.guard.path(relative)
+            self.access.authorize(self.context.client_id, 'publish', path=path)
+        if not self.execution.guard.task.permitted_paths:
+            raise LaneError('DELTA_PATH_SCOPE', 'The push task needs explicit source path scope.')
+        return paths
+
+    def prepare_push(self, request):
+        self._require_automatic_test_branch(request.branch)
+        self.transport(request.expected_remote_url, request.authentication)
+        before = self.observe(request.branch, request.remote, request.expected_remote_url)
+        authority = current_branch_authority(self.store)
+        if not _authority_matches(authority, before) or authority['digest'] != request.expected_authority_digest:
+            raise LaneError('REMOTE_TEST_BRANCH_NOT_EXACT_PROJECT_AUTHORITY', 'Select this exact branch and remote as project authority first.')
+        if before['worktree']['head'] != request.expected_commit:
+            raise LaneError('REMOTE_ACTION_SOURCE_STALE', 'The local commit differs from the requested push.')
+        remote_commit = self.remote_head(request.branch)
+        if remote_commit != request.expected_remote_commit:
+            raise LaneError('REMOTE_ACTION_REMOTE_STALE', 'The remote branch differs from the expected pre-push commit.')
+        paths = self.published_paths(request.expected_commit, remote_commit)
+        website = require_current_website_plan_for_push(self.store, request.expected_commit, tick=self.execution._before_more_work)
+        body = {'action_id': str(uuid4()), 'project_id': self.store.project_id, 'state': 'prepared',
+            'branch': request.branch, 'remote': request.remote, 'remote_identity': before['remote_identity'],
+            'source_root': str(self.repository), 'commit': request.expected_commit, 'tree': before['worktree']['tree'],
+            'remote_commit_before': remote_commit, 'authority_digest': authority['digest'],
+            'prepared_by': self.context.client_id, 'plan_revision': self.execution.plan_revision,
+            'prepared_task_id': self.execution.task_id, 'prepared_job_id': self.execution.claim.job_id,
+            'authentication': request.authentication, 'credential_provider': self.provider,
+            'published_paths': paths, 'website_plan_gate': website, 'force_push': False,
+            'main_merge_authorized': False, 'automatic_replay': False,
+            'credential_values_stored': False, 'remote_write_performed': False}
+        if self.observe(request.branch, request.remote, request.expected_remote_url) != before:
+            raise LaneError('REMOTE_ACTION_SOURCE_STALE', 'The source changed during push preparation.')
+        record = append_push(self.context, body)
+        return PushResult(project_id=self.store.project_id, action_id=body['action_id'], digest=record['digest'], action=record['body'])
+
+    def execute_push(self, request):
+        record = push_record(self.store, request.action_id)
+        if record is None:
+            raise LaneError('REMOTE_ACTION_NOT_FOUND', 'Select an existing prepared Git push.')
+        action = record['body']
+        if action['state'] != 'prepared':
+            raise LaneError('REMOTE_ACTION_ALREADY_CONSUMED', 'The push is consumed; inspect its evidence and reconcile it.')
+        if record['digest'] != request.prepared_digest:
+            raise LaneError('REMOTE_ACTION_STATE_CHANGED', 'Use the exact prepared push digest.')
+        if action['prepared_by'] != self.context.client_id or action['plan_revision'] != self.execution.plan_revision:
+            raise LaneError('REMOTE_ACTION_PLAN_OR_ACTOR_STALE', 'The prepared push belongs to another client or Plan revision.')
+        self._require_automatic_test_branch(action['branch'])
+        self.transport(request.expected_remote_url, action['authentication'], action['credential_provider'])
+        before = self.observe(action['branch'], action['remote'], request.expected_remote_url)
+        authority = current_branch_authority(self.store)
+        if (not _authority_matches(authority, before) or authority['digest'] != action['authority_digest']
+                or before['remote_identity'] != action['remote_identity'] or str(self.repository) != action['source_root']
+                or before['worktree']['head'] != action['commit'] or before['worktree']['tree'] != action['tree']):
+            append_push(self.context, {**action, 'state': 'invalidated', 'invalidation_reason': 'source_or_authority_changed'}, record['digest'])
+            raise LaneError('REMOTE_ACTION_SOURCE_STALE', 'The branch, remote, authority, commit or tree changed after preparation.')
+        if self.remote_head(action['branch']) != action['remote_commit_before']:
+            raise LaneError('REMOTE_ACTION_REMOTE_STALE', 'The remote branch moved after preparation.')
+        if self.published_paths(action['commit'], action['remote_commit_before']) != action['published_paths']:
+            raise LaneError('REMOTE_ACTION_SOURCE_STALE', 'The committed path selection changed.')
+        if require_current_website_plan_for_push(self.store, action['commit'], tick=self.execution._before_more_work) != action['website_plan_gate']:
+            raise LaneError('REMOTE_WEBSITE_PLAN_PROJECTION_STALE', 'The website Plan gate changed after preparation.')
+        consumed = append_push(self.context, {**action, 'state': 'consumed', 'executed_by': self.context.client_id,
+            'execution_task_id': self.execution.task_id, 'execution_job_id': self.execution.claim.job_id}, record['digest'])
+        # A crash even before effect preparation leaves consumption in place.
+        effect = self.execution.prepare_effect('git-push:' + request.action_id, 'Push one pinned commit and verify the exact remote branch readback.')
+        receiver = []
+        if self.local:
+            # A local Git transport clears the source command's -c settings.
+            # Use our fixed receiver command, never repository receive-pack text.
+            command = [Path(resolve_git_executable(self.repository)).as_posix(),
+                '-c', 'core.hooksPath=' + os.devnull, '-c', 'core.fsmonitor=false', 'receive-pack']
+            receiver = ['--receive-pack=' + shlex.join(command)]
+        result = self.run(['push', '--porcelain', '--no-verify', '--no-follow-tags', '--recurse-submodules=no', *receiver,
+            '--', self.source, action['commit'] + ':refs/heads/' + action['branch']], transport=True, check=False)
+        inspection = inspect_agent_output(result.stdout + '\n' + result.stderr)
+        # Keep original advisory inspection metadata, excluding provider prose:
+        # regex redaction cannot prove absence of previously unknown secrets.
+        inspection.pop('safe_output', None)
+        inspection.pop('safe_infrastructure_error', None)
+        observed = self.remote_head(action['branch'])
+        after = self.observe(action['branch'], action['remote'], request.expected_remote_url)
+        if observed != action['commit'] or after != before:
+            raise LaneError('REMOTE_PUSH_OUTCOME_UNCERTAIN', 'The pinned remote ref and unchanged local bytes were not both confirmed.')
+        _confirm(self.execution, effect, {'action_id': request.action_id, 'remote_commit': observed,
+            'remote_identity': action['remote_identity'], 'local_before': before, 'local_after': after,
+            'git_returncode': result.returncode, 'output_security': inspection})
+        final = append_push(self.context, {**consumed['body'], 'state': 'confirmed', 'effect_id': effect,
+            'remote_commit_after': observed, 'local_before': before, 'local_after': after,
+            'git_returncode': result.returncode, 'output_security': inspection,
+            'remote_write_attempted': True,
+            'remote_write_performed': result.returncode == 0 and observed != action['remote_commit_before'],
+            'remote_ref_change_observed': observed != action['remote_commit_before'],
+            'remote_ref_readback_verified': True,
+            'remote_preflight_is_atomic_compare_and_swap': False,
+            'push_process_reported_success': result.returncode == 0}, consumed['digest'])
+        return PushResult(project_id=self.store.project_id, action_id=request.action_id,
+            digest=final['digest'], action=final['body'])
+
+
+def verify_push(context, request, output):
+    record = push_record(context.store, output.action_id)
+    valid = bool(record and record['digest'] == output.digest and record['body'] == output.action)
+    if isinstance(request, PushExecute):
+        action = output.action
+        from .git_adapter import restoration_source_identity
+        valid = valid and action['state'] == 'confirmed' and action['remote_commit_after'] == action['commit']
+        valid = valid and restoration_source_identity(context.store.source_root) == action['local_after']['worktree']
+        with context.store.lane('plan').connection(read_only=True) as db:
+            effect = db.execute('SELECT state FROM jobs_effects WHERE effect_id=?', (action['effect_id'],)).fetchone()
+        valid = valid and bool(effect and effect[0] == 'confirmed')
+    else:
+        valid = valid and output.action['state'] == 'prepared'
+    return [{'check_id': name, 'passed': bool(valid), 'evidence': {'action_id': output.action_id,
+        'digest': output.digest, 'state': output.action['state']}} for name in context.requested_checks]
+
+
+def register_remote_git_actions(engine):
+    for name, model, method, checks in (
+        ('remote_git_prepare_push', PushPrepare, 'prepare_push', ('git_push_preparation_integrity',)),
+        ('remote_git_execute_push', PushExecute, 'execute_push', ('git_push_remote_readback', 'git_push_local_preservation')),
+    ):
+        def handler(context, request, method=method):
+            return getattr(RemoteGitController(context), method)(request)
+        engine.registry.register(ActionSpec(name, 'Prepare or execute one pinned, one-use development-branch Git push with remote readback.',
+            model, PushResult, handler, permission='publish', mutates=True, profile='code', workflow='lifecycle',
+            requires_delta=True, required_tools=('Python', 'SQLite_FTS5_BM25', 'Git'),
+            verification_checks=checks, verifier=verify_push,
+            tool_routes=(ToolRoute(name + '.exact_git', handler, ('Python', 'SQLite_FTS5_BM25', 'Git')),)))
+    def read(context, request):
+        store = engine.directory.open(context.project_id)
+        with project_snapshot(store.root):
+            return PushState(project_id=store.project_id, record=push_record(store, request.action_id))
+    engine.registry.register(ActionSpec('remote_git_action_read', 'Read one recorded push state and integrity without contacting the remote.',
+        PushRead, PushState, read, workflow='lifecycle', queryable_in_delta=True, studio_read=True, read_migrations=PUSH_MIGRATIONS))

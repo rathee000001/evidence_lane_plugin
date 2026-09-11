@@ -1,0 +1,232 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.",
+  "inputSchema": {
+    "$defs": {
+      "SnapshotSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "git_snapshot_id": {
+        "anyOf": [
+          {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Git Snapshot Id"
+      },
+      "lane_id": {
+        "maxLength": 64,
+        "minLength": 1,
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_files": {
+        "default": 512,
+        "maximum": 4096,
+        "minimum": 1,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "max_total_bytes": {
+        "default": 33554432,
+        "maximum": 536870912,
+        "minimum": 1,
+        "title": "Max Total Bytes",
+        "type": "integer"
+      },
+      "replacement_tasks": {
+        "items": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 128,
+        "title": "Replacement Tasks",
+        "type": "array"
+      },
+      "replacements": {
+        "items": {
+          "$ref": "#/$defs/SnapshotSelection"
+        },
+        "maxItems": 128,
+        "title": "Replacements",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "lane_id",
+      "snapshot_id"
+    ],
+    "title": "SnapshotRetire",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "source_snapshot_retire",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Python"
+  ],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "source_snapshot_retire",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+        "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_selector.local_files",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ],
+        "worker_operations": []
+      },
+      {
+        "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+        "argument_suffixes": {},
+        "argument_values": {
+          "lane_id": [
+            "github_code"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_selector.git_checkpoint",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Git"
+        ],
+        "worker_operations": [
+          "code_git_checkpoint"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "code_git_checkpoint"
+    ]
+  },
+  "verification_checks": [
+    "source_selector_retirement_verified"
+  ],
+  "worker_operations": [
+    "code_git_checkpoint"
+  ],
+  "workflow": "refresh"
+}

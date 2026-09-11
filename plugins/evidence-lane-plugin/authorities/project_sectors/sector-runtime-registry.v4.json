@@ -1,0 +1,59 @@
+{
+  "schema": "evidence-lane.sector-runtime-registry.v4",
+  "implemented_sectors": [
+    {
+      "lane_id": "local_code",
+      "manifest": "authorities/project_sectors/local_code/manifest.v4.json"
+    },
+    {
+      "lane_id": "github_code",
+      "manifest": "authorities/project_sectors/github_code/manifest.v4.json"
+    },
+    {
+      "lane_id": "docs",
+      "manifest": "authorities/project_sectors/docs/manifest.v4.json"
+    },
+    {
+      "lane_id": "data_excel",
+      "manifest": "authorities/project_sectors/data_excel/manifest.v4.json"
+    },
+    {
+      "lane_id": "data",
+      "manifest": "authorities/project_sectors/data/manifest.v4.json"
+    },
+    {
+      "lane_id": "ppt",
+      "manifest": "authorities/project_sectors/ppt/manifest.v4.json"
+    },
+    {
+      "lane_id": "tableau",
+      "manifest": "authorities/project_sectors/tableau/manifest.v4.json"
+    },
+    {
+      "lane_id": "power_bi",
+      "manifest": "authorities/project_sectors/power_bi/manifest.v4.json"
+    },
+    {
+      "lane_id": "pdf_ocr",
+      "manifest": "authorities/project_sectors/pdf_ocr/manifest.v4.json"
+    },
+    {
+      "lane_id": "images_ocr",
+      "manifest": "authorities/project_sectors/images_ocr/manifest.v4.json"
+    },
+    {
+      "lane_id": "research",
+      "manifest": "authorities/project_sectors/research/manifest.v4.json"
+    },
+    {
+      "lane_id": "artifacts",
+      "manifest": "authorities/project_sectors/artifacts/manifest.v4.json"
+    },
+    {
+      "lane_id": "custom",
+      "manifest": "authorities/project_sectors/custom/manifest.v4.json"
+    }
+  ],
+  "other_sector_definitions": "schemas/lane-registry.v4.json",
+  "installation_inferred": false
+}

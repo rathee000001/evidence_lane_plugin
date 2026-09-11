@@ -1,0 +1,9 @@
+interface:
+  display_name: "Manage project memory"
+  short_description: "Retrieve and checkpoint attributed project memory"
+  default_prompt: "Use $manage-project-memory to find project evidence relevant to my question."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

@@ -1,15 +1,15 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 1,
   "tool": "Git",
-  "requirement": "REQUIRED_OPTIONAL_FOR_PROJECT_ENGULF",
+  "requirement": "REQUIRED_SHARED_PORTABLE_OR_HOST_GIT",
   "classification": "HOST_SYSTEM_TOOL",
   "install_mode": "host_probe_only",
   "license_expression_or_terms": "GPL-2.0-only",
   "license_evidence": "host Git version probe; Git is not redistributed by the plugin",
   "evidence_paths": [
-    "toolchains/tool-requirement-matrix.v1.json"
+    "toolchains/tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -20,5 +20,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "9F67B02AB0642CF384F5AFBFDB6ABA8A3C2686A9D372CB0A7CF8AF40C1AA785C"
+  "historical_ordinal": 1,
+  "catalog_ordinal": 1,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "75526ca04f993f33b3e1e3087b28465392169d92fdee70151be3ffaff9a11c41"
 }

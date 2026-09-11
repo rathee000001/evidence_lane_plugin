@@ -1,0 +1,88 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "research",
+  "source_package_folder": "authorities/project_sectors/research",
+  "project_state_folder": "sectors/research",
+  "database": "sectors/research/research_sector_v001.sqlite",
+  "files": "sectors/research/files",
+  "schema_history": "sectors/research/schema-history",
+  "migrations": [
+    {
+      "owner": "research",
+      "version": 1,
+      "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88"
+    },
+    {
+      "owner": "research",
+      "version": 2,
+      "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f"
+    },
+    {
+      "owner": "research",
+      "version": 3,
+      "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9"
+    },
+    {
+      "owner": "researchselector",
+      "version": 1,
+      "digest": "9487a4ad61c91f18dea8aa74d3bbe976f80f21d82f4abfe8e008f8353dad4377"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "research",
+    "folder": "sectors/research",
+    "files_root": "sectors/research/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "research_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".md",
+        ".json",
+        ".bib"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "questions_claims_evidence_citations_limitations"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "research.mmd",
+      "dot": "research.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "339C0D04DE36F69517499B893FCAED3C15D305D0082607F0AF03FAB0102A1EA9"
+  },
+  "actions": [
+    "research_current",
+    "research_index",
+    "research_index_media",
+    "research_query",
+    "research_read",
+    "research_refresh",
+    "research_refresh_media",
+    "research_web_capture",
+    "research_web_discover",
+    "research_web_extract",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

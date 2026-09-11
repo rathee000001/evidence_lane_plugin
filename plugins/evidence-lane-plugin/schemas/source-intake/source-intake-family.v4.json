@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "source-intake",
+  "members": [
+    {
+      "path": "authorities/source_authority/schema.sql",
+      "sha256": "6613ac38ff85b869cd5f11eb5a4abfe9e14066de1de2d305ffeed3d726e20f0e"
+    },
+    {
+      "path": "src/evidence_lane_plugin/source_intake.py",
+      "sha256": "2633180563998ae2b5bda42b378cae69c0a0c64b3c5bd784a1de36eb7a249f69"
+    },
+    {
+      "path": "src/evidence_lane_plugin/source_materialization.py",
+      "sha256": "f3595a420511f08d179b1e8a28791006a0949f29e1e880106f7e245f5dbf110f"
+    },
+    {
+      "path": "src/evidence_lane_plugin/source_preparation.py",
+      "sha256": "54e388fe0538cc5412c6349aba317143f6f6691bfc1f7d4c7cbec66b1a8d91d7"
+    }
+  ],
+  "purpose": "Source authority, preparation and materialization contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

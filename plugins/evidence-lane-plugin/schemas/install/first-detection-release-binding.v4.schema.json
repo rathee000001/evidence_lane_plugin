@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/install/first-detection-release-binding.v4.schema.json",
+  "title": "Evidence Lane first-detection release binding v4",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "installation_enabled",
+    "plugin_id",
+    "plugin_version",
+    "repository",
+    "sparse_root",
+    "release_ref",
+    "bundle_plan",
+    "bundle_plan_sha256",
+    "source_manifest",
+    "source_manifest_sha256",
+    "assets",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.first-detection-release-binding.v4"
+    },
+    "status": {
+      "enum": [
+        "SOURCE_TEMPLATE_UNBOUND",
+        "RELEASE_BOUND"
+      ]
+    },
+    "installation_enabled": {
+      "type": "boolean"
+    },
+    "plugin_id": {
+      "const": "evidence-lane-plugin"
+    },
+    "plugin_version": {
+      "const": "4.0.1"
+    },
+    "repository": {
+      "const": "https://github.com/rathee000001/evidence_lane_plugin"
+    },
+    "sparse_root": {
+      "const": "plugins/evidence-lane-plugin"
+    },
+    "release_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^refs/tags/evidence-lane-v4\\.0\\.1-bundle-[0-9a-f]{16}$"
+    },
+    "bundle_plan": {
+      "const": "provisioning/full-bundle-plan.v4.json"
+    },
+    "bundle_plan_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "source_manifest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_manifest_sha256": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "assets_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "component_id",
+          "asset_id",
+          "part_index",
+          "part_count",
+          "condition",
+          "filename",
+          "url",
+          "bytes",
+          "sha256",
+          "component_manifest_sha256",
+          "file_count",
+          "payload_bytes"
+        ],
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "asset_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+\\.part-[0-9]{3}-of-[0-9]{3}$"
+          },
+          "part_index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 999
+          },
+          "part_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 999
+          },
+          "condition": {
+            "enum": [
+              "always",
+              "nvidia_cuda_compatible",
+              "directml_compatible",
+              "amd_rocm_compatible",
+              "explicit_ghostscript_license"
+            ]
+          },
+          "filename": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]+\\.zip$"
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://github\\.com/rathee000001/evidence_lane_plugin/releases/download/"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2140000000
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "component_manifest_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "file_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "payload_bytes": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

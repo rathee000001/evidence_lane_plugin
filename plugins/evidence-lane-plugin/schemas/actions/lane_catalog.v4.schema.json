@@ -1,0 +1,143 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Discover canonical authority/sector definitions and their registered search, fetch and view contracts.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "include_schema": {
+        "default": false,
+        "title": "Include Schema",
+        "type": "boolean"
+      },
+      "kind": {
+        "anyOf": [
+          {
+            "enum": [
+              "authority",
+              "sector"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Kind"
+      },
+      "lane_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "Lane Ids",
+        "type": "array"
+      },
+      "max_bytes": {
+        "default": 131072,
+        "maximum": 1048576,
+        "minimum": 4096,
+        "title": "Max Bytes",
+        "type": "integer"
+      }
+    },
+    "title": "LaneCatalogRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "lane_catalog",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "availability_basis": {
+        "const": "registered_contracts_only",
+        "default": "registered_contracts_only",
+        "title": "Availability Basis",
+        "type": "string"
+      },
+      "installed_readiness_verified": {
+        "const": false,
+        "default": false,
+        "title": "Installed Readiness Verified",
+        "type": "boolean"
+      },
+      "lane_count": {
+        "title": "Lane Count",
+        "type": "integer"
+      },
+      "lanes": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Lanes",
+        "type": "array"
+      },
+      "registry_digest": {
+        "title": "Registry Digest",
+        "type": "string"
+      }
+    },
+    "required": [
+      "lanes",
+      "lane_count",
+      "registry_digest"
+    ],
+    "title": "LaneCatalogPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "projects",
+  "project_required": false,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "3e91b67cf47dd02470892857875e62e40b6f650da31e33add50df4744b96eab0",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lane_catalog",
+    "profile": "projects",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.lane_reader:LaneReader.lane_catalog",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lane_catalog.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

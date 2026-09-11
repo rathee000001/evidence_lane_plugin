@@ -1,0 +1,9 @@
+interface:
+  display_name: "Refresh project evidence"
+  short_description: "Refresh changed evidence and lane views"
+  default_prompt: "Use $refresh-project-evidence to refresh the selected changed project evidence."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

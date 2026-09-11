@@ -1,0 +1,42 @@
+{
+  "schema": "evidence-lane.tabular-reference-fixtures.v4",
+  "purpose": "tracked deterministic CI regression fixtures",
+  "files": [
+    {
+      "repository": "dimastbk/python-calamine",
+      "commit": "0a7998e50a7586f308a2d455170ec63c8135dfd3",
+      "source": "LICENSE",
+      "url": "https://raw.githubusercontent.com/dimastbk/python-calamine/0a7998e50a7586f308a2d455170ec63c8135dfd3/LICENSE",
+      "path": "calamine/LICENSE",
+      "sha256": "6ced4640162333a7c880d45d346ae88409746709fafece61303768bc87d80bf0",
+      "bytes": 1065
+    },
+    {
+      "repository": "dimastbk/python-calamine",
+      "commit": "0a7998e50a7586f308a2d455170ec63c8135dfd3",
+      "source": "tests/data/base.xlsb",
+      "url": "https://raw.githubusercontent.com/dimastbk/python-calamine/0a7998e50a7586f308a2d455170ec63c8135dfd3/tests/data/base.xlsb",
+      "path": "calamine/base.xlsb",
+      "sha256": "b3a6b5034076373fcf2c93979839738275fac80b9de64ac557235f5a286f7e89",
+      "bytes": 10746
+    },
+    {
+      "repository": "dimastbk/python-calamine",
+      "commit": "0a7998e50a7586f308a2d455170ec63c8135dfd3",
+      "source": "tests/data/base.xls",
+      "url": "https://raw.githubusercontent.com/dimastbk/python-calamine/0a7998e50a7586f308a2d455170ec63c8135dfd3/tests/data/base.xls",
+      "path": "calamine/base.xls",
+      "sha256": "74d3c38abb81a4513051bbc3fb95dca08bc42a339fccfb40db60943b777cd89a",
+      "bytes": 20992
+    },
+    {
+      "repository": "dimastbk/python-calamine",
+      "commit": "0a7998e50a7586f308a2d455170ec63c8135dfd3",
+      "source": "tests/data/base.ods",
+      "url": "https://raw.githubusercontent.com/dimastbk/python-calamine/0a7998e50a7586f308a2d455170ec63c8135dfd3/tests/data/base.ods",
+      "path": "calamine/base.ods",
+      "sha256": "792de72bc083cca795260936e157b1767561080f13c892768cca71b880d66d39",
+      "bytes": 11005
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "data_excel",
+  "members": [
+    {
+      "path": "authorities/project_sectors/data_excel/builder-contract.schema.json",
+      "sha256": "22c861d1b853849cec740f43b837189bc52ac3cfd8933d7a165951e74402b5ad"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/dot-artifact.schema.json",
+      "sha256": "afa05e127970f797c9b6d3ca3fa476431a69b6bfea02496af27c5ddd9ddc40da"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/lane-contract.v4.json",
+      "sha256": "5dc8a48bc55af5570bd2ef0f38abc0581bcd5cf51e950502de9497f840c203c5"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
+      "sha256": "c3af7295742753024dc876ec6a7f080b12a88fa94e88bb7a26a50c32a0b66ec7"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/manifest.schema.json",
+      "sha256": "b89223b5c189a6fccb58dbadc43525f24c5ed065a0fbccf22c3f640d17828c77"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/manifest.v4.json",
+      "sha256": "782c31b53c111c72ed97e56ccca285434b80da8f68230d5dc859d84d91239220"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/migration-history.json",
+      "sha256": "82810c57e492a5a05bf1348e41e5f45a9c1493ac7bcd5bbcfcec07c44d963f23"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/mmd-artifact.schema.json",
+      "sha256": "8715408fea729db7045ad23fae1b6a217f2df0c3aee080bc68516f4335c69524"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/reader-contract.schema.json",
+      "sha256": "030ebc612caefd04625e35480cfc882ddcd80751b6a4f1802d62ef644b027f86"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/refresh-receipt.schema.json",
+      "sha256": "671ca60489b81c2c1e34c021789a082e42e1e604bdd45665081d9dd0339f5e19"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/schema-template.json",
+      "sha256": "86e96cb5ff2fd090528ac1d773e2eadb1805a84ce87dbc241619e1e17fa288bf"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/schema.sql",
+      "sha256": "c0ecd0bc4d91111442ef0d6d4c7290382794e9dcfcf854a7b827e4d6302a4e61"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/sqlite-artifact.schema.json",
+      "sha256": "ffccfd8d60a26831b5456b1c6b56c9161716d4c17c853daec3d801d86d36130d"
+    },
+    {
+      "path": "authorities/project_sectors/data_excel/tools.schema.json",
+      "sha256": "76d7bd27467a40e71d5a7f5668f082d2f6e00c7953be0178bd9cfb176592c21a"
+    }
+  ],
+  "purpose": "Complete current sector owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

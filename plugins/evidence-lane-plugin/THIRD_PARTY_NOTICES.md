@@ -2,8 +2,9 @@
 
 Audit date: **2026-08-15**
 
-Evidence Lane's proprietary license applies only to Evidence Lane material. It
-does not replace the licenses, notices, or trademarks of third-party packages.
+Evidence Lane's MIT License applies only to Evidence Lane-owned material. It
+does not relicense or replace the licenses, notices, source obligations, or
+trademarks of third-party packages.
 The exact dependency versions are pinned in `pyproject.toml`,
 `requirements.torch-cpu.lock.txt`, `requirements.torch-nvidia.lock.txt`,
 `requirements.onnx-directml.lock.txt`, `requirements.lock.txt`,
@@ -21,11 +22,12 @@ redistributed wheel or binary runtime must preserve those exact bundled files.
 See the [pypdfium2 project](https://github.com/pypdfium2-team/pypdfium2) and
 [published package metadata](https://pypi.org/project/pypdfium2/).
 
-`PyMuPDF==1.28.2` is an active local document-toolchain dependency for
-high-fidelity extraction. Its AGPL-or-commercial licensing model is an explicit
-release gate: no proprietary binary publication may bundle or provision it
-without a compatible license decision and the required source/notices.
-Permissive PDF fallbacks remain available when that gate is not satisfied.
+`PyMuPDF==1.28.2` is an active document-toolchain dependency for high-fidelity
+extraction. Upstream offers it under GNU AGPL v3 or a commercial license. The
+MIT License on Evidence Lane-owned source does not change those terms. Any
+release that redistributes or provisions PyMuPDF must independently satisfy
+the selected PyMuPDF/MuPDF license, including applicable source and notice
+obligations. Permissive PDF fallbacks remain available.
 
 The Windows x86-64 Codex package includes `ripgrep==15.2.0` under its upstream
 MIT-or-Unlicense choice. Its exact license texts are preserved under
@@ -37,9 +39,9 @@ missing, or identity-mismatched binaries.
 
 The source package excludes virtual environments, installed wheels,
 `node_modules`, local environment files, caches, source maps, TypeScript build
-state, and generated 3D assets. Before commercial or binary publication,
-generate an SBOM for the exact release artifact, audit its complete transitive
-dependency and native-binary graph, and preserve every required notice.
+state, and generated 3D assets. Before binary publication, generate an SBOM for the exact release artifact,
+audit its complete transitive dependency and native-binary graph, satisfy all
+copyleft/source-offer obligations, and preserve every required notice.
 
 The ordered repository-facing summary is
 [`THIRD_PARTY_LICENSES.md`](../../docs/THIRD_PARTY_LICENSES.md). The exact declared

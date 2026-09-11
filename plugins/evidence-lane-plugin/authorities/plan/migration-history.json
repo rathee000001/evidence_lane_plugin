@@ -1,0 +1,119 @@
+{
+  "schema": "evidence-lane.packaged-migration-history.v4",
+  "authority_id": "plan",
+  "migrations": [
+    {
+      "owner": "plan",
+      "version": 1,
+      "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+      "description": "Current Plan, immutable revisions and task-event history",
+      "statements": [
+        "CREATE TABLE plan_revisions (\n        revision INTEGER PRIMARY KEY, plan_id TEXT NOT NULL, title TEXT NOT NULL,\n        request_id TEXT NOT NULL UNIQUE, document_json TEXT NOT NULL CHECK(json_valid(document_json)),\n        document_digest TEXT NOT NULL, parent_revision INTEGER REFERENCES plan_revisions(revision),\n        actor_id TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL)",
+        "CREATE TABLE plan_current (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), event_head TEXT)",
+        "CREATE TABLE plan_tasks (\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), task_id TEXT NOT NULL,\n        position INTEGER NOT NULL, definition_json TEXT NOT NULL CHECK(json_valid(definition_json)),\n        contract_digest TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN\n          ('queued','active','completed','blocked','failed','cancelled','superseded')),\n        last_event TEXT, PRIMARY KEY(revision,task_id), UNIQUE(revision,position))",
+        "CREATE UNIQUE INDEX plan_one_active ON plan_tasks(revision) WHERE state='active'",
+        "CREATE TABLE plan_dependencies (\n        revision INTEGER NOT NULL, task_id TEXT NOT NULL, dependency_id TEXT NOT NULL,\n        PRIMARY KEY(revision,task_id,dependency_id),\n        FOREIGN KEY(revision,task_id) REFERENCES plan_tasks(revision,task_id),\n        FOREIGN KEY(revision,dependency_id) REFERENCES plan_tasks(revision,task_id))",
+        "CREATE TABLE plan_events (\n        sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), task_id TEXT,\n        kind TEXT NOT NULL, actor_id TEXT NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),\n        previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
+        "CREATE INDEX plan_task_events ON plan_events(revision,task_id,sequence)"
+      ]
+    },
+    {
+      "owner": "plan",
+      "version": 2,
+      "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+      "description": "Historical task identity lookup",
+      "statements": [
+        "CREATE INDEX plan_task_identity ON plan_tasks(task_id)"
+      ]
+    },
+    {
+      "owner": "plan",
+      "version": 3,
+      "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+      "description": "Exact full Plan projection to one explicitly bound Codex host Plan",
+      "statements": [
+        "CREATE TABLE plan_host_bindings (\n        binding_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n        host_task_id TEXT NOT NULL, host_plan_id TEXT NOT NULL, plan_path TEXT NOT NULL,\n        current_sha256 TEXT NOT NULL CHECK(length(current_sha256)=64),\n        bound_by TEXT NOT NULL, binding_digest TEXT NOT NULL UNIQUE,\n        active INTEGER NOT NULL CHECK(active IN (0,1)),\n        created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        "CREATE UNIQUE INDEX plan_one_active_host_binding ON plan_host_bindings(active) WHERE active=1",
+        "CREATE TABLE plan_host_projections (\n        sequence INTEGER PRIMARY KEY, projection_id TEXT NOT NULL UNIQUE,\n        binding_id TEXT REFERENCES plan_host_bindings(binding_id),\n        plan_revision INTEGER NOT NULL REFERENCES plan_revisions(revision),\n        plan_event_head TEXT NOT NULL, document_digest TEXT NOT NULL,\n        rows_json TEXT NOT NULL CHECK(json_valid(rows_json)),\n        rows_digest TEXT NOT NULL CHECK(length(rows_digest)=64),\n        markdown_text TEXT NOT NULL, markdown_sha256 TEXT NOT NULL CHECK(length(markdown_sha256)=64),\n        state TEXT NOT NULL CHECK(state IN ('unbound','pending','publishing','confirmed','superseded')),\n        previous_projection_id TEXT, prepared_by TEXT NOT NULL, prepared_at TEXT NOT NULL,\n        attempts INTEGER NOT NULL DEFAULT 0, last_error TEXT,\n        file_before_sha256 TEXT, file_after_sha256 TEXT,\n        confirmed_at TEXT)",
+        "CREATE INDEX plan_host_projection_source ON plan_host_projections(plan_revision,plan_event_head,sequence)"
+      ]
+    },
+    {
+      "owner": "steer",
+      "version": 1,
+      "digest": "8f581fcc260acd8ac31bcae96e672128a7c359cd5f4bf15f55236c9b17effc88",
+      "description": "Exact visible-message steers awaiting safe project checkpoints",
+      "statements": [
+        "CREATE TABLE steer_requests (\n        request_id TEXT PRIMARY KEY, source_event_id TEXT NOT NULL, source_cursor TEXT NOT NULL,\n        actor_id TEXT NOT NULL, expected_revision INTEGER NOT NULL, intent TEXT NOT NULL CHECK(intent IN ('semantic','stop')),\n        affected_json TEXT NOT NULL CHECK(json_valid(affected_json)), rationale TEXT NOT NULL,\n        identity_digest TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN\n           ('pending','checkpointing','ready','applied','rejected','superseded')),\n        checkpoint_object TEXT REFERENCES objects(digest), applied_revision INTEGER,\n        created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        "CREATE INDEX steer_pending_order ON steer_requests(state,created_at,request_id)"
+      ]
+    },
+    {
+      "owner": "steer",
+      "version": 2,
+      "digest": "f18464473503f7c5f47eb38b76e29ddbc0599f031cd4d58cc44da50632ba8794",
+      "description": "Persistent project stop without automatic continuation",
+      "statements": [
+        "CREATE TABLE steer_control (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1), paused INTEGER NOT NULL CHECK(paused IN (0,1)),\n        source_event_id TEXT NOT NULL, source_cursor TEXT NOT NULL, actor_id TEXT NOT NULL, updated_at TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "steer",
+      "version": 3,
+      "digest": "badaa0d992b56a5754a2030e8b3c8b75f1ac708cc887b4049fa6c21af90cd725",
+      "description": "Idempotent interrupt consumption across explicit later resumes",
+      "statements": [
+        "CREATE TABLE steer_interrupts (\n        event_id TEXT PRIMARY KEY, source_cursor TEXT NOT NULL, actor_id TEXT NOT NULL,\n        receipt_id TEXT NOT NULL, created_at TEXT NOT NULL)"
+      ]
+    },
+    {
+      "owner": "validation",
+      "version": 1,
+      "digest": "9324f52e96ea1399d043542b060878bf4df406a6b9574d4f23707cc70d7057fc",
+      "description": "Project validation policy revisions without implicit task activation",
+      "statements": [
+        "CREATE TABLE validation_policy_revisions (\n        revision INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n        request_digest TEXT NOT NULL, policy_json TEXT NOT NULL CHECK(json_valid(policy_json)),\n        policy_digest TEXT NOT NULL, previous_digest TEXT, revision_digest TEXT NOT NULL UNIQUE,\n        actor_id TEXT NOT NULL, receipt_id TEXT NOT NULL, created_at TEXT NOT NULL)",
+        "CREATE TABLE validation_policy_current (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n        revision INTEGER NOT NULL REFERENCES validation_policy_revisions(revision))"
+      ]
+    },
+    {
+      "owner": "validationrun",
+      "version": 1,
+      "digest": "7339ca8cc9855102dd8192a6e87ec75fda0d2a80e6dbde7f4af58ef4ade4da2a",
+      "description": "Bounded immutable project-check summaries per Delta job",
+      "statements": [
+        "CREATE TABLE validationrun_summaries (\n        job_id TEXT PRIMARY KEY, task_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n        contract_digest TEXT NOT NULL, summary_object TEXT NOT NULL, receipt_id TEXT NOT NULL UNIQUE)"
+      ]
+    },
+    {
+      "owner": "jobs",
+      "version": 1,
+      "digest": "302141ce9d37d1d0dc59824f808b4cd733884e8a9f785ee827d657029d756e60",
+      "description": "Durable requests, worker checkpoints and effect journal",
+      "statements": [
+        "CREATE TABLE jobs_jobs (\n            job_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n            client_id TEXT NOT NULL, request_digest TEXT NOT NULL,\n            request_json TEXT NOT NULL CHECK(json_valid(request_json)),\n            action TEXT NOT NULL, plan_revision INTEGER,\n            state TEXT NOT NULL CHECK(state IN\n                ('queued','running','checkpointed','cancelled','succeeded','failed','uncertain','superseded')),\n            owner_fence INTEGER, execution_id TEXT, phase TEXT NOT NULL DEFAULT 'admitted',\n            checkpoint_object TEXT REFERENCES objects(digest), resumable INTEGER NOT NULL DEFAULT 0,\n            cancellation_reason TEXT, result_json TEXT CHECK(json_valid(result_json)),\n            error_code TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        "CREATE INDEX jobs_queue_order ON jobs_jobs(state,created_at,job_id)",
+        "CREATE TABLE jobs_effects (\n            effect_id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs_jobs(job_id),\n            effect_key TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('prepared','confirmed','absent')),\n            description TEXT NOT NULL, evidence_object TEXT REFERENCES objects(digest),\n            created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(job_id,effect_key))",
+        "CREATE INDEX jobs_effect_state ON jobs_effects(job_id,state)"
+      ]
+    },
+    {
+      "owner": "delta",
+      "version": 1,
+      "digest": "9b8208d409cb3e1576262dc0e73e33cb67da5ca79809fc6eeb872fe51221235e",
+      "description": "Revision-pinned registered operation runs",
+      "statements": [
+        "CREATE TABLE delta_runs (\n       job_id TEXT PRIMARY KEY REFERENCES jobs_jobs(job_id), request_id TEXT NOT NULL UNIQUE,\n       actor_id TEXT NOT NULL, task_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n       contract_digest TEXT NOT NULL, binding_digest TEXT NOT NULL, entry_object TEXT NOT NULL REFERENCES objects(digest),\n       state TEXT NOT NULL CHECK(state IN ('queued','running','awaiting_verification','blocked','verified')),\n       result_object TEXT REFERENCES objects(digest), error_code TEXT,\n       created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(plan_revision,task_id),\n       FOREIGN KEY(plan_revision,task_id) REFERENCES plan_tasks(revision,task_id))"
+      ]
+    },
+    {
+      "owner": "delta",
+      "version": 2,
+      "digest": "0850746cd0b0c4d395f7cc8aa09ff28acaa1eb70fdea8c2551690e6d41f3242f",
+      "description": "Verified Delta exit and exact selected successor",
+      "statements": [
+        "CREATE TABLE delta_exits (job_id TEXT PRIMARY KEY REFERENCES delta_runs(job_id),\n       verification_object TEXT NOT NULL REFERENCES objects(digest),\n       receipt_id TEXT NOT NULL UNIQUE, next_task_id TEXT, created_at TEXT NOT NULL)"
+      ]
+    }
+  ]
+}

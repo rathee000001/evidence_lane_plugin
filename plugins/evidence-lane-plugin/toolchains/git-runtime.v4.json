@@ -1,0 +1,18 @@
+{
+  "schema": "evidence-lane.git-runtime.v4",
+  "status": "COMPLETE_PREINSTALL_INPUT",
+  "release_component": "native-tools",
+  "platform": "windows-x86_64",
+  "version": "2.54.0.windows.1",
+  "archive": "PortableGit-2.54.0-64-bit.7z.exe",
+  "upstream_url": "https://github.com/git-for-windows/git/releases/download/v2.54.0.windows.1/PortableGit-2.54.0-64-bit.7z.exe",
+  "bytes": 58995352,
+  "sha256": "bea006a6cc69673f27b1647e84ab3a68e912fbc175ab6320c5987e012897f311",
+  "installed_executable": "toolchains/bin/git/cmd/git.exe",
+  "license": "GPL-2.0-only",
+  "source_offer_required": true,
+  "first_detection_download_allowed": false,
+  "operation_download_allowed": false,
+  "installation_state": "not_installed",
+  "installed_execution_claimed": false
+}

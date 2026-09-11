@@ -1,17 +1,10 @@
-"""Lane-specific binding to the canonical shared lane bundle builder."""
+"""research: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import build_sector_source
 
-from evidence_lane_plugin.lane_engine import build_lane_bundle
+LANE_ID = 'research'
+ACTION_LANES = {'research_index': 'research', 'research_index_media': 'research', 'research_refresh': 'research', 'research_refresh_media': 'research', 'research_web_capture': 'research', 'research_web_discover': 'research', 'research_web_extract': 'research', 'source_snapshot_retire': 'research'}
 
-LANE_ID = "research"
-
-def build_lane_sources(*, source_paths, source_overrides=None, **kwargs):
-    paths = tuple(dict.fromkeys(str(path) for path in source_paths))
-    overrides = dict(source_overrides or {})
-    overrides.update({path: LANE_ID for path in paths})
-    return build_lane_bundle(
-        source_paths_override=paths,
-        source_overrides=overrides,
-        **kwargs,
-    )
+def build_lane_sources(client, **arguments):
+    return build_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
 __all__ = ["LANE_ID", "build_lane_sources"]

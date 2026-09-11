@@ -1,0 +1,13 @@
+{
+  "owner_id": "project_authority",
+  "modules": [
+    "evidence_lane_plugin.storage",
+    "evidence_lane_plugin.lane_transactions",
+    "evidence_lane_plugin.writers",
+    "evidence_lane_plugin.coordination",
+    "evidence_lane_plugin.projects"
+  ],
+  "storage": "root-pv.sqlite3 for project identity, writer fencing, lane heads and coordinated recovery only",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

@@ -1,0 +1,147 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read a checkpoint slice with explicit attribution and current compatibility.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "checkpoint_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Checkpoint Digest",
+        "type": "string"
+      }
+    },
+    "required": [
+      "checkpoint_digest"
+    ],
+    "title": "MemoryRehydrate",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "memory_rehydrate",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "checkpoint": {
+        "additionalProperties": true,
+        "title": "Checkpoint",
+        "type": "object"
+      },
+      "current_plan_revision": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Current Plan Revision"
+      },
+      "host_session_attached": {
+        "default": false,
+        "title": "Host Session Attached",
+        "type": "boolean"
+      },
+      "lineage_head_changed": {
+        "title": "Lineage Head Changed",
+        "type": "boolean"
+      },
+      "locators": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Locators",
+        "type": "array"
+      },
+      "memory_head_changed": {
+        "title": "Memory Head Changed",
+        "type": "boolean"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "plan_compatible": {
+        "title": "Plan Compatible",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "receiver_client_id": {
+        "title": "Receiver Client Id",
+        "type": "string"
+      },
+      "source_authorities_mutated": {
+        "default": false,
+        "title": "Source Authorities Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "checkpoint",
+      "locators",
+      "current_plan_revision",
+      "plan_compatible",
+      "memory_head_changed",
+      "lineage_head_changed",
+      "receiver_client_id"
+    ],
+    "title": "MemoryContinuity",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "memory",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7db5a17a2a6091444bbf8450ac67a9be479e86779cadbbe38b12d4cf6ce51bb2",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "memory_rehydrate",
+    "profile": "memory",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "memory_rehydrate.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "memory"
+}

@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/PreCompact/handler.py",
+  "event": "PreCompact",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/PreCompact/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/PreCompact/handler.py",
+      "sha256": "82346d9e0122723fb30456e5a7498effd490d0bdbaa1159885251d54328d9f9c"
+    },
+    {
+      "path": "hooks/events/PreCompact/event.schema.json",
+      "sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a"
+    },
+    {
+      "path": "hooks/events/PreCompact/pipeline.v4.json",
+      "sha256": "d00dc617b50c8899e3a379a7dbe8112ca897191b112e41c09661844da082b946"
+    },
+    {
+      "path": "hooks/events/PreCompact/README.md",
+      "sha256": "d81763f40af0f9892db6d7d52166a79db654129f1a2986f9055a8c4f5af8cea9"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 7,
+  "pipeline": "hooks/events/PreCompact/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

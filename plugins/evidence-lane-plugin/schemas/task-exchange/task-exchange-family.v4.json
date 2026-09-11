@@ -1,0 +1,21 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "task-exchange",
+  "members": [
+    {
+      "path": "authorities/canon_input/schema.sql",
+      "sha256": "cdcec04f39679343c909594f9ac3981a9a5b5e7b00c43c9cd354f82d38021c1b"
+    },
+    {
+      "path": "src/evidence_lane_plugin/canon_runtime_continuity.py",
+      "sha256": "0b654ad6c48071b632f0d8588f52bf4c241c9fdcfdb45157849c040aad30f734"
+    },
+    {
+      "path": "src/evidence_lane_plugin/canon_task_graph.py",
+      "sha256": "fd28aa1c9d4a17043ddacea4c7094a951f5828930e7749974b595f908769c71e"
+    }
+  ],
+  "purpose": "Typed task evidence exchange contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

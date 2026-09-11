@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "authority_id",
+    "source_package_folder",
+    "project_state_folder",
+    "runtime_module",
+    "schema_contract",
+    "artifacts",
+    "migration_bindings",
+    "foundation_schema_owners",
+    "foundation_schema_source",
+    "migration_history",
+    "runtime_database_packaged",
+    "installed_execution_claimed",
+    "actions",
+    "views",
+    "members",
+    "runtime_binding"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.authority-package.v4"
+    },
+    "authority_id": {
+      "const": "chat_lineage"
+    },
+    "source_package_folder": {
+      "const": "authorities/chat_lineage"
+    },
+    "project_state_folder": {
+      "const": "authorities/chat_lineage"
+    },
+    "runtime_database_packaged": {
+      "const": false
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1
+    }
+  },
+  "title": "chat_lineage current authority manifest"
+}

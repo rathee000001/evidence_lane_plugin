@@ -1,78 +1,67 @@
-digraph surface_named_root_authority_canon_input {
+digraph workflow_canon {
   // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
   // PYTHON_GRAPHVIZ_VERSION=0.21
   bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
   node [color="#667085" fontname=Arial shape=box style="rounded,filled"]
   edge [color="#667085" fontname=Arial]
-  ENTRY [label="NAMED_ROOT_AUTHORITY canon_input exact identity" color="#101828" fillcolor="#101828" fontcolor=white shape=box style="rounded,filled"]
-  EXIT [label="Result / explicit stop / next refresh" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  subgraph cluster_flow {
-    label="Current surface execution flow" rankdir=TB
-    SCHEMA [label="Resolve current surface + action schemas" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    SKILLS [label="Resolve 79 current skill workflows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ACTIONS [label="Resolve 40 current typed actions" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    INTERNAL_SDK [label="Internal SDK execution owner" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ENV [label="ENV15 environment selection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    UOP [label="UOP15 governance and gates" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    TOOLS [label="Conditional tool role resolution" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    OUTER [label="Outer SDK / FastMCP / native MCP / local route" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    HOOKS [label="Only emitted ordered hooks" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    VALIDATE [label="Validate result, authority and HIL effects" color="#c88722" fillcolor="#fff7e7" shape=box style="rounded,filled"]
-    RECEIPT [label="Exact refresh and provenance receipt" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_project_pv_baseline {
-    label="Project/PV baseline connection (identity only)" rankdir=TB
-    BASELINE_01 [label=PROJECT_PV_ROOT color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    BASELINE_02 [label=AUTHORITY_REGISTRY color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    BASELINE_03 [label="NAMED_ROOT_AUTHORITY:canon_input" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_surface_phases {
-    label="canon_input authority specific execution" rankdir=TB
-    PHASE_AUTHORITY_BIND [label="Bind exact authority identity and contract" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_AUTHORITY_OPERATION [label="Run the authority-owned read or write" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_AUTHORITY_INDEX [label="Refresh applicable SQLite/FTS/index projection" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_AUTHORITY_GRAPH [label="Refresh authority-specific MMD and DOT" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_RESULT_VALIDATE [label="Validate effects, boundaries and hashes" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    PHASE_ATOMIC_REFRESH [label="Commit changed generation; reuse unchanged atoms" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  subgraph cluster_tool_roles {
-    label="Mutually exclusive tool roles" rankdir=TB
-    ROLE_TASK_EXECUTION [label="task execution: 4 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_TRANSPORT_ORCHESTRATION [label="transport orchestration: 0 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_EXTERNAL_SERVICES_OR_STORES [label="external services or stores: 0 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS [label="observability evaluation attachments: 0 current rows" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  }
-  ENTRY -> SCHEMA
-  SCHEMA -> SKILLS
-  SKILLS -> ACTIONS
-  ACTIONS -> INTERNAL_SDK
-  INTERNAL_SDK -> ENV
-  ENV -> UOP
-  UOP -> TOOLS
-  TOOLS -> OUTER
-  BASELINE_01 -> BASELINE_02
-  BASELINE_02 -> BASELINE_03
-  BASELINE_03 -> ENTRY [label="bind current surface identity"]
-  OUTER -> PHASE_AUTHORITY_BIND [label="surface-local route"]
-  PHASE_AUTHORITY_BIND -> PHASE_AUTHORITY_OPERATION
-  PHASE_AUTHORITY_OPERATION -> PHASE_AUTHORITY_INDEX [label="when applicable" style=dashed]
-  PHASE_AUTHORITY_OPERATION -> PHASE_AUTHORITY_GRAPH [label="when applicable" style=dashed]
-  PHASE_AUTHORITY_OPERATION -> PHASE_RESULT_VALIDATE
-  PHASE_AUTHORITY_INDEX -> PHASE_RESULT_VALIDATE
-  PHASE_AUTHORITY_GRAPH -> PHASE_RESULT_VALIDATE
-  PHASE_RESULT_VALIDATE -> PHASE_ATOMIC_REFRESH [label="when applicable" style=dashed]
-  PHASE_RESULT_VALIDATE -> HOOKS [label="read/no-change result" style=dashed]
-  PHASE_ATOMIC_REFRESH -> HOOKS [label="changed generation"]
-  HOOKS -> VALIDATE
-  VALIDATE -> RECEIPT
-  RECEIPT -> EXIT
-  RECEIPT -> ENTRY [label="next conditional refresh" style=dashed]
-  TOOLS -> ROLE_TASK_EXECUTION
-  ROLE_TASK_EXECUTION -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_TRANSPORT_ORCHESTRATION
-  ROLE_TRANSPORT_ORCHESTRATION -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_EXTERNAL_SERVICES_OR_STORES
-  ROLE_EXTERNAL_SERVICES_OR_STORES -> OUTER [label="selected when condition true" style=dashed]
-  TOOLS -> ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS
-  ROLE_OBSERVABILITY_EVALUATION_ATTACHMENTS -> OUTER [label="selected when condition true" style=dashed]
+  sdk [label="Authenticated SDK and native MCP client" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  read [label="Exact selected scope and bounded recorded evidence" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  writer [label="Engine coordinator and owning project writer" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  delta [label="Current stored Plan operation and Delta admission" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  owner [label="canon current executable owner" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_backfire [label=canon_backfire color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_classify [label=canon_classify color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_decide [label=canon_decide color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_expect [label=canon_expect color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_graph [label=canon_graph color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_inbox [label=canon_inbox color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_inspect [label=canon_inspect color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_join [label=canon_join color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_packet_classify [label=canon_packet_classify color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_read [label=canon_read color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_receive [label=canon_receive color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_send [label=canon_send color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_supersede [label=canon_supersede color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_task_edge_bind [label=canon_task_edge_bind color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_task_edge_register [label=canon_task_edge_register color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  action_canon_task_result [label=canon_task_result color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  sdk -> action_canon_backfire [label=write]
+  action_canon_backfire -> writer [label=canon]
+  sdk -> action_canon_classify [label=read]
+  action_canon_classify -> read [label=canon]
+  sdk -> action_canon_decide [label=write]
+  action_canon_decide -> writer [label=canon]
+  sdk -> action_canon_expect [label=write]
+  action_canon_expect -> writer [label=canon]
+  sdk -> action_canon_graph [label=read]
+  action_canon_graph -> read [label=canon]
+  sdk -> action_canon_inbox [label=read]
+  action_canon_inbox -> read [label=canon]
+  sdk -> action_canon_inspect [label=read]
+  action_canon_inspect -> read [label=canon]
+  sdk -> action_canon_join [label=write]
+  action_canon_join -> writer [label=canon]
+  sdk -> action_canon_packet_classify [label=read]
+  action_canon_packet_classify -> read [label=canon]
+  sdk -> action_canon_read [label=read]
+  action_canon_read -> read [label=canon]
+  sdk -> action_canon_receive [label=write]
+  action_canon_receive -> writer [label=canon]
+  sdk -> action_canon_send [label=write]
+  action_canon_send -> writer [label=canon]
+  sdk -> action_canon_supersede [label=write]
+  action_canon_supersede -> writer [label=canon]
+  sdk -> action_canon_task_edge_bind [label=write]
+  action_canon_task_edge_bind -> writer [label=canon]
+  sdk -> action_canon_task_edge_register [label=write]
+  action_canon_task_edge_register -> writer [label=canon]
+  sdk -> action_canon_task_result [label=write]
+  action_canon_task_result -> writer [label=canon]
+  writer -> owner [label="owned mutation and attributed result"]
+  owner -> read [label="published state"]
+  action_canon_backfire -> action_canon_classify [constraint=true style=invis weight=100]
+  action_canon_decide -> action_canon_expect [constraint=true style=invis weight=100]
+  action_canon_inspect -> action_canon_join [constraint=true style=invis weight=100]
+  action_canon_receive -> action_canon_send [constraint=true style=invis weight=100]
+  action_canon_task_edge_register -> action_canon_task_result [constraint=true style=invis weight=100]
 }

@@ -1,0 +1,73 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "project_universe",
+  "members": [
+    {
+      "path": "authorities/project_universe/build-refresh-contract.schema.json",
+      "sha256": "951be0adec247420fbdec0cd3a74a20518f4fceac27ae7345bec53f69b716a57"
+    },
+    {
+      "path": "authorities/project_universe/dot-artifact.schema.json",
+      "sha256": "6d64b85327262acb673a0aa09987b76ced31a34f518472ec1511cfd3be84a91b"
+    },
+    {
+      "path": "authorities/project_universe/manifest.schema.json",
+      "sha256": "776369cecdb38b759bbc88e1dada9b25a02c483be99e2c34c9b2ac3c49f8b260"
+    },
+    {
+      "path": "authorities/project_universe/manifest.v4.json",
+      "sha256": "f74b0d12b20d8ef26ff74f9d267a95bf2f4bd7b8ab2a6606cd723437d98d6620"
+    },
+    {
+      "path": "authorities/project_universe/migration-history.json",
+      "sha256": "23a6c7006bb366084c491b75666dcaa6acc1632291a609ea33c0d8ab6612512b"
+    },
+    {
+      "path": "authorities/project_universe/mmd-artifact.schema.json",
+      "sha256": "bb04b10cb617dd7e0cf66aacfb0e45caef1da5e2e8789bb12e3442da9bb1cb07"
+    },
+    {
+      "path": "authorities/project_universe/pointer-contract.schema.json",
+      "sha256": "39313e6b38a3b3ea77c505908455b535f74fc90f721b9d555eae843c990c4f01"
+    },
+    {
+      "path": "authorities/project_universe/pointer-contract.v4.json",
+      "sha256": "7ee028f4f79f8f64c9babf92b5a9f603876170c09bf537695e09bd87cf7d4ed8"
+    },
+    {
+      "path": "authorities/project_universe/reader-contract.schema.json",
+      "sha256": "c7c0345677afcd68d092f282fc6ffb2b6b1289b117472948eb735493a7ec1f69"
+    },
+    {
+      "path": "authorities/project_universe/refresh-receipt.schema.json",
+      "sha256": "deaf991c6690e6f259f22946607744093b33bc4257721ef49941e637dd846052"
+    },
+    {
+      "path": "authorities/project_universe/runtime-binding.schema.json",
+      "sha256": "fc71d45287489f0d30a97565ffbd66db73546a572aa38d4d9464e70134f9748e"
+    },
+    {
+      "path": "authorities/project_universe/runtime-binding.v4.json",
+      "sha256": "072175d7625f3cff40a63d557ac03d0d579fd503cdc9a471df551b1e44330962"
+    },
+    {
+      "path": "authorities/project_universe/schema.sql",
+      "sha256": "07f2f1af6a25f648359a3c28c28ac35bc9753674a16c4521e5755b905ffceee2"
+    },
+    {
+      "path": "authorities/project_universe/sqlite-artifact.schema.json",
+      "sha256": "b6751dc0989397e2e3452c0be218e02ee4928da43f44e2599ea4186d17b92d96"
+    },
+    {
+      "path": "authorities/project_universe/sqlite-schema.v4.json",
+      "sha256": "004eadafc7c616d1ca903f1afede9fb1f720e9051daad104f7ca11f0b9674732"
+    },
+    {
+      "path": "authorities/project_universe/tools.schema.json",
+      "sha256": "8766fe56554c6d9b26aa690764f8fb4adf22e369c4c1de6eae09e963493d60be"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

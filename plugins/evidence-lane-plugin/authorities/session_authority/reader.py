@@ -1,10 +1,11 @@
-"""Bounded validation/traversal binding for this separate authority."""
+"""session_authority: authenticated public SDK read binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import validate_authority_support
+OWNER_ID = 'session_authority'
+ACTIONS = {'env_uop_inspect': False, 'session_context': True, 'session_exit_boundary': True, 'session_flash_status': False, 'session_status': True}
 
-AUTHORITY_ID = "session_authority"
 
-def validate(project_root):
-    return validate_authority_support(project_root, AUTHORITY_ID)
+def read_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "validate"]
+__all__ = ["OWNER_ID", "read_authority"]

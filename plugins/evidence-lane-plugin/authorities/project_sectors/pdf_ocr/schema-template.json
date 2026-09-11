@@ -1,0 +1,1288 @@
+{
+  "schema": "evidence-lane.empty-sector-schema.v4",
+  "lane_id": "pdf_ocr",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "cf1fefd0b8c58d621461efe52802ac483ea246b4b411f6f326d1a9da94719281",
+  "tables": [
+    {
+      "name": "docling_extraction",
+      "type": "table",
+      "sql": "CREATE TABLE docling_extraction(enrichment_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "enrichment_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_annotation",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_annotation(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_attachment",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_attachment(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_chunk(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       chunk_id TEXT NOT NULL, item_id TEXT NOT NULL, ordinal INTEGER NOT NULL,\n       text_object TEXT NOT NULL REFERENCES objects(digest), PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE pdf_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_current",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_current(pdf_id TEXT PRIMARY KEY REFERENCES pdf_file(pdf_id),\n       snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "pdf_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_export",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_export(export_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       destination TEXT NOT NULL, before_sha256 TEXT, after_sha256 TEXT NOT NULL,\n       effect_id TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "export_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "before_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "after_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "effect_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_file",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_file(pdf_id TEXT PRIMARY KEY, logical_name TEXT NOT NULL,\n       source_path TEXT, origin TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "pdf_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "logical_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "origin",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_form_field",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_form_field(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_image",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_image(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_link",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_link(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_ocr_line",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_ocr_line(ocr_id TEXT NOT NULL REFERENCES pdf_ocr_run(ocr_id), line_id TEXT NOT NULL,\n           page INTEGER NOT NULL, ordinal INTEGER NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),\n           PRIMARY KEY(ocr_id,line_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "ocr_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "line_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "page",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_ocr_run",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_ocr_run(ocr_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "ocr_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_outline",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_outline(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_page",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_page(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_render",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_render(render_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "render_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_review_region",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_review_region(ocr_id TEXT NOT NULL, line_id TEXT NOT NULL,\n           PRIMARY KEY(ocr_id,line_id), FOREIGN KEY(ocr_id,line_id) REFERENCES pdf_ocr_line(ocr_id,line_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "ocr_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "line_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        }
+      ]
+    },
+    {
+      "name": "pdf_structure",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_structure(snapshot_id TEXT PRIMARY KEY REFERENCES pdf_version(snapshot_id),\n       facts_object TEXT NOT NULL REFERENCES objects(digest), fidelity_json TEXT NOT NULL CHECK(json_valid(fidelity_json))) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "fidelity_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_table",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_table(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_text_block",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_text_block(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_text_line",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_text_line(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_version",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_version(snapshot_id TEXT PRIMARY KEY, pdf_id TEXT NOT NULL REFERENCES pdf_file(pdf_id),\n       generation INTEGER NOT NULL CHECK(generation>0), previous_snapshot TEXT REFERENCES pdf_version(snapshot_id),\n       manifest_object TEXT NOT NULL REFERENCES objects(digest), raw_object TEXT NOT NULL REFERENCES objects(digest),\n       facts_object TEXT NOT NULL REFERENCES objects(digest), parser_contract TEXT NOT NULL,\n       created_at TEXT NOT NULL, UNIQUE(pdf_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "pdf_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "raw_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "pdf_widget",
+      "type": "table",
+      "sql": "CREATE TABLE pdf_widget(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "selector_retirement",
+      "type": "table",
+      "sql": "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "proof_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "docling_extraction",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "docling_extraction",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_annotation",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_attachment",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_chunk",
+      "target": "objects",
+      "column": "text_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_chunk",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_current",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_current",
+      "target": "pdf_file",
+      "column": "pdf_id",
+      "target_column": "pdf_id"
+    },
+    {
+      "source": "pdf_export",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_form_field",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_image",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_link",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_ocr_line",
+      "target": "pdf_ocr_run",
+      "column": "ocr_id",
+      "target_column": "ocr_id"
+    },
+    {
+      "source": "pdf_ocr_run",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_ocr_run",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_outline",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_page",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_render",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_render",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_review_region",
+      "target": "pdf_ocr_line",
+      "column": "ocr_id",
+      "target_column": "ocr_id"
+    },
+    {
+      "source": "pdf_review_region",
+      "target": "pdf_ocr_line",
+      "column": "line_id",
+      "target_column": "line_id"
+    },
+    {
+      "source": "pdf_structure",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_structure",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_table",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_text_block",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_text_line",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_version",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_version",
+      "target": "objects",
+      "column": "raw_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_version",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "pdf_version",
+      "target": "pdf_version",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "pdf_version",
+      "target": "pdf_file",
+      "column": "pdf_id",
+      "target_column": "pdf_id"
+    },
+    {
+      "source": "pdf_widget",
+      "target": "pdf_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "proof_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "snapshot_id",
+      "target_column": "digest"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

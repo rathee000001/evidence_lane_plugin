@@ -1,0 +1,422 @@
+{
+  "action": "validation_policy_set",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/validation_policy_set.action.v4.json",
+  "sdk_binding_sha256": "cd5b4cf5c482ff54f98345691f07ca2c57762b8c9db4efeecf600425ba4efa2e",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Save an exact project validation policy revision without executing checks or changing task contracts.",
+    "inputSchema": {
+      "$defs": {
+        "ValidationCommand": {
+          "additionalProperties": false,
+          "description": "Pinned executor plus literal arguments; no shell expansion or PATH lookup.",
+          "properties": {
+            "arguments": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "title": "Arguments",
+              "type": "array"
+            },
+            "executable": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Executable",
+              "type": "string"
+            },
+            "executable_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Executable Sha256",
+              "type": "string"
+            },
+            "max_output_bytes": {
+              "default": 8192,
+              "description": "Maximum captured bytes in each output stream.",
+              "maximum": 65536,
+              "minimum": 256,
+              "title": "Max Output Bytes",
+              "type": "integer"
+            },
+            "timeout_seconds": {
+              "default": 300,
+              "maximum": 1800,
+              "minimum": 1,
+              "title": "Timeout Seconds",
+              "type": "integer"
+            },
+            "tool_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$",
+              "title": "Tool Id",
+              "type": "string"
+            },
+            "working_directory": {
+              "default": ".",
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Working Directory",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool_id",
+            "executable",
+            "executable_sha256"
+          ],
+          "title": "ValidationCommand",
+          "type": "object"
+        },
+        "ValidationPolicy": {
+          "additionalProperties": false,
+          "description": "Only additional project checks; owning profile verifiers remain mandatory.",
+          "properties": {
+            "checks": {
+              "items": {
+                "$ref": "#/$defs/ValidationRule"
+              },
+              "maxItems": 64,
+              "title": "Checks",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "title": "ValidationPolicy",
+          "type": "object"
+        },
+        "ValidationRule": {
+          "additionalProperties": false,
+          "properties": {
+            "check_id": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Check Id",
+              "type": "string"
+            },
+            "command": {
+              "$ref": "#/$defs/ValidationCommand"
+            },
+            "title": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "when": {
+              "$ref": "#/$defs/ValidationSelector"
+            }
+          },
+          "required": [
+            "check_id",
+            "title",
+            "command"
+          ],
+          "title": "ValidationRule",
+          "type": "object"
+        },
+        "ValidationSelector": {
+          "additionalProperties": false,
+          "description": "OR within each list; AND across nonempty path/profile/action lists.",
+          "properties": {
+            "actions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "title": "Actions",
+              "type": "array"
+            },
+            "paths": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "minItems": 1,
+              "title": "Paths",
+              "type": "array"
+            },
+            "profiles": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Profiles",
+              "type": "array"
+            }
+          },
+          "title": "ValidationSelector",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "expected_digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Digest"
+            },
+            "expected_revision": {
+              "minimum": 0,
+              "title": "Expected Revision",
+              "type": "integer"
+            },
+            "policy": {
+              "$ref": "#/$defs/ValidationPolicy"
+            },
+            "request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "expected_revision",
+            "policy"
+          ],
+          "title": "ValidationPolicySet",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "validation_policy_set",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

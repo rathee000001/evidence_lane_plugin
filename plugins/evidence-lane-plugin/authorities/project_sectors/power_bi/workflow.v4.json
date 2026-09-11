@@ -1,0 +1,792 @@
+{
+  "schema": "evidence-lane.sector-workflow.v4",
+  "lane_id": "power_bi",
+  "source_package_folder": "authorities/project_sectors/power_bi",
+  "external_project_folder": "sectors/power_bi",
+  "actions": [
+    {
+      "name": "powerbi_current",
+      "profile": "power_bi",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_current",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_current.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7126f8e6045472ead59dcd750aa49719ec7f15cdc2921963cf4105e90844178c"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "powerbi_edit",
+      "profile": "power_bi",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_edit",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_edit.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:edit_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d87d841150f9b7e56c99f43198d91f3359c31321b089f4e2567208625dd373db"
+      },
+      "verification_checks": [
+        "powerbi_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_export",
+      "profile": "power_bi",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_export",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_export.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:export_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "powerbi_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "power_bi.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "powerbi_export.view",
+            "adapter": "evidence_lane_plugin.powerbi_profile:export_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "powerbi_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "power_bi.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "powerbi_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "e4ffd78cff7ffa7af54a91f53aa213227ce7af9da0bb01833742be5d293efdbd"
+      },
+      "verification_checks": [
+        "powerbi_export_hash_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_generate",
+      "profile": "power_bi",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_generate",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_generate.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:generate_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "8f86d832decdab28d208e5865101f320c735d2f51f810dbfbde1663578d0ca3f"
+      },
+      "verification_checks": [
+        "powerbi_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_index",
+      "profile": "power_bi",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_index",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_index.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "01dc841c0c023510491cbb30bafb47a8b2b0ba4e44d9b3f2e7a10fd6d2491023"
+      },
+      "verification_checks": [
+        "powerbi_snapshot_integrity",
+        "powerbi_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_query",
+      "profile": "power_bi",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_query",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_query.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "adb670c3c516a5f4b43f0cea4f5d11c6e40e3631199e651cbccd3ceed2d61224"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "powerbi_read",
+      "profile": "power_bi",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_read",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_read.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "507a9d2c571386dbbfbd43cf24ec33612d94733937d3dc31a54876c42830c6ae"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "powerbi_refresh",
+      "profile": "power_bi",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_refresh",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_refresh.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "0f75c0ee5d9f7f09e1426f3a9a66f9fbc51c7a17daeea083d85a93caf9bf282d"
+      },
+      "verification_checks": [
+        "powerbi_snapshot_integrity",
+        "powerbi_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_schema",
+      "profile": "power_bi",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_schema",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_schema.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "09fe8484728782c6f6976715a31b8d27fd5e9801c32ac511b952d240adc7296e"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "power_bi.structure",
+      "lane_id": "power_bi",
+      "folder": "sectors/power_bi",
+      "version": 1,
+      "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
+      "consumer": "artifact_export",
+      "implementation_digest": "3f033df904ee45a4a3305639cc69db7aed3a7accf53ea00810f4f4e31d619ef1",
+      "files": {
+        "mmd": "powerbi.mmd",
+        "dot": "powerbi.dot",
+        "pointer": "powerbi.pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "powerbi"
+      ],
+      "node_kinds": [
+        "powerbi",
+        "powerbi_project",
+        "powerbi_report",
+        "powerbi_page",
+        "powerbi_visual",
+        "powerbi_model",
+        "powerbi_table",
+        "powerbi_column",
+        "powerbi_measure",
+        "powerbi_relationship",
+        "powerbi_reference",
+        "powerbi_data_source",
+        "powerbi_hierarchy"
+      ],
+      "edge_kinds": [
+        "CONTAINS"
+      ],
+      "schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_power_bi",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 37,
+    "edge_count": 39,
+    "group_count": 0,
+    "semantic_topology_sha256": "01AE288DE04F81CCC8AD35C6E19D3C6C5B12D8AD199C223C89A11619A1B26917",
+    "mmd_sha256": "5009FAD7FF708F76A6E3AEC98545E54D863EEC22CB70DE1B8591AAA8645DB1DB",
+    "dot_sha256": "994764E30B4E767CE2E81683651A1134D1FF2D6B3FF8BC1A9480915762FF126C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "069635A837651C915EC1A19B0398856D9A30A0A71157D47C6EE67D6F4E860BAF",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "16DDF28752ADED091811EA3BA9537254B3B7EF8C6B935ED7282198E1602F03C2"
+  },
+  "workflow_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_power_bi",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 15,
+    "edge_count": 28,
+    "group_count": 0,
+    "semantic_topology_sha256": "8914E10A1C234ADF6F1435F2562C6367D2ADFE351A95FDAD6EE96F22E36B8A72",
+    "mmd_sha256": "A8D5B516510F543FCD1900E4D01F5FF4E166BFC8F93B976605908C2537A9F3C9",
+    "dot_sha256": "FA94C23941DAF5AD5F85689724F1574AFD89D56C59A98198B73180277D0D003A",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "7289A95899810F7D1B7BC31854D4924DAA04231FBC4EBFBB12DF5635F951F3BC",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 4,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "AD1F3DA67BBF52D26B429FDC8EEFD297B411F2A55229E17AC76C3C34D59D062A"
+  },
+  "graph_role": "source_package_schema_and_executable_routes",
+  "project_data_copied": false
+}

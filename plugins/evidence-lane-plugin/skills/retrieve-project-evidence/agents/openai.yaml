@@ -1,0 +1,11 @@
+interface:
+  display_name: "Retrieve project evidence"
+  short_description: "Retrieve evidence within item and token budgets"
+  default_prompt: "Use $retrieve-project-evidence to select bounded evidence for this task."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"
+policy:
+  allow_implicit_invocation: true

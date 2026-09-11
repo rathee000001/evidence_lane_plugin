@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 6,
   "tool": "APSW_SQLite_engine",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "E72F2A88862C3E4CB246C08E2025F69DC53BD56E73566C8E1A26E03E68ABFF07"
+  "historical_ordinal": 6,
+  "catalog_ordinal": 6,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "84bee67fdf0487f5fdb969a729dd30fdb8c425bf6c4aacc710d5a50d04493aaf"
 }

@@ -1,0 +1,362 @@
+{
+  "action": "evaluation_feedback_export",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/evaluation_feedback_export.action.v4.json",
+  "sdk_binding_sha256": "cb795fb68923ce61b909426e4597e86b6d5dcf12928f7071c6865dc83eb775f9",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": false
+    },
+    "description": "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "description": "One pre-existing LangSmith run receives one bounded numeric feedback row.",
+          "properties": {
+            "action_name": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Action Name",
+              "type": "string"
+            },
+            "action_schema_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Action Schema Sha256",
+              "type": "string"
+            },
+            "dataset_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Dataset Sha256",
+              "type": "string"
+            },
+            "feedback_key": {
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,63}$",
+              "title": "Feedback Key",
+              "type": "string"
+            },
+            "lane_id": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "max_request_bytes": {
+              "default": 131072,
+              "maximum": 262144,
+              "minimum": 4096,
+              "title": "Max Request Bytes",
+              "type": "integer"
+            },
+            "max_response_bytes": {
+              "default": 1048576,
+              "maximum": 4194304,
+              "minimum": 1024,
+              "title": "Max Response Bytes",
+              "type": "integer"
+            },
+            "observed_at_unix_nano": {
+              "maximum": 4102444800000000000,
+              "minimum": 1,
+              "title": "Observed At Unix Nano",
+              "type": "integer"
+            },
+            "plugin_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Plugin Id"
+            },
+            "redaction_receipt_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Redaction Receipt Sha256",
+              "type": "string"
+            },
+            "resource_id": {
+              "maxLength": 266,
+              "minLength": 13,
+              "title": "Resource Id",
+              "type": "string"
+            },
+            "route_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Route Sha256",
+              "type": "string"
+            },
+            "run_id": {
+              "maxLength": 36,
+              "minLength": 36,
+              "title": "Run Id",
+              "type": "string"
+            },
+            "score": {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Score",
+              "type": "number"
+            },
+            "session_id": {
+              "maxLength": 36,
+              "minLength": 36,
+              "title": "Session Id",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "default": 20,
+              "exclusiveMinimum": 0,
+              "maximum": 60,
+              "title": "Timeout Seconds",
+              "type": "number"
+            },
+            "tool_id": {
+              "const": "LangSmith",
+              "title": "Tool Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool_id",
+            "lane_id",
+            "resource_id",
+            "action_name",
+            "run_id",
+            "session_id",
+            "feedback_key",
+            "score",
+            "observed_at_unix_nano",
+            "action_schema_sha256",
+            "route_sha256",
+            "dataset_sha256",
+            "redaction_receipt_sha256"
+          ],
+          "title": "EvaluationFeedbackRequest",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "evaluation_feedback_export",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

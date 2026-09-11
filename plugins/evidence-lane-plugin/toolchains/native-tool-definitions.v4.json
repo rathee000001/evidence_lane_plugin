@@ -1,0 +1,340 @@
+{
+  "schema": "evidence-lane.native-tool-definitions.v4",
+  "status": "CURRENT_RETAINED_ONLY",
+  "version": 4,
+  "plane": "CODEX",
+  "host_profiles": [
+    "CODEX_DESKTOP",
+    "CODEX_CLI",
+    "CODEX_VM"
+  ],
+  "workspace_install_allowed": false,
+  "path_mutation_allowed": false,
+  "tools": [
+    {
+      "tool_id": "jq",
+      "version": "1.8.2",
+      "kind": "portable_executable",
+      "default_acquisition_allowed": true,
+      "download_url": "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-windows-amd64.exe",
+      "download_sha256": "A6FC67FEDAF9128A3309A1E2EBB8B986AECCF70122EE46D2CB4849E423F0C627",
+      "download_size_bytes": 1035264,
+      "installed_executables": [
+        "jq/bin/jq.exe"
+      ],
+      "command_aliases": {
+        "jq": "jq.exe"
+      },
+      "version_arguments": [
+        "--version"
+      ],
+      "license_spdx": "MIT",
+      "license": {
+        "url": "https://raw.githubusercontent.com/jqlang/jq/jq-1.8.2/COPYING",
+        "sha256": "AD2B4A266B2268939C1446979759706077421CF906A203AA188C6F396E8CFD74",
+        "size_bytes": 7887
+      }
+    },
+    {
+      "tool_id": "graphviz",
+      "version": "15.1.1",
+      "kind": "portable_zip",
+      "default_acquisition_allowed": true,
+      "download_url": "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/15.1.1/windows_10_cmake_Release_Graphviz-15.1.1-win64.zip",
+      "download_sha256": "E8256EF077E601D9F284378D96CD17FAA7910832CF6BB85C43005E66EC2F255E",
+      "download_size_bytes": 9767995,
+      "archive_prefix": "Graphviz-15.1.1-win64/",
+      "installed_executables": [
+        "graphviz/bin/dot.exe"
+      ],
+      "command_aliases": {
+        "graphviz": "dot.exe"
+      },
+      "version_arguments": [
+        "-V"
+      ],
+      "license_spdx": "EPL-1.0",
+      "license": {
+        "url": "https://gitlab.com/graphviz/graphviz/-/raw/15.1.1/LICENSE",
+        "sha256": "0BECF16567BEB77FA252B7664631DD177C8F9A1889E48995B45379C7130E5303",
+        "size_bytes": 14198
+      }
+    },
+    {
+      "tool_id": "poppler",
+      "version": "26.02.0-0",
+      "kind": "portable_zip",
+      "default_acquisition_allowed": true,
+      "download_url": "https://github.com/oschwartz10612/poppler-windows/releases/download/v26.02.0-0/Release-26.02.0-0.zip",
+      "download_sha256": "993E4A94376ED712FAFC7058D724EA0B943D118BBD2305CD9ED55174EB85CDA5",
+      "download_size_bytes": 16107283,
+      "archive_prefix": "poppler-26.02.0/",
+      "installed_executables": [
+        "poppler/Library/bin/pdftotext.exe",
+        "poppler/Library/bin/pdfinfo.exe"
+      ],
+      "command_aliases": {
+        "poppler_pdftotext": "pdftotext.exe",
+        "poppler_pdfinfo": "pdfinfo.exe"
+      },
+      "version_arguments": [
+        "-v"
+      ],
+      "license_spdx": "GPL-2.0-or-later",
+      "separate_process_only": true,
+      "source_offer_required": true,
+      "license": {
+        "url": "https://gitlab.freedesktop.org/poppler/poppler/-/raw/poppler-26.02.0/COPYING",
+        "sha256": "AB15FD526BD8DD18A9E77EBC139656BF4D33E97FC7238CD11BF60E2B9B8666C6",
+        "size_bytes": 17987
+      }
+    },
+    {
+      "tool_id": "seven_zip_extractor",
+      "version": "26.01",
+      "kind": "package_local_support_bundle",
+      "default_acquisition_allowed": true,
+      "package_files": [
+        {
+          "path": "toolchains/bin/windows-x86_64/7zip-26.01/7z.exe",
+          "sha256": "2BFF20BD679D45166B8C2D039044A4CA16189E6D69FF9C82345B4C1306986EC4",
+          "size_bytes": 576512
+        },
+        {
+          "path": "toolchains/bin/windows-x86_64/7zip-26.01/7z.dll",
+          "sha256": "9657871FDD714C96A3A21F59ABF04ABB14944516C2A10C8CB606C12A71A75957",
+          "size_bytes": 1908736
+        }
+      ],
+      "installed_executables": [
+        "seven_zip/bin/7z.exe"
+      ],
+      "command_aliases": {
+        "seven_zip": "7z.exe"
+      },
+      "version_arguments": [
+        "i"
+      ],
+      "license_spdx": "LicenseRef-7-Zip",
+      "license_files": [
+        {
+          "path": "toolchains/licenses/7-zip-26.01/LICENSE.txt",
+          "sha256": "32369594A3A9F7C643D124035120EAA6A7707E75E57C4386EF509F801447BC49",
+          "size_bytes": 5885
+        }
+      ]
+    },
+    {
+      "tool_id": "tesseract",
+      "version": "5.5.3.20260724",
+      "kind": "portable_nsis_extract",
+      "default_acquisition_allowed": true,
+      "download_url": "https://sourceforge.net/projects/tesseract-ocr.mirror/files/5.5.3/tesseract-ocr-w64-setup-5.5.3.20260724.exe/download?use_mirror=autoselect",
+      "download_sha256": "BEE9E3434BD94FD65387D9BE28CD467A41F61B1275383B55B0F59A1331270AE4",
+      "download_size_bytes": 26573224,
+      "extractor_tool_id": "seven_zip_extractor",
+      "extractor_path": "toolchains/bin/windows-x86_64/7zip-26.01/7z.exe",
+      "extractor_sha256": "2BFF20BD679D45166B8C2D039044A4CA16189E6D69FF9C82345B4C1306986EC4",
+      "installed_executables": [
+        "tesseract/tesseract.exe"
+      ],
+      "command_aliases": {
+        "tesseract": "tesseract.exe"
+      },
+      "version_arguments": [
+        "--version"
+      ],
+      "license_spdx": "Apache-2.0",
+      "license": {
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tesseract/5.5.3/LICENSE",
+        "sha256": "CFC7749B96F63BD31C3C42B5C471BF756814053E847C10F3EB003417BC523D30",
+        "size_bytes": 11358
+      }
+    },
+    {
+      "tool_id": "ghostscript",
+      "version": "10.07.1",
+      "kind": "silent_installer",
+      "default_acquisition_allowed": false,
+      "license_grant_reference_required": true,
+      "download_url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10071/gs10071w64.exe",
+      "download_sha256": "3A4C28D0AAC47AA7CCCD35A5932C55110376E9DBD966898DDE388B7FABA444A4",
+      "download_size_bytes": 64966216,
+      "installer_family": "nsis",
+      "silent_arguments": [
+        "/S"
+      ],
+      "install_directory_argument": "/D={target}",
+      "installed_executables": [
+        "ghostscript/bin/gswin64c.exe"
+      ],
+      "command_aliases": {
+        "ghostscript": "gswin64c.exe"
+      },
+      "version_arguments": [
+        "--version"
+      ],
+      "license_spdx": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial",
+      "license": {
+        "url": "https://raw.githubusercontent.com/ArtifexSoftware/ghostpdl/master/LICENSE",
+        "sha256": "8CE064F423B7C24A011B6EBF9431B8BF9861A5255E47C84BFB23FC526D030A8B",
+        "size_bytes": 1976
+      }
+    },
+    {
+      "tool_id": "ffmpeg",
+      "version": "imageio-ffmpeg==0.6.0",
+      "kind": "python_wheel_binary",
+      "default_acquisition_allowed": true,
+      "python_module": "imageio_ffmpeg",
+      "installed_executables": [
+        "PYTHON_MODULE_RESOLVED"
+      ],
+      "command_aliases": {
+        "ffmpeg": "PYTHON_MODULE_RESOLVED"
+      },
+      "version_arguments": [
+        "-version"
+      ],
+      "license_spdx": "BSD-2-Clause wrapper; bundled FFmpeg license reported at install",
+      "wheel_lock": "requirements.toolchain.lock.txt"
+    },
+    {
+      "tool_id": "ripgrep",
+      "version": "15.2.0",
+      "kind": "package_local_existing",
+      "default_acquisition_allowed": true,
+      "installed_executables": [
+        "ripgrep/bin/rg.exe"
+      ],
+      "command_aliases": {
+        "ripgrep": "rg.exe"
+      },
+      "version_arguments": [
+        "--version"
+      ],
+      "license_spdx": "MIT OR Unlicense",
+      "source_manifest": "toolchains/search-tools.v1.json"
+    },
+    {
+      "tool_id": "lessmsi_extractor",
+      "version": "2.12.9",
+      "kind": "portable_zip",
+      "default_acquisition_allowed": true,
+      "download_url": "https://github.com/activescott/lessmsi/releases/download/v2.12.9/lessmsi-v2.12.9.zip",
+      "download_sha256": "5B4E187E74B184AD3A63CCF06C3D17DAE2B8C4B6C298A996DBD51A9F6DB29D21",
+      "download_size_bytes": 740956,
+      "archive_prefix": "",
+      "installed_executables": [
+        "lessmsi/lessmsi.exe"
+      ],
+      "command_aliases": {
+        "lessmsi": "lessmsi.exe"
+      },
+      "version_arguments": [
+        "h"
+      ],
+      "version_verification": "pinned_release_archive_and_executable_file_version",
+      "license_spdx": "MIT",
+      "license": {
+        "url": "https://raw.githubusercontent.com/activescott/lessmsi/v2.12.9/LICENSE",
+        "sha256": "713580A82DCBD8DAE6DC15F9B500304C080AC0F8654F919037ECCEE5AB9BA976",
+        "size_bytes": 1097
+      },
+      "third_party_notices_required": true,
+      "purpose": "Extract MSI files without executing the MSI installer or changing Windows application registration",
+      "digest_source": "https://api.github.com/repos/activescott/lessmsi/releases/tags/v2.12.9"
+    },
+    {
+      "tool_id": "libreoffice",
+      "version": "26.2.6",
+      "kind": "portable_msi_extract",
+      "default_acquisition_allowed": true,
+      "download_url": "https://download.documentfoundation.org/libreoffice/stable/26.2.6/win/x86_64/LibreOffice_26.2.6_Win_x86-64.msi",
+      "download_sha256": "F9877032FD908BEB9C0DDF06DF4AF5C2E85F419C42E14876C4CCE5AAE5FB2660",
+      "download_size_bytes": 373252096,
+      "extractor_tool_id": "lessmsi_extractor",
+      "archive_prefix": "SourceDir/LibreOffice/",
+      "installed_executables": [
+        "libreoffice/program/soffice.com",
+        "libreoffice/program/soffice.exe"
+      ],
+      "command_aliases": {
+        "libreoffice": "soffice.com"
+      },
+      "version_arguments": [
+        "--version"
+      ],
+      "runtime_asset_id": "libreoffice_runtime",
+      "runtime_full_file_manifest_required": true,
+      "license_spdx": "MPL-2.0 AND LGPL-3.0-or-later",
+      "third_party_notices_required": true,
+      "extracted_license": {
+        "path": "license.txt",
+        "sha256": "4A4424CCA75F2C723DFBC04C0394A70E97E37BADCE72700F3FB38701966AC344",
+        "size_bytes": 512711
+      },
+      "separate_process_only": true,
+      "installer_execution_allowed": false,
+      "digest_source": "https://download.documentfoundation.org/libreoffice/stable/26.2.6/win/x86_64/LibreOffice_26.2.6_Win_x86-64.msi.mirrorlist"
+    },
+    {
+      "tool_id": "powerbi_tom",
+      "version": "19.114.12",
+      "kind": "packaged_build_artifact",
+      "lifecycle": "retained",
+      "runtime_asset_id": "powerbi_tom_runtime",
+      "runtime_full_file_manifest_required": true,
+      "platform": "windows-x86_64",
+      "default_acquisition_allowed": false,
+      "build_owner": "scripts/build_powerbi_tom_adapter.py",
+      "binary_filename": "evidence-lane-powerbi.exe",
+      "binary_hash_manifest_required": true,
+      "source_archives_and_licenses_required": true,
+      "license_spdx": "LicenseRef-Microsoft-AnalysisServices",
+      "adapter_license": "MIT",
+      "runtime_compilation_allowed": false,
+      "network_acquisition_during_operation": false,
+      "full_installation_verified": false,
+      "source_project": "toolchains/powerbi-adapter",
+      "nuget_lock_sha256": "f39ba66d30556ee2243288dd1b803c31e4647ae59f746eb70de5c397653771c1",
+      "dotnet_runtime": "10.0.11"
+    },
+    {
+      "tool_id": "powerbi_pbix",
+      "version": "0.15.5",
+      "kind": "packaged_build_artifact",
+      "lifecycle": "retained",
+      "runtime_asset_id": "powerbi_pbix_runtime",
+      "runtime_full_file_manifest_required": true,
+      "platform": "windows-x86_64",
+      "default_acquisition_allowed": false,
+      "build_owner": "scripts/build_powerbi_pbix_runtime.py",
+      "binary_filename": "python.exe",
+      "binary_hash_manifest_required": true,
+      "source_archives_and_licenses_required": true,
+      "license_spdx": "LicenseRef-Bundled-Python-and-Package-Licenses",
+      "adapter_license": "MIT",
+      "runtime_compilation_allowed": false,
+      "network_acquisition_during_operation": false,
+      "full_installation_verified": false,
+      "input_manifest": "toolchains/powerbi-pbix-runtime.v4.json",
+      "input_manifest_sha256": "e5b4f207d4e5964c4d52d70cce3b68dde70ecfd300693b5b0fea72a016f9268a",
+      "python_version": "3.13.15"
+    }
+  ],
+  "source_provenance": [
+    {
+      "historical_path": "toolchains/native-tools.v1.json",
+      "sha256": "a91607a0e1bb2ddecf6373851a7e8f9b4f4f7b698e677345d67a403214ef0d9e",
+      "bytes": 7161,
+      "role": "admitted development input retired after v4 rebase"
+    },
+    {
+      "historical_path": "toolchains/native-tool-additions.v4.json",
+      "sha256": "504703412ab6581f4e091b6f5307dba370f682437799e48ae04d746ddffd28eb",
+      "bytes": 10512,
+      "role": "admitted development input retired after v4 rebase"
+    }
+  ]
+}

@@ -1,0 +1,1906 @@
+{
+  "schema": "evidence-lane.empty-sector-schema.v4",
+  "lane_id": "research",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "4d138b25efe034bba85eb973d23a1ac887b861ce4404e2723f58b574fe6a3931",
+  "tables": [
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_archive_member",
+      "type": "table",
+      "sql": "CREATE TABLE research_archive_member(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE research_chunk(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            chunk_id TEXT NOT NULL,item_id TEXT NOT NULL,ordinal INTEGER NOT NULL,\n            text_object TEXT NOT NULL REFERENCES objects(digest),PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE research_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_citation",
+      "type": "table",
+      "sql": "CREATE TABLE research_citation(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_current",
+      "type": "table",
+      "sql": "CREATE TABLE research_current(source_id TEXT PRIMARY KEY REFERENCES research_file(source_id),\n            snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE research_discovery_chunk(snapshot_id TEXT NOT NULL REFERENCES research_discovery_version(snapshot_id),\n        chunk_id TEXT NOT NULL,item_id TEXT NOT NULL,ordinal INTEGER NOT NULL,\n        text_object TEXT NOT NULL REFERENCES objects(digest),PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE research_discovery_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_current",
+      "type": "table",
+      "sql": "CREATE TABLE research_discovery_current(source_id TEXT PRIMARY KEY REFERENCES research_discovery_source(source_id),\n        snapshot_id TEXT NOT NULL REFERENCES research_discovery_version(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_fact",
+      "type": "table",
+      "sql": "CREATE TABLE research_discovery_fact(snapshot_id TEXT NOT NULL REFERENCES research_discovery_version(snapshot_id),\n        item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_source",
+      "type": "table",
+      "sql": "CREATE TABLE research_discovery_source(source_id TEXT PRIMARY KEY,parameters_json TEXT NOT NULL CHECK(json_valid(parameters_json)),\n        created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "parameters_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_discovery_version",
+      "type": "table",
+      "sql": "CREATE TABLE research_discovery_version(snapshot_id TEXT PRIMARY KEY,\n        source_id TEXT NOT NULL REFERENCES research_discovery_source(source_id),generation INTEGER NOT NULL CHECK(generation>0),\n        previous_snapshot TEXT REFERENCES research_discovery_version(snapshot_id),\n        manifest_object TEXT NOT NULL REFERENCES objects(digest),raw_object TEXT NOT NULL REFERENCES objects(digest),\n        facts_object TEXT NOT NULL REFERENCES objects(digest),parser_contract TEXT NOT NULL,created_at TEXT NOT NULL,\n        UNIQUE(source_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "raw_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_evidence",
+      "type": "table",
+      "sql": "CREATE TABLE research_evidence(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_file",
+      "type": "table",
+      "sql": "CREATE TABLE research_file(source_id TEXT PRIMARY KEY,logical_name TEXT NOT NULL,\n            source_path TEXT NOT NULL,created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "logical_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_finding",
+      "type": "table",
+      "sql": "CREATE TABLE research_finding(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_hypothesis",
+      "type": "table",
+      "sql": "CREATE TABLE research_hypothesis(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_limitation",
+      "type": "table",
+      "sql": "CREATE TABLE research_limitation(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_method",
+      "type": "table",
+      "sql": "CREATE TABLE research_method(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_native_fact",
+      "type": "table",
+      "sql": "CREATE TABLE research_native_fact(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_open_question",
+      "type": "table",
+      "sql": "CREATE TABLE research_open_question(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_question",
+      "type": "table",
+      "sql": "CREATE TABLE research_question(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE research_receipt(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_review_required",
+      "type": "table",
+      "sql": "CREATE TABLE research_review_required(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_source",
+      "type": "table",
+      "sql": "CREATE TABLE research_source(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_sqlite_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE research_sqlite_receipt(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_sqlite_relationship",
+      "type": "table",
+      "sql": "CREATE TABLE research_sqlite_relationship(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_sqlite_row",
+      "type": "table",
+      "sql": "CREATE TABLE research_sqlite_row(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_sqlite_schema_object",
+      "type": "table",
+      "sql": "CREATE TABLE research_sqlite_schema_object(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_sqlite_table",
+      "type": "table",
+      "sql": "CREATE TABLE research_sqlite_table(snapshot_id TEXT NOT NULL REFERENCES research_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_version",
+      "type": "table",
+      "sql": "CREATE TABLE research_version(snapshot_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES research_file(source_id),\n            generation INTEGER NOT NULL CHECK(generation>0),\n            previous_snapshot TEXT REFERENCES research_version(snapshot_id),\n            manifest_object TEXT NOT NULL REFERENCES objects(digest),raw_object TEXT NOT NULL REFERENCES objects(digest),\n            facts_object TEXT NOT NULL REFERENCES objects(digest),parser_contract TEXT NOT NULL,\n            created_at TEXT NOT NULL,UNIQUE(source_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "raw_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE research_web_chunk(snapshot_id TEXT NOT NULL REFERENCES research_web_version(snapshot_id),\n        chunk_id TEXT NOT NULL,item_id TEXT NOT NULL,ordinal INTEGER NOT NULL,\n        text_object TEXT NOT NULL REFERENCES objects(digest),PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE research_web_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_current",
+      "type": "table",
+      "sql": "CREATE TABLE research_web_current(source_id TEXT PRIMARY KEY REFERENCES research_web_source(source_id),\n        snapshot_id TEXT NOT NULL REFERENCES research_web_version(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_fact",
+      "type": "table",
+      "sql": "CREATE TABLE research_web_fact(snapshot_id TEXT NOT NULL REFERENCES research_web_version(snapshot_id),\n        item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_source",
+      "type": "table",
+      "sql": "CREATE TABLE research_web_source(source_id TEXT PRIMARY KEY,url TEXT NOT NULL,created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "url",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "research_web_version",
+      "type": "table",
+      "sql": "CREATE TABLE research_web_version(snapshot_id TEXT PRIMARY KEY,\n        source_id TEXT NOT NULL REFERENCES research_web_source(source_id),generation INTEGER NOT NULL CHECK(generation>0),\n        previous_snapshot TEXT REFERENCES research_web_version(snapshot_id),\n        manifest_object TEXT NOT NULL REFERENCES objects(digest),body_object TEXT NOT NULL REFERENCES objects(digest),\n        wire_object TEXT NOT NULL REFERENCES objects(digest),facts_object TEXT NOT NULL REFERENCES objects(digest),\n        extraction_object TEXT NOT NULL REFERENCES objects(digest),parser_contract TEXT NOT NULL,created_at TEXT NOT NULL,\n        UNIQUE(source_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "wire_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "extraction_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "selector_retirement",
+      "type": "table",
+      "sql": "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "proof_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "research_archive_member",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_chunk",
+      "target": "objects",
+      "column": "text_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_chunk",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_citation",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_current",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_current",
+      "target": "research_file",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "research_discovery_chunk",
+      "target": "objects",
+      "column": "text_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_discovery_chunk",
+      "target": "research_discovery_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_discovery_current",
+      "target": "research_discovery_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_discovery_current",
+      "target": "research_discovery_source",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "research_discovery_fact",
+      "target": "research_discovery_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_discovery_version",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_discovery_version",
+      "target": "objects",
+      "column": "raw_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_discovery_version",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_discovery_version",
+      "target": "research_discovery_version",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_discovery_version",
+      "target": "research_discovery_source",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "research_evidence",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_finding",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_hypothesis",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_limitation",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_method",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_native_fact",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_open_question",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_question",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_receipt",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_review_required",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_source",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_sqlite_receipt",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_sqlite_relationship",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_sqlite_row",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_sqlite_schema_object",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_sqlite_table",
+      "target": "research_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_version",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_version",
+      "target": "objects",
+      "column": "raw_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_version",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_version",
+      "target": "research_version",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_version",
+      "target": "research_file",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "research_web_chunk",
+      "target": "objects",
+      "column": "text_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_chunk",
+      "target": "research_web_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_web_current",
+      "target": "research_web_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_web_current",
+      "target": "research_web_source",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "research_web_fact",
+      "target": "research_web_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_web_version",
+      "target": "objects",
+      "column": "extraction_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_version",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_version",
+      "target": "objects",
+      "column": "wire_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_version",
+      "target": "objects",
+      "column": "body_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_version",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "research_web_version",
+      "target": "research_web_version",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "research_web_version",
+      "target": "research_web_source",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "proof_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "snapshot_id",
+      "target_column": "digest"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

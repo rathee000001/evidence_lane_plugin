@@ -1,0 +1,214 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Register or version one named Custom lane and its bounded retained-parser adapter; allocate its own database and files.",
+  "inputSchema": {
+    "$defs": {
+      "Adapter": {
+        "additionalProperties": false,
+        "properties": {
+          "extensions": {
+            "items": {
+              "pattern": "^\\.[a-z0-9]{1,15}$",
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Extensions",
+            "type": "array"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "parser": {
+            "enum": [
+              "auto",
+              "text",
+              "json",
+              "notebook",
+              "archive",
+              "sqlite",
+              "opaque",
+              "document",
+              "presentation",
+              "spreadsheet",
+              "data",
+              "pdf_pymupdf",
+              "pdf_pypdf",
+              "pdf_pdfplumber",
+              "media"
+            ],
+            "title": "Parser",
+            "type": "string"
+          },
+          "sqlite_rows": {
+            "default": 100,
+            "maximum": 200,
+            "minimum": 0,
+            "title": "Sqlite Rows",
+            "type": "integer"
+          },
+          "sqlite_tables": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Sqlite Tables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "parser",
+          "extensions"
+        ],
+        "title": "Adapter",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "adapter": {
+        "$ref": "#/$defs/Adapter"
+      },
+      "description": {
+        "default": "",
+        "maxLength": 1000,
+        "title": "Description",
+        "type": "string"
+      },
+      "display_name": {
+        "maxLength": 120,
+        "minLength": 1,
+        "title": "Display Name",
+        "type": "string"
+      },
+      "expected_contract": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Contract"
+      },
+      "lane_id": {
+        "pattern": "^custom__[a-z][a-z0-9_]{0,39}$",
+        "title": "Lane Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "lane_id",
+      "display_name",
+      "adapter"
+    ],
+    "title": "Configure",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "custom_lane_configure",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "bbbe64cfd32befb3f5238293243aa786c98792f61cfe3acc54a928b06194f45d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "custom_lane_configure",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.custom_lanes:register_custom_lane_actions.<locals>.configure",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "custom_lane_configure.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

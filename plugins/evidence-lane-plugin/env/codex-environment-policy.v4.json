@@ -1,0 +1,1154 @@
+{
+  "schema": "evidence-lane.env-codex-policy.v4",
+  "role": "env",
+  "source": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+  "source_model": "direct_current_codex_and_evidence_lane_contracts",
+  "runtime_mutation_allowed": false,
+  "project_payload_allowed": false,
+  "declared_policy_is_execution_evidence": false,
+  "legacy_translation_layer": false,
+  "tables": {
+    "env_authority_meta": {
+      "columns": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "codex_host_variant_v4": {
+      "columns": [
+        {
+          "name": "host_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "host_profile",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "app_variant",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "application_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lifetime",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "native_mcp",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tunnel_policy",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_accelerator_profile_v4": {
+      "columns": [
+        {
+          "name": "provider_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "vendor_plugin",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "runtime",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "eligible_action_classes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "default_memory_budget_percent",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "selection_rule",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "provider_is_tool",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "provider_is_agent",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_tool_registry_v4": {
+      "columns": [
+        {
+          "name": "tool_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "requirement",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "surfaces_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "role",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "agent_authority",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_action_binding_v4": {
+      "columns": [
+        {
+          "name": "action_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "workflow_classes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "owner_skill",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "internal_sdk_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mcp_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "skill_workflows_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entry_event",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordered_tools_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "schema_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_sdk_action_binding_v4": {
+      "columns": [
+        {
+          "name": "action_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "internal_sdk_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "outer_route_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_mcp_action_binding_v4": {
+      "columns": [
+        {
+          "name": "action_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "server_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tool_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_lane_binding_v4": {
+      "columns": [
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_types_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "chunker_version",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "fts_table",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordered_tools_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_names_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_classes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_skill_binding_v4": {
+      "columns": [
+        {
+          "name": "skill_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "workflow_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "member_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "routing_manifest_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_hook_binding_v4": {
+      "columns": [
+        {
+          "name": "event_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "event_number",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "handler_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "event_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "event_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_project_class_policy_v4": {
+      "columns": [
+        {
+          "name": "project_class",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "lane_ids_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ci_strategy",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "decision_strategy",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "project_class": "CODE_REPOSITORY",
+          "lane_ids_json": "[\"local_code\",\"github_code\"]",
+          "ci_strategy": "changed code and owning checks",
+          "decision_strategy": "source-first implementation",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "DATA_PROJECT",
+          "lane_ids_json": "[\"data\",\"data_excel\",\"tableau\",\"power_bi\",\"custom\"]",
+          "ci_strategy": "schema, value and output checks",
+          "decision_strategy": "typed data workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "DOCUMENT_PROJECT",
+          "lane_ids_json": "[\"docs\",\"ppt\",\"pdf_ocr\"]",
+          "ci_strategy": "content, structure and render checks",
+          "decision_strategy": "document fidelity workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "MEDIA_PROJECT",
+          "lane_ids_json": "[\"images_ocr\",\"artifacts\"]",
+          "ci_strategy": "metadata, extraction and output checks",
+          "decision_strategy": "media provenance workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "RESEARCH_STUDY",
+          "lane_ids_json": "[\"research\",\"sources\"]",
+          "ci_strategy": "source, citation and attribution checks",
+          "decision_strategy": "research evidence workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "MIXED_PROJECT",
+          "lane_ids_json": "[\"local_code\",\"github_code\",\"data\",\"data_excel\",\"docs\",\"ppt\",\"pdf_ocr\",\"images_ocr\",\"research\",\"artifacts\",\"custom\"]",
+          "ci_strategy": "checks selected by affected owning lanes",
+          "decision_strategy": "ordered mixed workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "project_class": "CUSTOM_PROJECT",
+          "lane_ids_json": "[\"custom\"]",
+          "ci_strategy": "explicit user-defined schema and acceptance checks",
+          "decision_strategy": "explicit custom workflow",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "env_source_lane_classification_v4": {
+      "columns": [
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "lane_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_types_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "owner_folder",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_workflow_policy_v4": {
+      "columns": [
+        {
+          "name": "workflow_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "skill_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_names_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_work_policy_v4": {
+      "columns": [
+        {
+          "name": "work_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "work_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_templates_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "scan_order",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "unit_of_work",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "workflow_order",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "recursive_loop",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "validation_gate",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "exit_write_target",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_classes_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ci_cd_required",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    },
+    "env_codex_workflow_stage_v4": {
+      "columns": [
+        {
+          "name": "stage_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "output_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "stage_id": "USER_INTENT",
+          "ordinal": 1,
+          "label": "User request and current instructions",
+          "source_owner": "Codex host",
+          "output_contract": "attributed intent",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "HOST_CONTEXT",
+          "ordinal": 2,
+          "label": "Measured host and client context",
+          "source_owner": "host_routing and connections",
+          "output_contract": "host observation",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "PROJECT_BINDING",
+          "ordinal": 3,
+          "label": "Explicit project and storage selection",
+          "source_owner": "projects and storage_selection",
+          "output_contract": "project binding",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "SKILL_RESOLUTION",
+          "ordinal": 4,
+          "label": "Business-intent skill selection",
+          "source_owner": "registry.WORKFLOWS",
+          "output_contract": "selected workflow",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "ACTION_CONTRACT",
+          "ordinal": 5,
+          "label": "Typed action and lane contract",
+          "source_owner": "registry.ActionRegistry",
+          "output_contract": "validated request",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "PLAN_STATE",
+          "ordinal": 6,
+          "label": "Current Plan revision and task contract",
+          "source_owner": "plan_runtime",
+          "output_contract": "pinned work state",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "UOP_ADMISSION",
+          "ordinal": 7,
+          "label": "Permission and operation-policy gates",
+          "source_owner": "env_uop_tool_routing",
+          "output_contract": "admission decision",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "TOOL_SELECTION",
+          "ordinal": 8,
+          "label": "Ready primary or same-contract fallback",
+          "source_owner": "tool_routes",
+          "output_contract": "selected route",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "EXECUTION",
+          "ordinal": 9,
+          "label": "One writer and owned OS workers",
+          "source_owner": "coordination and workers",
+          "output_contract": "bounded effect",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "VERIFICATION",
+          "ordinal": 10,
+          "label": "Current acceptance and effect reconciliation",
+          "source_owner": "acceptance and adaptive_delta_exit",
+          "output_contract": "verified result",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "PLAN_PROJECTION",
+          "ordinal": 11,
+          "label": "Plan database then exact linked PLAN.md",
+          "source_owner": "plan_runtime",
+          "output_contract": "full host Plan projection",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "EVIDENCE_PUBLICATION",
+          "ordinal": 12,
+          "label": "Coherent lane heads, receipts, memory and lessons",
+          "source_owner": "lane_transactions",
+          "output_contract": "published evidence",
+          "status": "ACTIVE"
+        },
+        {
+          "stage_id": "STUDIO_OBSERVATION",
+          "ordinal": 13,
+          "label": "Read-only live Studio snapshot",
+          "source_owner": "studio_gateway",
+          "output_contract": "human-visible observation",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "env_codex_workflow_edge_v4": {
+      "columns": [
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_stage",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "target_stage",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "condition",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "edge_id": "CODEX_STAGE_01",
+          "source_stage": "USER_INTENT",
+          "target_stage": "HOST_CONTEXT",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_02",
+          "source_stage": "HOST_CONTEXT",
+          "target_stage": "PROJECT_BINDING",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_03",
+          "source_stage": "PROJECT_BINDING",
+          "target_stage": "SKILL_RESOLUTION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_04",
+          "source_stage": "SKILL_RESOLUTION",
+          "target_stage": "ACTION_CONTRACT",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_05",
+          "source_stage": "ACTION_CONTRACT",
+          "target_stage": "PLAN_STATE",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_06",
+          "source_stage": "PLAN_STATE",
+          "target_stage": "UOP_ADMISSION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_07",
+          "source_stage": "UOP_ADMISSION",
+          "target_stage": "TOOL_SELECTION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_08",
+          "source_stage": "TOOL_SELECTION",
+          "target_stage": "EXECUTION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_09",
+          "source_stage": "EXECUTION",
+          "target_stage": "VERIFICATION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_10",
+          "source_stage": "VERIFICATION",
+          "target_stage": "PLAN_PROJECTION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_11",
+          "source_stage": "PLAN_PROJECTION",
+          "target_stage": "EVIDENCE_PUBLICATION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        },
+        {
+          "edge_id": "CODEX_STAGE_12",
+          "source_stage": "EVIDENCE_PUBLICATION",
+          "target_stage": "STUDIO_OBSERVATION",
+          "condition": "current contract and preceding stage pass",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "env_studio_binding_v4": {
+      "columns": [
+        {
+          "name": "binding_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "platform",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "human_access",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "mutation_allowed",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "binding_id": "WINDOWS_STUDIO",
+          "platform": "Windows",
+          "human_access": "visible_read_only",
+          "source_owner": "apps/evidence-lane-studio and studio_gateway",
+          "mutation_allowed": 0,
+          "status": "DECLARED_REQUIRES_INSTALLATION"
+        }
+      ]
+    },
+    "env_plan_projection_binding_v4": {
+      "columns": [
+        {
+          "name": "binding_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "full_list",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "partial_window",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "write_order",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "collision_policy",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": [
+        {
+          "binding_id": "PROJECT_PLAN_TO_CODEX_PLAN",
+          "source_owner": "project Plan lane database",
+          "destination": "exact explicitly bound Codex PLAN.md",
+          "full_list": 1,
+          "partial_window": 0,
+          "write_order": "database commit then atomic host file replace",
+          "collision_policy": "preserve changed host file and keep projection pending",
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    "env_action_plane_build_receipt": {
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "table_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "tool_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "skill_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "hook_event_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "host_variant_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "foreign_surface_row_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "recorded_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ],
+      "rows": []
+    }
+  },
+  "catalog_sha256": "bcf5cdc358dc2475969f95e38d38b7c4dfaada2ebfe4fce167e3a2ea81471636"
+}

@@ -1,0 +1,1586 @@
+{
+  "schema": "evidence-lane.sector-workflow.v4",
+  "lane_id": "pdf_ocr",
+  "source_package_folder": "authorities/project_sectors/pdf_ocr",
+  "external_project_folder": "sectors/pdf_ocr",
+  "actions": [
+    {
+      "name": "pdf_current",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_current",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_current.engine",
+            "adapter": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ae90608d4b253fc298a868585da41e9eb27fcb7c5a946a8f1f35bef983eefe98"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "pdf_edit",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_edit",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_edit.native_pdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:edit_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "pdf_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7b21b9657eeff0ffb9454bf08c2b1a0bc02a860665cc4100a006076339cbac13"
+      },
+      "verification_checks": [
+        "pdf_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_enrich",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_enrich",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_enrich.docling",
+            "adapter": "evidence_lane_plugin.pdf_enrichment:enrich",
+            "tool_ids": [
+              "Python",
+              "Docling",
+              "pypdf"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Separate offline PDF layout and table projection using the configured CPU worker.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "pdf_enrich"
+        ],
+        "installation_implied": false,
+        "contract_digest": "fe1c34946bbcef6291cba927f3cbb800f306b8cde6f2d0ebbdf1d46883613efb"
+      },
+      "verification_checks": [
+        "pdf_enrichment_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_enrichment_read",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_enrichment_read",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_enrichment_read.engine",
+            "adapter": "evidence_lane_plugin.pdf_enrichment:register_pdf_enrichment_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ac711c77dff1038a5287a288ea086889435b1603aab43616cf7f85d3da566607"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "pdf_export",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_export",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_export.pymupdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.pdfplumber",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.pypdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.poppler",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "Poppler_pdftotext_pdfinfo"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.pymupdf_view",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.pdfplumber_view",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.pypdf_view",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "pdf_export.poppler_view",
+            "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "Poppler_pdftotext_pdfinfo",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "pdf_parse_bytes",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "pdf_ocr.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "pdf_parse_bytes",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "4c84ec23161313f5dadf6fdf878883a58caf9a3d15d7d908205a6803d1d392a5"
+      },
+      "verification_checks": [
+        "pdf_export_hash_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_generate",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_generate",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_generate.native_pdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:generate_pdf",
+            "tool_ids": [
+              "Python",
+              "ReportLab",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "pdf_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "2a2c0e5111887379b653956903077e7616d19f456b6d02128e5cb4fd8a1f7da2"
+      },
+      "verification_checks": [
+        "pdf_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_index",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_index",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_index.native_pdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pymupdf"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_index.pdfplumber",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_plumber",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Attributed pdfplumber text and tables.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pdfplumber"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_index.pypdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_pypdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Retained pypdf text backend with separate geometric tables.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pypdf"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_index.poppler",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_poppler",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "Poppler_pdftotext_pdfinfo"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Verified Poppler native text backend with exact page binding.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "poppler"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "pdf_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "6158d8aa179a42e9272b5791baf0b4e8c10b22d4d04220a42ae18472ff0fba07"
+      },
+      "verification_checks": [
+        "pdf_snapshot_integrity",
+        "pdf_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_ocr",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_ocr",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_ocr.rapidocr",
+            "adapter": "evidence_lane_plugin.pdf_derivatives:ocr",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pypdfium2",
+              "Pillow",
+              "OpenCV",
+              "RapidOCR_ONNX_Runtime"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "language": [
+                "eng"
+              ]
+            },
+            "argument_suffixes": {},
+            "compute": {
+              "worker_operation": "pdf_ocr",
+              "action_class": "OCR_MEDIA",
+              "providers": [
+                "CPU",
+                "DIRECTML"
+              ],
+              "required_vram_mib": 2048,
+              "runtime_operation": "rapidocr_lines",
+              "selection_is_execution": false,
+              "fallback_policy": "before_first_invocation_only",
+              "memory_basis": "adapter_conservative_reservation"
+            }
+          },
+          {
+            "route_id": "pdf_ocr.tesseract",
+            "adapter": "evidence_lane_plugin.pdf_derivatives:ocr_tesseract",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pypdfium2",
+              "Pillow",
+              "pytesseract_Tesseract"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "pdf_ocr"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7f11837caa5b2de710ec08334ee3a6454210b6f9af780398e8844b8bbfdeaeec"
+      },
+      "verification_checks": [
+        "pdf_ocr_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_ocr_read",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_ocr_read",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_ocr_read.engine",
+            "adapter": "evidence_lane_plugin.pdf_derivatives:register_pdf_derivatives.<locals>.make_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "fdc7f74333e1a5cb0788f1845e0205aee116ff7dab8a13a68cae48f255a71a9d"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "pdf_query",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_query",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_query.engine",
+            "adapter": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "0398d07c898bb2733b569a090886cb26fc586a8a904f227faf3946c6c832e074"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "pdf_read",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_read",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_read.engine",
+            "adapter": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "18d0148207af3f757a6c18f6beef415e74da923dce48fb3e577f71005e1a78d8"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "pdf_refresh",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_refresh",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_refresh.native_pdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pymupdf"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_refresh.pdfplumber",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_plumber",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Attributed pdfplumber text and tables.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pdfplumber"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_refresh.pypdf",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_pypdf",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Retained pypdf text backend with separate geometric tables.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "pypdf"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "pdf_refresh.poppler",
+            "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_poppler",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber",
+              "Poppler_pdftotext_pdfinfo"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Verified Poppler native text backend with exact page binding.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "text_backend": [
+                "auto",
+                "poppler"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "pdf_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "af0ff9d093d2b4f5962f42f952bf973eb01a68c85f9f8fb8e82a7134e41a9967"
+      },
+      "verification_checks": [
+        "pdf_snapshot_integrity",
+        "pdf_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_render",
+      "profile": "pdf_ocr",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_render",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_render.pdfium",
+            "adapter": "evidence_lane_plugin.pdf_derivatives:render",
+            "tool_ids": [
+              "Python",
+              "pypdfium2",
+              "pypdf",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "pdf_render"
+        ],
+        "installation_implied": false,
+        "contract_digest": "1fca9cf92bcac2a2e579ec7386b2c1639b1a4e65713a3ad8ce589f80b37596ef"
+      },
+      "verification_checks": [
+        "pdf_render_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "pdf_render_read",
+      "profile": "pdf_ocr",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "pdf_render_read",
+        "profile": "pdf_ocr",
+        "routes": [
+          {
+            "route_id": "pdf_render_read.engine",
+            "adapter": "evidence_lane_plugin.pdf_derivatives:register_pdf_derivatives.<locals>.make_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ea077e270fc8ad8c4d10e8f91ac1d3bd37c09fbdf15f5c7b45eabb730b68611d"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ]
+    },
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "pdf_ocr.structure",
+      "lane_id": "pdf_ocr",
+      "folder": "sectors/pdf_ocr",
+      "version": 1,
+      "meaning": "Page, native form/widget and separate OCR evidence locators.",
+      "consumer": "artifact_export",
+      "implementation_digest": "cd849ab7274bc7c34e608f8709fba723f345cea7fd29052731d1b1041af51a59",
+      "files": {
+        "mmd": "pdf.mmd",
+        "dot": "pdf.dot",
+        "pointer": "pdf.pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "pdfocr"
+      ],
+      "node_kinds": [
+        "pdf",
+        "pdf_page",
+        "pdf_text_block",
+        "pdf_image",
+        "pdf_table",
+        "pdf_form_field",
+        "pdf_widget",
+        "pdf_outline",
+        "pdf_attachment",
+        "pdf_ocr_run",
+        "pdf_ocr_line"
+      ],
+      "edge_kinds": [
+        "CONTAINS",
+        "DISPLAYED_BY",
+        "DERIVED_FROM",
+        "OCR_EVIDENCE"
+      ],
+      "schemas": [
+        {
+          "owner": "pdfocr",
+          "version": 1,
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+        },
+        {
+          "owner": "pdfocr",
+          "version": 2,
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "pdf_heads",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_pdf_ocr",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 28,
+    "edge_count": 34,
+    "group_count": 0,
+    "semantic_topology_sha256": "8FB46CEF5A57634B28884FB9C86006313C92E0ACFE7A0554C656B0D2FD409BD4",
+    "mmd_sha256": "07E019B6789ED7C47CD67EB6ED76216A25987DF6F253CB7D62A9B2E7DE2A650F",
+    "dot_sha256": "ECA4E9DFEFAF99EF147968D85AF3F906F978A2E1B4B9ED61FB9A6177E7761D06",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "0CA887A3A8D5F3BFDD9D71F7A31C770EE966FE6DBEE3A3264AAEBF5EE823C403",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "42B5369F9545ED34A353BD6807DDE46BAB4E1100B26B159776838D325044A30C"
+  },
+  "workflow_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_pdf_ocr",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 20,
+    "edge_count": 41,
+    "group_count": 0,
+    "semantic_topology_sha256": "72F778BD7C258B369FBC31A73322A086A4CB26C9A085F1FEB1F9F5D2FC2093AD",
+    "mmd_sha256": "B633018148D56194F5929942B502DFC2281E846942314C60BB51E2333676164A",
+    "dot_sha256": "20675E31B48F3203833067CAB2E58A6C14BCC623B662333C9032E10CC9256D15",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "E4D85C2E5A68D1A6193CA6027D6E77EC13289EDE5DB141FB9E6FBD1469707CBF",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 5,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "8CC3AF4E1E6BFEE4DB27F91615B7FC3718CCFF1FF09CEB5A9F414979D9221E20"
+  },
+  "graph_role": "source_package_schema_and_executable_routes",
+  "project_data_copied": false
+}

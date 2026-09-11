@@ -1,0 +1,450 @@
+{
+  "action": "media_transform",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/media_transform.action.v4.json",
+  "sdk_binding_sha256": "063bf1bbb93068ca7550bf46ff84d8de9891fa3ec4cfb5f1d7bf00a9a5b285a3",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Publish one immutable raster derivative with explicit frame, alpha and metadata handling.",
+    "inputSchema": {
+      "$defs": {
+        "RasterCrop": {
+          "additionalProperties": false,
+          "properties": {
+            "bottom": {
+              "maximum": 25000,
+              "minimum": 1,
+              "title": "Bottom",
+              "type": "integer"
+            },
+            "left": {
+              "maximum": 25000,
+              "minimum": 0,
+              "title": "Left",
+              "type": "integer"
+            },
+            "right": {
+              "maximum": 25000,
+              "minimum": 1,
+              "title": "Right",
+              "type": "integer"
+            },
+            "top": {
+              "maximum": 25000,
+              "minimum": 0,
+              "title": "Top",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "left",
+            "top",
+            "right",
+            "bottom"
+          ],
+          "title": "RasterCrop",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "apply_exif_orientation": {
+              "default": true,
+              "title": "Apply Exif Orientation",
+              "type": "boolean"
+            },
+            "color_mode": {
+              "default": "preserve",
+              "enum": [
+                "preserve",
+                "RGB",
+                "RGBA",
+                "L"
+              ],
+              "title": "Color Mode",
+              "type": "string"
+            },
+            "crop": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RasterCrop"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "expected_sha256": {
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Expected Sha256",
+              "type": "string"
+            },
+            "flip": {
+              "default": "none",
+              "enum": [
+                "none",
+                "horizontal",
+                "vertical"
+              ],
+              "title": "Flip",
+              "type": "string"
+            },
+            "frame": {
+              "anyOf": [
+                {
+                  "maximum": 500,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Frame"
+            },
+            "height": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Height"
+            },
+            "jpeg_background": {
+              "anyOf": [
+                {
+                  "pattern": "^#[a-fA-F0-9]{6}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Jpeg Background"
+            },
+            "lane_id": {
+              "const": "images_ocr",
+              "default": "images_ocr",
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "logical_name": {
+              "maxLength": 180,
+              "minLength": 1,
+              "title": "Logical Name",
+              "type": "string"
+            },
+            "max_pixels": {
+              "default": 12000000,
+              "maximum": 25000000,
+              "minimum": 1,
+              "title": "Max Pixels",
+              "type": "integer"
+            },
+            "metadata": {
+              "default": "preserve_supported",
+              "enum": [
+                "preserve_supported",
+                "strip"
+              ],
+              "title": "Metadata",
+              "type": "string"
+            },
+            "output_format": {
+              "default": "PNG",
+              "enum": [
+                "PNG",
+                "JPEG",
+                "WEBP",
+                "TIFF"
+              ],
+              "title": "Output Format",
+              "type": "string"
+            },
+            "quality": {
+              "default": 92,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Quality",
+              "type": "integer"
+            },
+            "rotate_clockwise": {
+              "default": 0,
+              "enum": [
+                0,
+                90,
+                180,
+                270
+              ],
+              "title": "Rotate Clockwise",
+              "type": "integer"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "webp_lossless": {
+              "default": true,
+              "title": "Webp Lossless",
+              "type": "boolean"
+            },
+            "width": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Width"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "expected_sha256",
+            "logical_name"
+          ],
+          "title": "MediaTransform",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "media_transform",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

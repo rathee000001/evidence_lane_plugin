@@ -1,28 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Images / OCR builder binding request",
-  "type": "object",
-  "required": [
-    "lane_id",
-    "source_paths",
-    "bundle_arguments"
-  ],
+  "additionalProperties": false,
   "properties": {
-    "lane_id": {
-      "const": "images_ocr"
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Task Id",
+      "type": "string"
     },
-    "source_paths": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+    "plan_revision": {
+      "minimum": 1,
+      "title": "Plan Revision",
+      "type": "integer"
     },
-    "bundle_arguments": {
-      "type": "object"
+    "contract_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Contract Digest",
+      "type": "string"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "604F03814498ADB710044B8593BD0A624F3CC1BD7C0BABB033DF80619E50C4DB"
+  "required": [
+    "task_id",
+    "plan_revision",
+    "contract_digest"
+  ],
+  "title": "Images / OCR planned builder arguments",
+  "type": "object",
+  "x-public-action": "delta_enter_planned",
+  "x-sector-lane": "images_ocr",
+  "x-operation-actions": [
+    "media_export",
+    "media_extract",
+    "media_index",
+    "media_ocr",
+    "media_refresh",
+    "media_transform",
+    "source_snapshot_retire"
+  ],
+  "x-project-id-required": true
 }

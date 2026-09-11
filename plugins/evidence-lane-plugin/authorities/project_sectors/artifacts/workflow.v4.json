@@ -1,0 +1,1014 @@
+{
+  "schema": "evidence-lane.sector-workflow.v4",
+  "lane_id": "artifacts",
+  "source_package_folder": "authorities/project_sectors/artifacts",
+  "external_project_folder": "sectors/artifacts",
+  "actions": [
+    {
+      "name": "artifacts_current",
+      "profile": "artifacts",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_current",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_current.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "5bffabddbaa59e7d7972fe1fbff282ef26cfb375a43a29c8d0bddf0d0c65dd46"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "artifacts",
+          "version": 1,
+          "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53"
+        }
+      ]
+    },
+    {
+      "name": "artifacts_index",
+      "profile": "artifacts",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_index",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_index.sqlite_sqlalchemy",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "SQLAlchemy"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.native",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.calamine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.presentation",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.arrow",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.pdf_pymupdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.pdf_pypdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index.pdf_pdfplumber",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7ad0aa44c4397aeaa31b59c1d71cdd24a8bda617ee4fe933baf7a610594518d7"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "artifacts_index_media",
+      "profile": "artifacts",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_index_media",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_index_media.raster",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index_media.vector",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "defusedxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_index_media.media",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "FFmpeg"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "9a92569847deee92d92650fe95170822212a9d21227056af5ab803915056d227"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "artifacts_query",
+      "profile": "artifacts",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_query",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_query.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "69d57f00300cd9e3483e2d83014a983690108f0d9d03e4782c31d09414c6af1f"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "artifacts",
+          "version": 1,
+          "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53"
+        }
+      ]
+    },
+    {
+      "name": "artifacts_read",
+      "profile": "artifacts",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_read",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_read.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "6988f150119f1e5a7ed291d57b08f98e063250f2d5e0f03bab375008f34e1298"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "artifacts",
+          "version": 1,
+          "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53"
+        }
+      ]
+    },
+    {
+      "name": "artifacts_refresh",
+      "profile": "artifacts",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_refresh",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_refresh.sqlite_sqlalchemy",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "SQLAlchemy"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.native",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.calamine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.presentation",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.arrow",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.pdf_pymupdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.pdf_pypdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh.pdf_pdfplumber",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "ca92dc3a4458207e23cad12f40d7c56b4a1c7c4268532f5d32b97a586ddd3f63"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "artifacts_refresh_media",
+      "profile": "artifacts",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "artifacts_refresh_media",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "route_id": "artifacts_refresh_media.raster",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh_media.vector",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "defusedxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "artifacts_refresh_media.media",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "FFmpeg"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "52cdeed1061a93e82f2b74a035013a9df9c679a286f7723c341a6e7c86caa89b"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "artifacts.structure",
+      "lane_id": "artifacts",
+      "folder": "sectors/artifacts",
+      "version": 1,
+      "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
+      "consumer": "artifact_export",
+      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "files": {
+        "mmd": "artifacts.mmd",
+        "dot": "artifacts.dot",
+        "pointer": "lane_pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "artifacts"
+      ],
+      "node_kinds": [
+        "project_artifact",
+        "artifact_metadata",
+        "artifact_text_extract",
+        "artifact_relation_edge",
+        "artifact_review_required",
+        "artifact_media_probe",
+        "native_fact",
+        "archive_member",
+        "sqlite_schema_object",
+        "sqlite_table",
+        "sqlite_relationship",
+        "sqlite_row",
+        "sqlite_receipt",
+        "review_required",
+        "sqlite_table_reference"
+      ],
+      "edge_kinds": [
+        "CONTAINS",
+        "SELECTED_ROW",
+        "DECLARES_FOREIGN_KEY",
+        "REFERENCES_TABLE",
+        "LISTS_MEMBER",
+        "REQUIRES_REVIEW",
+        "HAS_EXTRACTED_EVIDENCE"
+      ],
+      "schemas": [
+        {
+          "owner": "artifacts",
+          "version": 1,
+          "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_artifacts",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 23,
+    "edge_count": 24,
+    "group_count": 0,
+    "semantic_topology_sha256": "7164B581361C8C58941C42302134AE5B0F60E46C34A74B3B57C14424E819DBF6",
+    "mmd_sha256": "80C0CBF3A402937B4708923C88F17244EDE7245E7F02C1566BCE7339F1EF64B4",
+    "dot_sha256": "F09A40E5FD7C7B7BF69C10990A72A9A18D1D9714C035715363630ACD4FBD6049",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "73281D06C0638C5CC100347ADBF78A77818EAA1137DCB9F63B7D54EA8120DC08",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "6EC3FF2B43AECD3940BD42F1496244224CECDC5835E155CB86ADAB81D36B55E1"
+  },
+  "workflow_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_artifacts",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 13,
+    "edge_count": 23,
+    "group_count": 0,
+    "semantic_topology_sha256": "C9C0BAA8DF91DC151AB8304909DC79638B5632247ACCE9CC37498ADD8DA01C31",
+    "mmd_sha256": "A2FAB81D40CC329EB03AF5AC7B0777BCA972DB18AF13E771C96A12F35FBF0756",
+    "dot_sha256": "9DFE9D5CB1C21FDE07EE48A89EE2351044D9858D7E94608B9923CE500ECDA83E",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "0322C536FC12C4B2540182BC75A9A437218710C601E02D63F66DFE706B811D58",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 3,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "EFB0E648D07498B392A7AAA8A4C6E75AFD29517B0807E60CDCB8765AA01426A6"
+  },
+  "graph_role": "source_package_schema_and_executable_routes",
+  "project_data_copied": false
+}

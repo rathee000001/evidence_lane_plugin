@@ -1,0 +1,1272 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Run one registered operation under the exact Plan task contract.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {},
+          "SourceRouteSelection": {
+            "additionalProperties": false,
+            "properties": {
+              "occurrence_ordinals": {
+                "items": {
+                  "maximum": 256,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "title": "Occurrence Ordinals",
+                "type": "array"
+              },
+              "route_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Route Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "route_id",
+              "occurrence_ordinals"
+            ],
+            "title": "SourceRouteSelection",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Action",
+            "type": "string"
+          },
+          "arguments": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Arguments",
+            "type": "object"
+          },
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "source_route": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SourceRouteSelection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "plan_revision",
+          "contract_digest",
+          "action"
+        ],
+        "title": "DeltaEnter",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "delta_enter",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automatic_replay": {
+            "default": false,
+            "title": "Automatic Replay",
+            "type": "boolean"
+          },
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "job_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "task_id",
+          "plan_revision",
+          "contract_digest",
+          "state"
+        ],
+        "title": "DeltaAdmission",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "delta",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": true,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "21797030d8e73aff533d0a89103c3f876ba5d1026ac711f28e25105264132484",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "delta_enter",
+        "profile": "delta",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.adaptive_delta_entry:DeltaService.enter",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "delta_enter.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Run the operation already bound to one exact Plan task through its owning Delta executor and verifier.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "plan_revision",
+          "contract_digest"
+        ],
+        "title": "PlannedDeltaEnter",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "delta_enter_planned",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automatic_replay": {
+            "default": false,
+            "title": "Automatic Replay",
+            "type": "boolean"
+          },
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "job_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "task_id",
+          "plan_revision",
+          "contract_digest",
+          "state"
+        ],
+        "title": "DeltaAdmission",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "delta",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": true,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "3d34bf240ec531dfa354470d80a801ffda1c0b4f687a326d75f354c94ddd895a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "delta_enter_planned",
+        "profile": "delta",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.adaptive_delta_entry:DeltaService.enter_planned",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "delta_enter_planned.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Query an admitted authority during work without refreshing or changing the Plan.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Action",
+            "type": "string"
+          },
+          "arguments": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Arguments",
+            "type": "object"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "plan_revision",
+          "action"
+        ],
+        "title": "DeltaQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "delta_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "mutation_performed": {
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "snapshot_scope": {
+            "default": "independent_owner_snapshots_with_unchanged_plan_revision",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "plan_revision",
+          "contract_digest",
+          "action",
+          "result"
+        ],
+        "title": "QueryResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "delta",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7b4af4491728a097f75a8de2f0b2b20a81b7b9b6432727fd926cd780ca87c92e",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "delta_query",
+        "profile": "delta",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.query",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "delta_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "include_result": {
+            "default": false,
+            "title": "Include Result",
+            "type": "boolean"
+          },
+          "include_verification": {
+            "default": false,
+            "title": "Include Verification",
+            "type": "boolean"
+          },
+          "job_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "DeltaStatusRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "delta_status",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {},
+          "RecordedDeltaExit": {
+            "additionalProperties": false,
+            "properties": {
+              "checks": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Checks",
+                "type": "array"
+              },
+              "entry_object": {
+                "title": "Entry Object",
+                "type": "string"
+              },
+              "evidence_scope": {
+                "default": "recorded_plan_receipts_learning_links",
+                "title": "Evidence Scope",
+                "type": "string"
+              },
+              "learning_state": {
+                "title": "Learning State",
+                "type": "string"
+              },
+              "learning_version_id": {
+                "title": "Learning Version Id",
+                "type": "string"
+              },
+              "memory_head": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Memory Head"
+              },
+              "memory_refresh": {
+                "default": "historical_receipt_without_refresh_policy",
+                "title": "Memory Refresh",
+                "type": "string"
+              },
+              "native_host_tools_attested": {
+                "default": false,
+                "title": "Native Host Tools Attested",
+                "type": "boolean"
+              },
+              "next_task_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Next Task Id"
+              },
+              "receipt_id": {
+                "title": "Receipt Id",
+                "type": "string"
+              },
+              "result_bytes_checked": {
+                "default": false,
+                "title": "Result Bytes Checked",
+                "type": "boolean"
+              },
+              "source_currentness": {
+                "default": "not_rechecked",
+                "title": "Source Currentness",
+                "type": "string"
+              },
+              "verification": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Verification"
+              },
+              "verification_object": {
+                "title": "Verification Object",
+                "type": "string"
+              }
+            },
+            "required": [
+              "receipt_id",
+              "verification_object",
+              "entry_object",
+              "next_task_id",
+              "checks",
+              "learning_version_id",
+              "learning_state"
+            ],
+            "title": "RecordedDeltaExit",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RecordedDeltaExit"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "job": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Job",
+            "type": "object"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Result"
+          },
+          "result_object": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Validation"
+          }
+        },
+        "required": [
+          "project_id",
+          "job_id",
+          "task_id",
+          "plan_revision",
+          "current_revision",
+          "state",
+          "contract_digest",
+          "result_object",
+          "error_code",
+          "job"
+        ],
+        "title": "DeltaStatus",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "delta",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "80bba594b18782a173c1fc13a727e4990194839f21c35ddb4622cd78781bac02",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "delta_status",
+        "profile": "delta",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.status",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "delta_status.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "build"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "DeltaAdmission": {
+      "additionalProperties": false,
+      "properties": {
+        "automatic_replay": {
+          "default": false,
+          "title": "Automatic Replay",
+          "type": "boolean"
+        },
+        "contract_digest": {
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "job_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "state"
+      ],
+      "title": "DeltaAdmission",
+      "type": "object"
+    },
+    "DeltaEnter": {
+      "$defs": {
+        "JsonValue": {},
+        "SourceRouteSelection": {
+          "additionalProperties": false,
+          "properties": {
+            "occurrence_ordinals": {
+              "items": {
+                "maximum": 256,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "title": "Occurrence Ordinals",
+              "type": "array"
+            },
+            "route_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Route Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "route_id",
+            "occurrence_ordinals"
+          ],
+          "title": "SourceRouteSelection",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "source_route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRouteSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "action"
+      ],
+      "title": "DeltaEnter",
+      "type": "object"
+    },
+    "DeltaQuery": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "action"
+      ],
+      "title": "DeltaQuery",
+      "type": "object"
+    },
+    "DeltaStatus": {
+      "$defs": {
+        "JsonValue": {},
+        "RecordedDeltaExit": {
+          "additionalProperties": false,
+          "properties": {
+            "checks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Checks",
+              "type": "array"
+            },
+            "entry_object": {
+              "title": "Entry Object",
+              "type": "string"
+            },
+            "evidence_scope": {
+              "default": "recorded_plan_receipts_learning_links",
+              "title": "Evidence Scope",
+              "type": "string"
+            },
+            "learning_state": {
+              "title": "Learning State",
+              "type": "string"
+            },
+            "learning_version_id": {
+              "title": "Learning Version Id",
+              "type": "string"
+            },
+            "memory_head": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Memory Head"
+            },
+            "memory_refresh": {
+              "default": "historical_receipt_without_refresh_policy",
+              "title": "Memory Refresh",
+              "type": "string"
+            },
+            "native_host_tools_attested": {
+              "default": false,
+              "title": "Native Host Tools Attested",
+              "type": "boolean"
+            },
+            "next_task_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next Task Id"
+            },
+            "receipt_id": {
+              "title": "Receipt Id",
+              "type": "string"
+            },
+            "result_bytes_checked": {
+              "default": false,
+              "title": "Result Bytes Checked",
+              "type": "boolean"
+            },
+            "source_currentness": {
+              "default": "not_rechecked",
+              "title": "Source Currentness",
+              "type": "string"
+            },
+            "verification": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Verification"
+            },
+            "verification_object": {
+              "title": "Verification Object",
+              "type": "string"
+            }
+          },
+          "required": [
+            "receipt_id",
+            "verification_object",
+            "entry_object",
+            "next_task_id",
+            "checks",
+            "learning_version_id",
+            "learning_state"
+          ],
+          "title": "RecordedDeltaExit",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "current_revision": {
+          "title": "Current Revision",
+          "type": "integer"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Code"
+        },
+        "exit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordedDeltaExit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "job": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Job",
+          "type": "object"
+        },
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "result_object": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result Object"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "validation": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Validation"
+        }
+      },
+      "required": [
+        "project_id",
+        "job_id",
+        "task_id",
+        "plan_revision",
+        "current_revision",
+        "state",
+        "contract_digest",
+        "result_object",
+        "error_code",
+        "job"
+      ],
+      "title": "DeltaStatus",
+      "type": "object"
+    },
+    "DeltaStatusRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "include_result": {
+          "default": false,
+          "title": "Include Result",
+          "type": "boolean"
+        },
+        "include_verification": {
+          "default": false,
+          "title": "Include Verification",
+          "type": "boolean"
+        },
+        "job_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "DeltaStatusRequest",
+      "type": "object"
+    },
+    "PlannedDeltaEnter": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest"
+      ],
+      "title": "PlannedDeltaEnter",
+      "type": "object"
+    },
+    "QueryResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "contract_digest": {
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "mutation_performed": {
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "plan_revision": {
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        },
+        "snapshot_scope": {
+          "default": "independent_owner_snapshots_with_unchanged_plan_revision",
+          "title": "Snapshot Scope",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "action",
+        "result"
+      ],
+      "title": "QueryResult",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "delta"
+}

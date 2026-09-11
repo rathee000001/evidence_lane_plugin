@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "toolchains",
+  "members": [
+    {
+      "path": "src/evidence_lane_plugin/tool_routes.py",
+      "sha256": "38694547045472904fea7d3c47e0522c6705a94ffbeab63a96b31423a115f442"
+    },
+    {
+      "path": "toolchains/operation-toolchains.v4.json",
+      "sha256": "5bf8a48120af25ce81c4cd43a46841f56fbe4b750ac571dd6c520998a5a91540"
+    },
+    {
+      "path": "toolchains/tool-catalog.v4.json",
+      "sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b"
+    },
+    {
+      "path": "toolchains/tool-definitions.v4.json",
+      "sha256": "b8a4f8f83f043b1e0cc4cd21f6c92192a9305bf63c2edbdfbb6f306bf186a8ba"
+    }
+  ],
+  "purpose": "Operation-specific tool selection, fallbacks and readiness contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

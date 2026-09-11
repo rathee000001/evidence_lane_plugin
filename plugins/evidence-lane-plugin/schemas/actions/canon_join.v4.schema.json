@@ -1,0 +1,153 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Register a project participant owned by this engine client; does not create a host task.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Label",
+        "type": "string"
+      },
+      "reported_host_task_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reported Host Task Id"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "title": "CanonJoin",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "canon_join",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "host_task_created": {
+        "default": false,
+        "title": "Host Task Created",
+        "type": "boolean"
+      },
+      "identity_evidence": {
+        "const": "engine_client_ownership_with_optional_host_claim",
+        "default": "engine_client_ownership_with_optional_host_claim",
+        "title": "Identity Evidence",
+        "type": "string"
+      },
+      "label": {
+        "title": "Label",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "owner_client_id": {
+        "title": "Owner Client Id",
+        "type": "string"
+      },
+      "owner_generation": {
+        "default": 1,
+        "minimum": 1,
+        "title": "Owner Generation",
+        "type": "integer"
+      },
+      "participant_id": {
+        "title": "Participant Id",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "reported_host_task_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Reported Host Task Id"
+      }
+    },
+    "required": [
+      "project_id",
+      "participant_id",
+      "owner_client_id",
+      "label",
+      "reported_host_task_id"
+    ],
+    "title": "CanonParticipant",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "canon",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "dde6b7cb544debffd206d5997f3cce2d43bfbca8187acf9da4440511a6455173",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "canon_join",
+    "profile": "canon",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "canon_join.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "canon"
+}

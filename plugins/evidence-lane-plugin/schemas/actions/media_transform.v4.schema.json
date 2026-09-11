@@ -1,0 +1,313 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish one immutable raster derivative with explicit frame, alpha and metadata handling.",
+  "inputSchema": {
+    "$defs": {
+      "RasterCrop": {
+        "additionalProperties": false,
+        "properties": {
+          "bottom": {
+            "maximum": 25000,
+            "minimum": 1,
+            "title": "Bottom",
+            "type": "integer"
+          },
+          "left": {
+            "maximum": 25000,
+            "minimum": 0,
+            "title": "Left",
+            "type": "integer"
+          },
+          "right": {
+            "maximum": 25000,
+            "minimum": 1,
+            "title": "Right",
+            "type": "integer"
+          },
+          "top": {
+            "maximum": 25000,
+            "minimum": 0,
+            "title": "Top",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "left",
+          "top",
+          "right",
+          "bottom"
+        ],
+        "title": "RasterCrop",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "apply_exif_orientation": {
+        "default": true,
+        "title": "Apply Exif Orientation",
+        "type": "boolean"
+      },
+      "color_mode": {
+        "default": "preserve",
+        "enum": [
+          "preserve",
+          "RGB",
+          "RGBA",
+          "L"
+        ],
+        "title": "Color Mode",
+        "type": "string"
+      },
+      "crop": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/RasterCrop"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "expected_sha256": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "flip": {
+        "default": "none",
+        "enum": [
+          "none",
+          "horizontal",
+          "vertical"
+        ],
+        "title": "Flip",
+        "type": "string"
+      },
+      "frame": {
+        "anyOf": [
+          {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Frame"
+      },
+      "height": {
+        "anyOf": [
+          {
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Height"
+      },
+      "jpeg_background": {
+        "anyOf": [
+          {
+            "pattern": "^#[a-fA-F0-9]{6}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Jpeg Background"
+      },
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "logical_name": {
+        "maxLength": 180,
+        "minLength": 1,
+        "title": "Logical Name",
+        "type": "string"
+      },
+      "max_pixels": {
+        "default": 12000000,
+        "maximum": 25000000,
+        "minimum": 1,
+        "title": "Max Pixels",
+        "type": "integer"
+      },
+      "metadata": {
+        "default": "preserve_supported",
+        "enum": [
+          "preserve_supported",
+          "strip"
+        ],
+        "title": "Metadata",
+        "type": "string"
+      },
+      "output_format": {
+        "default": "PNG",
+        "enum": [
+          "PNG",
+          "JPEG",
+          "WEBP",
+          "TIFF"
+        ],
+        "title": "Output Format",
+        "type": "string"
+      },
+      "quality": {
+        "default": 92,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Quality",
+        "type": "integer"
+      },
+      "rotate_clockwise": {
+        "default": 0,
+        "enum": [
+          0,
+          90,
+          180,
+          270
+        ],
+        "title": "Rotate Clockwise",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "webp_lossless": {
+        "default": true,
+        "title": "Webp Lossless",
+        "type": "boolean"
+      },
+      "width": {
+        "anyOf": [
+          {
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Width"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256",
+      "logical_name"
+    ],
+    "title": "MediaTransform",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "media_transform",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "MediaResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "images_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7239ebd1c6b88332823bc466e74cd10a8dea47d68199f4af1d810c859f5b9d9a",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "media_transform",
+    "profile": "images_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.media_profile:transform_media",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_transform.pillow",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "media_transform"
+    ]
+  },
+  "verification_checks": [
+    "media_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "media_transform"
+  ],
+  "workflow": "build"
+}

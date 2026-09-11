@@ -1,0 +1,21 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "package",
+  "members": [
+    {
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "839ed29475368a68d69f4c129869bcff9aab038da98b890f9e544d267c707b5e"
+    },
+    {
+      "path": "manifests/plugin-architecture.v4.json",
+      "sha256": "528b5f6e095774ffb81b7e82f5cddf928c424ef6afdc04e3646bcdf4f9723c81"
+    },
+    {
+      "path": "src/evidence_lane_plugin/plugin_architecture.py",
+      "sha256": "2bf353cfa62106b279555017fdef68c08c838fdfec5e1f114ea564a27df95714"
+    }
+  ],
+  "purpose": "Plugin identity and source-derived architecture contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

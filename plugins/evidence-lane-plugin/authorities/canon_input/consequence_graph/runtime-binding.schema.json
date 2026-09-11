@@ -1,23 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Canon consequence graph runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "canon_consequence_graph"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.canon_consequence_graph"
-    },
-    "source_sha256": {
-      "const": "69381007587BD0AC79759B4E8D283F4A90AF1560164A64096A303048D9EF11BF"
-    }
+  "const": {
+    "owner_id": "canon_consequence_graph",
+    "modules": [
+      "evidence_lane_plugin.canon_consequence_graph",
+      "evidence_lane_plugin.canon_task_graph"
+    ],
+    "storage": "The parent Canon lane and its attributed events; no separate graph database",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "2B7C3EE30095FCF75B2C7F2DE3703E15B88EB17B088019266BA2117F6432C8AB"
+  "title": "canon_consequence_graph canonical runtime binding"
 }

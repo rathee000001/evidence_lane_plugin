@@ -1,6 +1,6 @@
-# Evidence Lane source version: 3.0.0
 .venv/
-**/.venv/
+.runtime/
+.work/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -10,25 +10,24 @@ __pycache__/
 htmlcov/
 dist/
 build/
+*.egg-info/
 node_modules/
 .next/
-*.tsbuildinfo
-*.egg-info/
-.runtime/
-.hil/
 .vercel/
-.github-pages-build/
-.tmp-flash-check/
-notes/
+*.tsbuildinfo
 *.log
 .env
 .env.*
 !.env.example
-engine-signing-private-key.*
-**/.evidence-lane-release-sha
-plugins/evidence-lane-plugin/.plugin-data/
-/evidence/
-evidence/implementation_v42/BROWSER_VERIFICATION/
-evidence/implementation_v42/ONE_SHOT_DUMMY_POC/
-plugins/evidence-lane-plugin/evidence/
-plugins/evidence-lane-plugin/_evidence_lane_rehearsal/
+# Temporary standalone skill/MCP registrations for this development workspace.
+.agents/skills/
+.codex/config.toml
+
+# Local workspace governance and host progress exports are never public source.
+/AGENTS.md
+/MEMORY.md
+/step-task-list.json
+/docs/internal/
+
+# Rebuilt locally at V4-D093, then admitted by its own verified website commit.
+/apps/evidence-lane-app/

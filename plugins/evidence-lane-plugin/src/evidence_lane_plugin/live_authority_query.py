@@ -1,526 +1,151 @@
-"""Single live-root, current-authority query route for prompts, SDK, MCP, and exit."""
+"""Bounded read-only authority queries under one current Plan revision.
 
+The prior live-root query's exact task and bounded-arm concepts remain. Its
+implicit miss-refresh writes and active-session/PV lookup are removed. Query
+eligibility comes from the same registry as every other SDK/MCP action.
+"""
 from __future__ import annotations
 
 import json
-from typing import Any
+import time
+from dataclasses import replace
 
-from .authority_support import validate_delta_exit_authority_supports
-from .errors import require
-from .git_adapter import inspect_repository
-from .hashing import canonical_json_bytes, sha256_bytes
-from .internal_sdk import build_live_local_sdk_context
-from .lanes import CANONICAL_LANE_IDS
-from .project_authority import query_working_project_sectors
-from .timeutil import utc_now
+from pydantic import Field, JsonValue
 
-LIVE_AUTHORITY_QUERY_SCHEMA = "evidence-lane.live-root-current-authority-query.v2"
-_READ_OPERATIONS = (
-    ("agent_learning", "retrieve"),
-    ("project_memory", "query"),
-    ("canon_input", "graph"),
-    ("project_universe", "query"),
-)
-_REFRESH_OPERATIONS = (
-    ("agent_learning", "bootstrap_verified_history"),
-    ("canon_input", "bootstrap_consequence_graph"),
-    ("project_memory", "bootstrap"),
-    ("project_universe", "refresh"),
-)
+from .adaptive_delta_exit import RecordedDeltaExit, read_recorded_exit
+from .errors import LaneError
+from .jobs import JobQueue
+from .lane_reader import LaneReader, SearchBounds, SearchPage, lexical_tool_routes
+from .plan_runtime import TASK_ID_PATTERN, PlanStore
+from .registry import ActionSpec, Contract
+from .sdk import UUID_PATTERN
+from .storage import bounded_project_read, json_text
 
 
-def _active_session_id(service: Any, project_id: str, session_id: str | None) -> str:
-    exact = str(session_id or "").strip()
-    if exact:
-        return exact
-    path = service.store.project_root(project_id) / "active_session.json"
-    require(
-        path.is_file(),
-        "LIVE_AUTHORITY_ACTIVE_SESSION_REQUIRED",
-        "Live-root authority query requires the exact active governed session.",
-        status="MISMATCH",
-    )
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    exact = str(payload.get("session_id") or "").strip()
-    require(
-        bool(exact),
-        "LIVE_AUTHORITY_ACTIVE_SESSION_REQUIRED",
-        "The active-session authority does not name a governed session.",
-        status="MISMATCH",
-    )
-    return exact
+class DeltaQuery(Contract):
+    task_id: str = Field(pattern=TASK_ID_PATTERN)
+    plan_revision: int = Field(ge=1)
+    action: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
+    arguments: dict[str, JsonValue] = Field(default_factory=dict)
+    max_bytes: int = Field(default=65_536, ge=1024, le=262_144)
 
 
-def _bounded_public_data(module_id: str, data: dict[str, Any], limit: int) -> dict[str, Any]:
-    if module_id in {"agent_learning", "project_memory"}:
-        return {
-            "status": data.get("status"),
-            "result": data.get("result"),
-            "hits": list(data.get("hits") or [])[:limit],
-            "suppressed": list(data.get("suppressed") or [])[:limit],
-            "search_engine": data.get("search_engine"),
-            "full_ledger_loaded_into_model_context": data.get(
-                "full_ledger_loaded_into_model_context", False
-            ),
-            "full_memory_loaded_into_model_context": data.get(
-                "full_memory_loaded_into_model_context", False
-            ),
-        }
-    if module_id == "project_universe":
-        hits = list(data.get("hits") or [])[:limit]
-        return {
-            "status": data.get("status"),
-            "result": "HIT" if hits else "NO_HIT",
-            "hits": hits,
-            "graph_sha256": data.get("graph_sha256"),
-            "full_graph_returned": data.get("full_graph_returned", False),
-        }
-    consequence = dict(data.get("consequence_graph") or {})
-    return {
-        "status": consequence.get("status") or data.get("status"),
-        "result": consequence.get("result"),
-        "state": consequence.get("state"),
-        "hits": list(consequence.get("hits") or [])[:limit],
-        "counts": consequence.get("counts"),
-        "graph_fingerprint_sha256": consequence.get("graph_fingerprint_sha256"),
-        "graph_sha256": consequence.get("graph_sha256"),
-        "search_engine": consequence.get("search_engine"),
-        "full_graph_loaded_into_model_context": consequence.get(
-            "full_graph_loaded_into_model_context", False
-        ),
-    }
+class ProjectSearchRequest(SearchBounds):
+    lane_ids: list[str] = Field(default_factory=list, max_length=32)
 
 
-def _apply_active_task_freshness(
-    module_id: str,
-    data: dict[str, Any],
-    *,
-    active_task_id: str,
-) -> tuple[dict[str, Any], bool]:
-    """Suppress a Project Memory hit that claims the wrong active Plan task."""
-
-    if module_id != "project_memory":
-        return data, False
-    expected = f"plan://task/{active_task_id}"
-    hits = list(data.get("hits") or [])
-    active_hits = [
-        row
-        for row in hits
-        if str(row.get("locator_kind") or "").strip().upper() == "ACTIVE_TASK"
-    ]
-    stale = [
-        row
-        for row in active_hits
-        if str(row.get("locator_value") or "").strip() != expected
-    ]
-    if not stale:
-        return {**data, "active_task_freshness": "PASS"}, False
-    stale_ids = {str(row.get("locator_id") or "") for row in stale}
-    fresh_hits = [
-        row for row in hits if str(row.get("locator_id") or "") not in stale_ids
-    ]
-    suppressed = list(data.get("suppressed") or [])
-    suppressed.extend(
-        {
-            "reason": "PROJECT_MEMORY_ACTIVE_TASK_MISMATCH",
-            "locator_id": row.get("locator_id"),
-            "revision_sha256": row.get("revision_sha256"),
-            "expected_active_task_locator_sha256": sha256_bytes(
-                expected.encode("utf-8")
-            ),
-        }
-        for row in stale
-    )
-    return (
-        {
-            **data,
-            "result": "HIT" if fresh_hits else "NO_HIT",
-            "hits": fresh_hits,
-            "suppressed": suppressed,
-            "active_task_freshness": "STALE_HITS_SUPPRESSED",
-            "stale_active_task_hit_count": len(stale),
-        },
-        True,
-    )
+def query_live_authorities(engine, context, request):
+    from .custom_lanes import registered_lane_ids
+    from .lanes import LANE_REGISTRY
+    store = engine.directory.open(context.project_id)
+    return LaneReader(engine).search_lanes(context, request,
+        request.lane_ids or [*LANE_REGISTRY, *registered_lane_ids(store)])
 
 
-def _read_arms(
-    service: Any,
-    *,
-    project_id: str,
-    session_id: str,
-    query: str,
-    limit: int,
-    request_seed: str,
-    pass_number: int,
-) -> tuple[list[dict[str, Any]], Any]:
-    sdk, binding = build_live_local_sdk_context(
-        service,
-        project_id=project_id,
-        session_id=session_id,
-    )
-    as_of = utc_now()
-    route_fingerprint = str(binding.public_surface_registry_sha256 or "")[:16].lower()
-    payloads = {
-        ("agent_learning", "retrieve"): {
-            "query": query,
-            "scope_selectors": [binding.task_id],
-            "as_of": as_of,
-            "limit": limit,
-        },
-        ("project_memory", "query"): {
-            "query": query,
-            "as_of": as_of,
-            "limit": limit,
-        },
-        ("canon_input", "graph"): {"query": query, "limit": limit},
-        ("project_universe", "query"): {"query": query, "limit": limit},
-    }
-    rows: list[dict[str, Any]] = []
-    for ordinal, (module_id, operation) in enumerate(_READ_OPERATIONS, start=1):
-        payload = payloads[(module_id, operation)]
-        payload_fingerprint = sha256_bytes(canonical_json_bytes(payload))[
-            :16
-        ].lower()
-        response = sdk.invoke(
-            module_id=module_id,
-            operation=operation,
-            binding=binding,
-            payload=payload,
-            request_id=(
-                f"live-query:{request_seed}:{route_fingerprint}:read:"
-                f"{pass_number}:{ordinal}:{payload_fingerprint}"
-            ),
-            timeout_ms=30_000,
-        )
-        status = str(response.get("status") or "").strip().upper()
-        require(
-            status in {"PASS", "STALE"}
-            and response.get("module_id") == module_id
-            and response.get("operation") == operation,
-            "LIVE_AUTHORITY_ARM_QUERY_FAILED",
-            "A current-authority query arm failed its exact SDK route.",
-            status="FAIL",
-            module_id=module_id,
-            operation=operation,
-        )
-        data = _bounded_public_data(
-            module_id, dict(response.get("data") or {}), limit
-        )
-        data, active_task_stale = _apply_active_task_freshness(
-            module_id,
-            data,
-            active_task_id=str(binding.task_id),
-        )
-        result_state = str(
-            data.get("result") or data.get("state") or data.get("status") or status
-        ).strip().upper()
-        requires_refresh = bool(
-            status == "STALE"
-            or active_task_stale
-            or str(data.get("status") or "").strip().upper() == "STALE"
-            or result_state in {
-                "NO_HIT",
-                "EMPTY",
-                "STALE",
-                "INCOMPLETE",
-                "NO_CONSEQUENCE_GRAPH",
-                "CONSEQUENCE_GRAPH_QUERY_INDEX_REFRESH_REQUIRED",
-                "CONSEQUENCE_GRAPH_POINTER_REFRESH_REQUIRED",
-            }
-        )
-        rows.append(
-            {
-                "ordinal": ordinal,
-                "authority": module_id,
-                "operation": operation,
-                "status": status,
-                "result_state": result_state,
-                "refresh_required": requires_refresh,
-                "receipt_sha256": response.get("receipt_sha256"),
-                "data": data,
-                "authority_merge_allowed": False,
-            }
-        )
-    return rows, binding
+class QueryResult(Contract):
+    project_id: str
+    task_id: str
+    plan_revision: int
+    contract_digest: str
+    action: str
+    result: dict[str, JsonValue]
+    mutation_performed: bool = False
+    refresh_performed: bool = False
+    snapshot_scope: str = 'independent_owner_snapshots_with_unchanged_plan_revision'
 
 
-def _refresh_arms(
-    service: Any,
-    *,
-    project_id: str,
-    session_id: str,
-    request_seed: str,
-) -> list[dict[str, Any]]:
-    write_scope = tuple(
-        f"{module_id}:{operation}" for module_id, operation in _REFRESH_OPERATIONS
-    )
-    sdk, binding = build_live_local_sdk_context(
-        service,
-        project_id=project_id,
-        session_id=session_id,
-        write_scope=write_scope,
-    )
-    rows: list[dict[str, Any]] = []
-    route_fingerprint = str(binding.public_surface_registry_sha256 or "")[:16].lower()
-    for ordinal, (module_id, operation) in enumerate(_REFRESH_OPERATIONS, start=1):
-        response = sdk.invoke(
-            module_id=module_id,
-            operation=operation,
-            binding=binding,
-            payload={},
-            request_id=(
-                f"live-query:{request_seed}:{route_fingerprint}:refresh:{ordinal}"
-            ),
-            timeout_ms=60_000,
-        )
-        require(
-            response.get("status") == "PASS"
-            and response.get("module_id") == module_id
-            and response.get("operation") == operation,
-            "LIVE_AUTHORITY_REFRESH_FAILED",
-            "Learning, Canon, Memory, and Universe must refresh once in governed order.",
-            status="FAIL",
-            module_id=module_id,
-            operation=operation,
-        )
-        rows.append(
-            {
-                "ordinal": ordinal,
-                "authority": module_id,
-                "operation": operation,
-                "status": "PASS",
-                "receipt_sha256": response.get("receipt_sha256"),
-                "authority_effects": response.get("authority_effects"),
-            }
-        )
-    return rows
+class DeltaStatusRequest(Contract):
+    job_id: str = Field(pattern=UUID_PATTERN)
+    include_result: bool = False
+    include_verification: bool = False
+    max_bytes: int = Field(default=65_536, ge=1024, le=262_144)
 
 
-def query_live_authorities(
-    service: Any,
-    *,
-    project_id: str,
-    query: str,
-    limit: int = 8,
-    session_id: str | None = None,
-    refresh_on_miss: bool = True,
-) -> dict[str, Any]:
-    """Query current governed authorities without opening accepted archives."""
+class DeltaStatus(Contract):
+    project_id: str
+    job_id: str
+    task_id: str
+    plan_revision: int
+    current_revision: int
+    state: str
+    contract_digest: str
+    result_object: str | None
+    error_code: str | None
+    job: dict[str, JsonValue]
+    result: dict[str, JsonValue] | None = None
+    exit: RecordedDeltaExit | None = None
+    validation: dict[str, JsonValue] | None = None
 
-    exact_query = str(query or "").strip()
-    require(
-        bool(exact_query) and 1 <= int(limit) <= 20,
-        "LIVE_AUTHORITY_QUERY_BOUNDS_INVALID",
-        "Live-root query requires lexical text and a limit from one to twenty.",
-        status="BLOCKED",
-    )
-    exact_session = _active_session_id(service, project_id, session_id)
-    authority_support = validate_delta_exit_authority_supports(
-        service.store.project_root(project_id)
-    )
-    require(
-        authority_support.get("status")
-        in {"PASS", "PENDING_FIRST_DELTA_EXIT_ACTIVATION"},
-        "LIVE_AUTHORITY_SUPPORT_SYSTEM_INVALID",
-        "The live query requires intact auxiliary MMD/DOT/SQLite support systems.",
-        status="MISMATCH",
-    )
-    seed = sha256_bytes(
-        canonical_json_bytes(
-            {
-                "project_id": project_id,
-                "session_id": exact_session,
-                "query": exact_query,
-                "limit": int(limit),
-            }
-        )
-    )[:32].lower()
-    reads, binding = _read_arms(
-        service,
-        project_id=project_id,
-        session_id=exact_session,
-        query=exact_query,
-        limit=int(limit),
-        request_seed=seed,
-        pass_number=1,
-    )
-    repository_path = service.store.config(project_id).repository_path
-    repository = inspect_repository(repository_path)
-    pointer = service.store.pointer(project_id)
-    sectors = query_working_project_sectors(
-        service.store.project_root(project_id),
-        repository_root=repository_path,
-        project_id=project_id,
-        accepted_pv=str(pointer.accepted_pv),
-        pointer_generation=int(pointer.generation),
-        query=exact_query,
-        lane_ids=list(CANONICAL_LANE_IDS),
-        limit=int(limit),
-        expected_branch=repository.branch,
-        expected_head=repository.commit_sha,
-    )
-    require(
-        sectors.get("status") in {"PASS", "EMPTY"}
-        and sectors.get("query_mutated_project_authority") is False
-        and sectors.get("query_rehashed_dirty_content") is False,
-        "LIVE_AUTHORITY_SECTOR_QUERY_FAILED",
-        "The root query requires one read-only all-eighteen-sector slice.",
-        status="FAIL",
-    )
-    connector_brain = service.connector_plugin_catalog(project_id)
-    require(
-        connector_brain.get("status") == "PASS"
-        and connector_brain.get("integrity") == ["ok"]
-        and not connector_brain.get("foreign_key_errors"),
-        "LIVE_AUTHORITY_CONNECTOR_BRAIN_QUERY_FAILED",
-        "The live-root query requires an intact connector-brain authority.",
-        status="FAIL",
-    )
-    refresh_required = any(row["refresh_required"] for row in reads)
-    refresh_receipts: list[dict[str, Any]] = []
-    retry_reads: list[dict[str, Any]] | None = None
-    if refresh_on_miss and refresh_required:
-        refresh_seed = sha256_bytes(
-            canonical_json_bytes(
-                {
-                    "query_seed": seed,
-                    "initial_read_receipts": [
-                        row.get("receipt_sha256") for row in reads
-                    ],
-                }
-            )
-        )[:32].lower()
-        refresh_receipts = _refresh_arms(
-            service,
-            project_id=project_id,
-            session_id=exact_session,
-            request_seed=refresh_seed,
-        )
-        retry_reads, binding = _read_arms(
-            service,
-            project_id=project_id,
-            session_id=exact_session,
-            query=exact_query,
-            limit=int(limit),
-            request_seed=seed,
-            pass_number=2,
-        )
-    agent_configuration = service.agent_configuration_authority(
-        project_id, session_id=exact_session
-    )
-    conversation_memory = service.conversation_memory_authority(
-        project_id, session_id=exact_session
-    )
-    effective_reads = retry_reads or reads
-    result_state = (
-        "HITS"
-        if sectors.get("hits")
-        or any(row.get("data", {}).get("hits") for row in effective_reads)
-        else "EMPTY"
-    )
-    return {
-        "schema": LIVE_AUTHORITY_QUERY_SCHEMA,
-        "status": "PASS" if result_state == "HITS" else "EMPTY",
-        "result_state": result_state,
-        "project_id": project_id,
-        "session_id": exact_session,
-        "active_task_id": binding.task_id,
-        "query": exact_query,
-        "bounded_result_limit_per_authority": int(limit),
-        "env_uop": {
-            "env_authority_sha256": binding.env_authority_sha256,
-            "uop_authority_sha256": binding.uop_authority_sha256,
-            "derived_projection_sha256": binding.derived_projection_sha256,
-            "flash_receipt_sha256": binding.flash_receipt_sha256,
-        },
-        "env_uop_governance": {
-            "role": "GOVERNING_CONTROL_PLANE_NOT_AUTHORITY_ARMS",
-            "current_authority_classes": [
-                "PROJECT_SECTORS_AND_ROOT_FILES",
-                "AI_LEARNING",
-                "CANON_GRAPH",
-                "PROJECT_MEMORY_DB",
-                "HOST_CONVERSATION_MEMORY_MD",
-                "AGENTS_MD",
-                "PROJECT_UNIVERSE",
-                "CONNECTOR_BRAIN",
-            ],
-            "authority_class_set_derived_from_current_runtime": True,
-            "hil_only_layers": ["PROJECT_OVERLAY"],
-            "authority_merge_allowed": False,
-        },
-        "authority_support_systems": authority_support,
-        "sector_lane_traversal": {
-            "receipt_count": sectors.get("lane_traversal_receipt_count"),
-            "all_queried_lanes_used_mmd_dot": sectors.get(
-                "mmd_dot_traversal_used_for_every_queried_lane"
-            ),
-            "tools_role": sectors.get("tools_json_query_role"),
-        },
-        "authorities": {
-            "sector_lanes": {
-                "authority": "ALL_CURRENT_LIVE_ROOT_SECTORS",
-                "result": sectors,
-                "authority_merge_allowed": False,
-            },
-            "agent_learning": next(
-                row for row in effective_reads if row["authority"] == "agent_learning"
-            ),
-            "canon_graph": next(
-                row for row in effective_reads if row["authority"] == "canon_input"
-            ),
-            "project_memory": next(
-                row for row in effective_reads if row["authority"] == "project_memory"
-            ),
-            "project_universe": next(
-                row for row in effective_reads if row["authority"] == "project_universe"
-            ),
-            "connector_brain": {
-                "authority": "CONNECTOR_BRAIN",
-                "status": connector_brain.get("status"),
-                "active_count": connector_brain.get("active_count"),
-                "routable_count": connector_brain.get("routable_count"),
-                "integrity": connector_brain.get("integrity"),
-                "foreign_key_errors": connector_brain.get("foreign_key_errors"),
-                "secret_values_persisted": connector_brain.get(
-                    "secret_values_persisted"
-                ),
-                "authority_merge_allowed": False,
-            },
-            "agent_configuration": {
-                "authority": "AGENTS_MD",
-                "status": agent_configuration.get("status"),
-                "authority_sha256": agent_configuration.get(
-                    "agent_configuration_authority_sha256"
-                ),
-                "source_chain_sha256": agent_configuration.get(
-                    "source_chain_sha256"
-                ),
-                "authority_merge_allowed": False,
-            },
-            "conversation_memory": {
-                "authority": "HOST_CONVERSATION_MEMORY_MD",
-                "status": conversation_memory.get("status"),
-                "authority_sha256": conversation_memory.get(
-                    "conversation_memory_authority_sha256"
-                ),
-                "source_chain_sha256": conversation_memory.get(
-                    "source_chain_sha256"
-                ),
-                "authority_merge_allowed": False,
-            },
-        },
-        "initial_reads": reads,
-        "refresh_required": refresh_required,
-        "refresh_performed": bool(refresh_receipts),
-        "refresh_receipts": refresh_receipts,
-        "bounded_retry_performed": retry_reads is not None,
-        "accepted_archive_opened": False,
-        "accepted_archive_queried": False,
-        "accepted_pointer_used_as_baseline_only": True,
-        "candidate_created": False,
-        "hil_inferred": False,
-        "pointer_moved": False,
-        "authority_merge_allowed": False,
-    }
+
+def bounded(value, limit):
+    if len(json_text(value).encode()) > limit:
+        raise LaneError('QUERY_OUTPUT_BUDGET', 'Request a smaller page or omit the addressed result.')
+    return value
+
+
+def register_query_actions(engine):
+    def search(context, request):
+        return query_live_authorities(engine, context, request)
+    engine.registry.register(ActionSpec('search', 'Search current registered lane owners with separate authority results, exact snapshots and explicit missing coverage.',
+        ProjectSearchRequest, SearchPage, search,
+        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evi',
+        tool_routes=lexical_tool_routes('search', search)))
+    def status(context, request):
+        store = engine.directory.open(context.project_id)
+        with bounded_project_read(store.root, time.monotonic() + 10), store.lane('plan').connection(read_only=True) as connection:
+            connection.execute('BEGIN')
+            head = PlanStore._head(connection)
+            if not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='delta_runs'").fetchone():
+                raise LaneError('DELTA_NOT_FOUND', 'This project has no recorded Delta run.')
+            row = connection.execute('SELECT * FROM delta_runs WHERE job_id=?', (request.job_id,)).fetchone()
+            if row is None:
+                raise LaneError('DELTA_NOT_FOUND', 'The run does not belong to this selected project.')
+            job = JobQueue(store).get(request.job_id, transaction=connection)
+            if request.include_result and row['result_object']:
+                size = connection.execute('SELECT size_bytes FROM objects WHERE digest=?', (row['result_object'],)).fetchone()
+                if size is None or size[0] > request.max_bytes:
+                    raise LaneError('QUERY_OUTPUT_BUDGET', 'Read the result through its bounded addressed artifact route.')
+            result = json.loads(store.lane('plan').read_object(row['result_object'])) if request.include_result and row['result_object'] else None
+            recorded_exit = read_recorded_exit(store, connection, row, job,
+                include_verification=request.include_verification, result=result)
+            from .acceptance import read_validation_summary
+            validation = read_validation_summary(store, connection, request.job_id)
+            if validation is not None and not request.include_verification:
+                validation = {**validation, 'summary': {**validation['summary'], 'results': [
+                    {key: value for key, value in item.items() if key != 'output_preview'}
+                    for item in validation['summary']['results']]}}
+        value = DeltaStatus(project_id=store.project_id, job_id=request.job_id, task_id=row['task_id'],
+            plan_revision=row['plan_revision'], current_revision=head['revision'], state=row['state'],
+            contract_digest=row['contract_digest'], result_object=row['result_object'], error_code=row['error_code'],
+            job=job, result=result, exit=recorded_exit, validation=validation)
+        bounded(value.model_dump(mode='json'), request.max_bytes)
+        return value
+
+    def query(context, request):
+        if context.expected_revision != request.plan_revision:
+            raise LaneError('DELTA_REVISION_REQUIRED', 'Bind the query envelope to the current Plan revision.')
+        spec = engine.registry.get(request.action)
+        if not spec.queryable_in_delta:
+            raise LaneError('NOT_A_DELTA_QUERY', 'Select an admitted read-only query action.')
+        if request.action == 'plan_read' and request.arguments.get('revision') not in {None, request.plan_revision}:
+            raise LaneError('QUERY_REVISION_MISMATCH', 'The Plan page must match this query revision.')
+        store = engine.directory.open(context.project_id)
+        task = PlanStore(store).task(request.task_id, expected_revision=request.plan_revision)
+        if context.execution is not None:
+            context.execution._before_more_work()
+            context.execution.guard.spend_call()
+        result = engine.registry.execute(spec.name, request.arguments, replace(context, expected_revision=request.plan_revision))
+        if spec.name == 'delta_status' and (result['task_id'] != request.task_id or result['plan_revision'] != request.plan_revision):
+            raise LaneError('QUERY_JOB_BINDING_MISMATCH', 'Select the run belonging to this exact task and revision.')
+        # Revisions only advance; checking again rejects a refresh crossing the
+        # independent read transactions. No query takes the project writer.
+        PlanStore(store).task(request.task_id, expected_revision=request.plan_revision)
+        value = QueryResult(project_id=store.project_id, task_id=request.task_id, plan_revision=request.plan_revision,
+            contract_digest=task.contract_digest, action=spec.name, result=result)
+        bounded(value.model_dump(mode='json'), request.max_bytes)
+        return value
+
+    engine.registry.register(ActionSpec('delta_status', 'Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.',
+        DeltaStatusRequest, DeltaStatus, status, profile='delta', queryable_in_delta=True, studio_read=True, workflow='build'))
+    engine.registry.register(ActionSpec('delta_query', 'Query an admitted authority during work without refreshing or changing the Plan.',
+        DeltaQuery, QueryResult, query, profile='delta', workflow='evi'))

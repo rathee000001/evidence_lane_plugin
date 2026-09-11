@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 73,
   "tool": "python_multipart",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "DE480818535C96572135A47F991319982C79BF027BCE4602E2CE64B5CC15DEBC"
+  "historical_ordinal": 73,
+  "catalog_ordinal": 72,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "0b0e184a33ba356b9731370c2682bd26c8f5db757a6a10d779cec8ba33abbe26"
 }

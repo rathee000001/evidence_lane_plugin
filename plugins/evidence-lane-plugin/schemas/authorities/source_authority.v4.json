@@ -1,0 +1,73 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "source_authority",
+  "members": [
+    {
+      "path": "authorities/source_authority/build-refresh-contract.schema.json",
+      "sha256": "4d3f62fd729bcbc1404408d925c01ff613935245cea9d862c2a7286d7176058a"
+    },
+    {
+      "path": "authorities/source_authority/dot-artifact.schema.json",
+      "sha256": "30efc585a4a3bd472b4f6b790987d593f74b01b4841fb5e1b1926fa3d6595929"
+    },
+    {
+      "path": "authorities/source_authority/manifest.schema.json",
+      "sha256": "85d3eafba3dfb6b3afa22a9c4935ef906dd585555e8b6397fd3aa36710de23ae"
+    },
+    {
+      "path": "authorities/source_authority/manifest.v4.json",
+      "sha256": "a71ac4e53b815b768b0a8809ffe19fa44a50aee167821cafc7628d7930d8ce8a"
+    },
+    {
+      "path": "authorities/source_authority/migration-history.json",
+      "sha256": "decaa03e5e6918b9a840b593e5d156d68d1e270447ac37418dda2f7355298498"
+    },
+    {
+      "path": "authorities/source_authority/mmd-artifact.schema.json",
+      "sha256": "513b8bbf11147633fb4eab2a6842e7228c775f0568c65e35dae1f1cea841dfe5"
+    },
+    {
+      "path": "authorities/source_authority/pointer-contract.schema.json",
+      "sha256": "bf412602029f6d1c65f61aefe927cff66f8e5651d8ce8d312fc9bc6a3e5b8590"
+    },
+    {
+      "path": "authorities/source_authority/pointer-contract.v4.json",
+      "sha256": "2c01945db1c210c9284019f051044bf7ce56d4bcfd7ee9a47baeb3c169cb29da"
+    },
+    {
+      "path": "authorities/source_authority/reader-contract.schema.json",
+      "sha256": "d9d666c8227e4915a1b5e6ad4a1a472bea023bfc614b2cec358f42e3265bb9c1"
+    },
+    {
+      "path": "authorities/source_authority/refresh-receipt.schema.json",
+      "sha256": "d0649dc04e89ee031bed57f372856a7d47faffdfce6437bc59fab2821d96474c"
+    },
+    {
+      "path": "authorities/source_authority/runtime-binding.schema.json",
+      "sha256": "4ede131bfe37461d384b79d7ff07ba307b2d958217518cf0f829c94d0c693aa1"
+    },
+    {
+      "path": "authorities/source_authority/runtime-binding.v4.json",
+      "sha256": "048ed0c9bc455f261435f4129fd7d1c9632e5a87f9dd597d0d45c10d771ea166"
+    },
+    {
+      "path": "authorities/source_authority/schema.sql",
+      "sha256": "6613ac38ff85b869cd5f11eb5a4abfe9e14066de1de2d305ffeed3d726e20f0e"
+    },
+    {
+      "path": "authorities/source_authority/sqlite-artifact.schema.json",
+      "sha256": "6b6200606eb1a20c900c2353982c095a0116b5aa454883017c28ab7bb1f38571"
+    },
+    {
+      "path": "authorities/source_authority/sqlite-schema.v4.json",
+      "sha256": "a86e26ee6adf80c083cd1093c13578cfb5769bee3507394791fa9906c5cb8381"
+    },
+    {
+      "path": "authorities/source_authority/tools.schema.json",
+      "sha256": "4422f5ba3627bfd8957d305c4d62908c03fdcf3ad34c28afc61ccb1ec754f8c8"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/PostCompact/handler.py",
+  "event": "PostCompact",
+  "event_contract": "hooks/events/PostCompact/event.v4.json",
+  "event_contract_sha256": "b69414b2491e43a1a2fab27587f63a6f5e5a75d7d4a49322265d234a8d5a7cee",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/PostCompact.v4.schema.json",
+  "input_schema_sha256": "3c3ffa019b10443f727e0ba9c22f06b50756a1861bff68dba8425612025b4a71",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

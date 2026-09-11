@@ -1,0 +1,221 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Capture one authorized bounded HTTP response chain into immutable Research evidence.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "encoding": {
+        "default": "utf-8",
+        "enum": [
+          "utf-8",
+          "utf-8-sig",
+          "windows-1252",
+          "iso-8859-1",
+          "utf-16"
+        ],
+        "title": "Encoding",
+        "type": "string"
+      },
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "lane_id": {
+        "const": "research",
+        "default": "research",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 1048576,
+        "maximum": 8388608,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "max_redirects": {
+        "default": 5,
+        "maximum": 8,
+        "minimum": 0,
+        "title": "Max Redirects",
+        "type": "integer"
+      },
+      "media": {
+        "default": "auto",
+        "enum": [
+          "auto",
+          "html",
+          "text",
+          "opaque"
+        ],
+        "title": "Media",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 20,
+        "maximum": 60,
+        "minimum": 1,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      },
+      "transport": {
+        "default": "auto",
+        "enum": [
+          "auto",
+          "httpx",
+          "requests"
+        ],
+        "title": "Transport",
+        "type": "string"
+      },
+      "url": {
+        "maxLength": 8192,
+        "minLength": 1,
+        "title": "Url",
+        "type": "string"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "title": "Capture",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "research_web_capture",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "research",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7ef62d3683ddb86c978b0b5255822107aad1ae409d256d65742ad1782e8ead19",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "research_web_capture",
+    "profile": "research",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:capture_httpx",
+        "argument_suffixes": {},
+        "argument_values": {
+          "transport": [
+            "auto",
+            "httpx"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_web_capture.httpx",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "HTTPX",
+          "validators",
+          "tldextract"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.research_web_profile:capture_requests",
+        "argument_suffixes": {},
+        "argument_values": {
+          "transport": [
+            "auto",
+            "requests"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_web_capture.requests",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Requests",
+          "validators",
+          "tldextract"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "research_web_capture_source"
+    ]
+  },
+  "verification_checks": [
+    "research_web_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "research_web_capture_source"
+  ],
+  "workflow": "source-intake"
+}

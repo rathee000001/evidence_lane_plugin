@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-from evidence_lane_plugin.service import EvidenceLaneService
+
+if TYPE_CHECKING:
+    from evidence_lane_plugin.service import EvidenceLaneService
 
 
 def git(repository: Path, *args: str) -> str:
@@ -72,6 +75,8 @@ def list_books():
 
 @pytest.fixture
 def service(tmp_path: Path, source_repository: Path) -> EvidenceLaneService:
+    from evidence_lane_plugin.service import EvidenceLaneService
+
     application = EvidenceLaneService(data_root=tmp_path / "store")
     result = application.register_project(
         project_id="book-faires",

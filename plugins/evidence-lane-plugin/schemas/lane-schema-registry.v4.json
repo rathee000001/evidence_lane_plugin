@@ -1,0 +1,1142 @@
+{
+  "authorities": [
+    "plan",
+    "chat_lineage",
+    "canon",
+    "memory",
+    "learning",
+    "sources",
+    "receipts",
+    "universe"
+  ],
+  "coordination": {
+    "business_records_in_root": false,
+    "schema_owners": [
+      "writer"
+    ],
+    "shared_lane_mechanisms": [
+      "views"
+    ],
+    "shared_mechanism_requires_explicit_lane": true,
+    "unpublished_lane_changes": "recoverable_until_coordinated_root_publication",
+    "writer_scope": "one_project"
+  },
+  "instance_templates": {
+    "custom": {
+      "canonical_id_pattern": "custom__[a-z][a-z0-9_]{0,39}",
+      "global_catalog_mutated": false,
+      "max_instances_per_project": 256,
+      "registration_authority": "sources",
+      "registration_owner": "customlanes",
+      "schema_owner_requires_explicit_instance_store": true,
+      "storage": "sectors/<instance_id>/<instance_id>_sector_v001.sqlite with separate files and schema-history"
+    }
+  },
+  "lanes": [
+    {
+      "contract_sha256": "D1A71E52959811A133B28549C96F104CC11A44A0E2832EE7DAF82AE82588EC10",
+      "database_relative_path": "authorities/plan/plan_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "plan",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "src/evidence_lane_plugin/plan_runtime.py"
+      ],
+      "owners": [
+        "plan",
+        "steer",
+        "jobs",
+        "delta",
+        "validation",
+        "validationrun"
+      ],
+      "prefixes_by_owner": {
+        "delta": [
+          "delta_"
+        ],
+        "jobs": [
+          "jobs_"
+        ],
+        "plan": [
+          "plan_"
+        ],
+        "steer": [
+          "steer_"
+        ],
+        "validation": [
+          "validation_"
+        ],
+        "validationrun": [
+          "validationrun_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/plan/schema-history",
+      "schema_id": "evidence-lane.authority.plan.v4",
+      "schema_version": 4,
+      "tables": [
+        "plan_current",
+        "plan_dependencies",
+        "plan_events",
+        "plan_revisions",
+        "plan_tasks",
+        "validation_policy_current",
+        "validation_policy_revisions",
+        "validationrun_summaries"
+      ]
+    },
+    {
+      "contract_sha256": "660B8839D8C3B689F46F43AA0F2F3823BE861B419705DCA5F2DBA9F7041F130E",
+      "database_relative_path": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "chat_lineage",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "src/evidence_lane_plugin/lineage.py"
+      ],
+      "owners": [
+        "lineage",
+        "continuation",
+        "prompt",
+        "turn"
+      ],
+      "prefixes_by_owner": {
+        "continuation": [
+          "continuation_"
+        ],
+        "lineage": [
+          "lineage_"
+        ],
+        "prompt": [
+          "prompt_"
+        ],
+        "turn": [
+          "turn_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/chat_lineage/schema-history",
+      "schema_id": "evidence-lane.authority.chat_lineage.v4",
+      "schema_version": 4,
+      "tables": [
+        "lineage_chunks",
+        "lineage_events",
+        "lineage_fts"
+      ]
+    },
+    {
+      "contract_sha256": "CFFF8D3B1C9D8F3F81EA7ADF4850A46968852E1BF173B8F0A6FFDD601B768055",
+      "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "canon",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/canon_input/schema.sql"
+      ],
+      "owners": [
+        "canon"
+      ],
+      "prefixes_by_owner": {
+        "canon": [
+          "canon_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/canon/schema-history",
+      "schema_id": "evidence-lane.authority.canon.v4",
+      "schema_version": 4,
+      "tables": [
+        "canon_contract_current",
+        "canon_contracts",
+        "canon_events",
+        "canon_exchanges",
+        "canon_participants",
+        "canon_supersessions",
+        "canon_task_edges",
+        "canon_task_edge_bindings"
+      ]
+    },
+    {
+      "contract_sha256": "1A3A21F3CBBE8020F76685DF6166A6C85C23B5D6F43C310A9D0FC6D5A08AA8CD",
+      "database_relative_path": "authorities/memory/memory_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "memory",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_memory/schema.sql"
+      ],
+      "owners": [
+        "memory"
+      ],
+      "prefixes_by_owner": {
+        "memory": [
+          "memory_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/memory/schema-history",
+      "schema_id": "evidence-lane.authority.memory.v4",
+      "schema_version": 4,
+      "tables": [
+        "memory_checkpoints",
+        "memory_edges",
+        "memory_events",
+        "memory_fts",
+        "memory_locators"
+      ]
+    },
+    {
+      "contract_sha256": "F693B139511785A8A8F26B1949AF892AFD5DB2AE011F8AF903A5D8B9125C6FA5",
+      "database_relative_path": "authorities/learning/learning_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "learning",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/agent_learning/schema.sql"
+      ],
+      "owners": [
+        "learning"
+      ],
+      "prefixes_by_owner": {
+        "learning": [
+          "learning_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/learning/schema-history",
+      "schema_id": "evidence-lane.authority.learning.v4",
+      "schema_version": 4,
+      "tables": [
+        "learning_controls",
+        "learning_current",
+        "learning_events",
+        "learning_fts",
+        "learning_versions"
+      ]
+    },
+    {
+      "contract_sha256": "2219A0783014607A2260C520E61261A37B5961A0D2FE9B7CC6AF30F30A301B87",
+      "database_relative_path": "authorities/sources/sources_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "sources",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "src/evidence_lane_plugin/source_authority.py"
+      ],
+      "owners": [
+        "sources",
+        "restoration",
+        "gitbranch",
+        "sourceroutes",
+        "sourcematerialization",
+        "customlanes"
+      ],
+      "prefixes_by_owner": {
+        "customlanes": [
+          "customlanes_"
+        ],
+        "gitbranch": [
+          "gitbranch_"
+        ],
+        "restoration": [
+          "restoration_"
+        ],
+        "sourcematerialization": [
+          "sourcematerialization_"
+        ],
+        "sourceroutes": [
+          "sourceroutes_"
+        ],
+        "sources": [
+          "source_",
+          "intake_",
+          "registry_",
+          "sources_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/sources/schema-history",
+      "schema_id": "evidence-lane.authority.sources.v4",
+      "schema_version": 4,
+      "tables": [
+        "customlanes_contracts",
+        "customlanes_current",
+        "sourceroutes_receipts",
+        "sourceroutes_requests",
+        "sourceroutes_preparations",
+        "sourcematerialization_runs",
+        "gitbranch_history",
+        "gitbranch_current",
+        "gitbranch_sync",
+        "gitbranch_enrollment",
+        "registry_meta",
+        "intake_batch",
+        "source_object",
+        "source_occurrence",
+        "source_member",
+        "source_relation",
+        "source_policy_receipt",
+        "source_exclusion_summary",
+        "source_archive_receipt",
+        "source_provenance",
+        "source_assertion_set",
+        "source_sqlite_asset",
+        "source_sqlite_schema_object",
+        "source_sqlite_table_stat",
+        "source_sqlite_receipt",
+        "source_sqlite_foreign_key",
+        "source_custom_schema",
+        "source_custom_schema_mapping",
+        "source_custom_schema_receipt",
+        "source_identity_entity",
+        "source_identity_assertion",
+        "source_identity_relation",
+        "source_identity_receipt",
+        "source_graph_snapshot",
+        "source_graph_node",
+        "source_graph_edge",
+        "source_graph_file_coverage",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_git_snapshot",
+        "source_git_ref",
+        "source_git_commit",
+        "source_git_parent",
+        "source_git_object",
+        "source_git_object_path",
+        "source_git_tree_entry",
+        "source_git_file_change",
+        "source_git_rename",
+        "source_git_hunk",
+        "source_git_changed_line",
+        "source_git_impact",
+        "registry_event",
+        "source_authority_fts"
+      ]
+    },
+    {
+      "contract_sha256": "5F4A912F9DD326FFC95143AF7E7BF58DE94575A3E241C6AB7038391ABEF27BEF",
+      "database_relative_path": "authorities/receipts/receipts_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "receipts",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/receipt_ledger/schema.sql"
+      ],
+      "owners": [
+        "receipts",
+        "access",
+        "extensions",
+        "accelerator",
+        "recovery",
+        "remote",
+        "sessions",
+        "hostmemory",
+        "gitpush",
+        "capture",
+        "storage"
+      ],
+      "prefixes_by_owner": {
+        "accelerator": [
+          "accelerator_"
+        ],
+        "access": [
+          "access_"
+        ],
+        "capture": [
+          "capture_"
+        ],
+        "extensions": [
+          "extensions_"
+        ],
+        "gitpush": [
+          "gitpush_"
+        ],
+        "hostmemory": [
+          "hostmemory_"
+        ],
+        "receipts": [
+          "receipts_"
+        ],
+        "recovery": [
+          "recovery_"
+        ],
+        "remote": [
+          "remote_"
+        ],
+        "sessions": [
+          "sessions_"
+        ],
+        "storage": [
+          "storage_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/receipts/schema-history",
+      "schema_id": "evidence-lane.authority.receipts.v4",
+      "schema_version": 4,
+      "tables": [
+        "receipts",
+        "gitpush_events",
+        "gitpush_current"
+      ]
+    },
+    {
+      "contract_sha256": "C0EAA654E17D243600C6E392C3F0E7CCF74A6F99F631D663C899B8167EDFD50D",
+      "database_relative_path": "authorities/universe/universe_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "universe",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_universe/schema.sql"
+      ],
+      "owners": [
+        "universe",
+        "federation"
+      ],
+      "prefixes_by_owner": {
+        "federation": [
+          "federation_"
+        ],
+        "universe": [
+          "universe_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "authorities/universe/schema-history",
+      "schema_id": "evidence-lane.authority.universe.v4",
+      "schema_version": 4,
+      "tables": [
+        "universe_link_events",
+        "universe_links",
+        "federation_identity",
+        "federation_members",
+        "federation_member_history",
+        "federation_mini_brains",
+        "federation_lane_heads",
+        "federation_grants",
+        "federation_revocations",
+        "federation_links"
+      ]
+    },
+    {
+      "contract_sha256": "2C9C47877EC77593891A737525C590CBD7ACB37DBDE2F28B8D89758775EAB0BC",
+      "database_relative_path": "sectors/github_code/github_code_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "github_code",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/github_code/schema.sql"
+      ],
+      "owners": [
+        "githubcode",
+        "githubcodeselector"
+      ],
+      "prefixes_by_owner": {
+        "githubcode": [
+          "code_"
+        ],
+        "githubcodeselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/github_code/schema-history",
+      "schema_id": "evidence-lane.sector.github_code.v4",
+      "schema_version": 4,
+      "tables": [
+        "code_repo",
+        "code_snapshot",
+        "code_current",
+        "code_file",
+        "code_file_version",
+        "code_snapshot_file",
+        "code_chunk",
+        "code_chunk_fts",
+        "code_symbol",
+        "code_import",
+        "code_call",
+        "code_route",
+        "code_dependency",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
+        "code_import_edge",
+        "code_change",
+        "code_git_reference",
+        "code_mutation",
+        "code_embedding_run",
+        "code_embedding",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "6210AE6BD1320D4CF0ED582BFFBE0102CCB7477155AA0333067CD77308B627DA",
+      "database_relative_path": "sectors/local_code/local_code_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "local_code",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/local_code/schema.sql"
+      ],
+      "owners": [
+        "localcode",
+        "localcodeselector"
+      ],
+      "prefixes_by_owner": {
+        "localcode": [
+          "code_"
+        ],
+        "localcodeselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/local_code/schema-history",
+      "schema_id": "evidence-lane.sector.local_code.v4",
+      "schema_version": 4,
+      "tables": [
+        "code_repo",
+        "code_snapshot",
+        "code_current",
+        "code_file",
+        "code_file_version",
+        "code_snapshot_file",
+        "code_chunk",
+        "code_chunk_fts",
+        "code_symbol",
+        "code_import",
+        "code_call",
+        "code_route",
+        "code_dependency",
+        "code_parser_receipt",
+        "code_parser_diagnostic",
+        "code_import_edge",
+        "code_change",
+        "code_git_reference",
+        "code_mutation",
+        "code_embedding_run",
+        "code_embedding",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "7E3837C4A42907B0B9C1109C861C655D899F07A910936E10AC7180C5F05644CB",
+      "database_relative_path": "sectors/docs/docs_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "docs",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/docs/schema.sql"
+      ],
+      "owners": [
+        "docs",
+        "docsselector"
+      ],
+      "prefixes_by_owner": {
+        "docs": [
+          "doc_",
+          "docling_"
+        ],
+        "docsselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/docs/schema-history",
+      "schema_id": "evidence-lane.sector.docs.v4",
+      "schema_version": 4,
+      "tables": [
+        "doc_file",
+        "doc_version",
+        "doc_current",
+        "doc_structure",
+        "doc_paragraph",
+        "doc_heading",
+        "doc_table_extract",
+        "doc_image_reference",
+        "doc_relationship",
+        "doc_content_control",
+        "doc_revision",
+        "doc_field",
+        "doc_hyperlink",
+        "doc_bookmark",
+        "doc_embedded_object",
+        "doc_chunk",
+        "doc_chunk_fts",
+        "doc_render",
+        "doc_export",
+        "docling_extraction",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "A66C4B96A8BD053A93C54F63794621B0D44A4F6A0825EF6CFB46017A4F7C8AE8",
+      "database_relative_path": "sectors/data_excel/data_excel_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "data_excel",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/data_excel/schema.sql"
+      ],
+      "owners": [
+        "dataexcel",
+        "dataexcelselector"
+      ],
+      "prefixes_by_owner": {
+        "dataexcel": [
+          "sheet_"
+        ],
+        "dataexcelselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/data_excel/schema-history",
+      "schema_id": "evidence-lane.sector.data_excel.v4",
+      "schema_version": 4,
+      "tables": [
+        "sheet_source",
+        "sheet_version",
+        "sheet_current",
+        "sheet_workbook",
+        "sheet_tab",
+        "sheet_cell_sample",
+        "sheet_formula",
+        "sheet_defined_name",
+        "sheet_range",
+        "sheet_validation",
+        "sheet_hyperlink",
+        "sheet_relationship",
+        "sheet_table",
+        "sheet_chart_metadata",
+        "sheet_chunk",
+        "sheet_chunk_fts",
+        "sheet_export",
+        "sheet_derivative",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "5FB8D315D4142D7CE76E117C78C63BF7C9B2C8FDE75E0498B8E5688D97778839",
+      "database_relative_path": "sectors/ppt/ppt_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "ppt",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/ppt/schema.sql"
+      ],
+      "owners": [
+        "ppt",
+        "pptselector"
+      ],
+      "prefixes_by_owner": {
+        "ppt": [
+          "ppt_"
+        ],
+        "pptselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/ppt/schema-history",
+      "schema_id": "evidence-lane.sector.ppt.v4",
+      "schema_version": 4,
+      "tables": [
+        "ppt_file",
+        "ppt_version",
+        "ppt_current",
+        "ppt_structure",
+        "ppt_slide",
+        "ppt_shape",
+        "ppt_text_block",
+        "ppt_notes",
+        "ppt_table",
+        "ppt_image_reference",
+        "ppt_slide_relationship",
+        "ppt_chart",
+        "ppt_chunk",
+        "ppt_chunk_fts",
+        "ppt_render",
+        "ppt_export",
+        "ppt_enrichment",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "2DFF7B85B418DECD1D691E3B5DEDED0F234DEAF8B5D1C0760D03EAAECBDAA883",
+      "database_relative_path": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "pdf_ocr",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/pdf_ocr/schema.sql"
+      ],
+      "owners": [
+        "pdfocr",
+        "pdfocrselector"
+      ],
+      "prefixes_by_owner": {
+        "pdfocr": [
+          "pdf_",
+          "docling_"
+        ],
+        "pdfocrselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/pdf_ocr/schema-history",
+      "schema_id": "evidence-lane.sector.pdf_ocr.v4",
+      "schema_version": 4,
+      "tables": [
+        "pdf_file",
+        "pdf_version",
+        "pdf_current",
+        "pdf_structure",
+        "pdf_page",
+        "pdf_text_block",
+        "pdf_text_line",
+        "pdf_image",
+        "pdf_table",
+        "pdf_link",
+        "pdf_annotation",
+        "pdf_form_field",
+        "pdf_widget",
+        "pdf_outline",
+        "pdf_attachment",
+        "pdf_chunk",
+        "pdf_chunk_fts",
+        "pdf_export",
+        "pdf_render",
+        "pdf_ocr_run",
+        "pdf_ocr_line",
+        "pdf_review_region",
+        "docling_extraction",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "7FD72417839138783E7CA5D262EBE4EFE9FBE4141685BD64D678113138D6A0E1",
+      "database_relative_path": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "images_ocr",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/images_ocr/schema.sql"
+      ],
+      "owners": [
+        "media",
+        "imagesocrselector"
+      ],
+      "prefixes_by_owner": {
+        "imagesocrselector": [
+          "selector_"
+        ],
+        "media": [
+          "media_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/images_ocr/schema-history",
+      "schema_id": "evidence-lane.sector.images_ocr.v4",
+      "schema_version": 4,
+      "tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_content_cas",
+        "source_registry",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tool_route_contract",
+        "tool_execution_receipt",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_content_cas",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "image_file",
+        "image_metadata",
+        "image_ocr_run",
+        "image_ocr_block",
+        "image_ocr_line",
+        "image_review_region",
+        "image_ocr_fts",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "7D3319448D0BC523E3DCA9106B51FE4CCEC2F3113224D962C6BBF4EFFCC09AAA",
+      "database_relative_path": "sectors/artifacts/artifacts_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "artifacts",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/artifacts/schema.sql"
+      ],
+      "owners": [
+        "artifacts",
+        "artifactsselector"
+      ],
+      "prefixes_by_owner": {
+        "artifacts": [
+          "artifact_",
+          "project_artifact"
+        ],
+        "artifactsselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/artifacts/schema-history",
+      "schema_id": "evidence-lane.sector.artifacts.v4",
+      "schema_version": 4,
+      "tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_content_cas",
+        "source_registry",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tool_route_contract",
+        "tool_execution_receipt",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_content_cas",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "project_artifact",
+        "artifact_metadata",
+        "artifact_text_extract",
+        "artifact_relation_edge",
+        "artifact_review_required",
+        "artifact_media_probe",
+        "artifact_fts",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "C2C64D439BA56425A6A32F27DA6451C1B4C455596A2D88605E6A64D376BC7094",
+      "database_relative_path": "sectors/custom/custom_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "custom",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/custom/schema.sql"
+      ],
+      "owners": [
+        "custom",
+        "customselector"
+      ],
+      "prefixes_by_owner": {
+        "custom": [
+          "custom_"
+        ],
+        "customselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/custom/schema-history",
+      "schema_id": "evidence-lane.sector.custom.v4",
+      "schema_version": 4,
+      "tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_content_cas",
+        "source_registry",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tool_route_contract",
+        "tool_execution_receipt",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_content_cas",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "custom_source",
+        "custom_item",
+        "custom_evidence",
+        "custom_decision",
+        "custom_next_action",
+        "custom_fts",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "86AEEAEE6AFE899368C6D38E68389945CD04B5DBE3AFC2D34ED1252815045913",
+      "database_relative_path": "sectors/research/research_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "research",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/research/schema.sql"
+      ],
+      "owners": [
+        "research",
+        "researchselector"
+      ],
+      "prefixes_by_owner": {
+        "research": [
+          "research_"
+        ],
+        "researchselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/research/schema-history",
+      "schema_id": "evidence-lane.sector.research.v4",
+      "schema_version": 4,
+      "tables": [
+        "lane_meta",
+        "lane_pointer",
+        "source_content_cas",
+        "source_registry",
+        "chunk_index",
+        "chunk_content_cas",
+        "chunk_history",
+        "structured_fact",
+        "parser_capability",
+        "tool_route_contract",
+        "tool_execution_receipt",
+        "tfidf_term",
+        "tfidf_vector",
+        "refresh_receipt",
+        "mutation_receipt",
+        "authority_index_content_cas",
+        "authority_index_source",
+        "authority_index_node",
+        "authority_index_fts",
+        "authority_index_refresh_receipt",
+        "research_source",
+        "research_question",
+        "research_hypothesis",
+        "research_method",
+        "research_evidence",
+        "research_finding",
+        "research_limitation",
+        "research_citation",
+        "research_open_question",
+        "research_receipt",
+        "research_fts",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "9CF514C7C0C0784BA3BF3458F74B33D5544AE629410A649A45ECBC6AA587966B",
+      "database_relative_path": "sectors/data/data_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "data",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/data/schema.sql"
+      ],
+      "owners": [
+        "data",
+        "dataselector"
+      ],
+      "prefixes_by_owner": {
+        "data": [
+          "data_"
+        ],
+        "dataselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/data/schema-history",
+      "schema_id": "evidence-lane.sector.data.v4",
+      "schema_version": 4,
+      "tables": [
+        "data_source",
+        "data_version",
+        "data_current",
+        "data_table",
+        "data_column",
+        "data_sample",
+        "data_lineage",
+        "data_chunk",
+        "data_chunk_fts",
+        "data_export",
+        "data_derivative",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "8E12750FF15E4F2056E33607DD59882DB28E6B53AC89D50015FC36AD6B05E74C",
+      "database_relative_path": "sectors/tableau/tableau_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "tableau",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/tableau/schema.sql"
+      ],
+      "owners": [
+        "tableau",
+        "tableauselector"
+      ],
+      "prefixes_by_owner": {
+        "tableau": [
+          "tableau_"
+        ],
+        "tableauselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/tableau/schema-history",
+      "schema_id": "evidence-lane.sector.tableau.v4",
+      "schema_version": 4,
+      "tables": [
+        "tableau_file",
+        "tableau_version",
+        "tableau_current",
+        "tableau_structure",
+        "tableau_workbook",
+        "tableau_datasource",
+        "tableau_sheet",
+        "tableau_dashboard",
+        "tableau_story",
+        "tableau_column",
+        "tableau_calculation",
+        "tableau_relationship",
+        "tableau_connection",
+        "tableau_filter",
+        "tableau_parameter",
+        "tableau_mark",
+        "tableau_layout",
+        "tableau_package_member",
+        "tableau_hyper_schema",
+        "tableau_hyper_table",
+        "tableau_hyper_column",
+        "tableau_hyper_row",
+        "tableau_opaque",
+        "tableau_chunk",
+        "tableau_chunk_fts",
+        "tableau_export",
+        "selector_retirement"
+      ]
+    },
+    {
+      "contract_sha256": "38520E6F83C0144B0E6A11906B0E97B4F9192FE6FC7DE9A9EE823EA00479A4CA",
+      "database_relative_path": "sectors/power_bi/power_bi_sector_v001.sqlite",
+      "kind": "sector",
+      "lane_id": "power_bi",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "authorities/project_sectors/power_bi/schema.sql"
+      ],
+      "owners": [
+        "powerbi",
+        "powerbiselector"
+      ],
+      "prefixes_by_owner": {
+        "powerbi": [
+          "powerbi_"
+        ],
+        "powerbiselector": [
+          "selector_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sectors/power_bi/schema-history",
+      "schema_id": "evidence-lane.sector.power_bi.v4",
+      "schema_version": 4,
+      "tables": [
+        "powerbi_file",
+        "powerbi_version",
+        "powerbi_current",
+        "powerbi_structure",
+        "powerbi_project",
+        "powerbi_report",
+        "powerbi_page",
+        "powerbi_visual",
+        "powerbi_model",
+        "powerbi_table",
+        "powerbi_column",
+        "powerbi_measure",
+        "powerbi_relationship",
+        "powerbi_partition",
+        "powerbi_expression",
+        "powerbi_role",
+        "powerbi_hierarchy",
+        "powerbi_data_source",
+        "powerbi_perspective",
+        "powerbi_culture",
+        "powerbi_annotation",
+        "powerbi_bookmark",
+        "powerbi_filter",
+        "powerbi_theme",
+        "powerbi_model_metadata",
+        "powerbi_model_row",
+        "powerbi_reference",
+        "powerbi_package_member",
+        "powerbi_opaque",
+        "powerbi_chunk",
+        "powerbi_chunk_fts",
+        "powerbi_export",
+        "selector_retirement"
+      ]
+    }
+  ],
+  "registry_version": 4,
+  "root_pv": "Project identity and exact lane-head references only; no universal business database",
+  "schema": "evidence-lane.lane-schema-registry.v4",
+  "sectors": [
+    "github_code",
+    "local_code",
+    "docs",
+    "data_excel",
+    "ppt",
+    "pdf_ocr",
+    "images_ocr",
+    "artifacts",
+    "custom",
+    "research",
+    "data",
+    "tableau",
+    "power_bi"
+  ]
+}

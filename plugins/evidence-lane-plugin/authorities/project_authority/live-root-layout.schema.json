@@ -1,33 +1,186 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Evidence Lane live Project/PV root layout",
-  "type": "object",
-  "required": [
-    "schema",
-    "status",
-    "project_root",
-    "workspace_root",
-    "hidden_runtime_root",
-    "project_sector_root",
-    "named_authorities",
-    "absorbed_legacy_paths",
-    "obsolete_paths_removed_after_hash_readback",
-    "accepted_folder_queried"
-  ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.live-project-root-layout.v1"
-    },
-    "status": {
-      "const": "PASS"
-    },
-    "obsolete_paths_removed_after_hash_readback": {
-      "const": true
-    },
-    "accepted_folder_queried": {
-      "const": false
-    }
+  "const": {
+    "schema": "evidence-lane.live-project-root-layout.v4",
+    "source_package_folder": "authorities/project_authority",
+    "root_database": "root-pv.sqlite3",
+    "root_business_records": false,
+    "authority_count": 8,
+    "lanes": [
+      {
+        "lane_id": "plan",
+        "kind": "authority",
+        "folder": "authorities/plan",
+        "database": "authorities/plan/plan_authority_v001.sqlite",
+        "files": "authorities/plan/files",
+        "schema_history": "authorities/plan/schema-history"
+      },
+      {
+        "lane_id": "chat_lineage",
+        "kind": "authority",
+        "folder": "authorities/chat_lineage",
+        "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+        "files": "authorities/chat_lineage/files",
+        "schema_history": "authorities/chat_lineage/schema-history"
+      },
+      {
+        "lane_id": "canon",
+        "kind": "authority",
+        "folder": "authorities/canon",
+        "database": "authorities/canon/canon_authority_v001.sqlite",
+        "files": "authorities/canon/files",
+        "schema_history": "authorities/canon/schema-history"
+      },
+      {
+        "lane_id": "memory",
+        "kind": "authority",
+        "folder": "authorities/memory",
+        "database": "authorities/memory/memory_authority_v001.sqlite",
+        "files": "authorities/memory/files",
+        "schema_history": "authorities/memory/schema-history"
+      },
+      {
+        "lane_id": "learning",
+        "kind": "authority",
+        "folder": "authorities/learning",
+        "database": "authorities/learning/learning_authority_v001.sqlite",
+        "files": "authorities/learning/files",
+        "schema_history": "authorities/learning/schema-history"
+      },
+      {
+        "lane_id": "sources",
+        "kind": "authority",
+        "folder": "authorities/sources",
+        "database": "authorities/sources/sources_authority_v001.sqlite",
+        "files": "authorities/sources/files",
+        "schema_history": "authorities/sources/schema-history"
+      },
+      {
+        "lane_id": "receipts",
+        "kind": "authority",
+        "folder": "authorities/receipts",
+        "database": "authorities/receipts/receipts_authority_v001.sqlite",
+        "files": "authorities/receipts/files",
+        "schema_history": "authorities/receipts/schema-history"
+      },
+      {
+        "lane_id": "universe",
+        "kind": "authority",
+        "folder": "authorities/universe",
+        "database": "authorities/universe/universe_authority_v001.sqlite",
+        "files": "authorities/universe/files",
+        "schema_history": "authorities/universe/schema-history"
+      },
+      {
+        "lane_id": "github_code",
+        "kind": "sector",
+        "folder": "sectors/github_code",
+        "database": "sectors/github_code/github_code_sector_v001.sqlite",
+        "files": "sectors/github_code/files",
+        "schema_history": "sectors/github_code/schema-history"
+      },
+      {
+        "lane_id": "local_code",
+        "kind": "sector",
+        "folder": "sectors/local_code",
+        "database": "sectors/local_code/local_code_sector_v001.sqlite",
+        "files": "sectors/local_code/files",
+        "schema_history": "sectors/local_code/schema-history"
+      },
+      {
+        "lane_id": "docs",
+        "kind": "sector",
+        "folder": "sectors/docs",
+        "database": "sectors/docs/docs_sector_v001.sqlite",
+        "files": "sectors/docs/files",
+        "schema_history": "sectors/docs/schema-history"
+      },
+      {
+        "lane_id": "data_excel",
+        "kind": "sector",
+        "folder": "sectors/data_excel",
+        "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
+        "files": "sectors/data_excel/files",
+        "schema_history": "sectors/data_excel/schema-history"
+      },
+      {
+        "lane_id": "ppt",
+        "kind": "sector",
+        "folder": "sectors/ppt",
+        "database": "sectors/ppt/ppt_sector_v001.sqlite",
+        "files": "sectors/ppt/files",
+        "schema_history": "sectors/ppt/schema-history"
+      },
+      {
+        "lane_id": "pdf_ocr",
+        "kind": "sector",
+        "folder": "sectors/pdf_ocr",
+        "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+        "files": "sectors/pdf_ocr/files",
+        "schema_history": "sectors/pdf_ocr/schema-history"
+      },
+      {
+        "lane_id": "images_ocr",
+        "kind": "sector",
+        "folder": "sectors/images_ocr",
+        "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+        "files": "sectors/images_ocr/files",
+        "schema_history": "sectors/images_ocr/schema-history"
+      },
+      {
+        "lane_id": "artifacts",
+        "kind": "sector",
+        "folder": "sectors/artifacts",
+        "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
+        "files": "sectors/artifacts/files",
+        "schema_history": "sectors/artifacts/schema-history"
+      },
+      {
+        "lane_id": "custom",
+        "kind": "sector",
+        "folder": "sectors/custom",
+        "database": "sectors/custom/custom_sector_v001.sqlite",
+        "files": "sectors/custom/files",
+        "schema_history": "sectors/custom/schema-history"
+      },
+      {
+        "lane_id": "research",
+        "kind": "sector",
+        "folder": "sectors/research",
+        "database": "sectors/research/research_sector_v001.sqlite",
+        "files": "sectors/research/files",
+        "schema_history": "sectors/research/schema-history"
+      },
+      {
+        "lane_id": "data",
+        "kind": "sector",
+        "folder": "sectors/data",
+        "database": "sectors/data/data_sector_v001.sqlite",
+        "files": "sectors/data/files",
+        "schema_history": "sectors/data/schema-history"
+      },
+      {
+        "lane_id": "tableau",
+        "kind": "sector",
+        "folder": "sectors/tableau",
+        "database": "sectors/tableau/tableau_sector_v001.sqlite",
+        "files": "sectors/tableau/files",
+        "schema_history": "sectors/tableau/schema-history"
+      },
+      {
+        "lane_id": "power_bi",
+        "kind": "sector",
+        "folder": "sectors/power_bi",
+        "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
+        "files": "sectors/power_bi/files",
+        "schema_history": "sectors/power_bi/schema-history"
+      }
+    ],
+    "separate_source_workspace": true,
+    "shared_tool_installation": true,
+    "coordinated_publish": "Exact lane heads, commit journal, publication fence and owned recovery",
+    "accepted_zip_hierarchy": false,
+    "extra_authority_database": false
   },
-  "additionalProperties": true,
-  "receipt_sha256": "05EE3A4649BF0CFBC3432DF5972455151B0185B8C180A562B72775EF4CA89F23"
+  "title": "Separate external project layout"
 }

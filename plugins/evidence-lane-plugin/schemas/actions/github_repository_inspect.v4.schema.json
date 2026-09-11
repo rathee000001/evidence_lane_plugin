@@ -1,0 +1,238 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.",
+  "inputSchema": {
+    "$defs": {
+      "GitHubPageCursor": {
+        "additionalProperties": false,
+        "properties": {
+          "offset": {
+            "default": 0,
+            "maximum": 99,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "page": {
+            "default": 1,
+            "maximum": 1000000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Page Sha256"
+          }
+        },
+        "title": "GitHubPageCursor",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "branch_cursor": {
+        "$ref": "#/$defs/GitHubPageCursor"
+      },
+      "include_workflows": {
+        "default": true,
+        "title": "Include Workflows",
+        "type": "boolean"
+      },
+      "max_branches": {
+        "default": 100,
+        "maximum": 500,
+        "minimum": 1,
+        "title": "Max Branches",
+        "type": "integer"
+      },
+      "max_http_requests": {
+        "default": 16,
+        "maximum": 32,
+        "minimum": 1,
+        "title": "Max Http Requests",
+        "type": "integer"
+      },
+      "max_metadata_bytes": {
+        "default": 2097152,
+        "maximum": 8388608,
+        "minimum": 1024,
+        "title": "Max Metadata Bytes",
+        "type": "integer"
+      },
+      "max_response_bytes": {
+        "default": 2097152,
+        "maximum": 4194304,
+        "minimum": 1024,
+        "title": "Max Response Bytes",
+        "type": "integer"
+      },
+      "max_total_response_bytes": {
+        "default": 8388608,
+        "maximum": 33554432,
+        "minimum": 1024,
+        "title": "Max Total Response Bytes",
+        "type": "integer"
+      },
+      "max_workflows": {
+        "default": 100,
+        "maximum": 500,
+        "minimum": 1,
+        "title": "Max Workflows",
+        "type": "integer"
+      },
+      "plugin_id": {
+        "anyOf": [
+          {
+            "pattern": "^[a-z][a-z0-9-]{2,63}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plugin Id"
+      },
+      "repository": {
+        "maxLength": 140,
+        "minLength": 3,
+        "title": "Repository",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 20,
+        "exclusiveMinimum": 0,
+        "maximum": 60,
+        "title": "Timeout Seconds",
+        "type": "number"
+      },
+      "workflow_cursor": {
+        "$ref": "#/$defs/GitHubPageCursor"
+      }
+    },
+    "required": [
+      "repository"
+    ],
+    "title": "GitHubInspectionRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "github_repository_inspect",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "receipt_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Receipt Sha256",
+        "type": "string"
+      },
+      "repository": {
+        "title": "Repository",
+        "type": "string"
+      },
+      "snapshot": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Snapshot",
+        "type": "object"
+      }
+    },
+    "required": [
+      "repository",
+      "snapshot",
+      "receipt_sha256"
+    ],
+    "title": "GitHubInspectionResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Python",
+    "PyGithub"
+  ],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "5088250473e7c83a90bb791b5c866a4abb0779c29b2975a68f81b51fec9e9d33",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "github_repository_inspect",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.github_toolchain:register_github_actions.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": {
+          "backend_id": "github.repository-reader",
+          "backend_runtime": "python",
+          "backend_version": "2.10.0",
+          "capability": "repository_metadata_read",
+          "code_loaded_from_registration": false,
+          "execution_owner": "engine_delta",
+          "lane": "github_code",
+          "lane_field": null,
+          "plugin_id_field": "plugin_id",
+          "read_path_fields": [],
+          "resource_fields": [
+            "repository"
+          ],
+          "role": "github_repository_snapshot",
+          "role_schema": {
+            "receipt_sha256": "blob_hash",
+            "repository": "text",
+            "snapshot": "json"
+          },
+          "write_path_fields": []
+        },
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "github_repository_inspect.pygithub",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "PyGithub"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [
+    "github_snapshot_integrity"
+  ],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

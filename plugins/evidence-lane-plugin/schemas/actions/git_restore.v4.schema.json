@@ -1,0 +1,177 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Restore a fresh local Git workspace and require a new source-bound Plan revision.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "branch": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Branch",
+        "type": "string"
+      },
+      "commit": {
+        "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+        "title": "Commit",
+        "type": "string"
+      },
+      "destination_root": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Destination Root",
+        "type": "string"
+      },
+      "expected_preview_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Preview Digest",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "branch",
+      "commit",
+      "destination_root",
+      "expected_preview_digest"
+    ],
+    "title": "GitRestoreExecute",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "git_restore",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "clients_must_reconnect": {
+        "default": true,
+        "title": "Clients Must Reconnect",
+        "type": "boolean"
+      },
+      "commit": {
+        "title": "Commit",
+        "type": "string"
+      },
+      "generation": {
+        "title": "Generation",
+        "type": "integer"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "plan_refresh_required": {
+        "default": true,
+        "title": "Plan Refresh Required",
+        "type": "boolean"
+      },
+      "previous_source_root": {
+        "title": "Previous Source Root",
+        "type": "string"
+      },
+      "project_history_rewound": {
+        "default": false,
+        "title": "Project History Rewound",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "restore_digest": {
+        "title": "Restore Digest",
+        "type": "string"
+      },
+      "source_code_reindexed": {
+        "default": false,
+        "title": "Source Code Reindexed",
+        "type": "boolean"
+      },
+      "source_root": {
+        "title": "Source Root",
+        "type": "string"
+      },
+      "source_workspace_reset": {
+        "default": false,
+        "title": "Source Workspace Reset",
+        "type": "boolean"
+      },
+      "tree": {
+        "title": "Tree",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "request_id",
+      "generation",
+      "restore_digest",
+      "previous_source_root",
+      "source_root",
+      "commit",
+      "tree"
+    ],
+    "title": "GitRestored",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Git"
+  ],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "40ddd1763808bb8a9e16ec509348d104db02180c1b77dd77193ceb9ce671f850",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "git_restore",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.execute.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "git_restore.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

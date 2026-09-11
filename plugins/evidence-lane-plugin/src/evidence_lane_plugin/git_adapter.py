@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-import json
+import hashlib
 import os
 import re
+import shlex
+import time
 
-# Required for bounded Git argv; shell is never used.
+# Git argv is direct; only the fixed, quoted Git credential/receiver protocols
+# internally use Git's own shell support.
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit, urlunsplit
 
 from .bounded_io import (
@@ -18,10 +21,13 @@ from .bounded_io import (
     bounded_file_identity,
     run_bounded_process,
     run_bounded_process_digest,
+    run_owned_bounded_process,
 )
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
-from .models import RepositoryIdentity
+
+if TYPE_CHECKING:
+    from .models import RepositoryIdentity
 
 _SHA_RE = re.compile(r"^[0-9a-fA-F]{40,64}$")
 _SAFE_REF_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
@@ -70,6 +76,308 @@ def try_resolve_git_executable(repository: str | Path | None = None) -> str | No
         return resolve_git_executable(repository)
     except (EvidenceLaneError, OSError):
         return None
+
+
+def restoration_git(repository: Path, arguments: list[str], *, check: bool = True,
+                    timeout_seconds: float = 30, max_stdout_bytes: int = 16 * 1024 * 1024) -> GitResult:
+    """Fixed local restoration argv without inherited Git configuration or helpers.
+
+    Callers supply only the operations below; this is not a public argv runner.
+    Clones copy objects locally, disable templates/hooks, and never fetch a remote.
+    """
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.upper().startswith(('GIT_', 'GCM_'))}
+    environment.update({'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': os.devnull,
+                        'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'Never',
+                        'GIT_OPTIONAL_LOCKS': '0', 'GIT_NO_LAZY_FETCH': '1',
+                        'GIT_LFS_SKIP_SMUDGE': '1'})
+    command = [resolve_git_executable(repository), '-c', 'core.hooksPath=' + os.devnull,
+               '-c', 'core.fsmonitor=false', '-c', 'core.untrackedCache=false',
+               '-c', 'diff.external=', '-c', 'credential.helper=',
+               '-c', 'protocol.allow=never', '-c', 'protocol.file.allow=always',
+               '-C', str(repository), *arguments]
+    completed = run_bounded_process(command, cwd=repository, env=environment,
+        timeout_seconds=timeout_seconds, max_stdout_bytes=max_stdout_bytes, max_stderr_bytes=65536)
+    result = GitResult(tuple(arguments), completed.returncode,
+                       completed.stdout.decode('utf-8', errors='surrogateescape'),
+                       completed.stderr.decode('utf-8', errors='replace'))
+    require(not check or result.returncode == 0, 'GIT_RESTORATION_COMMAND_FAILED',
+            'The selected local Git restoration operation failed.',
+            returncode=result.returncode, operation=arguments[0])
+    return result
+
+
+def git_credential_provider(repository: Path) -> dict:
+    """Identify an existing host GCM executable; never inspect credential values."""
+    from .errors import LaneError
+    from .storage import reject_links
+    git = Path(resolve_git_executable(repository))
+    name = 'git-credential-manager.exe' if os.name == 'nt' else 'git-credential-manager'
+    directories = [git.parent, git.parent.parent / 'mingw64' / 'bin']
+    directories += [Path(value) for value in os.get_exec_path() if value and Path(value).is_absolute()]
+    for directory in directories:
+        candidate = directory / name
+        if not candidate.is_file():
+            continue
+        reject_links(candidate, Path(candidate.anchor))
+        candidate = candidate.resolve(strict=True)
+        if candidate.is_relative_to(repository.resolve()) or candidate.stat().st_size > 128 * 1024 * 1024:
+            continue
+        with candidate.open('rb') as stream:
+            digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        return {'provider': 'host_git_credential_manager', 'executable': str(candidate), 'sha256': digest,
+                'credential_values_read': False, 'authentication_observed': False}
+    raise LaneError('GIT_CREDENTIAL_PROVIDER_UNAVAILABLE', 'The selected host Git Credential Manager is unavailable.')
+
+
+def git_ssh_provider(repository: Path) -> dict:
+    """Bind the existing host OpenSSH agent route and public host-key database.
+
+    No private key, agent identity, SSH configuration or credential is read.
+    Availability is distinct from successful server or account authentication.
+    """
+    from .errors import LaneError
+    from .storage import reject_links
+    repository = repository.resolve()
+    git = Path(resolve_git_executable(repository))
+    name = 'ssh.exe' if os.name == 'nt' else 'ssh'
+    directories = [Path(value) for value in os.get_exec_path() if value and Path(value).is_absolute()]
+    if os.name == 'nt':
+        directories.append(git.parent.parent / 'usr' / 'bin')
+    executable = None
+    for directory in directories:
+        candidate = directory / name
+        if not candidate.is_file():
+            continue
+        reject_links(candidate, Path(candidate.anchor))
+        candidate = candidate.resolve(strict=True)
+        if candidate.is_relative_to(repository) or candidate.stat().st_size > 128 * 1024 * 1024:
+            continue
+        executable = candidate
+        break
+    if executable is None:
+        raise LaneError('GIT_SSH_PROVIDER_UNAVAILABLE', 'The selected host OpenSSH executable is unavailable.')
+    known_hosts = Path.home() / '.ssh' / 'known_hosts'
+    reject_links(known_hosts, Path(known_hosts.anchor))
+    if (not known_hosts.is_file() or known_hosts.resolve().is_relative_to(repository)
+            or not 0 < known_hosts.stat().st_size <= 4 * 1024 * 1024):
+        raise LaneError('GIT_SSH_HOST_KEYS_REQUIRED', 'The host SSH route requires an existing bounded host-key database outside the source tree.')
+    known_hosts = known_hosts.resolve(strict=True)
+    agent = os.environ.get('SSH_AUTH_SOCK') or None
+    # Native Windows OpenSSH uses its standard named pipe if no socket is set.
+    native_windows = os.name == 'nt' and 'openssh' in {part.casefold() for part in executable.parts}
+    if agent is None and not native_windows:
+        raise LaneError('GIT_SSH_AGENT_REQUIRED', 'The selected host OpenSSH route requires an existing agent endpoint.')
+    paths = [str(executable), str(known_hosts), agent or '']
+    if any(len(value) > 2048 or any(ord(c) < 32 or c in '\"%$`' or ord(c) == 127 for c in value) for value in paths):
+        raise LaneError('GIT_SSH_PROVIDER_PATH_INVALID', 'The host SSH provider paths require literal supported values.')
+    def digest(path):
+        with path.open('rb') as stream:
+            return hashlib.file_digest(stream, 'sha256').hexdigest()
+    return {'provider': 'host_openssh_agent', 'executable': str(executable), 'sha256': digest(executable),
+        'known_hosts': str(known_hosts), 'known_hosts_sha256': digest(known_hosts),
+        'agent_endpoint': agent, 'default_windows_agent': agent is None and native_windows,
+        'credential_values_read': False, 'authentication_observed': False,
+        'host_key_database_modified': False}
+
+
+def _ssh_command(provider):
+    """Fixed OpenSSH options; the host endpoint never provides shell commands."""
+    command = [Path(provider['executable']).as_posix(), '-F', 'none', '-T']
+    options = ['BatchMode=yes', 'NumberOfPasswordPrompts=0', 'PreferredAuthentications=publickey',
+        'IdentityFile=none', 'CertificateFile=none', 'IdentitiesOnly=no', 'AddKeysToAgent=no',
+        'PasswordAuthentication=no', 'KbdInteractiveAuthentication=no', 'HostbasedAuthentication=no',
+        'GSSAPIAuthentication=no', 'PKCS11Provider=none', 'SecurityKeyProvider=none',
+        'StrictHostKeyChecking=yes', 'CheckHostIP=no', 'UpdateHostKeys=no', 'VerifyHostKeyDNS=no',
+        'GlobalKnownHostsFile=none', 'KnownHostsCommand=none',
+        'UserKnownHostsFile="' + Path(provider['known_hosts']).as_posix() + '"',
+        'ForwardAgent=no', 'ForwardX11=no', 'ClearAllForwardings=yes', 'PermitLocalCommand=no',
+        'LocalCommand=none', 'ProxyCommand=none', 'ProxyJump=none', 'RemoteCommand=none',
+        'ControlMaster=no', 'ControlPath=none', 'ControlPersist=no', 'CanonicalizeHostname=no',
+        'ConnectTimeout=15', 'ConnectionAttempts=1', 'ServerAliveInterval=15', 'ServerAliveCountMax=2']
+    command += [item for option in options for item in ('-o', option)]
+    return shlex.join(command)
+
+
+def workflow_git(repository: Path, arguments: list[str], *, https: bool = False,
+                 check: bool = True, tick=None, credential_provider: dict | None = None,
+                 empty_clone: bool = False, ssh_provider: dict | None = None,
+                 max_stdout_bytes: int = 4 * 1024 * 1024, deadline: float | None = None) -> GitResult:
+    """Owned Git argv without hooks, filters, URL rewrites or inherited helpers.
+
+    The workflow owners may bind an existing host GCM or OpenSSH agent route.
+    Config that redirects transport or runs conversion is rejected.
+    """
+    from .errors import LaneError
+    def remaining(maximum):
+        value = maximum if deadline is None else min(maximum, deadline - time.monotonic())
+        if value <= 0:
+            raise LaneError('GIT_WORKFLOW_DEADLINE', 'The bounded Git observation deadline expired.')
+        return value
+    if tick:
+        tick()
+    if type(max_stdout_bytes) is not int or not 1 <= max_stdout_bytes <= 64 * 1024 * 1024 + 1:
+        raise LaneError('GIT_WORKFLOW_OUTPUT_BUDGET', 'Select at most 64 MiB plus one byte for this internal Git output.')
+    if empty_clone:
+        from .storage import reject_links
+        reject_links(repository, Path(repository.anchor))
+        if arguments[0] != 'clone' or not repository.is_dir() or any(repository.iterdir()):
+            raise LaneError('GIT_CLONE_TARGET_NOT_EMPTY', 'Clone requires the selected existing empty source folder.')
+        configuration = ''
+    else:
+        configuration = restoration_git(repository, ['config', '--local', '--null', '--list', '--includes'],
+            timeout_seconds=remaining(30), max_stdout_bytes=65_536 if deadline is not None else 16 * 1024 * 1024).stdout
+    forbidden = ('include.', 'includeif.', 'url.', 'filter.', 'http.', 'https.',
+                 'credential.', 'protocol.', 'remote.', 'uploadpack.', 'receive.')
+    for record in filter(None, configuration.split('\0')):
+        key = record.split('\n', 1)[0].lower()
+        # Named URLs are compared to the caller's exact selection elsewhere;
+        # refspecs cannot be used because every fetch passes its own one ref.
+        if key.startswith('remote.') and key.endswith(('.url', '.pushurl', '.fetch')):
+            continue
+        if key.startswith('remote.') and key.endswith('.tagopt') and record.partition('\n')[2] == '--no-tags':
+            continue
+        if key.startswith(forbidden) or key in {'core.sshcommand', 'core.gitproxy', 'extensions.worktreeconfig'}:
+            raise LaneError('GIT_WORKFLOW_CONFIG_UNSUPPORTED',
+                'The selected Git configuration requires a separately qualified transport or filter route.')
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.upper().startswith(('GIT_', 'GCM_', 'SSH_'))}
+    environment.update({'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': os.devnull,
+        'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'false', 'GIT_OPTIONAL_LOCKS': '0',
+        'GIT_NO_LAZY_FETCH': '1', 'GIT_LFS_SKIP_SMUDGE': '1'})
+    if empty_clone:
+        # Do not discover a Git repository above the explicitly selected empty
+        # destination. The clone itself creates its own independent metadata.
+        environment['GIT_CEILING_DIRECTORIES'] = str(repository.parent)
+    authentication = []
+    if credential_provider is not None:
+        if not https or git_credential_provider(repository) != credential_provider:
+            raise LaneError('GIT_CREDENTIAL_PROVIDER_CHANGED', 'The prepared host credential provider changed or is incompatible.')
+        # Git itself runs credential helpers through its shell. The only command
+        # here is this exact host-resolved executable, with POSIX shell quoting;
+        # neither repository config nor tool arguments supply executable text.
+        helper = '!exec ' + shlex.quote(Path(credential_provider['executable']).as_posix())
+        authentication = ['-c', 'credential.helper=' + helper, '-c', 'credential.interactive=false']
+    if ssh_provider is not None:
+        if https or credential_provider is not None or git_ssh_provider(repository) != ssh_provider:
+            raise LaneError('GIT_SSH_PROVIDER_CHANGED', 'The prepared host SSH executable, agent endpoint or host keys changed.')
+        environment.update(GIT_SSH_COMMAND=_ssh_command(ssh_provider), GIT_SSH_VARIANT='ssh', SSH_ASKPASS_REQUIRE='never')
+        if ssh_provider['agent_endpoint'] is not None:
+            environment['SSH_AUTH_SOCK'] = ssh_provider['agent_endpoint']
+    command = [resolve_git_executable(repository), '-c', 'core.hooksPath=' + os.devnull,
+        '-c', 'core.fsmonitor=false', '-c', 'core.untrackedCache=false', '-c', 'diff.external=',
+        '-c', 'credential.helper=', '-c', 'submodule.recurse=false', '-c', 'fetch.writeCommitGraph=false',
+        '-c', 'fetch.fsckObjects=true', '-c', 'transfer.fsckObjects=true',
+        '-c', 'protocol.allow=never', '-c', 'protocol.file.allow=always',
+        '-c', 'protocol.https.allow=' + ('always' if https else 'never'),
+        '-c', 'protocol.ssh.allow=' + ('always' if ssh_provider is not None else 'never'),
+        '-c', 'http.followRedirects=false', '-c', 'http.sslVerify=true',
+        '-c', 'core.autocrlf=false', '-c', 'core.symlinks=false',
+        '-c', 'push.followTags=false', '-c', 'push.recurseSubmodules=no', *authentication,
+        '-C', str(repository), *arguments]
+    completed = run_owned_bounded_process(command, cwd=repository, env=environment,
+        timeout_seconds=remaining(120), max_stdout_bytes=max_stdout_bytes, max_stderr_bytes=65536)
+    if ssh_provider is not None and git_ssh_provider(repository) != ssh_provider:
+        raise LaneError('GIT_SSH_PROVIDER_CHANGED', 'The SSH provider or host-key database changed during transport; reconcile the recorded effect.')
+    result = GitResult(tuple(arguments), completed.returncode,
+        completed.stdout.decode('utf-8', errors='surrogateescape'),
+        completed.stderr.decode('utf-8', errors='replace'))
+    if check and result.returncode:
+        # Neither host paths nor provider output are an error-message channel.
+        raise LaneError('GIT_WORKFLOW_COMMAND_FAILED', 'The selected bounded Git operation failed.',
+            details={'operation': arguments[0], 'returncode': result.returncode})
+    return result
+
+
+def restoration_source_identity(repository: Path, *, tick=None) -> dict:
+    """Bind HEAD, index/diffs and dirty bytes, excluding Git-ignored files."""
+    from .storage import reject_links
+    repo = repository.resolve(strict=True)
+    reject_links(repo, Path(repo.anchor))
+    top = restoration_git(repo, ['rev-parse', '--show-toplevel']).stdout.strip()
+    require(Path(top).resolve() == repo, 'GIT_ROOT_REQUIRED', 'Select the exact Git worktree root.')
+    head = restoration_git(repo, ['rev-parse', '--verify', 'HEAD']).stdout.strip()
+    tree = restoration_git(repo, ['rev-parse', '--verify', 'HEAD^{tree}']).stdout.strip()
+    require(bool(_SHA_RE.fullmatch(head)) and bool(_SHA_RE.fullmatch(tree)),
+            'GIT_IDENTITY_INVALID', 'Git returned an invalid commit or tree.')
+    paths = restoration_git(repo, ['ls-files', '-z', '--cached', '--others', '--exclude-standard']).stdout
+    dirty = restoration_git(repo, ['ls-files', '-z', '--modified', '--deleted', '--others', '--exclude-standard']).stdout
+    staged = restoration_git(repo, ['diff', '--cached', '--no-ext-diff', '--no-textconv', '--name-only', '-z']).stdout
+    selected = sorted(set((dirty + '\0' + staged).split('\0')) - {''})
+    budget = IOBudget(max_file_count=25000, max_aggregate_bytes=1024*1024*1024)
+    rows = []
+    for relative in selected:
+        if tick:
+            tick()
+        raw = relative.encode('utf-8', errors='surrogateescape')
+        rows.append(_dirty_path_content_identity(repo, relative, raw, budget=budget,
+            staged=False, unstaged=False, untracked=False))
+    status = restoration_git(repo, ['status', '--porcelain=v2', '-z', '--untracked-files=all']).stdout
+    index = restoration_git(repo, ['ls-files', '--stage', '-z']).stdout
+    diffs = [restoration_git(repo, ['diff', *extra, '--no-ext-diff', '--no-textconv', '--binary', '--full-index']).stdout
+             for extra in ([], ['--cached'])]
+    encode = lambda value: value.encode('utf-8', errors='surrogateescape')
+    body = {'head': head, 'tree': tree,
+            'path_set_sha256': sha256_bytes(encode(paths)).lower(),
+            'index_sha256': sha256_bytes(encode(index)).lower(),
+            'status_sha256': sha256_bytes(encode(status)).lower(),
+            'diff_sha256': [sha256_bytes(encode(value)).lower() for value in diffs],
+            'dirty_content_sha256': sha256_bytes(canonical_json_bytes(rows)).lower(),
+            'dirty_path_count': len(rows), 'clean': not bool(status),
+            'scope': 'git_index_dirty_and_untracked_excluding_ignored'}
+    return {**body, 'digest': sha256_bytes(canonical_json_bytes(body)).lower()}
+
+
+def restoration_selection(repository: Path, branch: str, commit: str, *, tick=None) -> dict:
+    """Validate an existing local branch/commit and bounded, independent Git objects."""
+    from .storage import reject_links
+    require(bool(re.fullmatch(r'[0-9a-f]{40}(?:[0-9a-f]{24})?', commit)),
+            'GIT_COMMIT_REQUIRED', 'Select a full lowercase Git commit identity.')
+    require(bool(_SAFE_REF_RE.fullmatch(branch)) and not branch.startswith('-'),
+            'GIT_BRANCH_REQUIRED', 'Select an exact existing local branch name.')
+    restoration_git(repository, ['check-ref-format', '--branch', branch])
+    branch_head = restoration_git(repository, ['rev-parse', '--verify', 'refs/heads/' + branch]).stdout.strip()
+    resolved = restoration_git(repository, ['rev-parse', '--verify', commit + '^{commit}']).stdout.strip()
+    require(resolved == commit, 'GIT_COMMIT_REQUIRED', 'Select a commit object, not an annotated tag identity.')
+    restoration_git(repository, ['merge-base', '--is-ancestor', commit, branch_head])
+    entries = restoration_git(repository, ['ls-tree', '-r', '-z', '-l', commit]).stdout.split('\0')
+    file_count = source_bytes = gitlinks = 0
+    for item in filter(None, entries):
+        metadata, _ = item.split('\t', 1)
+        mode, kind, _digest, size = metadata.split()
+        file_count += 1
+        if kind == 'blob':
+            source_bytes += int(size)
+            require(int(size) <= 64*1024*1024, 'GIT_RESTORE_FILE_BUDGET', 'A selected Git file exceeds 64 MiB.')
+        elif kind == 'commit' and mode == '160000':
+            gitlinks += 1
+        else:
+            require(False, 'GIT_TREE_INVALID', 'The selected commit contains an unsupported tree entry.')
+    require(file_count <= 25000 and source_bytes <= 256*1024*1024,
+            'GIT_RESTORE_TREE_BUDGET', 'Select a commit within 25,000 entries and 256 MiB of file data.')
+    common = Path(restoration_git(repository, ['rev-parse', '--path-format=absolute', '--git-common-dir']).stdout.strip())
+    reject_links(common, Path(common.anchor))
+    require(common.is_absolute() and common.is_dir(), 'GIT_OBJECT_ROOT_REQUIRED', 'Git metadata must be an existing local directory.')
+    objects = common / 'objects'
+    reject_links(objects, common)
+    require(not (objects / 'info' / 'alternates').exists(), 'GIT_ALTERNATE_OBJECTS_UNSUPPORTED',
+            'Make the selected repository self-contained before restoring it.')
+    budget = IOBudget(max_file_bytes=1024*1024*1024, max_file_count=25000, max_aggregate_bytes=1024*1024*1024)
+    identity = []
+    for folder, directories, files in os.walk(objects, followlinks=False):
+        for name in sorted(directories):
+            reject_links(Path(folder) / name, objects)
+        for name in sorted(files):
+            if tick:
+                tick()
+            path = Path(folder) / name
+            file_identity = bounded_file_identity(path, budget=budget, root=objects)
+            identity.append((path.relative_to(objects).as_posix(), file_identity['sha256'], file_identity['size_bytes']))
+    tree = restoration_git(repository, ['rev-parse', '--verify', commit + '^{tree}']).stdout.strip()
+    return {'branch_head': branch_head, 'commit': commit, 'tree': tree, 'entries': file_count,
+            'source_bytes': source_bytes, 'gitlinks': gitlinks,
+            'object_bytes': budget.consumed_bytes,
+            'objects_digest': sha256_bytes(canonical_json_bytes(sorted(identity))).lower()}
 
 
 def _sanitize_remote(remote: str) -> str:
@@ -462,6 +770,7 @@ def inspect_repository(
     expected_commit: str | None = None,
     require_clean: bool = False,
 ) -> RepositoryIdentity:
+    from .models import RepositoryIdentity
     repo = Path(repository).resolve()
     inside = run_git(repo, ["rev-parse", "--is-inside-work-tree"]).stdout.strip()
     require(
@@ -595,140 +904,3 @@ def diff_patch(repository: str | Path) -> str:
     return "\n".join(section.rstrip() for section in sections if section).rstrip() + (
         "\n" if sections else ""
     )
-
-
-def validate_remote_ref(value: str, *, field: str) -> str:
-    require(
-        bool(value) and len(value) <= 240 and bool(_SAFE_REF_RE.fullmatch(value)),
-        "UNSAFE_GIT_REF",
-        f"The {field} contains unsupported characters.",
-        status="BLOCKED",
-        field=field,
-    )
-    require(
-        not value.startswith(("-", "/", "."))
-        and ".." not in value
-        and "@{" not in value,
-        "UNSAFE_GIT_REF",
-        f"The {field} is not a safe Git ref.",
-        status="BLOCKED",
-        field=field,
-    )
-    return value
-
-
-def resolve_local_ref_identity(
-    repository: str | Path,
-    *,
-    local_ref: str,
-) -> tuple[str, str]:
-    """Resolve one safe local ref to immutable commit and tree identities."""
-
-    safe_local = validate_remote_ref(local_ref, field="local_ref")
-    commit_result = run_git(
-        repository,
-        ["rev-parse", "--verify", f"{safe_local}^{{commit}}"],
-    )
-    commit = commit_result.stdout.strip().lower()
-    require(
-        commit_result.returncode == 0
-        and len(commit) in {40, 64}
-        and bool(_SHA_RE.fullmatch(commit)),
-        "REMOTE_LOCAL_REF_UNRESOLVED",
-        "The prepared local Git ref does not resolve to one exact commit.",
-        status="BLOCKED",
-        local_ref=safe_local,
-    )
-    tree_result = run_git(
-        repository,
-        ["rev-parse", "--verify", f"{commit}^{{tree}}"],
-    )
-    tree = tree_result.stdout.strip().lower()
-    require(
-        tree_result.returncode == 0
-        and len(tree) in {40, 64}
-        and bool(_SHA_RE.fullmatch(tree)),
-        "REMOTE_LOCAL_TREE_UNRESOLVED",
-        "The prepared local Git commit does not resolve to one exact tree.",
-        status="BLOCKED",
-        local_commit=commit,
-    )
-    return commit, tree
-
-
-def resolve_named_remote_identity(
-    repository: str | Path,
-    *,
-    remote: str,
-    expected_owner: str,
-    expected_name: str,
-) -> dict[str, Any]:
-    """Resolve one configured remote without retaining credentials or URL text."""
-
-    safe_remote = validate_remote_ref(remote, field="remote")
-    result = run_git(
-        repository,
-        ["config", "--get", f"remote.{safe_remote}.url"],
-        check=False,
-    )
-    sanitized_url = _sanitize_remote(result.stdout.strip())
-    require(
-        result.returncode == 0 and bool(sanitized_url),
-        "REMOTE_GIT_NAMED_REMOTE_NOT_CONFIGURED",
-        "The selected Git remote is not configured in the governed repository.",
-        status="MISMATCH",
-        remote=safe_remote,
-    )
-    owner, name = _parse_owner_name(sanitized_url, Path(repository).resolve().name)
-    require(
-        owner == expected_owner and name == expected_name,
-        "REMOTE_REPOSITORY_IDENTITY_MISMATCH",
-        "The selected Git remote does not match the governed repository owner/name.",
-        status="MISMATCH",
-        remote=safe_remote,
-        expected_owner=expected_owner,
-        expected_name=expected_name,
-        observed_owner=owner,
-        observed_name=name,
-    )
-    hostname = _remote_hostname(sanitized_url)
-    return {
-        "remote_name": safe_remote,
-        "provider": "github" if hostname == "github.com" else "git",
-        "hostname": hostname or "LOCAL_OR_UNSPECIFIED",
-        "owner": owner,
-        "name": name,
-        "sanitized_url_sha256": sha256_bytes(sanitized_url.encode("utf-8")),
-        "credential_requested_or_stored": False,
-    }
-
-
-def remote_push(
-    repository: str | Path,
-    *,
-    remote: str,
-    local_ref: str,
-    remote_ref: str,
-) -> GitResult:
-    safe_remote = validate_remote_ref(remote, field="remote")
-    safe_local = validate_remote_ref(local_ref, field="local_ref")
-    safe_target = validate_remote_ref(remote_ref, field="remote_ref")
-    return run_git(
-        repository,
-        [
-            "push",
-            "--porcelain",
-            safe_remote,
-            f"{safe_local}:refs/heads/{safe_target}",
-        ],
-        timeout=300,
-    )
-
-
-def identity_json(
-    identity: RepositoryIdentity, repository: str | Path
-) -> dict[str, object]:
-    payload = identity.as_dict()
-    payload["submodules"] = list(identity.submodules)
-    payload["worktree_sha256"] = calculate_worktree_sha256(repository)
-    return json.loads(json.dumps(payload, sort_keys=True))

@@ -1,26 +1,26 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "3.0.0",
-  "description": "Evidence Lane turns fragmented long-running Codex work into one evidence-backed, resumable project without taking the user's decisions away.",
+  "version": "4.0.1",
+  "description": "Project workflows, source evidence and lane-specific tools over a persistent engine.",
   "author": {
     "name": "Praveen Rathee",
     "url": "https://github.com/rathee000001"
   },
   "repository": "https://github.com/rathee000001/evidence_lane_plugin",
   "homepage": "https://evidencelane.org",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "keywords": [
     "evidence-lane",
-    "universal-evidence",
+    "project-workflows",
     "sqlite",
-    "project-version",
-    "hil"
+    "source-provenance",
+    "native-mcp"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Evidence Lane",
-    "shortDescription": "Turn long Codex work into evidence-backed, resumable, human-governed projects.",
-    "longDescription": "Serious Codex projects rarely fail because the model cannot write code. They fail because the project fragments: source, dirty work, plans, research, databases, installed runtimes, deployments, and human decisions drift into separate realities. Evidence Lane reconnects those realities without collapsing them. It keeps source, worktree, Project Truth, Plan, ChatLineage, Project Memory, Canon, Agent Learning, installed runtime, candidates, and accepted PVs as separate authorities; retrieves only the bounded evidence needed by the active Delta; and carries unfinished work across tasks through governed State Travel. Every change stays traceable to its source and active Plan row. Tests, commits, deployments, and polished responses remain evidence, not approval. Project and Learning HIL decisions stay with the user. The 3.0.0 Codex package routes 91 native actions and 26 governed skills through ENV/UOP and the internal SDK. Its 18 project-sector lanes remain distinct, while 11 lifecycle event classes and 44 ordered handlers connect host signals to the governed workflow. Inspectable SQLite/FTS, Mermaid/DOT maps, conditional CPU/NVIDIA/AMD execution, exact Git/CI delivery, and receipts make refresh, rollback, installation, and continuity reviewable.",
+    "shortDescription": "Project work with persistent state, source evidence and scoped tools.",
+    "longDescription": "Evidence Lane connects Codex to a persistent project engine and visible read-only Studio. Each authority and sector lane owns its separate SQLite database and files; root PV coordinates their heads. Distinct first-class skills route project workflows through the typed engine, lane contracts and selected tools.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",
@@ -32,9 +32,9 @@
     "privacyPolicyURL": "https://evidencelane.org/privacy",
     "termsOfServiceURL": "https://evidencelane.org/terms",
     "defaultPrompt": [
-      "Open my Evidence Lane project, verify that it is ready, show the current safe human entrypoints, and route every registered first-class workflow through the installed SDK automatically.",
-      "Show the accepted project state, current Plan row, recent changes, and supporting evidence without changing anything.",
-      "Explain the current governed HIL, the exact next human decision, and what each choice would change."
+      "Open my Evidence Lane project and show its current work and evidence.",
+      "Query my selected project sources with attribution.",
+      "Refresh my project and continue the next eligible task."
     ],
     "brandColor": "#18A9C8",
     "composerIcon": "./assets/evidence-lane-icon.png",

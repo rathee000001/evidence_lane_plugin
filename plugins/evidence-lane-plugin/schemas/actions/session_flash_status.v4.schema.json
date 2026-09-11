@@ -1,0 +1,124 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Verify exact ENV/UOP policy bytes against the current registry without writing state.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "SessionStatusRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "session_flash_status",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "action_set_digest": {
+        "title": "Action Set Digest",
+        "type": "string"
+      },
+      "authority_version": {
+        "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+        "title": "Authority Version",
+        "type": "string"
+      },
+      "context": {
+        "title": "Context",
+        "type": "string"
+      },
+      "manifest_digest": {
+        "title": "Manifest Digest",
+        "type": "string"
+      },
+      "member_count": {
+        "title": "Member Count",
+        "type": "integer"
+      },
+      "members": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Members",
+        "type": "array"
+      },
+      "native_attachment_attested": {
+        "default": false,
+        "title": "Native Attachment Attested",
+        "type": "boolean"
+      },
+      "runtime_data_mutated": {
+        "default": false,
+        "title": "Runtime Data Mutated",
+        "type": "boolean"
+      },
+      "state": {
+        "default": "verified",
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "manifest_digest",
+      "action_set_digest",
+      "member_count",
+      "members",
+      "context"
+    ],
+    "title": "FlashStatus",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "f5f518c18e3b774389fc919a550192dea141c1baf344c7c63ae521006cb6ca2a",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "session_flash_status",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "session_flash_status.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

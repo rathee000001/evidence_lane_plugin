@@ -1,0 +1,215 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "duplicate_runtime_databases_packaged": false,
+  "families": [
+    {
+      "path": "schemas/actions/actions-family.v4.json",
+      "sha256": "e776bfd140391d9b5d927a8769331b3ce9e23d5e74a22d8bd611c66e26548684"
+    },
+    {
+      "path": "schemas/authorities/agent_learning.v4.json",
+      "sha256": "deb779cc6b4188efbe592d47721b25557f8d1bff344816cdb80514898c40dc0b"
+    },
+    {
+      "path": "schemas/authorities/canon_input.v4.json",
+      "sha256": "221f504c225a2e283113042cf40d21c1ac3c93cf6adc344177c885aaa65cad17"
+    },
+    {
+      "path": "schemas/authorities/chat_lineage.v4.json",
+      "sha256": "add22e56e335b5a4a2ae09eb4403b6c4346df14c3a1c0b5145a75655fa48e817"
+    },
+    {
+      "path": "schemas/authorities/instructions.v4.json",
+      "sha256": "88f78a6eea0921876d524d5dc77c0e7838fb83c8ce79de88da56ad32ad33191b"
+    },
+    {
+      "path": "schemas/authorities/plan.v4.json",
+      "sha256": "4d321813ef4d39a07d36710a72dec7299d87caff9a25fc9a85c4b3ce1fb41cc0"
+    },
+    {
+      "path": "schemas/authorities/project_authority.v4.json",
+      "sha256": "17d59257fe97ca60c9d0d300ecafa80d6f8574595223653466b10a441432f6e4"
+    },
+    {
+      "path": "schemas/authorities/project_memory.v4.json",
+      "sha256": "231fe2482475853a0308f3fb0baeb8974aabe4a8d495dbf67e85de4b2183126f"
+    },
+    {
+      "path": "schemas/authorities/project_universe.v4.json",
+      "sha256": "e551a08bec8eed179bde5e2ca9998903c6717ffad6bccbca68ecbf22486feea7"
+    },
+    {
+      "path": "schemas/authorities/receipt_ledger.v4.json",
+      "sha256": "503fa19efcd4321a25ad0bab4f6a537b36c265a16629602ccc259dd0d228122b"
+    },
+    {
+      "path": "schemas/authorities/session_authority.v4.json",
+      "sha256": "f4438b9a582b7b8738ce938ee4cc08b75494e37621fd8fa00af672338c725856"
+    },
+    {
+      "path": "schemas/authorities/source_authority.v4.json",
+      "sha256": "7cfb91e8c9223558b39de8d77226482902a508e70b7d30e6963b991afb8adb2c"
+    },
+    {
+      "path": "schemas/consumers/consumers-family.v4.json",
+      "sha256": "5d952407dc173c324a2c6d6a72b7cf668653404a183a8b55b96bc097a02ef06e"
+    },
+    {
+      "path": "schemas/env/env-family.v4.json",
+      "sha256": "9653789f5cd752856a07d766f69f7809bf1c8ca31f447a22983e3e62623a7ba7"
+    },
+    {
+      "path": "schemas/governance/governance-family.v4.json",
+      "sha256": "ddf2ba9aae76d39f2d84478dfe01a986ba8035056c27e14c9e6b0a3648528c11"
+    },
+    {
+      "path": "schemas/hooks/hooks-family.v4.json",
+      "sha256": "176a57d1d042d8a71e5770831c8be1e61a25f7fdb717c7c4852c7837bceae1cd"
+    },
+    {
+      "path": "schemas/host/host-family.v4.json",
+      "sha256": "6b3c23a6648c40bdd8fdf12211e78d7a90f7206ebcd6d441ae8cfeabc474f17d"
+    },
+    {
+      "path": "schemas/install/install-family.v4.json",
+      "sha256": "97f91f50084c52262621c5fe64031693104d57d46ceee4972453264518122906"
+    },
+    {
+      "path": "schemas/lifecycle/lifecycle-family.v4.json",
+      "sha256": "b46396b6a3716f667bce26a5e85822bbda956d72553b30d44a75a663005aa7fd"
+    },
+    {
+      "path": "schemas/mcp/mcp-family.v4.json",
+      "sha256": "2301dcf28f409b43bd98e8317596ea66b3bbdcccac4d39f3fab86a51a9f1ebbb"
+    },
+    {
+      "path": "schemas/package/package-family.v4.json",
+      "sha256": "c27d37ac91606ca6792e4720692f07535227842737a9ee542e27b26a0b885028"
+    },
+    {
+      "path": "schemas/plan/plan-family.v4.json",
+      "sha256": "e1138d7cd0aff0900fc9ff6057675c47c26ef0cb2e5c00506153c2680d3b695d"
+    },
+    {
+      "path": "schemas/project-evidence-map/project-evidence-map-family.v4.json",
+      "sha256": "5c6de860895b57b1de1f9a6b7fe083b10e5b723af2315ad084fd0af550a0a9a3"
+    },
+    {
+      "path": "schemas/project-memory/project-memory-family.v4.json",
+      "sha256": "38bbfea199cf622f1cffae7063f8c2662902e6943b39a2873b38a60b69f29efb"
+    },
+    {
+      "path": "schemas/project-sectors/artifacts.v4.json",
+      "sha256": "4205e8409963900f6f0f7e6639f532cd13541f70b0c67fc008ed5e602da58f58"
+    },
+    {
+      "path": "schemas/project-sectors/custom.v4.json",
+      "sha256": "2664fdad849661b65e5948c088b24c128230b6397cf92acec60338a29c448fa3"
+    },
+    {
+      "path": "schemas/project-sectors/data.v4.json",
+      "sha256": "2dc2e42003dfc32d1a8c193cbf7c2d662617a003486e13a512383c5b4e3bbd29"
+    },
+    {
+      "path": "schemas/project-sectors/data_excel.v4.json",
+      "sha256": "3db45172aede727543e7c15e0f545e6ca8e7be2c3eca4cad019e7d6254f56cf5"
+    },
+    {
+      "path": "schemas/project-sectors/docs.v4.json",
+      "sha256": "54b4bcaa518c321bc44c298ef82dfc430885288f326dbbdf1fa644f97b1b4c13"
+    },
+    {
+      "path": "schemas/project-sectors/github_code.v4.json",
+      "sha256": "9d0f6bf7725279b38c0404f1071bd5fbb3539425ea25b35af2338a8bfdee6054"
+    },
+    {
+      "path": "schemas/project-sectors/images_ocr.v4.json",
+      "sha256": "c6482fc03c299ec8c626336257448cc4c8c126682dbe93f482aa4e5ef8d608a0"
+    },
+    {
+      "path": "schemas/project-sectors/local_code.v4.json",
+      "sha256": "63c707b218bf07fafbde9d2c32853f016618729a3d37719005532eea08cd990a"
+    },
+    {
+      "path": "schemas/project-sectors/pdf_ocr.v4.json",
+      "sha256": "ec4832322324f946f5b183518ad5d65ff0e4c35acefb381c116434785d8820cd"
+    },
+    {
+      "path": "schemas/project-sectors/power_bi.v4.json",
+      "sha256": "bcf1e67d6d415220bc5c26842c769103be7b9574d0fe624cd9c10c94caec7049"
+    },
+    {
+      "path": "schemas/project-sectors/ppt.v4.json",
+      "sha256": "bdc02c4b185491e199f5bd3e9cdb4ac045efd99dee8ce7dfa1c4ae0cb4a8891d"
+    },
+    {
+      "path": "schemas/project-sectors/research.v4.json",
+      "sha256": "10f6fca6f98fa130d7324e4d6a6460d98b7d7df64e22d13175e017b58f08c0d2"
+    },
+    {
+      "path": "schemas/project-sectors/tableau.v4.json",
+      "sha256": "cf62d8f9f87465b4e24a21f864864ba666cbe5212715668ce1189053a33a1682"
+    },
+    {
+      "path": "schemas/projects/projects-family.v4.json",
+      "sha256": "b1c164274af5ed360b4df0bcf77238e53772003e274f932dec6d0bdcabf0a5d8"
+    },
+    {
+      "path": "schemas/recovery/recovery-family.v4.json",
+      "sha256": "7f1920d3d03121a1ae26d09551cfeca76985fe6f3af466efccd3480797cbb0d7"
+    },
+    {
+      "path": "schemas/routing/routing-family.v4.json",
+      "sha256": "c6f6758d5234c38b84e4a11dd44ae5837cc8f6703257e5f149c72ab6e5e491e6"
+    },
+    {
+      "path": "schemas/schema-authority/schema-authority-family.v4.json",
+      "sha256": "2443761503b12d3a1f07a2eff159f6583d10146b8b9c901f97e0df55b2635e51"
+    },
+    {
+      "path": "schemas/sdk/sdk-family.v4.json",
+      "sha256": "6f39313b51745df5c4f9c587126e123bc38f610ea1c4635f5fef3d04f1f6fae5"
+    },
+    {
+      "path": "schemas/skills/skills-family.v4.json",
+      "sha256": "2df3b633b1d835fba655d877b57a56c980c1aae340ec36ee66b8e03a37d797c1"
+    },
+    {
+      "path": "schemas/source-intake/source-intake-family.v4.json",
+      "sha256": "9aac223dd5d4c964ee74baf380075a21815386f73172db31ae4dd241a94fefb6"
+    },
+    {
+      "path": "schemas/task-exchange/task-exchange-family.v4.json",
+      "sha256": "b6a9f838124c866b3456642e8810483fa89dca3d861ab1b309352eb0947bc285"
+    },
+    {
+      "path": "schemas/toolchains/toolchains-family.v4.json",
+      "sha256": "e4d8c19d15b3d05c4eaa7d7284b90994806676b53fcffeb831a042b46be1b39e"
+    },
+    {
+      "path": "schemas/transports/transports-family.v4.json",
+      "sha256": "82f68093df7553e0c17c8e34d8076f51c562e03ca855210024e3b738d6588576"
+    },
+    {
+      "path": "schemas/uop/uop-family.v4.json",
+      "sha256": "57910dfd583d2076de5878bb937e353c57042516d9201c6392745db0808a61fb"
+    },
+    {
+      "path": "schemas/work-handoff/work-handoff-family.v4.json",
+      "sha256": "4adf9d9dc8e826ab3cec3645a3cdaa2d704fe37002748e2f7e8e0c9b3f91b89a"
+    }
+  ],
+  "family_count": 49,
+  "installed_execution_claimed": false,
+  "owner_packages_remain_canonical": true,
+  "removed_families": [
+    "formula",
+    "project-overlay",
+    "accepted-pv-zip",
+    "pv-rollback",
+    "pv-learning-hil",
+    "connector-brain"
+  ],
+  "schema": "evidence-lane.schema-family-registry.v4"
+}

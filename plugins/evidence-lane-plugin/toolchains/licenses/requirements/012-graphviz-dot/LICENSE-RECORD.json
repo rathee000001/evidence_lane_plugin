@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 12,
   "tool": "Graphviz_dot",
@@ -7,9 +7,9 @@
   "classification": "NATIVE_RUNTIME_ASSET",
   "install_mode": "portable_zip",
   "license_expression_or_terms": "EPL-1.0",
-  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
   "evidence_paths": [
-    "toolchains/native-tools.v1.json"
+    "toolchains/native-tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -25,5 +25,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "CF313EAE37918F22556465F3584A7BCDDB3AB41F2C2D898F04C74E068F2F45C9"
+  "historical_ordinal": 12,
+  "catalog_ordinal": 12,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "6e717ea9137169757eb88d4282a7b3329f70612f31c8a8143afb3ed35a20bcf6"
 }

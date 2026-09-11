@@ -1,0 +1,149 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "dpi": {
+        "default": 110,
+        "maximum": 150,
+        "minimum": 72,
+        "title": "Dpi",
+        "type": "integer"
+      },
+      "lane_id": {
+        "const": "data_excel",
+        "default": "data_excel",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_output_bytes": {
+        "default": 8388608,
+        "maximum": 16777216,
+        "minimum": 65536,
+        "title": "Max Output Bytes",
+        "type": "integer"
+      },
+      "max_pages": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Max Pages",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 45,
+        "maximum": 120,
+        "minimum": 5,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "DataExcelSpreadsheetRender",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "spreadsheet_render",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "data_excel",
+          "data"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "TabularResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "spreadsheet",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "02c638cd848b403417c177e4c9aac887c5e0f78f777d68ffa657cba75340250e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "spreadsheet_render",
+    "profile": "spreadsheet",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.spreadsheet_rendering:render",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "spreadsheet_render.calc",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "LibreOffice",
+          "pypdfium2"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "spreadsheet_render"
+    ]
+  },
+  "verification_checks": [
+    "spreadsheet_render_bytes_verified"
+  ],
+  "worker_operations": [
+    "spreadsheet_render"
+  ],
+  "workflow": "build"
+}

@@ -1,0 +1,2684 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Convert exact legacy DOC/RTF bytes into a separate versioned DOCX while retaining the original.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DocumentConvert",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_convert",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "39f364e64fc1b49d343aac6a7c1baacb167b2b7dad14447f439e1e4e0c91ef9f",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_convert",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_conversion:convert_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_convert.shared_office",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "DOCX_OpenXML"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_convert"
+        ]
+      },
+      "verification_checks": [
+        "document_snapshot_integrity",
+        "document_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "document_convert"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read current document identities without refreshing source files.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "DocumentSelection",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "document_current",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "f12803af3d0f5a2ada570c4319f62eec3e225bf9fc175ba5a15ee73802b8b2a3",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_current",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:register_document_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_current.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Publish a new immutable lane-owned DOCX version with explicit structural and layout fidelity.",
+      "inputSchema": {
+        "$defs": {
+          "ParagraphReplacement": {
+            "additionalProperties": false,
+            "properties": {
+              "author": {
+                "default": "Evidence Lane",
+                "maxLength": 120,
+                "minLength": 1,
+                "title": "Author",
+                "type": "string"
+              },
+              "expected_text": {
+                "maxLength": 32768,
+                "title": "Expected Text",
+                "type": "string"
+              },
+              "paragraph_index": {
+                "maximum": 8191,
+                "minimum": 0,
+                "title": "Paragraph Index",
+                "type": "integer"
+              },
+              "part": {
+                "default": "word/document.xml",
+                "pattern": "^word/(document|header\\d+|footer\\d+)\\.xml$",
+                "title": "Part",
+                "type": "string"
+              },
+              "replacement_text": {
+                "maxLength": 32768,
+                "title": "Replacement Text",
+                "type": "string"
+              },
+              "tracked": {
+                "default": false,
+                "title": "Tracked",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "paragraph_index",
+              "expected_text",
+              "replacement_text"
+            ],
+            "title": "ParagraphReplacement",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/ParagraphReplacement"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256",
+          "replacements"
+        ],
+        "title": "DocumentEdit",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_edit",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "9a91c622dc4de6fc717ceb85ed5877c4b752c22345bbc2bcfcb3766d50ba60c1",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_edit",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:edit_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_edit.native_document",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "lxml"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_edit"
+        ]
+      },
+      "verification_checks": [
+        "document_snapshot_integrity"
+      ],
+      "worker_operations": [
+        "document_edit"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Add a separate completed Docling projection to an exact DOCX snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_output_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DocumentEnrich",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_enrich",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "c2c0971390895780642870e797819795e02a4db8891a4b69e92e79892aa84cf5",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_enrich",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_enrichment:enrich",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_enrich.docling",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "Docling"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_enrich"
+        ]
+      },
+      "verification_checks": [
+        "document_enrichment_integrity"
+      ],
+      "worker_operations": [
+        "document_enrich"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read a bounded Markdown excerpt and optional structured projection from an exact completed rich conversion.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "enrichment_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Enrichment Id",
+            "type": "string"
+          },
+          "include_structure": {
+            "default": false,
+            "title": "Include Structure",
+            "type": "boolean"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_characters": {
+            "default": 32768,
+            "maximum": 65536,
+            "minimum": 1,
+            "title": "Max Characters",
+            "type": "integer"
+          },
+          "max_structure_bytes": {
+            "default": 131072,
+            "maximum": 524288,
+            "minimum": 4096,
+            "title": "Max Structure Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 2097152,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enrichment_id"
+        ],
+        "title": "DocumentEnrichmentRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "document_enrichment_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "8a238103b0c06ad19fa941b6dbdf2b5b28488595cb4c1577fdf1f2df02680ac8",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_enrichment_read",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_enrichment:register_enrichment_actions.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_enrichment_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "DocumentExport",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_export",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7cf43909c9e54fbb18deca2dee84dfd942c3550bccd99d329c59cd8711742ebc",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "document_export",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:export_document",
+            "applicable": "evidence_lane_plugin.document_profile:register_document_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_export.native",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "docs.structure"
+            },
+            "worker_operations": [
+              "document_parse_content"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.document_profile:export_document",
+            "applicable": "evidence_lane_plugin.document_profile:register_document_actions.<locals>.export_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_export.native_view",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "docs.structure"
+            },
+            "worker_operations": [
+              "document_parse_content",
+              "render_lane_view"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_parse_content",
+          "render_lane_view"
+        ]
+      },
+      "verification_checks": [
+        "document_export_hash_verified"
+      ],
+      "worker_operations": [
+        "document_parse_content",
+        "render_lane_view"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Publish a new immutable lane-owned DOCX version with explicit structural and layout fidelity.",
+      "inputSchema": {
+        "$defs": {
+          "DocumentBlock": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "paragraph",
+                  "heading",
+                  "table",
+                  "page_break"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "level": {
+                "default": 1,
+                "maximum": 6,
+                "minimum": 1,
+                "title": "Level",
+                "type": "integer"
+              },
+              "rows": {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "maxItems": 200,
+                "title": "Rows",
+                "type": "array"
+              },
+              "text": {
+                "default": "",
+                "maxLength": 16384,
+                "title": "Text",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "title": "DocumentBlock",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/$defs/DocumentBlock"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Blocks",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^/\\\\:]+\\.docx$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_name",
+          "title",
+          "blocks"
+        ],
+        "title": "DocumentGenerate",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_generate",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "c0de046a1707456d11d99561875b7526270347b0bbd044b3005a833ade8d5d4c",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_generate",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:generate_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_generate.native_document",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "DOCX_OpenXML"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_generate"
+        ]
+      },
+      "verification_checks": [
+        "document_snapshot_integrity"
+      ],
+      "worker_operations": [
+        "document_generate"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot one exact document and its bounded native structure in the separate Docs lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DocumentIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_index",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_materialization": {
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "group_limit": 1,
+        "path_argument": "filename",
+        "preparation_is_execution": false
+      },
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "docs"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d7c188070a880060431ab088d1f810c6b0b32d76fb651a5a96124c49da2e1a12",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_index",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:index_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_index.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "document_snapshot_integrity",
+        "document_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "document_parse_file"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read bounded native structures or literal FTS5/BM25 matches from an exact document version.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "paragraph",
+              "heading",
+              "table",
+              "image",
+              "relationship",
+              "content_control",
+              "insertion",
+              "deletion",
+              "field",
+              "field_instruction",
+              "hyperlink",
+              "bookmark",
+              "embedded_object"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DocumentQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "document_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "document",
+      "project_required": true,
+      "project_search": {
+        "basis": "sqlite_fts5_bm25",
+        "collection": "text",
+        "current_action": "document_current",
+        "current_items": "documents",
+        "items": "rows",
+        "lanes": [
+          "docs"
+        ],
+        "match_mode": "any",
+        "rerank_text": "text"
+      },
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "b7c228d902b9e133afa1889ca9602a11f3f9735d2b8efd0b98b0820f1206de90",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_query",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:register_document_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read a bounded base64 byte range from an exact immutable document.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 8388608,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "representation": {
+            "default": "document",
+            "enum": [
+              "document",
+              "original_source"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DocumentRead",
+        "type": "object"
+      },
+      "lane_fetch": {
+        "digest_result": "sha256",
+        "lanes": [
+          "docs"
+        ],
+        "offset_argument": "offset",
+        "path_argument": null,
+        "path_prefix": "",
+        "path_result": "logical_name",
+        "primary_representation": "document",
+        "size_result": "total_bytes"
+      },
+      "mutates": false,
+      "name": "document_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "fef45b28d20943386d5b727d10f4c70725319b200900492f5acdb7b60d83ce9a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_read",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:register_document_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Snapshot one exact document and its bounded native structure in the separate Docs lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 1048576,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "DocumentIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_refresh",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "docs"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "e838fdb4aaf005dfb4b1f9f5ca03669bc88cea136478697c3859a06809a7e997",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_refresh",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_profile:index_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_refresh.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "document_snapshot_integrity",
+        "document_source_hash_unchanged"
+      ],
+      "worker_operations": [
+        "document_parse_file"
+      ],
+      "workflow": "refresh"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Render exact document bytes to PDF and page PNGs using the verified shared office runtime.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "dpi": {
+            "default": 110,
+            "maximum": 150,
+            "minimum": 72,
+            "title": "Dpi",
+            "type": "integer"
+          },
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_output_bytes": {
+            "default": 8388608,
+            "maximum": 16777216,
+            "minimum": 65536,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "max_pages": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 45,
+            "maximum": 120,
+            "minimum": 5,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "DocumentRender",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "document_render",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "94478560ecfb2588d5e7ae4bd58cc8bab677c32262d7cd6cb6f98df707ab9716",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_render",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_rendering:render_document",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_render.shared_office",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "LibreOffice",
+              "pypdfium2"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "document_render"
+        ]
+      },
+      "verification_checks": [
+        "document_render_bytes_verified"
+      ],
+      "worker_operations": [
+        "document_render"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read and verify one immutable document-render manifest and its artifacts.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "render_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Render Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "render_id"
+        ],
+        "title": "DocumentRenderRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "document_render_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "docs",
+            "default": "docs",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "document",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "8f65fa708d73db544eb7609b3a6c87935dafff63d79402cbd2fe1cb530fae7ad",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "document_render_read",
+        "profile": "document",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.document_rendering:register_render_actions.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "document_render_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "automatic_tool_downloads_during_operations": false,
+  "contracts": {
+    "DocumentConvert": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "default": 45,
+          "maximum": 120,
+          "minimum": 5,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DocumentConvert",
+      "type": "object"
+    },
+    "DocumentEdit": {
+      "$defs": {
+        "ParagraphReplacement": {
+          "additionalProperties": false,
+          "properties": {
+            "author": {
+              "default": "Evidence Lane",
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Author",
+              "type": "string"
+            },
+            "expected_text": {
+              "maxLength": 32768,
+              "title": "Expected Text",
+              "type": "string"
+            },
+            "paragraph_index": {
+              "maximum": 8191,
+              "minimum": 0,
+              "title": "Paragraph Index",
+              "type": "integer"
+            },
+            "part": {
+              "default": "word/document.xml",
+              "pattern": "^word/(document|header\\d+|footer\\d+)\\.xml$",
+              "title": "Part",
+              "type": "string"
+            },
+            "replacement_text": {
+              "maxLength": 32768,
+              "title": "Replacement Text",
+              "type": "string"
+            },
+            "tracked": {
+              "default": false,
+              "title": "Tracked",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "paragraph_index",
+            "expected_text",
+            "replacement_text"
+          ],
+          "title": "ParagraphReplacement",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "expected_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "replacements": {
+          "items": {
+            "$ref": "#/$defs/ParagraphReplacement"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Replacements",
+          "type": "array"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "expected_sha256",
+        "replacements"
+      ],
+      "title": "DocumentEdit",
+      "type": "object"
+    },
+    "DocumentEnrich": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_output_bytes": {
+          "default": 1048576,
+          "maximum": 2097152,
+          "minimum": 4096,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DocumentEnrich",
+      "type": "object"
+    },
+    "DocumentEnrichmentRead": {
+      "additionalProperties": false,
+      "properties": {
+        "enrichment_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Enrichment Id",
+          "type": "string"
+        },
+        "include_structure": {
+          "default": false,
+          "title": "Include Structure",
+          "type": "boolean"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_characters": {
+          "default": 32768,
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "max_structure_bytes": {
+          "default": 131072,
+          "maximum": 524288,
+          "minimum": 4096,
+          "title": "Max Structure Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 2097152,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "enrichment_id"
+      ],
+      "title": "DocumentEnrichmentRead",
+      "type": "object"
+    },
+    "DocumentExport": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Sha256"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "filename"
+      ],
+      "title": "DocumentExport",
+      "type": "object"
+    },
+    "DocumentGenerate": {
+      "$defs": {
+        "DocumentBlock": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "paragraph",
+                "heading",
+                "table",
+                "page_break"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "level": {
+              "default": 1,
+              "maximum": 6,
+              "minimum": 1,
+              "title": "Level",
+              "type": "integer"
+            },
+            "rows": {
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "maxItems": 200,
+              "title": "Rows",
+              "type": "array"
+            },
+            "text": {
+              "default": "",
+              "maxLength": 16384,
+              "title": "Text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "DocumentBlock",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/DocumentBlock"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Blocks",
+          "type": "array"
+        },
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "logical_name": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[^/\\\\:]+\\.docx$",
+          "title": "Logical Name",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "logical_name",
+        "title",
+        "blocks"
+      ],
+      "title": "DocumentGenerate",
+      "type": "object"
+    },
+    "DocumentIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 1048576,
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "DocumentIndex",
+      "type": "object"
+    },
+    "DocumentQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "paragraph",
+            "heading",
+            "table",
+            "image",
+            "relationship",
+            "content_control",
+            "insertion",
+            "deletion",
+            "field",
+            "field_instruction",
+            "hyperlink",
+            "bookmark",
+            "embedded_object"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DocumentQuery",
+      "type": "object"
+    },
+    "DocumentRead": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "representation": {
+          "default": "document",
+          "enum": [
+            "document",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DocumentRead",
+      "type": "object"
+    },
+    "DocumentRender": {
+      "additionalProperties": false,
+      "properties": {
+        "dpi": {
+          "default": 110,
+          "maximum": 150,
+          "minimum": 72,
+          "title": "Dpi",
+          "type": "integer"
+        },
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_output_bytes": {
+          "default": 8388608,
+          "maximum": 16777216,
+          "minimum": 65536,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        },
+        "max_pages": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Max Pages",
+          "type": "integer"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 45,
+          "maximum": 120,
+          "minimum": 5,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "DocumentRender",
+      "type": "object"
+    },
+    "DocumentRenderRead": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "render_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Render Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "render_id"
+      ],
+      "title": "DocumentRenderRead",
+      "type": "object"
+    },
+    "DocumentResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "operation",
+        "result"
+      ],
+      "title": "DocumentResult",
+      "type": "object"
+    },
+    "DocumentSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "DocumentSelection",
+      "type": "object"
+    }
+  },
+  "generated_from": "typed Python registry contracts",
+  "graphs": "explicit_consumer_only_native_structure_mmd_dot_and_pointer",
+  "installed_execution_claimed": false,
+  "mutations": "exact_plan_delta_and_version_preconditions_with_separate_journaled_project_file_export",
+  "native_installation_verified": false,
+  "rendering": "shared_office_pdf_and_page_pngs_with_separate_visual_review",
+  "rich_conversion": "completed_docling_projection_separate_from_native_facts_and_rendered_layout",
+  "schema": "evidence-lane.document-workflow.v4",
+  "search": "bounded_fts5_bm25_and_native_structural_locators",
+  "source_bytes": "immutable_originals_with_separate_generated_and_converted_document_versions",
+  "storage": "separate_docs_database_schema_history_and_natural_files"
+}

@@ -1,0 +1,2141 @@
+{
+  "schema": "evidence-lane.sector-package.v4",
+  "lane_id": "power_bi",
+  "folder": "sectors/power_bi",
+  "source_package_folder": "authorities/project_sectors/power_bi",
+  "folder_role": "external_project_state",
+  "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
+  "files": "sectors/power_bi/files",
+  "schema_history": "sectors/power_bi/schema-history",
+  "runtime_module": "evidence_lane_plugin.powerbi_profile",
+  "parser_modules": [
+    "evidence_lane_plugin.powerbi_parsers",
+    "evidence_lane_plugin.powerbi_workers",
+    "evidence_lane_plugin.powerbi_native",
+    "evidence_lane_plugin.powerbi_process",
+    "evidence_lane_plugin.powerbi_pbix_child",
+    "evidence_lane_plugin.powerbi_json_schema",
+    "evidence_lane_plugin.powerbi_authoring"
+  ],
+  "retrieval_module": "evidence_lane_plugin.powerbi_profile",
+  "migrations": [
+    {
+      "owner": "powerbi",
+      "version": 1,
+      "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+    },
+    {
+      "owner": "powerbiselector",
+      "version": 1,
+      "digest": "8aad37ba2da9f95232fc6d219b7bfebecbf62472f232fe6c405b81211a60d362"
+    }
+  ],
+  "actions": [
+    {
+      "name": "powerbi_current",
+      "description": "Read current PowerBi identities without refreshing sources.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "PowerBiSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "power_bi",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_current",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_current.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7126f8e6045472ead59dcd750aa49719ec7f15cdc2921963cf4105e90844178c"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "powerbi_edit",
+      "description": "Publish native BIM or schema-valid PBIP/PBIR packages, or exact model/report/resource member changes; rendering and DAX execution remain separate.",
+      "inputSchema": {
+        "$defs": {
+          "PowerBiPartReplacement": {
+            "additionalProperties": false,
+            "properties": {
+              "part": {
+                "maxLength": 1000,
+                "minLength": 1,
+                "title": "Part",
+                "type": "string"
+              },
+              "expected_sha256": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Expected Sha256"
+              },
+              "content_utf8": {
+                "anyOf": [
+                  {
+                    "maxLength": 1048576,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Content Utf8"
+              },
+              "content_base64": {
+                "anyOf": [
+                  {
+                    "maxLength": 11184812,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Content Base64"
+              }
+            },
+            "required": [
+              "part"
+            ],
+            "title": "PowerBiPartReplacement",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/PowerBiPartReplacement"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Replacements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256",
+          "replacements"
+        ],
+        "title": "PowerBiEdit",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "power_bi",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_edit",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_edit.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:edit_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d87d841150f9b7e56c99f43198d91f3359c31321b089f4e2567208625dd373db"
+      },
+      "worker_operations": [
+        "powerbi_edit"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "powerbi_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_export",
+      "description": "Export an exact PowerBi version with a journaled effect and destination hash binding.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "PowerBiExport",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "power_bi",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_export",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_export.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:export_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "powerbi_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "power_bi.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "powerbi_export.view",
+            "adapter": "evidence_lane_plugin.powerbi_profile:export_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "powerbi_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "power_bi.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "powerbi_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "e4ffd78cff7ffa7af54a91f53aa213227ce7af9da0bb01833742be5d293efdbd"
+      },
+      "worker_operations": [
+        "powerbi_parse_content",
+        "render_lane_view"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "powerbi_export_hash_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_generate",
+      "description": "Publish native BIM or schema-valid PBIP/PBIR packages, or exact model/report/resource member changes; rendering and DAX execution remain separate.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 180,
+            "pattern": "^[^/\\\\:]+\\.(bim|zip)$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "database": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Database"
+          },
+          "files": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "maxProperties": 128,
+                "minProperties": 1,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Files"
+          },
+          "resources_base64": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 127,
+            "title": "Resources Base64",
+            "type": "object"
+          },
+          "entrypoint": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Entrypoint"
+          }
+        },
+        "required": [
+          "logical_name"
+        ],
+        "title": "PowerBiGenerate",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "power_bi",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_generate",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_generate.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:generate_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "8f86d832decdab28d208e5865101f320c735d2f51f810dbfbde1663578d0ca3f"
+      },
+      "worker_operations": [
+        "powerbi_generate"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "powerbi_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "powerbi_index",
+      "description": "Snapshot explicitly admitted Power BI files, report metadata and native TOM model definitions in their separate lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "companion_files": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 127,
+            "title": "Companion Files",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 8388608,
+            "maximum": 16777216,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "inspect_models": {
+            "default": true,
+            "title": "Inspect Models",
+            "type": "boolean"
+          },
+          "max_rows_per_table": {
+            "default": 20,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Max Rows Per Table",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "PowerBiIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "power_bi",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_index",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_index.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "01dc841c0c023510491cbb30bafb47a8b2b0ba4e44d9b3f2e7a10fd6d2491023"
+      },
+      "worker_operations": [
+        "powerbi_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "powerbi_snapshot_integrity",
+        "powerbi_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "power_bi"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      },
+      "source_materialization": {
+        "path_argument": "filename",
+        "group_limit": 1,
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "preparation_is_execution": false
+      }
+    },
+    {
+      "name": "powerbi_query",
+      "description": "Read bounded report and model metadata or literal FTS5/BM25 matches.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "project",
+              "report",
+              "page",
+              "visual",
+              "model",
+              "table",
+              "column",
+              "measure",
+              "relationship",
+              "partition",
+              "expression",
+              "role",
+              "hierarchy",
+              "data_source",
+              "perspective",
+              "culture",
+              "annotation",
+              "bookmark",
+              "filter",
+              "theme",
+              "model_metadata",
+              "model_row",
+              "reference",
+              "package_member",
+              "opaque"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PowerBiQuery",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "power_bi",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_query",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_query.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "adb670c3c516a5f4b43f0cea4f5d11c6e40e3631199e651cbccd3ceed2d61224"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "power_bi"
+        ],
+        "items": "rows",
+        "current_action": "powerbi_current",
+        "current_items": "powerbis",
+        "collection": "text",
+        "match_mode": "any",
+        "basis": "sqlite_fts5_bm25",
+        "rerank_text": "text"
+      }
+    },
+    {
+      "name": "powerbi_read",
+      "description": "Read an exact immutable PowerBi file or package member by byte range.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "representation": {
+            "default": "power_bi",
+            "enum": [
+              "power_bi",
+              "original_source",
+              "member",
+              "original_member"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "member": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Member"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 33554432,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "PowerBiRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "power_bi",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_read",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_read.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "507a9d2c571386dbbfbd43cf24ec33612d94733937d3dc31a54876c42830c6ae"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ],
+      "lane_fetch": {
+        "lanes": [
+          "power_bi"
+        ],
+        "primary_representation": "power_bi",
+        "path_argument": null,
+        "path_prefix": "",
+        "offset_argument": "offset",
+        "path_result": "logical_name",
+        "digest_result": "sha256",
+        "size_result": "total_bytes"
+      }
+    },
+    {
+      "name": "powerbi_refresh",
+      "description": "Snapshot explicitly admitted Power BI files, report metadata and native TOM model definitions in their separate lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "companion_files": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 127,
+            "title": "Companion Files",
+            "type": "array"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 8388608,
+            "maximum": 16777216,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "inspect_models": {
+            "default": true,
+            "title": "Inspect Models",
+            "type": "boolean"
+          },
+          "max_rows_per_table": {
+            "default": 20,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Max Rows Per Table",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "PowerBiIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "power_bi",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_refresh",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_refresh.native",
+            "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+            "tool_ids": [
+              "Python",
+              "PowerBI_TOM",
+              "PBIXRay",
+              "JSONSchema"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "powerbi_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "0f75c0ee5d9f7f09e1426f3a9a66f9fbc51c7a17daeea083d85a93caf9bf282d"
+      },
+      "worker_operations": [
+        "powerbi_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "powerbi_snapshot_integrity",
+        "powerbi_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "power_bi"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    },
+    {
+      "name": "powerbi_schema",
+      "description": "Read the exact offline Microsoft schema catalog or one pinned schema; never fetch a supplied URL.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "schema_uri": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Schema Uri"
+          },
+          "max_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "title": "PowerBiSchemaRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "power_bi",
+            "default": "power_bi",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "PowerBiResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "power_bi",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "powerbi_schema",
+        "profile": "power_bi",
+        "routes": [
+          {
+            "route_id": "powerbi_schema.engine",
+            "adapter": "evidence_lane_plugin.powerbi_profile:register_powerbi_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "09fe8484728782c6f6976715a31b8d27fd5e9801c32ac511b952d240adc7296e"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "powerbi",
+          "version": 1,
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4"
+        }
+      ]
+    },
+    {
+      "name": "source_snapshot_retire",
+      "description": "Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.",
+      "inputSchema": {
+        "$defs": {
+          "SnapshotSelection": {
+            "additionalProperties": false,
+            "properties": {
+              "lane_id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "snapshot_id": {
+                "pattern": "^[a-f0-9]{64}$",
+                "title": "Snapshot Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "lane_id",
+              "snapshot_id"
+            ],
+            "title": "SnapshotSelection",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/SnapshotSelection"
+            },
+            "maxItems": 128,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "replacement_tasks": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Replacement Tasks",
+            "type": "array"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "max_files": {
+            "default": 512,
+            "maximum": 4096,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 33554432,
+            "maximum": 536870912,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotRetire",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "worker_operations": [
+        "code_git_checkpoint"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "description": "Inspect an owning local-source snapshot, retained lineage head and retirement without refreshing source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": []
+    }
+  ],
+  "source_selector": {
+    "lane_id": "power_bi",
+    "current_table": "powerbi_current",
+    "key_field": "powerbi_id",
+    "retirement_table": "selector_retirement",
+    "scope": "owning_local_source_snapshots",
+    "history_deleted": false
+  },
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "power_bi",
+    "folder": "sectors/power_bi",
+    "files_root": "sectors/power_bi/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "power_bi_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".pbip",
+        ".pbir",
+        ".pbism",
+        ".bim",
+        ".tmdl",
+        ".pbix",
+        ".pbit",
+        ".zip"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "projects_reports_models_measures_and_relationships"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "power_bi.mmd",
+      "dot": "power_bi.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact snapshot and report/model locators; source JSON versus native canonical model metadata and bounded stored rows are distinguished."
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "0F1D298F8F103BB87CC95930B8AD5E4BE2CEBC434F3638AF9B60578D1C164B9B"
+  },
+  "toolchain": "toolchains/operation-toolchains.v4.json",
+  "source_byte_store": "owning_lane_files",
+  "historical_git_owner": null,
+  "full_runtime_installation_verified": false,
+  "project_data_packaged": false,
+  "formats": {
+    "schema": "evidence-lane.powerbi-formats.v4",
+    "lane_id": "power_bi",
+    "intake": [
+      ".pbip",
+      ".pbir",
+      ".pbism",
+      ".tmdl",
+      ".bim",
+      ".pbix",
+      ".pbit",
+      ".zip"
+    ],
+    "project_companions": "Explicit project-relative list only; never automatic reference traversal; preserved in a deterministic ZIP.",
+    "native_generation": [
+      ".bim",
+      "Explicit PBIP/PBIR ZIP with UTF-8 definitions and optional binary resources"
+    ],
+    "native_editing": [
+      "Exact BIM/TMDL and schema-defined project/report changes",
+      "Hash-bound member add/replace/delete with unchanged unselected members",
+      "Explicit StaticResources bytes; no rendering or execution"
+    ],
+    "native_export": "exact_snapshot_bytes; admitted folder sets export as ZIP and every member is separately readable",
+    "tom_package": "Microsoft.AnalysisServices",
+    "tom_version": "19.114.12",
+    "report_editing": "Pinned Microsoft PBIR JSON schema versions; legacy report.json is read-only",
+    "schema_bundle": "contracts/powerbi-schemas/manifest.json; no runtime network resolution",
+    "pbix_pbit_writing": false,
+    "pbix_to_pbip_conversion": false,
+    "model_metadata": "TOM deserialization of complete TMDL groups and BIM/TMSL definitions",
+    "compressed_model_rows": "PBIXRay 0.15.5 with separate Python 3.13.15, bounded stored row samples",
+    "dax_execution": false,
+    "report_rendering": false,
+    "report_schema_validation": true,
+    "live_connections_opened": false,
+    "automatic_external_file_reads": false,
+    "native_operation_platforms": [
+      "Windows"
+    ],
+    "budgets": {
+      "max_file_bytes": 8388608,
+      "max_explicit_zip_file_bytes": 16777216,
+      "max_total_bytes": 16777216,
+      "max_files": 256,
+      "max_items": 50000,
+      "max_admitted_project_files": 128,
+      "max_rows_per_table": 1000,
+      "max_sample_cells": 100000,
+      "worker_output_bytes": 50331648,
+      "native_process_memory_bytes": 1073741824
+    },
+    "natural_files": [
+      "exact_original_format_or_admitted_project_ZIP"
+    ],
+    "graph_files": [
+      "powerbi.mmd",
+      "powerbi.dot",
+      "powerbi.pointer.json"
+    ]
+  },
+  "render_module": null,
+  "members": [
+    {
+      "path": "authorities/project_sectors/power_bi/schema.sql",
+      "sha256": "c898fa0b2acdbad4035f4655828389c018c02927bb9e6c118befa8fb2eeec1d1"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/migration-history.json",
+      "sha256": "36ba496d509397735d9c39315664d15796f0da9f967aea24f503be4cd59a6dcc"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/runtime.py",
+      "sha256": "a557b91d4d7ce903a689993647871b02c351c78927172a3c31ebf8d21c3ebfd6"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/builder.py",
+      "sha256": "75df29aa785933a65371e9a16f89bec0244a291c961e2f521c65f3b0079c69f2"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/reader.py",
+      "sha256": "08842b5f56be3fbf4ac3e71c2d4a2e09bea5c247a3b8eeaf56d0cc5870c14163"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/builder-contract.schema.json",
+      "sha256": "5db08cbcd4b9d726f2619a710109d887328a229f88d50715c5bd114233aee083"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/reader-contract.schema.json",
+      "sha256": "5d99c3885b589e1c68881170afe0f8991fb62da981a833f1170fcca17905c1d7"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/refresh-receipt.schema.json",
+      "sha256": "5d63613b6ab0b46d624bb253d63ef3f3ac6d11c24e3d8e614f14b19bb09d4291"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/lane-pointer.schema.json",
+      "sha256": "e53daec70b93316c8f60c5da36b00031d214d9fb615d9d8603a510e48143ee02"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/mmd-artifact.schema.json",
+      "sha256": "2bf2fec9759a37538fe201cadf9045df588030c504e7220a6801017fe768f66b"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/dot-artifact.schema.json",
+      "sha256": "0aa6cb3085145c7e07ac5ae6c65bedd9ce8c9975d4751565f96076d3ec6dc9e7"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/power_bi_sector_v001.sqlite",
+      "sha256": "0792b3aaced8f4956f46a3e24bac59be39eb6cbb80c205a507443d09b8d2b96c"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/schema-template.json",
+      "sha256": "6ed56fbade66aed44dfcc11a572a8291dacdb6308e7a436d45006eb025e14868"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/sqlite-artifact.schema.json",
+      "sha256": "6258fe310ee8db5273e2a10b39ceea6cfc8cca21f9d3bc40777cdb2fa808094d"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/power_bi.mmd",
+      "sha256": "5009fad7ff708f76a6e3aec98545e54d863eec22cb70de1b8591aaa8645db1db"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/power_bi.dot",
+      "sha256": "994764e30b4e767ce2e81683651a1134d1ff2d6b3ff8bc1a9480915762ff126c"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/workflow.mmd",
+      "sha256": "a8d5b516510f543fcd1900e4d01f5ff4e166bfc8f93b976605908c2537a9f3c9"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/workflow.dot",
+      "sha256": "fa94c23941daf5ad5f85689724f1574afd89d56c59a98198b73180277d0d003a"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/workflow.v4.json",
+      "sha256": "3b23e5231e98a270bdb0d163cf04c136aa5504281ac606643a67e45795a5123b"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/tools.json",
+      "sha256": "73931d89f19111feca3e150e2e0ba8e2fe43a97ab0349c04a7d8db21035a7ceb"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/tools.schema.json",
+      "sha256": "cf02f76c370dbf83f653e7bae202091dcf67d5514c79dec77b8c4ef9778950f9"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/README.md",
+      "sha256": "b85ec0f7e08d5104b18b64efc362d1417294f89cdce7395e9933d7079d53f910"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/lane-contract.v4.json",
+      "sha256": "2ef1bd0728bd516e3b2adac88eae81fb42b65a8fb6cecee8f5d3f28fb180a2bb"
+    },
+    {
+      "path": "authorities/project_sectors/power_bi/manifest.schema.json",
+      "sha256": "c16236979b9edded9ee72ee9c4dc620b24945f19fd88e9f9df5d6471c58be226"
+    }
+  ]
+}

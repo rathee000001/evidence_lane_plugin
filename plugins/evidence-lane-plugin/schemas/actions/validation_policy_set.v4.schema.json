@@ -1,0 +1,570 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Save an exact project validation policy revision without executing checks or changing task contracts.",
+  "inputSchema": {
+    "$defs": {
+      "ValidationCommand": {
+        "additionalProperties": false,
+        "description": "Pinned executor plus literal arguments; no shell expansion or PATH lookup.",
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "executable": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Executable",
+            "type": "string"
+          },
+          "executable_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Executable Sha256",
+            "type": "string"
+          },
+          "max_output_bytes": {
+            "default": 8192,
+            "description": "Maximum captured bytes in each output stream.",
+            "maximum": 65536,
+            "minimum": 256,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 300,
+            "maximum": 1800,
+            "minimum": 1,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          },
+          "tool_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$",
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "working_directory": {
+            "default": ".",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Working Directory",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "executable",
+          "executable_sha256"
+        ],
+        "title": "ValidationCommand",
+        "type": "object"
+      },
+      "ValidationPolicy": {
+        "additionalProperties": false,
+        "description": "Only additional project checks; owning profile verifiers remain mandatory.",
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/$defs/ValidationRule"
+            },
+            "maxItems": 64,
+            "title": "Checks",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ValidationPolicy",
+        "type": "object"
+      },
+      "ValidationRule": {
+        "additionalProperties": false,
+        "properties": {
+          "check_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Check Id",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/$defs/ValidationCommand"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "when": {
+            "$ref": "#/$defs/ValidationSelector"
+          }
+        },
+        "required": [
+          "check_id",
+          "title",
+          "command"
+        ],
+        "title": "ValidationRule",
+        "type": "object"
+      },
+      "ValidationSelector": {
+        "additionalProperties": false,
+        "description": "OR within each list; AND across nonempty path/profile/action lists.",
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Actions",
+            "type": "array"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          },
+          "profiles": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Profiles",
+            "type": "array"
+          }
+        },
+        "title": "ValidationSelector",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Digest"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "policy": {
+        "$ref": "#/$defs/ValidationPolicy"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "expected_revision",
+      "policy"
+    ],
+    "title": "ValidationPolicySet",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "validation_policy_set",
+  "outputSchema": {
+    "$defs": {
+      "ValidationCommand": {
+        "additionalProperties": false,
+        "description": "Pinned executor plus literal arguments; no shell expansion or PATH lookup.",
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "executable": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Executable",
+            "type": "string"
+          },
+          "executable_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Executable Sha256",
+            "type": "string"
+          },
+          "max_output_bytes": {
+            "default": 8192,
+            "description": "Maximum captured bytes in each output stream.",
+            "maximum": 65536,
+            "minimum": 256,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 300,
+            "maximum": 1800,
+            "minimum": 1,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          },
+          "tool_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$",
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "working_directory": {
+            "default": ".",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Working Directory",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "executable",
+          "executable_sha256"
+        ],
+        "title": "ValidationCommand",
+        "type": "object"
+      },
+      "ValidationPolicy": {
+        "additionalProperties": false,
+        "description": "Only additional project checks; owning profile verifiers remain mandatory.",
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/$defs/ValidationRule"
+            },
+            "maxItems": 64,
+            "title": "Checks",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ValidationPolicy",
+        "type": "object"
+      },
+      "ValidationRule": {
+        "additionalProperties": false,
+        "properties": {
+          "check_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Check Id",
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/$defs/ValidationCommand"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "when": {
+            "$ref": "#/$defs/ValidationSelector"
+          }
+        },
+        "required": [
+          "check_id",
+          "title",
+          "command"
+        ],
+        "title": "ValidationRule",
+        "type": "object"
+      },
+      "ValidationSelector": {
+        "additionalProperties": false,
+        "description": "OR within each list; AND across nonempty path/profile/action lists.",
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Actions",
+            "type": "array"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          },
+          "profiles": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Profiles",
+            "type": "array"
+          }
+        },
+        "title": "ValidationSelector",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "activation": {
+        "const": "explicit_new_task_contract_only",
+        "default": "explicit_new_task_contract_only",
+        "title": "Activation",
+        "type": "string"
+      },
+      "actor_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Actor Id"
+      },
+      "authority_lane": {
+        "const": "plan",
+        "default": "plan",
+        "title": "Authority Lane",
+        "type": "string"
+      },
+      "checks_executed": {
+        "const": false,
+        "default": false,
+        "title": "Checks Executed",
+        "type": "boolean"
+      },
+      "created_at": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Created At"
+      },
+      "current_revision": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Current Revision"
+      },
+      "plan_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      },
+      "policy": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ValidationPolicy"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "policy_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Policy Digest"
+      },
+      "previous_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Previous Digest"
+      },
+      "profile_verifiers_replaced": {
+        "const": false,
+        "default": false,
+        "title": "Profile Verifiers Replaced",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "receipt_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Receipt Id"
+      },
+      "request_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Request Id"
+      },
+      "revision": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Revision"
+      },
+      "revision_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Revision Digest"
+      },
+      "runtime_readiness_verified": {
+        "const": false,
+        "default": false,
+        "title": "Runtime Readiness Verified",
+        "type": "boolean"
+      },
+      "state": {
+        "enum": [
+          "not_configured",
+          "configured"
+        ],
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "state"
+    ],
+    "title": "ValidationPolicySnapshot",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "plan",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4be17112bddba522b7655ab69add1370ef1610fa2df0c8b478b67a446262f169",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "validation_policy_set",
+    "profile": "plan",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.acceptance:register_validation_actions.<locals>.configure",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "validation_policy_set.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "plan"
+}

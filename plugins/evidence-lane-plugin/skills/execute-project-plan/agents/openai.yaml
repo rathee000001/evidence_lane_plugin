@@ -1,0 +1,9 @@
+interface:
+  display_name: "Execute project plan"
+  short_description: "Execute the next eligible project-plan task"
+  default_prompt: "Use $execute-project-plan to run the next eligible task in my project plan."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

@@ -1,0 +1,188 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read current bounded Plan and separate lane references, verified Flash and exact engine-scoped compact recovery.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "SessionStatusRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "session_context",
+  "outputSchema": {
+    "$defs": {
+      "FlashStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "action_set_digest": {
+            "title": "Action Set Digest",
+            "type": "string"
+          },
+          "authority_version": {
+            "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+            "title": "Authority Version",
+            "type": "string"
+          },
+          "context": {
+            "title": "Context",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "native_attachment_attested": {
+            "default": false,
+            "title": "Native Attachment Attested",
+            "type": "boolean"
+          },
+          "runtime_data_mutated": {
+            "default": false,
+            "title": "Runtime Data Mutated",
+            "type": "boolean"
+          },
+          "state": {
+            "default": "verified",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "manifest_digest",
+          "action_set_digest",
+          "member_count",
+          "members",
+          "context"
+        ],
+        "title": "FlashStatus",
+        "type": "object"
+      },
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "engine_instance_id": {
+        "title": "Engine Instance Id",
+        "type": "string"
+      },
+      "engine_phase": {
+        "title": "Engine Phase",
+        "type": "string"
+      },
+      "flash": {
+        "$ref": "#/$defs/FlashStatus"
+      },
+      "host": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Host",
+        "type": "object"
+      },
+      "managed_toolchain": {
+        "title": "Managed Toolchain",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "operating_context": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Operating Context",
+        "type": "object"
+      },
+      "package_digest": {
+        "title": "Package Digest",
+        "type": "string"
+      },
+      "project_mutated": {
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "studio_supported": {
+        "title": "Studio Supported",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "engine_phase",
+      "engine_instance_id",
+      "package_digest",
+      "flash",
+      "host",
+      "studio_supported",
+      "managed_toolchain",
+      "operating_context"
+    ],
+    "title": "SessionContext",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "sessions",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "3f804dade0c069c415ff119e161524dc0ed0f30da9687600a4d2a58e1a2c5c1d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "session_context",
+    "profile": "sessions",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.session:SessionManager.context",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "session_context.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

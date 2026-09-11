@@ -1,23 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "source_authority runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "source_authority"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.source_authority"
-    },
-    "source_sha256": {
-      "const": "D717E167B4D23E87F2A6A9AC34ACD1CEC67A95A7D495FA6149EAF2460025B95C"
-    }
+  "const": {
+    "owner_id": "sources",
+    "modules": [
+      "evidence_lane_plugin.source_authority",
+      "evidence_lane_plugin.store",
+      "evidence_lane_plugin.enrollment",
+      "evidence_lane_plugin.source_routing",
+      "evidence_lane_plugin.source_materialization",
+      "evidence_lane_plugin.custom_lanes"
+    ],
+    "storage": "authorities/sources/sources_authority_v001.sqlite with files and schema history in authorities/sources",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "18BA0EE19253A36FF7899CCF0CE3CC38E2D3D3897FC40A8939303B5BD294D8F1"
+  "title": "sources canonical runtime binding"
 }

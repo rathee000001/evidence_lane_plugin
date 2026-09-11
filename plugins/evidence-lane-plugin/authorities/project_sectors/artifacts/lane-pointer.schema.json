@@ -1,36 +1,92 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Artifacts lane pointer",
-  "type": "object",
-  "required": [
-    "schema",
-    "lane_id",
-    "parent_pv",
-    "proposed_pv",
-    "pointer_generation"
-  ],
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
   "properties": {
-    "schema": {
-      "const": "evidence-lane.lane-pointer-evidence.v1"
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
     },
-    "lane_id": {
-      "const": "artifacts"
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
     },
-    "parent_pv": {
-      "type": [
-        "string",
-        "null"
-      ]
+    "state": {
+      "enum": [
+        "not_materialized",
+        "fresh",
+        "stale",
+        "historical",
+        "contract_changed"
+      ],
+      "title": "State",
+      "type": "string"
     },
-    "proposed_pv": {
-      "type": "string",
-      "minLength": 1
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
     },
-    "pointer_generation": {
-      "type": "integer",
-      "minimum": 0
+    "checked_at": {
+      "title": "Checked At",
+      "type": "string"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Snapshot Digest"
+    },
+    "manifest": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manifest"
+    },
+    "contents": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contents"
+    },
+    "refresh_performed": {
+      "const": false,
+      "default": false,
+      "title": "Refresh Performed",
+      "type": "boolean"
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "AE735E48C59FFFE1DC8019DC92E7CB9DC2139AB684D7071B3B6F19F02AA8C809"
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation"
+  ],
+  "title": "Artifacts snapshot navigation and freshness readback",
+  "type": "object"
 }

@@ -1,8 +1,11 @@
-"""Provider-neutral, opt-in hardware acceleration under ENV/UOP budgets."""
+"""Provider-neutral opt-in selection, adapted from the v3 acceleration policy.
+
+This module makes a routing decision. Actual provider execution and per-project
+grants are checked by the accelerator service and its isolated runtime probes.
+"""
 
 from __future__ import annotations
 
-import importlib.util
 import os
 import shutil
 import subprocess  # nosec B404 - fixed local hardware probes only
@@ -12,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .hashing import canonical_json_bytes, sha256_bytes
 
-HARDWARE_ACCELERATION_SCHEMA = "evidence-lane.hardware-acceleration-decision.v1"
+HARDWARE_ACCELERATION_SCHEMA = "evidence-lane.hardware-acceleration-decision.v4"
 ACCELERATOR_PROFILES = ("cpu", "auto", "nvidia", "amd")
 ACCELERATOR_ELIGIBLE_ACTION_CLASSES = frozenset(
     {"RETRIEVAL", "OCR_MEDIA", "EVALUATION"}
@@ -29,7 +32,7 @@ class HardwareAccelerationProbe(BaseModel):
     total_vram_mib: int | None = Field(default=None, ge=1)
     used_vram_mib: int | None = Field(default=None, ge=0)
     temperature_c: int | None = Field(default=None, ge=-50, le=200)
-    throttle_active: bool = False
+    throttle_active: bool | None = None
     nvidia_detected: bool = False
     amd_detected: bool = False
     torch_cuda_available: bool = False
@@ -43,7 +46,7 @@ class HardwareAccelerationProbe(BaseModel):
 class HardwareAccelerationDecision(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
-    schema_id: Literal["evidence-lane.hardware-acceleration-decision.v1"] = Field(
+    schema_id: Literal["evidence-lane.hardware-acceleration-decision.v4"] = Field(
         alias="schema"
     )
     status: str
@@ -64,7 +67,7 @@ class HardwareAccelerationDecision(BaseModel):
     admissible_additional_vram_mib: int | None
     temperature_c: int | None
     temperature_limit_c: int | None
-    throttle_active: bool
+    throttle_active: bool | None
     fallback_reasons: list[str]
     cpu_fallback_available: bool
     forced_gpu_utilization_percent: None
@@ -72,37 +75,23 @@ class HardwareAccelerationDecision(BaseModel):
     authority_or_hil_effect: bool
     telemetry_sources: list[str]
     receipt_sha256: str
-
-
-def _configured_int(name: str) -> int | None:
-    raw = os.environ.get(name)
-    if raw is None:
-        return None
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    return value if value >= 0 else None
+    execution_state: Literal["not_executed"] = "not_executed"
 
 
 def _nvidia_smi_probe() -> dict[str, Any] | None:
     executable = shutil.which("nvidia-smi")
     if executable is None:
         return None
-    completed = subprocess.run(  # nosec B603
-        [
-            executable,
-            "--query-gpu=name,driver_version,memory.total,memory.used,temperature.gpu,clocks_throttle_reasons.active",
-            "--format=csv,noheader,nounits",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=5,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
+    try:
+        completed = subprocess.run(  # nosec B603
+            [executable,
+             "--query-gpu=name,driver_version,memory.total,memory.used,temperature.gpu,clocks_throttle_reasons.active",
+             "--format=csv,noheader,nounits"],
+            check=False, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=5, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
     if completed.returncode != 0:
         return None
     line = next((value.strip() for value in completed.stdout.splitlines() if value.strip()), "")
@@ -113,7 +102,8 @@ def _nvidia_smi_probe() -> dict[str, Any] | None:
         total = int(fields[2])
         used = int(fields[3])
         temperature = int(fields[4])
-        throttle = int(fields[5], 16) != 0
+        # Idle/application clock limiting is not thermal or hardware throttling.
+        throttle = bool(int(fields[5], 16) & 0xE8)
     except ValueError:
         return None
     return {
@@ -127,56 +117,19 @@ def _nvidia_smi_probe() -> dict[str, Any] | None:
 
 
 def probe_hardware_acceleration() -> HardwareAccelerationProbe:
-    torch_cuda_available = False
-    torch_cuda_version: str | None = None
-    torch_hip_available = False
-    torch_hip_version: str | None = None
-    device_name: str | None = None
-    sources: list[str] = []
-    if importlib.util.find_spec("torch") is not None:
-        torch = importlib.import_module("torch")
-
-        torch_cuda_version = getattr(torch.version, "cuda", None)
-        torch_hip_version = getattr(torch.version, "hip", None)
-        available = bool(torch.cuda.is_available())
-        torch_hip_available = bool(available and torch_hip_version)
-        torch_cuda_available = bool(available and torch_cuda_version and not torch_hip_version)
-        if available:
-            device_name = str(torch.cuda.get_device_name(0))
-        sources.append("PYTORCH_RUNTIME")
-
-    providers: list[str] = []
-    if importlib.util.find_spec("onnxruntime") is not None:
-        import onnxruntime  # type: ignore[import-not-found]
-
-        providers = [str(value) for value in onnxruntime.get_available_providers()]
-        sources.append("ONNX_RUNTIME")
-
+    # Read-only inventory only. Heavy or incompatible runtimes stay outside the
+    # persistent engine; their isolated probes must verify a real operation.
     nvidia = _nvidia_smi_probe()
-    configured_total = _configured_int("EVIDENCE_LANE_ACCELERATOR_TOTAL_VRAM_MIB")
-    configured_used = _configured_int("EVIDENCE_LANE_ACCELERATOR_USED_VRAM_MIB")
-    configured_temperature = _configured_int("EVIDENCE_LANE_ACCELERATOR_TEMPERATURE_C")
-    if nvidia is not None:
-        sources.append("NVIDIA_SMI")
-        device_name = str(nvidia["device_name"])
-    elif any(value is not None for value in (configured_total, configured_used, configured_temperature)):
-        sources.append("EXPLICIT_HOST_ACCELERATOR_TELEMETRY")
     return HardwareAccelerationProbe(
         os_name=os.name,
-        device_name=device_name,
+        device_name=str(nvidia["device_name"]) if nvidia else None,
         driver_version=(str(nvidia["driver_version"]) if nvidia else None),
-        total_vram_mib=(int(nvidia["total_vram_mib"]) if nvidia else configured_total),
-        used_vram_mib=(int(nvidia["used_vram_mib"]) if nvidia else configured_used),
-        temperature_c=(int(nvidia["temperature_c"]) if nvidia else configured_temperature),
+        total_vram_mib=(int(nvidia["total_vram_mib"]) if nvidia else None),
+        used_vram_mib=(int(nvidia["used_vram_mib"]) if nvidia else None),
+        temperature_c=(int(nvidia["temperature_c"]) if nvidia else None),
         throttle_active=bool(nvidia and nvidia["throttle_active"]),
         nvidia_detected=nvidia is not None,
-        amd_detected=bool(torch_hip_available or "DmlExecutionProvider" in providers),
-        torch_cuda_available=torch_cuda_available,
-        torch_cuda_version=torch_cuda_version,
-        torch_hip_available=torch_hip_available,
-        torch_hip_version=torch_hip_version,
-        onnx_execution_providers=providers,
-        telemetry_sources=sources,
+        telemetry_sources=["NVIDIA_SMI"] if nvidia else [],
     )
 
 
@@ -201,7 +154,8 @@ def resolve_hardware_acceleration(
     if unknown:
         raise ValueError("HARDWARE_ACCELERATOR_VENDOR_PLUGIN_UNSUPPORTED")
     exact_actions = list(dict.fromkeys(str(value).strip().upper() for value in action_classes))
-    eligible = [value for value in exact_actions if value in ACCELERATOR_ELIGIBLE_ACTION_CLASSES]
+    # A mixed request is not GPU eligible merely because one of its classes is.
+    eligible = exact_actions if exact_actions and set(exact_actions) <= ACCELERATOR_ELIGIBLE_ACTION_CLASSES else []
     observed = probe or probe_hardware_acceleration()
     reasons: list[str] = []
     selected = "CPU"
@@ -214,9 +168,10 @@ def resolve_hardware_acceleration(
     else:
         candidates: list[str] = []
         if exact_profile in {"auto", "nvidia"} and "nvidia" in grants:
-            candidates.append("NVIDIA_CUDA")
+            candidates.extend(["NVIDIA_CUDA", "DIRECTML"])
         if exact_profile in {"auto", "amd"} and "amd" in grants:
-            candidates.extend(["AMD_ROCM", "AMD_DIRECTML"])
+            candidates.extend(["AMD_ROCM", "DIRECTML"])
+        candidates = list(dict.fromkeys(candidates))
         if exact_profile in {"nvidia", "amd"} and exact_profile not in grants:
             reasons.append("VENDOR_PLUGIN_GRANT_REQUIRED")
         for candidate in candidates:
@@ -231,9 +186,15 @@ def resolve_hardware_acceleration(
                 if not observed.amd_detected or not observed.torch_hip_available:
                     reasons.append("AMD_ROCM_RUNTIME_UNAVAILABLE")
                     continue
-            elif candidate == "AMD_DIRECTML":
-                if not observed.amd_detected or "DmlExecutionProvider" not in observed.onnx_execution_providers:
-                    reasons.append("AMD_DIRECTML_RUNTIME_UNAVAILABLE")
+            elif candidate == "DIRECTML":
+                if observed.os_name != "nt":
+                    reasons.append("DIRECTML_REQUIRES_WINDOWS")
+                    continue
+                if (
+                    not (observed.nvidia_detected or observed.amd_detected)
+                    or "DmlExecutionProvider" not in observed.onnx_execution_providers
+                ):
+                    reasons.append("DIRECTML_RUNTIME_UNAVAILABLE")
                     continue
             if observed.total_vram_mib is None or observed.used_vram_mib is None:
                 reasons.append("GPU_MEMORY_TELEMETRY_REQUIRED")
@@ -279,8 +240,8 @@ def resolve_hardware_acceleration(
         "torch_hip_available": observed.torch_hip_available,
         "torch_hip_version": observed.torch_hip_version,
         "onnx_execution_providers": observed.onnx_execution_providers,
-        "directml_sequential_execution_required": selected == "AMD_DIRECTML",
-        "directml_memory_pattern_disabled_required": selected == "AMD_DIRECTML",
+        "directml_sequential_execution_required": selected == "DIRECTML",
+        "directml_memory_pattern_disabled_required": selected == "DIRECTML",
     }
     core = {
         "schema": HARDWARE_ACCELERATION_SCHEMA,
@@ -319,11 +280,11 @@ def resolve_hardware_acceleration(
 
 def hardware_acceleration_catalog() -> dict[str, Any]:
     body = {
-        "schema": "evidence-lane.hardware-acceleration-catalog.v1",
+        "schema": "evidence-lane.hardware-acceleration-catalog.v4",
         "status": "PASS",
         "profiles": list(ACCELERATOR_PROFILES),
         "eligible_action_classes": sorted(ACCELERATOR_ELIGIBLE_ACTION_CLASSES),
-        "providers": ["CPU", "NVIDIA_CUDA", "AMD_ROCM", "AMD_DIRECTML"],
+        "providers": ["CPU", "NVIDIA_CUDA", "AMD_ROCM", "DIRECTML"],
         "default_profile": "CPU",
         "default_memory_budget_percent": 80,
         "memory_budget_is_not_forced_utilization": True,

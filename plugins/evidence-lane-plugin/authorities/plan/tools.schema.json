@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "owner_id",
+    "runtime",
+    "builder",
+    "reader",
+    "actions",
+    "views",
+    "dependency_installation_inferred",
+    "planned_actions",
+    "planned_entrypoint",
+    "shared_toolchain"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.authority-tooling.v4"
+    },
+    "owner_id": {
+      "const": "plan"
+    },
+    "dependency_installation_inferred": {
+      "const": false
+    },
+    "actions": {
+      "type": "array"
+    }
+  },
+  "title": "plan tooling"
+}

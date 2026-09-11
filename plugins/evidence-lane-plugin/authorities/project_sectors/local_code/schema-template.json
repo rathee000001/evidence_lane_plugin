@@ -1,0 +1,1230 @@
+{
+  "schema": "evidence-lane.empty-sector-schema.v4",
+  "lane_id": "local_code",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "7b266779287e3adfb4189a13cee4b7ee7bb56ca7299e102a2467ef675833e795",
+  "tables": [
+    {
+      "name": "code_call",
+      "type": "table",
+      "sql": "CREATE TABLE code_call(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_change",
+      "type": "table",
+      "sql": "CREATE TABLE code_change(snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id), path TEXT NOT NULL,\n       change_kind TEXT NOT NULL CHECK(change_kind IN ('added','modified','deleted','unchanged')),\n       before_sha256 TEXT, after_sha256 TEXT, PRIMARY KEY(snapshot_id,path)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "change_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "before_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "after_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE code_chunk(chunk_id TEXT PRIMARY KEY, version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n       ordinal INTEGER NOT NULL, start_line INTEGER NOT NULL, end_line INTEGER NOT NULL,\n       content_object TEXT NOT NULL REFERENCES objects(digest), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "end_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "content_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE code_chunk_fts USING fts5(chunk_id UNINDEXED, text_content, tokenize='unicode61')",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_current",
+      "type": "table",
+      "sql": "CREATE TABLE code_current(scope_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_dependency",
+      "type": "table",
+      "sql": "CREATE TABLE code_dependency(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_embedding",
+      "type": "table",
+      "sql": "CREATE TABLE code_embedding(run_id TEXT NOT NULL REFERENCES code_embedding_run(run_id),\n               chunk_id TEXT NOT NULL REFERENCES code_chunk(chunk_id), vector BLOB NOT NULL CHECK(length(vector)=1536),\n               vector_sha256 TEXT NOT NULL, PRIMARY KEY(run_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "vector",
+          "type": "BLOB",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "vector_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_embedding_run",
+      "type": "table",
+      "sql": "CREATE TABLE code_embedding_run(run_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id),\n               manifest_object TEXT NOT NULL REFERENCES objects(digest), model_id TEXT NOT NULL,\n               asset_identity TEXT NOT NULL, chunk_count INTEGER NOT NULL, created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "model_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "asset_identity",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_count",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_file",
+      "type": "table",
+      "sql": "CREATE TABLE code_file(file_id TEXT PRIMARY KEY, repo_id TEXT NOT NULL REFERENCES code_repo(repo_id),\n       canonical_path TEXT NOT NULL, UNIQUE(repo_id,canonical_path)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "file_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "repo_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "canonical_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_file_version",
+      "type": "table",
+      "sql": "CREATE TABLE code_file_version(version_id TEXT PRIMARY KEY, file_id TEXT NOT NULL REFERENCES code_file(file_id),\n       raw_sha256 TEXT NOT NULL REFERENCES objects(digest), size_bytes INTEGER NOT NULL, encoding TEXT,\n       language TEXT NOT NULL, parser_contract TEXT NOT NULL, parser_state TEXT NOT NULL,\n       facts_digest TEXT NOT NULL REFERENCES objects(digest)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "file_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "raw_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "encoding",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "language",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_git_reference",
+      "type": "table",
+      "sql": "CREATE TABLE code_git_reference(snapshot_id TEXT PRIMARY KEY REFERENCES code_snapshot(snapshot_id),\n       source_batch_id TEXT NOT NULL, source_git_snapshot_id TEXT NOT NULL,\n       reference_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json))) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_batch_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_git_snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reference_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_import",
+      "type": "table",
+      "sql": "CREATE TABLE code_import(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_import_edge",
+      "type": "table",
+      "sql": "CREATE TABLE code_import_edge(snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id),\n               from_path TEXT NOT NULL, import_target TEXT NOT NULL, to_path TEXT,\n               line_number INTEGER NOT NULL, resolution TEXT NOT NULL, edge_key TEXT NOT NULL,\n               PRIMARY KEY(snapshot_id,edge_key)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "from_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "import_target",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "to_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "line_number",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "resolution",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "edge_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        }
+      ]
+    },
+    {
+      "name": "code_mutation",
+      "type": "table",
+      "sql": "CREATE TABLE code_mutation(mutation_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id),\n       path TEXT NOT NULL, before_object TEXT NOT NULL REFERENCES objects(digest),\n       after_object TEXT NOT NULL REFERENCES objects(digest), effect_id TEXT NOT NULL,\n       job_id TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "mutation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "before_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "after_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "effect_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_parser_diagnostic",
+      "type": "table",
+      "sql": "CREATE TABLE code_parser_diagnostic(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_parser_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE code_parser_receipt(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_repo",
+      "type": "table",
+      "sql": "CREATE TABLE code_repo(repo_id TEXT PRIMARY KEY, project_id TEXT NOT NULL,\n       source_root TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "repo_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_root",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_route",
+      "type": "table",
+      "sql": "CREATE TABLE code_route(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_snapshot",
+      "type": "table",
+      "sql": "CREATE TABLE code_snapshot(snapshot_id TEXT PRIMARY KEY, repo_id TEXT NOT NULL REFERENCES code_repo(repo_id),\n       scope_id TEXT NOT NULL, generation INTEGER NOT NULL CHECK(generation>0),\n       previous_snapshot TEXT REFERENCES code_snapshot(snapshot_id), manifest_object TEXT NOT NULL REFERENCES objects(digest),\n       parser_contract TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(scope_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "repo_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "scope_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_snapshot_file",
+      "type": "table",
+      "sql": "CREATE TABLE code_snapshot_file(snapshot_id TEXT NOT NULL REFERENCES code_snapshot(snapshot_id),\n       path TEXT NOT NULL, version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n       PRIMARY KEY(snapshot_id,path)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "code_symbol",
+      "type": "table",
+      "sql": "CREATE TABLE code_symbol(record_id TEXT PRIMARY KEY,\n        version_id TEXT NOT NULL REFERENCES code_file_version(version_id),\n        ordinal INTEGER NOT NULL, name TEXT NOT NULL, start_line INTEGER NOT NULL,\n        payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), UNIQUE(version_id,ordinal)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "record_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "start_line",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "selector_retirement",
+      "type": "table",
+      "sql": "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "proof_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "code_call",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_change",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_chunk",
+      "target": "objects",
+      "column": "content_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_chunk",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_current",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_dependency",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_embedding",
+      "target": "code_chunk",
+      "column": "chunk_id",
+      "target_column": "chunk_id"
+    },
+    {
+      "source": "code_embedding",
+      "target": "code_embedding_run",
+      "column": "run_id",
+      "target_column": "run_id"
+    },
+    {
+      "source": "code_embedding_run",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_embedding_run",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_file",
+      "target": "code_repo",
+      "column": "repo_id",
+      "target_column": "repo_id"
+    },
+    {
+      "source": "code_file_version",
+      "target": "objects",
+      "column": "facts_digest",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_file_version",
+      "target": "objects",
+      "column": "raw_sha256",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_file_version",
+      "target": "code_file",
+      "column": "file_id",
+      "target_column": "file_id"
+    },
+    {
+      "source": "code_git_reference",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_import",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_import_edge",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_mutation",
+      "target": "objects",
+      "column": "after_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_mutation",
+      "target": "objects",
+      "column": "before_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_mutation",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_parser_diagnostic",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_parser_receipt",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_route",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_snapshot",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "code_snapshot",
+      "target": "code_snapshot",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_snapshot",
+      "target": "code_repo",
+      "column": "repo_id",
+      "target_column": "repo_id"
+    },
+    {
+      "source": "code_snapshot_file",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "code_snapshot_file",
+      "target": "code_snapshot",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "code_symbol",
+      "target": "code_file_version",
+      "column": "version_id",
+      "target_column": "version_id"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "proof_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "snapshot_id",
+      "target_column": "digest"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

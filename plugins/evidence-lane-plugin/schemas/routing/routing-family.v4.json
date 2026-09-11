@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "routing",
+  "members": [
+    {
+      "path": "sdk/routing/current-route-registry.v4.json",
+      "sha256": "c59f7b2bf1aa43e702901741e622a5c059620337c7ec6cbebb7d357e59a7497f"
+    },
+    {
+      "path": "sdk/routing/router.py",
+      "sha256": "bbb105770773d529f0bf3d9c138e4040a53f053f22c4f36c2894ab3236ec8d94"
+    },
+    {
+      "path": "src/evidence_lane_plugin/current_route_registry.py",
+      "sha256": "7072480708e5d61dfd732689f9c6cd8b532afa677443c018dd99eeb5379d2f89"
+    },
+    {
+      "path": "src/evidence_lane_plugin/host_routing.py",
+      "sha256": "931de6ffad66787d474af5d6cb3937cbf70a55197bb69f5fd5450c0a787f0bf4"
+    }
+  ],
+  "purpose": "Current action, client, host and project route contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

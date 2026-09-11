@@ -1,0 +1,1451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AuthorityRequest_delta_enter": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "delta_enter",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/DeltaEnter"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_delta_enter",
+      "type": "object"
+    },
+    "AuthorityRequest_delta_enter_planned": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "delta_enter_planned",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/PlannedDeltaEnter"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_delta_enter_planned",
+      "type": "object"
+    },
+    "AuthorityRequest_job_reconcile_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "job_reconcile_effect",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ReconcileJobEffect"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_job_reconcile_effect",
+      "type": "object"
+    },
+    "AuthorityRequest_plan_create": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "plan_create",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/PlanCreate"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_plan_create",
+      "type": "object"
+    },
+    "AuthorityRequest_plan_host_bind": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "plan_host_bind",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/HostPlanBind"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_plan_host_bind",
+      "type": "object"
+    },
+    "AuthorityRequest_plan_host_sync": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "plan_host_sync",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/HostPlanProjectionSync"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_plan_host_sync",
+      "type": "object"
+    },
+    "AuthorityRequest_plan_refresh": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "plan_refresh",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/PlanReplace"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_plan_refresh",
+      "type": "object"
+    },
+    "AuthorityRequest_steer_submit": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "steer_submit",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SteerIntent"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_steer_submit",
+      "type": "object"
+    },
+    "AuthorityRequest_validation_policy_set": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "validation_policy_set",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ValidationPolicySet"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_validation_policy_set",
+      "type": "object"
+    },
+    "DeltaEnter": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "source_route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRouteSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "action"
+      ],
+      "title": "DeltaEnter",
+      "type": "object"
+    },
+    "HostPlanBind": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "host_task_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Host Task Id",
+          "type": "string"
+        },
+        "host_plan_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Host Plan Id",
+          "type": "string"
+        },
+        "plan_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Plan Path",
+          "type": "string"
+        },
+        "expected_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "host_task_id",
+        "host_plan_id",
+        "plan_path",
+        "expected_sha256"
+      ],
+      "title": "HostPlanBind",
+      "type": "object"
+    },
+    "HostPlanProjectionSync": {
+      "additionalProperties": false,
+      "properties": {
+        "projection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Projection Id"
+        },
+        "expected_rows_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Rows Digest"
+        }
+      },
+      "title": "HostPlanProjectionSync",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "PlanCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "source_restore_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Restore Digest"
+        },
+        "database_recovery_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Database Recovery Digest"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskDefinition"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Tasks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title",
+        "tasks"
+      ],
+      "title": "PlanCreate",
+      "type": "object"
+    },
+    "PlanReplace": {
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "source_restore_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Restore Digest"
+        },
+        "database_recovery_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Database Recovery Digest"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskDefinition"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Tasks",
+          "type": "array"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "expected_document_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Document Digest",
+          "type": "string"
+        },
+        "steer_request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Steer Request Id",
+          "type": "string"
+        },
+        "resume_after_change": {
+          "default": false,
+          "title": "Resume After Change",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "title",
+        "tasks",
+        "expected_revision",
+        "expected_document_digest",
+        "steer_request_id"
+      ],
+      "title": "PlanReplace",
+      "type": "object"
+    },
+    "PlannedDeltaEnter": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest"
+      ],
+      "title": "PlannedDeltaEnter",
+      "type": "object"
+    },
+    "ReconcileJobEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "effect_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "expected_effect_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Effect Digest",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "default": 33554432,
+          "maximum": 134217728,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "observation_route": {
+          "default": "local_or_recorded",
+          "enum": [
+            "local_or_recorded",
+            "git_readback"
+          ],
+          "title": "Observation Route",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "effect_id",
+        "expected_effect_digest",
+        "plan_revision"
+      ],
+      "title": "ReconcileJobEffect",
+      "type": "object"
+    },
+    "SourceRouteSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "route_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Route Id",
+          "type": "string"
+        },
+        "occurrence_ordinals": {
+          "items": {
+            "maximum": 256,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Occurrence Ordinals",
+          "type": "array"
+        }
+      },
+      "required": [
+        "route_id",
+        "occurrence_ordinals"
+      ],
+      "title": "SourceRouteSelection",
+      "type": "object"
+    },
+    "SteerIntent": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source_event_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Event Id",
+          "type": "string"
+        },
+        "source_cursor": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Cursor",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "intent": {
+          "enum": [
+            "informational",
+            "semantic",
+            "stop"
+          ],
+          "title": "Intent",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "affected_task_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2000,
+          "title": "Affected Task Ids",
+          "type": "array"
+        },
+        "source_text": {
+          "anyOf": [
+            {
+              "maxLength": 65536,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Text"
+        }
+      },
+      "required": [
+        "source_event_id",
+        "source_cursor",
+        "expected_revision",
+        "intent",
+        "rationale"
+      ],
+      "title": "SteerIntent",
+      "type": "object"
+    },
+    "TaskBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_seconds": {
+          "default": 300,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Max Seconds",
+          "type": "integer"
+        },
+        "max_tool_calls": {
+          "default": 64,
+          "maximum": 1024,
+          "minimum": 1,
+          "title": "Max Tool Calls",
+          "type": "integer"
+        },
+        "max_input_bytes": {
+          "default": 1048576,
+          "maximum": 67108864,
+          "minimum": 1,
+          "title": "Max Input Bytes",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "default": 4194304,
+          "maximum": 67108864,
+          "minimum": 1,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "TaskBudget",
+      "type": "object"
+    },
+    "TaskDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "requested_outcome": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Requested Outcome",
+          "type": "string"
+        },
+        "profile": {
+          "default": "core",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Profile",
+          "type": "string"
+        },
+        "permitted_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Permitted Paths",
+          "type": "array"
+        },
+        "permitted_tools": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Permitted Tools",
+          "type": "array"
+        },
+        "allowed_actions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Allowed Actions",
+          "type": "array"
+        },
+        "acceptance_checks": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Acceptance Checks",
+          "type": "array"
+        },
+        "stop_condition": {
+          "default": "Stop on failed verification or unavailable required capability.",
+          "maxLength": 1000,
+          "title": "Stop Condition",
+          "type": "string"
+        },
+        "dependencies": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dependencies"
+        },
+        "plan_group": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Group"
+        },
+        "commit_batch_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commit Batch Id"
+        },
+        "budget": {
+          "$ref": "#/$defs/TaskBudget"
+        },
+        "mode_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaskModeBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaskOperation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "validation_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaskValidationBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "task_id",
+        "title",
+        "requested_outcome"
+      ],
+      "title": "TaskDefinition",
+      "type": "object"
+    },
+    "TaskModeBinding": {
+      "additionalProperties": false,
+      "description": "Exact, project-owned classification reference; never ambient session state.",
+      "properties": {
+        "classification_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Classification Id",
+          "type": "string"
+        },
+        "classification_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Classification Digest",
+          "type": "string"
+        },
+        "source_event_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Event Id",
+          "type": "string"
+        },
+        "source_cursor": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Cursor",
+          "type": "string"
+        },
+        "selection_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Selection Sha256",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "classification_id",
+        "classification_digest",
+        "source_event_id",
+        "source_cursor",
+        "selection_sha256",
+        "manifest_digest"
+      ],
+      "title": "TaskModeBinding",
+      "type": "object"
+    },
+    "TaskOperation": {
+      "additionalProperties": false,
+      "description": "One exact operation owned by this Plan contract, not a second job queue.",
+      "properties": {
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "source_route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRouteSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "title": "TaskOperation",
+      "type": "object"
+    },
+    "TaskValidationBinding": {
+      "additionalProperties": false,
+      "description": "Explicit immutable policy and observation scope in one Plan task.",
+      "properties": {
+        "policy_revision": {
+          "minimum": 1,
+          "title": "Policy Revision",
+          "type": "integer"
+        },
+        "policy_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Digest",
+          "type": "string"
+        },
+        "input_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Input Paths",
+          "type": "array"
+        },
+        "exclude_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Exclude Paths",
+          "type": "array"
+        },
+        "max_files": {
+          "default": 2048,
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "default": 8388608,
+          "maximum": 67108864,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "run_all_checks": {
+          "default": false,
+          "title": "Run All Checks",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "policy_revision",
+        "policy_digest",
+        "input_paths"
+      ],
+      "title": "TaskValidationBinding",
+      "type": "object"
+    },
+    "ValidationCommand": {
+      "additionalProperties": false,
+      "description": "Pinned executor plus literal arguments; no shell expansion or PATH lookup.",
+      "properties": {
+        "tool_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$",
+          "title": "Tool Id",
+          "type": "string"
+        },
+        "executable": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Executable",
+          "type": "string"
+        },
+        "executable_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Executable Sha256",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "working_directory": {
+          "default": ".",
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Working Directory",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 300,
+          "maximum": 1800,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "default": 8192,
+          "description": "Maximum captured bytes in each output stream.",
+          "maximum": 65536,
+          "minimum": 256,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_id",
+        "executable",
+        "executable_sha256"
+      ],
+      "title": "ValidationCommand",
+      "type": "object"
+    },
+    "ValidationPolicy": {
+      "additionalProperties": false,
+      "description": "Only additional project checks; owning profile verifiers remain mandatory.",
+      "properties": {
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/ValidationRule"
+          },
+          "maxItems": 64,
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "ValidationPolicy",
+      "type": "object"
+    },
+    "ValidationPolicySet": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "expected_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Digest"
+        },
+        "policy": {
+          "$ref": "#/$defs/ValidationPolicy"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "policy"
+      ],
+      "title": "ValidationPolicySet",
+      "type": "object"
+    },
+    "ValidationRule": {
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/ValidationSelector"
+        },
+        "command": {
+          "$ref": "#/$defs/ValidationCommand"
+        }
+      },
+      "required": [
+        "check_id",
+        "title",
+        "command"
+      ],
+      "title": "ValidationRule",
+      "type": "object"
+    },
+    "ValidationSelector": {
+      "additionalProperties": false,
+      "description": "OR within each list; AND across nonempty path/profile/action lists.",
+      "properties": {
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        },
+        "profiles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Profiles",
+          "type": "array"
+        },
+        "actions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Actions",
+          "type": "array"
+        }
+      },
+      "title": "ValidationSelector",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "delta_enter": "#/$defs/AuthorityRequest_delta_enter",
+      "delta_enter_planned": "#/$defs/AuthorityRequest_delta_enter_planned",
+      "job_reconcile_effect": "#/$defs/AuthorityRequest_job_reconcile_effect",
+      "plan_create": "#/$defs/AuthorityRequest_plan_create",
+      "plan_host_bind": "#/$defs/AuthorityRequest_plan_host_bind",
+      "plan_host_sync": "#/$defs/AuthorityRequest_plan_host_sync",
+      "plan_refresh": "#/$defs/AuthorityRequest_plan_refresh",
+      "steer_submit": "#/$defs/AuthorityRequest_steer_submit",
+      "validation_policy_set": "#/$defs/AuthorityRequest_validation_policy_set"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_delta_enter"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_delta_enter_planned"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_job_reconcile_effect"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_plan_create"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_plan_host_bind"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_plan_host_sync"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_plan_refresh"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_steer_submit"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_validation_policy_set"
+    }
+  ],
+  "title": "plan typed SDK requests"
+}

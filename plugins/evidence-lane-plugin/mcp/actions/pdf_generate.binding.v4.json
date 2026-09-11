@@ -1,0 +1,472 @@
+{
+  "action": "pdf_generate",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/pdf_generate.action.v4.json",
+  "sdk_binding_sha256": "be6138011ebe672880e6da8f0d87a235f47faa0e2e1d6d2a8c3d67740d8db8ec",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Publish an immutable PDF derivative and verify canonical field values and page widgets.",
+    "inputSchema": {
+      "$defs": {
+        "PdfElement": {
+          "additionalProperties": false,
+          "properties": {
+            "background": {
+              "anyOf": [
+                {
+                  "pattern": "^#[0-9a-fA-F]{6}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Background"
+            },
+            "checked": {
+              "default": false,
+              "title": "Checked",
+              "type": "boolean"
+            },
+            "color": {
+              "default": "#17202A",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "title": "Color",
+              "type": "string"
+            },
+            "field_name": {
+              "anyOf": [
+                {
+                  "maxLength": 180,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Field Name"
+            },
+            "font_size": {
+              "default": 11,
+              "maximum": 144,
+              "minimum": 4,
+              "title": "Font Size",
+              "type": "number"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 2000,
+              "title": "Height",
+              "type": "number"
+            },
+            "image_base64": {
+              "anyOf": [
+                {
+                  "maxLength": 11184812,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Image Base64"
+            },
+            "kind": {
+              "enum": [
+                "text",
+                "paragraph",
+                "table",
+                "image",
+                "rectangle",
+                "form_text",
+                "form_checkbox",
+                "form_choice"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "options": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Options",
+              "type": "array"
+            },
+            "rows": {
+              "anyOf": [
+                {
+                  "items": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "maxItems": 100,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Rows"
+            },
+            "text": {
+              "default": "",
+              "maxLength": 100000,
+              "title": "Text",
+              "type": "string"
+            },
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 2000,
+              "title": "Width",
+              "type": "number"
+            },
+            "x": {
+              "maximum": 2000,
+              "minimum": 0,
+              "title": "X",
+              "type": "number"
+            },
+            "y": {
+              "maximum": 2000,
+              "minimum": 0,
+              "title": "Y",
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height",
+            "kind"
+          ],
+          "title": "PdfElement",
+          "type": "object"
+        },
+        "PdfPage": {
+          "additionalProperties": false,
+          "properties": {
+            "elements": {
+              "items": {
+                "$ref": "#/$defs/PdfElement"
+              },
+              "maxItems": 200,
+              "minItems": 1,
+              "title": "Elements",
+              "type": "array"
+            },
+            "height": {
+              "default": 841.89,
+              "maximum": 2000,
+              "minimum": 72,
+              "title": "Height",
+              "type": "number"
+            },
+            "width": {
+              "default": 595.276,
+              "maximum": 2000,
+              "minimum": 72,
+              "title": "Width",
+              "type": "number"
+            }
+          },
+          "required": [
+            "elements"
+          ],
+          "title": "PdfPage",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "author": {
+              "default": "",
+              "maxLength": 1000,
+              "title": "Author",
+              "type": "string"
+            },
+            "expected_snapshot": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Snapshot"
+            },
+            "lane_id": {
+              "const": "pdf_ocr",
+              "default": "pdf_ocr",
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "logical_name": {
+              "maxLength": 180,
+              "pattern": "^[^/\\\\:]+\\.pdf$",
+              "title": "Logical Name",
+              "type": "string"
+            },
+            "pages": {
+              "items": {
+                "$ref": "#/$defs/PdfPage"
+              },
+              "maxItems": 50,
+              "minItems": 1,
+              "title": "Pages",
+              "type": "array"
+            },
+            "title": {
+              "default": "",
+              "maxLength": 1000,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "logical_name",
+            "pages"
+          ],
+          "title": "PdfGenerate",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "pdf_generate",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}
