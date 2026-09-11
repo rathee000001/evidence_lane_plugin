@@ -103,7 +103,7 @@ def test_native_mcp_stdio_subprocess_lists_and_calls_engine(tmp_path, entrypoint
             ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session,
         ):
             initialized = await session.initialize()
-            assert initialized.serverInfo.version == "4.0.1"
+            assert initialized.serverInfo.version == "4.0.2"
             catalog = await session.list_tools()
             assert [tool.name for tool in catalog.tools] == [item["name"] for item in engine.registry.schemas()]
             observation = engine.clients.status()[0]["host_observation"]

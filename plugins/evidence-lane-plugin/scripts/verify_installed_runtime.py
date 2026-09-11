@@ -25,7 +25,7 @@ def _first_detection():
 
 def verify(release_root: Path, *, installation_root: Path | None = None) -> dict:
     release = release_root.resolve(strict=True)
-    if PLUGIN.resolve() != release / "app/plugin":
+    if PLUGIN.resolve() != release / "plugin":
         raise RuntimeError("SELF_TEST_PLUGIN_ROOT_MISMATCH")
     first_detection = _first_detection()
     binding, plan = first_detection.validate_binding(PLUGIN)

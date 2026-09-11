@@ -2,7 +2,7 @@
 
 Retains evidence binding, scoped FTS, append-only events and revocation from
 this module's earlier implementation. Its lane database owns Learning separately
-from Plan, Canon, Project Memory and visible ChatLineage. There is no HIL or
+from Plan, task exchange authority, Project Memory and visible ChatLineage. There is no HIL or
 PV pointer. Observed checks are not generalized into untested causal advice.
 """
 from __future__ import annotations
@@ -449,10 +449,10 @@ def register_learning_actions(engine):
     engine.registry.register(ActionSpec('learning_record_host_memory_import',
         'Record explicit host-memory provenance and its exact Plan-task link without reading host memory or creating Learning.',
         HostMemoryImport, HostMemoryImported, import_provenance,
-        permission='write', profile='learning', mutates=True, workflow='learning'))
+        permission='write', profile='learning', mutates=True, workflow='manage-project-lessons'))
     engine.registry.register(ActionSpec('learning_read', 'Retrieve a bounded project-local slice of verified execution observations.',
         LearningRead, LearningPage, lambda context, request: LearningStore(engine.directory.open(context.project_id)).read(request),
-        profile='learning', queryable_in_delta=True, cross_project_read=True, read_migrations=LEARNING_MIGRATIONS, workflow='learning',
+        profile='learning', queryable_in_delta=True, cross_project_read=True, read_migrations=LEARNING_MIGRATIONS, workflow='manage-project-lessons',
         search=SearchRoute(('learning',), 'lessons')))
 
     def revoke(context, request):
@@ -461,4 +461,4 @@ def register_learning_actions(engine):
             return LearningStore(store).revoke(request, lease, actor_id=context.client_id)
 
     engine.registry.register(ActionSpec('learning_revoke', 'Revoke the exact current Learning observation and suppress automatic reactivation.',
-        LearningRevoke, LearningRevoked, revoke, permission='write', profile='learning', mutates=True, workflow='learning'))
+        LearningRevoke, LearningRevoked, revoke, permission='write', profile='learning', mutates=True, workflow='manage-project-lessons'))

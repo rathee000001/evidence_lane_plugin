@@ -1,13 +1,13 @@
 {
   "action": "lineage_record",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/lineage_record.action.v4.json",
-  "sdk_binding_sha256": "f06d5922cf65c342782f9fce396b6ce30a0b8e50d2541d42c42c6feb066f1a52",
+  "sdk_binding_sha256": "d7fabf43b4cc7933d5939c500a2ba6920674df6c2bf7e273d5c3aa82720121cc",
   "tool": {
     "annotations": {
       "destructiveHint": true,

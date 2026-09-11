@@ -20,7 +20,7 @@ managed toolchain. Tools, dependencies and model assets belong to the shared
 installation; catalog membership does not establish installation or readiness.
 
 Every authority and sector owns its SQLite database, schema history and files.
-Root PV publishes coordinated lane references. Plan, ChatLineage, Canon,
+project evidence head coordinator publishes coordinated lane references. Plan, ChatLineage, task exchange authority,
 Memory, Learning, Sources, Receipts and Universe remain distinct. Source files,
 host instructions and host memory keep their original authority and provenance.
 
@@ -51,7 +51,7 @@ Preserve actual failures and unsupported fidelity in results.
 '''
 
 BODIES = {
-    'evi': '''Read `client_context` and `workflow_catalog` to identify the current
+    'evidence-lane': '''Read `client_context` and `workflow_catalog` to identify the current
 authenticated client and the relevant first-class skill. `project_catalog`
 requires the separately granted local project-administration capability.
 Use `render_runtime_panel` for measured engine/Flash/host observations and
@@ -60,7 +60,7 @@ in one selected project. These read-only views have an MCP Apps resource and
 structured-data fallback. Page with `offset` and `limit` through the native
 action; tab navigation never submits commands. Registered tools/lanes do not
 establish execution, installed Studio readiness or native task attestation.
-Use `pv_history` for bounded exact published Root PV references and `pv_diff`
+Use `project_evidence_history` for bounded exact published project evidence head coordinator references and `project_evidence_heads_compare`
 to compare two of them. The result describes recorded lane database heads;
 it does not recover historical file contents or counts. Same-byte lane
 republication is disclosed separately. These reads do not change the Plan.
@@ -92,14 +92,14 @@ rules and current UOP workflow gates. Its catalog states its coverage and the
 separate owners of other states; a listed transition is not permission to run it.
 Informational
 queries do not begin work, change a Plan, attach a session or grant access.''',
-    'mode': '''Use `mode_classify` for the requested operating modes, preserving
-the user's explicit order. Known modes use their locked ENV/UOP policies;
+    'classify-project-work': '''Use `project_work_classify` for the requested work classifications, preserving
+the user's explicit order. Known classes use their locked ENV/UOP policies;
 an inferred selection is labeled as inference and never grants permission.
-Keep ChatLineage in the overall route. Each mode selects its actual owning
-lanes; there is no Mode, Discussion or Analysis sector.
+Keep ChatLineage in the overall route. Each work class selects its actual owning
+lanes; classification never creates a Discussion or Analysis sector.
 
-An unknown mode needs the user's explicit name, concrete brief, ordered
-retained lanes and dependency policy. Do not invent a mode or silently switch
+An unknown work class needs the user's explicit name, concrete brief, ordered
+retained lanes and dependency policy. Do not invent a class or silently switch
 lanes when a dependency is missing. Use the exact custom schema accepted by
 the action, with no hidden reasoning payload.
 
@@ -123,16 +123,16 @@ session mode or invent a binding from a read-only classification. Selecting a
 new mode for pending work requires a semantic Plan refresh. Unbound historical
 tasks retain their existing explicit action contracts without inferred modes.
 For a semantic Plan change use the Plan workflow;
-for an informational request keep the next action read-only. Recipe and mode
-remain distinct and may be synchronized by the Project Recipe workflow.
+for an informational request keep the next action read-only. Workflow selection and work classification
+remain distinct and may be synchronized by the project workflow configuration workflow.
 
 For clean-exit intent, use `session_exit_boundary` to inspect the applicable
 gate and exact references. An ordinary turn, verified Delta append, session
 closure or engine-client continuation does not prove native Goal completion
-or native State Travel. Missing independent host evidence remains unavailable.
+or native project handoff. Missing independent host evidence remains unavailable.
 Mode selection cannot execute Formula, promote a candidate, infer HIL,
 complete a Goal, transfer a native task or authorize deployment.''',
-    'boot': '''Read `client_context`, `runtime_doctor` and `session_flash_status` on the local owner route.
+    'open-project-session': '''Read `client_context`, `runtime_doctor` and `session_flash_status` on the local owner route.
 On a scoped HTTPS route, use `session_context` for Flash and engine observations;
 its unique connection identity is distinct from the parent grant and reported
 host session label. Verify the configured durable server after restart first.
@@ -143,19 +143,19 @@ writes that local binding after the exact server transition; hooks only use the
 existing connection. They cannot Boot, reconnect, or establish native identity.
 If a project must be registered, use the Storage workflow with the exact
 user-selected source and external state roots, then `project_select` with
-explicit permissions. Read `session_status` and its current Root PV digest.
+explicit permissions. Read `session_status` and its current project evidence head coordinator digest.
 Call `session_boot` when no session is active; otherwise call `session_resume`
 with the exact session ID, generation and event digest. Use an actually
 reported host session label and state its attribution accurately. Never turn
 a client claim into native task attestation.
 
-A live source client requires an accepted State Travel transfer before another
+A live source client requires an accepted project handoff transfer before another
 client resumes it. After disconnection, resume still requires the exact saved
 head and current project grant. Read back `session_status` and `session_context`, then the full
 current Plan through pinned `plan_read` pages. Distinguish a bound capture
 channel from observed native hook execution; an untrusted/missing hook remains
 unavailable. Do not retry a failed Boot as another lifecycle route.''',
-    'build': '''Read the current Plan and `delta_status`. Select the next eligible
+    'execute-project-plan': '''Read the current Plan and `delta_status`. Select the next eligible
 task with its exact revision, contract, dependencies, scope and acceptance
 checks. When the task has an `operation` binding, use `delta_enter_planned` with
 that exact task ID, revision and contract digest; the engine reads its stored
@@ -177,8 +177,8 @@ recorded completion; it does not recheck today's source bytes. A group finishes
 only after every selected task has its own verified exit in Plan order. Do not
 submit caller PASS records or a host confirmation string to complete a batch.
 Use the Plan workflow for a semantic steer and the owning read action for an
-informational question. A recipe, tool listing or test count is not completion.''',
-    'plan': '''Read `plan_read` and preserve its revision and document digest.
+informational question. A workflow proposal, tool listing or test count is not completion.''',
+    'manage-project-plan': '''Read `plan_read` and preserve its revision and document digest.
 Follow every page with that explicit revision; never combine pages from different
 revisions. Use the exact task definition from its page when its operation,
 dependency or acceptance contract is needed. For host synchronization, use
@@ -202,7 +202,7 @@ acceptance checks and stop conditions. Keep source registration/preparation
 evidence distinct from sector execution. Prepared source tasks can be adopted
 here; preparation itself does not execute them. Carry an attributed
 `task_mode_binding` into each applicable task when explicit classification
-provided one. Do not infer an execution grant from a recipe or mode query.
+provided one. Do not infer an execution grant from a workflow or classification query.
 
 Read `validation_policy_read` for this project's additional CI checks. An
 unconfigured project inherits no maintainer CI. When the user's work requires
@@ -255,7 +255,7 @@ response needs readback and exact request replay, not a newly invented Plan.
 
 Native Goal creation or completion remains a separate explicit host action.
 Plan completion, a Stop hook or a session closure cannot perform it.''',
-    'source-intake': '''Preserve the user's ordered sources. Use `source_classify`
+    'manage-project-sources': '''Preserve the user's ordered sources. Use `source_classify`
 to inspect the current sector routing, then `source_register` for an authorized
 registration. Local source access needs current path grants; URL metadata is
 not permission to fetch. A code-mode or explicit sector choice must be a
@@ -334,16 +334,16 @@ Read only the reference for the selected source or requested operation:
 - [Research, Artifacts and Custom data](references/research-artifacts-custom.md)
 
 Office coverage is Word, PowerPoint and Excel only. Storage services are separate.''',
-    'canon': '''Read `canon_read` for the selected participants, contracts and
-exchanges. Use `canon_inbox` for project inboxes or an exact receiver's state-filtered packet
+    'exchange-task-evidence': '''Read `task_evidence_read` for the selected participants, contracts and
+exchanges. Use `task_evidence_inbox` for project inboxes or an exact receiver's state-filtered packet
 metadata and attributed decision events. Follow both packet and event cursors;
-raw payloads are excluded. `canon_inspect` checks bounded Canon storage,
+raw payloads are excluded. `task_evidence_inspect` checks bounded task exchange authority storage,
 schema identities, object digests and event history. Report its verified and
 unverified scope; these reads do not attest native tasks or dispatch.
-Use `canon_task_edge_register` to seal an owned task edge with exact destination,
-contract hashes and bounded scope. `canon_task_edge_bind` belongs to the current
+Use `task_evidence_edge_register` to seal an owned task edge with exact destination,
+contract hashes and bounded scope. `task_evidence_edge_bind` belongs to the current
 destination participant; another project's edge is read from its explicitly
-authorized source project. `canon_graph` checks every recorded edge within its
+authorized source project. `task_evidence_graph` checks every recorded edge within its
 budget, allows fan-in and fan-out, rejects cycles, and distinguishes missing local
 returns from source-project state that was not read. It does not prove a complete
 cross-project graph. Include `edge_id` to enforce its exact project/participant
@@ -351,35 +351,35 @@ route, payload schema, input contract and return contract. The destination must
 bind its edge before receiving input or sealing a result. Graph binding does not
 deliver packets, create a task, authorize a subagent, transfer approvals or grant
 any scoped action or tool.
-Use `canon_join` for an authorized participant, `canon_expect` for
-the exact receiver-owned contract, and `canon_send` for a typed packet carrying
-its source evidence. `canon_expect.sender_ids` selects local participants;
+Use `task_evidence_participant_register` for an authorized participant, `task_evidence_expect` for
+the exact receiver-owned contract, and `task_evidence_send` for a typed packet carrying
+its source evidence. `task_evidence_expect.sender_ids` selects local participants;
 `sender_endpoints` pins foreign project/participant identities after authorized
-reads. Set `canon_send.destination_project_id` for a foreign destination: this
+reads. Set `task_evidence_send.destination_project_id` for a foreign destination: this
 only seals an immutable source outbox file. In the destination project use
-`canon_receive` with the exact source project, exchange ID and envelope digest.
+`task_evidence_receive` with the exact source project, exchange ID and envelope digest.
 The receiver must own that participant and have source-project read permission.
 Reception never writes the source. Keep sealed outbox state separate from inbox
-admission. `canon_classify` previews local packets. In the receiver project,
-`canon_packet_classify` previews an exact foreign outbox locator without copying
+admission. `task_evidence_classify` previews local packets. In the receiver project,
+`task_evidence_packet_classify` previews an exact foreign outbox locator without copying
 it or deciding input. Reception rechecks the current receiver contract inside
 the destination transaction. Inbox `admission_at_receipt` preserves the initial
 compatibility evidence even if the current contract later changes. An expected match
 permits automatic admission only when that contract explicitly enables it.
-Undefined or incompatible typed input remains pending. `canon_decide` follows
+Undefined or incompatible typed input remains pending. `task_evidence_decide` follows
 the receiver's current grant and the user's decision. Send
 `incompatible_input_decision: "ACCEPT"` only for an explicit user acceptance of
 that exact incompatible or undefined packet; preserve its mismatch reasons.
-This Canon input decision is separate from removed Project/PV and Learning HIL.
-Use `canon_task_result` with the exact bound edge, original input and typed
+This task exchange authority input decision is separate from removed Project/PV and Learning HIL.
+Use `task_evidence_result` with the exact bound edge, original input and typed
 payload; it derives the destination and return contract. The same edge and
 payload reuse the original result across request IDs. Different original inputs
 under that key conflict; changing expiry cannot renew a sealed packet.
 A foreign result still
-needs `canon_receive` and receiver admission in its source project. The graph
+needs `task_evidence_receive` and receiver admission in its source project. The graph
 counts only that locally admitted exact result. No native task or human decision
 attestation is supplied by the engine-client identity.
-Use `canon_backfire` only for an upstream execution failure, missing source
+Use `task_evidence_input_request` only for an upstream execution failure, missing source
 information, a new source requirement, or linked-task input that needs action.
 Pin a currently admitted input and its envelope digest, the exact recipient,
 requested contract and newer packet revision, evidence, dependencies, return
@@ -388,15 +388,15 @@ sender. Preserve the inherited trace; repeated endpoints are blocked. The same
 recipient, contract and revision reuse the original proposal only for identical
 content. No automatic retry is permitted. A declared third-party return route
 must have a current receiver-owned contract and authorized project reads; its
-eventual reply still needs separate reception and admission. `canon_send` cannot
+eventual reply still needs separate reception and admission. `task_evidence_send` cannot
 bypass the typed backfire operation. Generic clarification remains available.
-Use `canon_supersede` to replace decided input with an exact newer admitted
+Use `task_evidence_supersede` to replace decided input with an exact newer admitted
 exchange on the same route. Pin both envelope digests and the original state
 version. Corrections record their successor link on admission; pending input
 does not displace an earlier decision. Preserve
-corrections, backfire requests, returns and their attribution. Canon exchange
-does not merge project truth, transfer task ownership or replace State Travel.''',
-    'memory': '''Use `memory_read` for bounded FTS/BM25 retrieval and cite its
+corrections, backfire requests, returns and their attribution. task exchange authority exchange
+does not merge project truth, transfer task ownership or replace project handoff.''',
+    'manage-project-memory': '''Use `memory_read` for bounded FTS/BM25 retrieval and cite its
 registered locators and evidence. For one authorized relationship, use
 `project_memory_record_link` with two bounded locator bodies, a supported edge
 type and an evidence reference that exists in its owning lane. The engine
@@ -412,9 +412,9 @@ This bounded update commits with completion; it copies no source payload and
 does not require a second Memory write from the agent.
 No source payloads are copied. `memory_checkpoint` pins the current task/Plan references;
 `memory_rehydrate` reports compatibility and changes for a selected checkpoint.
-Keep host MEMORY.md, instructions, Canon, ChatLineage and Learning separate.
+Keep host MEMORY.md, instructions, task exchange authority, ChatLineage and Learning separate.
 Neither a remembered fact nor a checkpoint proves current native attachment.''',
-    'learning': '''Use `learning_read` to retrieve project-isolated lessons with
+    'manage-project-lessons': '''Use `learning_read` to retrieve project-isolated lessons with
 their verified Delta-exit provenance. Apply only relevant, current lessons.
 For an explicitly selected host-memory reference, use
 `learning_record_host_memory_import` with its source and context hashes and the
@@ -426,7 +426,7 @@ Use `learning_revoke` when authorized to withdraw a particular lesson, retaining
 its history and evidence. New procedural lessons are recorded by the verified
 Delta-exit owner. Do not fabricate an accepted lesson from a host-memory note,
 manually promote an unverified result, or introduce a separate Learning HIL.''',
-    'instructions': '''Use `instructions_inspect` for the selected source-root to
+    'inspect-project-instructions': '''Use `instructions_inspect` for the selected source-root to
 working-directory chain. It preserves override precedence and separates
 instruction hashes, workspace recall and optional host recall. Global/host
 inspection requires the local owner capability. Report absent or oversized
@@ -435,20 +435,20 @@ The result is observed file provenance, not proof of what Codex loaded. Read
 applicable files through authorized host tools when their content is needed.
 Do not write host/workspace memory without explicit user authorization or merge
 these arms into any project authority.''',
-    'project-recipe': '''Select a complete registered source batch and the user's
-requested outcome, then call `project_recipe`. Review the proposed retained
+    'configure-project-workflow': '''Select a complete registered source batch and the user's
+requested outcome, then call `project_workflow_configure`. Review the proposed retained
 sectors, artifact meanings, paired ENV/UOP class policy and execution stages.
 Code, data, documents, media, research, mixed and explicit custom types retain
-their own validation strategy. Follow the selected lane checks; recipe defaults
+their own validation strategy. Follow the selected lane checks; workflow defaults
 never impose this plugin's maintainer CI on an unrelated project.
 Inspect `project_validation_policy` for that project's exact saved revision or
 `not_configured` status. It is configuration evidence, not executed checks or
 permission to modify the Plan. Use the Plan workflow for an authorized policy change.
 Optional explicit modes or a mode request synchronize classification in the
-same proposal while keeping recipe and mode distinct. Treat an inferred project type
-as a proposal; use an explicit type when the user selected one. A recipe does
+same proposal while keeping workflow selection and work classification distinct. Treat an inferred project type
+as a proposal; use an explicit type when the user selected one. A workflow proposal does
 not change the Plan, create a sector or verify current source bytes. Use the
-Plan workflow to incorporate an authorized recipe change into current work.
+Plan workflow to incorporate an authorized workflow change into current work.
 Use `git_mode=AUTO` for an optional repository arm, `REQUIRED` when the outcome
 depends on Git, or `DISABLED` for content-only work. AUTO uses bounded local Git
 metadata when the executable is available; an unavailable or undetected repository
@@ -465,14 +465,14 @@ publication actions only when the user's outcome requires them and their current
 contracts admit the operation. Non-Git content work needs no repository setup.
 The result is complete or fails its explicit byte budget; select a smaller
 registered batch or increase `max_result_bytes` within its schema limit when needed.''',
-    'brain-scaling': '''Collect locators and hashes from the selected owning
-authority, then call `brain_slice_select` with explicit priorities, estimated
+    'retrieve-project-evidence': '''Collect locators and hashes from the selected owning
+authority, then call `project_evidence_select` with explicit priorities, estimated
 token counts and item/token budgets. The deterministic selection preserves
 authority separation and returns metadata only. Its token counts are caller
 estimates; the action does not reverify source contents or measure model tokens.
 Fetch selected evidence through its owning bounded read and retain attribution.
 Do not treat slicing as training or copy multiple authorities into one store.''',
-    'refresh': '''Identify the exact changed sources, authorities and stale lane
+    'refresh-project-evidence': '''Identify the exact changed sources, authorities and stale lane
 views from current evidence. Read the owning current inventories, then inspect
 each exact baseline with `source_snapshot_state`. Register the current selected
 source bytes through Source Intake, preserving the recorded directory selection
@@ -515,7 +515,7 @@ For a semantic change use the Plan steer workflow first. Verified Delta exit
 records Learning and bounded Memory references atomically through their owners.
 It does not automatically reparse every source or render every lane view. Refresh
 does not recreate Overlay, produce accepted-PV archives or request PV HIL.''',
-    'plugin': '''Use `connector_read` to inspect current project connector
+    'inspect-project-connectors': '''Use `connector_read` to inspect current project connector
 registrations, grant versions, exact registered backend bindings and expiry.
 Its lane choices are the physical authority/sector lanes; action profiles are
 listed separately. Use `toolchain_resolve` with the selected owning action and
@@ -524,7 +524,7 @@ external service clients and their explicit configuration from the Engine's
 own lane tools and compute providers. Use `$configure-project-connector` for an
 authorized addition/change and `$revoke-project-connector` for revocation.
 A saved registration is not measured backend execution readiness.''',
-    'additional-plugin': '''Read the selected project's connector state, then
+    'configure-project-connector': '''Read the selected project's connector state, then
 use `connector_configure` for one concrete authorized connector definition.
 Specify its purpose, role schema, actions, physical lanes, read/write roots,
 exact external resource IDs, host, backend ID and exact backend version,
@@ -534,12 +534,12 @@ code or create a new adapter. Pass the expected prior
 version for an update. Do not put credential values in arguments or receipts.
 Read back the registered version and report backend configuration/readiness
 separately. This does not grant new project administration or install tooling.''',
-    'drop-additional-plugin': '''Read `connector_read` to identify the exact
+    'revoke-project-connector': '''Read `connector_read` to identify the exact
 current connector, then call `connector_revoke` under existing authorization.
 Read back its revocation and retain its historical receipts. Do not delete
 project data, revoke a different connector or infer that revocation uninstalls
 the external provider or the shared local toolchain.''',
-    'toolchain': '''Use `toolchain_catalog` for the complete retained shared
+    'select-project-tools': '''Use `toolchain_catalog` for the complete retained shared
 installation requirements and each registered operation's adapter routes.
 Use `toolchain_resolve` with the exact authorized action and, when checking
 target scope, its typed arguments to inspect primary and ordered fallback
@@ -560,7 +560,7 @@ uncertain operation is not automatically retried. SDK responses and Delta
 results include adapter execution evidence and observed dependencies; package
 presence is not proof that the dependency ran. An operation with no equivalent
 alternate reports that explicitly. Call its normal owning workflow to execute.''',
-    'storage': '''Read `storage_connector_inspect` for the hash-verified selection
+    'select-project-storage': '''Read `storage_connector_inspect` for the hash-verified selection
 ledger and current backend evidence. `storage_connector_select` records AUTO,
 LOCAL_SQLITE or CONFIGURED_DURABLE_CONNECTOR with the exact current event digest,
 reason and `SELECT_STORAGE:<MODE>[:<connector_id>]` confirmation from the authorized
@@ -585,49 +585,49 @@ payloads while preserving exact hashes, attributed controls and governed receipt
 Use the Boot workflow to select the registered project. A filesystem path is
 not proof of physical durability. An ephemeral VM needs the verified remote
 transactional route, not a cloud-drive artifact carrier or copied SQLite file.''',
-    'universe': '''Use `universe_inspect` to verify the selected project's coherent
-Root PV, initialized lane databases, schema files, registered content and any
-current natural graph artifacts within the selected budgets. `universe_query`
+    'inspect-project-evidence-map': '''Use `project_evidence_map_inspect` to verify the selected project's coherent
+project evidence head coordinator, initialized lane databases, schema files, registered content and any
+current natural graph artifacts within the selected budgets. `project_evidence_map_query`
 reads a bounded attributed graph of the actual lanes, Plan tasks, Sources and
 project links. Follow disclosed offsets or reduce selected graph categories.
-Read `linked_projects_read`; use `project_link` and `project_unlink` for explicit
-links under current project grants. `universe_links_verify` checks their bounded
-history without claiming current target access. `cross_project_query` reads
+Read `project_evidence_links_read`; use `project_evidence_link` and `project_evidence_unlink` for explicit
+links under current project grants. `project_evidence_links_verify` checks their bounded
+history without claiming current target access. `linked_project_evidence_query` reads
 separately authorized owner queries in place. A link does not grant access.
 For a topology export, discover `universe.topology` through `lane_view_catalog`,
 preview its current source binding and use `lane_view_refresh` for only the
-selected Mermaid/DOT formats. Exact Root PV coordinates remain in the live
+selected Mermaid/DOT formats. Exact project evidence head coordinator coordinates remain in the live
 inspection; topology exports do not include their own publication effects.
 Readback reports stale or historical files without automatically refreshing.
 Keep per-project Universe, federation, and connector grants separate.''',
-    'bigger-universe': '''Select a separate coordinator project and use
-`bigger_universe_create` for the named federation. The coordinator cannot be a
+    'link-project-evidence-network': '''Select a separate coordinator project and use
+`project_evidence_network_create` for the named federation. The coordinator cannot be a
 member. Its Universe SQLite owns federation metadata; each member retains its
-own separate Universe, Root PV, lane databases and files. Require coordinator
+own separate Universe, project evidence head coordinator, lane databases and files. Require coordinator
 write permission and current read selections for every referenced member.
-Inspect each member with `universe_inspect`, then use `bigger_universe_register`
+Inspect each member with `project_evidence_map_inspect`, then use `project_evidence_network_register`
 with the exact snapshot hash and current registration version. The engine
 derives and verifies the hashes, advances only changed lane references and
 preserves historical mini-brain identities. Unchanged registration is a read.
-Use `bigger_universe_grant` for one explicit expiring relation between two
-registered member references, then `bigger_universe_link` with that grant ID
+Use `project_evidence_network_grant` for one explicit expiring relation between two
+registered member references, then `project_evidence_network_link` with that grant ID
 and named SHA-256 evidence only. A caller's arbitrary hash is not a grant.
-`bigger_universe_revoke` withdraws mutation authority and preserves history.
-`bigger_universe_read` returns bounded recorded references; its read does not
-claim current member access. `bigger_universe_verify` checks bounded stored
+`project_evidence_network_revoke` withdraws mutation authority and preserves history.
+`project_evidence_network_read` returns bounded recorded references; its read does not
+claim current member access. `project_evidence_network_verify` checks bounded stored
 integrity. Discover the `universe.federation` lane view to preview/export the
 hash-reference graph, including history when selected. Registration captures
 one member's coherent snapshot; it does not promise simultaneous freshness
 across projects. Never copy raw member payloads or merge Project Truth.''',
-    'state-travel': '''Read `continuation_read` and `continuation_context` for the
+    'handoff-project-work': '''Read `continuation_read` and `continuation_context` for the
 current exact project participants and Plan contract. At a safe boundary use
 `continuation_offer` for the explicitly selected destination. The destination
 uses `continuation_accept` with the exact offer digest; cancellation uses its
 own current contract. Preserve attribution and keep the source closeout-only
 after transfer. Bind the resumed project session through the Boot skill.
-The offer seals the complete bounded pending Canon locator set for all
-transferred participants. Changed Canon activity requires a fresh offer.
-`continuation_context` distinguishes that sealed context from current Canon;
+The offer seals the complete bounded pending task exchange authority locator set for all
+transferred participants. Changed task exchange authority activity requires a fresh offer.
+`continuation_context` distinguishes that sealed context from current task exchange authority;
 `continuation_read` exposes the complete checkpoint. No receiver decision is
 replayed. Historical offers without this checkpoint must be cancelled and
 replaced before transferring ownership.
@@ -637,7 +637,7 @@ checkpoint. When the request requires native task identity or same-worktree
 continuity, set `require_native_attestation=true` on the offer. An unavailable
 attestation stops that transfer; do not turn the flag off to obtain success.
 Do not restart the host or create a substitute task to bypass this boundary.''',
-    'recover': '''For an uncertain job, use `job_recovery_inspect` to read its
+    'recover-project-state': '''For an uncertain job, use `job_recovery_inspect` to read its
 effect heads. `job_reconcile_effect` requires the exact effect digest, current
 Plan revision in both request and envelope, and a granted admin connection.
 It reuses a committed execution confirmation or observes the prepared local
@@ -653,7 +653,7 @@ Plan; this operation never declares task or Goal success.
 
 Use `project_recovery_inspect` and the exact recovery records
 before acting. `project_backup` creates a coherent snapshot of separate lanes;
-it includes Root PV, all initialized lane databases, registered content,
+it includes project evidence head coordinator, all initialized lane databases, registered content,
 schema history and historical natural views. `project_backup_verify` verifies
 the selected backup. Offline database recovery requires a stopped Engine and
 a fresh state root. Use the configured plugin Python with the packaged
@@ -673,17 +673,17 @@ After uncertainty, use `git_restore_reconcile`, `restoration_read` or the
 specific abandonment/continuation recovery action. Do not replay mutations,
 overwrite the live checkout, revive PV rollback or treat an artifact upload as
 transactional live state. Keep recorded gaps and user decisions explicit.''',
-    'exit-boot': '''Read `session_status` and require the exact active session
+    'close-project-session': '''Read `session_status` and require the exact active session
 ID, generation and event digest. Finish or safely checkpoint pending work and
 uncertain effects, then use `session_exit` with the user's closure reason.
 Read back closed state and detached capture. If also requested, use
 `project_deselect` with its exact permissions to revoke this client selection.
 Use `session_exit_boundary` when distinguishing closure from ordinary append,
-native State Travel or Goal completion. It verifies exact supplied local
+native project handoff or Goal completion. It verifies exact supplied local
 references and reports absent native evidence; it never emits a terminal receipt.
 Closing a session does not remove project state, uninstall tools, stop the
 shared Engine or change unrelated clients or native Goal status.''',
-    'lifecycle': '''Route project entry through Boot, planning through Plan,
+    'run-project-lifecycle': '''Route project entry through Boot, planning through Plan,
 ordered sources through Source Intake, and implementation through Build and
 the owning lane workflows. Keep each first-class skill separate and inspect
 its live actions instead of creating a generic replacement workflow.
@@ -717,7 +717,7 @@ Project Memory index contributes up to four exact locator references through
 its own checkpoint and rehydrate APIs; raw Memory content is not replayed.
 An altered session, Plan, source-bound mode or relevant lane head requires
 fresh owning reads. Never reconstruct authority from a conversation summary.
-Handle queries, steers, verified exits, State Travel, recovery and closure
+Handle queries, steers, verified exits, project handoff, recovery and closure
 through their exact owners. Preserve project isolation, one writer and truthful
 status through the complete lifecycle.''',
 }
@@ -725,7 +725,7 @@ status through the complete lifecycle.''',
 
 # Conditional procedure content is authored once and packaged as linked references.
 REFERENCES = {
-    'source-intake/code.md': '''# Code
+    'manage-project-sources/code.md': '''# Code
 
 Code has separate Local Code and GitHub Code databases. Source registration
 does not build a Code index. Read `code_current`, then use `code_index` through
@@ -736,7 +736,7 @@ the indexed bytes come from its Git blobs, preserving checkout conversions.
 Use `code_query`, `code_read` and `code_impact` on an exact snapshot. Impact
 describes bounded static import paths, with unresolved edges disclosed.
 `code_query` supports literal `match_mode=all` or `any` and a parser `receipts`
-collection. Use `pv_summary` for verified counts and changes of one exact Code
+collection. Use `code_snapshot_summary` for verified counts and changes of one exact Code
 snapshot. `fetch` reads `file:<relative path>` or the exact `chunk:<digest>`
 returned by a Code query. Text uses bounded line windows; binary uses base64
 pages with `byte_offset` and `next_byte_offset`. Stored snapshot bytes do not
@@ -777,7 +777,7 @@ Generate Code MMD/DOT/pointer exports only for a requested consumer through
 `lane_view_preview` and `lane_view_refresh`; use scope.query for an exact Code
 scope ID when the project has several indexed source selections.
 ''',
-    'source-intake/documents.md': '''# Word documents
+    'manage-project-sources/documents.md': '''# Word documents
 
 Documents own a separate Docs database and versioned natural files. Use
 `document_index` for DOCX/DOTX, ODT and supported UTF-8 text formats; use
@@ -808,7 +808,7 @@ Do not equate conversion completion with Word layout equivalence. The conditiona
 `docs.structure` MMD/DOT/pointer view links native items; it does not supply page
 numbers or replace natural document artifacts.
 ''',
-    'source-intake/spreadsheets-data.md': '''# Excel and structured data
+    'manage-project-sources/spreadsheets-data.md': '''# Excel and structured data
 
 Excel and structured data own separate databases and versioned files.
 Use `spreadsheet_index` for native XLSX/XLSM/XLTX/XLTM structures and
@@ -858,7 +858,7 @@ after the confirmed write preserves the effect journal and blocks completion;
 do not automatically replay it. The conditional `data_excel.structure` and
 `data.structure` views retain their selected scope and MMD/DOT/pointer formats.
 ''',
-    'source-intake/presentations.md': '''# PowerPoint presentations
+    'manage-project-sources/presentations.md': '''# PowerPoint presentations
 
 Presentations own a separate PPT database. `presentation_index` and
 `presentation_refresh` preserve exact PPTX/PPTM/POTX/PPSX bytes, declared slide
@@ -895,7 +895,7 @@ default. Intake still preserves these packages without executing them.
 The conditional `ppt.structure` MMD/DOT/pointer view links exact slide,
 notes and object locators; it is separate from rendered slide pages.
 ''',
-    'source-intake/tableau.md': '''# Tableau
+    'manage-project-sources/tableau.md': '''# Tableau
 
 Tableau owns a separate database and immutable TWB/TDS/TWBX/TDSX/Hyper bytes.
 `tableau_index` and `tableau_refresh` preserve source XML and package members,
@@ -918,7 +918,7 @@ Use `index_refresh.result.snapshot_id` for the renewed destination. The
 `tableau.structure` MMD/DOT/pointer view carries document and extract locators,
 not rendered charts. Native Hyper operations use the pinned Windows backend.
 ''',
-    'source-intake/power-bi.md': '''# Power BI
+    'manage-project-sources/power-bi.md': '''# Power BI
 
 Power BI owns its separate database, immutable source files and derived versions.
 Use `powerbi_index` or `powerbi_refresh` with an exact primary filename and any
@@ -955,7 +955,7 @@ The conditional
 `power_bi.structure` view carries exact model/report locators and source versus
 native-metadata locator meanings; its MMD/DOT/pointer files are not report charts.
 ''',
-    'source-intake/pdf-ocr.md': '''# PDF and OCR
+    'manage-project-sources/pdf-ocr.md': '''# PDF and OCR
 
 PDF/OCR owns its own SQLite, original PDFs and immutable derivatives. Use
 `pdf_index`/`pdf_refresh` for exact files and page budgets; the default text
@@ -987,7 +987,7 @@ incomplete conversion is rejected without publishing. `pdf_enrichment_read`
 reads that exact separate projection. `pdf_ocr.structure` preserves page,
 field/widget and OCR locators in distinct MMD, DOT and pointer files.
 ''',
-    'source-intake/media.md': '''# Images and media
+    'manage-project-sources/media.md': '''# Images and media
 
 Images/media has its separate `images_ocr` database and files. Use
 `media_index`/`media_refresh` for raster frames, passive SVG facts or bounded
@@ -1024,8 +1024,8 @@ decoding or timestamp accuracy. The public limits and live tool readiness still
 apply; only metadata and passive structure are available without the matching
 transformation or OCR route.
 ''',
-    'source-intake/research-artifacts-custom.md': "# Research, Artifacts and Custom data\n\nFor multiple Custom lanes, register each `custom__<name>` instance with\n`custom_lane_configure`, choosing its explicit retained parser, accepted file\nextensions, byte bound and selected SQLite table/row bounds. Sources keeps the\nimmutable adapter contract; each instance owns its database, files and schema\nhistory. Inspect current or historical contracts with `custom_lanes_read`.\nUse profile `custom` and the existing Custom actions with the exact `lane_id`,\n`parser` and returned `adapter_contract` in the Plan task arguments. Source\npreparation accepts those parser options under the named lane's `lane_options`.\nVersion a registration with its exact `expected_contract`, then refresh affected\nPlan contracts before continuing; stale adapter selections stop before parsing.\nThe source-schema compiler still maps sealed metadata through `source_schema_map`\nand `source_schema_configure`. Named lanes do not load arbitrary parser code or\nreplace the separate optional-connector grant workflows. Their navigation view\nis `<lane_id>.structure`, with each export kept in that instance's folder.\n\nResearch, Artifacts and Custom keep separate source snapshots and typed facts.\nFor their local files use `research_index`, `artifacts_index` or `custom_index`;\nuse the corresponding `_index_media` action for images, SVG or audio/video.\nThese actions run within the selected Plan task. Supply its exact current\n`expected_snapshot` when refreshing, retain the selected Sources occurrence\nreceipt, and use the matching `_refresh` or `_refresh_media` operation. The engine\nchooses the format parser and its declared tools. An explicit PDF backend keeps\nits own fidelity; do not silently retry another parser after invocation.\nUse each lane's `_current`, `_query` and `_read`, or the shared lane search/fetch\nreaders, for bounded historical evidence. Reads do not recheck live sources.\nResearch question/finding/citation labels and Custom decision/next labels are\nunvalidated source assertions. Artifacts preserves file metadata, notebook cells,\nsaved-output hashes and actual media probes. PowerPoint packages use the native\npresentation parser and retain its slide, note, shape and relationship locators.\nNative text extracts retain their exact hash and fact reference without duplicate\nsearch entries. A missing text extract has an explicit Artifact review record;\narchive filenames and media metadata alone do not establish content extraction.\nNotebook code and imported SQL are\npassive; saved outputs are not verified computations. ZIP intake inspects only\nits directory and reports unsafe members without extracting them. Selected\nSQLite intake rejects an active WAL/journal and requires a complete bounded\nDELETE-journal image. It inspects fixed metadata and only explicitly named\nordinary-table rows; it does not query imported views or virtual tables.\n\nFor a requested source relationship export, discover `research.structure`,\n`artifacts.structure` or `custom.structure` through `lane_view_catalog`.\nPreview the exact source binding, using `scope.query` for a source ID, and export\nonly the requested MMD/DOT or lane-specific navigation pointer. Research keeps\nlocal files, captured pages, saved-byte extraction provenance and unvisited\nsearch results distinct. Artifacts lists extracted evidence, passive archive\nmembers and review states. Custom preserves source assertions and inspected\nSQLite tables, foreign keys and selected row locators. These views neither\nvalidate claims nor apply source decisions to the Plan. Read existing exports\nto detect stale source bindings; `lane_view_refresh` is the explicit refresh.\n\nFor a selected web URL, use `research_web_capture` within the current Research\ntask and its live network grant. HTTPX and Requests are ordered readiness choices\nbefore invocation; a failed request does not trigger a retry or another transport.\nBind a repeated capture to the URL's exact `expected_snapshot`. Response wire\nbytes, decoded body, redirects and observation times stay in the Research lane.\nThe engine does not execute page scripts or follow links and child resources.\nUse `research_web_extract` for a richer projection of a saved HTML snapshot.\nIts default `auto` selects the first ready declared algorithm within the task's\npermitted tools; an explicit extractor keeps that selection exact. Preserve the\ncurrent URL selector. Extraction is offline and retains the original capture.\nUse the returned stored-source `logical_name` for shared `lane_fetch`; the URL\nis separate provenance. Research's existing readers search both local files and\nweb snapshots. Historical reads do not claim the remote page is still current.\nCaptured HTML citations use the first declared HTTP(S) base URL for relative\nlinks. Inspect `citation_resolution` in the snapshot metadata for the chosen\nbasis and omitted links. Unsupported bases do not produce guessed relative\ncitations. These are static resource URLs without fragments; browser DOM repair,\nCSP and script-driven base changes are outside this saved-byte projection.\nUse `research_web_discover` for a bounded source search through the selected DDGS\nproviders. It preserves the provider response bundle and attributed snippets in\nResearch; a result URL is an unvisited locator, not an ingested target document.\nProvider rejections and partial coverage stay explicit. Search results do not\nvalidate their claims. Inspect the typed Research citations, select relevant\nURLs, and capture those targets as separate source-intake operations. Each\nprovider has measured availability only when that actual request succeeds.\nObserve each action's byte, item, table and row limits. Unknown binary formats\nretain exact bytes with a review state; that is not successful content extraction.\nThese local parsers do not establish working web fetch/discovery, rich HTML\nextraction or a complete project refresh. Check those distinct action routes.\n",
-    'lifecycle/git.md': '''# Git enrollment, synchronization and branch publication
+    'manage-project-sources/research-artifacts-custom.md': "# Research, Artifacts and Custom data\n\nFor multiple Custom lanes, register each `custom__<name>` instance with\n`custom_lane_configure`, choosing its explicit retained parser, accepted file\nextensions, byte bound and selected SQLite table/row bounds. Sources keeps the\nimmutable adapter contract; each instance owns its database, files and schema\nhistory. Inspect current or historical contracts with `custom_lanes_read`.\nUse profile `custom` and the existing Custom actions with the exact `lane_id`,\n`parser` and returned `adapter_contract` in the Plan task arguments. Source\npreparation accepts those parser options under the named lane's `lane_options`.\nVersion a registration with its exact `expected_contract`, then refresh affected\nPlan contracts before continuing; stale adapter selections stop before parsing.\nThe source-schema compiler still maps sealed metadata through `source_schema_map`\nand `source_schema_configure`. Named lanes do not load arbitrary parser code or\nreplace the separate optional-connector grant workflows. Their navigation view\nis `<lane_id>.structure`, with each export kept in that instance's folder.\n\nResearch, Artifacts and Custom keep separate source snapshots and typed facts.\nFor their local files use `research_index`, `artifacts_index` or `custom_index`;\nuse the corresponding `_index_media` action for images, SVG or audio/video.\nThese actions run within the selected Plan task. Supply its exact current\n`expected_snapshot` when refreshing, retain the selected Sources occurrence\nreceipt, and use the matching `_refresh` or `_refresh_media` operation. The engine\nchooses the format parser and its declared tools. An explicit PDF backend keeps\nits own fidelity; do not silently retry another parser after invocation.\nUse each lane's `_current`, `_query` and `_read`, or the shared lane search/fetch\nreaders, for bounded historical evidence. Reads do not recheck live sources.\nResearch question/finding/citation labels and Custom decision/next labels are\nunvalidated source assertions. Artifacts preserves file metadata, notebook cells,\nsaved-output hashes and actual media probes. PowerPoint packages use the native\npresentation parser and retain its slide, note, shape and relationship locators.\nNative text extracts retain their exact hash and fact reference without duplicate\nsearch entries. A missing text extract has an explicit Artifact review record;\narchive filenames and media metadata alone do not establish content extraction.\nNotebook code and imported SQL are\npassive; saved outputs are not verified computations. ZIP intake inspects only\nits directory and reports unsafe members without extracting them. Selected\nSQLite intake rejects an active WAL/journal and requires a complete bounded\nDELETE-journal image. It inspects fixed metadata and only explicitly named\nordinary-table rows; it does not query imported views or virtual tables.\n\nFor a requested source relationship export, discover `research.structure`,\n`artifacts.structure` or `custom.structure` through `lane_view_catalog`.\nPreview the exact source binding, using `scope.query` for a source ID, and export\nonly the requested MMD/DOT or lane-specific navigation pointer. Research keeps\nlocal files, captured pages, saved-byte extraction provenance and unvisited\nsearch results distinct. Artifacts lists extracted evidence, passive archive\nmembers and review states. Custom preserves source assertions and inspected\nSQLite tables, foreign keys and selected row locators. These views neither\nvalidate claims nor apply source decisions to the Plan. Read existing exports\nto detect stale source bindings; `lane_view_refresh` is the explicit refresh.\n\nFor a selected web URL, use `research_web_capture` within the current Research\ntask and its live network grant. HTTPX and Requests are ordered readiness choices\nbefore invocation; a failed request does not trigger a retry or another transport.\nBind a repeated capture to the URL's exact `expected_snapshot`. Response wire\nbytes, decoded body, redirects and observation times stay in the Research lane.\nThe engine does not execute page scripts or follow links and child resources.\nUse `research_web_extract` for a richer projection of a saved HTML snapshot.\nIts default `auto` selects the first ready declared algorithm within the task's\npermitted tools; an explicit extractor keeps that selection exact. Preserve the\ncurrent URL selector. Extraction is offline and retains the original capture.\nUse the returned stored-source `logical_name` for shared `lane_fetch`; the URL\nis separate provenance. Research's existing readers search both local files and\nweb snapshots. Historical reads do not claim the remote page is still current.\nCaptured HTML citations use the first declared HTTP(S) base URL for relative\nlinks. Inspect `citation_resolution` in the snapshot metadata for the chosen\nbasis and omitted links. Unsupported bases do not produce guessed relative\ncitations. These are static resource URLs without fragments; browser DOM repair,\nCSP and script-driven base changes are outside this saved-byte projection.\nUse `research_web_discover` for a bounded source search through the selected DDGS\nproviders. It preserves the provider response bundle and attributed snippets in\nResearch; a result URL is an unvisited locator, not an ingested target document.\nProvider rejections and partial coverage stay explicit. Search results do not\nvalidate their claims. Inspect the typed Research citations, select relevant\nURLs, and capture those targets as separate source-intake operations. Each\nprovider has measured availability only when that actual request succeeds.\nObserve each action's byte, item, table and row limits. Unknown binary formats\nretain exact bytes with a review state; that is not successful content extraction.\nThese local parsers do not establish working web fetch/discovery, rich HTML\nextraction or a complete project refresh. Check those distinct action routes.\n",
+    'run-project-lifecycle/git.md': '''# Git enrollment, synchronization and branch publication
 
 For selected-branch work, read `git_branch_authority` and use `git_sync_selected`
 under the exact Code task. Supply the starting and target commits, selected
@@ -1085,7 +1085,7 @@ projects do not inherit that website rule.
 def body(workflow, *, lifecycle_skill):
     if workflow.name not in BODIES:
         raise ValueError('Author the new first-class workflow instructions before generating skills')
-    shared = ('references/shared-boundaries.md' if workflow.name == 'lifecycle' else
+    shared = ('references/shared-boundaries.md' if workflow.name == 'run-project-lifecycle' else
               '../' + lifecycle_skill + '/references/shared-boundaries.md')
     return ('\n# ' + workflow.title + '\n\nRead [' + 'shared boundaries](' + shared + ') before using the workflow.\n'
             'Use [owned action references](references/actions.json) and the live MCP schemas for exact arguments.\n\n'

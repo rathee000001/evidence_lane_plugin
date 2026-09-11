@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "3b360be589371980cba8eac13993fa627addc18b1360757b7203f32ea2b68278",
+  "action_set_digest": "5c5ef7dd051d722dc4f99c5bdc3912c17657b3676b3490aa2613e9b112540bde",
   "actions": [
     {
       "cross_project_read": false,
@@ -31,8 +31,8 @@
     },
     {
       "cross_project_read": false,
-      "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or State Travel proof cannot become a terminal receipt.",
-      "input_schema_digest": "872626efbbe916b6ff13a64f30c9438f619927cc9ffd53e22f607418f6f2eba6",
+      "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.",
+      "input_schema_digest": "482c760f0f1a040f64501e30692879c3483346be7cf17c322651864e7ec42702",
       "mutates": false,
       "name": "session_exit_boundary",
       "output_schema_digest": "2abcbdba6473ad87666780c365ce666809c13b42c29a78d8e998539ef94856d9",
@@ -48,5 +48,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "exit-boot"
+  "workflow": "close-project-session"
 }

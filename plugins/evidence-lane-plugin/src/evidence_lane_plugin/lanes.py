@@ -635,7 +635,7 @@ _AUTHORITIES = (
                ('lineage_chunks', 'lineage_events', 'lineage_fts'),
                ('append_visible_event', 'query', 'bind_capture', 'handoff', 'verify'), 'tasks_visible_events_ancestry_steers_handoffs',
                'src/evidence_lane_plugin/lineage.py', aliases=('lineage',)),
-    _authority('canon', 'Canon', ('canon',), ('canon_contract_current', 'canon_contracts', 'canon_events', 'canon_exchanges', 'canon_participants', 'canon_supersessions', 'canon_task_edges', 'canon_task_edge_bindings'),
+    _authority('canon', 'task exchange authority', ('canon',), ('canon_contract_current', 'canon_contracts', 'canon_events', 'canon_exchanges', 'canon_participants', 'canon_supersessions', 'canon_task_edges', 'canon_task_edge_bindings'),
                ('offer', 'inspect', 'decide', 'supersede', 'return_result', 'verify'), 'typed_exchanges_consequences_and_receiver_decisions',
                'authorities/canon_input/schema.sql', aliases=('canon_input',)),
     _authority('memory', 'Project Memory', ('memory',), ('memory_checkpoints', 'memory_edges', 'memory_events', 'memory_fts', 'memory_locators'),
@@ -856,7 +856,7 @@ def lane_schema_evolution_contract(lane_id: str) -> dict[str, Any]:
     return {'schema': LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA, 'lane_id': lane.canonical_lane_id,
                 'database': lane.database_relative_path, 'history': lane.schema_history_relative_path,
                 'immutable_applied_migrations': True, 'source_preserving_migration': True,
-                'publication': 'Root PV selects verified heads after the coordinated commit',
+                'publication': 'project evidence head coordinator selects verified heads after the coordinated commit',
                 'implicit_legacy_migration': False}
 
 

@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.lane_reader",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "lane_catalog",
+    "lane_fetch",
+    "lane_search",
+    "lane_status",
+    "linked_project_evidence_query"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 36721,
+    "path": "src/evidence_lane_plugin/lane_reader.py",
+    "sha256": "054311f52eb72a039b60ba2bfd8d375295662308f7cded6bc067ace416468b9d"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

@@ -1,13 +1,13 @@
 {
   "action": "connector_configure",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/connector_configure.action.v4.json",
-  "sdk_binding_sha256": "924ee374b6752dccf78a32c37d584eab3466eca7d301451d93ec28156868efac",
+  "sdk_binding_sha256": "e3533d1492cef778e22983cfc6d83a0371d15f58a0dc22003c7a3b46512d8545",
   "tool": {
     "annotations": {
       "destructiveHint": true,

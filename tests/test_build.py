@@ -15,7 +15,7 @@ def plugin(tmp_path):
         json.dumps(
             {
                 "name": "evidence-lane-plugin",
-                "version": "4.0.1",
+                "version": "4.0.2",
             }
         )
     )
@@ -38,7 +38,7 @@ def test_caches_are_not_packaged(plugin):
     assert package_contents(plugin) == first
 
 
-@pytest.mark.parametrize('folder', ['authorities', 'authorities/project_authority', 'env', 'uop', 'sdk', 'mcp', 'schemas', 'manifests', 'toolchains'])
+@pytest.mark.parametrize('folder', ['authorities', 'authorities/project_authority', 'env', 'uop', 'sdk', 'mcp', 'schemas', 'manifests', 'toolchains', 'studio'])
 def test_identity_covers_all_executable_contract_layers(plugin, folder):
     target = plugin / folder / 'contract.json'
     target.parent.mkdir(parents=True)

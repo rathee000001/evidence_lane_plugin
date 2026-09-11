@@ -1,6 +1,9 @@
 interface:
   display_name: "Configure project workflow"
   short_description: "Configure project work from sources and outcome"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $configure-project-workflow to configure work for my sources and requested outcome."
 dependencies:
   tools:

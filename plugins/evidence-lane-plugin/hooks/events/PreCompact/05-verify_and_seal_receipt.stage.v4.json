@@ -1,0 +1,11 @@
+{
+  "automatic_retry": false,
+  "capture_only": true,
+  "event": "PreCompact",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
+  "implementation": "hook_receipts.seal_hook_receipt",
+  "ordinal": 5,
+  "owner": "hook_receipts",
+  "schema": "evidence-lane.native-hook-stage.v4",
+  "stage": "verify_and_seal_receipt"
+}

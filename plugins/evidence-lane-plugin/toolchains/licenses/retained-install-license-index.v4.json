@@ -10,7 +10,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f99f5f8ef16710372748d2fa118ef3e52c37ca4646b1d218766560aa06b90021",
+      "evidence_sha256": "42f4ca4ad840f901f47123b25b6c6c527d2086aa19d54d77942a33ce954b9811",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_portable_git",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -21,7 +27,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "af27f3c09dbe145cf063bc623fb59e6b11cb8d2c1bba0322432842126f521094",
+      "evidence_sha256": "9e48ea700203bbf6cd89fd410b224f08d383b6c06aa5e62e2fd6ffaf682359cc",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "pinned_shared_engine_and_tool_interpreters",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -32,7 +44,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/003-hashlib-pathlib/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "52fa65d413c84a786742d89e5555179ca8a3cde9ea9991fedd82a225e6c02538",
+      "evidence_sha256": "28d484f29867b60a62fe3f00bd5e911bafc25bccf50a77199c92dba221140ba4",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -43,7 +61,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2a71c3a5769e9f14a05b7e70750720c853d2bf971f2e8f5ae20456623a76e943",
+      "evidence_sha256": "1c997ba644c6e8965d3a7b01f3d7d5f16d0117dea72cfc116ffbc635dc32fc3f",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -54,7 +78,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "22b0d2def5c759e2af8f9c28f347bd8064c0d6a1eb869205f701fb3a57de87c7",
+      "evidence_sha256": "015913ea7c26bc5a8da22bf5d0e0ffecb410d56e1230a1c3e660801ed59f85be",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -65,7 +95,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "03c0b67047ef3f3e491e1726fed9972f5f35dce27e502eeb292cc02c934dd8a4",
+      "evidence_sha256": "57e41bb9152fb4ec3bdb4a8919f29751424a71ba6ba0ddd52883272e4a1c1700",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -76,7 +112,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/007-deterministic-tfidf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "46cf115a2ccaacbea9b2441889a10fafcbe09a019a9062b2d5dbf1717dc4f141",
+      "evidence_sha256": "62137ca754f8ad10b677bf4f7a6ea9bdf86a67696c64046b260bc9250bfbefe3",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -87,7 +129,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bb821a3f6f5b49ed0d92de9eef99d3372b709ac9354a12abfb689108a568bc10",
+      "evidence_sha256": "5a88d4f325e21c448eb9e5569c251fb823b4e1209e99bb37a9f2998f73d3ae04",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -98,7 +146,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c7b852079dfa86285ba61f25dca6169d215f73345bae33b3a1dd2445db8072ba",
+      "evidence_sha256": "31c11412e9e34ba47f48af4fdd6ec5d431c81ff4dabd724dedf981925751af54",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -109,7 +163,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "81abcf84b70a85758243d253a558859666262813d7592a9a233509879731bc6d",
+      "evidence_sha256": "f3a344e5ea64ae6836b3345646e355f35e2a93fd094d5cead6cd6ebdf8b5f7a8",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -120,7 +180,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8e1c2355e73f51ed2596a44ab1e462c5fea035b4b08b24d3d8a9ed02306801c7",
+      "evidence_sha256": "a3fd7ae073d7ababbd9e9bea47994dfaad1276c1441f5b17ec3012d6139813d5",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
+      "studio_bundle_component": "node-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -131,7 +197,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/012-graphviz-dot/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "93d5aa9fd1e484204a7d5db7c4d4bb67928a442bc9ebb5acdb10f289ae89975e",
+      "evidence_sha256": "c3bc86599c1abf303c2eb0854a086c4dafdf101037d8d101a5afeff174be649a",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -142,7 +214,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/013-python-structural-parser/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "5e37303bb377936b1259980116600b4b73151ebd0658d92c64c7e494200dbb44",
+      "evidence_sha256": "963225e7a3a7f1eb0ff9650baba3180fc76c9a39ced6c2be66555efe66214faa",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -153,7 +231,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/015-nodejs-typescript/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0da46d82efbe016e0a75f9587141b91c5ae25d02bfc915b141e3966069a156e5",
+      "evidence_sha256": "a1477b76934fe13efd651aea149297f5dc48a5969035bb514caff48ca8a0ba82",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
+      "studio_bundle_component": "node-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -164,7 +248,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ea9f72189d667a3fdd9c7d741da5777930a284d5e99f29a6e4ac11ea5320ac81",
+      "evidence_sha256": "5a9fc89b555e86d83dd8e407bd1f7f2124b51445f7d011138e0f9d742d557718",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -175,7 +265,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "436b132e1ca1597a92f8b85bd71e5147c77c86ba6ff62a15b2a23de1d571ce05",
+      "evidence_sha256": "36b416b88b8c3ee91954b0c7a06186d07c42ca497b85d4b9a1324d8301d1fe86",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -186,7 +282,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ac477818e44f7ccad8348088bfe00ebe85b5e2fa20c96c2d14e7dc66b7965386",
+      "evidence_sha256": "e8d0604c821d8e395c7f26fa89f285219ed9fc993fbf616e4cd29de693be5662",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -197,7 +299,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/019-secret-redactor/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d58af6468aa9acb65d92239dc18f1d56c3322b6dd2095a2b4ac1ba71c98f2e4f",
+      "evidence_sha256": "3a50d34e344a4096162a5a48f6b767310451e729d0bc5fbf919c0a2f516a6f12",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -208,7 +316,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/020-hash-chain-writer/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "010b0a6fe6db7777b31762e3068cfc6e1f331d5265841422bfb243233c60821a",
+      "evidence_sha256": "1152f1a70c8ad00e9952d4f74581f2191fc7c5bd66c5be8a04ea7daa228309ec",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -219,7 +333,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/021-env-uop-classifier/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "59d58db2ad88e582537836a2fc19e71a2cb022cae815e43a587363c1a1092148",
+      "evidence_sha256": "d572471a4d949c7a44e60994d7810ea9b0d7b7148f72ba3a7f22403f628dfe7d",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -230,7 +350,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/023-docx-openxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8888724f250d54cb21e8dc6e08b5922ccc92b43ebcc0afcc147d0219e8530396",
+      "evidence_sha256": "26714aa6f7b1226b4022f3794f709a8a4498c641238401c3b97c3350d8e66c2b",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -241,7 +367,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "13c31445b77a53f37f1ac5be522575b12e126481cfc6c3ec50a434b9df474fab",
+      "evidence_sha256": "05768d2362345043b055879fb71e1200034501a39584300ee459ebf69cc7ba94",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -252,7 +384,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/025-openxml-csv-json-parser/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "83514628e1cdc33e8ea3c4d5a4e1dfac7d54014ffa017b280152295e113ddd40",
+      "evidence_sha256": "dffa95aaa279625b7be29fb066603496b4c4b668006df2673834869775fdc577",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -263,7 +401,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0bc6d53873c91da113c59d0160f098ecc89eb051e0356fa4d3a03428ae463e59",
+      "evidence_sha256": "f4bdbe1245dc13e4132b4a674ab013df588646f7c1221ec41e73f44c670235ce",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -274,7 +418,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7d16726b77a59f56dd83c260109b7a20cd72bae37b54327b8d2ed7e266906a4c",
+      "evidence_sha256": "dcfcf2183e364622bf57857eb35852bfff3eb9122a695b1e4c7c8c01f3976f10",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -285,7 +435,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f47254c479c7f9737cd2cb9006212871b70db12768e3926600f1499f162ac17e",
+      "evidence_sha256": "f4cb61f833abd951f013d622c885611460c33668b4b34a8c8b6d5152638aefab",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -296,7 +452,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a848d55fa59f468ef99751c087300ce7dd8333f6c82c5c66666b4509b1b8694b",
+      "evidence_sha256": "a501eae1968be0f29de6f304af72674c08e10fd64fc0c37fbb0ac87bf0647111",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -307,7 +469,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/030-pptx-openxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ab9c9e2223554a158b2f96b26d2cef8ee54e4939c18f4a66e5fde0cb2b3c004f",
+      "evidence_sha256": "1ea8de41a3b3952b7ce15c6eee50608ef1c393d98468735a6b7aaffd1436f4c2",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -318,7 +486,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8311fdbc4b812c82937b32e36ea4694c3126e3278101d53e37e77ac7a089603b",
+      "evidence_sha256": "3682d7ffddb435706850ec0e4e2c669506b52c24a4c11f0d44dfbe12f26ae43d",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -329,7 +503,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "1a7c6a87bd44f8ca76d68b1a810004a580ec454b4414038539f23dc5100ec7ec",
+      "evidence_sha256": "0fdaa68cb82ea02a112d1f3943fc53f78a697d05f7ced92c497de3514eee73a6",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -340,7 +520,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cb230142c35fe85eb9a4c19349faf850a6d42aaa4700aa7d4228b6b7a38f021e",
+      "evidence_sha256": "1aa4654faecc8be84a016e9e0eb50cc20a3bf60a234bf6cd774b3f07f58d0ac9",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -351,7 +537,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0e34b228be7aa68c7a6c7e02d2fa0d682963ef7b28b408642582285923d91559",
+      "evidence_sha256": "7b4aea85084bfb8ed466d01f2ce9fc4a30b213ef58b1e6b6d3e16a6733e9db48",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -362,7 +554,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/035-pytesseract-tesseract/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "90da0e345fd7a7de82007fd05079f36e96bb5df4776d7dd126cf8522a67b1db3",
+      "evidence_sha256": "eb392eca17102865888f7b6f5cdca9fccf7febf8db338bb29af9a6877ade694e",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -373,7 +571,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "05019afb24cea2943b3041b73d9cf37f69d74028af0988ae2810d9a389c6d426",
+      "evidence_sha256": "2076e486ad7bd81079ada1e9cd78261f1526f30f332597ce1daccb1cd07716e3",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -384,7 +588,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/037-poppler-pdftotext-pdfinfo/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b8df1136e9ada642fd995b744caadf624422f33b81d1b758e1bbc0eb14ed5781",
+      "evidence_sha256": "54e12c2ff6fde3ae432eee2107a1e3c4cc2a63f0c987cbbd561592279874efd0",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -395,7 +605,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/038-ghostscript/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "93bf8ddee60375b5788d46fefda0e80c96d2ab359eae6c9890f85bec7a5efeee",
+      "evidence_sha256": "50a7a102f08e1773aede1ab66d7ab487df5f140ca7097f5a6981148954d7e5eb",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "ghostscript-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": true
@@ -406,7 +622,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c5a8718bba8d620bf73ca4f49ff9e6acf2488170baa0492351589a467d06778a",
+      "evidence_sha256": "b74b7108634fa3f66ec09c944d8af0f96b07557c70c68576c8608dc68e01a324",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -417,7 +639,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/040-custom-schema-compiler/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e00b6a2c216963b6274e827594eecc3c1f2e9f33ef1a055396d4c7797805a040",
+      "evidence_sha256": "e75a6c1480d6a56c7b59621bea651e79cc0c714b2829f4bbcd6257b6d11baae5",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -428,7 +656,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ea0a0361f2f3ddc2062bbdbff8231a2b1c52b409bb1ab096c21960625f43d12b",
+      "evidence_sha256": "d7e6532cee9ffce8ed2c979df383239383cb0b8bd03a1b6cc5aaba6060d3eabd",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -439,7 +673,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/042-safe-archive-intake/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "36090ee3c342193887c3a0b14c32153af402febea4c1f1a4c198ac7d667c1907",
+      "evidence_sha256": "358489401acf99d233087a9467416a07d4eb0bb8ada389ed92d7d9af3ccf471f",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -450,7 +690,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/043-citation-binder/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4ac56e6c45c3c9d3032d812936f2cc11a94f41143ff2dff5107f8e88791aaeda",
+      "evidence_sha256": "8b5bdbacace0173693bff1d17e2ba83dfbbb72bfd89f4027916a152ba58ac59c",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -461,7 +707,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/044-project-inventory/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a4520a4759ce3c46e3a40efd9b9026e12a313e307f750bfa51a891b0df8f894f",
+      "evidence_sha256": "394053b949c60d4d9fcc3c04a69964f3619ba591f914f43d0e14b7fef4d0629e",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -472,7 +724,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/045-git-detector/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cadbeb53884df7d3eaaadd87ee25bc71b2e16d0a7cdc42abbe712ce4236a6511",
+      "evidence_sha256": "e605fcdd725449935cd4a5a55b4f95970fe55ac2d469cbccb3da135c78f71033",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -483,7 +741,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/046-compatibility-mapper/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "565539d40bbf738fa1b3a5aa756bcf7aa7973a622a6c1d15d3cd4b2c4fadef3e",
+      "evidence_sha256": "586b8e438353228cc223a8ba602cec8891d4ebf62a74b036526f076988cb6b3e",
+      "delivery_owner": "managed_plugin_and_studio_engine_source",
+      "install_mode": "packaged_plugin_engine_code",
+      "provisioning_route": "packaged_engine_code_or_standard_library",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -494,7 +758,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "640c005707e6401b236beb347bd118fed442e8ab5bd5fa9d30876d7138967dcd",
+      "evidence_sha256": "440011a6d55c54ff80123c85b8d8611c8fb92fe0b5816d6a02c7192e26b9b893",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -505,7 +775,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "da11742720d993d2c982ddada04b9098926a0b9e4a5c6bb9972b2f9c7a989df5",
+      "evidence_sha256": "bf638e928c5d9e7fb5410a7b012fe59ee381ca86ef7c65ed048cc7751cb12381",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -516,7 +792,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2d98098f4711755f9a4a83c0bb31b893bc37f0a2a09dcf38984d38d5367a8689",
+      "evidence_sha256": "63655efd5a2b96413eab7b720f3168d2b083b9f85d406a90a9912a275c0b349f",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -527,7 +809,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "87e0c90f24d5d49975c86f3da236b3e55ac2591b3b6a86cd55363b0967af2d8e",
+      "evidence_sha256": "f349717ce1b511012e4e2daef3fc2c5af7ec8a3033684a9b776a964c60b63f75",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -538,7 +826,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/051-powershell-win32-apis/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2146d11ec9579c358db08f41236ffed6b813f148d6c9bb5f90a04cd0770210fa",
+      "evidence_sha256": "67641d7fde0d1a31904c40dc0422cde2644b4258ed88225610706e426580a6b3",
+      "delivery_owner": "windows_host",
+      "install_mode": "windows_host_capability_probe",
+      "provisioning_route": "windows_host_api_with_platform_verification",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": false,
       "license_grant_required": false
@@ -549,7 +843,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/052-ripgrep-15-2-0/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "274b2092ccaf2ff015935f96835c7b66863c1a9edfda7aaf36d736faf6ec8c97",
+      "evidence_sha256": "58c6e396ed4f1305cedf382f4c46bd29583f6872066448ec1171c96ef993acde",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -560,7 +860,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c8bc64299f33b54ad73d95ad33ccbdcd38be823a89112fe7fc3d382e54914b63",
+      "evidence_sha256": "6301fc7a5422524512c8f4bba9ae50a1bc4c7ac8cfe325a7c2a8c188744d5541",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -571,7 +877,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f0bfbdd4588410f063521b0be3d4aeb1c6cd2733def15d8830642e2879845cfb",
+      "evidence_sha256": "027d87ff74cd2e63cf0d465712222ef7344740df544bb2e4d552063c21b9e144",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -582,7 +894,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/055-ffmpeg/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c8e9c0cc8ff542cd525e6b57c7de909410e23871d7980a25e21cb8ee15702a4e",
+      "evidence_sha256": "f1265692f0cb1df58d7cadc78e0f7d2d9a294aa5f0aac44bd5b37a0a5ee62afc",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -593,7 +911,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "48c14a61aebf123a3d51ff6c18e2a8194b691f4c537e93e06bb814c5728824f5",
+      "evidence_sha256": "925a6ae9c95d4c3fcdc2990c95a4cc04c664cbbb7529a29fce5092d7ff81d0a2",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -604,7 +928,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cab30d8e15fc43169049b9da051cdec4614e569d271aeb8fbcd1759877dab0e9",
+      "evidence_sha256": "f1d6f046dbe7cb65eda21835c4c4e67eaf9a697150fd0f6badec6904ac3bc581",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -615,7 +945,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f69119a2586111c27eb0739007082f7125e225286a32f43a8a8fc5e04204d352",
+      "evidence_sha256": "2686e422a95aa96fffc440aa1f98bdfde1b2e92da373d8d1393e52e388e95b77",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -626,7 +962,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f18980d1af58de95c92fd77cbd87dd52a530b0bfd47eaaed3dde45d8568a98b6",
+      "evidence_sha256": "e29f23fad36b9ae0ad98c12100231426e30247a07cf987c3649501460785152d",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -637,7 +979,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "fe629d598810c60b722be9abca80bc6d6c7bd1a938c39fdd9ee87c0f2f15a7de",
+      "evidence_sha256": "780101db61086c7bb7144510d03fa7ce7ec8051081d07bb2a0af015425d7745f",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -648,7 +996,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d9fa8e2cf2dd9efa0e3323c6decc881fe81f13981ac9b22405187d98fd195d2b",
+      "evidence_sha256": "46bc182e3584d3102f67b3c3156de549f1588dd143f7f113f0238693af250088",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -659,7 +1013,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "5242d3f9d8ec9093244ae22cc932d0fafd684800913ba5b1fc60751f1c2c8d4c",
+      "evidence_sha256": "1eb0ec20fbe0cac03c8ad7346eac4236591b922b3f3a6c655cac9b71760d53d9",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -670,7 +1030,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "3f5eb345b38a0dcdf106d6bcd47da23905f9123cf098f09b4ec322691fbf0983",
+      "evidence_sha256": "f01fe10756a4183e1f9cece245895accb769778df49f88f21d634992f689e192",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -681,7 +1047,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a69cd0acdb63847b3fcc92b13d914f9eacc75d6817413420f41b3fefbcbfb429",
+      "evidence_sha256": "f818a8fe5c17dcb4f52d86485be624ac9e9b3ec893ccdf31c020de0aeb9912df",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -692,7 +1064,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "41bea87381751f6bf4e1bf8a3b64b580be47a8b5334e51810fd220a75b8565ef",
+      "evidence_sha256": "91b15ddb2ca8959e22bcf1a94dfd5de80ef36053d56f8b43c184b68253e6f5e9",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -703,7 +1081,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "32ff9f336fb2fe934e8d5eacf213475accd9a8193e6e983344a1c1f6b68e4f3b",
+      "evidence_sha256": "194e9969139bb01b5515ba66c1bbe21ad1acdcc3a51dd1d2d088a917e2ecfe3b",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -714,7 +1098,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e4fb0a6748cdbffd047127e1de2496ea007a411061fa3ff2f658f2a087a5efe2",
+      "evidence_sha256": "f69cb908d459ef8624c00dcf39eb9cb719398fb805ef1132059b0b32737b849c",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -725,7 +1115,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "81c2e79d92190d0eef79342a5d6e41c4435d2c74e6a0b12c19f543dabd989374",
+      "evidence_sha256": "ee958e42cab54b09b3b8bf514563f5b3ede18b731cc1ff79ab45902d63405f1b",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -736,7 +1132,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/069-rank-bm25/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "27510906e96d655c32ee87528f23598be7a615500092c10dc1cbb6ca38c5eb6b",
+      "evidence_sha256": "72dd2f340ce6a396373b412c971b17b441f1a180f01e7c17a81ce77834407763",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -747,7 +1149,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/070-fastapi/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ec6aea18fdf7daa00cf225ab486c47125b1f733bbdc3085facdba7080b6ad695",
+      "evidence_sha256": "0e576d77ea0fad8f4bf6600f952da87b382c9843fe1c73b6d9821547ea424c63",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -758,7 +1166,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/071-uvicorn/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a4e650452533fa4d08ec9b888de10debd1f05b7fa5d538ad62123bbf8ed6b959",
+      "evidence_sha256": "a43d9e2411a49945ff98f3c6a74cd349dd6b20f2b1c3ac9a704c144391fd14dc",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -769,7 +1183,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/072-pydantic-settings/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "70a75aba126eb2e9c3562200eedbbe6af4398bb1368a25c5980a79b0c7354db9",
+      "evidence_sha256": "faee60f1ba5f04ea658bff787f9a914bae47dc4a78d4884c8903ccd922971363",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -780,7 +1200,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/073-python-multipart/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "08d779ab5220e23beb00df8e4f293a232d88fbe980572aa4bb804be71fa7053d",
+      "evidence_sha256": "7c0ff1357fbb4a76ffae1be1d98c6e247dc6afe87f4fed58dcad190bffd91a79",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -791,7 +1217,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/074-requests/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b3347fcab3616729a301794f2673e1bccccbb16c5e9818ea28b2696c8f5b9514",
+      "evidence_sha256": "29c5b59dd95ea3cf65ea57010b99f182270e57dd34c56ec962a18a720150fb2d",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -802,7 +1234,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/075-aiofiles/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "466be72b7f43e10b9f58900d92879f254b55396b6afacfe080f0c6287e3c7ebf",
+      "evidence_sha256": "3afc09703acbc352de668eb8bf652bab6d6c68a315ecaed05951c62d4ac9d248",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -813,7 +1251,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/076-orjson/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "184c3bdb6cdc109a895cc31dd34c340f509fd21bff5f2e2a3178b145ec38a793",
+      "evidence_sha256": "00bb14e776afcf803105b6d1675be7348a6802236b56a048f4b91e49032814af",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -824,7 +1268,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/077-python-dotenv/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "52c47e4c1fd9c32408193bab5d9850c09344b9d6549f6608f942ab897f2da0cc",
+      "evidence_sha256": "f1f655c248d3c3be0afc949ff92a7117a356cb25802cd574f0656eef857bf9bc",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -835,7 +1285,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/078-tenacity/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "6a53f1378735638ae585ddad57a364095c72ff7ce8e85393b21ccac219869fb3",
+      "evidence_sha256": "33660e5b822fa7262a6b45f5803c9f0432dcbba4398239246cec784a80781a4b",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -846,7 +1302,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/080-ddgs/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2416ada5618ca09873bfabc98f23347dd0ec1c5598b7b2b3b47fe03add9aa25d",
+      "evidence_sha256": "22ee53decc11d010208113dab3b781e8ba93969f6e63eee1edad0470e19f2a9f",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -857,7 +1319,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/081-pygithub/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "61f33fd00ab8aefa63bfb1a239a33515185dd764771c34067e6c58611478845c",
+      "evidence_sha256": "b03b4d8bc5d4fa3bc60f55f911cbbd7957d8d5f777b81120f86666f3d9a2d302",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -868,7 +1336,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/082-gitpython/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0f225016b0a7bcff1c784c8b6b72d88750c1764f08ea70537832100899209d75",
+      "evidence_sha256": "2fab0a2f8d930f6e4929f91f6e7390b873c9ec4843c532acaa10f26ddd5344ae",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -879,7 +1353,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/083-tldextract/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cde7dd430098fabffc5315fba76d2bf9899bc8bd60068338a70355e5bec06479",
+      "evidence_sha256": "086512bc9f798d6d8170fa43aebc70eb408ea8d7b6e672c120538ce5604067b1",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -890,7 +1370,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/084-validators/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "503d1f9228c94818b613cbd21801a9400cbea6d99db7e6da5533306090a1e306",
+      "evidence_sha256": "7db002da157422d443c14b7392495a0f70a2b77e8f4a228152d10b4b7fc86e97",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -901,7 +1387,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/085-readability-lxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c400d8a33cc8ae76b9d8e783c90724a56749068626136a56e2f7f59e4050b8b0",
+      "evidence_sha256": "77c8d4753e852afc057ce5b266bbbacabcf375a32391563b0e168cdc36aa4c3a",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -912,7 +1404,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/086-polars/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ebf8409172820d0960007d6c419e530055412d4af0a251d04469c7ec48829b6e",
+      "evidence_sha256": "db5289e55386411bfb9240c5aefc0cae32e2c2b2a430f10e69e814719395cf48",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -923,7 +1421,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/087-treesitter-languagepack/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a2d6e90ffb9e4551d28cfd25b966c887826c542695cd47c15b0d75e895e04474",
+      "evidence_sha256": "f6363cdab2994768eed1102af1fd26d295ca75e26efae82f13e256f1dff212ac",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -934,7 +1438,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/089-rustworkx/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e86b67a53d42f2448d809cd6588523b992c33fb7f691afc09fbd705ba14f5953",
+      "evidence_sha256": "48a60dd88022e92c7f6d0176649896158e01dcc0f5a9cc1f572fda417d7410d7",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -945,7 +1455,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/090-sqlite-vec/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8cef26f8f9b7461b35360b82be361fe43d858462f2d43288b8f38f23f3bc4d80",
+      "evidence_sha256": "3c4c1d4d81a623ac5998f2909847545b6351cb254394537d55e33d14c401c6cf",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -956,7 +1472,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/091-huggingface-hub-modelsnapshot/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "328daa064ddac21a71f3fb44be702c441c72409c2891ea6361fa65fd7e7fef65",
+      "evidence_sha256": "d1c90073e2486de21354983e833dfb9b54728704fab65f2893ad97c3dd09c62f",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -967,7 +1489,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/092-nextjs-react-threejs-framermotion/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f0ecca36bd4774f04378fe8711ce52dd757ae931364f00bac337285b55b7bcdc",
+      "evidence_sha256": "37709e43b2acc40df6e2908ff5d365c9db429a6d8f3e92be866d24ab5f4a16f4",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
+      "studio_bundle_component": "node-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -978,7 +1506,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/095-openai-agents-sdk/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b7752273b13072f26ff269452b2460fdb912cdd4b1113ffbfe97764d866e5ca9",
+      "evidence_sha256": "d03adc0f42e72dbc0e5c06d430d3fe3cbbfdf7395f7b181e36e4da5393a72511",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -989,7 +1523,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/096-fastmcp/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "20e7997e3a1fc1b4b0bbde8900c84d385ad4fbc9e24b68bc422ec201c1ccd5d5",
+      "evidence_sha256": "1293fd170a6aa2ebb324b4ccda51fca8d9ae42f064a6e41b145bbf94bdf645ea",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1000,7 +1540,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/101-pinecone/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0652988cec8971f9ce42b44dc953e09dcdfad2f8540a438e7b4ae62264c5932e",
+      "evidence_sha256": "d9b18b4a9c0f1adce76fc8a803a140ddebbdf0305e1757d6c9826a6064e59954",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1011,7 +1557,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/102-weaviate/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a849b980b611d98033bda518e331f033a2ef299d6637869d2ff9249fa08c5fd1",
+      "evidence_sha256": "3fb9218c98a65ae33f16962cbe6353e389137a1041857aae6c6dcb1525248077",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1022,7 +1574,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/103-milvus/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4e86fe7f027e167eb79ff88773e72dca4c7b81c79cdc6063568608634077062b",
+      "evidence_sha256": "aa636f0ed582e3c53de870ce63aa2239550d7c96eea0cd67344991537b9f5fe8",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1033,7 +1591,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/104-opensearch/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8f3c5e8147ff13b481a925ef468adb403eedf8dffa8cc53b48c9238daff1affd",
+      "evidence_sha256": "b3bdac158a5402142a2453591aea707351236976718aa1d515cbb2fe7376fb76",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1044,7 +1608,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/105-langsmith/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e22de88035fdb3b335554e67a58e411a86b5a3f4f918d66e5c882ede2be78728",
+      "evidence_sha256": "201b77360ebd6bd6cbc3bd91c3838ea5debbcbc07290481ecfb9fbeaf0323933",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1055,7 +1625,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/109-langfuse/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "440f95351d75bc9b0e1b4068a422f63277394addfb79624fd6f4f5c68c37ac67",
+      "evidence_sha256": "c0183568fda4f6a7d50df878e9bdf447d74540e2a1dde51fa767250677641257",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1066,7 +1642,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/111-opentelemetry/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0bdbf826be48effc31526fcc59543eececa6fcae8e1607a2c7f99ae150bb9a14",
+      "evidence_sha256": "6aec14c31d2617cb0e32145e870cfc4450a46b51e4e140fda43f0ec5130c0216",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1077,7 +1659,13 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/112-grafana/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "15ea870cff8b2e4673ab73b181e8351a41708b20c40da1914fd92b57e8ef3e20",
+      "evidence_sha256": "a05f37bdaa67e514fb4a0afe55c863c63cedc7b5039bdfdd3675b91d259d9d23",
+      "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+      "install_mode": "packaged_adapter_external_service_not_redistributed",
+      "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+      "studio_bundle_component": null,
+      "studio_bundle_member": false,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": false,
       "configuration_only": true,
       "license_grant_required": false
@@ -1086,9 +1674,15 @@
       "tool_id": "LibreOffice",
       "license_expression_or_terms": "MPL-2.0 AND LGPL-3.0-or-later",
       "evidence_paths": [
-        "toolchains/native-tools.v4.json"
+        "toolchains/licenses/requirements/current-libreoffice/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e39db0dca03903af93d204694c4e9ea1c9ab09b13e6623ce56739050abb2a120",
+      "evidence_sha256": "2bae260fe5a242e89fe4514d05b49252c163e45fc2dbeedb18f463a721ee140f",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "native-tools",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1097,10 +1691,15 @@
       "tool_id": "PowerBI_TOM",
       "license_expression_or_terms": "LicenseRef-Microsoft-AnalysisServices",
       "evidence_paths": [
-        "toolchains/native-tools.v4.json",
-        "toolchains/powerbi-adapter/packages.lock.json"
+        "toolchains/licenses/requirements/current-powerbi-tom/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "472b87e98fac541a8cd764cdb88c4ac5336917bbab1caf9307d349a1408f278e",
+      "evidence_sha256": "23930ce2b54659fff722ebaedf89cdd1fbde78b92cbef5781e7e0b259dcf5fc6",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "powerbi-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1109,10 +1708,15 @@
       "tool_id": "PBIXRay",
       "license_expression_or_terms": "LicenseRef-Bundled-Python-and-Package-Licenses",
       "evidence_paths": [
-        "toolchains/native-tools.v4.json",
-        "toolchains/powerbi-pbix-runtime.v4.json"
+        "toolchains/licenses/requirements/current-pbixray/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "52c6d2f15f7205ad10bac3d84e2a387c69131f1bd2d0b56de54e1ae527da1429",
+      "evidence_sha256": "5974bc5fe26c3fd4d2284e8929cb9a9985ca6bea724f6fba1286bb129e4f3473",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_native_manifest",
+      "studio_bundle_component": "powerbi-runtime",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1121,10 +1725,15 @@
       "tool_id": "JSONSchema",
       "license_expression_or_terms": "MIT",
       "evidence_paths": [
-        "toolchains/tool-definitions.v4.json",
-        "toolchains/locks/tools.lock.txt"
+        "toolchains/licenses/requirements/current-jsonschema/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "26b4b0b8b7574e5d0a3219c6d55e20d12acfa568f912e6512c155a96d58ad91c",
+      "evidence_sha256": "e08f29f444e2153699261db91e9161b16acd5f2be09143f83c5d3a3d9e586cd4",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1133,10 +1742,15 @@
       "tool_id": "ReportLab",
       "license_expression_or_terms": "BSD-3-Clause",
       "evidence_paths": [
-        "toolchains/tool-definitions.v4.json",
-        "toolchains/locks/tools.lock.txt"
+        "toolchains/licenses/requirements/current-reportlab/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "26b4b0b8b7574e5d0a3219c6d55e20d12acfa568f912e6512c155a96d58ad91c",
+      "evidence_sha256": "a7a99e557a984c3d30b6589cf6863f8a17dfdf896286da0155f195b2a39cb620",
+      "delivery_owner": "evidence_lane_studio_shared_toolchain",
+      "install_mode": "shipped_with_evidence_lane_studio",
+      "provisioning_route": "shared_locked_python_environment",
+      "studio_bundle_component": "core-engine-studio",
+      "studio_bundle_member": true,
+      "tunnel_dependency": false,
       "redistributed_by_release_asset": true,
       "configuration_only": false,
       "license_grant_required": false
@@ -1144,5 +1758,7 @@
   ],
   "installed_license_receipt_required": true,
   "external_service_terms_remain_external": true,
-  "receipt_sha256": "f067483ed99c0f6c58d8974576dd37d244d61d54b270c97b8378db20434f399e"
+  "studio_bundle_owns_retained_local_toolchain": true,
+  "tunnel_dependency": false,
+  "receipt_sha256": "400697175a32783b5a295e8b1527112efb745c253ffdfeb7bab2da4c9c5684fd"
 }

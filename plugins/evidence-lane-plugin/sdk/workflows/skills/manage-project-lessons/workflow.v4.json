@@ -1,0 +1,75 @@
+{
+  "action_bindings": [
+    "sdk/actions/learning_read.action.v4.json",
+    "sdk/actions/learning_record_host_memory_import.action.v4.json",
+    "sdk/actions/learning_revoke.action.v4.json"
+  ],
+  "action_count": 3,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": true,
+      "description": "Retrieve a bounded project-local slice of verified execution observations.",
+      "mutates": false,
+      "name": "learning_read",
+      "permission": "read",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "manage-project-lessons"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Record explicit host-memory provenance and its exact Plan-task link without reading host memory or creating Learning.",
+      "mutates": true,
+      "name": "learning_record_host_memory_import",
+      "permission": "write",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "manage-project-lessons"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
+      "mutates": true,
+      "name": "learning_revoke",
+      "permission": "write",
+      "profile": "learning",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "manage-project-lessons"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $manage-project-lessons to inspect lessons relevant to the current task.",
+  "description": "Inspect and revoke project-isolated procedural lessons recorded after verified work, or record an explicit host-memory provenance reference without creating a lesson. Use for lesson retrieval, correction or provenance.",
+  "dot": "sdk/workflows/skills/manage-project-lessons/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/manage-project-lessons/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "manage-project-lessons",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Manage project lessons",
+  "workflow": "manage-project-lessons"
+}

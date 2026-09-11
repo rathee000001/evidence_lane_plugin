@@ -6,7 +6,7 @@ a separately built, visible read-only observer served by that same engine.
 Studio cannot create projects, change Plans, submit work, configure tools,
 mutate connectors, select compute or perform recovery.
 
-The current typed engine registry exposes 294 operations through one generated
+The current typed engine registry exposes 297 operations through one generated
 schema, SDK and MCP set. Twenty-four first-class skills route user intent into
 those operations. The tool catalog contains 104 retained declarations. Catalog
 membership never proves installation, readiness or execution; each selected

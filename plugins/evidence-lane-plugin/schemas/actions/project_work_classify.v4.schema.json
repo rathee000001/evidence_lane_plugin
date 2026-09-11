@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "code_lane": {
+        "default": "local_code",
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Code Lane",
+        "type": "string"
+      },
+      "custom_work_classes": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "maxItems": 8,
+        "title": "Custom Work Classes",
+        "type": "array"
+      },
+      "explicit_work_classes": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 16,
+        "title": "Explicit Work Classes",
+        "type": "array"
+      },
+      "request": {
+        "maxLength": 12000,
+        "minLength": 1,
+        "title": "Request",
+        "type": "string"
+      }
+    },
+    "required": [
+      "request"
+    ],
+    "title": "WorkClassificationRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_work_classify",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "effects_authorized": {
+        "const": false,
+        "default": false,
+        "title": "Effects Authorized",
+        "type": "boolean"
+      },
+      "plan_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      },
+      "work_classification": {
+        "additionalProperties": true,
+        "title": "Work Classification",
+        "type": "object"
+      }
+    },
+    "required": [
+      "work_classification"
+    ],
+    "title": "WorkClassificationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "ENV_UOP_classifier"
+  ],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "613c5c265feec345e29f2e9258b676b3d02edd4090c774a18e7aacb5ed4fd872",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_work_classify",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.mode_governance:register_mode_actions.<locals>.classify",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_work_classify.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "ENV_UOP_classifier"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "classify-project-work"
+}

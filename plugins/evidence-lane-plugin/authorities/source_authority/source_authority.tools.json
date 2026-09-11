@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "custom_lane_configure",
@@ -55,7 +55,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "custom_lanes_read",
@@ -98,7 +98,7 @@
       "requires_delta": true,
       "project_required": true,
       "profile": "code",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "enroll_project",
@@ -147,7 +147,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "fetch",
@@ -190,7 +190,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "core",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "git_branch_authority",
@@ -233,7 +233,7 @@
       "requires_delta": true,
       "project_required": true,
       "profile": "code",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "git_sync_selected",
@@ -282,7 +282,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "lane_configure_routes",
@@ -325,7 +325,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_classify",
@@ -368,7 +368,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_crosswalk",
@@ -411,7 +411,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_git_history",
@@ -454,7 +454,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_git_impact",
@@ -497,7 +497,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_graph",
@@ -540,7 +540,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_graph_diff",
@@ -583,7 +583,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_graph_impact",
@@ -626,7 +626,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_identity",
@@ -669,7 +669,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_inspect_sqlite",
@@ -712,7 +712,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_materialization_read",
@@ -755,7 +755,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_materialization_reconcile",
@@ -798,7 +798,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_materialize",
@@ -841,7 +841,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_preparation_read",
@@ -884,7 +884,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "required_tools": [],
       "toolchain": {
         "operation": "source_prepare_refresh",
@@ -927,7 +927,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_prepare_tasks",
@@ -970,7 +970,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_read",
@@ -1013,7 +1013,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_reconcile_archives",
@@ -1056,7 +1056,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_register",
@@ -1099,7 +1099,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_routes_read",
@@ -1142,7 +1142,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_schema_configure",
@@ -1185,7 +1185,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_schema_map",
@@ -1228,7 +1228,7 @@
       "requires_delta": true,
       "project_required": true,
       "profile": "sources",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "required_tools": [
         "Python"
       ],
@@ -1306,7 +1306,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "required_tools": [],
       "toolchain": {
         "operation": "source_snapshot_state",
@@ -1349,7 +1349,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sources",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "source_verify",

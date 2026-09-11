@@ -1,6 +1,6 @@
 """Consistent project backups and offline recovery into a fresh state root.
 
-Backups pin Root PV and preserve the exact separate SQLite database bytes that
+Backups pin project evidence head coordinator and preserve the exact separate SQLite database bytes that
 its lane heads identify, with all registered content, schema and view history.
 Runtime credentials, locks, caches and unregistered files are not restored.
 """
@@ -196,7 +196,7 @@ def _integrity(connection,project_id,*,lane=None):
         raise LaneError('BACKUP_DATABASE_BUDGET','The project exceeds the 256 MiB administrative recovery budget.')
     if lane is None:
         if connection.execute('PRAGMA application_id').fetchone()[0]!=APPLICATION_ID:
-            raise LaneError('BACKUP_PROJECT_INVALID','The backup database is not a v4 Root PV.')
+            raise LaneError('BACKUP_PROJECT_INVALID','The backup database is not a v4 project evidence head coordinator.')
         row=connection.execute('SELECT * FROM project WHERE singleton=1').fetchone()
         if not row or row['project_id']!=project_id or row['format_version']!=FORMAT_VERSION:
             raise LaneError('BACKUP_PROJECT_MISMATCH','The backup does not belong to the selected project and format.')
@@ -251,10 +251,10 @@ def _verify_backup(root,expected_digest,project_id,*,tick=None):
         # must not run while a different project's snapshot is pinned.
         actual = _inventory(store)
         if actual['source_root'] != body['source_root']:
-            raise LaneError('BACKUP_SOURCE_MISMATCH', 'The backup source locator differs from Root PV.')
+            raise LaneError('BACKUP_SOURCE_MISMATCH', 'The backup source locator differs from project evidence head coordinator.')
         if (actual['files'] != sorted(selected.values(), key=lambda item:item['path'])
                 or actual['root_pv'] != body.get('root_pv') or actual['lanes'] != body.get('lanes')):
-            raise LaneError('BACKUP_INVENTORY_MISMATCH', 'The backup differs from its exact lane registries and Root PV.')
+            raise LaneError('BACKUP_INVENTORY_MISMATCH', 'The backup differs from its exact lane registries and project evidence head coordinator.')
         verify_authority_history(store)
 
     return body
@@ -354,7 +354,7 @@ class DatabaseRecovery:
             payload=destination/'payload'
             payload.mkdir()
             _write_new(payload/'.backup-sealed',b'Immutable backup payload; restore through administrative recovery.\n')
-            # Heartbeats mutate Root PV, so extend the lease before pinning it;
+            # Heartbeats mutate project evidence head coordinator, so extend the lease before pinning it;
             # inside the bounded snapshot only check ownership and the deadline.
             lease.heartbeat()
             deadline = time.monotonic()+30
@@ -585,13 +585,13 @@ def register_recovery_actions(engine):
             file_count=len(body['files']),total_bytes=sum(item['bytes'] for item in body['files']),
             lane_count=len(body['lanes']),root_pv=body['root_pv'])
     engine.registry.register(ActionSpec('project_backup','Create and verify a consistent project database and registered-file backup.',
-        BackupRequest,BackupResult,backup,permission='admin',mutates=True,profile='recovery', workflow='recover'))
+        BackupRequest,BackupResult,backup,permission='admin',mutates=True,profile='recovery', workflow='recover-project-state'))
     engine.registry.register(ActionSpec('project_backup_verify','Hash-check an exact project backup without restoring it.',
-        BackupVerify,BackupVerified,verify,permission='admin',profile='recovery', workflow='recover'))
+        BackupVerify,BackupVerified,verify,permission='admin',profile='recovery', workflow='recover-project-state'))
     engine.registry.register(ActionSpec('project_recovery_inspect','Inspect registered files, unregistered leftovers and database recovery status without repair.',
         RecoveryInspect,RecoveryInspection,
         lambda context,request:recovery_operation(lambda:DatabaseRecovery(engine,engine.directory.open(context.project_id)).inspect(request)),
-        profile='recovery',studio_read=True, workflow='recover'))
+        profile='recovery',studio_read=True, workflow='recover-project-state'))
 
 
 def recovery_main():

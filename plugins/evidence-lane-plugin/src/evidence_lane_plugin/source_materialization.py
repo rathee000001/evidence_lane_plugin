@@ -79,7 +79,7 @@ class SourceMaterialization:
              'Close an unowned source group as blocked after its normal Plan jobs have been reconciled; never replay it.', True),
         ):
             engine.registry.register(ActionSpec(name, description, model, SourceOperationResult, handler,
-                permission='write' if write else 'read', mutates=write, profile='sources', workflow='source-intake',
+                permission='write' if write else 'read', mutates=write, profile='sources', workflow='manage-project-sources',
                 studio_read=not write, queryable_in_delta=not write, cross_project_read=not write,
                 read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS, *MATERIALIZATION_MIGRATIONS) if not write else ()))
 

@@ -1,6 +1,6 @@
 """Bounded, coherent Universe references to the project's real lane owners.
 
-Root PV coordinates these references. This reader creates no competing index,
+project evidence head coordinator coordinates these references. This reader creates no competing index,
 does not initialize absent lanes, and does not require every lane to emit graphs.
 """
 from __future__ import annotations
@@ -49,7 +49,7 @@ def root_reference(project):
         heads = [dict(row) for row in connection.execute('SELECT * FROM root_lane_heads ORDER BY lane_id')]
         if head['revision'] == 0:
             if head['head_digest'] or head['commit_id'] is not None or heads:
-                raise LaneError('UNIVERSE_ROOT_INTEGRITY', 'The initial Root PV has inconsistent lane references.')
+                raise LaneError('UNIVERSE_ROOT_INTEGRITY', 'The initial project evidence head coordinator has inconsistent lane references.')
         else:
             row = connection.execute('SELECT * FROM root_transaction_journal WHERE commit_id=?',
                                      (head['commit_id'],)).fetchone()
@@ -63,7 +63,7 @@ def root_reference(project):
             except (KeyError, TypeError, ValueError):
                 valid = False
             if not valid:
-                raise LaneError('UNIVERSE_ROOT_INTEGRITY', 'Root PV differs from its published commit references.')
+                raise LaneError('UNIVERSE_ROOT_INTEGRITY', 'project evidence head coordinator differs from its published commit references.')
         return head
 
 
@@ -104,7 +104,7 @@ def inspect_project(store, request=None):
             database_hash = file_hash(lane.database)
             if item['head_digest'] is not None and item['head_digest'] != digest({
                     'lane_id': lane.lane_id, 'database_sha256': database_hash}):
-                raise LaneError('LANE_HEAD_MISMATCH', 'The lane database differs from its published Root PV head.')
+                raise LaneError('LANE_HEAD_MISMATCH', 'The lane database differs from its published project evidence head coordinator head.')
             with lane.connection(read_only=True) as connection:
                 files = [dict(row) for row in connection.execute(
                     'SELECT digest,size_bytes FROM objects ORDER BY digest LIMIT ?', (remaining_files + 1,))]
@@ -236,7 +236,7 @@ def query_project(store, request):
         head = root_reference(project)
         graph = ViewGraph(project.project_id, ViewScope(node_limit=request.node_limit, edge_limit=request.edge_limit))
         root = graph.node('project', project.project_id, project.project_id)
-        pv = graph.node('root_pv', head['head_digest'] or 'initial', 'Root PV ' + str(head['revision']), locator=head)
+        pv = graph.node('root_pv', head['head_digest'] or 'initial', 'project evidence head coordinator ' + str(head['revision']), locator=head)
         graph.edge(root, pv, 'PUBLISHED_AT')
         lane_ids = {}
         for item in project.lane_catalog():
@@ -329,7 +329,7 @@ def search_project(project, request):
     with bounded_project_read(project.root, time.monotonic() + 10):
         head = root_reference(project)
         topology = [('project', project.project_id, project.project_id, {}),
-                    ('root_pv', head['head_digest'] or 'initial', 'Root PV ' + str(head['revision']), head)]
+                    ('root_pv', head['head_digest'] or 'initial', 'project evidence head coordinator ' + str(head['revision']), head)]
         lane_ids = {}
         for item in project.lane_catalog():
             lane = project.lane(item['lane_id'])
@@ -408,23 +408,23 @@ def search_project(project, request):
 
 
 def register_universe_snapshot_actions(engine):
-    engine.registry.register(ActionSpec('universe_inspect',
-        'Verify coherent Root PV, initialized lane heads and bounded registered-file identities without refresh.',
+    engine.registry.register(ActionSpec('project_evidence_map_inspect',
+        'Verify coherent project evidence head coordinator, initialized lane heads and bounded registered-file identities without refresh.',
         UniverseInspect, UniverseSnapshot,
         lambda context, request: inspect_project(engine.directory.open(context.project_id), request),
-        profile='universe', workflow='universe', queryable_in_delta=True, studio_read=True))
-    engine.registry.register(ActionSpec('universe_query',
-        'Read or literally filter bounded Root PV, lane, Plan, Source and project-link nodes; follow category cursors.',
+        profile='universe', workflow='inspect-project-evidence-map', queryable_in_delta=True, studio_read=True))
+    engine.registry.register(ActionSpec('project_evidence_map_query',
+        'Read or literally filter bounded project evidence head coordinator, lane, Plan, Source and project-link nodes; follow category cursors.',
         UniverseQuery, UniverseGraph,
         lambda context, request: query_project(engine.directory.open(context.project_id), request),
-        profile='universe', workflow='universe', queryable_in_delta=True, studio_read=True))
+        profile='universe', workflow='inspect-project-evidence-map', queryable_in_delta=True, studio_read=True))
     register_universe_view(engine)
 
 
 def universe_topology_head(project):
     """Business inputs only: a view publication cannot invalidate its own source.
 
-The live inspection action supplies exact Root PV coordinates. This export is
+The live inspection action supplies exact project evidence head coordinator coordinates. This export is
 the project topology, so writer receipts and view selectors are not inputs.
 """
     selections = (
@@ -444,7 +444,7 @@ the project topology, so writer receipts and view selectors are not inputs.
 
 
 def universe_topology_view(project, scope):
-    # The live graph owns exact Root PV references; the natural topology export
+    # The live graph owns exact project evidence head coordinator references; the natural topology export
     # intentionally omits coordinates changed by its own writer/publication.
     value = query_project(project, UniverseQuery(node_limit=min(scope.node_limit + 1, 200), edge_limit=scope.edge_limit)).graph
     roots = {node['id'] for node in value['nodes'] if node['kind'] == 'root_pv'}
@@ -462,7 +462,7 @@ def register_universe_view(engine):
     from .project_universe import UNIVERSE_MIGRATIONS
     from .source_authority import SOURCES_MIGRATIONS
     engine.registry.register_view(LaneView('universe.topology', 'universe', 'authorities/universe',
-        'Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.',
+        'Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.',
         universe_topology_view, ('plan', 'sources', 'universe'), (*PLAN_MIGRATIONS, *SOURCES_MIGRATIONS, *UNIVERSE_MIGRATIONS),
         'project_universe.mmd', 'project_universe.dot', node_kinds=('project', 'lane', 'plan_task', 'source_reference', 'linked_project'),
         edge_kinds=('CONTAINS_LANE', 'GOVERNS_TASK', 'DEPENDS_ON', 'REGISTERS_SOURCE', 'INDEXES_SOURCE', 'LINKS_PROJECT'),

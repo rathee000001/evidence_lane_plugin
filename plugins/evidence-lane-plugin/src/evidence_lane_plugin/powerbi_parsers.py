@@ -134,7 +134,7 @@ def package_members(content):
                 if len(raw) != info.file_size or len(raw) > MAX_MEMBER_BYTES:
                     fail("PACKAGE_BYTE_BUDGET")
                 result[name] = raw
-    except zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError:
+    except (zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError):
         fail("PACKAGE_INVALID")
     return result
 
@@ -185,7 +185,7 @@ def json_document(raw):
             object_pairs_hook=distinct,
             parse_constant=lambda value: fail("JSON_NONFINITE"),
         )
-    except ValueError, RecursionError:
+    except (ValueError, RecursionError):
         fail("JSON_INVALID")
     stack, count = [(value, 0)], 0
     while stack:

@@ -78,7 +78,7 @@
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"

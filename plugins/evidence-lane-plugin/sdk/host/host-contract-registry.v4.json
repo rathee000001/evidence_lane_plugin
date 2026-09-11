@@ -1,0 +1,71 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract_count": 12,
+  "installed_execution_claimed": false,
+  "member_count": 12,
+  "members": [
+    {
+      "bytes": 865,
+      "path": "sdk/host/client-context.contract.v4.json",
+      "sha256": "4d7eabf960136a07c479f7dc4b7ed8cab946dc7f56e43c4a362f6461d552d215"
+    },
+    {
+      "bytes": 696,
+      "path": "sdk/host/github-app-connection.contract.v4.json",
+      "sha256": "95a10a98908a0fb7e11d38adb300625315710c62af717817b308c5882d5041c9"
+    },
+    {
+      "bytes": 654,
+      "path": "sdk/host/goal-metrics.contract.v4.json",
+      "sha256": "a409d7af96e6980a57da5b1e4834e2f74db73d918e462be831e0b039b087d7b1"
+    },
+    {
+      "bytes": 842,
+      "path": "sdk/host/hook-control.contract.v4.json",
+      "sha256": "f8ed0b335f0bb9bf103f391ff580f406f3e06e741acefe2d017fff4932583aad"
+    },
+    {
+      "bytes": 865,
+      "path": "sdk/host/local-install.contract.v4.json",
+      "sha256": "3d077c7cccc5dd55c93b8a2af0736726c83dc00fe1e7e246ba3f298696fa87ac"
+    },
+    {
+      "bytes": 1004,
+      "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
+      "sha256": "987be6e8dd632207aa3c11f16f41f5778ebc2dd764cd9e0aaa1040436c28d1f6"
+    },
+    {
+      "bytes": 717,
+      "path": "sdk/host/plan-relock.contract.v4.json",
+      "sha256": "c3e2554cd12a7cbb76c8528c54c41d20d1e2e3894f4abfec7fb6b6cc6bf9e613"
+    },
+    {
+      "bytes": 847,
+      "path": "sdk/host/public-backend-readiness.v4.json",
+      "sha256": "f730e0283de90a6d88c9f98cad8f642a3d1aac1416de7e45a86ddde79f14c414"
+    },
+    {
+      "bytes": 1019,
+      "path": "sdk/host/runtime-install-restart.contract.v4.json",
+      "sha256": "ed7ef68d57824c12eaf9eb230fe0b6ee2ce50f92873f4228e8865da388fe568b"
+    },
+    {
+      "bytes": 868,
+      "path": "sdk/host/studio-window.contract.v4.json",
+      "sha256": "acc9380475419c976ddb7eeb4628a8099e84d61f65df426c588f2bdb2c24cd64"
+    },
+    {
+      "bytes": 689,
+      "path": "sdk/host/supported-hosts.v4.json",
+      "sha256": "1c452aeaf78510f3d22c6ded250cae725b86bd18a8cacde4a2263d3be6db865a"
+    },
+    {
+      "bytes": 875,
+      "path": "sdk/host/work-handoff.contract.v4.json",
+      "sha256": "24980bbdfabdbff419017fb48317f1dcc8641161b682f5cd668dc8adb141c8fd"
+    }
+  ],
+  "schema": "evidence-lane.sdk-host-contract-registry.v4",
+  "status": "PASS"
+}

@@ -5,7 +5,7 @@ import { Badge, date, Details, Empty, Pill, words } from './ui';
 import './ProjectReads.css';
 
 const names: Record<string, string> = { plan_read: 'Plans', memory_read: 'Project Memory',
-  lineage_read: 'ChatLineage', learning_read: 'Learning', canon_read: 'Task exchanges', project_status: 'Storage summary' };
+  lineage_read: 'ChatLineage', learning_read: 'Learning', task_evidence_read: 'Task exchanges', project_status: 'Storage summary' };
 const displayName = (source: string) => source.split(/[\\/]/).filter(Boolean).at(-1) ?? source;
 
 function summaries(action: string, result: RecordData): string[] {
@@ -13,7 +13,7 @@ function summaries(action: string, result: RecordData): string[] {
   if (action === 'memory_read') return result.locators.map((item: RecordData) => item.locator.label);
   if (action === 'lineage_read') return result.events.map((item: RecordData) => String(item.payload.text ?? words(item.kind)));
   if (action === 'learning_read') return result.lessons.map((item: RecordData) => item.observation.summary);
-  if (action === 'canon_read') return result.exchanges.map((item: RecordData) => item.summary);
+  if (action === 'task_evidence_read') return result.exchanges.map((item: RecordData) => item.summary);
   return [`${result.object_count ?? 0} addressed objects`, `${result.receipt_count ?? 0} receipts`];
 }
 
@@ -36,7 +36,7 @@ export function ProjectReads({ data, connected }: { data: Snapshot; connected: b
     setBusy(true); setError(''); setResult(null);
     const argumentsValue = action === 'project_status' ? {} : {limit: 5, ...(searchable && search.trim() ? {query: search.trim()} : {})};
     try {
-      const value = await api('read', { project_id: project.project_id, action: 'cross_project_query', arguments: {
+      const value = await api('read', { project_id: project.project_id, action: 'linked_project_evidence_query', arguments: {
         projects: [project.project_id, ...selected].map(project_id => ({ project_id, queries: [{action, arguments: argumentsValue}] })),
         require_links: linkedOnly, timeout_ms: 10000, max_bytes: 131072,
       }});

@@ -267,7 +267,7 @@ def register_powerbi_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for action, workflow in (("powerbi_index", "source-intake"), ("powerbi_refresh", "refresh")):
+    for action, workflow in (("powerbi_index", "manage-project-sources"), ("powerbi_refresh", "refresh-project-evidence")):
         engine.registry.register(
             ActionSpec(
                 action,
@@ -314,7 +314,7 @@ def register_powerbi_actions(engine):
                 mutates=True,
                 requires_delta=True,
                 profile="power_bi",
-                workflow="build",
+                workflow="execute-project-plan",
                 worker_operations=(worker,),
                 verification_checks=("powerbi_snapshot_integrity",),
                 verifier=verify_powerbi,
@@ -371,7 +371,7 @@ def register_powerbi_actions(engine):
                 PowerBiResult,
                 query_handler(function, action),
                 profile="power_bi",
-                workflow="source-intake",
+                workflow="manage-project-sources",
                 queryable_in_delta=True,
                 cross_project_read=True,
                 studio_read=True,
@@ -391,7 +391,7 @@ def register_powerbi_actions(engine):
             mutates=True,
             requires_delta=True,
             profile="power_bi",
-            workflow="build",
+            workflow="execute-project-plan",
             path_fields=("filename",),
             verification_checks=("powerbi_export_hash_verified",),
             verifier=verify_exported, worker_operations=('powerbi_parse_content', 'render_lane_view'),

@@ -109,7 +109,7 @@ def test_fetch_rejects_invalid_selectors_without_writing(indexed, arguments, cod
 
 def test_summary_counts_bounded_exact_snapshot_and_or_search(indexed):
     before = hashes(indexed[0][1].root)
-    summary = read(indexed, 'pv_summary')
+    summary = read(indexed, 'code_snapshot_summary')
     assert summary['counts']['files'] == 7
     assert summary['counts']['chunks'] == 5  # 80 lines is one overlapping chunk.
     assert summary['counts']['symbols'] == 2 and summary['counts']['dependencies'] == 1
@@ -127,7 +127,7 @@ def test_summary_counts_bounded_exact_snapshot_and_or_search(indexed):
 
 def test_summary_read_budget_is_enforced(indexed):
     system, snapshot = indexed
-    result = call(system, 'pv_summary', {'snapshot_id': snapshot, 'max_read_bytes': 1024})
+    result = call(system, 'code_snapshot_summary', {'snapshot_id': snapshot, 'max_read_bytes': 1024})
     assert result.error.code == 'READER_BYTE_BUDGET'
 
 
@@ -150,27 +150,27 @@ def test_root_history_and_diff_both_directions_are_coherent_read_only(code_syste
     create_plan(code_system)
     right = root_reference(store)
     before = hashes(store.root)
-    history = call(code_system, 'pv_history')
+    history = call(code_system, 'project_evidence_history')
     assert history.status == 'ok', history.error
     publications = history.result['result']['publications']
     assert publications[0]['root'] == right
     assert publications[-1]['root']['revision'] == 0
-    forward = call(code_system, 'pv_diff', {'left_root': left, 'right_root': right})
+    forward = call(code_system, 'project_evidence_heads_compare', {'left_root': left, 'right_root': right})
     assert forward.status == 'ok', forward.error
     delta = forward.result['result']['lane_delta']
     # Initial work preflight also publishes the Sources schema before Plan.
     assert {r['lane_id'] for r in delta['added'] + delta['modified']} == {'plan', 'receipts', 'sources'}
-    reverse = call(code_system, 'pv_diff', {'left_root': right, 'right_root': left})
+    reverse = call(code_system, 'project_evidence_heads_compare', {'left_root': right, 'right_root': left})
     assert reverse.status == 'ok', reverse.error
     assert {r['lane_id'] for r in reverse.result['result']['lane_delta']['removed']} == {r['lane_id'] for r in delta['added']}
-    same = call(code_system, 'pv_diff', {'left_root': right, 'right_root': right})
+    same = call(code_system, 'project_evidence_heads_compare', {'left_root': right, 'right_root': right})
     assert same.status == 'ok' and not same.result['result']['lane_delta']['modified']
     assert same.result['result']['historical_contents_available'] is False
-    short = call(code_system, 'pv_history', {'max_commits': 1})
+    short = call(code_system, 'project_evidence_history', {'max_commits': 1})
     assert short.status == 'ok' and short.result['result']['truncated']
-    limited = call(code_system, 'pv_diff', {'left_root': publications[-1]['root'], 'right_root': right, 'max_commits': 1})
+    limited = call(code_system, 'project_evidence_heads_compare', {'left_root': publications[-1]['root'], 'right_root': right, 'max_commits': 1})
     assert limited.error.code == 'READER_HISTORY_BUDGET'
-    wrong = call(code_system, 'pv_diff', {'left_root': left | {'head_digest': '0' * 64}, 'right_root': right})
+    wrong = call(code_system, 'project_evidence_heads_compare', {'left_root': left | {'head_digest': '0' * 64}, 'right_root': right})
     assert wrong.error.code == 'READER_ROOT_REFERENCE_MISMATCH'
     assert hashes(store.root) == before
 
@@ -189,7 +189,7 @@ def test_history_detects_corrupt_earlier_transition_even_when_current_root_is_va
         connection.execute('UPDATE root_transaction_journal SET body_json=? WHERE commit_id=?', (json.dumps(damaged), parent))
     assert root_reference(store) == current
     before = hashes(store.root)
-    result = call(code_system, 'pv_history')
+    result = call(code_system, 'project_evidence_history')
     assert result.error.code == 'READER_HISTORY_INTEGRITY'
     assert hashes(store.root) == before
 
@@ -202,7 +202,7 @@ def test_no_content_change_is_reported_separately_from_lane_republication(code_s
         with lease.transaction('plan') as connection:
             connection.execute('SELECT 1').fetchone()
         right = root_reference(store)
-    result = call(code_system, 'pv_diff', {'left_root': left, 'right_root': right})
+    result = call(code_system, 'project_evidence_heads_compare', {'left_root': left, 'right_root': right})
     assert result.status == 'ok', result.error
     delta = result.result['result']['lane_delta']
     assert 'plan' in delta['unchanged']
@@ -231,7 +231,7 @@ def test_reader_routes_reject_unselected_project_and_studio_remains_read_only(in
     gateway = StudioGateway(engine)
     _, session = gateway.exchange(gateway.issue_ticket())
     before = hashes(store.root)
-    value = gateway.command('read', {'project_id': store.project_id, 'action': 'pv_summary',
+    value = gateway.command('read', {'project_id': store.project_id, 'action': 'code_snapshot_summary',
         'arguments': {'snapshot_id': snapshot}}, session)
     assert value['result']['counts']['files'] == 7
     assert hashes(store.root) == before
@@ -252,7 +252,7 @@ def test_stdio_reader_catalog_and_exact_binary_fetch(indexed):
                 await session.initialize()
                 catalog = await session.list_tools()
                 declared = {t.name: t for t in catalog.tools}
-                for name in ('fetch', 'pv_summary', 'pv_history', 'pv_diff'):
+                for name in ('fetch', 'code_snapshot_summary', 'project_evidence_history', 'project_evidence_heads_compare'):
                     assert declared[name].annotations.readOnlyHint
                 response = await session.call_tool('fetch', {'project_id': store.project_id,
                     'arguments': {'snapshot_id': snapshot, 'ref_id': 'file:raw.bin', 'max_bytes': 5}})

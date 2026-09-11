@@ -1277,9 +1277,9 @@ def register_code_actions(engine):
         return index_code(context, request, git_checkpoint=True)
 
     for action, handler, tools, workflow in (
-        ('code_index', indexed, ('Python', 'SQLite_FTS5_BM25', 'Python_structural_parser'), 'source-intake'),
-        ('code_refresh', indexed, ('Python', 'SQLite_FTS5_BM25', 'Python_structural_parser'), 'refresh'),
-        ('code_index_syntax', syntax, ('Python', 'SQLite_FTS5_BM25', 'TreeSitter_LanguagePack'), 'source-intake')):
+        ('code_index', indexed, ('Python', 'SQLite_FTS5_BM25', 'Python_structural_parser'), 'manage-project-sources'),
+        ('code_refresh', indexed, ('Python', 'SQLite_FTS5_BM25', 'Python_structural_parser'), 'refresh-project-evidence'),
+        ('code_index_syntax', syntax, ('Python', 'SQLite_FTS5_BM25', 'TreeSitter_LanguagePack'), 'manage-project-sources')):
         engine.registry.register(ActionSpec(action, 'Index bounded exact source bytes and attributed parser facts in a selected Code lane.',
             CodeIndex, CodeResult, handler, permission='write', mutates=True, profile='code', workflow=workflow,
             requires_delta=True, path_fields=('paths',), source_lanes=('local_code',),
@@ -1287,7 +1287,7 @@ def register_code_actions(engine):
             verification_checks=('code_snapshot_integrity', 'code_source_hashes_unchanged'), verifier=verify_code_index,
             tool_routes=(ToolRoute(action + '.registered_parser', handler, tools,
                 systems=('Windows',) if action == 'code_index_syntax' else ('Windows', 'Darwin', 'Linux')),)))
-    for action, workflow in (('code_index_git', 'source-intake'), ('code_refresh_git', 'refresh')):
+    for action, workflow in (('code_index_git', 'manage-project-sources'), ('code_refresh_git', 'refresh-project-evidence')):
         engine.registry.register(ActionSpec(action, 'Index exact granted local bytes at the selected clean Sources Git checkpoint.',
             CodeGitIndex, CodeResult, git, permission='write', mutates=True, profile='code', workflow=workflow,
             requires_delta=True, path_fields=('paths',), source_lanes=('github_code',),
@@ -1308,7 +1308,7 @@ def register_code_actions(engine):
         ('code_read', CodeRead, read_code, 'Read an attributed line excerpt from exact indexed source bytes.'),
         ('code_impact', CodeImpact, impact_code, 'Follow bounded static import dependencies or dependents in one Code snapshot.')):
         engine.registry.register(ActionSpec(action, description, model, CodeResult, query_handler(function, action),
-            profile='code', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+            profile='code', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
             studio_read=True, read_migrations=(*code_migrations('local_code'), *code_migrations('github_code')),
             search=SearchRoute(('local_code', 'github_code'), 'rows', 'code_current', 'scopes', 'text', 'any', rerank_text='text') if action == 'code_query' else None))
     def edit_route(syntax, render):
@@ -1331,7 +1331,7 @@ def register_code_actions(engine):
 
     engine.registry.register(ActionSpec('code_apply', 'Parse and replace one exact UTF-8 source file, then refresh Sources, every affected current Local Code scope and existing consumer exports.',
         CodeApply, CodeResult, apply_code, permission='write', mutates=True, requires_delta=True,
-        profile='code', workflow='build', path_fields=('filename',),
+        profile='code', workflow='execute-project-plan', path_fields=('filename',),
         worker_operations=('code_parse_content', 'render_lane_view'), tool_routes=edit_routes,
         verification_checks=('code_replacement_hash_verified',), verifier=verify_edit))
     from .code_views import register_code_views

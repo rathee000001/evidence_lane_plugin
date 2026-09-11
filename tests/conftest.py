@@ -107,7 +107,7 @@ def boot_local(application: EvidenceLaneService) -> dict:
     )
 
 
-def state_travel_destination_creation(
+def work_handoff_destination_creation(
     source_task_id: str,
     destination_task_id: str,
 ) -> dict[str, object]:
@@ -127,7 +127,7 @@ def state_travel_destination_creation(
         ),
         "canonical_title_increment_verified": True,
         "host_continuity": {
-            "schema": "evidence-lane.state-travel-host-continuity.v1",
+            "schema": "evidence-lane.work-handoff-host-continuity.v1",
             "status": "PASS",
             "source_task_id": source_task_id,
             "source_task_deep_link": f"codex://threads/{source_task_id}",
@@ -178,7 +178,7 @@ def build_and_approve_pv1(application: EvidenceLaneService) -> tuple[str, dict]:
         decision_id="decision_pv1",
     )
     assert decision["pointer"]["accepted_pv"] == "PV1"
-    assert "state_travel_handoff" not in decision
+    assert "work_handoff" not in decision
     continued = application.sessions.begin_next_turn(
         "book-faires",
         session_id,

@@ -999,12 +999,12 @@ def register_plan_actions(engine):
             return PlanStore(store).create(request, lease, actor_id=context.client_id)
 
     engine.registry.register(ActionSpec("plan_create", "Create the selected project's initial Plan with bounded task contracts.",
-                                       PlanCreate, PlanSnapshot, create, permission="write", profile="plan", mutates=True, workflow='plan'))
+                                       PlanCreate, PlanSnapshot, create, permission="write", profile="plan", mutates=True, workflow='manage-project-plan'))
     engine.registry.register(ActionSpec("plan_read", "Read a bounded page of the authoritative project Plan.",
                                        PlanRead, PlanSnapshot,
                                        lambda context, request: PlanStore(engine.directory.open(context.project_id)).snapshot(request),
                                        profile="plan", queryable_in_delta=True,
-                                       cross_project_read=True, read_migrations=PLAN_MIGRATIONS, workflow='plan'))
+                                       cross_project_read=True, read_migrations=PLAN_MIGRATIONS, workflow='manage-project-plan'))
     engine.registry.register(ActionSpec(
         'plan_host_status',
         'Read the full project Plan projection and its exact bound Codex PLAN.md status.',
@@ -1014,7 +1014,7 @@ def register_plan_actions(engine):
             engine.directory.open(context.project_id)
         ).host_projection(request),
         profile='plan', queryable_in_delta=True, studio_read=True,
-        read_migrations=PLAN_MIGRATIONS, workflow='plan'))
+        read_migrations=PLAN_MIGRATIONS, workflow='manage-project-plan'))
 
     def bind_host(context, request):
         store = engine.directory.open(context.project_id, write=True)
@@ -1025,7 +1025,7 @@ def register_plan_actions(engine):
         'plan_host_bind',
         'Bind and immediately project the full project Plan to one exact local Codex PLAN.md.',
         HostPlanBind, HostPlanBinding, bind_host, permission='admin', profile='plan',
-        mutates=True, workflow='plan'))
+        mutates=True, workflow='manage-project-plan'))
 
     def sync_host(context, request):
         store = engine.directory.open(context.project_id, write=True)
@@ -1036,11 +1036,11 @@ def register_plan_actions(engine):
         'plan_host_sync',
         'Atomically reconcile one pending full project Plan projection with its exact bound PLAN.md.',
         HostPlanProjectionSync, HostPlanProjection, sync_host, permission='write',
-        profile='plan', mutates=True, workflow='plan'))
+        profile='plan', mutates=True, workflow='manage-project-plan'))
     def replace(context, request):
         store = engine.directory.open(context.project_id, write=True)
         with engine.project_work.mutation(store) as lease:
             return PlanStore(store).replace(request, lease, actor_id=context.client_id)
 
     engine.registry.register(ActionSpec("plan_refresh", "Atomically replace remaining Plan contracts after a captured steer and safe checkpoint.",
-                                       PlanReplace, PlanSnapshot, replace, permission="write", profile="plan", mutates=True, workflow='plan'))
+                                       PlanReplace, PlanSnapshot, replace, permission="write", profile="plan", mutates=True, workflow='manage-project-plan'))

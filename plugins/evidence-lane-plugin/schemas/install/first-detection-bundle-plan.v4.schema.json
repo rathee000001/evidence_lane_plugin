@@ -1,8 +1,93 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://evidencelane.org/schemas/install/first-detection-bundle-plan.v4.schema.json",
-  "title": "Evidence Lane complete first-detection bundle plan v4",
-  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "asset_groups": {
+      "maxItems": 11,
+      "minItems": 11,
+      "type": "array"
+    },
+    "components": {
+      "maxItems": 10,
+      "minItems": 10,
+      "type": "array"
+    },
+    "external_service_configuration": {
+      "maxItems": 8,
+      "minItems": 8,
+      "type": "array"
+    },
+    "installation_state": {
+      "const": "not_installed"
+    },
+    "installed_native_execution_claimed": {
+      "const": false
+    },
+    "materialization_steps": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "component_id": {
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "create_venv",
+              "pip_install"
+            ]
+          }
+        },
+        "required": [
+          "operation",
+          "component_id"
+        ],
+        "type": "object"
+      },
+      "minItems": 10,
+      "type": "array"
+    },
+    "model_assets": {
+      "maxItems": 4,
+      "minItems": 4,
+      "type": "array"
+    },
+    "native_inputs": {
+      "maxItems": 13,
+      "minItems": 13,
+      "type": "array"
+    },
+    "offline_wheel_sets": {
+      "maxItems": 5,
+      "minItems": 5,
+      "type": "array"
+    },
+    "provider_environments": {
+      "maxItems": 4,
+      "minItems": 4,
+      "type": "array"
+    },
+    "receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "retained_tool_count": {
+      "maximum": 512,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "schema": {
+      "const": "evidence-lane.first-detection-bundle-plan.v4"
+    },
+    "status": {
+      "const": "COMPLETE_PREINSTALL_SOURCE_PLAN"
+    },
+    "tool_assignments": {
+      "maxItems": 512,
+      "minItems": 1,
+      "type": "array"
+    }
+  },
   "required": [
     "schema",
     "status",
@@ -30,91 +115,6 @@
     "installed_native_execution_claimed",
     "receipt_sha256"
   ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.first-detection-bundle-plan.v4"
-    },
-    "status": {
-      "const": "COMPLETE_PREINSTALL_SOURCE_PLAN"
-    },
-    "retained_tool_count": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 512
-    },
-    "components": {
-      "type": "array",
-      "minItems": 10,
-      "maxItems": 10
-    },
-    "tool_assignments": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 512
-    },
-    "provider_environments": {
-      "type": "array",
-      "minItems": 4,
-      "maxItems": 4
-    },
-    "model_assets": {
-      "type": "array",
-      "minItems": 4,
-      "maxItems": 4
-    },
-    "asset_groups": {
-      "type": "array",
-      "minItems": 11,
-      "maxItems": 11
-    },
-    "native_inputs": {
-      "type": "array",
-      "minItems": 13,
-      "maxItems": 13
-    },
-    "external_service_configuration": {
-      "type": "array",
-      "minItems": 8,
-      "maxItems": 8
-    },
-    "offline_wheel_sets": {
-      "type": "array",
-      "minItems": 5,
-      "maxItems": 5
-    },
-    "materialization_steps": {
-      "type": "array",
-      "minItems": 10,
-      "items": {
-        "type": "object",
-        "required": [
-          "operation",
-          "component_id"
-        ],
-        "properties": {
-          "operation": {
-            "enum": [
-              "create_venv",
-              "pip_install"
-            ]
-          },
-          "component_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "installation_state": {
-      "const": "not_installed"
-    },
-    "installed_native_execution_claimed": {
-      "const": false
-    },
-    "receipt_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    }
-  },
-  "additionalProperties": true
+  "title": "Evidence Lane complete first-detection bundle plan v4",
+  "type": "object"
 }

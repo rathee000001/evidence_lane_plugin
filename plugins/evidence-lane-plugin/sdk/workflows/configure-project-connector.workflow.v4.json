@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 515,
+    "path": "sdk/workflows/skills/configure-project-connector/workflow.dot",
+    "sha256": "08fc70b5177d2c68977623f7c1ad695edc9a88901184b670b6c1d655938607ff"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 485,
+    "path": "sdk/workflows/skills/configure-project-connector/workflow.mmd",
+    "sha256": "553cbc8b533bdbbdcff0550764d7de8d031aada6a989182af8ab61638865781c"
+  },
+  "package": {
+    "bytes": 1689,
+    "path": "sdk/workflows/skills/configure-project-connector/workflow.v4.json",
+    "sha256": "c7e8d08ff2a17ed4653240285c8724a12534f03bec501fb8f801cab511c0b132"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "configure-project-connector",
+  "source_skill": {
+    "bytes": 1145,
+    "path": "skills/configure-project-connector/SKILL.md",
+    "sha256": "552fd3496a92d8eda338a160c2afe7b399cd17cfad080acee78b3d1ad5d17cba"
+  },
+  "status": "PASS",
+  "title": "Configure project connector",
+  "workflow": "configure-project-connector"
+}

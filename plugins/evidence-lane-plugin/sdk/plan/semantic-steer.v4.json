@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "semantic-steer.v4",
+  "database_first": true,
+  "full_host_projection_only": true,
+  "installed_execution_claimed": false,
+  "public_set_status_action": false,
+  "schema": "evidence-lane.sdk-plan-contract.v4",
+  "sources": [
+    {
+      "bytes": 16173,
+      "path": "src/evidence_lane_plugin/steering.py",
+      "sha256": "cee2064e2aac8872b8aebe45c70d4373339d12ade8cba3f711cf62c248c0e9af"
+    },
+    {
+      "bytes": 32147,
+      "path": "schemas/actions/plan_refresh.v4.schema.json",
+      "sha256": "197bb0f37143a464a7389e5d47e7ef4bfdaa14aa330ad8140d1ad59d759eb631"
+    }
+  ],
+  "status": "PASS"
+}

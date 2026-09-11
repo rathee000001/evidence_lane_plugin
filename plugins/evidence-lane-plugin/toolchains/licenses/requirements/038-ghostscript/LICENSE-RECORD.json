@@ -4,10 +4,10 @@
   "ordinal": 38,
   "tool": "Ghostscript",
   "requirement": "OPTIONAL_EXTERNAL_LICENSE_GATED",
-  "classification": "NATIVE_RUNTIME_ASSET",
-  "install_mode": "silent_installer",
+  "classification": "STUDIO_BUNDLE_DISTRIBUTION",
+  "install_mode": "shipped_with_evidence_lane_studio",
   "license_expression_or_terms": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial",
-  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
+  "license_evidence": "Exact packaged license/source evidence is bound to the Studio release component; installed verification remains pending.",
   "evidence_paths": [
     "toolchains/native-tool-definitions.v4.json"
   ],
@@ -20,14 +20,25 @@
     "sha256": "8CE064F423B7C24A011B6EBF9431B8BF9861A5255E47C84BFB23FC526D030A8B",
     "copied_to_hidden_runtime_before_use": true
   },
-  "runtime_distribution_license_required": false,
-  "runtime_distribution_license_manifest": null,
-  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "runtime_distribution_license_required": true,
+  "runtime_distribution_license_manifest": "toolchains/licenses/retained-install-license-index.v4.json",
+  "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
   "historical_ordinal": 38,
   "catalog_ordinal": 37,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "caa878e080a26b0b8397a8cad6414910420f4e2ce72d39b32c8ed0f68ba809bb"
+  "delivery_owner": "evidence_lane_studio_shared_toolchain",
+  "provisioning_route": "shared_native_manifest",
+  "studio_bundle_component": "ghostscript-runtime",
+  "studio_bundle_member": true,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "29780bdfa6ce64756bc044d9b2d0d48a97e88a887b8611b0bc11dc67c6979a15",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "0c2df81e823b0bdd6eaa9bdc4c976256f19c449f8dbd01f2e50bbc1ba67f0407"
 }

@@ -52,70 +52,70 @@ flowchart TB
   action_source_snapshot_state["source_snapshot_state"]:::default
   action_source_verify["source_verify"]:::default
   sdk -->|"write"| action_custom_lane_configure
-  action_custom_lane_configure -->|"source-intake"| writer
+  action_custom_lane_configure -->|"manage-project-sources"| writer
   sdk -->|"read"| action_custom_lanes_read
-  action_custom_lanes_read -->|"source-intake"| read
+  action_custom_lanes_read -->|"manage-project-sources"| read
   sdk -->|"write"| action_enroll_project
   delta -->|"required current operation contract"| action_enroll_project
-  action_enroll_project -->|"lifecycle"| writer
+  action_enroll_project -->|"run-project-lifecycle"| writer
   sdk -->|"read"| action_fetch
-  action_fetch -->|"source-intake"| read
+  action_fetch -->|"manage-project-sources"| read
   sdk -->|"read"| action_git_branch_authority
-  action_git_branch_authority -->|"lifecycle"| read
+  action_git_branch_authority -->|"run-project-lifecycle"| read
   sdk -->|"write"| action_git_sync_selected
   delta -->|"required current operation contract"| action_git_sync_selected
-  action_git_sync_selected -->|"lifecycle"| writer
+  action_git_sync_selected -->|"run-project-lifecycle"| writer
   sdk -->|"write"| action_lane_configure_routes
-  action_lane_configure_routes -->|"source-intake"| writer
+  action_lane_configure_routes -->|"manage-project-sources"| writer
   sdk -->|"read"| action_source_classify
-  action_source_classify -->|"source-intake"| read
+  action_source_classify -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_crosswalk
-  action_source_crosswalk -->|"source-intake"| writer
+  action_source_crosswalk -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_git_history
-  action_source_git_history -->|"source-intake"| writer
+  action_source_git_history -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_git_impact
-  action_source_git_impact -->|"source-intake"| writer
+  action_source_git_impact -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_graph
-  action_source_graph -->|"source-intake"| writer
+  action_source_graph -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_graph_diff
-  action_source_graph_diff -->|"source-intake"| writer
+  action_source_graph_diff -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_graph_impact
-  action_source_graph_impact -->|"source-intake"| writer
+  action_source_graph_impact -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_identity
-  action_source_identity -->|"source-intake"| writer
+  action_source_identity -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_inspect_sqlite
-  action_source_inspect_sqlite -->|"source-intake"| writer
+  action_source_inspect_sqlite -->|"manage-project-sources"| writer
   sdk -->|"read"| action_source_materialization_read
-  action_source_materialization_read -->|"source-intake"| read
+  action_source_materialization_read -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_materialization_reconcile
-  action_source_materialization_reconcile -->|"source-intake"| writer
+  action_source_materialization_reconcile -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_materialize
-  action_source_materialize -->|"source-intake"| writer
+  action_source_materialize -->|"manage-project-sources"| writer
   sdk -->|"read"| action_source_preparation_read
-  action_source_preparation_read -->|"source-intake"| read
+  action_source_preparation_read -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_prepare_refresh
-  action_source_prepare_refresh -->|"refresh"| writer
+  action_source_prepare_refresh -->|"refresh-project-evidence"| writer
   sdk -->|"write"| action_source_prepare_tasks
-  action_source_prepare_tasks -->|"source-intake"| writer
+  action_source_prepare_tasks -->|"manage-project-sources"| writer
   sdk -->|"read"| action_source_read
-  action_source_read -->|"source-intake"| read
+  action_source_read -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_reconcile_archives
-  action_source_reconcile_archives -->|"source-intake"| writer
+  action_source_reconcile_archives -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_register
-  action_source_register -->|"source-intake"| writer
+  action_source_register -->|"manage-project-sources"| writer
   sdk -->|"read"| action_source_routes_read
-  action_source_routes_read -->|"source-intake"| read
+  action_source_routes_read -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_schema_configure
-  action_source_schema_configure -->|"source-intake"| writer
+  action_source_schema_configure -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_schema_map
-  action_source_schema_map -->|"source-intake"| writer
+  action_source_schema_map -->|"manage-project-sources"| writer
   sdk -->|"write"| action_source_snapshot_retire
   delta -->|"required current operation contract"| action_source_snapshot_retire
-  action_source_snapshot_retire -->|"refresh"| writer
+  action_source_snapshot_retire -->|"refresh-project-evidence"| writer
   sdk -->|"read"| action_source_snapshot_state
-  action_source_snapshot_state -->|"refresh"| read
+  action_source_snapshot_state -->|"refresh-project-evidence"| read
   sdk -->|"read"| action_source_verify
-  action_source_verify -->|"source-intake"| read
+  action_source_verify -->|"manage-project-sources"| read
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

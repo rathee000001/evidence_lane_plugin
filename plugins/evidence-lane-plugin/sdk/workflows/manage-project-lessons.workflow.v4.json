@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 505,
+    "path": "sdk/workflows/skills/manage-project-lessons/workflow.dot",
+    "sha256": "03413f4c8eaa00b8f808cc12d87875393ba12f97bbc60a04438f1d206aad9b6c"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 475,
+    "path": "sdk/workflows/skills/manage-project-lessons/workflow.mmd",
+    "sha256": "11c3a8cb4ab24366a18342b6405b8f5162cc575cab80aaff1f6b65c107d498d0"
+  },
+  "package": {
+    "bytes": 2818,
+    "path": "sdk/workflows/skills/manage-project-lessons/workflow.v4.json",
+    "sha256": "efcffc0288543502a20d582bda058b018c6cf4613cd7a957c66fa2ddce32e151"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "manage-project-lessons",
+  "source_skill": {
+    "bytes": 1403,
+    "path": "skills/manage-project-lessons/SKILL.md",
+    "sha256": "a3e6efcc1d1bef9f1802336f3acda3ec78855aba9c5f0275d1bca883c2f8467b"
+  },
+  "status": "PASS",
+  "title": "Manage project lessons",
+  "workflow": "manage-project-lessons"
+}

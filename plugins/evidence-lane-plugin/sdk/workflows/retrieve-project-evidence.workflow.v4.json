@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 511,
+    "path": "sdk/workflows/skills/retrieve-project-evidence/workflow.dot",
+    "sha256": "59baf9844139122b7b0a151e5f683b2e8ba8aa1d3850b6a1359573d793fcdba8"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 481,
+    "path": "sdk/workflows/skills/retrieve-project-evidence/workflow.mmd",
+    "sha256": "d1afd4c99686476d5109070ce99db119ca669efe292cc2a860ad3afc708052ea"
+  },
+  "package": {
+    "bytes": 1757,
+    "path": "sdk/workflows/skills/retrieve-project-evidence/workflow.v4.json",
+    "sha256": "6b57c224625bc48173eda84914f51a173eeb0414bb146c6de85adf067927fdd7"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "retrieve-project-evidence",
+  "source_skill": {
+    "bytes": 989,
+    "path": "skills/retrieve-project-evidence/SKILL.md",
+    "sha256": "e367ab8b84debecf95d5e27e19a4a7556309cfffa5beedc14b19ee0746395f1f"
+  },
+  "status": "PASS",
+  "title": "Retrieve project evidence",
+  "workflow": "retrieve-project-evidence"
+}

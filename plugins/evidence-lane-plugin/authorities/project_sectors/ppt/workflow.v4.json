@@ -824,7 +824,7 @@
       "version": 1,
       "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
       "consumer": "artifact_export",
-      "implementation_digest": "5a7382ed1f557ccbf79317fca5c42114f00d8e5b77f0102d241099664d5e2c75",
+      "implementation_digest": "c9969651745a31df27d21d193066c3186c4d6c075c38b6facb9bef748d8cf328",
       "files": {
         "mmd": "ppt.mmd",
         "dot": "ppt.dot",

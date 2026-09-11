@@ -489,14 +489,14 @@ def register_git_sync_actions(engine):
     engine.registry.register(ActionSpec('enroll_project',
         'Clone an exact selected branch into this project\'s empty source folder with journaled effects and preserved partial output.',
         GitEnrollmentSelection, GitEnrollmentResult, enroll_project, permission='write', mutates=True,
-        profile='code', workflow='lifecycle', requires_delta=True,
+        profile='code', workflow='run-project-lifecycle', requires_delta=True,
         tool_routes=(ToolRoute('enroll_project.exact_git', enroll_project, ('Python', 'SQLite_FTS5_BM25', 'Git')),),
         verification_checks=('git_enrollment_identity', 'git_branch_authority_integrity', 'git_enrolled_source_fingerprint'),
         verifier=verify_enrollment))
     engine.registry.register(ActionSpec('git_sync_selected',
         'Select exact local branch authority without source changes, or fetch and apply one scoped clean fast-forward.',
         GitSyncSelection, GitSyncResult, sync_selected_branch, permission='write', mutates=True,
-        profile='code', workflow='lifecycle', requires_delta=True,
+        profile='code', workflow='run-project-lifecycle', requires_delta=True,
         verification_checks=('git_selected_source_identity', 'git_branch_authority_integrity', 'git_changed_source_fingerprint'), verifier=verify_selected_sync,
         tool_routes=(ToolRoute('git_sync_selected.exact_git', sync_selected_branch, ('Python', 'SQLite_FTS5_BM25', 'Git')),)))
 
@@ -505,7 +505,7 @@ def register_git_sync_actions(engine):
         with project_snapshot(store.root):
             return GitBranchState(project_id=store.project_id, authority=current_branch_authority(store))
     engine.registry.register(ActionSpec('git_branch_authority', 'Read the exact recorded branch and named remote selection without inspecting or changing Git.',
-        GitBranchRead, GitBranchState, read, workflow='lifecycle', queryable_in_delta=True,
+        GitBranchRead, GitBranchState, read, workflow='run-project-lifecycle', queryable_in_delta=True,
         studio_read=True, read_migrations=GIT_BRANCH_MIGRATIONS))
 
 

@@ -1,0 +1,31 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    "session_boot",
+    "session_resume",
+    "session_status",
+    "session_exit_boundary",
+    "session_exit"
+  ],
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "installed_execution_claimed": false,
+  "owners": [
+    {
+      "bytes": 19667,
+      "path": "src/evidence_lane_plugin/session.py",
+      "sha256": "4a2c01a5a05bfcf0cf4035d5b4e5645a3aacf50b1e6ace2f0f08b291efb0e9ec"
+    },
+    {
+      "bytes": 5638,
+      "path": "src/evidence_lane_plugin/state_law.py",
+      "sha256": "23bbc914d954f3d374f5dba4622c527ef71b22dd409f97b90236942774b701f9"
+    }
+  ],
+  "plan_owned": true,
+  "purpose": "Coordinate project-session and Plan-task state transitions.",
+  "removed_hil_overlay_or_fuse": true,
+  "schema": "evidence-lane.sdk-delta-workflow.v4",
+  "status": "PASS",
+  "workflow": "run-project-lifecycle"
+}

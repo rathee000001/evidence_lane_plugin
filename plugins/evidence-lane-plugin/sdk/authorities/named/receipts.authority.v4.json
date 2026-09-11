@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_id": "receipts",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 125775,
+    "path": "authorities/receipt_ledger/manifest.v4.json",
+    "sha256": "0b66123d5d365bfdafc07822dbd3e6dc76748bbb954f5bf30792b69edd4c0e4f"
+  },
+  "path": "authorities/receipt_ledger",
+  "project_state": "separate_lane_sqlite_and_files",
+  "root_pv_role": "coordinate_published_lane_head",
+  "runtime_execution_inferred": false,
+  "runtime_module": "evidence_lane_plugin.projects",
+  "schema": "evidence-lane.sdk-authority-binding.v4",
+  "status": "PASS"
+}

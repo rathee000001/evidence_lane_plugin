@@ -1187,25 +1187,25 @@ def register_source_actions(engine):
 
     engine.registry.register(ActionSpec("source_classify", "Classify ordered granted sources into retained sectors without registering or copying bytes.",
         SourceIntakeRequest, SourceOperationResult, lambda c, r: intake(c, r, write=False),
-        profile="sources", workflow="source-intake", read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))
+        profile="sources", workflow="manage-project-sources", read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))
     engine.registry.register(ActionSpec("source_register", "Freeze and register ordered source identities and assertions in the Sources authority.",
         SourceIntakeRequest, SourceOperationResult, lambda c, r: intake(c, r, write=True),
-        permission="write", mutates=True, profile="sources", workflow="source-intake"))
+        permission="write", mutates=True, profile="sources", workflow="manage-project-sources"))
     engine.registry.register(ActionSpec('lane_configure_routes',
         'Consume exact source-to-sector overrides in one attributed registration, optionally inheriting a prior route receipt.',
         SourceRouteConfigure, SourceOperationResult,
         lambda c, r: intake(c, r, write=True, action='lane_configure_routes'),
-        permission='write', mutates=True, profile='sources', workflow='source-intake'))
+        permission='write', mutates=True, profile='sources', workflow='manage-project-sources'))
     engine.registry.register(ActionSpec('source_routes_read', 'Inspect an exact immutable source-routing receipt and its source identities.',
         SourceRoutesRead, SourceOperationResult,
         lambda c, r: _source_action_result(engine.directory.open(c.project_id), 'source_routes_read',
             load_route(engine.directory.open(c.project_id), r.route_id)),
-        profile='sources', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+        profile='sources', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
         studio_read=True, read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))
     engine.registry.register(ActionSpec("source_read", "Read a bounded page of registered source records without reading source payloads.",
         SourceReadRequest, SourceOperationResult,
         lambda c, r: _source_action_result(engine.directory.open(c.project_id), "source_read", read_source_records(engine.directory.open(c.project_id), r)),
-        profile="sources", workflow="source-intake", queryable_in_delta=True, cross_project_read=True,
+        profile="sources", workflow="manage-project-sources", queryable_in_delta=True, cross_project_read=True,
         studio_read=True, read_migrations=SOURCES_MIGRATIONS))
 
     def bind(action, function, *, write, reads_source=False):
@@ -1247,6 +1247,6 @@ def register_source_actions(engine):
     )
     for action, model, function, write, reads_source, description in operations:
         engine.registry.register(ActionSpec(action, description, model, SourceOperationResult,
-            bind(action, function, write=write, reads_source=reads_source), profile="sources", workflow="source-intake",
+            bind(action, function, write=write, reads_source=reads_source), profile="sources", workflow="manage-project-sources",
             permission="write" if write else "read", mutates=write,
             read_migrations=() if write else SOURCES_MIGRATIONS))

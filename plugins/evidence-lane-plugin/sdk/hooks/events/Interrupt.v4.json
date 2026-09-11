@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/Interrupt/handler.py",
   "event": "Interrupt",
   "event_contract": "hooks/events/Interrupt/event.v4.json",
-  "event_contract_sha256": "ef70b0b2fcdd9e6e2523287ef8940e10354710e55e175e1e29f842b936f890e5",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "af2796d9205f4f88f033353d521025784696cd116d9f67405541f957de0a9772",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.InterruptHandler",
   "input_schema": "schemas/hooks/Interrupt.v4.schema.json",
   "input_schema_sha256": "c7c50752061c12ba877a6c63bb95b7af3f54df08d3f3d81025b3f83916a7dec8",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/Interrupt/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/Interrupt/02-classify_event.stage.v4.json",
+    "hooks/events/Interrupt/03-handle_event.stage.v4.json",
+    "hooks/events/Interrupt/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/Interrupt/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/Interrupt/06-project_bounded_output.stage.v4.json"
+  ]
 }

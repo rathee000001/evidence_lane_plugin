@@ -1,0 +1,103 @@
+{
+  "action": "lane_view_refresh",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/lane_view_refresh.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/lane_view_refresh.binding.v4.json",
+  "outer_route": {
+    "action": "lane_view_refresh",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "artifacts",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "refresh-project-evidence"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/lane_view_refresh.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+      "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.pointer",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "lane_view_refresh.pointer",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python"
+      ],
+      "worker_operations": []
+    },
+    {
+      "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+      "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.source",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Selected source export with bounded graph analysis; native DOT is not requested.",
+      "route_id": "lane_view_refresh.source",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "worker_operations": [
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+      "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.native",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [
+        "codex_desktop_stable",
+        "codex_desktop_beta",
+        "codex_desktop",
+        "codex_cli",
+        "codex_vm_persistent",
+        "codex_vm_ephemeral"
+      ],
+      "provider": "engine_cpu",
+      "reason": "Explicit native DOT validation using the configured client profile and verified shared binary.",
+      "route_id": "lane_view_refresh.native_dot",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx",
+        "Graphviz_dot"
+      ],
+      "worker_operations": [
+        "render_lane_view"
+      ]
+    }
+  ]
+}

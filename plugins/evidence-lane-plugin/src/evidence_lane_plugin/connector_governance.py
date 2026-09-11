@@ -496,8 +496,8 @@ def register_connector_actions(engine):
             return ConnectorRevoked(plugin_id=request.plugin_id, version=row['current_version'], digest=row['digest'], changed=row['revoked_at'] is None)
 
     engine.registry.register(ActionSpec('connector_read', 'Inspect a bounded project registration page and current scope choices without activating a backend.',
-        ConnectorRead, ConnectorPage, read, profile='extensions', workflow='plugin', studio_read=True))
+        ConnectorRead, ConnectorPage, read, profile='extensions', workflow='inspect-project-connectors', studio_read=True))
     engine.registry.register(ActionSpec('connector_configure', 'Add or configure one versioned project extension grant without executing its backend.',
-        ConnectorConfigure, ConnectorConfigured, configure, permission='admin', profile='extensions', workflow='additional-plugin', mutates=True))
+        ConnectorConfigure, ConnectorConfigured, configure, permission='admin', profile='extensions', workflow='configure-project-connector', mutates=True))
     engine.registry.register(ActionSpec('connector_revoke', 'Revoke the exact reviewed project extension version while preserving its history.',
-        ConnectorRevoke, ConnectorRevoked, revoke, permission='admin', profile='extensions', workflow='drop-additional-plugin', mutates=True))
+        ConnectorRevoke, ConnectorRevoked, revoke, permission='admin', profile='extensions', workflow='revoke-project-connector', mutates=True))

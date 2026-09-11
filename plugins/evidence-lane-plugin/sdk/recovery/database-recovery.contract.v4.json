@@ -1,0 +1,17 @@
+{
+  "accepted_pv_rollback": false,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "database-recovery.contract.v4",
+  "installed_execution_claimed": false,
+  "restore_to_fresh_or_explicit_target": true,
+  "schema": "evidence-lane.sdk-recovery-contract.v4",
+  "sources": [
+    {
+      "bytes": 37271,
+      "path": "src/evidence_lane_plugin/database_recovery.py",
+      "sha256": "ebfcebbaebc83cb7571ecfc6195eaf339faef9bd31f3d1316a0c80a50fbd6031"
+    }
+  ],
+  "status": "PASS"
+}

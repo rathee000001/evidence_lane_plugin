@@ -120,7 +120,7 @@ def bounded_project_read(root: Path, deadline: float, *, writer=None):
 
 @contextmanager
 def project_snapshot(root: Path):
-    """Pin one published Root PV while any participating lane is being read.
+    """Pin one published project evidence head coordinator while any participating lane is being read.
 
     Rollback journal mode is required: this shared root lock prevents the
     coordinator's exclusive publication lock until the entire query finishes.
@@ -165,7 +165,7 @@ def project_snapshot(root: Path):
         connection.execute('BEGIN')
         connection.execute('SELECT revision FROM root_pv_head WHERE singleton=1').fetchone()
         if connection.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
-            raise LaneError('UNSUPPORTED_JOURNAL_MODE', 'Root PV snapshots require DELETE journal mode.')
+            raise LaneError('UNSUPPORTED_JOURNAL_MODE', 'project evidence head coordinator snapshots require DELETE journal mode.')
         if connection.execute("SELECT 1 FROM root_transaction_journal WHERE phase='prepared' LIMIT 1").fetchone():
             raise LaneError('PROJECT_RECOVERY_REQUIRED', 'An interrupted lane commit requires explicit recovery.')
         connection.managed = True
@@ -402,7 +402,7 @@ class _SqliteStorage:
                     unexpected = {name for name in tables if name not in {'project', 'project_registration', 'schema_migrations', 'schema_ownership'}
                                   and not name.startswith(('root_', 'writer_', 'sqlite_'))}
                     if unexpected:
-                        raise LaneError('ROOT_BUSINESS_SCHEMA_FORBIDDEN', 'Root PV stores coordination references only; select the owning lane.')
+                        raise LaneError('ROOT_BUSINESS_SCHEMA_FORBIDDEN', 'project evidence head coordinator stores coordination references only; select the owning lane.')
                 connection.commit()
             except BaseException:
                 connection.rollback()
@@ -741,7 +741,7 @@ class LaneStore(_SqliteStorage):
                 digest = hashlib.file_digest(stream, 'sha256').hexdigest()
             head = hashlib.sha256(json_text({'lane_id': self.lane_id, 'database_sha256': digest}).encode()).hexdigest()
             if head != row['head_digest']:
-                raise LaneError('LANE_HEAD_MISMATCH', 'The lane database differs from its published Root PV head.')
+                raise LaneError('LANE_HEAD_MISMATCH', 'The lane database differs from its published project evidence head coordinator head.')
 
     def append_receipt(self, kind: str, body: dict[str, Any], *, connection=None) -> str:
         if self.lane_id != 'receipts':

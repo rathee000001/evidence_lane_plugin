@@ -41,5 +41,5 @@ def register_workflow_actions(engine):
         'workflow_catalog', 'Discover current public workflows and their registered actions without granting access.',
         WorkflowQuery, WorkflowCatalog,
         lambda context, request: WorkflowCatalog(workflows=engine.registry.workflow_schemas(request.workflow)),
-        project_required=False, workflow='evi',
+        project_required=False, workflow='evidence-lane',
     ))

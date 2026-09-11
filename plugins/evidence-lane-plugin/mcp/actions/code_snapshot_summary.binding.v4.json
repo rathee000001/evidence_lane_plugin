@@ -1,0 +1,273 @@
+{
+  "action": "code_snapshot_summary",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/code_snapshot_summary.action.v4.json",
+  "sdk_binding_sha256": "0574ae42159a1268a15bb25d2e58c1c94e97b2e1ba6676c323427d1fbca7d241",
+  "tool": {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "lane_id": {
+              "default": "local_code",
+              "enum": [
+                "local_code",
+                "github_code"
+              ],
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "max_read_bytes": {
+              "default": 67108864,
+              "maximum": 134217728,
+              "minimum": 1024,
+              "title": "Max Read Bytes",
+              "type": "integer"
+            },
+            "snapshot_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "timeout_ms": {
+              "default": 10000,
+              "maximum": 30000,
+              "minimum": 100,
+              "title": "Timeout Ms",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "snapshot_id"
+          ],
+          "title": "Summary",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "code_snapshot_summary",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

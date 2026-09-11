@@ -253,7 +253,7 @@ class TaskContinuity:
             if (content_digest(checkpoint.model_dump()) != body.get('canon_checkpoint_digest')
                     or checkpoint.project_id != self.store.project_id
                     or checkpoint.participant_ids != [item['participant_id'] for item in body['source_participants']]):
-                raise LaneError('CONTINUATION_CANON_INTEGRITY', 'The Canon checkpoint differs from its exact project and transferred participants.')
+                raise LaneError('CONTINUATION_CANON_INTEGRITY', 'The task exchange authority checkpoint differs from its exact project and transferred participants.')
         return row,body
 
     def accept(self,request,lease,*,actor_id):
@@ -282,9 +282,9 @@ class TaskContinuity:
             if current_ids!=[item['participant_id'] for item in body['source_participants']]:
                 raise LaneError('CONTINUATION_OWNERSHIP_CHANGED','The source participant set changed after the offer.')
             if 'canon_checkpoint' not in body:
-                raise LaneError('CONTINUATION_CANON_CHECKPOINT_REQUIRED', 'This historical offer has no sealed Canon context; cancel it and create a fresh offer.')
+                raise LaneError('CONTINUATION_CANON_CHECKPOINT_REQUIRED', 'This historical offer has no sealed task exchange authority context; cancel it and create a fresh offer.')
             if content_digest(self.canon.continuation_checkpoint(current_ids).model_dump()) != body['canon_checkpoint_digest']:
-                raise LaneError('CONTINUATION_CANON_CHANGED', 'Canon activity changed after this offer; review it and create a fresh continuation.')
+                raise LaneError('CONTINUATION_CANON_CHANGED', 'task exchange authority activity changed after this offer; review it and create a fresh continuation.')
             binding_digest=None
             for selected in body['source_participants']:
                 prior_owner=self._participant(selected['participant_id'],owner=body['source_client_id'])
@@ -396,9 +396,9 @@ def register_continuation_actions(engine):
             return TaskContinuity(store).cancel(request,lease,actor_id=context.client_id,administrative=True)
     engine.registry.register(ActionSpec('continuation_recovery_offer',
         'Administratively offer exact participant reassignment after client-session loss; destination acceptance is still required.',
-        ContinuationRecoveryOffer,ContinuationOffered,recover,permission='admin',profile='recovery',mutates=True, workflow='recover'))
+        ContinuationRecoveryOffer,ContinuationOffered,recover,permission='admin',profile='recovery',mutates=True, workflow='recover-project-state'))
     engine.registry.register(ActionSpec('continuation_recovery_cancel','Administratively cancel an exact stale, unconsumed continuation.',
-        ContinuationCancel,ContinuationCancelled,cancel_recovery,permission='admin',profile='recovery',mutates=True, workflow='recover'))
+        ContinuationCancel,ContinuationCancelled,cancel_recovery,permission='admin',profile='recovery',mutates=True, workflow='recover-project-state'))
     def mutation(method):
         def run(context,request):
             if method=='offer' and request.require_native_attestation:
@@ -411,6 +411,6 @@ def register_continuation_actions(engine):
         ('continuation_offer','Offer exact project-participant continuity to another registered client at a safe work boundary.',ContinuationOffer,ContinuationOffered,'offer'),
         ('continuation_accept','Accept a destination-pinned project continuation and put the source client in read-only closeout.',ContinuationAccept,ContinuationResult,'accept'),
         ('continuation_cancel','Cancel an unconsumed continuation owned by this source client.',ContinuationCancel,ContinuationCancelled,'cancel')]:
-        engine.registry.register(ActionSpec(name,description,input_model,output_model,mutation(method),permission='write',profile='continuity',mutates=True, workflow='state-travel'))
+        engine.registry.register(ActionSpec(name,description,input_model,output_model,mutation(method),permission='write',profile='continuity',mutates=True, workflow='handoff-project-work'))
     engine.registry.register(ActionSpec('continuation_read','Read bounded project continuation bindings without reattaching host sessions.',ContinuationRead,ContinuationPage,
-        lambda context,request:TaskContinuity(engine.directory.open(context.project_id)).read(request),profile='continuity',queryable_in_delta=True, workflow='state-travel'))
+        lambda context,request:TaskContinuity(engine.directory.open(context.project_id)).read(request),profile='continuity',queryable_in_delta=True, workflow='handoff-project-work'))

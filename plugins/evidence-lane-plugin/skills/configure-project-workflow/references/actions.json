@@ -1,13 +1,13 @@
 {
-  "action_set_digest": "998fb803b0d59637e7e5746fcf6728482739c9edf0df53f34d61c13b7544c83b",
+  "action_set_digest": "99de34f4d4e6b9a65bae7706f36d1498535f208a2138be8b7eeb83d119a269b4",
   "actions": [
     {
       "cross_project_read": false,
       "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
-      "input_schema_digest": "b92a7a9292e3478d066f33af15c9b0e196bd4f04f12ac6f3bc44689283b867a7",
+      "input_schema_digest": "81ee86fa470301c4c8818e20cdc04d51dd2fcc5aee0b8ca0bded6f483bbfe75a",
       "mutates": false,
-      "name": "project_recipe",
-      "output_schema_digest": "336abfd2907a59d5dda1541db0f07aa06561f84bc7142f1b5582a4cd4bcdf0d7",
+      "name": "project_workflow_configure",
+      "output_schema_digest": "b90c72e089544e9aee8252d6ed2915deb3d15be174212e528e0ecefe85488e17",
       "permission": "read",
       "profile": "core",
       "project_required": true,
@@ -20,5 +20,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "project-recipe"
+  "workflow": "configure-project-workflow"
 }

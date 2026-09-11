@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'universe'
-ACTIONS = {'bigger_universe_read': True, 'bigger_universe_verify': True, 'linked_projects_read': True, 'universe_inspect': True, 'universe_links_verify': True, 'universe_query': True}
+ACTIONS = {'project_evidence_links_read': True, 'project_evidence_links_verify': True, 'project_evidence_map_inspect': True, 'project_evidence_map_query': True, 'project_evidence_network_read': True, 'project_evidence_network_verify': True}
 
 
 def read_authority(client, **request):

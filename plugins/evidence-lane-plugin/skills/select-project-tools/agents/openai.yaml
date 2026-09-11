@@ -1,6 +1,9 @@
 interface:
   display_name: "Select project tools"
   short_description: "Resolve lane tools and measured compute readiness"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $select-project-tools to inspect the required tools for the selected operation."
 dependencies:
   tools:

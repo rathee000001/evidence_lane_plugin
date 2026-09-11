@@ -848,7 +848,7 @@
       "version": 1,
       "meaning": "Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.",
       "consumer": "artifact_export",
-      "implementation_digest": "ca6a234f7964e58ec99d9f7b770f938c02352f74859932f5a24cfff118348193",
+      "implementation_digest": "324516aca0f6295c86c5ed4326bd9f0309dd6c2b9bd93f164820ab763946e22a",
       "files": {
         "mmd": "docs.mmd",
         "dot": "docs.dot",

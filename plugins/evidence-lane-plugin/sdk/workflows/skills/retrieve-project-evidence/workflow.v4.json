@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/project_evidence_select.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Select deterministic metadata slices using explicit estimated-token and item budgets; verify content through its owning authority.",
+      "mutates": false,
+      "name": "project_evidence_select",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "retrieve-project-evidence"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $retrieve-project-evidence to select bounded evidence for this task.",
+  "description": "Select attributed project evidence within explicit item and estimated-token budgets. Use to fit the relevant evidence into context without merging its owning stores.",
+  "dot": "sdk/workflows/skills/retrieve-project-evidence/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/retrieve-project-evidence/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "retrieve-project-evidence",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Retrieve project evidence",
+  "workflow": "retrieve-project-evidence"
+}

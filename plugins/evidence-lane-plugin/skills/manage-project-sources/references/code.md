@@ -9,7 +9,7 @@ the indexed bytes come from its Git blobs, preserving checkout conversions.
 Use `code_query`, `code_read` and `code_impact` on an exact snapshot. Impact
 describes bounded static import paths, with unresolved edges disclosed.
 `code_query` supports literal `match_mode=all` or `any` and a parser `receipts`
-collection. Use `pv_summary` for verified counts and changes of one exact Code
+collection. Use `code_snapshot_summary` for verified counts and changes of one exact Code
 snapshot. `fetch` reads `file:<relative path>` or the exact `chunk:<digest>`
 returned by a Code query. Text uses bounded line windows; binary uses base64
 pages with `byte_offset` and `next_byte_offset`. Stored snapshot bytes do not

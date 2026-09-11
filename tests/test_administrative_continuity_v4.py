@@ -113,7 +113,7 @@ def test_recovered_state_keeps_historical_continuations_readable_without_reattac
         def call(action,request):
             return sdk.execute(ActionRequest(action=action,project_id=store.project_id,
                 arguments=request.model_dump(mode='json')),new)
-        destination=call('canon_join',CanonJoin(label='Authenticated recovery destination'))
+        destination=call('task_evidence_participant_register',CanonJoin(label='Authenticated recovery destination'))
         assert destination.status=='ok'
         proposal=call('continuation_recovery_offer',recovery_request(current,source,destination.result['participant_id']))
         assert proposal.status=='ok',proposal.error

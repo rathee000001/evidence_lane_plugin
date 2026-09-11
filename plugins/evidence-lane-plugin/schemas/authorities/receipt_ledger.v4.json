@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/receipt_ledger/manifest.v4.json",
-      "sha256": "82e7a47d181e9cd0a946a74677f1236d7418a73b3ddc2bdbbcef07c4bce840cc"
+      "sha256": "0b66123d5d365bfdafc07822dbd3e6dc76748bbb954f5bf30792b69edd4c0e4f"
     },
     {
       "path": "authorities/receipt_ledger/migration-history.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "authorities/receipt_ledger/reader-contract.schema.json",
-      "sha256": "4082a7762981711318edcbbdfdb549df699cf57ab7a3b899e9a254ea1c90b01f"
+      "sha256": "59e29db7e257aacf23d48dc1f8ee215e47da0025a9260a6e174162e34e5cd5fc"
     },
     {
       "path": "authorities/receipt_ledger/refresh-receipt.schema.json",

@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 503,
+    "path": "sdk/workflows/skills/classify-project-work/workflow.dot",
+    "sha256": "e5ebab0d57b56974c15205aa79e93fb8ddea9ac13d4bc17f19307030c3c90957"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 473,
+    "path": "sdk/workflows/skills/classify-project-work/workflow.mmd",
+    "sha256": "5b3626f05ca3d77c8f63c66437313d85b679ce8c4abf22da6b502ac64d9fe959"
+  },
+  "package": {
+    "bytes": 1754,
+    "path": "sdk/workflows/skills/classify-project-work/workflow.v4.json",
+    "sha256": "20fd561709df8469d4d9d0b64252ec0c9067b349bbcfb1f168ab590b453a3443"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "classify-project-work",
+  "source_skill": {
+    "bytes": 3214,
+    "path": "skills/classify-project-work/SKILL.md",
+    "sha256": "ad65c3983898609a6bdcec84ccaabaf221df878d400381401babc3aa72ffb5cf"
+  },
+  "status": "PASS",
+  "title": "Classify project work",
+  "workflow": "classify-project-work"
+}

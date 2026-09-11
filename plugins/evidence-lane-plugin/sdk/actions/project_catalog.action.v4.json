@@ -1,11 +1,11 @@
 {
   "action": "project_catalog",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/project_catalog.v4.schema.json",
-  "contract_sha256": "e2756969bfd576d06b11b8cf8fed70a64e2f128f9ce6b31d10174771cca0cb72",
+  "contract_sha256": "23df1fd5b5c350f13f1dda32ae46870178276e58ebe4ed9ae0e5ff285bbdf6fc",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

@@ -1,0 +1,36 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.source_intake",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "lane_configure_routes",
+    "source_classify",
+    "source_crosswalk",
+    "source_git_history",
+    "source_git_impact",
+    "source_graph",
+    "source_graph_diff",
+    "source_graph_impact",
+    "source_identity",
+    "source_inspect_sqlite",
+    "source_read",
+    "source_reconcile_archives",
+    "source_register",
+    "source_routes_read",
+    "source_schema_configure",
+    "source_schema_map",
+    "source_verify"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 56190,
+    "path": "src/evidence_lane_plugin/source_intake.py",
+    "sha256": "d9a519ee55318d884c796045edf77b3133ba49a705381020a9886d620ed8db2e"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

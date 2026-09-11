@@ -4,10 +4,10 @@
   "ordinal": 35,
   "tool": "pytesseract_Tesseract",
   "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
-  "classification": "NATIVE_RUNTIME_ASSET",
-  "install_mode": "portable_nsis_extract",
+  "classification": "STUDIO_BUNDLE_DISTRIBUTION",
+  "install_mode": "shipped_with_evidence_lane_studio",
   "license_expression_or_terms": "Apache-2.0",
-  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
+  "license_evidence": "Exact packaged license/source evidence is bound to the Studio release component; installed verification remains pending.",
   "evidence_paths": [
     "toolchains/native-tool-definitions.v4.json"
   ],
@@ -21,7 +21,7 @@
     "copied_to_hidden_runtime_before_use": true
   },
   "runtime_distribution_license_required": true,
-  "runtime_distribution_license_manifest": "%RUNTIME_CONTROL_ROOT%/runtime/licenses/<runtime_key>/manifest.v1.json",
+  "runtime_distribution_license_manifest": "toolchains/licenses/retained-install-license-index.v4.json",
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
@@ -29,5 +29,16 @@
   "catalog_ordinal": 34,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "4bba39f9b2518047118138feaeffbc84d9481a4c2893e9848709060a1d7f9638"
+  "delivery_owner": "evidence_lane_studio_shared_toolchain",
+  "provisioning_route": "shared_native_manifest",
+  "studio_bundle_component": "native-tools",
+  "studio_bundle_member": true,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "cc37a7f8ad580f1498f0c679732167ad4eefcdcd73db1c752c5ce38c5849caae",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "d1f594cf54336dd888ecf269f2096c76a039fa3461e38b9f4d6cc17f35e85496"
 }

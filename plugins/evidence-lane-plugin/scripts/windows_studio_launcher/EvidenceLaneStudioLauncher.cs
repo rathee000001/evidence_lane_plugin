@@ -5,11 +5,11 @@ using System.Reflection;
 using System.Text;
 
 [assembly: AssemblyTitle("Evidence Lane Studio Launcher")]
-[assembly: AssemblyDescription("Release-bound launcher for Evidence Lane Studio and its persistent engine")]
+[assembly: AssemblyDescription("Stable-root launcher for Evidence Lane Studio and its persistent engine")]
 [assembly: AssemblyCompany("Evidence Lane")]
 [assembly: AssemblyProduct("Evidence Lane")]
-[assembly: AssemblyVersion("4.0.0.0")]
-[assembly: AssemblyFileVersion("4.0.0.0")]
+[assembly: AssemblyVersion("4.0.2.0")]
+[assembly: AssemblyFileVersion("4.0.2.0")]
 
 internal static class EvidenceLaneStudioLauncher
 {
@@ -49,17 +49,14 @@ internal static class EvidenceLaneStudioLauncher
 
         var executable = new FileInfo(Assembly.GetExecutingAssembly().Location);
         var app = executable.Directory;
-        var release = app == null ? null : app.Parent;
-        var releases = release == null ? null : release.Parent;
-        var installation = releases == null ? null : releases.Parent;
-        if (app == null || release == null || releases == null || installation == null ||
-            !string.Equals(releases.Name, "releases", StringComparison.OrdinalIgnoreCase))
+        var installation = app == null ? null : app.Parent;
+        if (app == null || installation == null)
         {
             return InvalidLayout;
         }
 
-        var plugin = new DirectoryInfo(Path.Combine(app.FullName, "plugin"));
-        var runtime = new DirectoryInfo(Path.Combine(release.FullName, "runtime", "engine"));
+        var plugin = new DirectoryInfo(Path.Combine(installation.FullName, "plugin"));
+        var runtime = new DirectoryInfo(Path.Combine(installation.FullName, "engine"));
         var python = new FileInfo(Path.Combine(runtime.FullName, "venv", "Scripts", "pythonw.exe"));
         var script = new FileInfo(Path.Combine(plugin.FullName, "scripts", "launch_studio.py"));
         var pointer = new FileInfo(Path.Combine(installation.FullName, "installation.json"));
@@ -71,8 +68,6 @@ internal static class EvidenceLaneStudioLauncher
         {
             executable.FullName,
             app.FullName,
-            release.FullName,
-            releases.FullName,
             installation.FullName,
             plugin.FullName,
             runtime.FullName,
@@ -97,7 +92,7 @@ internal static class EvidenceLaneStudioLauncher
             }
             var inspection = Path.Combine(diagnostics, "launcher-inspection.json");
             var json = "{\"status\":\"PASS\",\"installation_root\":" + Json(installation.FullName) +
-                ",\"release_root\":" + Json(release.FullName) +
+                ",\"release_root\":" + Json(installation.FullName) +
                 ",\"plugin_root\":" + Json(plugin.FullName) +
                 ",\"runtime_root\":" + Json(runtime.FullName) +
                 ",\"command_length\":" + BuildArguments(script.FullName, runtime.FullName).Length +
@@ -131,13 +126,13 @@ internal static class EvidenceLaneStudioLauncher
         start.EnvironmentVariables["EVIDENCE_LANE_STUDIO_ROOT"] = installation.FullName;
         start.EnvironmentVariables["EVIDENCE_LANE_RUNTIME_ROOT"] = runtime.FullName;
         start.EnvironmentVariables["EVIDENCE_LANE_PLUGIN_ROOT"] = plugin.FullName;
-        var nodeRoot = Path.Combine(release.FullName, "toolchains", "node");
+        var nodeRoot = Path.Combine(installation.FullName, "toolchains", "node");
         var nodeCommands = Path.Combine(nodeRoot, "node_modules", ".bin");
-        var gitCommands = Path.Combine(release.FullName, "toolchains", "bin", "git", "cmd");
+        var gitCommands = Path.Combine(installation.FullName, "toolchains", "bin", "git", "cmd");
         if (!Directory.Exists(nodeRoot) || !Directory.Exists(nodeCommands) ||
-            !Directory.Exists(gitCommands) || ContainsReparsePoint(nodeRoot, release.FullName) ||
-            ContainsReparsePoint(nodeCommands, release.FullName) ||
-            ContainsReparsePoint(gitCommands, release.FullName))
+            !Directory.Exists(gitCommands) || ContainsReparsePoint(nodeRoot, installation.FullName) ||
+            ContainsReparsePoint(nodeCommands, installation.FullName) ||
+            ContainsReparsePoint(gitCommands, installation.FullName))
         {
             return InvalidLayout;
         }
@@ -147,13 +142,13 @@ internal static class EvidenceLaneStudioLauncher
         );
         start.EnvironmentVariables["EVIDENCE_LANE_NODE_ROOT"] = nodeRoot;
         start.EnvironmentVariables["EVIDENCE_LANE_NATIVE_ROOT"] = Path.Combine(
-            release.FullName, "toolchains", "bin"
+            installation.FullName, "toolchains", "bin"
         );
         start.EnvironmentVariables["EVIDENCE_LANE_MODEL_ROOT"] = Path.Combine(
-            release.FullName, "toolchains", "models"
+            installation.FullName, "toolchains", "models"
         );
         start.EnvironmentVariables["EVIDENCE_LANE_PROVIDER_ROOT"] = Path.Combine(
-            release.FullName, "toolchains", "python", "providers"
+            installation.FullName, "toolchains", "python", "providers"
         );
         using (var child = Process.Start(start))
         {

@@ -42,12 +42,12 @@ def test_compact_single_epoch_goal_usage_route_is_purged() -> None:
 def test_goal_completion_requests_do_not_attest_human_or_native_completion() -> None:
     continued = build_goal_completion_authorization(
         visible_command=GOAL_COMPLETION_COMMAND,
-        disposition="COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+        disposition="COMPLETE_THIS_TASK_AND_HANDOFF_WORK",
         actor_kind="HUMAN",
         current_task_id="task-current",
     )
     assert continued["current_task_goal_completed"] is None
-    assert continued["state_travel_requested"] is True
+    assert continued["work_handoff_requested"] is True
     assert continued["successor_goal_required"] is True
     assert continued["full_goal_closed"] is None
     assert continued["full_goal_completion_requested"] is False
@@ -60,7 +60,7 @@ def test_goal_completion_requests_do_not_attest_human_or_native_completion() -> 
     )
     assert final["full_goal_closed"] is None
     assert final["full_goal_completion_requested"] is True
-    assert final["state_travel_requested"] is False
+    assert final["work_handoff_requested"] is False
     assert final["hil_can_complete_goal"] is False
     assert final["candidate_can_complete_goal"] is False
     assert final["automation_can_complete_goal"] is False

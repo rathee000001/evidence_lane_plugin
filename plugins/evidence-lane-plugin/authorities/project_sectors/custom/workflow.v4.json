@@ -852,7 +852,7 @@
       "version": 1,
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "consumer": "artifact_export",
-      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
       "files": {
         "mmd": "custom.mmd",
         "dot": "custom.dot",

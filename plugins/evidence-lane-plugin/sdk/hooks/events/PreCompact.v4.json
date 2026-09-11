@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/PreCompact/handler.py",
   "event": "PreCompact",
   "event_contract": "hooks/events/PreCompact/event.v4.json",
-  "event_contract_sha256": "04fd4ad0ef8204c25bbce756b19fc37f248079e44d5f639860f8ffdb87b423f2",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "2c0d5e457fc53400a77a561386033f13da429f8f6410b40eabe67e80ae095975",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
   "input_schema": "schemas/hooks/PreCompact.v4.schema.json",
   "input_schema_sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/PreCompact/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/PreCompact/02-classify_event.stage.v4.json",
+    "hooks/events/PreCompact/03-handle_event.stage.v4.json",
+    "hooks/events/PreCompact/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/PreCompact/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/PreCompact/06-project_bounded_output.stage.v4.json"
+  ]
 }

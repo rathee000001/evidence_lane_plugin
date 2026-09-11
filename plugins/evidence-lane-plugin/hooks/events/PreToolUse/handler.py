@@ -5,5 +5,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 if __name__ == "__main__":
-    from evidence_lane_plugin.hook_contract import main_for_event
-    raise SystemExit(main_for_event("PreToolUse"))
+    from evidence_lane_plugin.hook_contract import main_for_handler
+    from evidence_lane_plugin.hook_event_handlers import PreToolUseHandler
+    raise SystemExit(main_for_handler(PreToolUseHandler))

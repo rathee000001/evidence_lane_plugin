@@ -9,20 +9,20 @@ Read [shared boundaries](../run-project-lifecycle/references/shared-boundaries.m
 Use [owned action references](references/actions.json) and the live MCP schemas for exact arguments.
 
 Select a separate coordinator project and use
-`bigger_universe_create` for the named federation. The coordinator cannot be a
+`project_evidence_network_create` for the named federation. The coordinator cannot be a
 member. Its Universe SQLite owns federation metadata; each member retains its
-own separate Universe, Root PV, lane databases and files. Require coordinator
+own separate Universe, project evidence head coordinator, lane databases and files. Require coordinator
 write permission and current read selections for every referenced member.
-Inspect each member with `universe_inspect`, then use `bigger_universe_register`
+Inspect each member with `project_evidence_map_inspect`, then use `project_evidence_network_register`
 with the exact snapshot hash and current registration version. The engine
 derives and verifies the hashes, advances only changed lane references and
 preserves historical mini-brain identities. Unchanged registration is a read.
-Use `bigger_universe_grant` for one explicit expiring relation between two
-registered member references, then `bigger_universe_link` with that grant ID
+Use `project_evidence_network_grant` for one explicit expiring relation between two
+registered member references, then `project_evidence_network_link` with that grant ID
 and named SHA-256 evidence only. A caller's arbitrary hash is not a grant.
-`bigger_universe_revoke` withdraws mutation authority and preserves history.
-`bigger_universe_read` returns bounded recorded references; its read does not
-claim current member access. `bigger_universe_verify` checks bounded stored
+`project_evidence_network_revoke` withdraws mutation authority and preserves history.
+`project_evidence_network_read` returns bounded recorded references; its read does not
+claim current member access. `project_evidence_network_verify` checks bounded stored
 integrity. Discover the `universe.federation` lane view to preview/export the
 hash-reference graph, including history when selected. Registration captures
 one member's coherent snapshot; it does not promise simultaneous freshness

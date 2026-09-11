@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=E9FADAB69BDA00E8095335DF81C2F8A14FF2ACF0B984B55F446CB59ACEC0D6F3
+%% LANGGRAPH_EXPORT_SHA256=789320ADBB3D55E8DDD97DEC8D3CB857A2A08815213C7F7AB90BAC3C918BD16A
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -20,9 +20,9 @@ flowchart TB
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
   owner["project_authority current executable owner"]:::default
+  action_code_snapshot_summary["code_snapshot_summary"]:::default
   action_continuation_recovery_cancel["continuation_recovery_cancel"]:::default
   action_continuation_recovery_offer["continuation_recovery_offer"]:::default
-  action_cross_project_query["cross_project_query"]:::default
   action_git_restore["git_restore"]:::default
   action_git_restore_abandon["git_restore_abandon"]:::default
   action_git_restore_preview["git_restore_preview"]:::default
@@ -31,79 +31,79 @@ flowchart TB
   action_lane_fetch["lane_fetch"]:::default
   action_lane_search["lane_search"]:::default
   action_lane_status["lane_status"]:::default
+  action_linked_project_evidence_query["linked_project_evidence_query"]:::default
   action_project_backup["project_backup"]:::default
   action_project_backup_verify["project_backup_verify"]:::default
   action_project_catalog["project_catalog"]:::default
   action_project_deselect["project_deselect"]:::default
+  action_project_evidence_heads_compare["project_evidence_heads_compare"]:::default
+  action_project_evidence_history["project_evidence_history"]:::default
   action_project_recovery_inspect["project_recovery_inspect"]:::default
   action_project_register["project_register"]:::default
   action_project_select["project_select"]:::default
   action_project_status["project_status"]:::default
-  action_pv_diff["pv_diff"]:::default
-  action_pv_history["pv_history"]:::default
-  action_pv_summary["pv_summary"]:::default
   action_restoration_read["restoration_read"]:::default
   action_restoration_reindex["restoration_reindex"]:::default
   action_search["search"]:::default
   action_storage_status["storage_status"]:::default
+  sdk -->|"read"| action_code_snapshot_summary
+  action_code_snapshot_summary -->|"manage-project-sources"| read
   sdk -->|"admin"| action_continuation_recovery_cancel
-  action_continuation_recovery_cancel -->|"recover"| writer
+  action_continuation_recovery_cancel -->|"recover-project-state"| writer
   sdk -->|"admin"| action_continuation_recovery_offer
-  action_continuation_recovery_offer -->|"recover"| writer
-  sdk -->|"read"| action_cross_project_query
-  action_cross_project_query -->|"universe"| read
+  action_continuation_recovery_offer -->|"recover-project-state"| writer
   sdk -->|"admin"| action_git_restore
-  action_git_restore -->|"recover"| writer
+  action_git_restore -->|"recover-project-state"| writer
   sdk -->|"admin"| action_git_restore_abandon
-  action_git_restore_abandon -->|"recover"| writer
+  action_git_restore_abandon -->|"recover-project-state"| writer
   sdk -->|"read"| action_git_restore_preview
-  action_git_restore_preview -->|"recover"| read
+  action_git_restore_preview -->|"recover-project-state"| read
   sdk -->|"admin"| action_git_restore_reconcile
-  action_git_restore_reconcile -->|"recover"| writer
+  action_git_restore_reconcile -->|"recover-project-state"| writer
   sdk -->|"read"| action_lane_catalog
-  action_lane_catalog -->|"evi"| read
+  action_lane_catalog -->|"evidence-lane"| read
   sdk -->|"read"| action_lane_fetch
-  action_lane_fetch -->|"source-intake"| read
+  action_lane_fetch -->|"manage-project-sources"| read
   sdk -->|"read"| action_lane_search
-  action_lane_search -->|"evi"| read
+  action_lane_search -->|"evidence-lane"| read
   sdk -->|"read"| action_lane_status
-  action_lane_status -->|"evi"| read
+  action_lane_status -->|"evidence-lane"| read
+  sdk -->|"read"| action_linked_project_evidence_query
+  action_linked_project_evidence_query -->|"inspect-project-evidence-map"| read
   sdk -->|"admin"| action_project_backup
-  action_project_backup -->|"recover"| writer
+  action_project_backup -->|"recover-project-state"| writer
   sdk -->|"admin"| action_project_backup_verify
-  action_project_backup_verify -->|"recover"| read
+  action_project_backup_verify -->|"recover-project-state"| read
   sdk -->|"project_admin"| action_project_catalog
-  action_project_catalog -->|"evi"| read
+  action_project_catalog -->|"evidence-lane"| read
   sdk -->|"project_admin"| action_project_deselect
-  action_project_deselect -->|"exit-boot"| writer
+  action_project_deselect -->|"close-project-session"| writer
+  sdk -->|"read"| action_project_evidence_heads_compare
+  action_project_evidence_heads_compare -->|"evidence-lane"| read
+  sdk -->|"read"| action_project_evidence_history
+  action_project_evidence_history -->|"evidence-lane"| read
   sdk -->|"read"| action_project_recovery_inspect
-  action_project_recovery_inspect -->|"recover"| read
+  action_project_recovery_inspect -->|"recover-project-state"| read
   sdk -->|"project_admin"| action_project_register
-  action_project_register -->|"storage"| writer
+  action_project_register -->|"select-project-storage"| writer
   sdk -->|"project_admin"| action_project_select
-  action_project_select -->|"boot"| writer
+  action_project_select -->|"open-project-session"| writer
   sdk -->|"read"| action_project_status
-  action_project_status -->|"boot"| read
-  sdk -->|"read"| action_pv_diff
-  action_pv_diff -->|"evi"| read
-  sdk -->|"read"| action_pv_history
-  action_pv_history -->|"evi"| read
-  sdk -->|"read"| action_pv_summary
-  action_pv_summary -->|"source-intake"| read
+  action_project_status -->|"open-project-session"| read
   sdk -->|"read"| action_restoration_read
-  action_restoration_read -->|"recover"| read
+  action_restoration_read -->|"recover-project-state"| read
   sdk -->|"write"| action_restoration_reindex
-  action_restoration_reindex -->|"recover"| writer
+  action_restoration_reindex -->|"recover-project-state"| writer
   sdk -->|"read"| action_search
-  action_search -->|"evi"| read
+  action_search -->|"evidence-lane"| read
   sdk -->|"read"| action_storage_status
-  action_storage_status -->|"storage"| read
+  action_storage_status -->|"select-project-storage"| read
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  action_continuation_recovery_cancel ~~~ action_continuation_recovery_offer
+  action_code_snapshot_summary ~~~ action_continuation_recovery_cancel
   action_git_restore_reconcile ~~~ action_lane_catalog
-  action_project_backup_verify ~~~ action_project_catalog
-  action_project_status ~~~ action_pv_diff
+  action_project_backup ~~~ action_project_backup_verify
+  action_project_recovery_inspect ~~~ action_project_register
   action_search ~~~ action_storage_status
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

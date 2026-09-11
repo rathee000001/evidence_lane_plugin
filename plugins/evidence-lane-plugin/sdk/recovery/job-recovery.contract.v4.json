@@ -1,0 +1,17 @@
+{
+  "accepted_pv_rollback": false,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "job-recovery.contract.v4",
+  "installed_execution_claimed": false,
+  "restore_to_fresh_or_explicit_target": true,
+  "schema": "evidence-lane.sdk-recovery-contract.v4",
+  "sources": [
+    {
+      "bytes": 14879,
+      "path": "src/evidence_lane_plugin/job_recovery.py",
+      "sha256": "3b85cceeefdd21c3b6efa4a8ace48c30987cbdf275a28feb0662fb525873be36"
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_id": "learning",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 25013,
+    "path": "authorities/agent_learning/manifest.v4.json",
+    "sha256": "907216183dac0470255615a287fad7b2ad3912be7a93235549645b98478e2cf2"
+  },
+  "path": "authorities/agent_learning",
+  "project_state": "separate_lane_sqlite_and_files",
+  "root_pv_role": "coordinate_published_lane_head",
+  "runtime_execution_inferred": false,
+  "runtime_module": "evidence_lane_plugin.agent_learning",
+  "schema": "evidence-lane.sdk-authority-binding.v4",
+  "status": "PASS"
+}

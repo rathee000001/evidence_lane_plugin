@@ -88,7 +88,7 @@ def invoke_pdf(operation, arguments, *, timeout_seconds=90):
         def send():
             try:
                 process.stdin.write(body)
-            except OSError, ValueError:
+            except (OSError, ValueError):
                 pass
             finally:
                 process.stdin.close()
@@ -116,7 +116,7 @@ def invoke_pdf(operation, arguments, *, timeout_seconds=90):
             fail("NATIVE_OPERATION_FAILED")
         try:
             response = json.loads(output["stdout"])
-        except ValueError, RecursionError:
+        except (ValueError, RecursionError):
             fail("RESPONSE_INVALID")
         if response.get("status") != "ok":
             code = response.get("code", "")

@@ -22,6 +22,6 @@ flowchart TB
   owner["instructions current executable owner"]:::default
   action_instructions_inspect["instructions_inspect"]:::default
   sdk -->|"read"| action_instructions_inspect
-  action_instructions_inspect -->|"instructions"| read
+  action_instructions_inspect -->|"inspect-project-instructions"| read
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read

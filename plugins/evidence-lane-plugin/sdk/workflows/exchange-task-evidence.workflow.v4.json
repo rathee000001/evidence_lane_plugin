@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 506,
+    "path": "sdk/workflows/skills/exchange-task-evidence/workflow.dot",
+    "sha256": "26126bb9f2f8dde434b3e32fb6f9a5a806a57fed0ad0b5329a011040681e894f"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 476,
+    "path": "sdk/workflows/skills/exchange-task-evidence/workflow.mmd",
+    "sha256": "b2a983c6529bc49164f8dd49a4345a3101e3c437c540f531f917ff5acfe7064b"
+  },
+  "package": {
+    "bytes": 9809,
+    "path": "sdk/workflows/skills/exchange-task-evidence/workflow.v4.json",
+    "sha256": "6b1c933c9d5cd540440adf21b3d6486552809f9d7286669eceabf022904fc367"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "exchange-task-evidence",
+  "source_skill": {
+    "bytes": 5356,
+    "path": "skills/exchange-task-evidence/SKILL.md",
+    "sha256": "b744a2cd3540ccb4466d94df56923b7255eeb278df5576ac63fccac19a5c9bbd"
+  },
+  "status": "PASS",
+  "title": "Exchange task evidence",
+  "workflow": "exchange-task-evidence"
+}

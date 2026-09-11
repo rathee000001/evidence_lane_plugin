@@ -174,6 +174,12 @@ def retained_license_index(
                     ],
                     "evidence_paths": [path.relative_to(PLUGIN).as_posix()],
                     "evidence_sha256": sha256(path),
+                    "delivery_owner": value["delivery_owner"],
+                    "install_mode": value["install_mode"],
+                    "provisioning_route": value["provisioning_route"],
+                    "studio_bundle_component": value["studio_bundle_component"],
+                    "studio_bundle_member": value["studio_bundle_member"],
+                    "tunnel_dependency": value["tunnel_dependency"],
                     "redistributed_by_release_asset": bool(
                         entry["installation_required_for_windows_bundle"]
                         and not entry["external_configuration_required"]
@@ -234,6 +240,8 @@ def retained_license_index(
         "records": rows,
         "installed_license_receipt_required": True,
         "external_service_terms_remain_external": True,
+        "studio_bundle_owns_retained_local_toolchain": True,
+        "tunnel_dependency": False,
     }
     return sealed(body)
 
@@ -350,12 +358,12 @@ def materialization_steps(
             "operation": "create_venv",
             "component_id": "core-engine-studio",
             "interpreter": "toolchains/python/base/cp314/python.exe",
-            "target": "runtime/engine/venv",
+            "target": "engine/venv",
         },
         {
             "operation": "pip_install",
             "component_id": "core-engine-studio",
-            "environment": "runtime/engine/venv",
+            "environment": "engine/venv",
             "wheelhouse": "install-inputs/engine/wheelhouse",
             "requirements": [
                 "install-inputs/engine/core.offline.lock.txt",
@@ -406,6 +414,27 @@ def build_outputs() -> dict[str, bytes]:
     catalog_path = TOOLCHAINS / "tool-catalog.v4.json"
     native_path = TOOLCHAINS / "native-tools.v4.json"
     plugin_manifest = PLUGIN / ".codex-plugin/plugin.json"
+    plugin_metadata = document(plugin_manifest)
+    release_binding_schema_path = (
+        PLUGIN / "schemas/install/first-detection-release-binding.v4.schema.json"
+    )
+    release_binding_schema = document(release_binding_schema_path)
+    plugin_version = plugin_metadata["version"]
+    release_binding_schema["properties"]["plugin_version"]["const"] = plugin_version
+    release_binding_schema["properties"]["release_ref"]["pattern"] = (
+        "^refs/tags/evidence-lane-v"
+        + re.escape(plugin_version)
+        + "-bundle-[0-9a-f]{16}$"
+    )
+    release_binding_schema_bytes = (
+        json.dumps(
+            release_binding_schema,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        ).encode("utf-8")
+        + b"\n"
+    )
     runtime_lock_path = PLUGIN / "requirements.runtime.lock.txt"
     runtime_lock_receipt = PLUGIN / "requirements.runtime-lock.v4.json"
     shared = document(shared_path)
@@ -562,6 +591,11 @@ def build_outputs() -> dict[str, bytes]:
             "runtime_lock_receipt_sha256": sha256(runtime_lock_receipt),
             "runtime_wheel_license_index_required": True,
             "component_license_evidence_required": True,
+            "license_record_count": len(license_index["records"]),
+            "studio_bundle_owns_retained_local_toolchain": True,
+            "external_services_remain_explicit": True,
+            "plugin_engine_and_host_capabilities_classified_separately": True,
+            "tunnel_dependency": False,
             "ghostscript_default_bundled": False,
             "ghostscript_license_grant_required": True,
             "poppler_separate_process_and_source_offer_required": True,
@@ -607,14 +641,21 @@ def build_outputs() -> dict[str, bytes]:
         *[PLUGIN / row["manifest"] for row in provider_rows],
         *[PLUGIN / row["lock"] for row in provider_rows],
     ]
-    source_rows = [
-        {
-            "path": path.relative_to(PLUGIN).as_posix(),
-            "sha256": sha256(path),
-            "bytes": path.stat().st_size,
-        }
-        for path in source_paths
-    ] + [
+    source_rows = []
+    for path in source_paths:
+        content = (
+            release_binding_schema_bytes
+            if path.resolve() == release_binding_schema_path.resolve()
+            else path.read_bytes()
+        )
+        source_rows.append(
+            {
+                "path": path.relative_to(PLUGIN).as_posix(),
+                "sha256": hashlib.sha256(content).hexdigest(),
+                "bytes": len(content),
+            }
+        )
+    source_rows += [
         {
             "path": license_path,
             "sha256": hashlib.sha256(license_bytes).hexdigest(),
@@ -702,7 +743,7 @@ def build_outputs() -> dict[str, bytes]:
         "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
         "plugin": {
             "id": "evidence-lane-plugin",
-            "version": document(plugin_manifest)["version"],
+            "version": plugin_version,
             "repository": "https://github.com/rathee000001/evidence_lane_plugin",
             "sparse_root": "plugins/evidence-lane-plugin",
         },
@@ -801,14 +842,14 @@ def build_outputs() -> dict[str, bytes]:
         "offline_wheel_sets": offline_wheel_sets,
         "materialization_steps": materialization_steps(provider_rows),
         "entrypoints": {
-            "runtime_python": "runtime/engine/venv/Scripts/python.exe",
-            "runtime_pythonw": "runtime/engine/venv/Scripts/pythonw.exe",
-            "plugin_root": "app/plugin",
+            "runtime_python": "engine/venv/Scripts/python.exe",
+            "runtime_pythonw": "engine/venv/Scripts/pythonw.exe",
+            "plugin_root": "plugin",
             "studio_launcher_executable": "app/EvidenceLaneStudio.exe",
-            "mcp_launcher": "app/plugin/scripts/run_mcp.py",
-            "engine_launcher": "app/plugin/scripts/run_engine.py",
-            "installation_self_test": "app/plugin/scripts/verify_installed_runtime.py",
-            "installation_registration": "app/plugin/scripts/register_installed_runtime.py",
+            "mcp_launcher": "plugin/scripts/run_mcp.py",
+            "engine_launcher": "plugin/scripts/run_engine.py",
+            "installation_self_test": "plugin/scripts/verify_installed_runtime.py",
+            "installation_registration": "plugin/scripts/register_installed_runtime.py",
         },
         "source_inputs": source_rows,
         "license_index": {
@@ -859,6 +900,7 @@ def build_outputs() -> dict[str, bytes]:
         template, ensure_ascii=False, indent=2
     ).encode("utf-8") + b"\n"
     return {
+        "schemas/install/first-detection-release-binding.v4.schema.json": release_binding_schema_bytes,
         license_path: license_bytes,
         policy_path: policy_bytes,
         "provisioning/full-bundle-plan.v4.json": plan_bytes,

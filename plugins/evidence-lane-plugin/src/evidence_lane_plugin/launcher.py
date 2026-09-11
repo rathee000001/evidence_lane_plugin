@@ -73,6 +73,32 @@ def _service_command(root: Path) -> list[str]:
     return [str(interpreter), '-I', '-m', 'evidence_lane_plugin.service', '--runtime-root', str(root)]
 
 
+def _windows_service_flags(*, breakaway: bool = True) -> int:
+    if os.name != 'nt':
+        return 0
+    names = ['CREATE_NO_WINDOW', 'CREATE_NEW_PROCESS_GROUP', 'DETACHED_PROCESS']
+    if breakaway:
+        names.append('CREATE_BREAKAWAY_FROM_JOB')
+    return sum(getattr(subprocess, name, 0) for name in names)
+
+
+def _spawn_service(root: Path, spawn) -> subprocess.Popen:
+    arguments = _service_command(root)
+    options = {
+        'stdin': subprocess.DEVNULL,
+        'stdout': subprocess.DEVNULL,
+        'stderr': subprocess.DEVNULL,
+        'close_fds': True,
+        'start_new_session': os.name != 'nt',
+    }
+    if os.name != 'nt':
+        return spawn(arguments, **options)
+    try:
+        return spawn(arguments, creationflags=_windows_service_flags(), **options)
+    except OSError:
+        return spawn(arguments, creationflags=_windows_service_flags(breakaway=False), **options)
+
+
 def ensure_local_engine(root: Path, *, timeout: float = 30, spawn=None) -> dict:
     """Start at most one owned service; never replace or kill a live engine.
 
@@ -90,9 +116,6 @@ def ensure_local_engine(root: Path, *, timeout: float = 30, spawn=None) -> dict:
         except LaneError as error:
             if error.code not in {'ENGINE_UNAVAILABLE', 'LOCAL_TRANSPORT_FAILED'}:
                 raise
-            # A malformed existing discovery document must not be overwritten.
-            if error.code == 'ENGINE_UNAVAILABLE' and (root / 'endpoint.json').exists():
-                raise LaneError('RUNTIME_DISCOVERY_INVALID', 'The existing engine discovery file could not be verified.') from None
         try:
             launch.acquire()
             break
@@ -117,11 +140,13 @@ def ensure_local_engine(root: Path, *, timeout: float = 30, spawn=None) -> dict:
                 raise
         else:
             ownership.release()
+            stale_endpoint = root / 'endpoint.json'
+            if stale_endpoint.exists():
+                reject_links(stale_endpoint, root)
+                stale_endpoint.unlink()
             # Explicit argv; no shell, visible console, user restart helper or
             # authority mutation. The service owns its normal Studio window.
-            process = (spawn or subprocess.Popen)(_service_command(root), stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True,
-                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            process = _spawn_service(root, spawn or subprocess.Popen)
         while time.monotonic() < deadline:
             try:
                 return _probe(root, expected)

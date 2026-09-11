@@ -120,7 +120,7 @@
       },
       "permission": "write",
       "profile": "code",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -415,7 +415,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -600,7 +600,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -794,7 +794,7 @@
       },
       "permission": "write",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -985,7 +985,7 @@
       },
       "permission": "write",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -1193,7 +1193,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1378,7 +1378,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1572,7 +1572,7 @@
       },
       "permission": "write",
       "profile": "code",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -1721,7 +1721,7 @@
       },
       "permission": "write",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -1881,7 +1881,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2070,7 +2070,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2260,7 +2260,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2322,6 +2322,168 @@
       "studio_read": false,
       "verification_checks": [],
       "cross_project_read": false,
+      "read_schemas": [
+        {
+          "owner": "localcode",
+          "version": 1,
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
+        },
+        {
+          "owner": "localcode",
+          "version": 2,
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
+        },
+        {
+          "owner": "localcode",
+          "version": 3,
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
+        },
+        {
+          "owner": "githubcode",
+          "version": 1,
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
+        },
+        {
+          "owner": "githubcode",
+          "version": 2,
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
+        },
+        {
+          "owner": "githubcode",
+          "version": 3,
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
+        }
+      ]
+    },
+    {
+      "name": "code_snapshot_summary",
+      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_read_bytes": {
+            "default": 67108864,
+            "maximum": 134217728,
+            "minimum": 1024,
+            "title": "Max Read Bytes",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "Summary",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "code",
+      "workflow": "manage-project-sources",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "code_snapshot_summary",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "code_snapshot_summary.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3250d8be609a53d5c00ad4485bd0f37096c3a444fd03b164eead23de96d27da7"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
       "read_schemas": [
         {
           "owner": "localcode",
@@ -2480,7 +2642,7 @@
       },
       "permission": "read",
       "profile": "code",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2569,168 +2731,6 @@
         "digest_result": "file_sha256",
         "size_result": "size_bytes"
       }
-    },
-    {
-      "name": "pv_summary",
-      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "lane_id": {
-            "default": "local_code",
-            "enum": [
-              "local_code",
-              "github_code"
-            ],
-            "title": "Lane Id",
-            "type": "string"
-          },
-          "snapshot_id": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Snapshot Id",
-            "type": "string"
-          },
-          "max_read_bytes": {
-            "default": 67108864,
-            "maximum": 134217728,
-            "minimum": 1024,
-            "title": "Max Read Bytes",
-            "type": "integer"
-          },
-          "timeout_ms": {
-            "default": 10000,
-            "maximum": 30000,
-            "minimum": 100,
-            "title": "Timeout Ms",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "snapshot_id"
-        ],
-        "title": "Summary",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "JsonValue": {}
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "operation": {
-            "title": "Operation",
-            "type": "string"
-          },
-          "result": {
-            "additionalProperties": {
-              "$ref": "#/$defs/JsonValue"
-            },
-            "title": "Result",
-            "type": "object"
-          },
-          "mutation_performed": {
-            "const": false,
-            "default": false,
-            "title": "Mutation Performed",
-            "type": "boolean"
-          },
-          "refresh_performed": {
-            "const": false,
-            "default": false,
-            "title": "Refresh Performed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "operation",
-          "result"
-        ],
-        "title": "ReadResult",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "code",
-      "workflow": "source-intake",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_summary",
-        "profile": "code",
-        "routes": [
-          {
-            "route_id": "pv_summary.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": true,
-      "verification_checks": [],
-      "cross_project_read": true,
-      "read_schemas": [
-        {
-          "owner": "localcode",
-          "version": 1,
-          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
-        },
-        {
-          "owner": "localcode",
-          "version": 2,
-          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
-        },
-        {
-          "owner": "localcode",
-          "version": 3,
-          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
-        },
-        {
-          "owner": "githubcode",
-          "version": 1,
-          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
-        },
-        {
-          "owner": "githubcode",
-          "version": 2,
-          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
-        },
-        {
-          "owner": "githubcode",
-          "version": 3,
-          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
-        }
-      ]
     },
     {
       "name": "source_snapshot_retire",
@@ -2877,7 +2877,7 @@
       },
       "permission": "write",
       "profile": "sources",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -3035,7 +3035,7 @@
       },
       "permission": "read",
       "profile": "sources",
-      "workflow": "refresh",
+      "workflow": "refresh-project-evidence",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -3151,7 +3151,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/reader.py",
-      "sha256": "c4ab51741715886ce01f1d0143877deca3bb7e15e3a02e47820f89aedb48b8b9"
+      "sha256": "168bfa97bb84010079cf7dbf15df8437af935ead4f25fd4ade18937ab89d293c"
     },
     {
       "path": "authorities/project_sectors/local_code/builder-contract.schema.json",
@@ -3159,7 +3159,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/reader-contract.schema.json",
-      "sha256": "da273a90e0bdd129f44a9688bb650d63874025eed67ccc372ff2647a0b72bf6b"
+      "sha256": "f4b540598c1e54cb663c0d3fd40b9edbda9f6628c2b74bd80f854c388f599ba5"
     },
     {
       "path": "authorities/project_sectors/local_code/refresh-receipt.schema.json",
@@ -3199,19 +3199,19 @@
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.mmd",
-      "sha256": "69bea1722b104e962a138a9cfe87fe84824aec2cee45bc51ae1399ab2cca873e"
+      "sha256": "d9fbdd4dad58ffd8e4102cd41a3ec74026b2da26d5e69e381a8d312886401a8d"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.dot",
-      "sha256": "584894b05980128bbd4823f4cb17e8a8bf080fa0d5d78f3b58486183dc4f36f5"
+      "sha256": "8ea3d53b73d393e807fa5f0ed4cfa4a25ab5206341a07478b2d5034fcfc3abfe"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.v4.json",
-      "sha256": "f1d385fc94d5a684b8dc51cc03291a7d65f4d005de7cd93f4bd0ab0850a0b982"
+      "sha256": "300628a4a881cd1926e0d5029ae9e4900e10857abe7423b5fb7c1b981a8504e8"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.json",
-      "sha256": "eb3c6b079bae961cda1503ccaf3c6b24e86750d98e493f0be2b03d63231447d0"
+      "sha256": "3759733b5cab58e06b9b4825d1de2794f6247a27cba231232b79ba7718fed8e7"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.schema.json",
@@ -3223,7 +3223,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/lane-contract.v4.json",
-      "sha256": "13301a14b8b2de839ec7bfa6b243403f333b6f7b028599009236992822894c58"
+      "sha256": "c6f3dd6809820abf908fa3bb03e000d83f5c513955952b307e5b647cff428431"
     },
     {
       "path": "authorities/project_sectors/local_code/manifest.schema.json",

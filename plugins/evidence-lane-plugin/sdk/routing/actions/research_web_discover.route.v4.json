@@ -1,0 +1,46 @@
+{
+  "action": "research_web_discover",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/research_web_discover.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/research_web_discover.binding.v4.json",
+  "outer_route": {
+    "action": "research_web_discover",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "research",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "manage-project-sources"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/research_web_discover.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.research_discovery_profile:discover",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Pinned DDGS provider parsing and ranking over bounded HTTPX requests; targets remain unvisited.",
+      "route_id": "research_web_discover.ddgs",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "DDGS",
+        "HTTPX",
+        "lxml"
+      ]
+    }
+  ]
+}

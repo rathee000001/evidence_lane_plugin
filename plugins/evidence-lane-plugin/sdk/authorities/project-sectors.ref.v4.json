@@ -1,0 +1,77 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "member_count": 13,
+  "members": [
+    {
+      "bytes": 570,
+      "path": "sdk/authorities/project-sectors/artifacts.sector.v4.json",
+      "sha256": "122d2e10844237d538290bb19b53b3377e91a640ad8c9cbd59b8e31644c1424d"
+    },
+    {
+      "bytes": 564,
+      "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
+      "sha256": "85dfd2fca143b087a1b9029fb0e7c142f020e4882b5fa5ef77852526cc3221d7"
+    },
+    {
+      "bytes": 560,
+      "path": "sdk/authorities/project-sectors/data.sector.v4.json",
+      "sha256": "16dfbfaca8b52adf6eed369fce6a768da07e27cb96a6b44370489caa8d630e79"
+    },
+    {
+      "bytes": 572,
+      "path": "sdk/authorities/project-sectors/data_excel.sector.v4.json",
+      "sha256": "91829985c4306135479941ca85da6a5116a4b4d4316ea82ca19e46d463e1e763"
+    },
+    {
+      "bytes": 560,
+      "path": "sdk/authorities/project-sectors/docs.sector.v4.json",
+      "sha256": "8b495626503686d64757772878411bb2da4f24ad2240dac6425b356d996758a6"
+    },
+    {
+      "bytes": 574,
+      "path": "sdk/authorities/project-sectors/github_code.sector.v4.json",
+      "sha256": "417a3cfe5d5c55cb288b4324fa70ed3ac7eaf20424a7047db0eb281a0a6cd8c0"
+    },
+    {
+      "bytes": 572,
+      "path": "sdk/authorities/project-sectors/images_ocr.sector.v4.json",
+      "sha256": "c23955c868cfe8901bcdeaa6b4c047a132cc4765bdbbdf8d90214faf1a65089a"
+    },
+    {
+      "bytes": 572,
+      "path": "sdk/authorities/project-sectors/local_code.sector.v4.json",
+      "sha256": "ef358e60a269dc7351b708e64916be9bcea66f3f70ab639d53f9c1a16bbca123"
+    },
+    {
+      "bytes": 567,
+      "path": "sdk/authorities/project-sectors/pdf_ocr.sector.v4.json",
+      "sha256": "0faaa04c613905c08eb9ef105cf70b7979fc530fe3b2847e49045644404c1cb5"
+    },
+    {
+      "bytes": 568,
+      "path": "sdk/authorities/project-sectors/power_bi.sector.v4.json",
+      "sha256": "79c55874dd47e9c227ceae8a62462fc1b0f14bbe8cd9abc26312fdae6f0902f5"
+    },
+    {
+      "bytes": 558,
+      "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
+      "sha256": "946448241c7dbb31653f3d9435de9dfbc8ffed30f439ba4f33b42478a199a8c1"
+    },
+    {
+      "bytes": 568,
+      "path": "sdk/authorities/project-sectors/research.sector.v4.json",
+      "sha256": "457ffca28167c7b538a5bb24f25f740b6322bad4744499ce3b11fe6e74422e6a"
+    },
+    {
+      "bytes": 566,
+      "path": "sdk/authorities/project-sectors/tableau.sector.v4.json",
+      "sha256": "a977185644fb420b5addb81b0f46e93fa258419089fa8a7cff901e8dfee65087"
+    }
+  ],
+  "other_sector_definitions": "schemas/lane-registry.v4.json",
+  "schema": "evidence-lane.sdk-project-sectors.v4",
+  "sector_count": 13,
+  "status": "PASS"
+}

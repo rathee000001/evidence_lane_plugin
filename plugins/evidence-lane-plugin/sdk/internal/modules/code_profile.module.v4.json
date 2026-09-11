@@ -1,0 +1,29 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.code_profile",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "code_apply",
+    "code_current",
+    "code_impact",
+    "code_index",
+    "code_index_git",
+    "code_index_syntax",
+    "code_query",
+    "code_read",
+    "code_refresh",
+    "code_refresh_git"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 88885,
+    "path": "src/evidence_lane_plugin/code_profile.py",
+    "sha256": "a26ba2a5cff9b6bd5f862ef75632374acdb5a27c0886838ec816461d798610bf"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

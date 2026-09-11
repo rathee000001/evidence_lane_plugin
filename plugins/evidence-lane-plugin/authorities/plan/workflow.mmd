@@ -37,37 +37,37 @@ flowchart TB
   action_validation_policy_read["validation_policy_read"]:::default
   action_validation_policy_set["validation_policy_set"]:::default
   sdk -->|"write"| action_delta_enter
-  action_delta_enter -->|"build"| writer
+  action_delta_enter -->|"execute-project-plan"| writer
   sdk -->|"write"| action_delta_enter_planned
-  action_delta_enter_planned -->|"build"| writer
+  action_delta_enter_planned -->|"execute-project-plan"| writer
   sdk -->|"read"| action_delta_query
-  action_delta_query -->|"evi"| read
+  action_delta_query -->|"evidence-lane"| read
   sdk -->|"read"| action_delta_status
-  action_delta_status -->|"build"| read
+  action_delta_status -->|"execute-project-plan"| read
   sdk -->|"admin"| action_job_reconcile_effect
-  action_job_reconcile_effect -->|"recover"| writer
+  action_job_reconcile_effect -->|"recover-project-state"| writer
   sdk -->|"read"| action_job_recovery_inspect
-  action_job_recovery_inspect -->|"recover"| read
+  action_job_recovery_inspect -->|"recover-project-state"| read
   sdk -->|"write"| action_plan_create
-  action_plan_create -->|"plan"| writer
+  action_plan_create -->|"manage-project-plan"| writer
   sdk -->|"admin"| action_plan_host_bind
-  action_plan_host_bind -->|"plan"| writer
+  action_plan_host_bind -->|"manage-project-plan"| writer
   sdk -->|"read"| action_plan_host_status
-  action_plan_host_status -->|"plan"| read
+  action_plan_host_status -->|"manage-project-plan"| read
   sdk -->|"write"| action_plan_host_sync
-  action_plan_host_sync -->|"plan"| writer
+  action_plan_host_sync -->|"manage-project-plan"| writer
   sdk -->|"read"| action_plan_read
-  action_plan_read -->|"plan"| read
+  action_plan_read -->|"manage-project-plan"| read
   sdk -->|"write"| action_plan_refresh
-  action_plan_refresh -->|"plan"| writer
+  action_plan_refresh -->|"manage-project-plan"| writer
   sdk -->|"read"| action_steer_preview
-  action_steer_preview -->|"plan"| read
+  action_steer_preview -->|"manage-project-plan"| read
   sdk -->|"write"| action_steer_submit
-  action_steer_submit -->|"plan"| writer
+  action_steer_submit -->|"manage-project-plan"| writer
   sdk -->|"read"| action_validation_policy_read
-  action_validation_policy_read -->|"plan"| read
+  action_validation_policy_read -->|"manage-project-plan"| read
   sdk -->|"write"| action_validation_policy_set
-  action_validation_policy_set -->|"plan"| writer
+  action_validation_policy_set -->|"manage-project-plan"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

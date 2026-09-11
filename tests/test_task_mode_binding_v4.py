@@ -18,7 +18,7 @@ def selected_mode(system, modes=('CD',), intent='work'):
     assert source.status == 'ok', source.error
     result = call(system, 'task_classify', {'classification_id':str(uuid4()),
         'source_event_id':source.result['event_id'], 'source_cursor':source.result['cursor'],
-        'intent':intent,'focus':'Index the selected source.','workflow':'build' if intent=='work' else 'plan',
+        'intent':intent,'focus':'Index the selected source.','workflow':'execute-project-plan' if intent=='work' else 'manage-project-plan',
         'next_action':'delta_enter' if intent=='work' else 'plan_read',
         'lanes':['local_code'], 'explicit_modes':list(modes)})
     assert result.status == 'ok', result.error
@@ -68,7 +68,7 @@ def test_exact_mode_reaches_entry_tool_result_verifier_and_exit_receipts(code_sy
     verification=json.loads(store.read_object(exit_row['verification_object']))
     exact=entry['task_mode']
     assert exact['classification_digest']==binding['classification_digest']
-    assert exact['selected_mode_ids']==['CD'] and not exact['operator_effect_executed']
+    assert exact['selected_mode_ids']==['CD'] and not exact['action_effect_executed']
     assert exact==result['task_mode']==verification['task_mode']==receipt['task_mode']
     assert exact==result['tool_execution']['env_uop']['task_mode']
     selection = result['tool_execution']['env_uop']['selection_context']

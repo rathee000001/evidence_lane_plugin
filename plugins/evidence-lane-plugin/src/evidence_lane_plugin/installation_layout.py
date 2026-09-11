@@ -21,10 +21,10 @@ class StudioInstallation:
     def active_root(self) -> Path:
         if self.selected_release is not None:
             release = self.selected_release.resolve(strict=True)
-            if release.parent != self.root.resolve() / "releases":
+            if release != self.root.resolve():
                 raise LaneError(
                     "STUDIO_INSTALLATION_INVALID",
-                    "The selected release is outside the shared installation.",
+                    "The selected installation differs from the stable shared root.",
                 )
             reject_links(release, self.root)
             return release
@@ -42,20 +42,15 @@ class StudioInstallation:
                 separators=(",", ":"),
                 allow_nan=False,
             ).encode("utf-8")
-            relative = Path(value["active_release"])
-            release = (self.root / relative).resolve()
             if (
                 value.get("schema") != "evidence-lane.first-detection-installation.v4"
-                or value.get("status") != "ACTIVE_RELEASE"
+                or value.get("status") != "ACTIVE_INSTALLATION"
                 or receipt != hashlib.sha256(encoded).hexdigest()
-                or relative.is_absolute()
-                or ".." in relative.parts
-                or release.parent != self.root.resolve() / "releases"
-                or not release.is_dir()
+                or value.get("installation_root") != str(self.root.resolve())
             ):
                 raise ValueError()
-            reject_links(release, self.root)
-            return release
+            reject_links(self.root, Path(self.root.anchor))
+            return self.root
         except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
             raise LaneError(
                 "STUDIO_INSTALLATION_INVALID",
@@ -68,7 +63,7 @@ class StudioInstallation:
 
     @property
     def engine_runtime(self) -> Path:
-        return self.active_root / 'runtime/engine'
+        return self.active_root / 'engine'
 
     @property
     def toolchains(self) -> Path:

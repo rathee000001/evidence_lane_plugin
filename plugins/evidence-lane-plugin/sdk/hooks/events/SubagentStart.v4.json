@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/SubagentStart/handler.py",
   "event": "SubagentStart",
   "event_contract": "hooks/events/SubagentStart/event.v4.json",
-  "event_contract_sha256": "b460ad188e7d3a3233153e6b6e110927c5dabf0691894f72b7eabb5ba367451f",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "08ea448744d81c9e5314ebd58a4497de3238451024111866141e3b94bf11895f",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
   "input_schema": "schemas/hooks/SubagentStart.v4.schema.json",
   "input_schema_sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/SubagentStart/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/SubagentStart/02-classify_event.stage.v4.json",
+    "hooks/events/SubagentStart/03-handle_event.stage.v4.json",
+    "hooks/events/SubagentStart/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/SubagentStart/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/SubagentStart/06-project_bounded_output.stage.v4.json"
+  ]
 }

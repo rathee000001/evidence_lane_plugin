@@ -34,8 +34,8 @@ def test_standalone_supersession_preserves_envelopes_and_records_exact_successor
     first, second, request = admitted_pair(pair)
     before = {row['lane_id']:row for row in project.lane_catalog() if row['lane_id'] not in {'canon','receipts'}}
     before_history = CanonStore(project).verify_history()['events_verified']
-    assert invoke(sender, 'canon_supersede', request).error.code == 'CANON_OWNER_MISMATCH'
-    response = invoke(receiver, 'canon_supersede', request)
+    assert invoke(sender, 'task_evidence_supersede', request).error.code == 'CANON_OWNER_MISMATCH'
+    response = invoke(receiver, 'task_evidence_supersede', request)
     assert response.status == 'ok', response
     assert response.result['version'] == 3 and response.result['decision_basis'] == 'receiver_explicit'
     current = states(pair)
@@ -54,18 +54,18 @@ def test_standalone_supersession_preserves_envelopes_and_records_exact_successor
 def test_exact_supersession_replay_cannot_repoint_the_original(pair):
     invoke, _, receiver, _, _, (_, project, _, _) = pair
     _, _, request = admitted_pair(pair)
-    first = invoke(receiver, 'canon_supersede', request)
+    first = invoke(receiver, 'task_evidence_supersede', request)
     assert first.status == 'ok', first
     head = CanonStore(project).verify_history()
-    replay = invoke(receiver, 'canon_supersede', request)
+    replay = invoke(receiver, 'task_evidence_supersede', request)
     assert replay.result == {**first.result, 'duplicate':True}
     assert CanonStore(project).verify_history() == head
     third, _ = send(pair, payload={'summary':'Another successor'})
     decide(pair, third)
     conflict = request.model_copy(update={'request_id':str(uuid4()), 'expected_version':3,
         'successor_id':third.result['exchange_id'], 'successor_envelope_digest':third.result['envelope_digest']})
-    assert invoke(receiver, 'canon_supersede', conflict).error.code == 'CANON_SUPERSESSION_REPLAY_CONFLICT'
-    assert invoke(receiver, 'canon_supersede', conflict.model_copy(update={'request_id':request.request_id})).error.code == 'CANON_REQUEST_CONFLICT'
+    assert invoke(receiver, 'task_evidence_supersede', conflict).error.code == 'CANON_SUPERSESSION_REPLAY_CONFLICT'
+    assert invoke(receiver, 'task_evidence_supersede', conflict.model_copy(update={'request_id':request.request_id})).error.code == 'CANON_REQUEST_CONFLICT'
 
 
 @pytest.mark.parametrize('changes', [
@@ -74,7 +74,7 @@ def test_exact_supersession_replay_cannot_repoint_the_original(pair):
 def test_stale_versions_and_envelopes_cannot_supersede(pair, changes):
     invoke, _, receiver, _, _, _ = pair
     first, _, request = admitted_pair(pair)
-    response = invoke(receiver, 'canon_supersede', request.model_copy(update=changes))
+    response = invoke(receiver, 'task_evidence_supersede', request.model_copy(update=changes))
     assert response.error.code == 'CANON_SUPERSESSION_VERSION_CONFLICT'
     assert states(pair)[first.result['exchange_id']]['state'] == 'admitted'
 
@@ -84,15 +84,15 @@ def test_reverse_order_and_different_route_fail(pair):
     first, second, request = admitted_pair(pair)
     backwards = CanonSupersede(exchange_id=second.result['exchange_id'], envelope_digest=second.result['envelope_digest'],
         expected_version=2, successor_id=first.result['exchange_id'], successor_envelope_digest=first.result['envelope_digest'])
-    assert invoke(receiver, 'canon_supersede', backwards).error.code == 'CANON_SUPERSESSION_LINEAGE_INVALID'
-    third = invoke(receiver, 'canon_send', {'sender_id':pair[4], 'receiver_id':pair[3], 'kind':'requirements',
+    assert invoke(receiver, 'task_evidence_supersede', backwards).error.code == 'CANON_SUPERSESSION_LINEAGE_INVALID'
+    third = invoke(receiver, 'task_evidence_send', {'sender_id':pair[4], 'receiver_id':pair[3], 'kind':'requirements',
         'payload':{'summary':'Opposite route'}})
     assert third.status == 'ok', third
-    assert invoke(sender, 'canon_decide', CanonDecide(exchange_id=third.result['exchange_id'],
+    assert invoke(sender, 'task_evidence_decide', CanonDecide(exchange_id=third.result['exchange_id'],
         envelope_digest=third.result['envelope_digest'], expected_version=1, decision='admit', reason='Review', incompatible_input_decision='ACCEPT')).status == 'ok'
     wrong = request.model_copy(update={'successor_id':third.result['exchange_id'],
         'successor_envelope_digest':third.result['envelope_digest']})
-    assert invoke(receiver, 'canon_supersede', wrong).error.code == 'CANON_SUPERSESSION_LINEAGE_INVALID'
+    assert invoke(receiver, 'task_evidence_supersede', wrong).error.code == 'CANON_SUPERSESSION_LINEAGE_INVALID'
 
 
 def test_pending_successor_and_undecided_original_do_not_replace_input(pair):
@@ -101,9 +101,9 @@ def test_pending_successor_and_undecided_original_do_not_replace_input(pair):
     second, _ = send(pair)
     request = CanonSupersede(exchange_id=first.result['exchange_id'], envelope_digest=first.result['envelope_digest'],
         expected_version=1, successor_id=second.result['exchange_id'], successor_envelope_digest=second.result['envelope_digest'])
-    assert invoke(receiver, 'canon_supersede', request).error.code == 'CANON_SUPERSESSION_STATE_INVALID'
+    assert invoke(receiver, 'task_evidence_supersede', request).error.code == 'CANON_SUPERSESSION_STATE_INVALID'
     decide(pair, first)
-    assert invoke(receiver, 'canon_supersede', request.model_copy(update={'expected_version':2})).error.code == 'CANON_SUPERSESSION_SUCCESSOR_NOT_ADMITTED'
+    assert invoke(receiver, 'task_evidence_supersede', request.model_copy(update={'expected_version':2})).error.code == 'CANON_SUPERSESSION_SUCCESSOR_NOT_ADMITTED'
     assert all(row['state'] in {'received','admitted'} for row in states(pair).values())
 
 
@@ -113,7 +113,7 @@ def test_correction_admission_records_the_same_successor_proof(pair, automatic):
     original, _ = send(pair)
     decide(pair, original)
     _, digest = expected(pair, auto_admit=automatic)
-    correction = invoke(sender, 'canon_send', message(pair, kind='correction', supersedes=original.result['exchange_id'],
+    correction = invoke(sender, 'task_evidence_send', message(pair, kind='correction', supersedes=original.result['exchange_id'],
         expected_contract=digest))
     assert correction.status == 'ok', correction
     if not automatic:
@@ -138,7 +138,7 @@ def test_failed_supersession_receipt_rolls_back_state_event_and_successor_admiss
             raise LaneError('INJECTED_CANON_SUPERSESSION_FAILURE', 'Failure after provisional supersession.')
         return identity
     monkeypatch.setattr(owner, 'append_receipt', fail)
-    response = invoke(receiver, 'canon_decide', CanonDecide(exchange_id=correction.result['exchange_id'],
+    response = invoke(receiver, 'task_evidence_decide', CanonDecide(exchange_id=correction.result['exchange_id'],
         envelope_digest=correction.result['envelope_digest'], expected_version=1, decision='admit', reason='Review', incompatible_input_decision='ACCEPT'))
     assert response.error.code == 'INJECTED_CANON_SUPERSESSION_FAILURE'
     assert CanonStore(project).verify_history() == before
@@ -150,11 +150,11 @@ def test_failed_supersession_receipt_rolls_back_state_event_and_successor_admiss
 def test_supersession_event_corruption_is_not_a_valid_replay_or_read(pair):
     invoke, _, receiver, _, _, (engine, project, _, _) = pair
     _, _, request = admitted_pair(pair)
-    assert invoke(receiver, 'canon_supersede', request).status == 'ok'
+    assert invoke(receiver, 'task_evidence_supersede', request).status == 'ok'
     with engine.project_work.mutation(project) as lease, lease.transaction('canon') as connection:
         connection.execute('UPDATE canon_events SET result_json=? WHERE request_id=?', ('{}',request.request_id))
-    assert invoke(receiver, 'canon_supersede', request).error.code == 'CANON_HISTORY_INTEGRITY'
-    assert invoke(receiver, 'canon_read', {}).error.code == 'CANON_HISTORY_INTEGRITY'
+    assert invoke(receiver, 'task_evidence_supersede', request).error.code == 'CANON_HISTORY_INTEGRITY'
+    assert invoke(receiver, 'task_evidence_read', {}).error.code == 'CANON_HISTORY_INTEGRITY'
     # An intact digest with a changed successor is also insufficient.
     with engine.project_work.mutation(project) as lease, lease.transaction('canon') as connection:
         event = dict(connection.execute('SELECT * FROM canon_events WHERE request_id=?',(request.request_id,)).fetchone())
@@ -166,7 +166,7 @@ def test_supersession_event_corruption_is_not_a_valid_replay_or_read(pair):
         event['result_json'] = json.dumps(result, sort_keys=True, separators=(',',':'))
         connection.execute('UPDATE canon_events SET result_json=?,digest=? WHERE request_id=?',
             (event['result_json'],content_digest(event),request.request_id))
-    assert invoke(receiver, 'canon_read', {}).error.code == 'CANON_SUPERSESSION_INTEGRITY'
+    assert invoke(receiver, 'task_evidence_read', {}).error.code == 'CANON_SUPERSESSION_INTEGRITY'
 
 
 def test_consequence_graph_distinguishes_pending_correction_from_actual_supersession(pair):
@@ -220,20 +220,20 @@ def test_supersession_through_real_mcp_and_local_backend(system):
                 response = result.structuredContent
                 assert response and response['status'] == 'ok', result
                 return response
-            sender = (await invoke('canon_join', {'label':'Source participant'}))['result']['participant_id']
-            receiver = (await invoke('canon_join', {'label':'Receiver participant'}))['result']['participant_id']
+            sender = (await invoke('task_evidence_participant_register', {'label':'Source participant'}))['result']['participant_id']
+            receiver = (await invoke('task_evidence_participant_register', {'label':'Receiver participant'}))['result']['participant_id']
             items = []
             for summary in ('Original requirement', 'Newer requirement'):
-                sent = (await invoke('canon_send', {'sender_id':sender, 'receiver_id':receiver,
+                sent = (await invoke('task_evidence_send', {'sender_id':sender, 'receiver_id':receiver,
                     'kind':'requirements', 'payload':{'summary':summary}}))['result']
-                await invoke('canon_decide', {'exchange_id':sent['exchange_id'], 'envelope_digest':sent['envelope_digest'],
+                await invoke('task_evidence_decide', {'exchange_id':sent['exchange_id'], 'envelope_digest':sent['envelope_digest'],
                     'expected_version':1, 'decision':'admit', 'reason':'Receiver explicitly accepted this input.', 'incompatible_input_decision':'ACCEPT'})
                 items.append(sent)
-            response = await invoke('canon_supersede', {'exchange_id':items[0]['exchange_id'],
+            response = await invoke('task_evidence_supersede', {'exchange_id':items[0]['exchange_id'],
                 'envelope_digest':items[0]['envelope_digest'], 'expected_version':2,
                 'successor_id':items[1]['exchange_id'], 'successor_envelope_digest':items[1]['envelope_digest']})
             assert response['result']['state'] == 'superseded'
-            assert response['tool_execution']['env_uop']['action_name'] == 'canon_supersede'
+            assert response['tool_execution']['env_uop']['action_name'] == 'task_evidence_supersede'
             assert response['tool_execution']['native_host_tool_attested'] is False
 
     with LocalEndpoint(engine, studio_enabled=False):

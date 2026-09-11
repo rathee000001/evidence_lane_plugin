@@ -24,10 +24,10 @@ flowchart TB
   action_learning_record_host_memory_import["learning_record_host_memory_import"]:::default
   action_learning_revoke["learning_revoke"]:::default
   sdk -->|"read"| action_learning_read
-  action_learning_read -->|"learning"| read
+  action_learning_read -->|"manage-project-lessons"| read
   sdk -->|"write"| action_learning_record_host_memory_import
-  action_learning_record_host_memory_import -->|"learning"| writer
+  action_learning_record_host_memory_import -->|"manage-project-lessons"| writer
   sdk -->|"write"| action_learning_revoke
-  action_learning_revoke -->|"learning"| writer
+  action_learning_revoke -->|"manage-project-lessons"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read

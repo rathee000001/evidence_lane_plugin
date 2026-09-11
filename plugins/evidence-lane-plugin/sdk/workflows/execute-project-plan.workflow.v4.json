@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 502,
+    "path": "sdk/workflows/skills/execute-project-plan/workflow.dot",
+    "sha256": "a192c6c9d8b7d9860709725492e510ef9ad9c4b5cb1c5c7500c25638d1ca2540"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 472,
+    "path": "sdk/workflows/skills/execute-project-plan/workflow.mmd",
+    "sha256": "599748e7537e083665fad4782c03f217d4f722fb9f11ef07f780c6854d8580d6"
+  },
+  "package": {
+    "bytes": 17551,
+    "path": "sdk/workflows/skills/execute-project-plan/workflow.v4.json",
+    "sha256": "d9aed42eb04903a26e9f91f3d4622ea60781ffba484c2b90c3e881214470453c"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "execute-project-plan",
+  "source_skill": {
+    "bytes": 2228,
+    "path": "skills/execute-project-plan/SKILL.md",
+    "sha256": "6e1ee35e0eb927b35890b5951d91f77ca17a0cbdf5bf52aaa17e6153899d0d63"
+  },
+  "status": "PASS",
+  "title": "Execute project plan",
+  "workflow": "execute-project-plan"
+}

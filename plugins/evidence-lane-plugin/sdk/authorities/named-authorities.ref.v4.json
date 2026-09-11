@@ -1,0 +1,51 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_count": 8,
+  "installed_execution_claimed": false,
+  "member_count": 8,
+  "members": [
+    {
+      "bytes": 703,
+      "path": "sdk/authorities/named/canon.authority.v4.json",
+      "sha256": "95d280314695a895c830ca486fe28a00a5c0f2180fc0ec6221aa177500e57e6a"
+    },
+    {
+      "bytes": 702,
+      "path": "sdk/authorities/named/chat_lineage.authority.v4.json",
+      "sha256": "9c5b08e0c36cb8f546580af934a3764a4e817138f182690b560326dc948705f4"
+    },
+    {
+      "bytes": 709,
+      "path": "sdk/authorities/named/learning.authority.v4.json",
+      "sha256": "b19315d7f39a1967681f5b73824306d68948770fec1c212dfb64fca5d928334a"
+    },
+    {
+      "bytes": 707,
+      "path": "sdk/authorities/named/memory.authority.v4.json",
+      "sha256": "b563bcd19e14389f2182f84a910cbcc5a6298f0a5accfc50caea5461b6326adf"
+    },
+    {
+      "bytes": 684,
+      "path": "sdk/authorities/named/plan.authority.v4.json",
+      "sha256": "8f1020c066a0acf18e0877168d0b4cb939fb5d897cae0e892a8f4c1fecbd3da3"
+    },
+    {
+      "bytes": 704,
+      "path": "sdk/authorities/named/receipts.authority.v4.json",
+      "sha256": "167a852bac5ff5205c2435522b56b5a4b9be1aca08039e3afd00581d405b11c3"
+    },
+    {
+      "bytes": 715,
+      "path": "sdk/authorities/named/sources.authority.v4.json",
+      "sha256": "558167d02cf27c86c27d08925062c0e1c61fdb5cb3ff2b8c562caaa9b77b22d5"
+    },
+    {
+      "bytes": 715,
+      "path": "sdk/authorities/named/universe.authority.v4.json",
+      "sha256": "c1368fd3d2ef72bcc7d192dbf4efeaea609118a6bc8c06d69c2188d177d00ce5"
+    }
+  ],
+  "schema": "evidence-lane.sdk-named-authorities.v4",
+  "status": "PASS"
+}

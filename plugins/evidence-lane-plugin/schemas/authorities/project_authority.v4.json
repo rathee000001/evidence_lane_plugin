@@ -16,11 +16,11 @@
     },
     {
       "path": "authorities/project_authority/manifest.v4.json",
-      "sha256": "d8c2e6a1f758b01f4e1a8667599d6b0c43975deb6277a7b9c74dd9e8a4023102"
+      "sha256": "53649c7662a3416eb92473f97e6ed4103e37177318b000ab520495527ea22896"
     },
     {
       "path": "authorities/project_authority/reader-contract.schema.json",
-      "sha256": "4aab0b3c93bf9a148959faa2d8ae82329b89c148bfc79f90237a7ea74db0b2ea"
+      "sha256": "189bbcc89b0ce077ca39b21cece3b6e0b047517f7377e06441735883a9dcca35"
     },
     {
       "path": "authorities/project_authority/refresh-receipt.schema.json",

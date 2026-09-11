@@ -12,9 +12,9 @@ from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.first_class_workflows import (
-    BrainScalingRequest,
-    BrainSlice,
-    run_brain_scaling,
+    EvidenceSlice,
+    ProjectEvidenceSelectionRequest,
+    select_project_evidence,
 )
 from evidence_lane_plugin.host_routing import ClientHello, HostDetector, select_host_route
 from evidence_lane_plugin.internal_sdk import PublicActionSDKDispatcher
@@ -115,7 +115,7 @@ def test_instruction_discovery_keeps_override_and_recall_separate_without_loadin
         assert denied.error.code == 'HOST_RECALL_OWNER_SCOPE_REQUIRED'
 
 
-def test_recipe_uses_registered_sources_and_preserves_plan_and_source_heads(tmp_path):
+def test_workflow_configuration_uses_registered_sources_and_preserves_plan_and_source_heads(tmp_path):
     source = tmp_path / 'source'
     source.mkdir()
     (source / 'app.py').write_text('answer = 42\n')
@@ -129,14 +129,14 @@ def test_recipe_uses_registered_sources_and_preserves_plan_and_source_heads(tmp_
         assert registered.status == 'ok', registered
         batch = registered.result['result']['source_authority']['batch_id']
         before = project.pv_head()
-        result = dispatch.execute(ActionRequest(action='project_recipe', project_id=project.project_id,
+        result = dispatch.execute(ActionRequest(action='project_workflow_configure', project_id=project.project_id,
             arguments={'batch_id': batch, 'requested_outcome': 'Maintain this Python source.'}), client)
         assert result.status == 'ok', result
         assert result.result['project_type'] == 'CODE'
         assert result.result['selected_sector_lanes'] == ['local_code']
         assert 'chat_lineage' in result.result['authority_references']
         assert result.result['proposal_only'] and not result.result['plan_changed']
-        custom = dispatch.execute(ActionRequest(action='project_recipe', project_id=project.project_id,
+        custom = dispatch.execute(ActionRequest(action='project_workflow_configure', project_id=project.project_id,
             arguments={'batch_id': batch, 'requested_outcome': 'Maintain this source.',
                        'explicit_project_type': 'CUSTOM:Laboratory archive'}), client)
         assert custom.status == 'ok', custom
@@ -146,13 +146,13 @@ def test_recipe_uses_registered_sources_and_preserves_plan_and_source_heads(tmp_
 
 
 def test_original_deterministic_slice_selection_preserves_estimation_boundary():
-    request = BrainScalingRequest(authority_id='canon', slices=[
-        BrainSlice(content_id='b', content_sha256='b' * 64, token_count=8, priority=1),
-        BrainSlice(content_id='a', content_sha256='a' * 64, token_count=5, priority=2),
-        BrainSlice(content_id='c', content_sha256='c' * 64, token_count=6)], token_budget=12, max_slices=2)
-    result = run_brain_scaling(request)
+    request = ProjectEvidenceSelectionRequest(authority_id='canon', slices=[
+        EvidenceSlice(content_id='b', content_sha256='b' * 64, token_count=8, priority=1),
+        EvidenceSlice(content_id='a', content_sha256='a' * 64, token_count=5, priority=2),
+        EvidenceSlice(content_id='c', content_sha256='c' * 64, token_count=6)], token_budget=12, max_slices=2)
+    result = select_project_evidence(request)
     assert [row.content_id for row in result.selected_slices] == ['a', 'c']
-    assert result.used_tokens == 11 and result == run_brain_scaling(request)
+    assert result.used_tokens == 11 and result == select_project_evidence(request)
     assert result.token_count_basis == 'caller_supplied_estimates'
     assert not result.content_identity_reverified
 

@@ -1,6 +1,9 @@
 interface:
   display_name: "Retrieve project evidence"
   short_description: "Retrieve evidence within item and token budgets"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $retrieve-project-evidence to select bounded evidence for this task."
 dependencies:
   tools:

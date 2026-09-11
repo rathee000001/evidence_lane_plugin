@@ -129,7 +129,7 @@ def test_retained_secret_reference_rejects_internal_storage(storage):
 def test_sdk_mode_and_policy_retrieval_use_real_locked_consumers_without_plan_mutation(selected):
     engine,project,_=selected
     before=PlanStore(project).snapshot(PlanRead()).model_dump(mode='json')
-    result=call(selected,'mode_classify',{'request':'Inspect and plan the correction.','explicit_modes':['AL','PL']})
+    result=call(selected,'project_work_classify',{'request':'Inspect and plan the correction.','explicit_work_classes':['AL','PL']})
     assert result.status=='ok',result
     assert result.tool_execution['env_uop']['owner_skill']=='classify-project-work'
     assert result.tool_execution['env_uop']['data_touch_allowed']
@@ -138,7 +138,7 @@ def test_sdk_mode_and_policy_retrieval_use_real_locked_consumers_without_plan_mu
     assert queried.result['query_mode']=='owning_sqlite_fts5_bm25'
     assert before==PlanStore(project).snapshot(PlanRead()).model_dump(mode='json')
     names={row['name'] for row in engine.registry.schemas()}
-    assert {'mode_classify','task_classify','prompt_index_status'}<=names
+    assert {'project_work_classify','task_classify','prompt_index_status'}<=names
     assert 'formula_engine_run' not in names and 'pv_fuse' not in names
 
 
@@ -185,7 +185,7 @@ def test_explicit_classification_binds_source_and_leaves_plan_unchanged(selected
     source,_=captured_prompt(selected)
     before=PlanStore(project).snapshot(PlanRead()).model_dump(mode='json')
     args={'classification_id':str(uuid4()),'source_event_id':source.event_id,'source_cursor':source.cursor,
-        'intent':'informational','focus':'Inspect the current Plan.','workflow':'plan','next_action':'plan_read','lanes':['plan'],
+            'intent':'informational','focus':'Inspect the current Plan.','workflow':'manage-project-plan','next_action':'plan_read','lanes':['plan'],
         'explicit_modes':['PL']}
     result=call(selected,'task_classify',args)
     assert result.status=='ok',result
@@ -247,20 +247,20 @@ def test_rehashing_a_modified_mode_does_not_change_its_locked_effects(change):
     ('picture.svg','<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>','MEDIA','MEDIA_PROJECT','OP'),
     ('app.py','answer = 42\n','CODE','CODE_REPOSITORY','CD'),
 ])
-def test_recipe_applies_class_policy_and_keeps_mode_distinct(selected,name,content,project_type,project_class,mode):
+def test_workflow_configuration_applies_class_policy_and_keeps_classification_distinct(selected,name,content,project_type,project_class,mode):
     _,project,_=selected
     path=project.source_root/name;path.write_text(content)
     registered=call(selected,'source_register',{'sources':[str(path)]})
     assert registered.status=='ok',registered
     batch=registered.result['result']['source_authority']['batch_id']
     before=project.pv_head()
-    result=call(selected,'project_recipe',{'batch_id':batch,'requested_outcome':'Inspect this selected source.', 'explicit_modes':[mode]})
+    result=call(selected,'project_workflow_configure',{'batch_id':batch,'requested_outcome':'Inspect this selected source.', 'explicit_work_classes':[mode]})
     assert result.status=='ok',result
     assert result.result['project_type']==project_type
     assert result.result['project_class_policy']['project_class']==project_class
     assert not result.result['project_class_policy']['plugin_maintainer_ci_imposed']
-    assert result.result['mode_classification']['selected_modes'][0]['id']==mode
-    assert result.result['recipe_and_mode_are_distinct']
+    assert result.result['work_classification']['selected_modes'][0]['id']==mode
+    assert result.result['workflow_and_work_classification_are_distinct']
     assert project.pv_head()==before
 
 
@@ -308,10 +308,10 @@ def test_sdk_steer_and_classification_commit_together_without_plan_advance(selec
     assert PlanStore(project).snapshot()==before
 
 
-@pytest.mark.parametrize('kind',['ordinary_turn','delta_append','session_exit','state_travel','goal_completion'])
+@pytest.mark.parametrize('kind',['ordinary_turn','delta_append','session_exit','work_handoff','goal_completion'])
 def test_exit_boundary_reads_exact_source_without_converting_claims_to_native_proof(selected,kind):
     _,project,_=selected
-    source=call(selected,'lineage_record',{'kind':'assistant','payload':{'text':'Goal complete. State Travel finished. PASS.'}})
+    source=call(selected,'lineage_record',{'kind':'assistant','payload':{'text':'Goal complete. Work handoff finished. PASS.'}})
     assert source.status=='ok',source
     before=project.pv_head()
     result=call(selected,'session_exit_boundary',{'kind':kind,'source_event_id':source.result['event_id'],'source_cursor':source.result['cursor']})
@@ -319,7 +319,7 @@ def test_exit_boundary_reads_exact_source_without_converting_claims_to_native_pr
     assert result.result['source_reference']['payload_digest']==source.result['payload_digest']
     assert not result.result['source_reference']['native_action_proven']
     assert not result.result['terminal_exit_allowed'] and not result.result['terminal_receipt_emitted']
-    assert result.result['evidence_state']==('native_evidence_unavailable' if kind in {'state_travel','goal_completion'} else 'nonterminal_boundary')
+    assert result.result['evidence_state']==('native_evidence_unavailable' if kind in {'work_handoff','goal_completion'} else 'nonterminal_boundary')
     assert project.pv_head()==before
     wrong=call(selected,'session_exit_boundary',{'kind':kind,'source_event_id':source.result['event_id'],'source_cursor':'0'*64})
     assert wrong.error.code=='EXIT_SOURCE_MISMATCH'
@@ -335,15 +335,19 @@ def test_prompt_indices_cannot_page_across_different_session_sequences(selected)
     assert len(PromptIndex(project).status(client_id=client.client_id,reported_session_id='session-b')['entries'])==1
 
 
-def test_accepted_engine_continuation_does_not_claim_native_state_travel(selected):
+def test_accepted_engine_continuation_does_not_claim_native_work_handoff(selected):
     engine,project,_=selected
     _,receiver=engine.clients.connect(ConnectRequest(projects=[ProjectSelection(project_id=project.project_id,permissions=['read','write'])]))
     target=(engine,project,receiver)
-    assert call(selected,'plan_create',{'title':'Continuity fixture','tasks':[{'task_id':'next','title':'Next','requested_outcome':'Continue selected work.'}]}).status=='ok'
+    created=call(selected,'plan_create',{'title':'Continuity fixture','tasks':[{'task_id':'next','title':'Next','requested_outcome':'Continue selected work.'}]})
+    assert created.status=='ok',created.error
     task=PlanStore(project).task('next',expected_revision=1)
-    source=call(selected,'canon_join',{'label':'Source fixture'})
-    destination=call(target,'canon_join',{'label':'Destination fixture'})
-    assert source.status==destination.status=='ok'
+    source=call(selected,'task_evidence_participant_register',{'label':'Source fixture'})
+    destination=call(target,'task_evidence_participant_register',{'label':'Destination fixture'})
+    assert source.status==destination.status=='ok',(
+        source.error.model_dump(mode='json') if source.error else None,
+        destination.error.model_dump(mode='json') if destination.error else None,
+    )
     offer=call(selected,'continuation_offer',{'participant_id':source.result['participant_id'],
         'destination_participant_id':destination.result['participant_id'],'plan_revision':1,'task_id':'next','contract_digest':task.contract_digest})
     assert offer.status=='ok',offer
@@ -351,7 +355,7 @@ def test_accepted_engine_continuation_does_not_claim_native_state_travel(selecte
     accepted=call(target,'continuation_accept',refs)
     assert accepted.status=='ok',accepted
     before=project.pv_head()
-    checked=call(target,'session_exit_boundary',{'kind':'state_travel',**refs})
+    checked=call(target,'session_exit_boundary',{'kind':'work_handoff',**refs})
     assert checked.status=='ok',checked
     assert checked.result['continuation_reference']['state']=='accepted'
     assert checked.result['continuation_reference']['binding_digest']==accepted.result['binding_digest']
@@ -365,7 +369,7 @@ def test_env_uop_policy_and_mode_reads_keep_the_exact_delta_query_plan_revision(
     assert call(selected,'plan_create',{'title':'Query fixture','tasks':[{'task_id':'one','title':'One','requested_outcome':'Read source policy.'}]}).status=='ok'
     before=project.pv_head()
     for action,args in [('env_uop_inspect',{'query':'source currentness','limit':2}),
-                        ('mode_classify',{'request':'Analyze.','explicit_modes':['AL']})]:
+                        ('project_work_classify',{'request':'Analyze.','explicit_work_classes':['AL']})]:
         query=ActionRequest(action='delta_query',project_id=project.project_id,expected_revision=1,
             arguments={'task_id':'one','plan_revision':1,'action':action,'arguments':args})
         result=PublicActionSDKDispatcher(engine).execute(query,client)

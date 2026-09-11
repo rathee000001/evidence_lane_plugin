@@ -59,7 +59,7 @@
     },
     {
       "path": "authorities/instructions/tools.json",
-      "sha256": "b3518211d6c283c9b670d34fa5ba0248ad629d41627fcffe11c7d2ce29c034f2"
+      "sha256": "093f37b47e310f2129c6f46bfd60e798c08c2c5b173eb6484c367e0d53eaca82"
     },
     {
       "path": "authorities/instructions/tools.schema.json",
@@ -67,15 +67,15 @@
     },
     {
       "path": "authorities/instructions/workflow.dot",
-      "sha256": "c3d4ccc7ecc03a7ca01dea71fdb09e47eef6ec8019016d3b32a288af75996f0d"
+      "sha256": "233e49540f548d1d1c86fb8a6faacc7b9ec24b9ee96e724ee3240d40d1d6ea09"
     },
     {
       "path": "authorities/instructions/workflow.mmd",
-      "sha256": "1579a643e563a81e6a2b31fc7bb10ae652d3a5d971b0df0d50ea671c1a9fba9c"
+      "sha256": "2da3632629c9711f6f7c29838f2799ea7160fba4406790f9267bbee5b2318082"
     },
     {
       "path": "authorities/instructions/workflow.v4.json",
-      "sha256": "4d9c75da4ebce72396ec6946fe3c5ba868c8d318022085a4445660d99b485f68"
+      "sha256": "0e2bf458232906619c721a60de51d2a498587a1a561145b4cc85bc889034d2ad"
     }
   ]
 }

@@ -8,14 +8,14 @@ description: "Classify the requested work, relevant source lanes, action classes
 Read [shared boundaries](../run-project-lifecycle/references/shared-boundaries.md) before using the workflow.
 Use [owned action references](references/actions.json) and the live MCP schemas for exact arguments.
 
-Use `mode_classify` for the requested operating modes, preserving
-the user's explicit order. Known modes use their locked ENV/UOP policies;
+Use `project_work_classify` for the requested work classifications, preserving
+the user's explicit order. Known classes use their locked ENV/UOP policies;
 an inferred selection is labeled as inference and never grants permission.
-Keep ChatLineage in the overall route. Each mode selects its actual owning
-lanes; there is no Mode, Discussion or Analysis sector.
+Keep ChatLineage in the overall route. Each work class selects its actual owning
+lanes; classification never creates a Discussion or Analysis sector.
 
-An unknown mode needs the user's explicit name, concrete brief, ordered
-retained lanes and dependency policy. Do not invent a mode or silently switch
+An unknown work class needs the user's explicit name, concrete brief, ordered
+retained lanes and dependency policy. Do not invent a class or silently switch
 lanes when a dependency is missing. Use the exact custom schema accepted by
 the action, with no hidden reasoning payload.
 
@@ -39,12 +39,12 @@ session mode or invent a binding from a read-only classification. Selecting a
 new mode for pending work requires a semantic Plan refresh. Unbound historical
 tasks retain their existing explicit action contracts without inferred modes.
 For a semantic Plan change use the Plan workflow;
-for an informational request keep the next action read-only. Recipe and mode
-remain distinct and may be synchronized by the Project Recipe workflow.
+for an informational request keep the next action read-only. Workflow selection and work classification
+remain distinct and may be synchronized by the project workflow configuration workflow.
 
 For clean-exit intent, use `session_exit_boundary` to inspect the applicable
 gate and exact references. An ordinary turn, verified Delta append, session
 closure or engine-client continuation does not prove native Goal completion
-or native State Travel. Missing independent host evidence remains unavailable.
+or native project handoff. Missing independent host evidence remains unavailable.
 Mode selection cannot execute Formula, promote a candidate, infer HIL,
 complete a Goal, transfer a native task or authorize deployment.

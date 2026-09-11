@@ -39,7 +39,7 @@ def generate(registry, plugin, *, check=False):
     """Adapt retained first-class skills; do not install or execute project work."""
     if {'start', 'work', 'query', 'connect', 'continue'} & {row.name for row in WORKFLOWS}:
         raise RuntimeError('The six-workflow prototype cannot generate the product skill tree.')
-    lifecycle_skill = next(item.skill for item in WORKFLOWS if item.name == 'lifecycle')
+    lifecycle_skill = next(item.skill for item in WORKFLOWS if item.name == 'run-project-lifecycle')
     shared_path = plugin / 'skills' / lifecycle_skill / 'references/shared-boundaries.md'
     write_bytes(shared_path, SHARED.encode(), check=check)
     skills = []
@@ -55,6 +55,9 @@ def generate(registry, plugin, *, check=False):
         metadata = 'interface:\n' + ''.join('  ' + key + ': ' + json.dumps(value) + '\n'
             for key, value in {'display_name': workflow.title,
                                'short_description': workflow.short_description,
+                               'icon_small': './assets/evidence-lane-skill.png',
+                               'icon_large': './assets/evidence-lane-skill.png',
+                               'brand_color': '#18A9C8',
                                'default_prompt': workflow.default_prompt}.items())
         metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
         meta_path = folder / 'agents/openai.yaml'
@@ -78,14 +81,16 @@ def generate(registry, plugin, *, check=False):
                     metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
                 metadata += ''.join(preserved)
         write_bytes(meta_path, metadata.encode(), check=check)
-        active_members = [entry, action_path, meta_path]
+        icon_path = folder / 'assets/evidence-lane-skill.png'
+        write_bytes(icon_path, (plugin / 'assets/evidence-lane-icon.png').read_bytes(), check=check)
+        active_members = [entry, action_path, meta_path, icon_path]
         for key, content in sorted(REFERENCES.items()):
             owner, filename = key.split('/', 1)
             if owner == workflow.name:
                 resource = folder / 'references' / filename
                 write_bytes(resource, content.encode(), check=check)
                 active_members.append(resource)
-        if workflow.name == 'lifecycle':
+        if workflow.name == 'run-project-lifecycle':
             active_members.append(shared_path)
         members = [{'path': path.relative_to(plugin).as_posix(), 'bytes': path.stat().st_size,
                     'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
@@ -111,7 +116,7 @@ def main():
     parser.add_argument('--plugin-root', type=Path, default=ROOT / 'plugins/evidence-lane-plugin')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix='evi-skill-registry-') as temp:
+    with tempfile.TemporaryDirectory(prefix='evidence-lane-skill-registry-') as temp:
         registry = Engine(Path(temp)).registry
         registry.freeze()
         result = generate(registry, args.plugin_root, check=args.check)

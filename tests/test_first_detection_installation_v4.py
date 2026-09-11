@@ -126,12 +126,12 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
             "operation": "create_venv",
             "component_id": "core-engine-studio",
             "interpreter": "toolchains/python/base/cp314/python.exe",
-            "target": "runtime/engine/venv",
+            "target": "engine/venv",
         },
         {
             "operation": "pip_install",
             "component_id": "core-engine-studio",
-            "environment": "runtime/engine/venv",
+            "environment": "engine/venv",
             "wheelhouse": "install-inputs/engine/wheelhouse",
             "requirements": ["install-inputs/engine/core.offline.lock.txt"],
         },
@@ -213,17 +213,17 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
                 }
             ],
             "entrypoints": {
-                "runtime_python": "runtime/engine/venv/Scripts/python.exe",
-                "runtime_pythonw": "runtime/engine/venv/Scripts/pythonw.exe",
-                "plugin_root": "app/plugin",
+                "runtime_python": "engine/venv/Scripts/python.exe",
+                "runtime_pythonw": "engine/venv/Scripts/pythonw.exe",
+                "plugin_root": "plugin",
                 "studio_launcher_executable": "app/EvidenceLaneStudio.exe",
-                "mcp_launcher": "app/plugin/scripts/run_mcp.py",
-                "engine_launcher": "app/plugin/scripts/run_engine.py",
+                "mcp_launcher": "plugin/scripts/run_mcp.py",
+                "engine_launcher": "plugin/scripts/run_engine.py",
                 "installation_self_test": (
-                    "app/plugin/scripts/verify_installed_runtime.py"
+                    "plugin/scripts/verify_installed_runtime.py"
                 ),
                 "installation_registration": (
-                    "app/plugin/scripts/register_installed_runtime.py"
+                    "plugin/scripts/register_installed_runtime.py"
                 ),
             },
             "external_service_configuration": [
@@ -475,15 +475,17 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
     binding = json.loads(binding_path.read_text(encoding="utf-8"))
     installer_module.verify_seal(binding, code="TEST")
     assert b"\r\n" not in binding_path.read_bytes()
-    assert binding["status"] == "RELEASE_BOUND"
-    assert binding["installation_enabled"] is True
-    assert binding["release_ref"] == (
-        "refs/tags/evidence-lane-v4.0.1-bundle-977fb5ec2702ff9d"
-    )
-    assert binding["assets_sha256"] == (
-        "977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd"
-    )
-    assert len(binding["assets"]) == 12
+    assert binding["status"] in {"SOURCE_TEMPLATE_UNBOUND", "RELEASE_BOUND"}
+    if binding["status"] == "SOURCE_TEMPLATE_UNBOUND":
+        assert binding["installation_enabled"] is False
+        assert binding["release_ref"] is None
+        assert binding["assets"] == []
+    else:
+        assert binding["installation_enabled"] is True
+        assert binding["plugin_version"] == "4.0.2"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.2-bundle-")
+        assert len(binding["assets_sha256"]) == 64
+        assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()
     validated_binding, validated_plan = installer_module.validate_binding(PLUGIN)
     assert validated_binding == binding
@@ -505,8 +507,10 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
     Draft202012Validator(binding_schema).validate(binding)
     mcp = json.loads((PLUGIN / ".mcp.json").read_text(encoding="utf-8"))
     server = mcp["mcpServers"]["evidence-lane"]
-    assert server["required"] is True
-    assert server["startup_timeout_sec"] == 7200
+    assert server["required"] is False
+    assert server["startup_timeout_sec"] == 120
+    assert server["command"] == "node"
+    assert server["args"][0] == "./mcp/server.mjs"
     assert "EVIDENCE_LANE_GHOSTSCRIPT_LICENSE_RECEIPT" in server["env_vars"]
 
 
@@ -720,10 +724,12 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     }
     assert set(copied) == expected
     release = result["release_root"]
-    assert result["plugin_root"] == release / "app/plugin"
-    assert result["mcp_launcher"] == release / "app/plugin/scripts/run_mcp.py"
+    assert release == install_root.resolve()
+    assert not (install_root / "releases").exists()
+    assert result["plugin_root"] == release / "plugin"
+    assert result["mcp_launcher"] == release / "plugin/scripts/run_mcp.py"
     configs = [
-        release / "runtime/engine/venv/pyvenv.cfg",
+        release / "engine/venv/pyvenv.cfg",
         *(
             release / "toolchains/python/providers"
         ).glob("*/pyvenv.cfg"),
@@ -745,7 +751,7 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     )
     providers, provider_state = load_installed_providers(
         installation=installation,
-        contracts=release / "app/plugin/toolchains/providers",
+        contracts=release / "plugin/toolchains/providers",
     )
     assert [provider.runtime_id for provider in providers] == ["cpu"]
     assert provider_state["state"] == "observed"
@@ -829,9 +835,187 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     installer_module.verify_seal(installed_files, code="TEST")
     noncritical = release / "install-inputs/component-markers/node-runtime.txt"
     noncritical.write_bytes(b"changed")
+    quick = installer_module.validate_active_installation_quick(install_root)
+    assert quick["validation_scope"] == "sealed_pointer_and_critical_files"
     with pytest.raises(installer_module.FirstDetectionError) as error:
         installer_module.validate_active_installation(install_root)
     assert error.value.code == "INSTALLED_RELEASE_CHANGED"
+
+
+def test_mcp_first_detection_defers_installation_outside_initialize(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plugin, _archives = fixture_plugin(tmp_path)
+    install_root = tmp_path / "stable-installation"
+    calls = []
+    monkeypatch.setattr(
+        installer_module,
+        "start_deferred_installation",
+        lambda plugin_root, selected_root: calls.append((plugin_root, selected_root)) or True,
+    )
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer_module.prepare_mcp(
+            plugin,
+            ["--transport", "stdio"],
+            environment={"EVIDENCE_LANE_STUDIO_ROOT": str(install_root)},
+            system="Windows",
+            machine="AMD64",
+        )
+    assert error.value.code == "INSTALLATION_PENDING"
+    assert calls == [(plugin.resolve(), install_root.resolve())]
+    assert not (install_root / "installation.json").exists()
+
+
+def test_mcp_reports_recorded_deferred_install_failure_instead_of_in_progress(
+    tmp_path: Path,
+) -> None:
+    plugin, _archives = fixture_plugin(tmp_path)
+    install_root = tmp_path / "stable-installation"
+    install_root.mkdir()
+    write(install_root / ".installation-started.json", "{}\n")
+    write(install_root / "legacy-layout/old.txt")
+    status = installer_module.sealed(
+        {
+            "schema": "evidence-lane.first-detection-status.v4",
+            "phase": "FAILED",
+            "plugin_version": "4.0.1",
+            "release_ref": "fixture",
+            "selected_components": [],
+            "error_code": "INSTALLATION_ROOT_OCCUPIED",
+            "credentials_recorded": False,
+            "project_state_changed": False,
+            "installed_native_execution_claimed": False,
+        }
+    )
+    write(install_root / "installation-status.json", json.dumps(status) + "\n")
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer_module.prepare_mcp(
+            plugin,
+            ["--transport", "stdio"],
+            environment={"EVIDENCE_LANE_STUDIO_ROOT": str(install_root)},
+            system="Windows",
+            machine="AMD64",
+        )
+    assert error.value.code == "INSTALLATION_ROOT_OCCUPIED"
+
+
+def test_deferred_installation_marker_is_owned_control_state_not_foreign_content(
+    tmp_path: Path,
+) -> None:
+    plugin, archives = fixture_plugin(tmp_path)
+    install_root = tmp_path / "stable-installation"
+    install_root.mkdir()
+    write(install_root / ".installation-started.json", "{}\n")
+
+    def fetch(asset, target):
+        shutil.copyfile(archives[asset["component_id"]], target)
+
+    installer = installer_module.FirstDetectionInstaller(
+        plugin,
+        install_root,
+        fetcher=fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    result = installer.ensure()
+    assert result["installation_state"] == "INSTALLED_EXACT_RELEASE"
+    assert result["release_root"] == install_root.resolve()
+
+
+def test_successful_deferred_bootstrap_removes_its_exact_owned_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bootstrap = load_script(
+        "evidence_lane_bootstrap_marker_test",
+        PLUGIN / "scripts/bootstrap.py",
+    )
+    install_root = tmp_path / "stable-installation"
+    install_root.mkdir()
+    marker = install_root / ".installation-started.json"
+    write(marker, "{}\n")
+
+    class FakeInstaller:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def ensure(self):
+            return {
+                "installation_state": "INSTALLED_EXACT_RELEASE",
+                "release_root": install_root,
+                "runtime_python": install_root / "engine/venv/Scripts/python.exe",
+                "plugin_root": install_root / "plugin",
+            }
+
+    class FakeModule:
+        FirstDetectionError = installer_module.FirstDetectionError
+        FirstDetectionInstaller = FakeInstaller
+        validate_binding = staticmethod(lambda _root: ({"status": "RELEASE_BOUND"}, {}))
+        installation_root = staticmethod(
+            lambda environment: Path(environment["EVIDENCE_LANE_STUDIO_ROOT"])
+        )
+
+    monkeypatch.setattr(bootstrap, "_module", lambda: FakeModule)
+    assert bootstrap.main(
+        [
+            "--installation-root",
+            str(install_root),
+            "--deferred-marker",
+            str(marker),
+        ]
+    ) == 0
+    assert not marker.exists()
+
+
+def test_failed_registration_quarantines_published_release_for_clean_retry(
+    tmp_path: Path,
+) -> None:
+    plugin, archives = fixture_plugin(tmp_path)
+    install_root = tmp_path / "stable-installation"
+    commands: list[list[str]] = []
+    base = fake_runner(commands)
+
+    def fetch(asset, target):
+        shutil.copyfile(archives[asset["component_id"]], target)
+
+    def fail_registration(command, cwd, environment):
+        values = [str(value) for value in command]
+        if any(value.endswith("register_installed_runtime.py") for value in values):
+            commands.append(values)
+            return 1
+        return base(command, cwd, environment)
+
+    installer = installer_module.FirstDetectionInstaller(
+        plugin,
+        install_root,
+        fetcher=fetch,
+        runner=fail_registration,
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer.ensure()
+    assert error.value.code == "INSTALLATION_REGISTRATION_FAILED"
+    assert not any(
+        (install_root / name).exists()
+        for name in ("app", "plugin", "engine", "toolchains", "installation.json")
+    )
+    status = json.loads((install_root / "installation-status.json").read_text())
+    assert status["phase"] == "FAILED"
+    failed = install_root.parent / ".EvidenceLaneStudio-failed"
+    assert any((candidate / "plugin").is_dir() for candidate in failed.iterdir())
 
 
 def test_first_detection_selects_only_compatible_gpu_providers(tmp_path: Path) -> None:
@@ -987,7 +1171,11 @@ def test_unbound_manifest_runs_only_from_a_real_development_checkout(tmp_path: P
     assert error.value.code == "RELEASE_BINDING_UNBOUND"
     write(tmp_path / ".git/fixture")
     prepared = installer_module.prepare_mcp(
-        fake, [], system="Windows", machine="AMD64"
+        fake,
+        [],
+        environment={"EVIDENCE_LANE_DEVELOPMENT_RUNTIME_ACTIVE": "1"},
+        system="Windows",
+        machine="AMD64",
     )
     assert prepared["mode"] == "DEVELOPMENT_SOURCE"
     assert prepared["reexec"] is False

@@ -39,7 +39,7 @@ OPERATING_CYCLE_STAGES = (
     {'id': 'TOOLS', 'label': 'Eligible primary and fallback tools'},
     {'id': 'EXECUTE', 'label': 'Bounded execution with project writer fencing'},
     {'id': 'VERIFY', 'label': 'Verify outputs and reject stale completion'},
-    {'id': 'PUBLISH', 'label': 'Coordinated lane heads and Root PV publication'},
+    {'id': 'PUBLISH', 'label': 'Coordinated lane heads and project evidence head coordinator publication'},
     {'id': 'LEARNING', 'label': 'Evidence and Learning after verified Delta exit'},
     {'id': 'NEXT', 'label': 'Read-only Studio updates and next eligible task'},
 )
@@ -101,7 +101,7 @@ def build_engine_connection_contract(plugin_root, *, registry):
             'read_only_setup': 'server owner may prepare the exact grant-bound restart probe; the client can verify it without probe-write permission',
             'physical_volume_durability': 'operator_declaration_only', 'project_admin': False,
             'hook_provenance': 'authenticated_remote_hook_report', 'automatic_mutation_retry': False},
-        'platforms': {'Windows': {'studio': True, 'runtime': 'C:/Apps/EvidenceLaneStudio/runtime/engine'},
+        'platforms': {'Windows': {'studio': True, 'runtime': 'C:/Apps/EvidenceLaneStudio/engine'},
             'Darwin': {'studio': False, 'runtime': '~/Library/Application Support/EvidenceLane/runtime'},
             'Linux': {'studio': False, 'runtime': '~/.local/share/EvidenceLane/runtime'},
             'codex_vm_persistent': {'requires_verified_remote_route': True},
@@ -109,7 +109,7 @@ def build_engine_connection_contract(plugin_root, *, registry):
         'studio': {'owner_source': 'apps/evidence-lane-studio', 'human_access': 'visible_read_only',
             'windows_pc_only': True,
             'shared_installation': 'authorities/session_authority/installation-layout.v4.json'},
-        'project_state': 'separate authority/sector SQLite databases and files coordinated by Root PV',
+        'project_state': 'separate authority/sector SQLite databases and files coordinated by project evidence head coordinator',
         'session_state_owner': 'receipts lane', 'workflow_count': len(registry.workflow_schemas()),
         'action_count': len(registry.schemas()),
         'source_members': [{'path': path, 'sha256': sha256_file(root / path)} for path in owners],
@@ -157,7 +157,7 @@ def build_universal_plugin_architecture(plugin_root, *, registry=None):
         raise LaneError('PACKAGE_SOURCE_MISMATCH', 'Load the owning package before projecting its executable registry.')
     if registry is None:
         from .engine import Engine
-        with tempfile.TemporaryDirectory(prefix='evi-architecture-') as temporary:
+        with tempfile.TemporaryDirectory(prefix='evidence-lane-architecture-') as temporary:
             return build_universal_plugin_architecture(root, registry=Engine(Path(temporary)).registry)
     actions = registry.schemas()
     owners = []
@@ -246,7 +246,7 @@ def _master_semantic_graph(architecture):
         if previous:
             graph.add_edge(previous, key)
         previous = key
-    graph.add_node('ROOT_PV', 'Root PV: exact lane heads and references', 'root')
+    graph.add_node('ROOT_PV', 'project evidence head coordinator: exact lane heads and references', 'root')
     graph.add_edge('STAGE_6', 'ROOT_PV')
     for surface in architecture['surfaces']:
         key = _safe_graph_id('LANE', surface['surface_id'])
@@ -300,7 +300,7 @@ def render_surface_workflow(surface):
         ('VERIFY', 'Verify outputs and source identities', 'semantic'),
         ('SQLITE', surface['database'], 'output'),
         ('FILES', surface['files'] + ': declared output formats only', 'output'),
-        ('ROOT_PV', 'Coordinated Root PV reference', 'output')):
+        ('ROOT_PV', 'Coordinated project evidence head coordinator reference', 'output')):
         graph.add_node(key, label, kind)
     for left, right in [('CONTRACT', 'ADMISSION'), ('ADMISSION', 'EXECUTE'), ('EXECUTE', 'VERIFY'),
                         ('VERIFY', 'SQLITE'), ('VERIFY', 'FILES'), ('SQLITE', 'ROOT_PV'), ('FILES', 'ROOT_PV')]:

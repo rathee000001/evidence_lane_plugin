@@ -1,0 +1,15 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "lane_id": "docs",
+  "manifest": {
+    "bytes": 77425,
+    "path": "authorities/project_sectors/docs/manifest.v4.json",
+    "sha256": "0f2daf931b1c2e39cc89b44017e3e0c3f0705e2e062e68b2d1c2a80096f1f7b2"
+  },
+  "project_state": "separate_lane_sqlite_and_files",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-project-sector-binding.v4",
+  "status": "PASS"
+}

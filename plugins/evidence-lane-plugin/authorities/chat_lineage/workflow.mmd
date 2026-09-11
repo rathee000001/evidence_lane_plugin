@@ -31,25 +31,25 @@ flowchart TB
   action_prompt_index_status["prompt_index_status"]:::default
   action_task_classify["task_classify"]:::default
   sdk -->|"write"| action_capture_bind
-  action_capture_bind -->|"boot"| writer
+  action_capture_bind -->|"open-project-session"| writer
   sdk -->|"write"| action_continuation_accept
-  action_continuation_accept -->|"state-travel"| writer
+  action_continuation_accept -->|"handoff-project-work"| writer
   sdk -->|"write"| action_continuation_cancel
-  action_continuation_cancel -->|"state-travel"| writer
+  action_continuation_cancel -->|"handoff-project-work"| writer
   sdk -->|"read"| action_continuation_context
-  action_continuation_context -->|"state-travel"| read
+  action_continuation_context -->|"handoff-project-work"| read
   sdk -->|"write"| action_continuation_offer
-  action_continuation_offer -->|"state-travel"| writer
+  action_continuation_offer -->|"handoff-project-work"| writer
   sdk -->|"read"| action_continuation_read
-  action_continuation_read -->|"state-travel"| read
+  action_continuation_read -->|"handoff-project-work"| read
   sdk -->|"read"| action_lineage_read
-  action_lineage_read -->|"lifecycle"| read
+  action_lineage_read -->|"run-project-lifecycle"| read
   sdk -->|"write"| action_lineage_record
-  action_lineage_record -->|"lifecycle"| writer
+  action_lineage_record -->|"run-project-lifecycle"| writer
   sdk -->|"read"| action_prompt_index_status
-  action_prompt_index_status -->|"source-intake"| read
+  action_prompt_index_status -->|"manage-project-sources"| read
   sdk -->|"write"| action_task_classify
-  action_task_classify -->|"lifecycle"| writer
+  action_task_classify -->|"run-project-lifecycle"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

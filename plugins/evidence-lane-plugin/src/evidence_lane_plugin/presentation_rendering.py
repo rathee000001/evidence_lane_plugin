@@ -190,7 +190,7 @@ def register_render_actions(engine):
     from .tool_routes import ToolRoute
     engine.registry.register(ActionSpec('presentation_render', 'Render exact presentation bytes to PDF and page PNGs using the verified shared office runtime.',
         PresentationRender, PresentationResult, render_presentation, permission='write', mutates=True, requires_delta=True,
-        profile='presentation', workflow='build', worker_operations=('presentation_render',),
+        profile='presentation', workflow='execute-project-plan', worker_operations=('presentation_render',),
         verification_checks=('presentation_render_bytes_verified',), verifier=verify_render,
         tool_routes=(ToolRoute('presentation_render.shared_office', render_presentation, ('Python', 'LibreOffice', 'pypdfium2'), systems=('Windows',)),)))
 
@@ -199,5 +199,5 @@ def register_render_actions(engine):
         with project_snapshot(store.root):
             return result(store, 'presentation_render_read', read_render(store, request.render_id))
     engine.registry.register(ActionSpec('presentation_render_read', 'Read and verify one immutable presentation-render manifest and its artifacts.',
-        PresentationRenderRead, PresentationResult, read, profile='presentation', workflow='source-intake', queryable_in_delta=True,
+        PresentationRenderRead, PresentationResult, read, profile='presentation', workflow='manage-project-sources', queryable_in_delta=True,
         cross_project_read=True, studio_read=True, read_migrations=PPT_MIGRATIONS))

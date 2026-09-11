@@ -1,13 +1,13 @@
 {
   "action": "code_refresh_git",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/code_refresh_git.action.v4.json",
-  "sdk_binding_sha256": "c1b7b1f2d6c391b6db25402e565068be98435845e3a4a6b86f44cf3c71efff66",
+  "sdk_binding_sha256": "3deacf3f09d0471d5263fddb5efb897e16cc16c2acb953d67716c23ee2bd5d32",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -1,0 +1,15 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "lane_id": "github_code",
+  "manifest": {
+    "bytes": 80950,
+    "path": "authorities/project_sectors/github_code/manifest.v4.json",
+    "sha256": "665956a26858c7927ec579b32048bf4889fbfe8e0cc1eefd8b6a8ba497cb1d50"
+  },
+  "project_state": "separate_lane_sqlite_and_files",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-project-sector-binding.v4",
+  "status": "PASS"
+}

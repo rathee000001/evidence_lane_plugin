@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/PreToolUse/handler.py",
   "event": "PreToolUse",
   "event_contract": "hooks/events/PreToolUse/event.v4.json",
-  "event_contract_sha256": "253f6979f94769a160ae0a2b05c7a3ff498b637b8245e9df96383c6a755a95ae",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "3f5967ebb1cbd3938399e179195e38087c5c17d35c3d81e725c83fdeb1016541",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
   "input_schema": "schemas/hooks/PreToolUse.v4.schema.json",
   "input_schema_sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/PreToolUse/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/PreToolUse/02-classify_event.stage.v4.json",
+    "hooks/events/PreToolUse/03-handle_event.stage.v4.json",
+    "hooks/events/PreToolUse/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/PreToolUse/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/PreToolUse/06-project_bounded_output.stage.v4.json"
+  ]
 }

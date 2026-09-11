@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/project_work_classify.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
+      "mutates": false,
+      "name": "project_work_classify",
+      "permission": "read",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "classify-project-work"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $classify-project-work to classify my current request and relevant source lanes.",
+  "description": "Classify the requested work, relevant source lanes, action classes and required gates. Use for known work patterns or an explicit custom classification; classification does not authorize execution.",
+  "dot": "sdk/workflows/skills/classify-project-work/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/classify-project-work/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "classify-project-work",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Classify project work",
+  "workflow": "classify-project-work"
+}

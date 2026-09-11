@@ -88,7 +88,7 @@ def register_query_actions(engine):
         return query_live_authorities(engine, context, request)
     engine.registry.register(ActionSpec('search', 'Search current registered lane owners with separate authority results, exact snapshots and explicit missing coverage.',
         ProjectSearchRequest, SearchPage, search,
-        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evi',
+        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evidence-lane',
         tool_routes=lexical_tool_routes('search', search)))
     def status(context, request):
         store = engine.directory.open(context.project_id)
@@ -146,6 +146,6 @@ def register_query_actions(engine):
         return value
 
     engine.registry.register(ActionSpec('delta_status', 'Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.',
-        DeltaStatusRequest, DeltaStatus, status, profile='delta', queryable_in_delta=True, studio_read=True, workflow='build'))
+        DeltaStatusRequest, DeltaStatus, status, profile='delta', queryable_in_delta=True, studio_read=True, workflow='execute-project-plan'))
     engine.registry.register(ActionSpec('delta_query', 'Query an admitted authority during work without refreshing or changing the Plan.',
-        DeltaQuery, QueryResult, query, profile='delta', workflow='evi'))
+        DeltaQuery, QueryResult, query, profile='delta', workflow='evidence-lane'))

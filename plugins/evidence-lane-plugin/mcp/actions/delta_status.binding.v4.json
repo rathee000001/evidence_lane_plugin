@@ -1,13 +1,13 @@
 {
   "action": "delta_status",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/delta_status.action.v4.json",
-  "sdk_binding_sha256": "574041ef5179c8f5982ae217d14f1c929387fcb4fc5795e1d26b62bc82de7150",
+  "sdk_binding_sha256": "aa7490365a054756cb9e8d6b01a04da67908f1e1580524204af56bae996808a0",
   "tool": {
     "annotations": {
       "destructiveHint": false,

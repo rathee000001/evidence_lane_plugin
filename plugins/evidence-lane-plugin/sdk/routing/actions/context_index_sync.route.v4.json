@@ -1,0 +1,212 @@
+{
+  "action": "context_index_sync",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/context_index_sync.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/context_index_sync.binding.v4.json",
+  "outer_route": {
+    "action": "context_index_sync",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "memory",
+    "permission": "publish",
+    "project_required": true,
+    "workflow": "manage-project-memory"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/context_index_sync.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+      "argument_suffixes": {},
+      "argument_values": {
+        "tool_id": [
+          "Pinecone"
+        ]
+      },
+      "extension": {
+        "backend_id": "pinecone.data-plane-rest",
+        "backend_runtime": "python",
+        "backend_version": "2025-10",
+        "capability": "context_index",
+        "code_loaded_from_registration": false,
+        "execution_owner": "engine_delta",
+        "lane": "selected_by_action",
+        "lane_field": "lane_id",
+        "plugin_id_field": "plugin_id",
+        "read_path_fields": [],
+        "resource_fields": [
+          "resource_id"
+        ],
+        "role": "context_index_result",
+        "role_schema": {
+          "operation": "text",
+          "receipt_sha256": "blob_hash",
+          "result": "json",
+          "tool_id": "text"
+        },
+        "write_path_fields": []
+      },
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "context_index.pinecone",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "HTTPX",
+        "Pinecone"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+      "argument_suffixes": {},
+      "argument_values": {
+        "tool_id": [
+          "Weaviate"
+        ]
+      },
+      "extension": {
+        "backend_id": "weaviate.rest-graphql",
+        "backend_runtime": "python",
+        "backend_version": "v1",
+        "capability": "context_index",
+        "code_loaded_from_registration": false,
+        "execution_owner": "engine_delta",
+        "lane": "selected_by_action",
+        "lane_field": "lane_id",
+        "plugin_id_field": "plugin_id",
+        "read_path_fields": [],
+        "resource_fields": [
+          "resource_id"
+        ],
+        "role": "context_index_result",
+        "role_schema": {
+          "operation": "text",
+          "receipt_sha256": "blob_hash",
+          "result": "json",
+          "tool_id": "text"
+        },
+        "write_path_fields": []
+      },
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "context_index.weaviate",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "HTTPX",
+        "Weaviate"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+      "argument_suffixes": {},
+      "argument_values": {
+        "tool_id": [
+          "Milvus"
+        ]
+      },
+      "extension": {
+        "backend_id": "milvus.rest",
+        "backend_runtime": "python",
+        "backend_version": "v2",
+        "capability": "context_index",
+        "code_loaded_from_registration": false,
+        "execution_owner": "engine_delta",
+        "lane": "selected_by_action",
+        "lane_field": "lane_id",
+        "plugin_id_field": "plugin_id",
+        "read_path_fields": [],
+        "resource_fields": [
+          "resource_id"
+        ],
+        "role": "context_index_result",
+        "role_schema": {
+          "operation": "text",
+          "receipt_sha256": "blob_hash",
+          "result": "json",
+          "tool_id": "text"
+        },
+        "write_path_fields": []
+      },
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "context_index.milvus",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "HTTPX",
+        "Milvus"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+      "argument_suffixes": {},
+      "argument_values": {
+        "tool_id": [
+          "OpenSearch"
+        ]
+      },
+      "extension": {
+        "backend_id": "opensearch.rest",
+        "backend_runtime": "python",
+        "backend_version": "v2",
+        "capability": "context_index",
+        "code_loaded_from_registration": false,
+        "execution_owner": "engine_delta",
+        "lane": "selected_by_action",
+        "lane_field": "lane_id",
+        "plugin_id_field": "plugin_id",
+        "read_path_fields": [],
+        "resource_fields": [
+          "resource_id"
+        ],
+        "role": "context_index_result",
+        "role_schema": {
+          "operation": "text",
+          "receipt_sha256": "blob_hash",
+          "result": "json",
+          "tool_id": "text"
+        },
+        "write_path_fields": []
+      },
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "context_index.opensearch",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "HTTPX",
+        "OpenSearch"
+      ]
+    }
+  ]
+}

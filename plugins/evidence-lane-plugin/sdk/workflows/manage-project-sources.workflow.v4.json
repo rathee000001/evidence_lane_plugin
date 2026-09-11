@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 507,
+    "path": "sdk/workflows/skills/manage-project-sources/workflow.dot",
+    "sha256": "f1179c7127fdb0565b6ac95c2c449dfed37d8a4ec2a24e257b5046ffda15e7c8"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 477,
+    "path": "sdk/workflows/skills/manage-project-sources/workflow.mmd",
+    "sha256": "b8298fd84ce6f50517335d5fccd038bc7ba3a846be7934a54fdd92b5f95ad323"
+  },
+  "package": {
+    "bytes": 62182,
+    "path": "sdk/workflows/skills/manage-project-sources/workflow.v4.json",
+    "sha256": "07f41c491673f725dca6423c9d01b42267560bd05fe753aa5e23733682adee22"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "manage-project-sources",
+  "source_skill": {
+    "bytes": 5463,
+    "path": "skills/manage-project-sources/SKILL.md",
+    "sha256": "1134c56c37499b20bac8a0f6765d9d498a3f8fdb60952e9ccd37e7465449b34c"
+  },
+  "status": "PASS",
+  "title": "Manage project sources",
+  "workflow": "manage-project-sources"
+}

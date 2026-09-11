@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_id": "memory",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 65813,
+    "path": "authorities/project_memory/manifest.v4.json",
+    "sha256": "e595c81cb2a1493a954e986c24cfa1c3bd0ace5edaab72e23ea830fb57279bc9"
+  },
+  "path": "authorities/project_memory",
+  "project_state": "separate_lane_sqlite_and_files",
+  "root_pv_role": "coordinate_published_lane_head",
+  "runtime_execution_inferred": false,
+  "runtime_module": "evidence_lane_plugin.project_memory",
+  "schema": "evidence-lane.sdk-authority-binding.v4",
+  "status": "PASS"
+}

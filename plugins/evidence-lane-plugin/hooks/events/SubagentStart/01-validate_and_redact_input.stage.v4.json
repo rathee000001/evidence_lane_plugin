@@ -1,0 +1,11 @@
+{
+  "automatic_retry": false,
+  "capture_only": true,
+  "event": "SubagentStart",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
+  "implementation": "hook_admission.admit_hook",
+  "ordinal": 1,
+  "owner": "hook_admission",
+  "schema": "evidence-lane.native-hook-stage.v4",
+  "stage": "validate_and_redact_input"
+}

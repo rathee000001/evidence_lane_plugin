@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/instructions_inspect.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Inspect scoped instruction and separate workspace/host recall file hashes; never import or modify their contents.",
+      "mutates": false,
+      "name": "instructions_inspect",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "inspect-project-instructions"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $inspect-project-instructions to inspect the instructions that apply here.",
+  "description": "Inspect the selected instruction chain and explicitly selected host recall without merging either into project evidence. Use for instruction provenance and recall boundaries.",
+  "dot": "sdk/workflows/skills/inspect-project-instructions/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/inspect-project-instructions/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "inspect-project-instructions",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Inspect project instructions",
+  "workflow": "inspect-project-instructions"
+}

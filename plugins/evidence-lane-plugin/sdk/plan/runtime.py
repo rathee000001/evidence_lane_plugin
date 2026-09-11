@@ -14,6 +14,14 @@ from evidence_lane_plugin.plan_runtime import (
     TaskDefinition,
 )
 
+from ..contracts import load_sdk_contract
+
+
+def plan_contract_catalog():
+    """Return Plan, steer and full host-projection SDK contracts."""
+
+    return load_sdk_contract("plan/plan-contract-registry.v4.json")
+
 __all__ = [
     "HostPlanBind",
     "HostPlanBinding",
@@ -26,4 +34,5 @@ __all__ = [
     "PlanSnapshot",
     "PlanStore",
     "TaskDefinition",
+    "plan_contract_catalog",
 ]

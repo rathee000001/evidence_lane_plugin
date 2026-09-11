@@ -9,19 +9,19 @@ Read [shared boundaries](../run-project-lifecycle/references/shared-boundaries.m
 Use [owned action references](references/actions.json) and the live MCP schemas for exact arguments.
 
 Select a complete registered source batch and the user's
-requested outcome, then call `project_recipe`. Review the proposed retained
+requested outcome, then call `project_workflow_configure`. Review the proposed retained
 sectors, artifact meanings, paired ENV/UOP class policy and execution stages.
 Code, data, documents, media, research, mixed and explicit custom types retain
-their own validation strategy. Follow the selected lane checks; recipe defaults
+their own validation strategy. Follow the selected lane checks; workflow defaults
 never impose this plugin's maintainer CI on an unrelated project.
 Inspect `project_validation_policy` for that project's exact saved revision or
 `not_configured` status. It is configuration evidence, not executed checks or
 permission to modify the Plan. Use the Plan workflow for an authorized policy change.
 Optional explicit modes or a mode request synchronize classification in the
-same proposal while keeping recipe and mode distinct. Treat an inferred project type
-as a proposal; use an explicit type when the user selected one. A recipe does
+same proposal while keeping workflow selection and work classification distinct. Treat an inferred project type
+as a proposal; use an explicit type when the user selected one. A workflow proposal does
 not change the Plan, create a sector or verify current source bytes. Use the
-Plan workflow to incorporate an authorized recipe change into current work.
+Plan workflow to incorporate an authorized workflow change into current work.
 Use `git_mode=AUTO` for an optional repository arm, `REQUIRED` when the outcome
 depends on Git, or `DISABLED` for content-only work. AUTO uses bounded local Git
 metadata when the executable is available; an unavailable or undetected repository

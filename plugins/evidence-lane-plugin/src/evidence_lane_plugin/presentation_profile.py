@@ -580,7 +580,7 @@ def register_presentation_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for action, workflow in (('presentation_index', 'source-intake'), ('presentation_refresh', 'refresh')):
+    for action, workflow in (('presentation_index', 'manage-project-sources'), ('presentation_refresh', 'refresh-project-evidence')):
         engine.registry.register(ActionSpec(action, 'Snapshot one exact presentation and its bounded native structure in the separate PPT lane.',
             PresentationIndex, PresentationResult, index_presentation, permission='write', mutates=True, requires_delta=True,
             profile='presentation', workflow=workflow, path_fields=('filename',), source_lanes=('ppt',),
@@ -590,7 +590,7 @@ def register_presentation_actions(engine):
         ('presentation_generate', PresentationGenerate, generate_presentation, ('presentation_generate',), ('Python', 'PPTX_OpenXML', 'Pillow', 'lxml')),
         ('presentation_edit', PresentationEdit, edit_presentation, ('presentation_edit',), ('Python', 'lxml'))):
         engine.registry.register(ActionSpec(action, 'Publish a new immutable lane-owned PPTX version with explicit structural and layout fidelity.',
-            model, PresentationResult, handler, permission='write', mutates=True, requires_delta=True, profile='presentation', workflow='build',
+            model, PresentationResult, handler, permission='write', mutates=True, requires_delta=True, profile='presentation', workflow='execute-project-plan',
             worker_operations=workers, verification_checks=('presentation_snapshot_integrity',), verifier=verify_presentation,
             tool_routes=(ToolRoute(action + '.native_presentation', handler, tools),)))
 
@@ -606,13 +606,13 @@ def register_presentation_actions(engine):
         ('presentation_query', PresentationQuery, query_presentation, 'Read bounded native structures or literal FTS5/BM25 matches from an exact presentation version.'),
         ('presentation_read', PresentationRead, read_presentation, 'Read a bounded base64 byte range from an exact immutable presentation.')):
         engine.registry.register(ActionSpec(action, description, model, PresentationResult, query_handler(function, action),
-            profile='presentation', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+            profile='presentation', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
             studio_read=True, read_migrations=PPT_MIGRATIONS,
             search=SearchRoute(('ppt',), 'rows', 'presentation_current', 'presentations', 'text', 'any', rerank_text='text') if action == 'presentation_query' else None,
             fetch=FetchRoute(('ppt',), 'presentation') if action == 'presentation_read' else None))
     engine.registry.register(ActionSpec('presentation_export', 'Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.',
         PresentationExport, PresentationResult, export_presentation, permission='write', mutates=True, requires_delta=True,
-        profile='presentation', workflow='build', path_fields=('filename',), verification_checks=('presentation_export_hash_verified',),
+        profile='presentation', workflow='execute-project-plan', path_fields=('filename',), verification_checks=('presentation_export_hash_verified',),
         verifier=verify_exported, worker_operations=('presentation_parse_content', 'render_lane_view'),
         tool_routes=tuple(ToolRoute('presentation_export.native' + ('_view' if render else ''), export_presentation,
             ('Python', *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),

@@ -1,11 +1,11 @@
 {
   "action": "lane_configure_routes",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/lane_configure_routes.v4.schema.json",
-  "contract_sha256": "e607c6734d57889c33e301d83ba522652fdccddf7b6853c68a410f4318bd4692",
+  "contract_sha256": "a99a97fb9bfb878ab39e37ac7909a27e96cef46b1d8f792bb46fe46e5b477ff5",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

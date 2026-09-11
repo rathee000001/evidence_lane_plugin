@@ -108,11 +108,11 @@ def test_named_custom_source_routes_prepare_an_exact_adapter_bound_task(system):
     routed = call(system, 'source_routes_read', {'route_id': route['route_id']})
     assert routed.status == 'ok' and routed.result['result']['routes'][0]['lane_id'] == lane_id
     before_recipe = database_bytes(system[1])
-    recipe = call(system, 'project_recipe', {'batch_id': route['batch_id'], 'requested_outcome': 'Inspect named trial evidence'})
-    assert recipe.status == 'ok', recipe.error
-    assert recipe.result['selected_sector_lanes'] == [lane_id]
-    assert recipe.result['project_class_policy']['selected_lanes'] == [lane_id]
-    assert recipe.result['project_class_policy']['selected_lanes_outside_class_defaults'] == []
+    workflow = call(system, 'project_workflow_configure', {'batch_id': route['batch_id'], 'requested_outcome': 'Inspect named trial evidence'})
+    assert workflow.status == 'ok', workflow.error
+    assert workflow.result['selected_sector_lanes'] == [lane_id]
+    assert workflow.result['project_class_policy']['selected_lanes'] == [lane_id]
+    assert workflow.result['project_class_policy']['selected_lanes_outside_class_defaults'] == []
     assert database_bytes(system[1]) == before_recipe
     prepared = call(system, 'source_prepare_tasks', {'selection': {
         'route_id': route['route_id'], 'occurrence_ordinals': [1]},

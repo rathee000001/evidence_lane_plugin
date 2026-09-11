@@ -12,7 +12,7 @@
     },
     {
       "path": "sdk/actions/action-manifest.v4.json",
-      "sha256": "167b2cde41d610dca72a831f8fa81f4c44039e77b91bc2583b9b4710f6502836"
+      "sha256": "960a7af31632d8b9004b71675df88eb474266e27f1222fe9f59f535afabd63fb"
     },
     {
       "path": "sdk/evidence_lane_sdk.py",

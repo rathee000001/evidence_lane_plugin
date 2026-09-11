@@ -1,0 +1,40 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.sector_evidence_profile",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "artifacts_current",
+    "artifacts_index",
+    "artifacts_index_media",
+    "artifacts_query",
+    "artifacts_read",
+    "artifacts_refresh",
+    "artifacts_refresh_media",
+    "custom_current",
+    "custom_index",
+    "custom_index_media",
+    "custom_query",
+    "custom_read",
+    "custom_refresh",
+    "custom_refresh_media",
+    "research_current",
+    "research_index",
+    "research_index_media",
+    "research_query",
+    "research_read",
+    "research_refresh",
+    "research_refresh_media"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 35333,
+    "path": "src/evidence_lane_plugin/sector_evidence_profile.py",
+    "sha256": "1b07d5aa8983d3b372425dd6ae43dd63d3fce2e66f5c089dde5d2ae8c5fb9e37"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

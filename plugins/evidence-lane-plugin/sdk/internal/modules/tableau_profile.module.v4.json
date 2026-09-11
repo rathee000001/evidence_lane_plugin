@@ -1,0 +1,27 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.tableau_profile",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "tableau_current",
+    "tableau_edit",
+    "tableau_export",
+    "tableau_generate",
+    "tableau_index",
+    "tableau_query",
+    "tableau_read",
+    "tableau_refresh"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 42721,
+    "path": "src/evidence_lane_plugin/tableau_profile.py",
+    "sha256": "40d3ea5b554d0b0718b2a5d98bb983808ba84c8f22d5109626c224a51c5710ab"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

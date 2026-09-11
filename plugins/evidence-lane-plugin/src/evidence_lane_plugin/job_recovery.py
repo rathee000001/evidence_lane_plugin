@@ -115,18 +115,18 @@ class JobRecovery:
         if route == 'git_readback':
             from .git_job_recovery import observe_git_effect
             return observe_git_effect(self.project, context, job, effect, deadline=deadline)
-        recipe = LOCAL_PREPARATIONS.get(job['action'])
-        if recipe is None:
+        preparation = LOCAL_PREPARATIONS.get(job['action'])
+        if preparation is None:
             raise LaneError('JOB_EFFECT_OBSERVATION_REQUIRED',
                 'This unconfirmed effect needs its owning provider observation; it remains uncertain.')
         with self.project.lane('receipts').connection(read_only=True) as receipts:
             rows = receipts.execute("SELECT receipt_id,body_json FROM receipts WHERE kind=? "
-                "AND json_extract(body_json,'$.effect_id')=? LIMIT 2", (recipe[0], effect['effect_id'])).fetchall()
+                "AND json_extract(body_json,'$.effect_id')=? LIMIT 2", (preparation[0], effect['effect_id'])).fetchall()
         if len(rows) != 1 or len(rows[0]['body_json'].encode()) > 65_536:
             raise LaneError('JOB_EFFECT_PREPARATION_REQUIRED', 'Use the unique bounded preparation for this exact effect.')
         receipt = rows[0]
         body = json.loads(receipt['body_json'])
-        before, after, relative = body.get('before_sha256'), body.get('after_sha256'), body.get(recipe[1])
+        before, after, relative = body.get('before_sha256'), body.get('after_sha256'), body.get(preparation[1])
         if (not isinstance(after, str) or not re.fullmatch(DIGEST, after)
                 or (before is not None and (not isinstance(before, str) or not re.fullmatch(DIGEST, before)))
                 or before == after or not isinstance(relative, str) or not relative or len(relative) > 1000
@@ -221,9 +221,9 @@ def register_job_recovery_actions(engine):
         return JobRecovery(engine, engine.directory.open(context.project_id, write=True)).reconcile(context, request)
 
     engine.registry.register(ActionSpec('job_recovery_inspect', 'Read exact job effect heads and available observation routes without replaying work.',
-        JobRecoveryRead, JobRecoveryStatus, inspect, profile='plan', workflow='recover', queryable_in_delta=True, studio_read=True))
+        JobRecoveryRead, JobRecoveryStatus, inspect, profile='plan', workflow='recover-project-state', queryable_in_delta=True, studio_read=True))
     engine.registry.register(ActionSpec('job_reconcile_effect', 'Reconcile one uncertain effect using committed confirmation, local prepared bytes or exact Git readback; require a fresh Plan afterward.',
-        ReconcileJobEffect, ReconciledJobEffect, reconcile, profile='plan', workflow='recover', permission='admin', mutates=True,
+        ReconcileJobEffect, ReconciledJobEffect, reconcile, profile='plan', workflow='recover-project-state', permission='admin', mutates=True,
         tool_routes=(ToolRoute('job_reconcile_effect.local_or_recorded', reconcile,
             argument_values=(('observation_route', ('local_or_recorded',)),)),
             ToolRoute('job_reconcile_effect.git_readback', reconcile, ('Python', 'Git'),

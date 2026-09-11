@@ -4,10 +4,10 @@
   "ordinal": 53,
   "tool": "SevenZip_NSIS_extractor",
   "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
-  "classification": "NATIVE_RUNTIME_ASSET",
-  "install_mode": "package_local_support_bundle",
+  "classification": "STUDIO_BUNDLE_DISTRIBUTION",
+  "install_mode": "shipped_with_evidence_lane_studio",
   "license_expression_or_terms": "LicenseRef-7-Zip",
-  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
+  "license_evidence": "Exact packaged license/source evidence is bound to the Studio release component; installed verification remains pending.",
   "evidence_paths": [
     "toolchains/native-tool-definitions.v4.json"
   ],
@@ -21,14 +21,25 @@
     }
   ],
   "native_license_acquisition": null,
-  "runtime_distribution_license_required": false,
-  "runtime_distribution_license_manifest": null,
-  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "runtime_distribution_license_required": true,
+  "runtime_distribution_license_manifest": "toolchains/licenses/retained-install-license-index.v4.json",
+  "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
   "historical_ordinal": 53,
   "catalog_ordinal": 52,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "75f2fc96f5f2ca9b004e92efb24fb9b2cef1b21e44a88245cf5de760cc1dae28"
+  "delivery_owner": "evidence_lane_studio_shared_toolchain",
+  "provisioning_route": "shared_native_manifest",
+  "studio_bundle_component": "native-tools",
+  "studio_bundle_member": true,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "489df24c28d55807c46a3a118707ab4492986db7dc5f5447ba4d16a5b2fb84bb",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "74335df12f4480d138c3ff54f439a3130c7975f8f9330005a209f10e70b24a37"
 }

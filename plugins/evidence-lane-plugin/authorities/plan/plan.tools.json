@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "delta_enter",
@@ -55,7 +55,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "delta_enter_planned",
@@ -98,7 +98,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "delta",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "delta_query",
@@ -141,7 +141,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "delta_status",
@@ -184,7 +184,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "job_reconcile_effect",
@@ -255,7 +255,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "job_recovery_inspect",
@@ -298,7 +298,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_create",
@@ -341,7 +341,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_host_bind",
@@ -384,7 +384,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_host_status",
@@ -427,7 +427,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_host_sync",
@@ -470,7 +470,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_read",
@@ -513,7 +513,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "plan_refresh",
@@ -556,7 +556,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "steer_preview",
@@ -599,7 +599,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "steer_submit",
@@ -642,7 +642,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "validation_policy_read",
@@ -685,7 +685,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "required_tools": [],
       "toolchain": {
         "operation": "validation_policy_set",
@@ -730,7 +730,7 @@
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "1554d49eb5fb3530d012d2abd0b25a0e43764cb547937cca635910339eb46c4a",
+      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",

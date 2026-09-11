@@ -1,0 +1,75 @@
+{
+  "action_bindings": [
+    "sdk/actions/project_deselect.action.v4.json",
+    "sdk/actions/session_exit.action.v4.json",
+    "sdk/actions/session_exit_boundary.action.v4.json"
+  ],
+  "action_count": 3,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Revoke this client selection at a closed session boundary while preserving the project.",
+      "mutates": true,
+      "name": "project_deselect",
+      "permission": "project_admin",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "close-project-session"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Close the exact current session at a safe boundary and detach its capture binding.",
+      "mutates": true,
+      "name": "session_exit",
+      "permission": "write",
+      "profile": "sessions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "close-project-session"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.",
+      "mutates": false,
+      "name": "session_exit_boundary",
+      "permission": "read",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "close-project-session"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $close-project-session to close my current project session safely.",
+  "description": "Close the selected Evidence Lane project session at a safe work boundary and detach its Flash and capture. Use when explicitly ending that session.",
+  "dot": "sdk/workflows/skills/close-project-session/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/close-project-session/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "close-project-session",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Close a project session",
+  "workflow": "close-project-session"
+}

@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "member_count": 4,
+  "members": [
+    {
+      "bytes": 761,
+      "path": "sdk/recovery/coherent-backup.contract.v4.json",
+      "sha256": "615ae9fc7cc9e12cd92bb078465a6b2c0a95fa496c08850d3d778c49dd8686f2"
+    },
+    {
+      "bytes": 582,
+      "path": "sdk/recovery/database-recovery.contract.v4.json",
+      "sha256": "aa24b80d7839b66b9c971b785a1326b692990fcedcca966b1f2a3c2135e46f62"
+    },
+    {
+      "bytes": 748,
+      "path": "sdk/recovery/git-restore.contract.v4.json",
+      "sha256": "4aff66ced667a2377c54fb572cf85b4f0dc8f72168e933559f932eb38b749355"
+    },
+    {
+      "bytes": 572,
+      "path": "sdk/recovery/job-recovery.contract.v4.json",
+      "sha256": "f131238ab6c23685c5db0bb03eab2d53adcf49fa1846ffc7bc44cae49d2141be"
+    }
+  ],
+  "schema": "evidence-lane.sdk-recovery-contract-registry.v4",
+  "status": "PASS"
+}

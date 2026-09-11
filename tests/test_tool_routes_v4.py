@@ -248,7 +248,7 @@ def test_tool_aliases_resolve_the_same_exact_task_scope():
 def test_current_data_profiles_keep_data_class_fallback_policy(profile):
     from evidence_lane_plugin.codex_action_plane import classify_action_workflow_classes
 
-    assert classify_action_workflow_classes({'profile': profile, 'workflow': 'build'}) == ['DATA']
+    assert classify_action_workflow_classes({'profile': profile, 'workflow': 'execute-project-plan'}) == ['DATA']
 
 
 def test_shared_matrix_covers_every_retained_tool_without_claiming_an_installation():

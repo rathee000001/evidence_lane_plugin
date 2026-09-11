@@ -581,18 +581,18 @@ def register_cross_project_actions(engine):
     reader = LaneReader(engine)
     engine.registry.register(ActionSpec('lane_catalog', 'Discover canonical authority/sector definitions and their registered search, fetch and view contracts.',
         LaneCatalogRequest, LaneCatalogPage, reader.lane_catalog, project_required=False,
-        profile='projects', queryable_in_delta=True, workflow='evi'))
+        profile='projects', queryable_in_delta=True, workflow='evidence-lane'))
     engine.registry.register(ActionSpec('lane_status', 'Inspect one physical lane, its published database head, schema history and stored view freshness without refresh.',
         LaneStatusRequest, LaneReadResult, reader.lane_status,
-        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='evi'))
+        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='evidence-lane'))
     engine.registry.register(ActionSpec('lane_fetch', 'Fetch bounded immutable source bytes through the owning lane using an exact snapshot and path.',
         LaneFetchRequest, LaneReadResult, reader.fetch_source,
-        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='source-intake'))
+        profile='projects', queryable_in_delta=True, studio_read=True, cross_project_read=True, workflow='manage-project-sources'))
     search = reader.search
     engine.registry.register(ActionSpec('lane_search', 'Search one separate lane through its current registered owner and disclose snapshot coverage.',
         LaneSearchRequest, SearchPage, search,
-        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evi',
+        profile='projects', queryable_in_delta=True, studio_read=True, workflow='evidence-lane',
         tool_routes=lexical_tool_routes('lane_search', search)))
-    engine.registry.register(ActionSpec("cross_project_query", "Read explicit authorized projects in place with bounded attributed owner views.",
+    engine.registry.register(ActionSpec("linked_project_evidence_query", "Read explicit authorized projects in place with bounded attributed owner views.",
         CrossProjectQuery, CrossProjectPage, LaneReader(engine).search_cross_project,
-        profile="projects", queryable_in_delta=True, workflow='universe'))
+        profile="projects", queryable_in_delta=True, workflow='inspect-project-evidence-map'))

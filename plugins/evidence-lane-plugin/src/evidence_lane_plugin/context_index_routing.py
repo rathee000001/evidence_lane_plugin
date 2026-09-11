@@ -354,12 +354,12 @@ def _register_remote_context_index_actions(engine):
     engine.registry.register(ActionSpec(CONTEXT_INDEX_QUERY,
         'Query one exact rebuildable remote context index while retaining SQLite and source-hash authority.',
         ContextIndexQueryRequest, ContextIndexExecutionResult, query, permission='tools', profile='memory',
-        workflow='memory', requires_delta=True, required_tools=('Python', 'HTTPX'),
+        workflow='manage-project-memory', requires_delta=True, required_tools=('Python', 'HTTPX'),
         verifier=verify_context_index, verification_checks=('context_index_result_binding',), tool_routes=routes(query)))
     engine.registry.register(ActionSpec(CONTEXT_INDEX_SYNC,
         'Upsert changed records or delete one SQLite identity from an exact rebuildable remote context index.',
         ContextIndexSyncRequest, ContextIndexExecutionResult, sync, permission='publish', mutates=True,
-        profile='memory', workflow='memory', requires_delta=True, required_tools=('Python', 'HTTPX'),
+        profile='memory', workflow='manage-project-memory', requires_delta=True, required_tools=('Python', 'HTTPX'),
         verifier=verify_context_index, verification_checks=('context_index_result_binding',), tool_routes=routes(sync)))
 
 

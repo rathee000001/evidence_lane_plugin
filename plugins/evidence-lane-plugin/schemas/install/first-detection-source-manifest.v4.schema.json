@@ -1,7 +1,73 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "files": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "maxItems": 32768,
+      "minItems": 1,
+      "type": "array"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
   "$id": "https://evidencelane.org/schemas/install/first-detection-source-manifest.v4.schema.json",
-  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "file_count": {
+      "maximum": 32768,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "files": {
+      "$ref": "#/$defs/files"
+    },
+    "files_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "repository": {
+      "const": "https://github.com/rathee000001/evidence_lane_plugin"
+    },
+    "schema": {
+      "const": "evidence-lane.first-detection-source-manifest.v4"
+    },
+    "sparse_root": {
+      "const": "plugins/evidence-lane-plugin"
+    },
+    "status": {
+      "const": "COMPLETE_EXACT_SPARSE_ROOT"
+    },
+    "total_bytes": {
+      "maximum": 268435456,
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
   "required": [
     "schema",
     "status",
@@ -14,71 +80,5 @@
     "files",
     "receipt_sha256"
   ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.first-detection-source-manifest.v4"
-    },
-    "status": {
-      "const": "COMPLETE_EXACT_SPARSE_ROOT"
-    },
-    "repository": {
-      "const": "https://github.com/rathee000001/evidence_lane_plugin"
-    },
-    "sparse_root": {
-      "const": "plugins/evidence-lane-plugin"
-    },
-    "file_count": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 32768
-    },
-    "total_bytes": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 268435456
-    },
-    "files": {
-      "$ref": "#/$defs/files"
-    },
-    "files_sha256": {
-      "$ref": "#/$defs/sha256"
-    },
-    "receipt_sha256": {
-      "$ref": "#/$defs/sha256"
-    }
-  },
-  "$defs": {
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "files": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 32768,
-      "items": {
-        "type": "object",
-        "required": [
-          "path",
-          "bytes",
-          "sha256"
-        ],
-        "properties": {
-          "path": {
-            "type": "string",
-            "minLength": 1
-          },
-          "bytes": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "sha256": {
-            "$ref": "#/$defs/sha256"
-          }
-        },
-        "additionalProperties": false
-      }
-    }
-  },
-  "additionalProperties": true
+  "type": "object"
 }

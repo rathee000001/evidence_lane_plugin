@@ -1,0 +1,86 @@
+{
+  "action": "pdf_ocr",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/pdf_ocr.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/pdf_ocr.binding.v4.json",
+  "outer_route": {
+    "action": "pdf_ocr",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "pdf_ocr",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "manage-project-sources"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/pdf_ocr.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.pdf_derivatives:ocr",
+      "argument_suffixes": {},
+      "argument_values": {
+        "language": [
+          "eng"
+        ]
+      },
+      "compute": {
+        "action_class": "OCR_MEDIA",
+        "fallback_policy": "before_first_invocation_only",
+        "memory_basis": "adapter_conservative_reservation",
+        "providers": [
+          "CPU",
+          "DIRECTML"
+        ],
+        "required_vram_mib": 2048,
+        "runtime_operation": "rapidocr_lines",
+        "selection_is_execution": false,
+        "worker_operation": "pdf_ocr"
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_ocr.rapidocr",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pypdfium2",
+        "Pillow",
+        "OpenCV",
+        "RapidOCR_ONNX_Runtime"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_derivatives:ocr_tesseract",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_ocr.tesseract",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pypdfium2",
+        "Pillow",
+        "pytesseract_Tesseract"
+      ]
+    }
+  ]
+}

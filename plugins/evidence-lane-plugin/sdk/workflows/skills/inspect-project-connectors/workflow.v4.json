@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/connector_read.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+      "mutates": false,
+      "name": "connector_read",
+      "permission": "read",
+      "profile": "extensions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": true,
+      "workflow": "inspect-project-connectors"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $inspect-project-connectors to inspect the selected project connector grants.",
+  "description": "Inspect connector grants and their runtime readiness within an Evidence Lane project. Use for connector orientation; configuration and revocation have separate workflows.",
+  "dot": "sdk/workflows/skills/inspect-project-connectors/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/inspect-project-connectors/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "inspect-project-connectors",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Inspect project connectors",
+  "workflow": "inspect-project-connectors"
+}

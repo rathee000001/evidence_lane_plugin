@@ -1,6 +1,6 @@
 """Executable Plan-task and project-session transition law in the original owner.
 
-Plan, session, job and Canon state remain separate. The table below governs
+Plan, session, job and task exchange authority state remain separate. The table below governs
 only its named Plan/session consumers; it does not confer execution authority.
 """
 from __future__ import annotations
@@ -112,4 +112,4 @@ def register_transition_law(engine):
             independent_state_owners=['plan_revision_replacement', 'delta_runs', 'jobs', 'canon', 'continuation'])
     engine.registry.register(ActionSpec('lifecycle_transition_law',
         'Inspect executable Plan/session transitions and current UOP workflow gates without changing state.',
-        TransitionLawQuery, TransitionLawResult, read, project_required=False, workflow='evi'))
+        TransitionLawQuery, TransitionLawResult, read, project_required=False, workflow='evidence-lane'))

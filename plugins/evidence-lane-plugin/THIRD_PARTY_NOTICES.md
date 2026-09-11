@@ -1,6 +1,6 @@
 # Third-party dependency notices
 
-Audit date: **2026-08-15**
+Audit date: **2026-09-11**
 
 Evidence Lane's MIT License applies only to Evidence Lane-owned material. It
 does not relicense or replace the licenses, notices, source obligations, or
@@ -8,7 +8,15 @@ trademarks of third-party packages.
 The exact dependency versions are pinned in `pyproject.toml`,
 `requirements.torch-cpu.lock.txt`, `requirements.torch-nvidia.lock.txt`,
 `requirements.onnx-directml.lock.txt`, `requirements.lock.txt`,
-`requirements.toolchain.lock.txt`, and `apps/evidence-lane-app/package.json`.
+`requirements.toolchain.lock.txt`, and `apps/evidence-lane-studio/package.json`.
+
+The Windows Evidence Lane Studio bundle ships the retained local toolchain once
+for all projects: pinned Python and Node runtimes, locked packages, native
+binaries, model assets and compatible selected provider environments. The
+retired tunnel installs none of these components. Each of the 103 retained tool
+requirements has a generated current delivery and license record under
+`toolchains/licenses/requirements/`; external services remain separate and are
+configured explicitly through their packaged adapters.
 
 Direct Python runtime dependency metadata is permissive or Python Software
 Foundation-family: Apache-2.0, BSD-3-Clause, MIT, MIT-CMU, PSF/PSFL, or an

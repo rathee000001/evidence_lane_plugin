@@ -1,0 +1,19 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "env": {
+    "bytes": 29281,
+    "path": "env/codex-environment-policy.v4.json",
+    "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+  },
+  "formula_engine_retained": false,
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-env-uop-authority-ref.v4",
+  "sdk": "sdk/env_uop/action-plane.v4.json",
+  "status": "PASS",
+  "uop": {
+    "bytes": 31769,
+    "path": "uop/codex-operation-policy.v4.json",
+    "sha256": "762dd200850e010bb0156fb394fe195b871bff7d9b8329684cae75409d8ab81e"
+  }
+}

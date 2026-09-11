@@ -1,0 +1,32 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_registry": {
+    "bytes": 3374,
+    "path": "authorities/authority-surface-registry.v4.json",
+    "sha256": "c43037beff0d58e5fc393e930a9d3351af1a2c9a7c9ac99e70a8b39b022e3ac6"
+  },
+  "env_policy": {
+    "bytes": 29281,
+    "path": "env/codex-environment-policy.v4.json",
+    "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+  },
+  "host_recall_merged_into_project_memory": false,
+  "installed_execution_claimed": false,
+  "outer_routing_registry": "sdk/routing/current-route-registry.v4.json",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "schema": "evidence-lane.sdk-authority-surface-routing.v4",
+  "sector_and_authority_databases_merged": false,
+  "sector_registry": {
+    "bytes": 1681,
+    "path": "authorities/project_sectors/sector-runtime-registry.v4.json",
+    "sha256": "4866cd9da165199fbe258193572454d6d8cb4a198c7aa074e3bb8850c9dca6c7"
+  },
+  "status": "PASS",
+  "uop_policy": {
+    "bytes": 31769,
+    "path": "uop/codex-operation-policy.v4.json",
+    "sha256": "762dd200850e010bb0156fb394fe195b871bff7d9b8329684cae75409d8ab81e"
+  },
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

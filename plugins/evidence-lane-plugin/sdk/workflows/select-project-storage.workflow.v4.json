@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 505,
+    "path": "sdk/workflows/skills/select-project-storage/workflow.dot",
+    "sha256": "bb9c83eba09a982f526cb5c777e94bcd027548fef797c5eb05e8f13520e17730"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 475,
+    "path": "sdk/workflows/skills/select-project-storage/workflow.mmd",
+    "sha256": "86bcfbbc524ae1f73a1a41f4be2b4eaf1044c69aa0f13c2ecda2377e0449efb1"
+  },
+  "package": {
+    "bytes": 3297,
+    "path": "sdk/workflows/skills/select-project-storage/workflow.v4.json",
+    "sha256": "6835b91e37cbe9af5b714f02e864f714674dd30d2f45ff649558b798056f4276"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "select-project-storage",
+  "source_skill": {
+    "bytes": 2367,
+    "path": "skills/select-project-storage/SKILL.md",
+    "sha256": "775e93aaeb9c1d0a05a7090373751f68787dcc6f5fd74483c42143bc5f41972b"
+  },
+  "status": "PASS",
+  "title": "Select project storage",
+  "workflow": "select-project-storage"
+}

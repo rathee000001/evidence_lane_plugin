@@ -51,7 +51,7 @@ def checksums(stores):
 def test_attributed_reads_preserve_separate_databases_and_sources(projects):
     _engine, stores, _, _, call = projects
     before = checksums(stores)
-    result = call('cross_project_query', query(stores, 'plan_read', 'lineage_read', 'memory_read'))
+    result = call('linked_project_evidence_query', query(stores, 'plan_read', 'lineage_read', 'memory_read'))
     assert result.status == 'ok', result.error
     page = result.result
     assert page['databases_merged'] is page['mutation_performed'] is page['refresh_performed'] is False
@@ -66,30 +66,30 @@ def test_link_only_changes_source_and_never_grants_target_access(projects):
     engine, stores, _, _, call = projects
     before_target = checksums([stores[1]])
     request = ProjectLink(target_project_id=stores[1].project_id, label='Reference project')
-    linked = call('project_link', request)
+    linked = call('project_evidence_link', request)
     assert linked.status == 'ok', linked.error
     assert linked.result['access_granted'] is linked.result['target_mutated'] is False
-    assert call('project_link', request).result == linked.result
-    verified = call('universe_links_verify')
+    assert call('project_evidence_link', request).result == linked.result
+    verified = call('project_evidence_links_verify')
     assert verified.status == 'ok' and verified.result['events_verified'] == 1
     assert checksums([stores[1]]) == before_target
-    assert call('cross_project_query', query(stores, require_links=True)).status == 'ok'
+    assert call('linked_project_evidence_query', query(stores, require_links=True)).status == 'ok'
     _, source_only = engine.clients.connect(ConnectRequest(projects=[ProjectSelection(project_id=stores[0].project_id)]))
-    assert call('linked_projects_read', actor=source_only).result['links'][0]['label'] == 'Reference project'
-    assert call('cross_project_query', query(stores, require_links=True), actor=source_only).error.code == 'PROJECT_NOT_SELECTED'
-    removed = call('project_unlink', ProjectUnlink(target_project_id=stores[1].project_id, expected_version=1))
+    assert call('project_evidence_links_read', actor=source_only).result['links'][0]['label'] == 'Reference project'
+    assert call('linked_project_evidence_query', query(stores, require_links=True), actor=source_only).error.code == 'PROJECT_NOT_SELECTED'
+    removed = call('project_evidence_unlink', ProjectUnlink(target_project_id=stores[1].project_id, expected_version=1))
     assert removed.status == 'ok'
-    assert call('universe_links_verify').result['events_verified'] == 2
-    assert call('cross_project_query', query(stores, require_links=True)).error.code == 'PROJECT_LINK_REQUIRED'
-    assert call('cross_project_query', query(stores)).status == 'ok'
+    assert call('project_evidence_links_verify').result['events_verified'] == 2
+    assert call('linked_project_evidence_query', query(stores, require_links=True)).error.code == 'PROJECT_LINK_REQUIRED'
+    assert call('linked_project_evidence_query', query(stores)).status == 'ok'
     assert checksums([stores[1]]) == before_target
 
 
 def test_link_version_conflict_and_receipt_failure_are_atomic(projects, monkeypatch):
     _engine, stores, _, _, call = projects
     request = ProjectLink(target_project_id=stores[1].project_id, label='Reference project')
-    assert call('project_link', request).status == 'ok'
-    assert call('project_link', ProjectLink(target_project_id=stores[1].project_id, label='Wrong version')).error.code == 'PROJECT_LINK_VERSION_CONFLICT'
+    assert call('project_evidence_link', request).status == 'ok'
+    assert call('project_evidence_link', ProjectLink(target_project_id=stores[1].project_id, label='Wrong version')).error.code == 'PROJECT_LINK_VERSION_CONFLICT'
     prior = ProjectUniverse(stores[0]).read().model_dump()
     prior_lane = hashlib.sha256(stores[0].lane('universe').database.read_bytes()).hexdigest()
     target_before = checksums([stores[1]])
@@ -101,7 +101,7 @@ def test_link_version_conflict_and_receipt_failure_are_atomic(projects, monkeypa
             raise RuntimeError('Injected receipt failure')
         return original(self, kind, *args, **kwargs)
     monkeypatch.setattr(LaneStore, 'append_receipt', fail)
-    response = call('project_unlink', ProjectUnlink(target_project_id=stores[1].project_id, expected_version=1))
+    response = call('project_evidence_unlink', ProjectUnlink(target_project_id=stores[1].project_id, expected_version=1))
     assert injected == ['universe']
     assert response.status == 'error' and response.error.code == 'TOOL_ADAPTER_FAILED'
     assert ProjectUniverse(stores[0]).read().model_dump() == prior
@@ -119,23 +119,23 @@ def test_revoked_source_cannot_link_after_acquiring_writer(projects, monkeypatch
             engine.clients.disconnect(token)
             yield lease
     monkeypatch.setattr(engine.project_work, 'mutation', revoke_before_work)
-    result = call('project_link', ProjectLink(target_project_id=stores[1].project_id, label='Must not link'))
+    result = call('project_evidence_link', ProjectLink(target_project_id=stores[1].project_id, label='Must not link'))
     assert result.error.code == 'CLIENT_SESSION_EXPIRED'
     assert ProjectUniverse(stores[0]).read().links == []
 
 
-@pytest.mark.parametrize('action', ['plan_create', 'cross_project_query', 'delta_enter'])
+@pytest.mark.parametrize('action', ['plan_create', 'linked_project_evidence_query', 'delta_enter'])
 def test_mutation_and_recursive_queries_are_rejected(projects, action):
     _, stores, _, _, call = projects
     before = checksums(stores)
-    assert call('cross_project_query', query(stores, action)).error.code == 'NOT_A_CROSS_PROJECT_QUERY'
+    assert call('linked_project_evidence_query', query(stores, action)).error.code == 'NOT_A_CROSS_PROJECT_QUERY'
     assert checksums(stores) == before
 
 
 def test_missing_transport_authority_cannot_fabricate_target_context(projects):
     engine, stores, _, session, _ = projects
     context = ActionContext(session.client_id, stores[0].project_id, frozenset({'read'}))
-    result = dispatch_authenticated(engine, ActionRequest(action='cross_project_query', project_id=stores[0].project_id, arguments=query(stores)), context)
+    result = dispatch_authenticated(engine, ActionRequest(action='linked_project_evidence_query', project_id=stores[0].project_id, arguments=query(stores)), context)
     assert result.error.code == 'CROSS_PROJECT_AUTHORIZATION_UNAVAILABLE'
 
 
@@ -160,7 +160,7 @@ def test_incompatible_targets_fail_without_automatic_migration(projects, sql, ex
                 connection.execute("DELETE FROM schema_history_files WHERE owner='lineage'")
             connection.execute(sql)
     before = checksums(stores)
-    result = call('cross_project_query', query(stores, 'lineage_read'))
+    result = call('linked_project_evidence_query', query(stores, 'lineage_read'))
     assert result.error.code == expected
     assert checksums(stores) == before
 
@@ -175,7 +175,7 @@ def test_absent_owners_stay_absent_and_unrelated_future_owner_is_ignored(project
     with stores[0].lane('plan').transaction() as connection:
         connection.execute("INSERT INTO schema_migrations VALUES('unrelated',999,'unrelated','Unrelated future owner','fixture')")
     before = checksums([target])
-    result = call('cross_project_query', query([stores[0], target], 'plan_read', 'memory_read'), actor=reader)
+    result = call('linked_project_evidence_query', query([stores[0], target], 'plan_read', 'memory_read'), actor=reader)
     assert result.status == 'ok', result.error
     assert result.result['projects'][1]['queries'][0]['result']['state'] == 'no_plan'
     assert checksums([target]) == before
@@ -185,11 +185,11 @@ def test_stale_revision_limits_and_connection_action_scope_fail(projects):
     engine, stores, _, session, call = projects
     request = query(stores)
     request['projects'][1]['expected_plan_revision'] = 2
-    assert call('cross_project_query', request).error.code == 'QUERY_PLAN_REVISION_MISMATCH'
-    assert call('cross_project_query', query([stores[0], stores[0]])).error.code == 'INVALID_ARGUMENTS'
-    assert call('cross_project_query', query(stores, max_bytes=2048)).error.code == 'QUERY_OUTPUT_BUDGET'
-    context = replace(engine.clients.context(session, stores[0].project_id, 'read'), allowed_actions=frozenset({'cross_project_query'}))
-    assert dispatch_authenticated(engine, ActionRequest(action='cross_project_query', project_id=stores[0].project_id, arguments=query(stores)), context).error.code == 'ACTION_SCOPE_DENIED'
+    assert call('linked_project_evidence_query', request).error.code == 'QUERY_PLAN_REVISION_MISMATCH'
+    assert call('linked_project_evidence_query', query([stores[0], stores[0]])).error.code == 'INVALID_ARGUMENTS'
+    assert call('linked_project_evidence_query', query(stores, max_bytes=2048)).error.code == 'QUERY_OUTPUT_BUDGET'
+    context = replace(engine.clients.context(session, stores[0].project_id, 'read'), allowed_actions=frozenset({'linked_project_evidence_query'}))
+    assert dispatch_authenticated(engine, ActionRequest(action='linked_project_evidence_query', project_id=stores[0].project_id, arguments=query(stores)), context).error.code == 'ACTION_SCOPE_DENIED'
 
 
 def test_revocation_during_later_read_suppresses_all_results(projects, monkeypatch):
@@ -203,7 +203,7 @@ def test_revocation_during_later_read_suppresses_all_results(projects, monkeypat
                 executor.submit(engine.clients.disconnect, token).result(timeout=5)
         return result
     monkeypatch.setattr(PlanStore, 'snapshot', revoke)
-    result = call('cross_project_query', query(stores))
+    result = call('linked_project_evidence_query', query(stores))
     assert result.status == 'error' and result.result is None
     assert result.error.code == 'CLIENT_SESSION_EXPIRED'
 
@@ -223,7 +223,7 @@ def test_earlier_plan_change_during_later_project_read_rejects_batch(projects, m
                 executor.submit(external_writer).result(timeout=5)
         return result
     monkeypatch.setattr(PlanStore, 'snapshot', change)
-    result = call('cross_project_query', query(stores))
+    result = call('linked_project_evidence_query', query(stores))
     assert result.status == 'error' and result.result is None
     assert result.error.code == 'QUERY_PLAN_CHANGED'
 

@@ -48,7 +48,7 @@ def test_paged_plan_learning_and_lineage_reads_do_not_mutate_project(studio, tmp
     assert response.status_code == 200
     assert len(response.json()['tasks']) == 7
     assert response.json()['tasks'][0]['position'] == 101
-    for action in ('lineage_read', 'learning_read', 'memory_read', 'canon_read', 'continuation_read', 'linked_projects_read'):
+    for action in ('lineage_read', 'learning_read', 'memory_read', 'task_evidence_read', 'continuation_read', 'project_evidence_links_read'):
         assert client.post('/studio/api/read', json={'project_id': store.project_id, 'action': action}).status_code == 200
     snapshot = client.get('/studio/api/snapshot', params={'project_id': store.project_id}, headers={'X-Studio-Read': '1'}).json()
     assert snapshot['project']['learning']['lessons'] == []
@@ -66,7 +66,7 @@ def test_owner_selects_two_projects_for_read_and_logout_cancels_authority(studio
     entries = [add_project(engine, tmp_path, name) for name in ('first', 'second')]
     login(endpoint, client)
     before = [engine.directory.open(item['project_id']).database.read_bytes() for item in entries]
-    payload = {'project_id': entries[0]['project_id'], 'action': 'cross_project_query', 'arguments': {
+    payload = {'project_id': entries[0]['project_id'], 'action': 'linked_project_evidence_query', 'arguments': {
         'projects': [{'project_id': item['project_id'], 'queries': [{'action': 'plan_read'}]} for item in entries]}}
     response = client.post('/studio/api/read', json=payload)
     assert response.status_code == 200, response.text

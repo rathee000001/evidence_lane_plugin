@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "member_count": 4,
+  "members": [
+    {
+      "bytes": 726,
+      "path": "sdk/transports/hook-capture.transport.v4.json",
+      "sha256": "864dddd5e77e809d6a5286b64fa274f1beacd298101a58eeb20d89a8f2a1f13a"
+    },
+    {
+      "bytes": 754,
+      "path": "sdk/transports/local-api.transport.v4.json",
+      "sha256": "5becda8699582bfeb9a7810297aaaccf4f60d09bbef8e406452226892c1db22b"
+    },
+    {
+      "bytes": 882,
+      "path": "sdk/transports/mcp-stdio.transport.v4.json",
+      "sha256": "93923cfb066fb07208a0c608d85cea1d3d0c29cbb37083b78df6c6ded5dd3e95"
+    },
+    {
+      "bytes": 748,
+      "path": "sdk/transports/remote-api.transport.v4.json",
+      "sha256": "4ba56996f821ef702aa50dbe906931e36b64089c2868f3347d265e0176879a11"
+    }
+  ],
+  "schema": "evidence-lane.sdk-transport-registry.v4",
+  "status": "PASS"
+}

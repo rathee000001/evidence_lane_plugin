@@ -11,11 +11,14 @@ from .storage import reject_links
 
 
 def load_installed_providers(*, installation=None, contracts=None):
-    installation = installation or studio_installation()
-    contracts = contracts or Path(__file__).resolve().parents[2] / 'toolchains/providers'
-    path = installation.toolchains / 'provider-installation.v4.json'
     state = {'state': 'not_installed', 'providers': [], 'full_bundle_ready': False,
         'execution_state': 'not_probed_by_installation_read'}
+    try:
+        installation = installation or studio_installation()
+        contracts = contracts or Path(__file__).resolve().parents[2] / 'toolchains/providers'
+        path = installation.toolchains / 'provider-installation.v4.json'
+    except (LaneError, OSError, ValueError, KeyError, TypeError):
+        return (), state | {'state': 'unavailable', 'reason': 'SHARED_INSTALLATION_INVALID'}
     if not path.exists():
         return (), state
     try:

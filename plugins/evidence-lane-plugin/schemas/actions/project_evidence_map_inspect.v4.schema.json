@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Verify coherent project evidence head coordinator, initialized lane heads and bounded registered-file identities without refresh.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "max_bytes": {
+        "default": 67108864,
+        "maximum": 268435456,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "max_files": {
+        "default": 4096,
+        "maximum": 20000,
+        "minimum": 1,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "timeout_ms": {
+        "default": 10000,
+        "maximum": 30000,
+        "minimum": 100,
+        "title": "Timeout Ms",
+        "type": "integer"
+      },
+      "verify_files": {
+        "default": true,
+        "title": "Verify Files",
+        "type": "boolean"
+      }
+    },
+    "title": "UniverseInspect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_evidence_map_inspect",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "files_verified": {
+        "title": "Files Verified",
+        "type": "boolean"
+      },
+      "lanes": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Lanes",
+        "type": "array"
+      },
+      "mutation_performed": {
+        "const": false,
+        "default": false,
+        "title": "Mutation Performed",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_root_identity_sha256": {
+        "title": "Project Root Identity Sha256",
+        "type": "string"
+      },
+      "root_pv": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Root Pv",
+        "type": "object"
+      },
+      "snapshot_scope": {
+        "const": "coherent_published_project",
+        "default": "coherent_published_project",
+        "title": "Snapshot Scope",
+        "type": "string"
+      },
+      "snapshot_sha256": {
+        "title": "Snapshot Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "project_root_identity_sha256",
+      "root_pv",
+      "lanes",
+      "snapshot_sha256",
+      "files_verified"
+    ],
+    "title": "UniverseSnapshot",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "universe",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "0c4743eec92cf299f10bd6f8aaedfdcef777bcf40fcd3b9884fcec9e5547406c",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_evidence_map_inspect",
+    "profile": "universe",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_evidence_map_inspect.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "inspect-project-evidence-map"
+}

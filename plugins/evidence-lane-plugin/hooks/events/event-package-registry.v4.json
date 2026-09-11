@@ -1,69 +1,73 @@
 {
+  "ambient_python_required": false,
   "event_count": 12,
+  "event_handler_owner": "src/evidence_lane_plugin/hook_event_handlers.py",
   "events": [
     {
       "event": "SessionStart",
       "path": "hooks/events/SessionStart/event.v4.json",
-      "sha256": "190db617b0e9914cd0d217e09db31370c8f8814fc08d659a0db9e69b3f23e7b0"
+      "sha256": "82be3d4f2b3260b97bd963e63b3bc8ccfead1114e078a6adb3485d905b8cf73b"
     },
     {
       "event": "SubagentStart",
       "path": "hooks/events/SubagentStart/event.v4.json",
-      "sha256": "b460ad188e7d3a3233153e6b6e110927c5dabf0691894f72b7eabb5ba367451f"
+      "sha256": "08ea448744d81c9e5314ebd58a4497de3238451024111866141e3b94bf11895f"
     },
     {
       "event": "UserPromptSubmit",
       "path": "hooks/events/UserPromptSubmit/event.v4.json",
-      "sha256": "035297bc314c5b371bca316a35a978f4391536b283761c24bcd5753c6d88b86f"
+      "sha256": "9febfcc96a774c378eefba7a67e7173e16a4b4b4b9dcea3ff7f317c75bc059e6"
     },
     {
       "event": "PreToolUse",
       "path": "hooks/events/PreToolUse/event.v4.json",
-      "sha256": "253f6979f94769a160ae0a2b05c7a3ff498b637b8245e9df96383c6a755a95ae"
+      "sha256": "3f5967ebb1cbd3938399e179195e38087c5c17d35c3d81e725c83fdeb1016541"
     },
     {
       "event": "PermissionRequest",
       "path": "hooks/events/PermissionRequest/event.v4.json",
-      "sha256": "9082079808661835939394c28c23360c39f6c92443612d9938bd1da3e73974ed"
+      "sha256": "0ee39a4725ea56ae8b704ad20acd9dae61af10c0c4c990a64f4bcabc16cfa8ab"
     },
     {
       "event": "PostToolUse",
       "path": "hooks/events/PostToolUse/event.v4.json",
-      "sha256": "b5756b366dbc590f0fc3df5f2062a738c86635a599476e4adddf0082d0d1f10c"
+      "sha256": "00d569decfe932e90965c1a5640eb357d8fa1986ff97d13411a1e3b0c33afcbc"
     },
     {
       "event": "PreCompact",
       "path": "hooks/events/PreCompact/event.v4.json",
-      "sha256": "04fd4ad0ef8204c25bbce756b19fc37f248079e44d5f639860f8ffdb87b423f2"
+      "sha256": "2c0d5e457fc53400a77a561386033f13da429f8f6410b40eabe67e80ae095975"
     },
     {
       "event": "PostCompact",
       "path": "hooks/events/PostCompact/event.v4.json",
-      "sha256": "b69414b2491e43a1a2fab27587f63a6f5e5a75d7d4a49322265d234a8d5a7cee"
+      "sha256": "c2f46725c58f5377a08c7342ec5f6c17adb4961b8d773bf5ec784262dd2de88d"
     },
     {
       "event": "Stop",
       "path": "hooks/events/Stop/event.v4.json",
-      "sha256": "d1d9f3b93e0c3e268bfe7d83577354860188ec16426140d3e72da97f910f14b1"
+      "sha256": "1f275b2973b2d6c69134bc48f445b285386892e583d048ac7e86337c6cef745d"
     },
     {
       "event": "SubagentStop",
       "path": "hooks/events/SubagentStop/event.v4.json",
-      "sha256": "201b0feb7a8a4938e7f00c99b287c6d06691ea63c7cad94e1edef4dcaba03e38"
+      "sha256": "865eb97917e476e9329f6519bdefc27a9c9eb29ddf9f3ce853cbb51932196c51"
     },
     {
       "event": "Interrupt",
       "path": "hooks/events/Interrupt/event.v4.json",
-      "sha256": "ef70b0b2fcdd9e6e2523287ef8940e10354710e55e175e1e29f842b936f890e5"
+      "sha256": "af2796d9205f4f88f033353d521025784696cd116d9f67405541f957de0a9772"
     },
     {
       "event": "SessionEnd",
       "path": "hooks/events/SessionEnd/event.v4.json",
-      "sha256": "f873bfd03f19908e8b8733d3f551129442b94021f6807153b49f86bab0ce36db"
+      "sha256": "d3c420542ea48f1d52f7a5c51a2654fe8dcffbd0c92249d2e83ce313998b5a22"
     }
   ],
   "native_installation_verified": false,
   "old_tunnel_host_required": false,
+  "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.hook-event-package-registry.v4",
-  "shared_implementation": "src/evidence_lane_plugin/hook_contract.py"
+  "stage_registry": "hooks/hook-stage-registry.v4.json"
 }

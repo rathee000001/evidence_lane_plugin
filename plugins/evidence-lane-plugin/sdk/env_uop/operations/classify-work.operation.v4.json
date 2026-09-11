@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "classify-work.operation.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Classify user intent and relevant source/workflow classes without authorizing execution.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 31228,
+      "path": "src/evidence_lane_plugin/mode_governance.py",
+      "sha256": "45d7590529aadc559052a594a2cf98746543b3ac0c0353d081bbcdfb746ea69d"
+    },
+    {
+      "bytes": 22955,
+      "path": "src/evidence_lane_plugin/prompt_index.py",
+      "sha256": "1bec3a1d807ca986dc7453b6da6a27c688711efe05496321f99bce396c66e95a"
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,182 @@
+{
+  "action": "research_web_extract",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/research_web_extract.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/research_web_extract.binding.v4.json",
+  "outer_route": {
+    "action": "research_web_extract",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "research",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "manage-project-sources"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/research_web_extract.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_trafilatura",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "trafilatura"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.trafilatura",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "trafilatura",
+        "BeautifulSoup4",
+        "lxml"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_readability",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "readability"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.readability",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "readability_lxml",
+        "BeautifulSoup4",
+        "lxml"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_beautifulsoup",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "beautifulsoup"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.beautifulsoup",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "BeautifulSoup4",
+        "lxml"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_markdownify",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "markdownify"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.markdownify",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "markdownify",
+        "BeautifulSoup4",
+        "lxml"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_html2text",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "html2text"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.html2text",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "html2text",
+        "BeautifulSoup4",
+        "lxml"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.research_web_profile:extract_stdlib",
+      "argument_suffixes": {},
+      "argument_values": {
+        "extractor": [
+          "auto",
+          "stdlib"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+      "route_id": "research_web_extract.stdlib",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [],
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "installed_execution_claimed": false,
+  "owners": [
+    {
+      "bytes": 18686,
+      "path": "src/evidence_lane_plugin/adaptive_delta_exit.py",
+      "sha256": "358b3d3fbcf9f4c0642c926982737fc18e3fb9a9b4b8ecb93b15b2b5b9c3eb5e"
+    },
+    {
+      "bytes": 30694,
+      "path": "src/evidence_lane_plugin/agent_learning.py",
+      "sha256": "9105b6aa0047d0c0a932c014b3cb4d330b6714deab3769a4425554fb31da1a05"
+    }
+  ],
+  "plan_owned": true,
+  "purpose": "Verify effects, publish the result and update Learning after a valid exit.",
+  "removed_hil_overlay_or_fuse": true,
+  "schema": "evidence-lane.sdk-delta-workflow.v4",
+  "status": "PASS",
+  "workflow": "exit"
+}

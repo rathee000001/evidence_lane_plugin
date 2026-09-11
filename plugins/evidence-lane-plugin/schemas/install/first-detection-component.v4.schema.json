@@ -1,8 +1,78 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
   "$id": "https://evidencelane.org/schemas/install/first-detection-component.v4.schema.json",
-  "title": "Evidence Lane release component v4",
-  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "component_id": {
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "file_count": {
+      "maximum": 100000,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100000,
+      "minItems": 1,
+      "type": "array"
+    },
+    "files_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "part_count": {
+      "maximum": 999,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "part_index": {
+      "maximum": 999,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "schema": {
+      "const": "evidence-lane.first-detection-component.v4"
+    },
+    "status": {
+      "const": "COMPLETE_RELEASE_COMPONENT"
+    },
+    "total_bytes": {
+      "maximum": 2100000000,
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
   "required": [
     "schema",
     "status",
@@ -15,76 +85,6 @@
     "files",
     "receipt_sha256"
   ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.first-detection-component.v4"
-    },
-    "status": {
-      "const": "COMPLETE_RELEASE_COMPONENT"
-    },
-    "component_id": {
-      "type": "string",
-      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-    },
-    "part_index": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 999
-    },
-    "part_count": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 999
-    },
-    "file_count": {
-      "type": "integer",
-      "minimum": 1,
-    "maximum": 100000
-    },
-    "total_bytes": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2100000000
-    },
-    "files_sha256": {
-      "$ref": "#/$defs/sha256"
-    },
-    "files": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 100000,
-      "items": {
-        "type": "object",
-        "required": [
-          "path",
-          "bytes",
-          "sha256"
-        ],
-        "properties": {
-          "path": {
-            "type": "string",
-            "minLength": 1
-          },
-          "bytes": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "sha256": {
-            "$ref": "#/$defs/sha256"
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "receipt_sha256": {
-      "$ref": "#/$defs/sha256"
-    }
-  },
-  "$defs": {
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    }
-  },
-  "additionalProperties": false
+  "title": "Evidence Lane release component v4",
+  "type": "object"
 }

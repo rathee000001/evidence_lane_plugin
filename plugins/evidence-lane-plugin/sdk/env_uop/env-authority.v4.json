@@ -1,0 +1,29 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "env-authority.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Index current Codex host, client, project, skill, action, lane, tool, Plan, hook and Studio facts.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 29281,
+      "path": "env/codex-environment-policy.v4.json",
+      "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+    },
+    {
+      "bytes": 3263,
+      "path": "env/SESSION_FLASH_MANIFEST.json",
+      "sha256": "c82882cf898dbf243a9b39b975db0d9031a16ac81bcea494205b4bfd3eb10bac"
+    },
+    {
+      "bytes": 9313,
+      "path": "src/evidence_lane_plugin/env_uop_graph.py",
+      "sha256": "b2b1a3e76943d13a3ec5af9b0b3ac8bc4e3a2913c9a723a5af05251a9f8a32ad"
+    }
+  ],
+  "status": "PASS"
+}

@@ -194,7 +194,7 @@
       },
       "permission": "read",
       "profile": "core",
-      "workflow": "instructions",
+      "workflow": "inspect-project-instructions",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -253,9 +253,9 @@
     "node_count": 6,
     "edge_count": 4,
     "group_count": 0,
-    "semantic_topology_sha256": "B0A89EE6B0D241FD8C34C67F709BB5C2C56BB1DE885F7B0285F82FA356EEE55C",
-    "mmd_sha256": "1579A643E563A81E6A2B31FC7BB10AE652D3A5D971B0DF0D50EA671C1A9FBA9C",
-    "dot_sha256": "C3D4CCC7ECC03A7CA01DEA71FDB09E47EEF6EC8019016D3B32A288AF75996F0D",
+    "semantic_topology_sha256": "D955D070F3A30DEABAC54799EC611266F90A2655A65350739F76513B618D576E",
+    "mmd_sha256": "2DA3632629C9711F6F7C29838F2799EA7160FBA4406790F9267BBEE5B2318082",
+    "dot_sha256": "233E49540F548D1D1C86FB8A6FAACC7B9EC24B9EE96E724EE3240D40D1D6EA09",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
@@ -281,7 +281,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "25C7864903E9C229AC20F39CDA92E5A49AED6E31473C9343F903EC94895F8627"
+    "receipt_sha256": "AA535DB564AC92B00A5B12BF7BA6A0893746C5D8F98B34E6C766071D3D0BDCFF"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false

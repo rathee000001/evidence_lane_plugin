@@ -4,7 +4,7 @@ import type { RecordData, Snapshot } from './types';
 import { Badge, date, Details, Empty, Metric, Pill, words } from './ui';
 
 const labels: Record<string,string> = {'plan.dependencies':'Plan dependencies','chat_lineage.ancestry':'Conversation ancestry',
-  'memory.links':'Memory links','learning.provenance':'Learning provenance','canon.consequences':'Canon consequences'};
+  'memory.links':'Memory links','learning.provenance':'Learning provenance','canon.consequences':'task exchange authority consequences'};
 
 export function LaneViews({data, connected}: {data: Snapshot; connected: boolean}) {
   const [viewId, setViewId] = useState('plan.dependencies');

@@ -4,10 +4,10 @@
   "ordinal": 37,
   "tool": "Poppler_pdftotext_pdfinfo",
   "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
-  "classification": "NATIVE_RUNTIME_ASSET",
-  "install_mode": "portable_zip",
+  "classification": "STUDIO_BUNDLE_DISTRIBUTION",
+  "install_mode": "shipped_with_evidence_lane_studio",
   "license_expression_or_terms": "GPL-2.0-or-later",
-  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
+  "license_evidence": "Exact packaged license/source evidence is bound to the Studio release component; installed verification remains pending.",
   "evidence_paths": [
     "toolchains/native-tool-definitions.v4.json"
   ],
@@ -20,14 +20,25 @@
     "sha256": "AB15FD526BD8DD18A9E77EBC139656BF4D33E97FC7238CD11BF60E2B9B8666C6",
     "copied_to_hidden_runtime_before_use": true
   },
-  "runtime_distribution_license_required": false,
-  "runtime_distribution_license_manifest": null,
-  "runtime_distribution_license_files_must_be_copied_before_use": false,
+  "runtime_distribution_license_required": true,
+  "runtime_distribution_license_manifest": "toolchains/licenses/retained-install-license-index.v4.json",
+  "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
   "historical_ordinal": 37,
   "catalog_ordinal": 36,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "75ce88920a1e43e0f386ba0af9779249dd35b2b29e8e9d170c741d62dce2d2f7"
+  "delivery_owner": "evidence_lane_studio_shared_toolchain",
+  "provisioning_route": "shared_native_manifest",
+  "studio_bundle_component": "native-tools",
+  "studio_bundle_member": true,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "5ebbbd6a2d2969778c6209541a0b79f251af1b75540735941fb7095cfaf6b08c",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "0bd546c334d74ac6e285a767dfcd1b6d30e33290bc559629448b985b3fee1c96"
 }

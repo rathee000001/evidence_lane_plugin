@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/Stop/handler.py",
   "event": "Stop",
   "event_contract": "hooks/events/Stop/event.v4.json",
-  "event_contract_sha256": "d1d9f3b93e0c3e268bfe7d83577354860188ec16426140d3e72da97f910f14b1",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "1f275b2973b2d6c69134bc48f445b285386892e583d048ac7e86337c6cef745d",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.StopHandler",
   "input_schema": "schemas/hooks/Stop.v4.schema.json",
   "input_schema_sha256": "e23b500827978d6d7786e61a94f60fa0d3b98b3eba607d6449dc73acf5d49b0c",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/Stop/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/Stop/02-classify_event.stage.v4.json",
+    "hooks/events/Stop/03-handle_event.stage.v4.json",
+    "hooks/events/Stop/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/Stop/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/Stop/06-project_bounded_output.stage.v4.json"
+  ]
 }

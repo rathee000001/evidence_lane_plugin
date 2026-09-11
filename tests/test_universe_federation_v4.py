@@ -52,15 +52,15 @@ def federation(tmp_path):
 
 def create_and_register(federation):
     _, projects, _, call = federation
-    created = call('bigger_universe_create', {'name': 'Selected research federation'})
+    created = call('project_evidence_network_create', {'name': 'Selected research federation'})
     assert created.status == 'ok', created.error
     records = []
     for project in projects[1:]:
-        snapshot = call('universe_inspect', project=project)
+        snapshot = call('project_evidence_map_inspect', project=project)
         assert snapshot.status == 'ok', snapshot.error
         request = {'target_project_id': project.project_id, 'expected_version': 0,
                    'expected_snapshot_sha256': snapshot.result['snapshot_sha256']}
-        registered = call('bigger_universe_register', request)
+        registered = call('project_evidence_network_register', request)
         assert registered.status == 'ok', registered.error
         records.append((request, registered.result['result']['member']))
     return records
@@ -68,7 +68,7 @@ def create_and_register(federation):
 
 def grant_link(federation, records):
     *_, call = federation
-    result = call('bigger_universe_grant', {'source_mini_brain_id': records[0][1]['lane_heads']['plan'],
+    result = call('project_evidence_network_grant', {'source_mini_brain_id': records[0][1]['lane_heads']['plan'],
         'target_mini_brain_id': records[1][1]['lane_heads']['plan'], 'relation': 'supports'})
     assert result.status == 'ok', result.error
     request = {'grant_id': result.result['result']['grant_id'], 'evidence': {'relation_evidence_sha256': 'c' * 64}}
@@ -82,7 +82,7 @@ def test_register_reuse_retains_history_and_never_changes_members(federation):
     assert [hashes(project) for project in projects[1:]] == before
     coordinator_before = hashes(projects[0])
     for request, member in records:
-        result = call('bigger_universe_register', request)
+        result = call('project_evidence_network_register', request)
         assert result.result['writes_performed'] is False
         assert result.result['result']['member'] == member
     assert hashes(projects[0]) == coordinator_before
@@ -90,7 +90,7 @@ def test_register_reuse_retains_history_and_never_changes_members(federation):
     with engine.project_work.mutation(projects[1]) as lease:
         ChatLineage(projects[1]).append(LineageRecord(kind='prompt', payload={'text': 'Private content stays here'}), lease, client_id='fixture')
     current = inspect_project(projects[1])
-    advanced = call('bigger_universe_register', {**request, 'expected_version': 1, 'expected_snapshot_sha256': current.snapshot_sha256})
+    advanced = call('project_evidence_network_register', {**request, 'expected_version': 1, 'expected_snapshot_sha256': current.snapshot_sha256})
     assert advanced.status == 'ok', advanced.error
     new_member = advanced.result['result']['member']
     assert new_member['lane_heads']['plan'] == old_member['lane_heads']['plan']
@@ -100,7 +100,7 @@ def test_register_reuse_retains_history_and_never_changes_members(federation):
         assert connection.execute('SELECT COUNT(*) FROM federation_member_history').fetchone()[0] == 3
         assert connection.execute('SELECT COUNT(*) FROM federation_mini_brains').fetchone()[0] == 18
     assert b'Private content stays here' not in projects[0].lane('universe').database.read_bytes()
-    verified = call('bigger_universe_verify')
+    verified = call('project_evidence_network_verify')
     assert verified.status == 'ok', verified.error
     assert verified.result['result']['member_current_state_verified'] is False
 
@@ -110,20 +110,20 @@ def test_exact_grants_hash_only_edges_reuse_and_revocation(federation):
     records = create_and_register(federation)
     request = grant_link(federation, records)
     before_members = [hashes(project) for project in projects[1:]]
-    rejected = call('bigger_universe_link', {**request, 'evidence': {'raw_text': 'never copy this'}})
+    rejected = call('project_evidence_network_link', {**request, 'evidence': {'raw_text': 'never copy this'}})
     assert rejected.error.code == 'INVALID_ARGUMENTS'
-    linked = call('bigger_universe_link', request)
+    linked = call('project_evidence_network_link', request)
     assert linked.status == 'ok', linked.error
     before_reuse = hashes(projects[0])
-    reused = call('bigger_universe_link', request)
+    reused = call('project_evidence_network_link', request)
     assert reused.result['writes_performed'] is False
     assert reused.result['result'] == linked.result['result']
     assert hashes(projects[0]) == before_reuse
-    revoked = call('bigger_universe_revoke', {'grant_id': request['grant_id']})
+    revoked = call('project_evidence_network_revoke', {'grant_id': request['grant_id']})
     assert revoked.status == 'ok'
-    assert call('bigger_universe_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
-    assert call('bigger_universe_read', {'view': 'links'}).result['result']['records'][0] == linked.result['result']
-    assert call('bigger_universe_verify').status == 'ok'
+    assert call('project_evidence_network_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
+    assert call('project_evidence_network_read', {'view': 'links'}).result['result']['records'][0] == linked.result['result']
+    assert call('project_evidence_network_verify').status == 'ok'
     assert [hashes(project) for project in projects[1:]] == before_members
 
 
@@ -131,16 +131,16 @@ def test_member_selection_is_required_even_for_existing_edge(federation):
     engine, projects, _, call = federation
     records = create_and_register(federation)
     request = grant_link(federation, records)
-    assert call('bigger_universe_link', request).status == 'ok'
+    assert call('project_evidence_network_link', request).status == 'ok'
     _, owner_only = engine.clients.connect(ConnectRequest(projects=[ProjectSelection(project_id=projects[0].project_id,
         permissions=['read', 'write'])]))
-    assert call('bigger_universe_register', records[0][0], actor=owner_only).error.code == 'PROJECT_NOT_SELECTED'
-    assert call('bigger_universe_link', request, actor=owner_only).error.code == 'PROJECT_NOT_SELECTED'
+    assert call('project_evidence_network_register', records[0][0], actor=owner_only).error.code == 'PROJECT_NOT_SELECTED'
+    assert call('project_evidence_network_link', request, actor=owner_only).error.code == 'PROJECT_NOT_SELECTED'
     # Stored hashes remain available to the coordinator, with no live access claim.
-    result = call('bigger_universe_read', actor=owner_only)
+    result = call('project_evidence_network_read', actor=owner_only)
     assert result.status == 'ok' and result.result['result']['member_live_access_checked'] is False
     forged = ActionContext('invented', projects[0].project_id, frozenset({'read', 'write'}))
-    result = dispatch_authenticated(engine, ActionRequest(action='bigger_universe_register', project_id=projects[0].project_id,
+    result = dispatch_authenticated(engine, ActionRequest(action='project_evidence_network_register', project_id=projects[0].project_id,
         arguments=records[0][0]), forged)
     assert result.error.code == 'CROSS_PROJECT_AUTHORIZATION_UNAVAILABLE'
 
@@ -151,22 +151,22 @@ def test_stale_snapshots_wrong_versions_and_self_registration_fail(federation):
     request, _ = records[0]
     with engine.project_work.mutation(projects[1]) as lease:
         ChatLineage(projects[1]).append(LineageRecord(kind='prompt', payload={'text': 'Change'}), lease, client_id='fixture')
-    assert call('bigger_universe_register', request).error.code == 'FEDERATION_SNAPSHOT_CHANGED'
+    assert call('project_evidence_network_register', request).error.code == 'FEDERATION_SNAPSHOT_CHANGED'
     current = inspect_project(projects[1])
-    assert call('bigger_universe_register', {**request, 'expected_snapshot_sha256': current.snapshot_sha256}).error.code == 'FEDERATION_VERSION_CONFLICT'
-    assert call('bigger_universe_register', {**request, 'target_project_id': projects[0].project_id}).error.code == 'FEDERATION_MEMBER_SCOPE'
-    assert call('bigger_universe_register', {**request, 'inspection': {'verify_files': False}}).error.code == 'INVALID_ARGUMENTS'
+    assert call('project_evidence_network_register', {**request, 'expected_snapshot_sha256': current.snapshot_sha256}).error.code == 'FEDERATION_VERSION_CONFLICT'
+    assert call('project_evidence_network_register', {**request, 'target_project_id': projects[0].project_id}).error.code == 'FEDERATION_MEMBER_SCOPE'
+    assert call('project_evidence_network_register', {**request, 'inspection': {'verify_files': False}}).error.code == 'INVALID_ARGUMENTS'
 
 
 def test_federation_read_budget_action_scope_and_receipt_failure(federation, monkeypatch):
     engine, projects, session, call = federation
     records = create_and_register(federation)
-    assert call('bigger_universe_verify', {'max_records': 1}).error.code == 'FEDERATION_VERIFY_BUDGET'
-    first = call('bigger_universe_read', {'view': 'mini_brains', 'limit': 1}).result['result']
-    second = call('bigger_universe_read', {'view': 'mini_brains', 'limit': 1, 'after_id': first['last_id']}).result['result']
+    assert call('project_evidence_network_verify', {'max_records': 1}).error.code == 'FEDERATION_VERIFY_BUDGET'
+    first = call('project_evidence_network_read', {'view': 'mini_brains', 'limit': 1}).result['result']
+    second = call('project_evidence_network_read', {'view': 'mini_brains', 'limit': 1, 'after_id': first['last_id']}).result['result']
     assert first['truncated'] and first['last_id'] != second['last_id']
-    restricted = replace(engine.clients.context(session, projects[0].project_id, 'read'), allowed_actions=frozenset({'bigger_universe_read'}))
-    denied = dispatch_authenticated(engine, ActionRequest(action='bigger_universe_grant', project_id=projects[0].project_id,
+    restricted = replace(engine.clients.context(session, projects[0].project_id, 'read'), allowed_actions=frozenset({'project_evidence_network_read'}))
+    denied = dispatch_authenticated(engine, ActionRequest(action='project_evidence_network_grant', project_id=projects[0].project_id,
         arguments={'source_mini_brain_id': records[0][1]['lane_heads']['plan'],
                    'target_mini_brain_id': records[1][1]['lane_heads']['plan'], 'relation': 'supports'}), restricted)
     assert denied.error.code == 'ACTION_SCOPE_DENIED'
@@ -180,27 +180,27 @@ def test_federation_read_budget_action_scope_and_receipt_failure(federation, mon
             raise RuntimeError('Injected federation receipt failure')
         return original(self, kind, *args, **kwargs)
     monkeypatch.setattr(LaneStore, 'append_receipt', fail)
-    failed = call('bigger_universe_link', request)
+    failed = call('project_evidence_network_link', request)
     assert injected == ['universe']
     assert failed.status == 'error' and failed.error.code == 'TOOL_ADAPTER_FAILED'
     assert projects[0].lane('universe').database.read_bytes() == before_universe
-    assert call('bigger_universe_read', {'view': 'links'}).result['result']['records'] == []
+    assert call('project_evidence_network_read', {'view': 'links'}).result['result']['records'] == []
 
 
 def test_universe_inspection_graph_and_budgets_are_read_only(federation):
     _, projects, _, call = federation
     before = hashes(projects[1])
-    snapshot = call('universe_inspect', project=projects[1])
+    snapshot = call('project_evidence_map_inspect', project=projects[1])
     assert snapshot.status == 'ok', snapshot.error
     assert len(snapshot.result['lanes']) == 8
-    graph = call('universe_query', project=projects[1])
+    graph = call('project_evidence_map_query', project=projects[1])
     assert graph.status == 'ok', graph.error
     assert {'project', 'root_pv', 'lane', 'plan_task'} <= {node['kind'] for node in graph.result['graph']['nodes']}
     assert 'DEPENDS_ON' not in {edge['kind'] for edge in graph.result['graph']['edges']}
-    small = call('universe_query', {'node_limit': 1}, project=projects[1])
+    small = call('project_evidence_map_query', {'node_limit': 1}, project=projects[1])
     assert small.result['graph']['truncated'] and small.result['source_offsets']['next_task_offset'] == 0
-    assert call('universe_inspect', {'max_files': 1}, project=projects[1]).error.code == 'UNIVERSE_FILE_BUDGET'
-    assert call('universe_inspect', {'max_bytes': 1024}, project=projects[1]).error.code == 'UNIVERSE_BYTE_BUDGET'
+    assert call('project_evidence_map_inspect', {'max_files': 1}, project=projects[1]).error.code == 'UNIVERSE_FILE_BUDGET'
+    assert call('project_evidence_map_inspect', {'max_bytes': 1024}, project=projects[1]).error.code == 'UNIVERSE_BYTE_BUDGET'
     assert hashes(projects[1]) == before
 
 
@@ -211,24 +211,24 @@ def test_root_and_registered_object_tampering_are_visible(federation):
         value = target.lane('memory').put_object(b'Exact immutable content')
     path = target.lane('memory').object_path(value)
     path.write_bytes(b'Changed')
-    assert call('universe_inspect', project=target).error.code == 'UNIVERSE_FILE_INTEGRITY'
+    assert call('project_evidence_map_inspect', project=target).error.code == 'UNIVERSE_FILE_INTEGRITY'
     # Deliberate tampering only in this disposable fixture.
     path.write_bytes(b'Exact immutable content')
     with target._raw_connection(read_only=False) as connection:
         connection.execute("UPDATE root_pv_head SET head_digest=?", ('f' * 64,))
         connection.commit()
-    assert call('universe_inspect', project=target).error.code == 'UNIVERSE_ROOT_INTEGRITY'
+    assert call('project_evidence_map_inspect', project=target).error.code == 'UNIVERSE_ROOT_INTEGRITY'
 
 
 def test_federation_graph_preserves_parallel_relations_and_historical_references(federation):
     engine, projects, _, call = federation
     records = create_and_register(federation)
     request = grant_link(federation, records)
-    assert call('bigger_universe_link', request).status == 'ok'
-    second = call('bigger_universe_grant', {'source_mini_brain_id': records[0][1]['lane_heads']['plan'],
+    assert call('project_evidence_network_link', request).status == 'ok'
+    second = call('project_evidence_network_grant', {'source_mini_brain_id': records[0][1]['lane_heads']['plan'],
         'target_mini_brain_id': records[1][1]['lane_heads']['plan'], 'relation': 'contradicts'})
     assert second.status == 'ok', second.error
-    assert call('bigger_universe_link', {**request, 'grant_id': second.result['result']['grant_id']}).status == 'ok'
+    assert call('project_evidence_network_link', {**request, 'grant_id': second.result['result']['grant_id']}).status == 'ok'
     preview = call('lane_view_preview', {'view_id': 'universe.federation', 'scope': {'include_history': True}})
     assert preview.status == 'ok', preview.error
     graph = preview.result['graph']
@@ -237,11 +237,11 @@ def test_federation_graph_preserves_parallel_relations_and_historical_references
     with engine.project_work.mutation(projects[1]) as lease:
         PlanStore(projects[1]).transition('first', 'active', lease, expected_revision=1, actor_id='fixture')
     snapshot = inspect_project(projects[1])
-    assert call('bigger_universe_register', {**records[0][0], 'expected_version': 1,
+    assert call('project_evidence_network_register', {**records[0][0], 'expected_version': 1,
         'expected_snapshot_sha256': snapshot.snapshot_sha256}).status == 'ok'
     historical = call('lane_view_preview', {'view_id': 'universe.federation', 'scope': {'include_history': True}})
     assert len([node for node in historical.result['graph']['nodes'] if node['kind'] == 'federation_edge']) == 2
-    assert call('bigger_universe_verify').status == 'ok'
+    assert call('project_evidence_network_verify').status == 'ok'
 
 
 def test_expired_grant_cannot_create_an_edge(federation, monkeypatch):
@@ -255,8 +255,8 @@ def test_expired_grant_cannot_create_an_edge(federation, monkeypatch):
         def now(cls, tz=None):
             return later
     monkeypatch.setattr(module, 'datetime', Later)
-    assert call('bigger_universe_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
-    assert call('bigger_universe_read', {'view': 'links'}).result['result']['records'] == []
+    assert call('project_evidence_network_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
+    assert call('project_evidence_network_read', {'view': 'links'}).result['result']['records'] == []
 
 
 def test_historical_reference_tampering_fails_record_verification(federation):
@@ -270,7 +270,7 @@ def test_historical_reference_tampering_fails_record_verification(federation):
         body = {**records[0][1], 'snapshot_sha256': '0' * 64}
         connection.execute('UPDATE federation_member_history SET body_json=?,digest=? WHERE project_id=?',
             (json_text(body), digest(body), projects[1].project_id))
-    assert call('bigger_universe_verify').error.code == 'FEDERATION_INTEGRITY'
+    assert call('project_evidence_network_verify').error.code == 'FEDERATION_INTEGRITY'
 
 
 def test_packaged_mcp_routes_real_federation_and_universe_actions(federation, tmp_path):
@@ -293,21 +293,21 @@ def test_packaged_mcp_routes_real_federation_and_universe_actions(federation, tm
                 value = result.structuredContent
                 assert value and value['status'] == 'ok', result
                 return value['result']
-            await action('bigger_universe_create', projects[0], name='MCP selected federation')
+            await action('project_evidence_network_create', projects[0], name='MCP selected federation')
             before = [hashes(project) for project in projects[1:]]
-            filtered = await action('universe_query', projects[1], node_kind='plan_task', query='FIRST', node_limit=1)
+            filtered = await action('project_evidence_map_query', projects[1], node_kind='plan_task', query='FIRST', node_limit=1)
             assert [node['key'] for node in filtered['graph']['nodes']] == ['first']
             assert filtered['source_offsets']['next_task_offset'] is None
             members = []
             for project in projects[1:]:
-                snapshot = await action('universe_inspect', project)
-                result = await action('bigger_universe_register', projects[0], target_project_id=project.project_id,
+                snapshot = await action('project_evidence_map_inspect', project)
+                result = await action('project_evidence_network_register', projects[0], target_project_id=project.project_id,
                     expected_snapshot_sha256=snapshot['snapshot_sha256'])
                 members.append(result['result']['member'])
-            grant = await action('bigger_universe_grant', projects[0],
+            grant = await action('project_evidence_network_grant', projects[0],
                 source_mini_brain_id=members[0]['lane_heads']['plan'], target_mini_brain_id=members[1]['lane_heads']['plan'], relation='supports')
-            await action('bigger_universe_link', projects[0], grant_id=grant['result']['grant_id'], evidence={'review_sha256': 'd' * 64})
-            verified = await action('bigger_universe_verify', projects[0])
+            await action('project_evidence_network_link', projects[0], grant_id=grant['result']['grant_id'], evidence={'review_sha256': 'd' * 64})
+            verified = await action('project_evidence_network_verify', projects[0])
             assert verified['state'] == 'verified'
             view = await action('lane_view_preview', projects[0], view_id='universe.federation')
             assert any(node['kind'] == 'federation_edge' for node in view['graph']['nodes'])
@@ -325,17 +325,17 @@ def test_filtered_universe_pages_advance_past_nonmatches_without_losing_hits(fed
             requested_outcome='Find selected tasks') for number in range(103)]), lease, actor_id='fixture')
     before = hashes(project)
     request = {'node_kind': 'plan_task', 'query': 'REPORT_100%', 'node_limit': 1}
-    empty = call('universe_query', request).result
+    empty = call('project_evidence_map_query', request).result
     assert empty['graph']['nodes'] == [] and empty['graph']['truncated']
     assert empty['source_offsets']['next_task_offset'] == 100
-    first = call('universe_query', {**request, 'task_offset': 100}).result
+    first = call('project_evidence_map_query', {**request, 'task_offset': 100}).result
     assert [node['key'] for node in first['graph']['nodes']] == ['task-101']
     assert first['source_offsets']['next_task_offset'] == 102
-    last = call('universe_query', {**request, 'task_offset': 102}).result
+    last = call('project_evidence_map_query', {**request, 'task_offset': 102}).result
     assert [node['key'] for node in last['graph']['nodes']] == ['task-102']
     assert last['source_offsets']['next_task_offset'] is None and not last['graph']['truncated']
     assert first['root_pv'] == empty['root_pv'] == last['root_pv']
-    assert call('universe_query', {**request, 'query': 'ReportX100Y'}).result['graph']['nodes'] == []
+    assert call('project_evidence_map_query', {**request, 'query': 'ReportX100Y'}).result['graph']['nodes'] == []
     assert hashes(project) == before
 
 
@@ -343,25 +343,25 @@ def test_filtered_lane_and_link_cursors_preserve_all_matches_and_link_history(fe
     _, projects, _, call = federation
     before_members = [hashes(project) for project in projects[1:]]
     for project in projects[1:]:
-        assert call('project_link', {'target_project_id': project.project_id, 'label': 'Related project'}).status == 'ok'
+        assert call('project_evidence_link', {'target_project_id': project.project_id, 'label': 'Related project'}).status == 'ok'
     before = hashes(projects[0])
     cursor, seen = 0, []
     for _ in range(30):
-        page = call('universe_query', {'node_kind': 'lane', 'node_limit': 1, 'topology_offset': cursor}).result
+        page = call('project_evidence_map_query', {'node_kind': 'lane', 'node_limit': 1, 'topology_offset': cursor}).result
         seen.extend(node['key'] for node in page['graph']['nodes'])
         cursor = page['source_offsets']['next_topology_offset']
         if cursor is None:
             break
     assert seen == [row['lane_id'] for row in projects[0].lane_catalog()]
     request = {'node_kind': 'linked_project', 'node_limit': 1}
-    first = call('universe_query', request).result
+    first = call('project_evidence_map_query', request).result
     cursor = first['source_offsets']['next_linked_project_after']
-    last = call('universe_query', {**request, 'linked_project_after': cursor}).result
+    last = call('project_evidence_map_query', {**request, 'linked_project_after': cursor}).result
     assert first['graph']['nodes'][0]['key'] != last['graph']['nodes'][0]['key']
     assert last['source_offsets']['next_linked_project_after'] is None and not last['graph']['truncated']
     assert hashes(projects[0]) == before
-    assert call('project_unlink', {'target_project_id': projects[1].project_id, 'expected_version': 1}).status == 'ok'
-    verified = call('universe_links_verify')
+    assert call('project_evidence_unlink', {'target_project_id': projects[1].project_id, 'expected_version': 1}).status == 'ok'
+    verified = call('project_evidence_links_verify')
     assert verified.status == 'ok' and verified.result['events_verified'] == 3
     assert not verified.result['target_current_state_verified']
     assert [hashes(project) for project in projects[1:]] == before_members
@@ -379,10 +379,10 @@ def test_filtered_sources_use_owner_locators_without_copying_payloads(federation
     register_source_batch(project.lane('sources'), specs)
     before = hashes(project)
     request = {'node_kind': 'source_reference', 'query': 'REPORT_100%', 'node_limit': 1}
-    first = call('universe_query', request)
+    first = call('project_evidence_map_query', request)
     assert first.status == 'ok', first.error
     cursor = first.result['source_offsets']['next_source_offset']
-    last = call('universe_query', {**request, 'source_offset': cursor})
+    last = call('project_evidence_map_query', {**request, 'source_offset': cursor})
     assert last.status == 'ok', last.error
     nodes = first.result['graph']['nodes'] + last.result['graph']['nodes']
     assert len(nodes) == 2 and len({node['key'] for node in nodes}) == 2
@@ -405,7 +405,7 @@ def test_integrity_verification_rejects_invalid_grant_lifetime_even_without_edge
         body = {**json.loads(row[0]), 'expires_at': expires_at}
         connection.execute('UPDATE federation_grants SET body_json=?,digest=? WHERE grant_id=?',
             (json_text(body), digest(body), request['grant_id']))
-    assert call('bigger_universe_verify').error.code == 'FEDERATION_INTEGRITY'
+    assert call('project_evidence_network_verify').error.code == 'FEDERATION_INTEGRITY'
 
 
 def test_integrity_verification_rejects_mini_brain_index_swapped_between_members(federation):
@@ -414,7 +414,7 @@ def test_integrity_verification_rejects_mini_brain_index_swapped_between_members
     with engine.project_work.mutation(projects[0]) as lease, lease.transaction('universe') as connection:
         connection.execute('UPDATE federation_mini_brains SET project_id=? WHERE mini_brain_id=?',
             (projects[2].project_id, records[0][1]['lane_heads']['plan']))
-    assert call('bigger_universe_verify').error.code == 'FEDERATION_INTEGRITY'
+    assert call('project_evidence_network_verify').error.code == 'FEDERATION_INTEGRITY'
 
 
 def test_universe_inspection_checks_schema_file_identity_against_migration(federation):
@@ -429,4 +429,4 @@ def test_universe_inspection_checks_schema_file_identity_against_migration(feder
         (lane.schema_history / name).write_bytes(payload)
         connection.execute('UPDATE schema_history_files SET digest=?,filename=? WHERE owner=? AND version=?',
             (value, name, row['owner'], row['version']))
-    assert call('universe_inspect', project=project).error.code == 'UNIVERSE_SCHEMA_INTEGRITY'
+    assert call('project_evidence_map_inspect', project=project).error.code == 'UNIVERSE_SCHEMA_INTEGRITY'

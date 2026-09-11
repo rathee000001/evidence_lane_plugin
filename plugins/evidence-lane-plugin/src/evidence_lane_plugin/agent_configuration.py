@@ -163,4 +163,4 @@ def resolve_agent_configuration(engine, context, request: InstructionRequest):
 def register_instruction_actions(engine):
     engine.registry.register(ActionSpec('instructions_inspect', 'Inspect scoped instruction and separate workspace/host recall file hashes; never import or modify their contents.',
         InstructionRequest, InstructionResult, lambda context, request: resolve_agent_configuration(engine, context, request),
-        workflow='instructions'))
+        workflow='inspect-project-instructions'))

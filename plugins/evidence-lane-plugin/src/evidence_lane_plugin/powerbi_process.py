@@ -78,7 +78,7 @@ def invoke_shared(asset_id, executable_name, request, *, script_name=None, timeo
         def send():
             try:
                 process.stdin.write(body)
-            except OSError, ValueError:
+            except (OSError, ValueError):
                 pass
             finally:
                 process.stdin.close()
@@ -113,7 +113,7 @@ def invoke_shared(asset_id, executable_name, request, *, script_name=None, timeo
             )
         try:
             response = json.loads(output["stdout"])
-        except ValueError, RecursionError:
+        except (ValueError, RecursionError):
             raise LaneError(
                 "POWERBI_RESPONSE_INVALID",
                 "The native reader returned an invalid protocol response.",

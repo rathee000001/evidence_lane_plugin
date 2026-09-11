@@ -130,11 +130,11 @@ def build_project_panel_snapshot(engine, context, request) -> PanelSnapshot:
                 revision=entry['revision'], head_digest=entry['head_digest']))
         return PanelSnapshot(panel='project', project_id=project.project_id, title=registration['display_name'],
             observed_at=now(), identity=_identity(), links=_links(project=True), root_pv=head,
-            summary='One selected project, read at one published Root PV. Plan, session and lane references retain their separate owners.',
+            summary='One selected project, read at one published project evidence head coordinator. Plan, session and lane references retain their separate owners.',
             facts=[_fact('Project', project.project_id), _fact('Sensitivity label', registration['sensitivity']),
                 _fact('Sensitivity enforcement', registration['sensitivity_enforcement']),
-                _fact('Capture route', registration['capture_route']), _fact('Root PV revision', head['revision']),
-                _fact('Root PV digest', head['head_digest'] or 'initial'), _fact('Plan revision', plan.revision),
+                _fact('Capture route', registration['capture_route']), _fact('project evidence head coordinator revision', head['revision']),
+                _fact('project evidence head coordinator digest', head['head_digest'] or 'initial'), _fact('Plan revision', plan.revision),
                 _fact('Plan tasks', plan.total_tasks), _fact('Session', session.state),
                 _fact('Session owner connected', session.owner_authenticated), _fact('Capture bound', session.capture_bound),
                 _fact('Session Flash current', session.flash_current)],
@@ -155,11 +155,11 @@ def register_panel_actions(engine):
     engine.registry.register(ActionSpec('render_runtime_panel',
         'Render read-only engine, Flash, reported host and lane-catalog observations; structured data remains available without an Apps renderer.',
         PanelRead, PanelSnapshot, lambda context, request: build_runtime_panel_snapshot(engine, context),
-        workflow='boot', project_required=False, ui_resource=GOVERNED_PANEL_URI))
+        workflow='open-project-session', project_required=False, ui_resource=GOVERNED_PANEL_URI))
     engine.registry.register(ActionSpec('render_project_panel',
         'Render the selected project registration, current Plan page, session and exact published lane references without changing work.',
         ProjectPanelRead, PanelSnapshot, lambda context, request: build_project_panel_snapshot(engine, context, request),
-        workflow='evi', queryable_in_delta=True, studio_read=True,
+        workflow='evidence-lane', queryable_in_delta=True, studio_read=True,
         read_migrations=(*PLAN_MIGRATIONS, *SESSION_MIGRATIONS), ui_resource=GOVERNED_PANEL_URI))
 
 

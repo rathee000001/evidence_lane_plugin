@@ -1,0 +1,621 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "fixed_count_ceiling": false,
+  "installed_execution_claimed": false,
+  "maintainer_skills_exposed": false,
+  "schema": "evidence-lane.sdk-skill-bindings.v4",
+  "skill_count": 24,
+  "skills": [
+    {
+      "action_count": 15,
+      "actions": [
+        "delta_query",
+        "env_uop_inspect",
+        "lane_catalog",
+        "lane_search",
+        "lane_status",
+        "lane_view_catalog",
+        "lane_view_preview",
+        "lane_view_read",
+        "lifecycle_transition_law",
+        "project_catalog",
+        "project_evidence_heads_compare",
+        "project_evidence_history",
+        "render_project_panel",
+        "search",
+        "workflow_catalog"
+      ],
+      "skill": "evidence-lane",
+      "skill_source": {
+        "bytes": 3519,
+        "path": "skills/evidence-lane/SKILL.md",
+        "sha256": "7bacb78483d512ed97dd9b40b623314bc38254dccf10c47713c2afb18498b6bc"
+      },
+      "workflow": "evidence-lane",
+      "workflow_package": "sdk/workflows/skills/evidence-lane/workflow.v4.json"
+    },
+    {
+      "action_count": 12,
+      "actions": [
+        "capture_bind",
+        "client_context",
+        "engine_health",
+        "project_select",
+        "project_status",
+        "render_runtime_panel",
+        "runtime_doctor",
+        "session_boot",
+        "session_context",
+        "session_flash_status",
+        "session_resume",
+        "session_status"
+      ],
+      "skill": "open-project-session",
+      "skill_source": {
+        "bytes": 2173,
+        "path": "skills/open-project-session/SKILL.md",
+        "sha256": "99228faaa6a7cc215d66daba16a9b4e6f3e52439f6028c76fa90dd2b705a8aa6"
+      },
+      "workflow": "open-project-session",
+      "workflow_package": "sdk/workflows/skills/open-project-session/workflow.v4.json"
+    },
+    {
+      "action_count": 31,
+      "actions": [
+        "code_apply",
+        "data_export",
+        "data_generate",
+        "data_transform",
+        "delta_enter",
+        "delta_enter_planned",
+        "delta_status",
+        "document_edit",
+        "document_export",
+        "document_generate",
+        "document_render",
+        "media_export",
+        "media_transform",
+        "pdf_edit",
+        "pdf_export",
+        "pdf_generate",
+        "powerbi_edit",
+        "powerbi_export",
+        "powerbi_generate",
+        "presentation_edit",
+        "presentation_export",
+        "presentation_generate",
+        "presentation_render",
+        "spreadsheet_edit",
+        "spreadsheet_export",
+        "spreadsheet_generate",
+        "spreadsheet_recalculate",
+        "spreadsheet_render",
+        "tableau_edit",
+        "tableau_export",
+        "tableau_generate"
+      ],
+      "skill": "execute-project-plan",
+      "skill_source": {
+        "bytes": 2228,
+        "path": "skills/execute-project-plan/SKILL.md",
+        "sha256": "6e1ee35e0eb927b35890b5951d91f77ca17a0cbdf5bf52aaa17e6153899d0d63"
+      },
+      "workflow": "execute-project-plan",
+      "workflow_package": "sdk/workflows/skills/execute-project-plan/workflow.v4.json"
+    },
+    {
+      "action_count": 10,
+      "actions": [
+        "plan_create",
+        "plan_host_bind",
+        "plan_host_status",
+        "plan_host_sync",
+        "plan_read",
+        "plan_refresh",
+        "steer_preview",
+        "steer_submit",
+        "validation_policy_read",
+        "validation_policy_set"
+      ],
+      "skill": "manage-project-plan",
+      "skill_source": {
+        "bytes": 5869,
+        "path": "skills/manage-project-plan/SKILL.md",
+        "sha256": "90ee43bc3b7571eff4082d086b4080fa74f63ca2a34e9828e8fdbd5afa8488a3"
+      },
+      "workflow": "manage-project-plan",
+      "workflow_package": "sdk/workflows/skills/manage-project-plan/workflow.v4.json"
+    },
+    {
+      "action_count": 119,
+      "actions": [
+        "artifacts_current",
+        "artifacts_index",
+        "artifacts_index_media",
+        "artifacts_query",
+        "artifacts_read",
+        "code_current",
+        "code_impact",
+        "code_index",
+        "code_index_git",
+        "code_index_syntax",
+        "code_query",
+        "code_read",
+        "code_semantic_index",
+        "code_semantic_query",
+        "code_semantic_query_faiss",
+        "code_semantic_query_vec",
+        "code_snapshot_summary",
+        "custom_current",
+        "custom_index",
+        "custom_index_media",
+        "custom_lane_configure",
+        "custom_lanes_read",
+        "custom_query",
+        "custom_read",
+        "data_current",
+        "data_index",
+        "data_index_arrow",
+        "data_inspect_duckdb",
+        "data_inspect_pandas",
+        "data_inspect_polars",
+        "data_inspection_read",
+        "data_query",
+        "data_read",
+        "document_convert",
+        "document_current",
+        "document_enrich",
+        "document_enrichment_read",
+        "document_index",
+        "document_query",
+        "document_read",
+        "document_render_read",
+        "fetch",
+        "github_repository_inspect",
+        "lane_configure_routes",
+        "lane_fetch",
+        "media_current",
+        "media_extract",
+        "media_extraction_read",
+        "media_index",
+        "media_ocr",
+        "media_ocr_read",
+        "media_query",
+        "media_read",
+        "pdf_current",
+        "pdf_enrich",
+        "pdf_enrichment_read",
+        "pdf_index",
+        "pdf_ocr",
+        "pdf_ocr_read",
+        "pdf_query",
+        "pdf_read",
+        "pdf_render",
+        "pdf_render_read",
+        "powerbi_current",
+        "powerbi_index",
+        "powerbi_query",
+        "powerbi_read",
+        "powerbi_schema",
+        "presentation_convert",
+        "presentation_current",
+        "presentation_enrich",
+        "presentation_enrichment_read",
+        "presentation_index",
+        "presentation_query",
+        "presentation_read",
+        "presentation_render_read",
+        "prompt_index_status",
+        "research_current",
+        "research_index",
+        "research_index_media",
+        "research_query",
+        "research_read",
+        "research_web_capture",
+        "research_web_discover",
+        "research_web_extract",
+        "source_classify",
+        "source_crosswalk",
+        "source_git_history",
+        "source_git_impact",
+        "source_graph",
+        "source_graph_diff",
+        "source_graph_impact",
+        "source_identity",
+        "source_inspect_sqlite",
+        "source_materialization_read",
+        "source_materialization_reconcile",
+        "source_materialize",
+        "source_preparation_read",
+        "source_prepare_tasks",
+        "source_read",
+        "source_reconcile_archives",
+        "source_register",
+        "source_routes_read",
+        "source_schema_configure",
+        "source_schema_map",
+        "source_verify",
+        "spreadsheet_current",
+        "spreadsheet_index",
+        "spreadsheet_index_values",
+        "spreadsheet_inspect_openpyxl",
+        "spreadsheet_inspect_pandas",
+        "spreadsheet_inspection_read",
+        "spreadsheet_query",
+        "spreadsheet_read",
+        "spreadsheet_render_read",
+        "tableau_current",
+        "tableau_index",
+        "tableau_query",
+        "tableau_read"
+      ],
+      "skill": "manage-project-sources",
+      "skill_source": {
+        "bytes": 5463,
+        "path": "skills/manage-project-sources/SKILL.md",
+        "sha256": "1134c56c37499b20bac8a0f6765d9d498a3f8fdb60952e9ccd37e7465449b34c"
+      },
+      "workflow": "manage-project-sources",
+      "workflow_package": "sdk/workflows/skills/manage-project-sources/workflow.v4.json"
+    },
+    {
+      "action_count": 16,
+      "actions": [
+        "task_evidence_classify",
+        "task_evidence_decide",
+        "task_evidence_edge_bind",
+        "task_evidence_edge_register",
+        "task_evidence_expect",
+        "task_evidence_graph",
+        "task_evidence_inbox",
+        "task_evidence_input_request",
+        "task_evidence_inspect",
+        "task_evidence_packet_classify",
+        "task_evidence_participant_register",
+        "task_evidence_read",
+        "task_evidence_receive",
+        "task_evidence_result",
+        "task_evidence_send",
+        "task_evidence_supersede"
+      ],
+      "skill": "exchange-task-evidence",
+      "skill_source": {
+        "bytes": 5356,
+        "path": "skills/exchange-task-evidence/SKILL.md",
+        "sha256": "b744a2cd3540ccb4466d94df56923b7255eeb278df5576ac63fccac19a5c9bbd"
+      },
+      "workflow": "exchange-task-evidence",
+      "workflow_package": "sdk/workflows/skills/exchange-task-evidence/workflow.v4.json"
+    },
+    {
+      "action_count": 7,
+      "actions": [
+        "context_index_query",
+        "context_index_sync",
+        "memory_checkpoint",
+        "memory_ingest",
+        "memory_read",
+        "memory_rehydrate",
+        "project_memory_record_link"
+      ],
+      "skill": "manage-project-memory",
+      "skill_source": {
+        "bytes": 1847,
+        "path": "skills/manage-project-memory/SKILL.md",
+        "sha256": "90ba16a08b20a09d465704ac6dba5a0732eb4a3840b23a0c56bc8eecc8b214b5"
+      },
+      "workflow": "manage-project-memory",
+      "workflow_package": "sdk/workflows/skills/manage-project-memory/workflow.v4.json"
+    },
+    {
+      "action_count": 3,
+      "actions": [
+        "learning_read",
+        "learning_record_host_memory_import",
+        "learning_revoke"
+      ],
+      "skill": "manage-project-lessons",
+      "skill_source": {
+        "bytes": 1403,
+        "path": "skills/manage-project-lessons/SKILL.md",
+        "sha256": "a3e6efcc1d1bef9f1802336f3acda3ec78855aba9c5f0275d1bca883c2f8467b"
+      },
+      "workflow": "manage-project-lessons",
+      "workflow_package": "sdk/workflows/skills/manage-project-lessons/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "instructions_inspect"
+      ],
+      "skill": "inspect-project-instructions",
+      "skill_source": {
+        "bytes": 1085,
+        "path": "skills/inspect-project-instructions/SKILL.md",
+        "sha256": "51f9ecf66e6aa1fc5e3c9c7cacb08038d2cc79eb611cb89ae4afce37b8243aaf"
+      },
+      "workflow": "inspect-project-instructions",
+      "workflow_package": "sdk/workflows/skills/inspect-project-instructions/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "project_workflow_configure"
+      ],
+      "skill": "configure-project-workflow",
+      "skill_source": {
+        "bytes": 2850,
+        "path": "skills/configure-project-workflow/SKILL.md",
+        "sha256": "039f15db188a08b5efaefa18d350e392cad3a49da6a0540fdd5f3f50cb4c5e42"
+      },
+      "workflow": "configure-project-workflow",
+      "workflow_package": "sdk/workflows/skills/configure-project-workflow/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "project_work_classify"
+      ],
+      "skill": "classify-project-work",
+      "skill_source": {
+        "bytes": 3214,
+        "path": "skills/classify-project-work/SKILL.md",
+        "sha256": "ad65c3983898609a6bdcec84ccaabaf221df878d400381401babc3aa72ffb5cf"
+      },
+      "workflow": "classify-project-work",
+      "workflow_package": "sdk/workflows/skills/classify-project-work/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "project_evidence_select"
+      ],
+      "skill": "retrieve-project-evidence",
+      "skill_source": {
+        "bytes": 989,
+        "path": "skills/retrieve-project-evidence/SKILL.md",
+        "sha256": "e367ab8b84debecf95d5e27e19a4a7556309cfffa5beedc14b19ee0746395f1f"
+      },
+      "workflow": "retrieve-project-evidence",
+      "workflow_package": "sdk/workflows/skills/retrieve-project-evidence/workflow.v4.json"
+    },
+    {
+      "action_count": 22,
+      "actions": [
+        "artifacts_refresh",
+        "artifacts_refresh_media",
+        "code_refresh",
+        "code_refresh_git",
+        "custom_refresh",
+        "custom_refresh_media",
+        "data_refresh",
+        "data_refresh_arrow",
+        "document_refresh",
+        "lane_view_refresh",
+        "media_refresh",
+        "pdf_refresh",
+        "powerbi_refresh",
+        "presentation_refresh",
+        "research_refresh",
+        "research_refresh_media",
+        "source_prepare_refresh",
+        "source_snapshot_retire",
+        "source_snapshot_state",
+        "spreadsheet_refresh",
+        "spreadsheet_refresh_values",
+        "tableau_refresh"
+      ],
+      "skill": "refresh-project-evidence",
+      "skill_source": {
+        "bytes": 3816,
+        "path": "skills/refresh-project-evidence/SKILL.md",
+        "sha256": "d5290b07c8257b616ae9041d3f22cda7cea6875f50c20b9ef863dc1a98b9383d"
+      },
+      "workflow": "refresh-project-evidence",
+      "workflow_package": "sdk/workflows/skills/refresh-project-evidence/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "connector_read"
+      ],
+      "skill": "inspect-project-connectors",
+      "skill_source": {
+        "bytes": 1140,
+        "path": "skills/inspect-project-connectors/SKILL.md",
+        "sha256": "a77561a32271185286f485e17ac8dc07f0aecd4a8b90e9fcf59192428b5bffc0"
+      },
+      "workflow": "inspect-project-connectors",
+      "workflow_package": "sdk/workflows/skills/inspect-project-connectors/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "connector_configure"
+      ],
+      "skill": "configure-project-connector",
+      "skill_source": {
+        "bytes": 1145,
+        "path": "skills/configure-project-connector/SKILL.md",
+        "sha256": "552fd3496a92d8eda338a160c2afe7b399cd17cfad080acee78b3d1ad5d17cba"
+      },
+      "workflow": "configure-project-connector",
+      "workflow_package": "sdk/workflows/skills/configure-project-connector/workflow.v4.json"
+    },
+    {
+      "action_count": 1,
+      "actions": [
+        "connector_revoke"
+      ],
+      "skill": "revoke-project-connector",
+      "skill_source": {
+        "bytes": 761,
+        "path": "skills/revoke-project-connector/SKILL.md",
+        "sha256": "4a77a7e4d71e6b67ec699e85217b0894352adff787b0c91e03883a991824d84b"
+      },
+      "workflow": "revoke-project-connector",
+      "workflow_package": "sdk/workflows/skills/revoke-project-connector/workflow.v4.json"
+    },
+    {
+      "action_count": 7,
+      "actions": [
+        "accelerator_configure",
+        "accelerator_read",
+        "evaluation_feedback_export",
+        "observability_export",
+        "runtime_status",
+        "toolchain_catalog",
+        "toolchain_resolve"
+      ],
+      "skill": "select-project-tools",
+      "skill_source": {
+        "bytes": 1991,
+        "path": "skills/select-project-tools/SKILL.md",
+        "sha256": "a33f79186a0f8a235ed39831b19708cb2095ef22f33837b5afbd3c837913ed8c"
+      },
+      "workflow": "select-project-tools",
+      "workflow_package": "sdk/workflows/skills/select-project-tools/workflow.v4.json"
+    },
+    {
+      "action_count": 4,
+      "actions": [
+        "project_register",
+        "storage_connector_inspect",
+        "storage_connector_select",
+        "storage_status"
+      ],
+      "skill": "select-project-storage",
+      "skill_source": {
+        "bytes": 2367,
+        "path": "skills/select-project-storage/SKILL.md",
+        "sha256": "775e93aaeb9c1d0a05a7090373751f68787dcc6f5fd74483c42143bc5f41972b"
+      },
+      "workflow": "select-project-storage",
+      "workflow_package": "sdk/workflows/skills/select-project-storage/workflow.v4.json"
+    },
+    {
+      "action_count": 7,
+      "actions": [
+        "linked_project_evidence_query",
+        "project_evidence_link",
+        "project_evidence_links_read",
+        "project_evidence_links_verify",
+        "project_evidence_map_inspect",
+        "project_evidence_map_query",
+        "project_evidence_unlink"
+      ],
+      "skill": "inspect-project-evidence-map",
+      "skill_source": {
+        "bytes": 1740,
+        "path": "skills/inspect-project-evidence-map/SKILL.md",
+        "sha256": "499c09360adb400600c78ad146408f195ae7e49b8d925144022e94b214d6749e"
+      },
+      "workflow": "inspect-project-evidence-map",
+      "workflow_package": "sdk/workflows/skills/inspect-project-evidence-map/workflow.v4.json"
+    },
+    {
+      "action_count": 7,
+      "actions": [
+        "project_evidence_network_create",
+        "project_evidence_network_grant",
+        "project_evidence_network_link",
+        "project_evidence_network_read",
+        "project_evidence_network_register",
+        "project_evidence_network_revoke",
+        "project_evidence_network_verify"
+      ],
+      "skill": "link-project-evidence-network",
+      "skill_source": {
+        "bytes": 1986,
+        "path": "skills/link-project-evidence-network/SKILL.md",
+        "sha256": "75adf26f6e82fa3c8581b075c1306843de888e2fd46bcfd7e8c662e2182eb3cf"
+      },
+      "workflow": "link-project-evidence-network",
+      "workflow_package": "sdk/workflows/skills/link-project-evidence-network/workflow.v4.json"
+    },
+    {
+      "action_count": 5,
+      "actions": [
+        "continuation_accept",
+        "continuation_cancel",
+        "continuation_context",
+        "continuation_offer",
+        "continuation_read"
+      ],
+      "skill": "handoff-project-work",
+      "skill_source": {
+        "bytes": 1825,
+        "path": "skills/handoff-project-work/SKILL.md",
+        "sha256": "c59af354f35c04d4eb6a9276ba1f5061baf68d3b6cd6fe448e7375e0c1dff8f9"
+      },
+      "workflow": "handoff-project-work",
+      "workflow_package": "sdk/workflows/skills/handoff-project-work/workflow.v4.json"
+    },
+    {
+      "action_count": 13,
+      "actions": [
+        "continuation_recovery_cancel",
+        "continuation_recovery_offer",
+        "git_restore",
+        "git_restore_abandon",
+        "git_restore_preview",
+        "git_restore_reconcile",
+        "job_reconcile_effect",
+        "job_recovery_inspect",
+        "project_backup",
+        "project_backup_verify",
+        "project_recovery_inspect",
+        "restoration_read",
+        "restoration_reindex"
+      ],
+      "skill": "recover-project-state",
+      "skill_source": {
+        "bytes": 3027,
+        "path": "skills/recover-project-state/SKILL.md",
+        "sha256": "371d193f1e03f47eca1ff0f7b29f37d312b42b0d4db97702898c393c2b35d53b"
+      },
+      "workflow": "recover-project-state",
+      "workflow_package": "sdk/workflows/skills/recover-project-state/workflow.v4.json"
+    },
+    {
+      "action_count": 3,
+      "actions": [
+        "project_deselect",
+        "session_exit",
+        "session_exit_boundary"
+      ],
+      "skill": "close-project-session",
+      "skill_source": {
+        "bytes": 1174,
+        "path": "skills/close-project-session/SKILL.md",
+        "sha256": "f9664bbe90c8f5559152e03a35b4544d6f2e8321761a43ddde48047e076b5352"
+      },
+      "workflow": "close-project-session",
+      "workflow_package": "sdk/workflows/skills/close-project-session/workflow.v4.json"
+    },
+    {
+      "action_count": 9,
+      "actions": [
+        "enroll_project",
+        "git_branch_authority",
+        "git_sync_selected",
+        "lineage_read",
+        "lineage_record",
+        "remote_git_action_read",
+        "remote_git_execute_push",
+        "remote_git_prepare_push",
+        "task_classify"
+      ],
+      "skill": "run-project-lifecycle",
+      "skill_source": {
+        "bytes": 3235,
+        "path": "skills/run-project-lifecycle/SKILL.md",
+        "sha256": "551b2a238933448ec3ab094ff1dc5e12dc5c2b718f55000a379c92fab74ce09d"
+      },
+      "workflow": "run-project-lifecycle",
+      "workflow_package": "sdk/workflows/skills/run-project-lifecycle/workflow.v4.json"
+    }
+  ],
+  "status": "PASS"
+}

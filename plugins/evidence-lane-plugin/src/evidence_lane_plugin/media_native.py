@@ -84,7 +84,7 @@ def _normalize(text, path):
 def probe_media(extension, content):
     if extension not in MEDIA_EXTENSIONS:
         fail("FORMAT_UNSUPPORTED")
-    with tempfile.TemporaryDirectory(prefix="evi-media-") as folder:
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-media-") as folder:
         path = Path(folder) / ("input" + extension)
         path.write_bytes(content)
         response, native = _run(
@@ -194,7 +194,7 @@ def extract_media(filename, content, request):
         and request.duration_seconds * request.sample_rate * request.channels * 2 + 4096 > MAX_BYTES
     ):
         fail("EXTRACTION_OUTPUT_BUDGET")
-    with tempfile.TemporaryDirectory(prefix="evi-media-extract-") as folder:
+    with tempfile.TemporaryDirectory(prefix="evidence-lane-media-extract-") as folder:
         source = Path(folder) / ("input" + extension)
         source.write_bytes(content)
         destination = Path(folder) / ("frame.png" if request.kind == "video_frame" else "audio.wav")

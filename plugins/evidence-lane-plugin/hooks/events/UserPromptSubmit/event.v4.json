@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": true,
   "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
   "event": "UserPromptSubmit",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/UserPromptSubmit/event.schema.json",
   "members": [
     {
       "path": "hooks/events/UserPromptSubmit/handler.py",
-      "sha256": "69c2ad952fb7e611ba43db206410e5cf1188318a926eab1c4e60d3de0fdf12d4"
+      "sha256": "4f5167eb7905d98e88ac03a18619aba46087bed743ff0a55e42f01bdce6d1d37"
     },
     {
       "path": "hooks/events/UserPromptSubmit/event.schema.json",
       "sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f"
     },
     {
+      "path": "hooks/events/UserPromptSubmit/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "f33bfac0d85184b60e489cacb6e88fe9b5e0ca754843bd6cd2a7a9bf2d4f94c0"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/02-classify_event.stage.v4.json",
+      "sha256": "0ce1cdaec44b3c37cb8a94fda7bf1ff5e8f2feca0a4f009826853765fc2edf12"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/03-handle_event.stage.v4.json",
+      "sha256": "67d6fb4cdfb402d1c9a3ec2b8c1b4976ba386c828c73e8dffd286c39a9770c57"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "ab42866143b029e4685aa7f0d4eaa8274f4558eaa97fb2c3025be4c85fd0c673"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "c428825fe73f9d59790dd25a1859a2562648d008748ecac458e4786931396ec9"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/06-project_bounded_output.stage.v4.json",
+      "sha256": "3c2f2417a3201354369ff6e4e35df143b5ab308abc64b519f3e940940f1256f3"
+    },
+    {
       "path": "hooks/events/UserPromptSubmit/pipeline.v4.json",
-      "sha256": "0d53b9e141970b3ab8d8b807d4416f8b50071bdea33f5632daae0679d924baa8"
+      "sha256": "ced0f7287850fea5e7d7fc1c36d20b400fb870fa90591b8c6fa3db5035c2caaa"
     },
     {
       "path": "hooks/events/UserPromptSubmit/README.md",
-      "sha256": "d7db741f5ec0d6b05aace7b22560e927ee8e0cccb81ce0bcc7273d01a92a8b4a"
+      "sha256": "0b4b516197460af18122e6481d8ac787cfb003ae55634603c001062f836e2459"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

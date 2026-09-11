@@ -1,0 +1,11 @@
+{
+  "automatic_retry": false,
+  "capture_only": true,
+  "event": "SessionEnd",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionEndHandler",
+  "implementation": "hook_event_handlers.SessionEndHandler.handle",
+  "ordinal": 3,
+  "owner": "event_specific_handler",
+  "schema": "evidence-lane.native-hook-stage.v4",
+  "stage": "handle_event"
+}

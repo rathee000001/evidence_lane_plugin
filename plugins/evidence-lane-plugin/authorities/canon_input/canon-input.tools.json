@@ -6,63 +6,20 @@
   "reader": "reader.py:read_authority",
   "actions": [
     {
-      "name": "canon_backfire",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_backfire",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_backfire.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "4141a89c67c4df11d82cd54641fecdf5b6c42b55b8989c96028e2a2362645307"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_classify",
+      "name": "task_evidence_classify",
       "permission": "read",
       "mutates": false,
       "requires_delta": false,
       "project_required": true,
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_classify",
+        "operation": "task_evidence_classify",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_classify.engine",
+            "route_id": "task_evidence_classify.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
             "tool_ids": [
               "Python"
@@ -87,25 +44,25 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "ded19645576908ad4178ee6ba03c093e28b83191d7f21b5f74688038c5afab4e"
+        "contract_digest": "f4abbf2beb178d2545b5ca7377fe40105ca77b26081b5a9358696d35c83d8765"
       },
       "verification_checks": []
     },
     {
-      "name": "canon_decide",
+      "name": "task_evidence_decide",
       "permission": "write",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_decide",
+        "operation": "task_evidence_decide",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_decide.engine",
+            "route_id": "task_evidence_decide.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
             "tool_ids": [
               "Python"
@@ -130,455 +87,25 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "e6a8331516f1b0deedfd202d75f0d31573829797758debec86107eea5eb0489e"
+        "contract_digest": "ca8fc53d0a3a5ca38a6b4d674bb1937ab4ca2c7daa3a7233ab2c5956f1e389bc"
       },
       "verification_checks": []
     },
     {
-      "name": "canon_expect",
+      "name": "task_evidence_edge_bind",
       "permission": "write",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_expect",
+        "operation": "task_evidence_edge_bind",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_expect.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "80d0d0d1aefc220157a10cebe43a4ccdc4b7d33081d11640933e6e64c6632e0f"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_graph",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_graph",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_graph.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d577320e53130614b0728a150c8b0d23e3fd336f6b794f779a06c2da7c9e5b4c"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_inbox",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_inbox",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_inbox.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "7376844655e6809ada6098a8ccbfc8c164588a604bed623e6f16773bb3a80dcf"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_inspect",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_inspect",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_inspect.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d43d08549ef7e8485258cb6f36ba761e1c1feb5eacb346f948dc6c7086af5727"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_join",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_join",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_join.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "dde6b7cb544debffd206d5997f3cce2d43bfbca8187acf9da4440511a6455173"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_packet_classify",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_packet_classify",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_packet_classify.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.classify_packet",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "2ae62f9a849f05fb312e13d04b2e748e672ac18b6cad55a6d0b672c0f2686e83"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_read",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_read",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_read.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "b47c18072b52a6581635abbd4c5826518e8a9999c9f2fbc4ebf9db7a4533e1d1"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_receive",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_receive",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_receive.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "bfe70237e90df6f446c70086eb4de2652bc326be70fa1ee9670477f827cdf056"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_send",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_send",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_send.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "909b609c10b97d4e64bafcd787728410c923439be1013edcf2db3b9c5a350719"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_supersede",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_supersede",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_supersede.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "b5110f7fdb2b17e6d452a99a79972d5e9e8671c6663f1c8c73729061598d5c39"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "canon_task_edge_bind",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "canon",
-      "workflow": "canon",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_task_edge_bind",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_task_edge_bind.engine",
+            "route_id": "task_evidence_edge_bind.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_bind",
             "tool_ids": [
               "Python"
@@ -603,25 +130,25 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "317d9302ff41db3b47750348ff8d29b1f088cb0d171ca4f8c22593148eab716a"
+        "contract_digest": "82b1b7b68e32631d1d8a0b25b2b9652f5ead18bb9784ed8e1c457f6f471fcc58"
       },
       "verification_checks": []
     },
     {
-      "name": "canon_task_edge_register",
+      "name": "task_evidence_edge_register",
       "permission": "write",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_task_edge_register",
+        "operation": "task_evidence_edge_register",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_task_edge_register.engine",
+            "route_id": "task_evidence_edge_register.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_register",
             "tool_ids": [
               "Python"
@@ -646,25 +173,25 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "d17e1d264e1a7d4c8c79c29905e8ea009ea8c90964a1d74ddf7ea907dc5b9171"
+        "contract_digest": "e4eb894bfb89815b89e3d0833e5b0f6e6f28d351afda9d64f386cf6b62dde2a4"
       },
       "verification_checks": []
     },
     {
-      "name": "canon_task_result",
+      "name": "task_evidence_expect",
       "permission": "write",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_task_result",
+        "operation": "task_evidence_expect",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_task_result.engine",
+            "route_id": "task_evidence_expect.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
             "tool_ids": [
               "Python"
@@ -689,7 +216,480 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "dd2c36a5107e019087997247d5792373ce60ce5051ef4a62eb70b2517147b3be"
+        "contract_digest": "db1c5ffb8ab6520c7bf65ac01a34b36daee72bd0e5f91422300d98afa11c8eb6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_graph",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_graph",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_graph.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7786edf00d8e3599f00a16d1fa39ff327243fd6b112ad2288f25254bad04fa3b"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_inbox",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_inbox",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_inbox.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "6e20ab13d14ed60a2117445223046dcd9fa82f824cc8096dc2278822fe4751c6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_input_request",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_input_request",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_input_request.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "90b49a224b14ffc8b776185020ed7dd3bd006a6e638b2b103e6096fd61f1f4a0"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_inspect",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_inspect",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_inspect.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "341034f503ef89e82e81839d1cff378fa3b218ceb568353b2e0395bc539fd222"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_packet_classify",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_packet_classify",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_packet_classify.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.classify_packet",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "cc2585d7f3b8488be63def945b6c4a6bf37275c87ecb3a1246fa46ba39e67633"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_participant_register",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_participant_register",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_participant_register.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "5a96717d15dcbea92098fa8a9c3d8f3965c823a8c2c8c5818fcadabe1d3a0778"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_read",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_read.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "350d5d9dae49f1dd170574282d20c82fc5cfbaf6938f9bd311259ae63b7864a1"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_receive",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_receive",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_receive.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "c529665ebda6afec54856eaa632a8978b102a26a2657f7c9de0075b43f13b6f6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_result",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_result",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_result.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "dfb3a869634142f5a4a221144c93192d2e91f0a693e0b2ad28eab274b4206745"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_send",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_send",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_send.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ea7ad2ce8db9624122f26b425f5c54d425c9508a382937e96befd930c5b8a59c"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "task_evidence_supersede",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_supersede",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_supersede.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "17bed192fb2a656f115d2730a89e95c837762858b056946f446a9fbb88e5bc58"
       },
       "verification_checks": []
     }
@@ -702,7 +702,7 @@
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "13090f969c0c51ec6d0cbf17ae5330ec9d94624cbbed9ecb6f26e257e6d05cd7",
+      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",

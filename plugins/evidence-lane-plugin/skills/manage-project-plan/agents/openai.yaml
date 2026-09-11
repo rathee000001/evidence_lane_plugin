@@ -1,6 +1,9 @@
 interface:
   display_name: "Manage project plan"
   short_description: "Create, inspect or safely steer a project plan"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $manage-project-plan to inspect or update my project plan."
 dependencies:
   tools:

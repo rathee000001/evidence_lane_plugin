@@ -331,7 +331,7 @@ def register_remote_git_actions(engine):
         def handler(context, request, method=method):
             return getattr(RemoteGitController(context), method)(request)
         engine.registry.register(ActionSpec(name, 'Prepare or execute one pinned, one-use development-branch Git push with remote readback.',
-            model, PushResult, handler, permission='publish', mutates=True, profile='code', workflow='lifecycle',
+            model, PushResult, handler, permission='publish', mutates=True, profile='code', workflow='run-project-lifecycle',
             requires_delta=True, required_tools=('Python', 'SQLite_FTS5_BM25', 'Git'),
             verification_checks=checks, verifier=verify_push,
             tool_routes=(ToolRoute(name + '.exact_git', handler, ('Python', 'SQLite_FTS5_BM25', 'Git')),)))
@@ -340,4 +340,4 @@ def register_remote_git_actions(engine):
         with project_snapshot(store.root):
             return PushState(project_id=store.project_id, record=push_record(store, request.action_id))
     engine.registry.register(ActionSpec('remote_git_action_read', 'Read one recorded push state and integrity without contacting the remote.',
-        PushRead, PushState, read, workflow='lifecycle', queryable_in_delta=True, studio_read=True, read_migrations=PUSH_MIGRATIONS))
+        PushRead, PushState, read, workflow='run-project-lifecycle', queryable_in_delta=True, studio_read=True, read_migrations=PUSH_MIGRATIONS))

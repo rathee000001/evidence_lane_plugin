@@ -278,8 +278,8 @@ def register_lineage_actions(engine):
             return result
 
     engine.registry.register(ActionSpec("lineage_record", "Record bounded visible content with agent-report provenance.",
-                                       LineageRecord, LineageAppendResult, append, permission="write", profile="chatlineage", mutates=True, workflow='lifecycle'))
+                                       LineageRecord, LineageAppendResult, append, permission="write", profile="chatlineage", mutates=True, workflow='run-project-lifecycle'))
     engine.registry.register(ActionSpec("lineage_read", "Search or page through the selected project's visible ChatLineage.",
         LineageRead, LineagePage, lambda context, request: ChatLineage(engine.directory.open(context.project_id)).read(request),
-        profile="chatlineage", queryable_in_delta=True, cross_project_read=True, read_migrations=LINEAGE_MIGRATIONS, workflow='lifecycle',
+        profile="chatlineage", queryable_in_delta=True, cross_project_read=True, read_migrations=LINEAGE_MIGRATIONS, workflow='run-project-lifecycle',
         search=SearchRoute(('chat_lineage',), 'events', match_mode='any', basis='sqlite_fts5_sequence')))

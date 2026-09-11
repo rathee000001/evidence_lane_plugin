@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.media_derivatives",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "media_extract",
+    "media_extraction_read",
+    "media_ocr",
+    "media_ocr_read"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 20910,
+    "path": "src/evidence_lane_plugin/media_derivatives.py",
+    "sha256": "eb7f5914ffffbefdc76f65b2c81bda4a37ecade25e914c1c325505fc6f83b9e8"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

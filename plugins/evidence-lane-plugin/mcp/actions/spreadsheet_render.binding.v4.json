@@ -1,13 +1,13 @@
 {
   "action": "spreadsheet_render",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/spreadsheet_render.action.v4.json",
-  "sdk_binding_sha256": "8f1c063a122fb3f66b5a5496183f80c75a22a333d6347752e8a2196c13715457",
+  "sdk_binding_sha256": "fc56564bb3517d4a04728fffe83f001385f6baee0b25c2d404f39c6414681194",
   "tool": {
     "annotations": {
       "destructiveHint": true,

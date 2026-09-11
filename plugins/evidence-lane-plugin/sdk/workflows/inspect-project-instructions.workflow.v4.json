@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 517,
+    "path": "sdk/workflows/skills/inspect-project-instructions/workflow.dot",
+    "sha256": "4363d46f26c256b09a8347f144f579687ceabf81b6b94dd19a0c8aa1b073d2d7"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 487,
+    "path": "sdk/workflows/skills/inspect-project-instructions/workflow.mmd",
+    "sha256": "21c9a31dc9a5544ed349861f13a649c96d35153713198c04c7d2e369389a15f3"
+  },
+  "package": {
+    "bytes": 1768,
+    "path": "sdk/workflows/skills/inspect-project-instructions/workflow.v4.json",
+    "sha256": "a579a28dea73b38b178540434411b846037e0b30b752b05a0033923958c8d242"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "inspect-project-instructions",
+  "source_skill": {
+    "bytes": 1085,
+    "path": "skills/inspect-project-instructions/SKILL.md",
+    "sha256": "51f9ecf66e6aa1fc5e3c9c7cacb08038d2cc79eb611cb89ae4afce37b8243aaf"
+  },
+  "status": "PASS",
+  "title": "Inspect project instructions",
+  "workflow": "inspect-project-instructions"
+}

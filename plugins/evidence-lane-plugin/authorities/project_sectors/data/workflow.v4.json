@@ -970,7 +970,7 @@
       "version": 1,
       "meaning": "Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.",
       "consumer": "artifact_export",
-      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
       "files": {
         "mmd": "data.mmd",
         "dot": "data.dot",

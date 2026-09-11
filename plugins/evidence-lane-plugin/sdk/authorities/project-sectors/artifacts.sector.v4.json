@@ -1,0 +1,15 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "lane_id": "artifacts",
+  "manifest": {
+    "bytes": 72163,
+    "path": "authorities/project_sectors/artifacts/manifest.v4.json",
+    "sha256": "ef0001e76f9dc0459e72348756b4db84ae103b98ef1fbfce9d4d434f7a4610c8"
+  },
+  "project_state": "separate_lane_sqlite_and_files",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-project-sector-binding.v4",
+  "status": "PASS"
+}

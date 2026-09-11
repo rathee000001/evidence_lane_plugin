@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "supported-hosts.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Select Windows Studio/local engine or reduced Mac/Linux and explicit remote routes from measured facts.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 7139,
+      "path": "src/evidence_lane_plugin/host_routing.py",
+      "sha256": "931de6ffad66787d474af5d6cb3937cbf70a55197bb69f5fd5450c0a787f0bf4"
+    }
+  ],
+  "status": "PASS"
+}

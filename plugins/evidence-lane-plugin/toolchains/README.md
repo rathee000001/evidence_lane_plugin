@@ -1,3 +1,3 @@
 # Evidence Lane toolchains
 
-This directory distinguishes packaged binaries, Python/runtime dependencies, internal builders/operators, optional host tools, build gates, tunnel dependencies, and external delivery services. Public native MCP actions are a separate derived SDK/MCP inventory; neither count is fixed.
+This directory distinguishes Studio-shipped binaries, Python/Node dependencies, model assets, compatible provider runtimes, plugin engine components, optional host capabilities, build gates, and explicitly configured external services. The retired tunnel has no installation or license role. Public native MCP actions are a separate generated SDK/MCP inventory.

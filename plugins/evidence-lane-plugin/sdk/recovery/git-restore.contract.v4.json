@@ -1,0 +1,22 @@
+{
+  "accepted_pv_rollback": false,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "git-restore.contract.v4",
+  "installed_execution_claimed": false,
+  "restore_to_fresh_or_explicit_target": true,
+  "schema": "evidence-lane.sdk-recovery-contract.v4",
+  "sources": [
+    {
+      "bytes": 9758,
+      "path": "src/evidence_lane_plugin/git_job_recovery.py",
+      "sha256": "03c07bd59c406888d5c7c79f418881e8ec45026d3cc5f3e11fd8a5c6c33b293c"
+    },
+    {
+      "bytes": 21684,
+      "path": "src/evidence_lane_plugin/remote_git.py",
+      "sha256": "4a784d3ad7ac2ac034241b236cb5b10ba24ce4eab797ee0c11fc96f264791212"
+    }
+  ],
+  "status": "PASS"
+}

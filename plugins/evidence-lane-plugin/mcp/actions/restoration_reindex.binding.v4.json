@@ -1,13 +1,13 @@
 {
   "action": "restoration_reindex",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/restoration_reindex.action.v4.json",
-  "sdk_binding_sha256": "dedbf5fc05c7b9a53ddc926b18bf043ae1832079494c5abfc7180e3daa8d9530",
+  "sdk_binding_sha256": "6f73a6c7fac669be3271b3152685bd1083e07db9ddebcd8a26b26edb279d433a",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -32,7 +32,7 @@ acceptance checks and stop conditions. Keep source registration/preparation
 evidence distinct from sector execution. Prepared source tasks can be adopted
 here; preparation itself does not execute them. Carry an attributed
 `task_mode_binding` into each applicable task when explicit classification
-provided one. Do not infer an execution grant from a recipe or mode query.
+provided one. Do not infer an execution grant from a workflow or classification query.
 
 Read `validation_policy_read` for this project's additional CI checks. An
 unconfigured project inherits no maintainer CI. When the user's work requires

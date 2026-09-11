@@ -1,0 +1,45 @@
+{
+  "canonical_bootstrap": "scripts/bootstrap.py",
+  "canonical_installer": "scripts/first_detection.py",
+  "human_mutation_routes": [],
+  "installed_execution_claimed": false,
+  "member_count": 6,
+  "members": [
+    {
+      "bytes": 933,
+      "path": "studio/README.md",
+      "sha256": "a87f0e7761f6be39e5cbb171d062402f863d95c374a314283aba4b8321006c13"
+    },
+    {
+      "bytes": 1415,
+      "path": "studio/engine-api.contract.v4.json",
+      "sha256": "dc618ec3ff7bea6d8ec5dbe5b38baaa92b002c7390ee23a1df6169b153076d74"
+    },
+    {
+      "bytes": 637,
+      "path": "studio/install.py",
+      "sha256": "7a870c760c04b76e53d6829a89e617f394f1b2b26731c1902ab849ed00ac5a4f"
+    },
+    {
+      "bytes": 1407,
+      "path": "studio/installation.contract.v4.json",
+      "sha256": "38ea8a7da1b5bf421580f7d1cf3282647ca383905152db02b588624ac1b3413e"
+    },
+    {
+      "bytes": 1009,
+      "path": "studio/toolchain-license.contract.v4.json",
+      "sha256": "b52294c9971249c58aa0fd3d2973e703fe11ad7d5f6536925e0afdab247bbadf"
+    },
+    {
+      "bytes": 1575,
+      "path": "studio/windows-integration.contract.v4.json",
+      "sha256": "bb24e11b5aa5662118721ed3d8277e4cc65814b963b5b0ac3376a94e34e8ac79"
+    }
+  ],
+  "native_installation_verified": false,
+  "parallel_installer": false,
+  "schema": "evidence-lane.studio-linkage.v4",
+  "stable_installation_root": "C:/Apps/EvidenceLaneStudio",
+  "status": "COMPLETE_PREINSTALL_SOURCE_LINKAGE",
+  "tunnel_dependency": false
+}

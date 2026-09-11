@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 488,
+    "path": "sdk/workflows/skills/evidence-lane/workflow.dot",
+    "sha256": "54ed8ffb56ec3311540aad17eca53a469252e491a3955ed6f7ca583aff1525f3"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 458,
+    "path": "sdk/workflows/skills/evidence-lane/workflow.mmd",
+    "sha256": "f6f1517d06315d9d6a97a6ae257cfc3c89d03bedc76f2d1b1519cfb107c6bef4"
+  },
+  "package": {
+    "bytes": 8827,
+    "path": "sdk/workflows/skills/evidence-lane/workflow.v4.json",
+    "sha256": "cc4381af39b22832523edb54fed0af00220967fc7647af5685f0bf9805883071"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "evidence-lane",
+  "source_skill": {
+    "bytes": 3519,
+    "path": "skills/evidence-lane/SKILL.md",
+    "sha256": "7bacb78483d512ed97dd9b40b623314bc38254dccf10c47713c2afb18498b6bc"
+  },
+  "status": "PASS",
+  "title": "Evidence Lane",
+  "workflow": "evidence-lane"
+}

@@ -1,0 +1,26 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.tabular_inspection",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "data_inspect_duckdb",
+    "data_inspect_pandas",
+    "data_inspect_polars",
+    "data_inspection_read",
+    "spreadsheet_inspect_openpyxl",
+    "spreadsheet_inspect_pandas",
+    "spreadsheet_inspection_read"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 13843,
+    "path": "src/evidence_lane_plugin/tabular_inspection.py",
+    "sha256": "d15eb153a2583563d550f9e58001f49610861ade1a92623c8f739b8f88c1a986"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

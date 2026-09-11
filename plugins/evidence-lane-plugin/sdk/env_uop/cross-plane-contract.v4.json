@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "cross-plane-contract.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Keep host, project, action, tool, lane and disclosure decisions explicit across ENV and UOP.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 25054,
+      "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+    },
+    {
+      "bytes": 31228,
+      "path": "src/evidence_lane_plugin/mode_governance.py",
+      "sha256": "45d7590529aadc559052a594a2cf98746543b3ac0c0353d081bbcdfb746ea69d"
+    }
+  ],
+  "status": "PASS"
+}

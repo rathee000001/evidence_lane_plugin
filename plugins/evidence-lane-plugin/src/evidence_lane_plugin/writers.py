@@ -92,7 +92,7 @@ class WriterLease:
         if self.lock.stream is None or self.fence is None:
             raise LaneError("WRITER_NOT_HELD", "This worker no longer owns the project writer.")
         # A caller may be holding a business-lane connection. The writer fence
-        # exists only in Root PV, never in each authority's schema.
+        # exists only in project evidence head coordinator, never in each authority's schema.
         if connection is None or not getattr(connection, 'root_only', False):
             with self.store.connection(read_only=True) as selected:
                 self.check(selected)

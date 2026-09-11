@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/PostToolUse/handler.py",
   "event": "PostToolUse",
   "event_contract": "hooks/events/PostToolUse/event.v4.json",
-  "event_contract_sha256": "b5756b366dbc590f0fc3df5f2062a738c86635a599476e4adddf0082d0d1f10c",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "00d569decfe932e90965c1a5640eb357d8fa1986ff97d13411a1e3b0c33afcbc",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
   "input_schema": "schemas/hooks/PostToolUse.v4.schema.json",
   "input_schema_sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/PostToolUse/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/PostToolUse/02-classify_event.stage.v4.json",
+    "hooks/events/PostToolUse/03-handle_event.stage.v4.json",
+    "hooks/events/PostToolUse/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/PostToolUse/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/PostToolUse/06-project_bounded_output.stage.v4.json"
+  ]
 }

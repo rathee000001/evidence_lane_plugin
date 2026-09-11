@@ -46,7 +46,7 @@ class SessionExit(Contract):
 
 
 class SessionBoundaryRead(Contract):
-    kind: Literal['ordinary_turn', 'delta_append', 'session_exit', 'state_travel', 'goal_completion']
+    kind: Literal['ordinary_turn', 'delta_append', 'session_exit', 'work_handoff', 'goal_completion']
     source_event_id: str | None = Field(default=None, pattern=UUID_PATTERN)
     source_cursor: str | None = Field(default=None, pattern=DIGEST)
     continuation_id: str | None = Field(default=None, pattern=UUID_PATTERN)
@@ -58,8 +58,8 @@ class SessionBoundaryRead(Contract):
             raise ValueError('Supply the exact source event and cursor together')
         if (self.continuation_id is None) != (self.continuation_digest is None):
             raise ValueError('Supply the exact continuation and digest together')
-        if self.continuation_id is not None and self.kind != 'state_travel':
-            raise ValueError('A continuation reference belongs to State Travel')
+        if self.continuation_id is not None and self.kind != 'work_handoff':
+            raise ValueError('A continuation reference belongs to project handoff')
         return self
 
 

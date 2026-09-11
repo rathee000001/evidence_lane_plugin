@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/project_workflow_configure.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
+      "mutates": false,
+      "name": "project_workflow_configure",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "configure-project-workflow"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $configure-project-workflow to configure work for my sources and requested outcome.",
+  "description": "Derive or change the project workflow from explicitly selected sources and the requested outcome. Use during initial project classification or an explicit workflow change.",
+  "dot": "sdk/workflows/skills/configure-project-workflow/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/configure-project-workflow/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "configure-project-workflow",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Configure project workflow",
+  "workflow": "configure-project-workflow"
+}

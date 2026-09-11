@@ -608,7 +608,7 @@ def register_tabular_actions(engine):
             'data': [('', ('csv', 'tsv', 'json', 'jsonl'), ('Python',)),
                      ('_arrow', ('parquet', 'arrow', 'feather'), ('Python', 'pyarrow'))]}[lane_id]
         for qualifier, extensions, tools in groups:
-            for suffix, workflow in (('index', 'source-intake'), ('refresh', 'refresh')):
+            for suffix, workflow in (('index', 'manage-project-sources'), ('refresh', 'refresh-project-evidence')):
                 action = prefix + '_' + suffix + qualifier
                 engine.registry.register(ActionSpec(action, 'Snapshot exact file bytes and bounded facts in the separate ' + lane_id + ' lane.',
                 contracts.model_for(lane_id, contracts.Index, name=action.title().replace('_', '') + 'Request', extensions=extensions), TabularResult, index, permission='write', mutates=True,
@@ -627,7 +627,7 @@ def register_tabular_actions(engine):
             action = prefix + '_' + suffix
             engine.registry.register(ActionSpec(action, 'Read bounded identities, typed facts or exact historical bytes from the ' + lane_id + ' lane.',
                 contracts.model_for(lane_id, model), TabularResult, query_handler(function, action), profile=prefix,
-                workflow='source-intake', queryable_in_delta=True, cross_project_read=True, studio_read=True,
+                workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True, studio_read=True,
                 read_migrations=tabular_migrations(lane_id),
                 search=SearchRoute((lane_id,), 'rows', prefix + '_current', 'files', 'text', 'any', rerank_text='text') if suffix == 'query' else None,
                 fetch=FetchRoute((lane_id,), 'snapshot') if suffix == 'read' else None))
@@ -638,24 +638,24 @@ def register_tabular_actions(engine):
             for qualifier, extensions, tools in groups for render in (False, True))
         engine.registry.register(ActionSpec(prefix + '_export', 'Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.',
             contracts.model_for(lane_id, contracts.Export), TabularResult, export, permission='write', mutates=True, requires_delta=True,
-            profile=prefix, workflow='build', path_fields=('filename',), verification_checks=('tabular_export_hash_verified',),
+            profile=prefix, workflow='execute-project-plan', path_fields=('filename',), verification_checks=('tabular_export_hash_verified',),
             verifier=verify_exported, worker_operations=('tabular_parse_content', 'render_lane_view'), tool_routes=export_routes))
         model = {'data_excel': contracts.SpreadsheetGenerate, 'data': contracts.DataGenerate}[lane_id]
         tool_ids = {'data_excel': ('Python', 'openpyxl'), 'data': ('Python',)}[lane_id]
         engine.registry.register(ActionSpec(prefix + '_generate', 'Generate a new immutable lane-owned file under the format-specific contract.',
             contracts.model_for(lane_id, model), TabularResult, generate, permission='write', mutates=True, requires_delta=True,
-            profile=prefix, workflow='build', worker_operations=(prefix + '_generate',),
+            profile=prefix, workflow='execute-project-plan', worker_operations=(prefix + '_generate',),
             tool_routes=(ToolRoute(prefix + '_generate.native', generate, tool_ids,
                 systems=('Windows', 'Darwin', 'Linux')),),
             verification_checks=('tabular_snapshot_integrity',), verifier=verify_snapshot))
     engine.registry.register(ActionSpec('spreadsheet_edit', 'Replace exact existing OpenXML cells while preserving other package members and invalidating stale formula caches.',
         contracts.model_for('data_excel', contracts.SpreadsheetEdit), TabularResult, edit, permission='write', mutates=True, requires_delta=True,
-        profile='spreadsheet', workflow='build', worker_operations=('spreadsheet_edit',),
+        profile='spreadsheet', workflow='execute-project-plan', worker_operations=('spreadsheet_edit',),
         tool_routes=(ToolRoute('spreadsheet_edit.native', edit, ('Python', 'lxml')),),
         verification_checks=('tabular_snapshot_integrity',), verifier=verify_snapshot))
     engine.registry.register(ActionSpec('data_transform', 'Select, filter, sort or explicitly cast a complete bounded dataset into a separately versioned result.',
         contracts.model_for('data', contracts.DataTransform), TabularResult, transform_data, permission='write', mutates=True,
-        requires_delta=True, profile='data', workflow='build', worker_operations=('data_transform',),
+        requires_delta=True, profile='data', workflow='execute-project-plan', worker_operations=('data_transform',),
         verification_checks=('tabular_snapshot_integrity',), verifier=verify_snapshot))
     from .tabular_views import register_tabular_views
     register_tabular_views(engine)

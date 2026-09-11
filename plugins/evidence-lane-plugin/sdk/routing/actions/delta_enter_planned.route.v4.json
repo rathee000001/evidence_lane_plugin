@@ -1,0 +1,43 @@
+{
+  "action": "delta_enter_planned",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/delta_enter_planned.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/delta_enter_planned.binding.v4.json",
+  "outer_route": {
+    "action": "delta_enter_planned",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "delta",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "execute-project-plan"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/delta_enter_planned.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.adaptive_delta_entry:DeltaService.enter_planned",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "delta_enter_planned.engine",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python"
+      ]
+    }
+  ]
+}

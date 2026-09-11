@@ -239,7 +239,7 @@
       },
       "permission": "tools",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": false,
       "project_required": true,
       "requires_delta": true,
@@ -630,7 +630,7 @@
       },
       "permission": "publish",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": true,
       "project_required": true,
       "requires_delta": true,
@@ -943,7 +943,7 @@
       },
       "permission": "write",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -1225,7 +1225,7 @@
       },
       "permission": "write",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -1407,7 +1407,7 @@
       },
       "permission": "read",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1618,7 +1618,7 @@
       },
       "permission": "read",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1873,7 +1873,7 @@
       },
       "permission": "write",
       "profile": "memory",
-      "workflow": "memory",
+      "workflow": "manage-project-memory",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -1928,7 +1928,7 @@
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",
@@ -2066,7 +2066,7 @@
     },
     {
       "path": "authorities/project_memory/dot-artifact.schema.json",
-      "sha256": "47b0fb5a841ad9ac8e20b0e6b25015d1188e1de5e924d0449bdb60d9ec060f32"
+      "sha256": "6382925994eb6d9a5017fe729aa2eb3334af0e29c33b1c6531c2d5435601ab47"
     },
     {
       "path": "authorities/project_memory/manifest.schema.json",
@@ -2086,7 +2086,7 @@
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
-      "sha256": "69d9481ab927c0aafae497ee33ee7919e331a5f887c0916381c4f118a22bbd0c"
+      "sha256": "20d125bca8c52df37c1da5b70cf27bd3d42ddcd36cb04e54a58fe1a1ed7fd041"
     },
     {
       "path": "authorities/project_memory/migration-history.json",
@@ -2094,7 +2094,7 @@
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
-      "sha256": "7b08402a7742e92a41d731eb25cd2c35c90b6e69c8776f174a793632266db7d6"
+      "sha256": "56680157390a38367ef849544fe891b0fb5516011c69cd4e928363ffbb5f3b9d"
     },
     {
       "path": "authorities/project_memory/pointer-contract.schema.json",
@@ -2102,7 +2102,7 @@
     },
     {
       "path": "authorities/project_memory/pointer-contract.v4.json",
-      "sha256": "3ad2315543e24fe28ed9a7971b722f9adf4cbe639bf160cfc1ffaf5273ffbb32"
+      "sha256": "ed84a502914cb3dfff10a69ef5863271cd5b8773fe36616f0c6a37cc4fbf969c"
     },
     {
       "path": "authorities/project_memory/reader-contract.schema.json",
@@ -2146,15 +2146,15 @@
     },
     {
       "path": "authorities/project_memory/workflow.dot",
-      "sha256": "e7fc95881d87d0d9eb6c83a450767079a619c4556f0f39effc0547fe9156c513"
+      "sha256": "3ea689c8893258021b672c6e99d57fe35f6206a6e61682750e3b00f3e5aa06c9"
     },
     {
       "path": "authorities/project_memory/workflow.mmd",
-      "sha256": "bf6c8ede7fe3ed1ca0af8bd830baea89ff1261523c7c51d36ba85e1ca8270b38"
+      "sha256": "d64870a5e9441ff3d856cedbe6e910a0303661f0d31d2cf00f7c776d1af8275e"
     },
     {
       "path": "authorities/project_memory/workflow.v4.json",
-      "sha256": "74b63d6435adfd6c378bf09a55e026839db9dc692734998e1b6ed26f26f528cf"
+      "sha256": "fe44a9fa373b603198d81ebcd84f3eb2796367e64eef9252b7279a8cbf812418"
     }
   ]
 }

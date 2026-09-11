@@ -30,4 +30,4 @@ recorded completion; it does not recheck today's source bytes. A group finishes
 only after every selected task has its own verified exit in Plan order. Do not
 submit caller PASS records or a host confirmation string to complete a batch.
 Use the Plan workflow for a semantic steer and the owning read action for an
-informational question. A recipe, tool listing or test count is not completion.
+informational question. A workflow proposal, tool listing or test count is not completion.

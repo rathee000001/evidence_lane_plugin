@@ -431,4 +431,4 @@ class CaptureRouter:
 
 def register_capture_actions(engine):
     engine.registry.register(ActionSpec("capture_bind", "Bind this client's selected project to a reported host session for visible hook capture.",
-        CaptureBind, CaptureBindingResult, engine.capture.bind, permission="write", profile="chatlineage", mutates=True, workflow='boot'))
+        CaptureBind, CaptureBindingResult, engine.capture.bind, permission="write", profile="chatlineage", mutates=True, workflow='open-project-session'))

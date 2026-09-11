@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "host-projection.v4",
+  "database_first": true,
+  "full_host_projection_only": true,
+  "installed_execution_claimed": false,
+  "public_set_status_action": false,
+  "schema": "evidence-lane.sdk-plan-contract.v4",
+  "sources": [
+    {
+      "bytes": 65384,
+      "path": "src/evidence_lane_plugin/plan_runtime.py",
+      "sha256": "4b3f5607cc98b4988d908ddc95a1d76c6a59c2988100df6038102e2825ac6287"
+    },
+    {
+      "bytes": 6449,
+      "path": "schemas/actions/plan_host_sync.v4.schema.json",
+      "sha256": "1b00ddfccca27919dc8b932eada1953e24e94dece88b780621081da98f19d8bb"
+    }
+  ],
+  "status": "PASS"
+}

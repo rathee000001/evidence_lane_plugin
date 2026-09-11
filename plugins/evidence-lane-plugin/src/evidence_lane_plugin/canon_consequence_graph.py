@@ -1,7 +1,7 @@
-"""Read-only Canon consequence projections over project-owned records.
+"""Read-only task exchange authority consequence projections over project-owned records.
 
 Preserves participant, contract, exchange, reply/backfire/correction and evidence
-relationships. Graphs neither admit Canon input nor acquire another authority.
+relationships. Graphs neither admit task exchange authority input nor acquire another authority.
 """
 from __future__ import annotations
 

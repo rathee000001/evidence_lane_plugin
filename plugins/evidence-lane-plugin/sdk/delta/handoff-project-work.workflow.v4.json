@@ -1,0 +1,31 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    "continuation_offer",
+    "continuation_accept",
+    "continuation_cancel",
+    "continuation_context",
+    "continuation_read"
+  ],
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "installed_execution_claimed": false,
+  "owners": [
+    {
+      "bytes": 31050,
+      "path": "src/evidence_lane_plugin/task_binding_registry.py",
+      "sha256": "c75af7929d4f8af4e2ca48530b64d16afea1a130a01ed3d51cbdcafbdd11a4be"
+    },
+    {
+      "bytes": 13507,
+      "path": "src/evidence_lane_plugin/session_authority.py",
+      "sha256": "7a329d92c4130793bd8c8d140cc8527a5044169d5b4d6f44f740d07fc754a1b4"
+    }
+  ],
+  "plan_owned": true,
+  "purpose": "Transfer exact task ownership between explicitly selected clients.",
+  "removed_hil_overlay_or_fuse": true,
+  "schema": "evidence-lane.sdk-delta-workflow.v4",
+  "status": "PASS",
+  "workflow": "handoff-project-work"
+}

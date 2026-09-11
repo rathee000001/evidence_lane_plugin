@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "68a9eb1fa8279ad730d088a743bf2cb35aeed3c3ac36215ffee7020722565b8c",
+  "action_set_digest": "877e19023b09da7a1cedc0ffe4453ce9d69c97bba0272c8911f94392b165fc26",
   "actions": [
     {
       "cross_project_read": false,
@@ -143,10 +143,10 @@
     },
     {
       "cross_project_read": true,
-      "description": "Compare exact published Root PV lane database heads without reading historical content.",
+      "description": "Compare exact published project evidence lane heads without reading historical content.",
       "input_schema_digest": "c64f8d212524bdee3a827f74cbe90584985cbfeff47116e268ae98ea8dd40a84",
       "mutates": false,
-      "name": "pv_diff",
+      "name": "project_evidence_heads_compare",
       "output_schema_digest": "63cd24992c02c9a5245fceacbbb99ab097db4e6b41dbfcf2d669b77d66d2f1f2",
       "permission": "read",
       "profile": "projects",
@@ -157,10 +157,10 @@
     },
     {
       "cross_project_read": true,
-      "description": "Read bounded, verified published Root PV references from current ancestry.",
+      "description": "Read bounded verified project evidence-head references from current ancestry.",
       "input_schema_digest": "dcdebe6f931476482d39eed3bd737246e2c188ac582ef5ae119b29786187bda0",
       "mutates": false,
-      "name": "pv_history",
+      "name": "project_evidence_history",
       "output_schema_digest": "63cd24992c02c9a5245fceacbbb99ab097db4e6b41dbfcf2d669b77d66d2f1f2",
       "permission": "read",
       "profile": "projects",
@@ -200,7 +200,7 @@
     {
       "cross_project_read": false,
       "description": "Discover current public workflows and their registered actions without granting access.",
-      "input_schema_digest": "43726c9400934e7df34ba9f371363a8af301afab40e8af77a42e7c655145de4c",
+      "input_schema_digest": "b92ef4d65a8f30d82a4a1c43801522a0d067a556b3931464393721300f8f0004",
       "mutates": false,
       "name": "workflow_catalog",
       "output_schema_digest": "86caace0ec89fd9b5a8c9990122e096fb6b864af3bda490403b37d9db6ad687d",
@@ -216,5 +216,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "evi"
+  "workflow": "evidence-lane"
 }

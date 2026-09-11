@@ -28,7 +28,7 @@
       "studio": false
     },
     "Windows": {
-      "runtime": "C:/Apps/EvidenceLaneStudio/runtime/engine",
+      "runtime": "C:/Apps/EvidenceLaneStudio/engine",
       "studio": true
     },
     "codex_vm_ephemeral": {
@@ -38,7 +38,7 @@
       "requires_verified_remote_route": true
     }
   },
-  "project_state": "separate authority/sector SQLite databases and files coordinated by Root PV",
+  "project_state": "separate authority/sector SQLite databases and files coordinated by project evidence head coordinator",
   "remote_api": {
     "authorization": "exact parent grant plus a unique engine-issued child connection",
     "automatic_mutation_retry": false,
@@ -66,7 +66,7 @@
   "source_members": [
     {
       "path": ".mcp.json",
-      "sha256": "8BF7ED7621111DD5CAFB62495270D9FBFFEFF4289AB45DED8F209720A7B1BEE0"
+      "sha256": "D9D76CE0AE58E5D3D3BDB5E24C3E5C2A965CF6707CE6C8ABCF3934E5A391E984"
     },
     {
       "path": "scripts/run_mcp.py",
@@ -78,7 +78,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/launcher.py",
-      "sha256": "AE346A2BFA2EFB14509C7ABA227FC617FE104BBC6AC354BC40D0559A01364655"
+      "sha256": "DD3B524BC01D898EAD43C3911D99CFA8D4945D56393EEE264758B614859AAA1D"
     },
     {
       "path": "src/evidence_lane_plugin/service.py",
@@ -86,7 +86,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/connections.py",
-      "sha256": "CB964957D33E0F2FB9F7F9C6D4AEF51E51618887321B6F05544C7772D1C2C8FB"
+      "sha256": "4678BD33F293FDD1976A218DDBE442B25F93857F76A2415941378A9E752EE59B"
     },
     {
       "path": "src/evidence_lane_plugin/local_transport.py",
@@ -114,23 +114,23 @@
     },
     {
       "path": "src/evidence_lane_plugin/capture_routing.py",
-      "sha256": "56DF536B6D587B4F098A151E89BB876C054F0B20E614873D9AD3D8FFE2C16D6B"
+      "sha256": "319FBE6589843117F647A49118A520205006EBA9BF369D316D8CFA582F499B53"
     },
     {
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "sha256": "00352F4A2C1AAAB832769DCB1C1D14F14D223D86BC3398A42336776D20170CA5"
+      "sha256": "DAEEA450050942F8D398443EED04200DF15E8C45E1210C711C42E4612C3CA3FF"
     },
     {
       "path": "src/evidence_lane_plugin/session.py",
-      "sha256": "2E4AC28839F704D2AAFBE65F3B77B9591E6E5B040470D31B61C0E99849477535"
+      "sha256": "4A2C01A5A05BFCF0CF4035D5B4E5645A3AACF50B1E6ACE2F0F08B291EFB0E9EC"
     },
     {
       "path": "src/evidence_lane_plugin/session_authority.py",
-      "sha256": "C893AD93E818CACC7ABF8A0CE205BDFE93E51E140C4946BE7A849548CCC1B6B9"
+      "sha256": "7A329D92C4130793BD8C8D140CC8527A5044169D5B4D6F44F740D07FC754A1B4"
     },
     {
       "path": "src/evidence_lane_plugin/flash_authority.py",
-      "sha256": "CBBDDB33C8BA20AA37E3E178175A9733AF53D2B419661F36F48DB47FCFD5A4CD"
+      "sha256": "019E39D9B65AD3ED5CE0C1DA7623D7B304FE935E7A36D5E5BEB300FD59DDEC53"
     },
     {
       "path": "src/evidence_lane_plugin/host_routing.py",
@@ -142,7 +142,7 @@
     },
     {
       "path": "authorities/session_authority/installation-layout.v4.json",
-      "sha256": "D34115344544AF31B6CC8BD41032729D77DB71B215C96323662295AAB3FE38F7"
+      "sha256": "CEF946824307EA4B4A212E4CE3B41319899783A610A205EE2A8D0030199B0935"
     }
   ],
   "status": "source_contract",
@@ -150,14 +150,12 @@
     "mcpServers": {
       "evidence-lane": {
         "args": [
-          "-I",
-          "-B",
-          "./scripts/run_mcp.py",
+          "./mcp/server.mjs",
           "--transport",
           "stdio",
           "--local-project-administration"
         ],
-        "command": "python",
+        "command": "node",
         "cwd": ".",
         "env_vars": [
           "EVIDENCE_LANE_RUNTIME_ROOT",
@@ -165,10 +163,16 @@
           "EVIDENCE_LANE_HOST_PROFILE",
           "EVIDENCE_LANE_GHOSTSCRIPT_LICENSE_RECEIPT",
           "EVIDENCE_LANE_REMOTE_CONFIG",
-          "EVIDENCE_LANE_REMOTE_TOKEN"
+          "EVIDENCE_LANE_REMOTE_TOKEN",
+          "EVIDENCE_LANE_PYTHON",
+          "CODEX_MCP_NODE_PATH",
+          "CODEX_BROWSER_USE_NODE_PATH",
+          "CODEX_ELECTRON_RESOURCES_PATH",
+          "CODEX_CLI_PATH",
+          "XDG_CACHE_HOME"
         ],
-        "required": true,
-        "startup_timeout_sec": 7200,
+        "required": false,
+        "startup_timeout_sec": 120,
         "tool_timeout_sec": 60
       }
     }

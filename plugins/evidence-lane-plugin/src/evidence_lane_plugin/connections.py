@@ -74,7 +74,7 @@ def register_client_actions(engine):
             expires_at=session.expires_at.isoformat(), host_observation=session.host_observation, projects=projects)
     engine.registry.register(ActionSpec('client_context',
         'Read this authenticated engine client and its explicitly configured project selections.',
-        ClientContextQuery, ClientContextResult, read, project_required=False, workflow='boot'))
+        ClientContextQuery, ClientContextResult, read, project_required=False, workflow='open-project-session'))
 
 
 @dataclass(frozen=True)

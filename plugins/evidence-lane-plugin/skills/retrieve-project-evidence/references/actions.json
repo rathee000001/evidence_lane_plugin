@@ -1,13 +1,13 @@
 {
-  "action_set_digest": "b408ad0b78f3406784db2bf8ae5ade152df0f28eb8567df55ef7555b44678a7c",
+  "action_set_digest": "cc7759d6788fdb999186733c34205012dabba0fc9e5dc5313bda033870603478",
   "actions": [
     {
       "cross_project_read": false,
       "description": "Select deterministic metadata slices using explicit estimated-token and item budgets; verify content through its owning authority.",
-      "input_schema_digest": "b81211d5e8f81037326712f6c23bca7691a49876d597b7af1a2fe93c045b0751",
+      "input_schema_digest": "7f344e69f3065d218da720906ffdc9c785fee4f72b3c4dadc529dd300c709a00",
       "mutates": false,
-      "name": "brain_slice_select",
-      "output_schema_digest": "1965a0b8d18004f6b081f746c8f0d01a298ac7a484528388c2972a8beaf74423",
+      "name": "project_evidence_select",
+      "output_schema_digest": "4a8fbbc4d198ce1cbd715ec22dcede988d071ee2cfe00b7d9ab6998972003e1c",
       "permission": "read",
       "profile": "core",
       "project_required": true,
@@ -20,5 +20,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "brain-scaling"
+  "workflow": "retrieve-project-evidence"
 }

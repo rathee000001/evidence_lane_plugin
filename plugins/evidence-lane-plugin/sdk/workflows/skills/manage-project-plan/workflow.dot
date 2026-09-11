@@ -1,0 +1,13 @@
+digraph evidence_lane_workflow {
+  rankdir=LR;
+  user [label="User intent: Manage project plan"];
+  skill [label="$manage-project-plan"];
+  registry [label="Typed registries"];
+  sdk [label="SDK/MCP: 10 actions"];
+  engine [label="Persistent engine API"];
+  owner [label="Authority or sector owner"];
+  worker [label="Bounded worker"];
+  receipt [label="Validated receipt"];
+  studio [label="Read-only Studio"];
+  user -> skill -> registry -> sdk -> engine -> owner -> worker -> receipt -> studio;
+}

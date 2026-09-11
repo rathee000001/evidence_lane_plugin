@@ -19,13 +19,13 @@ writes that local binding after the exact server transition; hooks only use the
 existing connection. They cannot Boot, reconnect, or establish native identity.
 If a project must be registered, use the Storage workflow with the exact
 user-selected source and external state roots, then `project_select` with
-explicit permissions. Read `session_status` and its current Root PV digest.
+explicit permissions. Read `session_status` and its current project evidence head coordinator digest.
 Call `session_boot` when no session is active; otherwise call `session_resume`
 with the exact session ID, generation and event digest. Use an actually
 reported host session label and state its attribution accurately. Never turn
 a client claim into native task attestation.
 
-A live source client requires an accepted State Travel transfer before another
+A live source client requires an accepted project handoff transfer before another
 client resumes it. After disconnection, resume still requires the exact saved
 head and current project grant. Read back `session_status` and `session_context`, then the full
 current Plan through pinned `plan_read` pages. Distinguish a bound capture

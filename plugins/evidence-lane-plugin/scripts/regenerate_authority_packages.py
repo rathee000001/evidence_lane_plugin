@@ -244,7 +244,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     options = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix='evi-authority-package-') as temporary:
+    with tempfile.TemporaryDirectory(prefix='evidence-lane-authority-package-') as temporary:
         registry = Engine(Path(temporary)).registry
         registry.freeze()
         print(json.dumps(generate(registry, check=options.check)))

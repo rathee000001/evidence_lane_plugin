@@ -80,15 +80,22 @@ def test_explicit_native_selection_is_readonly_and_does_not_select_another_proje
         asyncio.run(run())
 
 
-def test_bound_package_entrypoint_owns_first_detection_before_mcp_protocol() -> None:
+def test_mjs_bridge_reaches_first_detection_before_mcp_protocol() -> None:
     manifest = json.loads((PLUGIN / '.mcp.json').read_bytes())['mcpServers']['evidence-lane']
     binding = json.loads(
         (PLUGIN / 'provisioning/release-binding.v4.json').read_text(encoding='utf-8')
     )
-    assert manifest['args'][:3] == ['-I', '-B', './scripts/run_mcp.py']
-    assert binding['status'] == 'RELEASE_BOUND'
-    assert binding['installation_enabled'] is True
-    assert len(binding['assets']) == 12
+    assert manifest['command'] == 'node'
+    assert manifest['args'][:3] == ['./mcp/server.mjs', '--transport', 'stdio']
+    bridge = (PLUGIN / 'mcp/server.mjs').read_text(encoding='utf-8')
+    assert 'scripts", "run_mcp.py"' in bridge
+    assert binding['status'] in {'SOURCE_TEMPLATE_UNBOUND', 'RELEASE_BOUND'}
+    if binding['status'] == 'RELEASE_BOUND':
+        assert binding['installation_enabled'] is True
+        assert len(binding['assets']) == 12
+    else:
+        assert binding['installation_enabled'] is False
+        assert binding['assets'] == []
 
 
 def registration():

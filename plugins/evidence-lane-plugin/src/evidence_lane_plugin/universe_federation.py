@@ -296,7 +296,7 @@ class UniverseFederation:
         """Invalidate restored mutation grants in the caller's recovery commit.
 
         Grant records and existing links stay immutable. The supplied connection
-        is the recovered project's Universe lane, inside Root PV coordination.
+        is the recovered project's Universe lane, inside project evidence head coordinator coordination.
         """
         if not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='federation_identity'").fetchone():
             return 0
@@ -537,23 +537,23 @@ def register_federation_actions(engine):
         return mutate(context, request, lambda federation, lease: federation.revoke(request, lease, context.client_id))
 
     actions = (
-        ('bigger_universe_create', 'Create an explicitly selected federation in a separate coordinator project.', FederationCreate,
+        ('project_evidence_network_create', 'Create an explicitly selected federation in a separate coordinator project.', FederationCreate,
          create),
-        ('bigger_universe_register', 'Capture verified member lane hashes, reuse unchanged content and preserve historical heads.', FederationRegister, register),
-        ('bigger_universe_grant', 'Issue an explicit expiring grant for one relation between two authorized member references.', FederationGrant, grant),
-        ('bigger_universe_revoke', 'Revoke a federation edge grant while retaining its grant and link history.', FederationRevoke,
+        ('project_evidence_network_register', 'Capture verified member lane hashes, reuse unchanged content and preserve historical heads.', FederationRegister, register),
+        ('project_evidence_network_grant', 'Issue an explicit expiring grant for one relation between two authorized member references.', FederationGrant, grant),
+        ('project_evidence_network_revoke', 'Revoke a federation edge grant while retaining its grant and link history.', FederationRevoke,
          revoke),
-        ('bigger_universe_link', 'Append a hash-only cross-project edge under its exact active grant and current member read access.', FederationLink, link),
+        ('project_evidence_network_link', 'Append a hash-only cross-project edge under its exact active grant and current member read access.', FederationLink, link),
     )
     for name, description, model, handler in actions:
         engine.registry.register(ActionSpec(name, description, model, FederationResult, handler,
-            permission='write', profile='universe', workflow='bigger-universe', mutates=True))
-    engine.registry.register(ActionSpec('bigger_universe_read', 'Read bounded historical federation hash references without opening member data.',
+            permission='write', profile='universe', workflow='link-project-evidence-network', mutates=True))
+    engine.registry.register(ActionSpec('project_evidence_network_read', 'Read bounded historical federation hash references without opening member data.',
         FederationRead, FederationResult, lambda context, request: owner(context).read(request),
-        profile='universe', workflow='bigger-universe', queryable_in_delta=True, studio_read=True))
-    engine.registry.register(ActionSpec('bigger_universe_verify', 'Verify bounded federation identities, historical heads and explicit grant links.',
+        profile='universe', workflow='link-project-evidence-network', queryable_in_delta=True, studio_read=True))
+    engine.registry.register(ActionSpec('project_evidence_network_verify', 'Verify bounded federation identities, historical heads and explicit grant links.',
         FederationVerify, FederationResult, lambda context, request: owner(context).verify(request),
-        profile='universe', workflow='bigger-universe', queryable_in_delta=True, studio_read=True))
+        profile='universe', workflow='link-project-evidence-network', queryable_in_delta=True, studio_read=True))
     register_federation_view(engine)
 
 
@@ -623,6 +623,6 @@ def register_federation_view(engine):
     from .lane_contract import LaneView
     engine.registry.register_view(LaneView('universe.federation', 'universe', 'authorities/universe',
         'Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.',
-        federation_view, ('federation',), FEDERATION_MIGRATIONS, 'bigger_universe.mmd', 'bigger_universe.dot',
+        federation_view, ('federation',), FEDERATION_MIGRATIONS, 'project_evidence_network.mmd', 'project_evidence_network.dot',
         supports_history=True, node_kinds=('federation', 'federation_member', 'mini_brain', 'federation_edge'),
         edge_kinds=('REGISTERS_PROJECT', 'REFERENCES_LANE', 'HASH_SOURCE', 'HASH_TARGET'), head_reader=federation_view_head))

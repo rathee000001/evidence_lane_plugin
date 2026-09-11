@@ -363,6 +363,41 @@
       "title": "SectorArgs_code_semantic_query_vec_local_code",
       "type": "object"
     },
+    "SectorArgs_code_snapshot_summary_local_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "local_code",
+          "default": "local_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "default": 67108864,
+          "maximum": 134217728,
+          "minimum": 1024,
+          "title": "Max Read Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_code_snapshot_summary_local_code",
+      "type": "object"
+    },
     "SectorArgs_fetch_local_code": {
       "additionalProperties": false,
       "properties": {
@@ -436,41 +471,6 @@
         "ref_id"
       ],
       "title": "SectorArgs_fetch_local_code",
-      "type": "object"
-    },
-    "SectorArgs_pv_summary_local_code": {
-      "additionalProperties": false,
-      "properties": {
-        "lane_id": {
-          "const": "local_code",
-          "default": "local_code",
-          "title": "Lane Id",
-          "type": "string"
-        },
-        "snapshot_id": {
-          "pattern": "^[0-9a-f]{64}$",
-          "title": "Snapshot Id",
-          "type": "string"
-        },
-        "max_read_bytes": {
-          "default": 67108864,
-          "maximum": 134217728,
-          "minimum": 1024,
-          "title": "Max Read Bytes",
-          "type": "integer"
-        },
-        "timeout_ms": {
-          "default": 10000,
-          "maximum": 30000,
-          "minimum": 100,
-          "title": "Timeout Ms",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "snapshot_id"
-      ],
-      "title": "SectorArgs_pv_summary_local_code",
       "type": "object"
     },
     "SectorArgs_source_snapshot_state_local_code": {
@@ -837,6 +837,55 @@
       "title": "SectorRequest_code_semantic_query_vec",
       "type": "object"
     },
+    "SectorRequest_code_snapshot_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_snapshot_summary",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_snapshot_summary_local_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_snapshot_summary",
+      "type": "object"
+    },
     "SectorRequest_fetch": {
       "additionalProperties": false,
       "properties": {
@@ -884,55 +933,6 @@
         "arguments"
       ],
       "title": "SectorRequest_fetch",
-      "type": "object"
-    },
-    "SectorRequest_pv_summary": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "pv_summary",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/SectorArgs_pv_summary_local_code"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "SectorRequest_pv_summary",
       "type": "object"
     },
     "SectorRequest_source_snapshot_state": {
@@ -994,8 +994,8 @@
       "code_semantic_query": "#/$defs/SectorRequest_code_semantic_query",
       "code_semantic_query_faiss": "#/$defs/SectorRequest_code_semantic_query_faiss",
       "code_semantic_query_vec": "#/$defs/SectorRequest_code_semantic_query_vec",
+      "code_snapshot_summary": "#/$defs/SectorRequest_code_snapshot_summary",
       "fetch": "#/$defs/SectorRequest_fetch",
-      "pv_summary": "#/$defs/SectorRequest_pv_summary",
       "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
     },
     "propertyName": "action"
@@ -1023,10 +1023,10 @@
       "$ref": "#/$defs/SectorRequest_code_semantic_query_vec"
     },
     {
-      "$ref": "#/$defs/SectorRequest_fetch"
+      "$ref": "#/$defs/SectorRequest_code_snapshot_summary"
     },
     {
-      "$ref": "#/$defs/SectorRequest_pv_summary"
+      "$ref": "#/$defs/SectorRequest_fetch"
     },
     {
       "$ref": "#/$defs/SectorRequest_source_snapshot_state"

@@ -176,8 +176,8 @@ def register_custom_lane_actions(engine):
 
     engine.registry.register(ActionSpec('custom_lane_configure',
         'Register or version one named Custom lane and its bounded retained-parser adapter; allocate its own database and files.',
-        Configure, SourceOperationResult, configure, permission='write', mutates=True, profile='sources', workflow='source-intake'))
+        Configure, SourceOperationResult, configure, permission='write', mutates=True, profile='sources', workflow='manage-project-sources'))
     engine.registry.register(ActionSpec('custom_lanes_read',
         'Read current or exact historical Custom instance adapter contracts from Sources.',
-        ReadRegistrations, SourceOperationResult, read, profile='sources', workflow='source-intake',
+        ReadRegistrations, SourceOperationResult, read, profile='sources', workflow='manage-project-sources',
         studio_read=True, queryable_in_delta=True, cross_project_read=True, read_migrations=MIGRATIONS))

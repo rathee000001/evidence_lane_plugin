@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 509,
+    "path": "sdk/workflows/skills/revoke-project-connector/workflow.dot",
+    "sha256": "0c7f6555602342a3b701577c63f3163e1991acc932a30369f0a271196dcefbdd"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 479,
+    "path": "sdk/workflows/skills/revoke-project-connector/workflow.mmd",
+    "sha256": "cc583f17973b4cc0afcb830f7f8a87ceaae2e3659b623b18733c3c5ec51bd41d"
+  },
+  "package": {
+    "bytes": 1663,
+    "path": "sdk/workflows/skills/revoke-project-connector/workflow.v4.json",
+    "sha256": "b27734a232a62423bc0829eba8172a41581db4769ee699a88a742388052f6d4d"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "revoke-project-connector",
+  "source_skill": {
+    "bytes": 761,
+    "path": "skills/revoke-project-connector/SKILL.md",
+    "sha256": "4a77a7e4d71e6b67ec699e85217b0894352adff787b0c91e03883a991824d84b"
+  },
+  "status": "PASS",
+  "title": "Revoke project connector",
+  "workflow": "revoke-project-connector"
+}

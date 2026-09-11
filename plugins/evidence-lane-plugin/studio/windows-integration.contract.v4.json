@@ -1,0 +1,43 @@
+{
+  "desktop_shortcut_count": 1,
+  "engine_console_hidden": true,
+  "installed_verification": {
+    "bytes": 6377,
+    "path": "scripts/verify_installed_runtime.py",
+    "sha256": "681e0281b5c867de1d6e2c812165fb003487faf2ec3e1feff0e30e603f955deb"
+  },
+  "launcher_binary": {
+    "bytes": 9216,
+    "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
+    "sha256": "ecc4263d314e73476b2e7a4c4544a9cffe03701f9a02e3d370fb18f86fa39f44"
+  },
+  "launcher_build": {
+    "bytes": 513,
+    "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
+    "sha256": "beab0ebfa2b5acf166e07c80bbdd034ef9e135caa5190d6db41db8ce61a84ff6"
+  },
+  "launcher_source": {
+    "bytes": 8132,
+    "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
+    "sha256": "764a2f0b896211ce6aa992e5b264e1c435e5b246b0ed3ed3397807915d0fb3f6"
+  },
+  "native_installation_verified": false,
+  "registration": {
+    "bytes": 4883,
+    "path": "scripts/register_installed_runtime.py",
+    "sha256": "39c4f978a3070e7c8627b7fef39f86770106ba67462f032b0578fc23dfca4ea9"
+  },
+  "schema": "evidence-lane.studio-windows-integration-link.v4",
+  "shortcut_owner": {
+    "bytes": 7164,
+    "path": "src/evidence_lane_plugin/shortcuts.py",
+    "sha256": "34fe6c916d1857c63036bec6ffb7bcdb8b5d280aff6aef447faad882352129b3"
+  },
+  "start_menu_shortcut_count": 1,
+  "startup_owner": {
+    "bytes": 5256,
+    "path": "src/evidence_lane_plugin/startup.py",
+    "sha256": "079a0f3c45e77b3ebaf240abc4a785a741d165bb715161941e3fc1fd049ad421"
+  },
+  "studio_visible": true
+}

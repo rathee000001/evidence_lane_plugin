@@ -1,0 +1,193 @@
+{
+  "action": "artifacts_refresh",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/artifacts_refresh.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/artifacts_refresh.binding.v4.json",
+  "outer_route": {
+    "action": "artifacts_refresh",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "artifacts",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "refresh-project-evidence"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/artifacts_refresh.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.sqlite_sqlalchemy",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "SQLAlchemy"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.native",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.calamine",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "python_calamine"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.presentation",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "PPTX_OpenXML"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.arrow",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pyarrow"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.pdf_pymupdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "PyMuPDF"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.pdf_pypdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+      "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "artifacts_refresh.pdf_pdfplumber",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber"
+      ]
+    }
+  ]
+}

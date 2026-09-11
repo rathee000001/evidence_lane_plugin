@@ -102,7 +102,7 @@ class SessionManager:
         project = self.engine.directory.open(context.project_id)
         policies = self.flash.policy_rows('uop', ('uop_workflow_gate_v4',), registry=self.engine.registry)
         event = {'ordinary_turn': 'MID_DELTA_QUERY', 'delta_append': 'DELTA_EXIT',
-            'session_exit': 'EXIT_BOOT', 'state_travel': 'WORK_HANDOFF_BOUNDARY',
+            'session_exit': 'EXIT_BOOT', 'work_handoff': 'WORK_HANDOFF_BOUNDARY',
             'goal_completion': 'GOAL_COMPLETION_BOUNDARY'}[request.kind]
         policy = next((row for row in policies['tables']['uop_workflow_gate_v4'] if row['event_id'] == event), None)
         if policy is None:
@@ -132,11 +132,11 @@ class SessionManager:
                 continuation = {'continuation_id': item['continuation_id'], 'continuation_digest': item['continuation_digest'],
                     'state': item['state'], 'binding_digest': item['result']['binding_digest'] if item['result'] else None,
                     'identity_scope': 'authenticated_engine_clients', 'native_handoff_proven': False}
-        terminal = request.kind in {'state_travel', 'goal_completion'}
+        terminal = request.kind in {'work_handoff', 'goal_completion'}
         if terminal:
             state = 'native_evidence_unavailable'
             requirement = ('Independently verified native source and destination task bindings, exact continuation and first destination receipt.'
-                if request.kind == 'state_travel' else 'Exact visible user completion decision and an independently verified native Goal completion result.')
+                if request.kind == 'work_handoff' else 'Exact visible user completion decision and an independently verified native Goal completion result.')
         else:
             state = 'nonterminal_boundary'
             requirement = {'ordinary_turn': 'Keep the captured turn response separate from Delta or native Goal completion.',
@@ -178,7 +178,7 @@ class SessionManager:
                 if row is None or tuple(row) != (record['owner_client_id'], context.client_id, 'accepted'):
                     raise LaneError('SESSION_CONTINUATION_MISMATCH', 'Resume requires this exact accepted source-to-destination continuation.')
         elif active:
-            raise LaneError('SESSION_OWNER_ACTIVE', 'The source client is active; complete an explicit State Travel transfer first.')
+            raise LaneError('SESSION_OWNER_ACTIVE', 'The source client is active; complete an explicit project handoff transfer first.')
         # A disconnected/restarted engine client can be recovered using the exact
         # persisted head and current owner-granted project access, never a title/PID.
 
@@ -215,7 +215,7 @@ class SessionManager:
                     raise LaneError('SESSION_OWNER_REQUIRED', 'Only the current authenticated session owner may close it.')
             root_before = dict(lease.acquisition_root_pv)
             if action != 'session_exit' and request.expected_root_pv_digest != root_before['head_digest']:
-                raise LaneError('SESSION_ROOT_PV_CHANGED', 'Refresh the published Root PV before attaching the session.')
+                raise LaneError('SESSION_ROOT_PV_CHANGED', 'Refresh the published project evidence head coordinator before attaching the session.')
             from .storage_selection import StorageSelection
             storage_route = (StorageSelection(self.engine, project).require_current(context).model_dump(mode='json')
                 if action != 'session_exit' else None)
@@ -237,7 +237,7 @@ class SessionManager:
                                     observation_scope='at_transition_commit',
                                     storage_route=storage_route,
                                     exit_reason=request.reason if closed else None)
-                        # This Root PV is explicitly the pre-transition reference; the
+                        # This project evidence head coordinator is explicitly the pre-transition reference; the
                         # receipt's own publication is available from session_status.
                         body['root_pv']['reference_scope'] = 'before_session_writer_acquisition'
                         result = authority.append(connection, action=action, client_id=context.client_id,
@@ -249,22 +249,22 @@ def register_session_actions(engine):
     manager = SessionManager(engine)
     engine.sessions = manager
     engine.registry.register(ActionSpec('runtime_doctor', 'Verify this engine, current host observations and the locked Flash routing package.',
-        SessionStatusRequest, RuntimeDoctor, manager.doctor, workflow='boot', project_required=False))
+        SessionStatusRequest, RuntimeDoctor, manager.doctor, workflow='open-project-session', project_required=False))
     engine.registry.register(ActionSpec('session_flash_status', 'Verify exact ENV/UOP policy bytes against the current registry without writing state.',
         SessionStatusRequest, FlashStatus, lambda context, request: manager.flash.verify(registry=engine.registry),
-        workflow='boot', project_required=False))
+        workflow='open-project-session', project_required=False))
     engine.registry.register(ActionSpec('session_context', 'Read current bounded Plan and separate lane references, verified Flash and exact engine-scoped compact recovery.',
-        SessionStatusRequest, SessionContext, manager.context, workflow='boot', profile='sessions',
+        SessionStatusRequest, SessionContext, manager.context, workflow='open-project-session', profile='sessions',
         queryable_in_delta=True))
     engine.registry.register(ActionSpec('session_status', 'Read the current project session, exact resume head and Plan reference.',
-        SessionStatusRequest, SessionResult, manager.status, profile='sessions', workflow='boot',
+        SessionStatusRequest, SessionResult, manager.status, profile='sessions', workflow='open-project-session',
         queryable_in_delta=True, studio_read=True))
-    engine.registry.register(ActionSpec('session_exit_boundary', 'Inspect exact local exit references and current UOP gates; unsupported native Goal or State Travel proof cannot become a terminal receipt.',
-        SessionBoundaryRead, SessionBoundaryResult, manager.boundary, profile='receipts', workflow='exit-boot', queryable_in_delta=True))
+    engine.registry.register(ActionSpec('session_exit_boundary', 'Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.',
+        SessionBoundaryRead, SessionBoundaryResult, manager.boundary, profile='receipts', workflow='close-project-session', queryable_in_delta=True))
     for name, model, workflow, description in (
-        ('session_boot', SessionBoot, 'boot', 'Boot one project session with verified Flash and attributed capture.'),
-        ('session_resume', SessionResume, 'boot', 'Resume the exact project session without duplicating or silently taking over a live owner.'),
-        ('session_exit', SessionExit, 'exit-boot', 'Close the exact current session at a safe boundary and detach its capture binding.')):
+        ('session_boot', SessionBoot, 'open-project-session', 'Boot one project session with verified Flash and attributed capture.'),
+        ('session_resume', SessionResume, 'open-project-session', 'Resume the exact project session without duplicating or silently taking over a live owner.'),
+        ('session_exit', SessionExit, 'close-project-session', 'Close the exact current session at a safe boundary and detach its capture binding.')):
         engine.registry.register(ActionSpec(name, description, model, SessionResult,
             lambda context, request, action=name: manager.transition(action, context, request),
             profile='sessions', workflow=workflow, permission='write', mutates=True))

@@ -608,7 +608,7 @@ def register_pdf_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for action, workflow in (("pdf_index", "source-intake"), ("pdf_refresh", "refresh")):
+    for action, workflow in (("pdf_index", "manage-project-sources"), ("pdf_refresh", "refresh-project-evidence")):
         engine.registry.register(
             ActionSpec(
                 action,
@@ -679,7 +679,7 @@ def register_pdf_actions(engine):
                 mutates=True,
                 requires_delta=True,
                 profile="pdf_ocr",
-                workflow="build",
+                workflow="execute-project-plan",
                 worker_operations=(action,),
                 verification_checks=("pdf_snapshot_integrity",),
                 verifier=verify_pdf,
@@ -723,7 +723,7 @@ def register_pdf_actions(engine):
                 PdfResult,
                 query_handler(function, action),
                 profile="pdf_ocr",
-                workflow="source-intake",
+                workflow="manage-project-sources",
                 queryable_in_delta=True,
                 cross_project_read=True,
                 studio_read=True,
@@ -743,7 +743,7 @@ def register_pdf_actions(engine):
             mutates=True,
             requires_delta=True,
             profile="pdf_ocr",
-            workflow="build",
+            workflow="execute-project-plan",
             path_fields=("filename",),
             verification_checks=("pdf_export_hash_verified",),
             verifier=verify_exported, worker_operations=("pdf_parse_bytes", "render_lane_view"),

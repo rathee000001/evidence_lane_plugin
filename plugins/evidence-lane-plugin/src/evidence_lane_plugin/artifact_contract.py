@@ -551,18 +551,18 @@ def register_artifact_actions(engine):
             views.extend(engine.registry.get_view(row['lane_id'] + '.structure').schema() for row in page['rows'])
         return ViewCatalog(views=views)
     engine.registry.register(ActionSpec("lane_view_catalog", "Read implemented per-lane view semantics, selected file roles and shared tools.",
-        ViewCatalogRequest, ViewCatalog, catalog, project_required=False, workflow='evi'))
+        ViewCatalogRequest, ViewCatalog, catalog, project_required=False, workflow='evidence-lane'))
     engine.registry.register(ActionSpec("lane_view_preview", "Preview a bounded lane graph and exact source binding without writing files.",
         ViewPreview, ViewPreviewResult, lambda context, request: LaneArtifacts(engine, engine.directory.open(context.project_id)).preview(request),
-        profile="artifacts", queryable_in_delta=True, workflow='evi'))
+        profile="artifacts", queryable_in_delta=True, workflow='evidence-lane'))
     def refresh(context, request):
         store = engine.directory.open(context.project_id, write=True)
         with engine.project_work.mutation(store) as lease:
             return LaneArtifacts(engine, store).refresh(request, lease, actor_id=context.client_id)
     engine.registry.register(ActionSpec("lane_view_refresh", "Export only selected lane artifacts from an exact verified source preview.",
         ViewRefresh, ViewPublished, refresh, permission="write", profile="artifacts", mutates=True,
-        worker_operations=('render_lane_view',), workflow='refresh',
+        worker_operations=('render_lane_view',), workflow='refresh-project-evidence',
         tool_routes=graph_export_routes(refresh)))
     engine.registry.register(ActionSpec("lane_view_read", "Validate recorded lane artifacts and report stale bindings without refreshing them.",
         ViewRead, ViewState, lambda context, request: LaneArtifacts(engine, engine.directory.open(context.project_id)).read(request),
-        profile="artifacts", queryable_in_delta=True, workflow='evi'))
+        profile="artifacts", queryable_in_delta=True, workflow='evidence-lane'))

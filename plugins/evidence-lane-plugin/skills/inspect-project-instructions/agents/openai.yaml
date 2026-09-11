@@ -1,6 +1,9 @@
 interface:
   display_name: "Inspect project instructions"
   short_description: "Inspect instruction provenance and host recall"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $inspect-project-instructions to inspect the instructions that apply here."
 dependencies:
   tools:

@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "0eb3c9caf2e10f50eca59697863e416044afa18e7f860e608d7e1f703f9f531b",
+  "action_set_digest": "295c324c614bd00cbd30dde2283b7cf0ea8ff810cd3de2de451162703956b948",
   "actions": [
     {
       "cross_project_read": false,
@@ -31,7 +31,7 @@
     },
     {
       "cross_project_read": false,
-      "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+      "description": "Read attributed Plan, task exchange authority, Memory and lineage locators for an accepted project continuation.",
       "input_schema_digest": "759934ae02ddab05a0c3d65c50797acb69dbf3288bd3ed66d929d84397544117",
       "mutates": false,
       "name": "continuation_context",
@@ -76,5 +76,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "state-travel"
+  "workflow": "handoff-project-work"
 }

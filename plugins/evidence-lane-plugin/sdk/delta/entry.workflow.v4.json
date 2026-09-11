@@ -1,0 +1,28 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    "delta_enter",
+    "delta_enter_planned"
+  ],
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "installed_execution_claimed": false,
+  "owners": [
+    {
+      "bytes": 30857,
+      "path": "src/evidence_lane_plugin/adaptive_delta_entry.py",
+      "sha256": "41156baa47dccf8b401fee5fb41acce0511bc9944aac8e5c7ae2d4a882793cab"
+    },
+    {
+      "bytes": 21014,
+      "path": "src/evidence_lane_plugin/coordination.py",
+      "sha256": "aafe1a88bb969f5858d60054a3298a3fbb1eeff1335fb04b4ddecbce6cdf1170"
+    }
+  ],
+  "plan_owned": true,
+  "purpose": "Admit one bounded task under the current Plan contract and writer lease.",
+  "removed_hil_overlay_or_fuse": true,
+  "schema": "evidence-lane.sdk-delta-workflow.v4",
+  "status": "PASS",
+  "workflow": "entry"
+}

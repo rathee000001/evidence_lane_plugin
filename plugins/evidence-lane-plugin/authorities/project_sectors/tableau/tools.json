@@ -587,7 +587,7 @@
       "version": 1,
       "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
       "consumer": "artifact_export",
-      "implementation_digest": "e962bf6dd006d079c76b4d7771062c8871ea956fd9810d9036ba73df174eb0fb",
+      "implementation_digest": "a3f200b10b610f4c3c60f5ed48a6a965dcb0cf15c4104a30f6d72dd3108544d4",
       "files": {
         "mmd": "tableau.mmd",
         "dot": "tableau.dot",

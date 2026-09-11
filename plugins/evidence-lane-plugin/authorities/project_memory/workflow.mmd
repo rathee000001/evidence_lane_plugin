@@ -29,20 +29,20 @@ flowchart TB
   action_project_memory_record_link["project_memory_record_link"]:::default
   sdk -->|"tools"| action_context_index_query
   delta -->|"required current operation contract"| action_context_index_query
-  action_context_index_query -->|"memory"| read
+  action_context_index_query -->|"manage-project-memory"| read
   sdk -->|"publish"| action_context_index_sync
   delta -->|"required current operation contract"| action_context_index_sync
-  action_context_index_sync -->|"memory"| writer
+  action_context_index_sync -->|"manage-project-memory"| writer
   sdk -->|"write"| action_memory_checkpoint
-  action_memory_checkpoint -->|"memory"| writer
+  action_memory_checkpoint -->|"manage-project-memory"| writer
   sdk -->|"write"| action_memory_ingest
-  action_memory_ingest -->|"memory"| writer
+  action_memory_ingest -->|"manage-project-memory"| writer
   sdk -->|"read"| action_memory_read
-  action_memory_read -->|"memory"| read
+  action_memory_read -->|"manage-project-memory"| read
   sdk -->|"read"| action_memory_rehydrate
-  action_memory_rehydrate -->|"memory"| read
+  action_memory_rehydrate -->|"manage-project-memory"| read
   sdk -->|"write"| action_project_memory_record_link
-  action_project_memory_record_link -->|"memory"| writer
+  action_project_memory_record_link -->|"manage-project-memory"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

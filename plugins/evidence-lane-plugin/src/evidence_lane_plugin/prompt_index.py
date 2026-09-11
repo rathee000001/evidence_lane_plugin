@@ -310,8 +310,8 @@ def register_prompt_actions(engine):
                     selection_sha256=selection['selection_sha256'],manifest_digest=selection['manifest_digest'])
             return EntryResult(entry=entry,task_mode_binding=binding)
     engine.registry.register(ActionSpec('task_classify','Record source-bound intent, focus, owning lanes and next workflow action; classification does not apply a Plan steer or authorize work.',
-        EntryClassify,EntryResult,classify,permission='write',mutates=True,profile='chat_lineage',workflow='lifecycle'))
+        EntryClassify,EntryResult,classify,permission='write',mutates=True,profile='chat_lineage',workflow='run-project-lifecycle'))
     engine.registry.register(ActionSpec('prompt_index_status','Read verified prompt entry indices and separate classifications for this exact client/project.',
         PromptRead,PromptStatus,lambda context,request:PromptStatus(index=PromptIndex(engine.directory.open(context.project_id)).status(
             client_id=context.client_id,reported_session_id=request.reported_session_id,limit=request.limit,after_index=request.after_index)),
-        profile='chat_lineage',workflow='source-intake',queryable_in_delta=True))
+        profile='chat_lineage',workflow='manage-project-sources',queryable_in_delta=True))

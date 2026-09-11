@@ -153,17 +153,17 @@ def test_missing_head_cannot_make_saved_policy_look_unconfigured(project):
     assert error.value.code == 'VALIDATION_POLICY_INTEGRITY'
 
 
-def test_recipe_returns_only_selected_project_policy_and_preserves_bytes(tmp_path):
-    from tests.test_project_recipes_v4 import database_bytes, files, system
-    with system(tmp_path) as (_, store, call, recipe):
-        result = recipe(git_mode='DISABLED')
+def test_workflow_returns_only_selected_project_policy_and_preserves_bytes(tmp_path):
+    from tests.test_project_workflow_configuration_v4 import database_bytes, files, system
+    with system(tmp_path) as (_, store, call, workflow):
+        result = workflow(git_mode='DISABLED')
         assert result.status == 'ok', result.error
         assert result.result['project_validation_policy']['state'] == 'not_configured'
         configured = call('validation_policy_set', ValidationPolicySet(expected_revision=0,
             policy=ValidationPolicy(title='Selected project', checks=[rule()])).model_dump(mode='json'), writing=True)
         assert configured.status == 'ok', configured.error
         before = files(store.source_root), database_bytes(store)
-        observed = recipe(git_mode='DISABLED')
+        observed = workflow(git_mode='DISABLED')
         assert observed.status == 'ok', observed.error
         assert observed.result['project_validation_policy'] == configured.result
         assert (files(store.source_root), database_bytes(store)) == before
@@ -215,5 +215,5 @@ def test_sdk_routes_preserve_read_only_and_project_scope(tmp_path):
             assert client.call('validation_policy_read', project_id=project_id).status == 'ok'
             assert client.call('validation_policy_set', project_id=project_id, arguments=request.model_dump(mode='json')).status == 'error'
         assert engine.registry.get('validation_policy_set').studio_read is False
-        assert engine.registry.get('validation_policy_set').workflow == 'plan'
+        assert engine.registry.get('validation_policy_set').workflow == 'manage-project-plan'
         assert not engine.registry.get('validation_policy_set').worker_operations

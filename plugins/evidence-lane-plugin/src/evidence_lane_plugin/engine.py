@@ -106,15 +106,15 @@ class Engine:
             ActionSpec(
                 "engine_health", "Read the local engine lifecycle and version.",
                 Empty, EngineHealth, lambda context, arguments: self.health(),
-                project_required=False, workflow='boot')
+                project_required=False, workflow='open-project-session')
         )
         self.registry.register(ActionSpec(
             "runtime_status", "Read measured tools/providers, worker state and selected-project job health.",
             RuntimeStatusInput, RuntimeStatus,
-            lambda context, arguments: runtime_status(self, context, arguments), project_required=False, workflow='toolchain'))
+            lambda context, arguments: runtime_status(self, context, arguments), project_required=False, workflow='select-project-tools'))
         self.registry.register(ActionSpec(
             "project_status", "Read identity and storage counts for one selected project.",
-            Empty, ProjectStatus, self.project_status, queryable_in_delta=True, cross_project_read=True, workflow='boot'))
+            Empty, ProjectStatus, self.project_status, queryable_in_delta=True, cross_project_read=True, workflow='open-project-session'))
         from .plan_runtime import register_plan_actions
         register_plan_actions(self)
         from .acceptance import register_validation_actions
@@ -245,7 +245,7 @@ class Engine:
         store = self.directory.open(context.project_id)
         with store.connection(read_only=True) as connection:
             metadata = connection.execute("SELECT format_version FROM project WHERE singleton=1").fetchone()
-            # Holding this Root PV read pins every lane to the same publication.
+            # Holding this project evidence head coordinator read pins every lane to the same publication.
             object_count = object_bytes = receipts = 0
             for item in store.lane_catalog():
                 with store.lane(item['lane_id']).connection(read_only=True) as lane:

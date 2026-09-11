@@ -2,7 +2,7 @@
 
 The old support module generated a second index and a mandatory artifact bundle
 for each authority. The current binding uses each real owner implementation,
-its own migration history and files, and the published Root PV references.
+its own migration history and files, and the published project evidence head coordinator references.
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ _ACTION_NAMES = MappingProxyType({
     'sources': ('git_branch_authority', 'enroll_project', 'fetch', 'git_sync_selected'),
     'receipts': ('capture_bind', 'remote_git_action_read', 'remote_git_prepare_push', 'remote_git_execute_push'),
     'project_authority': ('project_catalog', 'project_deselect', 'project_register', 'project_select',
-                          'project_status', 'storage_status', 'pv_summary'),
+                          'project_status', 'storage_status', 'code_snapshot_summary'),
     'session_authority': ('session_flash_status', 'session_exit_boundary', 'env_uop_inspect'),
     'instructions': ('instructions_inspect',),
 })

@@ -119,7 +119,7 @@ def test_same_grant_connections_cannot_take_over_or_capture_each_other(prepared,
             assert captured['captured']
             assert captured['result']['provenance'] == 'authenticated_remote_hook_report'
             assert len(engine.clients.status()) == 2  # Hook did not create or disconnect a client.
-            local_use = PublicActionSDKDispatcher(engine).execute(ActionRequest(action='project_recipe',
+            local_use = PublicActionSDKDispatcher(engine).execute(ActionRequest(action='project_workflow_configure',
                 project_id=config.project_id, arguments={}), engine.clients.authenticate(first.connection['connection_token']))
             assert local_use.error.code == 'ACTION_SCOPE_DENIED'
             first.close()
@@ -185,7 +185,9 @@ def test_packaged_manifest_selects_remote_without_local_administration(prepared,
     runtime, policy, config, environment = prepared
     plugin = Path(__file__).resolve().parents[1] / 'plugins/evidence-lane-plugin'
     manifest = json.loads((plugin / '.mcp.json').read_bytes())['mcpServers']['evidence-lane']
-    assert './scripts/run_mcp.py' in manifest['args']
+    assert manifest['command'] == 'node'
+    assert manifest['args'][0] == './mcp/server.mjs'
+    assert 'scripts", "run_mcp.py"' in (plugin / 'mcp/server.mjs').read_text(encoding='utf-8')
     assert '--local-project-administration' in manifest['args']
     selected = tmp_path / 'remote-client.json'
     atomic_json(selected, config.model_dump())

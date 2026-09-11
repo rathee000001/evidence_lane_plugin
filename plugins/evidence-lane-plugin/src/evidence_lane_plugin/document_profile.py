@@ -655,7 +655,7 @@ def register_document_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for action, workflow in (('document_index', 'source-intake'), ('document_refresh', 'refresh')):
+    for action, workflow in (('document_index', 'manage-project-sources'), ('document_refresh', 'refresh-project-evidence')):
         engine.registry.register(ActionSpec(action, 'Snapshot one exact document and its bounded native structure in the separate Docs lane.',
             DocumentIndex, DocumentResult, index_document, permission='write', mutates=True, requires_delta=True,
             profile='document', workflow=workflow, path_fields=('filename',), source_lanes=('docs',),
@@ -665,7 +665,7 @@ def register_document_actions(engine):
         ('document_generate', DocumentGenerate, generate_document, ('document_generate',), ('Python', 'DOCX_OpenXML')),
         ('document_edit', DocumentEdit, edit_document, ('document_edit',), ('Python', 'lxml'))):
         engine.registry.register(ActionSpec(action, 'Publish a new immutable lane-owned DOCX version with explicit structural and layout fidelity.',
-            model, DocumentResult, handler, permission='write', mutates=True, requires_delta=True, profile='document', workflow='build',
+            model, DocumentResult, handler, permission='write', mutates=True, requires_delta=True, profile='document', workflow='execute-project-plan',
             worker_operations=workers, verification_checks=('document_snapshot_integrity',), verifier=verify_document,
             tool_routes=(ToolRoute(action + '.native_document', handler, tools),)))
 
@@ -681,13 +681,13 @@ def register_document_actions(engine):
         ('document_query', DocumentQuery, query_document, 'Read bounded native structures or literal FTS5/BM25 matches from an exact document version.'),
         ('document_read', DocumentRead, read_document, 'Read a bounded base64 byte range from an exact immutable document.')):
         engine.registry.register(ActionSpec(action, description, model, DocumentResult, query_handler(function, action),
-            profile='document', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+            profile='document', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
             studio_read=True, read_migrations=DOC_MIGRATIONS,
             search=SearchRoute(('docs',), 'rows', 'document_current', 'documents', 'text', 'any', rerank_text='text') if action == 'document_query' else None,
             fetch=FetchRoute(('docs',), 'document') if action == 'document_read' else None))
     engine.registry.register(ActionSpec('document_export', 'Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.',
         DocumentExport, DocumentResult, export_document, permission='write', mutates=True, requires_delta=True,
-        profile='document', workflow='build', path_fields=('filename',), verification_checks=('document_export_hash_verified',),
+        profile='document', workflow='execute-project-plan', path_fields=('filename',), verification_checks=('document_export_hash_verified',),
         verifier=verify_exported, worker_operations=('document_parse_content', 'render_lane_view'),
         tool_routes=tuple(ToolRoute('document_export.native' + ('_view' if render else ''), export_document,
             ('Python', *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),

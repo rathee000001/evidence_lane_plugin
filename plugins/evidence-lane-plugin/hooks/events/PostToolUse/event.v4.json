@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": false,
   "entrypoint": "hooks/events/PostToolUse/handler.py",
   "event": "PostToolUse",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/PostToolUse/event.schema.json",
   "members": [
     {
       "path": "hooks/events/PostToolUse/handler.py",
-      "sha256": "a2e769ac47bd788a7bf94ccbb6d53909b005ad916367e8d2cf4e8eeb5c4cac0e"
+      "sha256": "49b3be2157009648d486635ce45cca1efcfdac6389e9112695f86c96fae04661"
     },
     {
       "path": "hooks/events/PostToolUse/event.schema.json",
       "sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4"
     },
     {
+      "path": "hooks/events/PostToolUse/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "e00472a3be1896015ebb67cd75cd7c433c99b49cc488e24119785ee1b07d629f"
+    },
+    {
+      "path": "hooks/events/PostToolUse/02-classify_event.stage.v4.json",
+      "sha256": "a082c2ee186c1a198aa230649db679109b5a09cd94f5306222f171f29a81cb2f"
+    },
+    {
+      "path": "hooks/events/PostToolUse/03-handle_event.stage.v4.json",
+      "sha256": "50bd8710f01a7fde022ea5d1da321b1d7811c69bfeed0b3e5ce589b6eb050cc5"
+    },
+    {
+      "path": "hooks/events/PostToolUse/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "3741f9b7ac1c050cf30cb6eab6f26397d4cff9c44026e60b488565cd80fd842e"
+    },
+    {
+      "path": "hooks/events/PostToolUse/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "b271c7fc7c4cc3d406e75a6773ee11a0eb7d18223df31ec04fc492298a9471c4"
+    },
+    {
+      "path": "hooks/events/PostToolUse/06-project_bounded_output.stage.v4.json",
+      "sha256": "8d6d7fa56a546e0eb465a641e0bffd0456ef2ef05d4a77fb5cb3480cafe20e21"
+    },
+    {
       "path": "hooks/events/PostToolUse/pipeline.v4.json",
-      "sha256": "46e55f703d021e21074dcff332586b7927bbaa44417f14f73bb1fc4700fa254c"
+      "sha256": "b483e9b66d8ae3d64ae6b0d404b885739022b13406a1ec2d5a775262a03b7294"
     },
     {
       "path": "hooks/events/PostToolUse/README.md",
-      "sha256": "7854fddba134267e3804b1d5b862a7ad36f529e3ee50d60ed9eaba5945a6166b"
+      "sha256": "250ed7048d72136d262f7e89144f12f0134a00816c170b1e4e85ee3bb685cb69"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

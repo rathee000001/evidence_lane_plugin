@@ -1,0 +1,44 @@
+{
+  "action": "powerbi_refresh",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/powerbi_refresh.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/powerbi_refresh.binding.v4.json",
+  "outer_route": {
+    "action": "powerbi_refresh",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "power_bi",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "refresh-project-evidence"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/powerbi_refresh.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.powerbi_profile:index_powerbi",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Complete Power BI adapter prerequisites; input format selects the actual TOM/PBIX/schema calls recorded in native evidence.",
+      "route_id": "powerbi_refresh.native",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "PowerBI_TOM",
+        "PBIXRay",
+        "JSONSchema"
+      ]
+    }
+  ]
+}

@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": false,
   "entrypoint": "hooks/events/SubagentStop/handler.py",
   "event": "SubagentStop",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStopHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/SubagentStop/event.schema.json",
   "members": [
     {
       "path": "hooks/events/SubagentStop/handler.py",
-      "sha256": "ac2a03bd13f9c68eb09b088b4a223ebadf10f0e1aee1df0a113c33b15f855d05"
+      "sha256": "b69ea48efff98eacbd00ea90b20e7407f689c1893fef5ed441132a8392a68d40"
     },
     {
       "path": "hooks/events/SubagentStop/event.schema.json",
       "sha256": "68084e83ffbd997c8ec31e41203aa281dae20696ca99f5bae41f2c0a2d9ea889"
     },
     {
+      "path": "hooks/events/SubagentStop/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "be2617538ff1b67a8d4c217ffc7b59c55c71ad6073174c23c9b1d1bfe808a29f"
+    },
+    {
+      "path": "hooks/events/SubagentStop/02-classify_event.stage.v4.json",
+      "sha256": "d03b3a5ed0efd8d04e8dbfd4f0c548bace3e87320599174b6ff63fd7b7e3bfcc"
+    },
+    {
+      "path": "hooks/events/SubagentStop/03-handle_event.stage.v4.json",
+      "sha256": "f0e4dc03879ab0def3118e156a3d960b604370b54efc29d5b6b938c0c6449278"
+    },
+    {
+      "path": "hooks/events/SubagentStop/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "d9e5cfae085f5b116773c22d34b6cb1ea873f871b638dff4c846b129aa3b84ef"
+    },
+    {
+      "path": "hooks/events/SubagentStop/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "ca7eb61ea45bf1d95dac2aab0ee3c5fcf67d7b53edfdcb1c840893f5c9a72a87"
+    },
+    {
+      "path": "hooks/events/SubagentStop/06-project_bounded_output.stage.v4.json",
+      "sha256": "98354cc890e1dd377f524ce00942bdf397164489d3962149270604a69d258bf7"
+    },
+    {
       "path": "hooks/events/SubagentStop/pipeline.v4.json",
-      "sha256": "b6547ecb1818b0c20d5b6893f871d59a2d10f98d21c6e42ab1e5170885b77e99"
+      "sha256": "182e07cbbda8b971ace00d858b616cf5732417d7858d6d8a4d6803cb0c2cb1d8"
     },
     {
       "path": "hooks/events/SubagentStop/README.md",
-      "sha256": "16952143976ae2c0a2a58420505b45d8b51aaeea1dd28e6cd29a61284e77333a"
+      "sha256": "3216b5cae7f98d308a529f55c2dba4ba7101305f3513d1e352024ccd15033364"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

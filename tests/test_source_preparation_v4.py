@@ -244,5 +244,5 @@ def test_every_retained_sector_has_an_explicit_initial_index_owner(code_system):
     specs = code_system[0].registry.materialization_actions()
     assert len(specs) == 16
     assert {lane for spec in specs for lane in spec.source_lanes} == set(SECTOR_LANE_IDS)
-    assert all(spec.requires_delta and spec.verifier and spec.workflow == 'source-intake' for spec in specs)
+    assert all(spec.requires_delta and spec.verifier and spec.workflow == 'manage-project-sources' for spec in specs)
     assert {spec.name for spec in specs if spec.materialization.auxiliary_paths} == {'code_index_git'}

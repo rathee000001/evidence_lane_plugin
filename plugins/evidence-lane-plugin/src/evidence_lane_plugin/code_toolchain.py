@@ -318,8 +318,8 @@ def _tree_sitter_worker_loop(
 ) -> None:
     """Serve parser requests without ProcessPoolExecutor management threads.
 
-    The Evidence Lane tunnel already runs below a supervised child process on
-    Windows.  A nested ProcessPoolExecutor can leave its management thread
+    The persistent Evidence Lane engine owns supervised child processes on
+    Windows. A nested ProcessPoolExecutor can leave its management thread
     waiting forever even after a parser child is terminated.  A dedicated
     request/response pipe keeps the native grammar isolated while giving the
     parent an independent, enforceable poll timeout.

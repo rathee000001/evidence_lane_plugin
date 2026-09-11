@@ -1,0 +1,128 @@
+{
+  "action": "pdf_index",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/pdf_index.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/pdf_index.binding.v4.json",
+  "outer_route": {
+    "action": "pdf_index",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "pdf_ocr",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "manage-project-sources"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/pdf_index.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:index_pdf",
+      "argument_suffixes": {},
+      "argument_values": {
+        "text_backend": [
+          "auto",
+          "pymupdf"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_index.native_pdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "PyMuPDF",
+        "pdfplumber"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_plumber",
+      "argument_suffixes": {},
+      "argument_values": {
+        "text_backend": [
+          "auto",
+          "pdfplumber"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Attributed pdfplumber text and tables.",
+      "route_id": "pdf_index.pdfplumber",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_pypdf",
+      "argument_suffixes": {},
+      "argument_values": {
+        "text_backend": [
+          "auto",
+          "pypdf"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Retained pypdf text backend with separate geometric tables.",
+      "route_id": "pdf_index.pypdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_poppler",
+      "argument_suffixes": {},
+      "argument_values": {
+        "text_backend": [
+          "auto",
+          "poppler"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Verified Poppler native text backend with exact page binding.",
+      "route_id": "pdf_index.poppler",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber",
+        "Poppler_pdftotext_pdfinfo"
+      ]
+    }
+  ]
+}

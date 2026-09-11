@@ -1,4 +1,4 @@
-"""Release-owned Windows launcher keeps login and shortcut commands bounded."""
+"""Stable-root Windows launcher keeps login and shortcut commands bounded."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import pytest
 from evidence_lane_plugin.shortcuts import StudioShortcut
 from evidence_lane_plugin.startup import LoginStartup
 
@@ -38,14 +39,14 @@ def test_packaged_launcher_build_identity_and_read_only_layout_inspection(tmp_pa
     assert build["output_sha256"] == hashlib.sha256(BINARY.read_bytes()).hexdigest()
     assert build["output_bytes"] == BINARY.stat().st_size
     install = tmp_path / "shared"
-    release = install / "releases/v4.0.0-0123456789abcdef"
+    release = install
     launcher = release / "app/EvidenceLaneStudio.exe"
     launcher.parent.mkdir(parents=True)
     shutil.copyfile(BINARY, launcher)
-    plugin = release / "app/plugin"
+    plugin = release / "plugin"
     (plugin / "scripts").mkdir(parents=True)
     (plugin / "scripts/launch_studio.py").write_text("# fixture\n", encoding="utf-8")
-    runtime = release / "runtime/engine"
+    runtime = release / "engine"
     pythonw = runtime / "venv/Scripts/pythonw.exe"
     pythonw.parent.mkdir(parents=True)
     pythonw.write_bytes(b"fixture")
@@ -75,9 +76,9 @@ def test_packaged_launcher_build_identity_and_read_only_layout_inspection(tmp_pa
     ).returncode == 64
 
 
-def test_login_and_shortcut_target_the_short_release_launcher(tmp_path: Path) -> None:
-    release = tmp_path / "r/v4.0.0-0123456789abcdef"
-    runtime = release / "runtime/engine"
+def test_login_and_shortcut_target_the_stable_launcher(tmp_path: Path) -> None:
+    release = tmp_path / "EvidenceLaneStudio"
+    runtime = release / "engine"
     pythonw = runtime / "venv/Scripts/pythonw.exe"
     launcher = release / "app/EvidenceLaneStudio.exe"
     pythonw.parent.mkdir(parents=True)
@@ -104,19 +105,19 @@ def test_login_and_shortcut_target_the_short_release_launcher(tmp_path: Path) ->
     assert specification["target"] == str(launcher)
     assert specification["arguments"] == "--open"
     default_launcher = Path(
-        "C:/Apps/EvidenceLaneStudio/releases/v4.0.0-0123456789abcdef/app/EvidenceLaneStudio.exe"
+        "C:/Apps/EvidenceLaneStudio/app/EvidenceLaneStudio.exe"
     )
     assert len(subprocess.list2cmdline([str(default_launcher), "--startup"])) < 260
 
 
-def test_exact_release_registration_is_read_back_and_idempotent(tmp_path: Path) -> None:
+def test_stable_installation_registration_is_read_back_and_idempotent(tmp_path: Path) -> None:
     module = load_registration_script()
     installation = tmp_path / "shared"
-    release = installation / "releases/v4.0.0-0123456789abcdef"
-    runtime = release / "runtime/engine"
+    release = installation
+    runtime = release / "engine"
     pythonw = runtime / "venv/Scripts/pythonw.exe"
     launcher = release / "app/EvidenceLaneStudio.exe"
-    plugin = release / "app/plugin"
+    plugin = release / "plugin"
     pythonw.parent.mkdir(parents=True)
     launcher.parent.mkdir(parents=True)
     (plugin / "scripts").mkdir(parents=True)
@@ -154,6 +155,7 @@ def test_exact_release_registration_is_read_back_and_idempotent(tmp_path: Path) 
         startup_backend=run_value,
         shortcut_backend=shortcut,
         appdata=menu,
+        desktop=tmp_path / "desktop",
         system="Windows",
     )
     second = module.register(
@@ -162,12 +164,15 @@ def test_exact_release_registration_is_read_back_and_idempotent(tmp_path: Path) 
         startup_backend=run_value,
         shortcut_backend=shortcut,
         appdata=menu,
+        desktop=tmp_path / "desktop",
         system="Windows",
     )
     assert first["status"] == second["status"] == "PASS"
     assert first["startup"]["registered"] is True
-    assert first["shortcut"]["changed"] is True
-    assert second["shortcut"]["changed"] is False
+    assert first["shortcuts"]["start_menu"]["changed"] is True
+    assert first["shortcuts"]["desktop"]["changed"] is True
+    assert second["shortcuts"]["start_menu"]["changed"] is False
+    assert second["shortcuts"]["desktop"]["changed"] is False
     assert len(run_value.value) < 260
     assert "--startup" in run_value.value
     persisted = json.loads((installation / "registration.json").read_text())
@@ -178,3 +183,59 @@ def test_exact_release_registration_is_read_back_and_idempotent(tmp_path: Path) 
     ).encode()
     assert receipt == hashlib.sha256(encoded).hexdigest()
     assert persisted["project_state_changed"] is False
+
+
+def test_registration_failure_rolls_back_new_login_and_shortcut_entries(tmp_path: Path) -> None:
+    module = load_registration_script()
+    installation = tmp_path / "shared"
+    runtime = installation / "engine"
+    pythonw = runtime / "venv/Scripts/pythonw.exe"
+    launcher = installation / "app/EvidenceLaneStudio.exe"
+    plugin = installation / "plugin"
+    pythonw.parent.mkdir(parents=True)
+    launcher.parent.mkdir(parents=True)
+    (plugin / "scripts").mkdir(parents=True)
+    pythonw.write_bytes(b"fixture")
+    launcher.write_bytes(b"fixture")
+    (plugin / "scripts/run_engine.py").write_text("# fixture\n", encoding="utf-8")
+
+    class RunValue:
+        value = None
+
+        def read(self):
+            return self.value
+
+        def write(self, value):
+            self.value = value
+
+        def remove(self):
+            self.value = None
+
+    run_value = RunValue()
+    specifications = {}
+
+    def shortcut(path, *, specification=None):
+        key = str(path.parent)
+        if specification is not None:
+            if "desktop" in path.parts:
+                raise RuntimeError("fixture desktop failure")
+            path.write_bytes(b"shortcut")
+            specifications[key] = specification
+        return specifications[key]
+
+    menu = tmp_path / "menu"
+    desktop = tmp_path / "desktop"
+    with pytest.raises(RuntimeError, match="fixture desktop failure"):
+        module.register(
+            installation,
+            installation,
+            startup_backend=run_value,
+            shortcut_backend=shortcut,
+            appdata=menu,
+            desktop=desktop,
+            system="Windows",
+        )
+    assert run_value.value is None
+    assert not (menu / "Evidence Lane Studio.lnk").exists()
+    assert not (menu / ".evidence-lane-studio-shortcut.json").exists()
+    assert not (installation / "registration.json").exists()

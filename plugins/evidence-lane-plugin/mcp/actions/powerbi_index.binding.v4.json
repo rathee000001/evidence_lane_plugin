@@ -1,13 +1,13 @@
 {
   "action": "powerbi_index",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/powerbi_index.action.v4.json",
-  "sdk_binding_sha256": "47507efd6803b7cb8173f81ad5f0e0eef22a55ab8783f8f4036d6fa16388aa07",
+  "sdk_binding_sha256": "22c17d9b603d6e0a87b0d6a52e36325126d875b9d0715c437f9fa128052fb83f",
   "tool": {
     "annotations": {
       "destructiveHint": true,

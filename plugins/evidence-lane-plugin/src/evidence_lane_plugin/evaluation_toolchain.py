@@ -110,7 +110,7 @@ def register_evaluation_actions(engine: Any) -> None:
             handler,
             permission="publish",
             profile="core",
-            workflow="toolchain",
+            workflow="select-project-tools",
             mutates=True,
             requires_delta=True,
             required_tools=("Python", "HTTPX"),

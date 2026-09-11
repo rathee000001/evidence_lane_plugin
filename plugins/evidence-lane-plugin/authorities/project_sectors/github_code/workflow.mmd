@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=BEBCF0AA8BA5EB4EDA261CF75EC408D3208DF35085DA49270B0CA3D638A4F7AB
+%% LANGGRAPH_EXPORT_SHA256=5B96B4BB2C74FEE63EACF773ED11AE77BB2947107D951B8DC161739545060B3E
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -29,8 +29,8 @@ flowchart TB
   action_code_semantic_query["code_semantic_query"]:::default
   action_code_semantic_query_faiss["code_semantic_query_faiss"]:::default
   action_code_semantic_query_vec["code_semantic_query_vec"]:::default
+  action_code_snapshot_summary["code_snapshot_summary"]:::default
   action_fetch["fetch"]:::default
-  action_pv_summary["pv_summary"]:::default
   action_source_snapshot_retire["source_snapshot_retire"]:::default
   action_source_snapshot_state["source_snapshot_state"]:::default
   read -->|"read"| action_code_current
@@ -56,10 +56,10 @@ flowchart TB
   lane -->|"bounded recorded evidence"| action_code_semantic_query_faiss
   read -->|"read"| action_code_semantic_query_vec
   lane -->|"bounded recorded evidence"| action_code_semantic_query_vec
+  read -->|"read"| action_code_snapshot_summary
+  lane -->|"bounded recorded evidence"| action_code_snapshot_summary
   read -->|"read"| action_fetch
   lane -->|"bounded recorded evidence"| action_fetch
-  read -->|"read"| action_pv_summary
-  lane -->|"bounded recorded evidence"| action_pv_summary
   delta -->|"sources"| action_source_snapshot_retire
   action_source_snapshot_retire -->|"owned publication"| lane
   action_source_snapshot_retire -->|"source_selector_retirement_verified"| verify
@@ -70,5 +70,5 @@ flowchart TB
   action_code_impact ~~~ action_code_query
   action_code_semantic_query ~~~ action_code_semantic_query_faiss
   action_code_semantic_query_faiss ~~~ action_code_semantic_query_vec
-  action_pv_summary ~~~ action_source_snapshot_state
+  action_fetch ~~~ action_source_snapshot_state
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

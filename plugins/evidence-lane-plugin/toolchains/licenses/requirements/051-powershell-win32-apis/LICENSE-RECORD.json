@@ -4,10 +4,10 @@
   "ordinal": 51,
   "tool": "PowerShell_Win32_APIs",
   "requirement": "REQUIRED_WINDOWS_HOST",
-  "classification": "HOST_PLATFORM_CAPABILITY",
-  "install_mode": "host_probe_only",
+  "classification": "WINDOWS_HOST_CAPABILITY",
+  "install_mode": "windows_host_capability_probe",
   "license_expression_or_terms": "HOST_PLATFORM_TERMS",
-  "license_evidence": "Windows host capability probe; no host binary redistributed",
+  "license_evidence": "Evidence Lane-owned engine code or a standard-library/Windows host capability; no tunnel distribution role.",
   "evidence_paths": [
     "toolchains/tool-definitions.v4.json"
   ],
@@ -24,5 +24,16 @@
   "catalog_ordinal": 50,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "1c9322d5aa39032d6bfb45a0725576339453752477a8d26e584662e312946655"
+  "delivery_owner": "windows_host",
+  "provisioning_route": "windows_host_api_with_platform_verification",
+  "studio_bundle_component": "core-engine-studio",
+  "studio_bundle_member": false,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "c0875c4d46abd6bc9a0f4b079a08fdbe246e4f55a29579b45494110ffb9d693d",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "449c08dfdfe44b474f472ec4f10d11964355f9951e3fa918e90c092b99f50ec5"
 }

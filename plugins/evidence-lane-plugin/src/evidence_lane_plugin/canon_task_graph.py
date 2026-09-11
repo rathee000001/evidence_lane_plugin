@@ -1,8 +1,8 @@
-"""Attributed Canon exchanges and receiver-owned contracts in the Canon lane.
+"""Attributed task exchange authority exchanges and receiver-owned contracts in the task exchange authority lane.
 
 Retains immutable envelopes, expected-input matching, corrections and results
-from the base Canon owner. Engine project participants are not native host task
-attestations. Canon admission never grants tools, changes Plan or promotes work.
+from the base task exchange authority owner. Engine project participants are not native host task
+attestations. task exchange authority admission never grants tools, changes Plan or promotes work.
 """
 from __future__ import annotations
 
@@ -34,9 +34,9 @@ Scalar = str | int | float | bool | None
 
 def safe_text(value):
     if contains_secret(value) or redact(value) != value:
-        raise ValueError('Secret material cannot enter a Canon exchange')
+        raise ValueError('Secret material cannot enter a task exchange authority exchange')
     if isinstance(value, dict) and any(key.lower() in {'chain_of_thought','private_reasoning','hidden_reasoning','internal_reasoning','reasoning_content'} for key in value):
-        raise ValueError('Only visible content can enter Canon')
+        raise ValueError('Only visible content can enter task exchange authority')
 
 
 class CanonJoin(Contract):
@@ -136,7 +136,7 @@ class CanonBackfireDetails(Contract):
     def bounded_routes(self):
         if (len(set(self.dependency_ids)) != len(self.dependency_ids)
                 or any(not re.fullmatch(UUID_PATTERN, key) for key in self.dependency_ids)):
-            raise ValueError('Dependencies must name distinct bounded Canon exchanges or task edges')
+            raise ValueError('Dependencies must name distinct bounded task exchange authority exchanges or task edges')
         nodes = [(item.project_id, item.participant_id) for item in self.trace]
         if len(set(nodes)) != len(nodes):
             raise ValueError('A correction trace cannot repeat a project participant')
@@ -355,7 +355,7 @@ class CanonContinuationCheckpoint(Contract):
         if (self.participant_ids != sorted(set(self.participant_ids))
                 or any(not re.fullmatch(UUID_PATTERN, item) for item in self.participant_ids)
                 or len(self.model_dump_json().encode()) > 131072):
-            raise ValueError('Use an exact bounded participant set and Canon locator checkpoint')
+            raise ValueError('Use an exact bounded participant set and task exchange authority locator checkpoint')
         return self
 
 
@@ -782,7 +782,7 @@ class CanonStore:
         if not historical:
             self._expiry(definition)
         if definition['schema_digest'] != content_digest(CanonPayload.model_json_schema()):
-            raise LaneError('CANON_EDGE_SCHEMA_MISMATCH', 'The edge does not select the current typed Canon payload schema.')
+            raise LaneError('CANON_EDGE_SCHEMA_MISMATCH', 'The edge does not select the current typed task exchange authority payload schema.')
         returning = request.kind in {'result', 'clarification', 'backfire'}
         route = (destination, source) if returning else (source, destination)
         sender_project = source_project_id or self.store.project_id
@@ -802,7 +802,7 @@ class CanonStore:
 
     def initialize(self,lease):
         if lease.store.root!=self.store.root or lease.store.project_id!=self.store.project_id:
-            raise LaneError('WRITER_PROJECT_MISMATCH','The Canon writer belongs to another project.')
+            raise LaneError('WRITER_PROJECT_MISMATCH','The task exchange authority writer belongs to another project.')
         lease.check()
         apply_migrations(self.store,CANON_MIGRATIONS,writer=lease)
 
@@ -828,7 +828,7 @@ class CanonStore:
             value=dict(row)
             digest=value.pop('digest')
             if content_digest(value)!=digest:
-                raise LaneError('CANON_HISTORY_INTEGRITY','The Canon event differs from its identity.')
+                raise LaneError('CANON_HISTORY_INTEGRITY','The task exchange authority event differs from its identity.')
             return json.loads(row['result_json'])
         return None
 
@@ -1216,7 +1216,7 @@ class CanonStore:
         details = message.backfire
         row, body = self.exchange(connection, details.admitted_exchange_id)
         if row['envelope_digest'] != details.admitted_envelope_digest:
-            raise LaneError('CANON_BACKFIRE_INPUT_MISMATCH', 'Select the exact immutable admitted Canon input.')
+            raise LaneError('CANON_BACKFIRE_INPUT_MISMATCH', 'Select the exact immutable admitted task exchange authority input.')
         if (row['destination_project_id'] != self.store.project_id or row['receiver_id'] != message.sender_id
                 or row['state'] != 'admitted' or row['local_role'] == 'outbox'):
             raise LaneError('CANON_BACKFIRE_REQUIRES_ADMITTED_INPUT', 'Only the receiving owner of a currently admitted input can raise its backfire.')
@@ -1283,7 +1283,7 @@ class CanonStore:
             else:
                 try:
                     if request.kind == 'backfire':
-                        raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use canon_backfire to validate the conditional request before sealing.')
+                        raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use task_evidence_input_request to validate the conditional request before sealing.')
                     automatic, _ = self._validate_message(connection, request)
                     expected = request.expected_contract is not None
                     if not expected:
@@ -1314,7 +1314,7 @@ class CanonStore:
     def send(self,request,lease,*,actor_id,destination_participant=None,return_contract_snapshot=None,_typed_backfire=False):
         request=CanonSend.model_validate(request.model_dump())
         if request.kind == 'backfire' and not _typed_backfire:
-            raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use canon_backfire for a conditional admitted-input request with an exact recipient and correction trace.')
+            raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use task_evidence_input_request for a conditional admitted-input request with an exact recipient and correction trace.')
         self.initialize(lease)
         with lease.transaction('canon') as connection:
             key=content_digest(request.model_dump())
@@ -1437,7 +1437,7 @@ class CanonStore:
         fields = dict(event)
         digest = fields.pop('digest')
         if content_digest(fields) != digest or event['kind'] not in {'backfire','task_result'}:
-            raise LaneError('CANON_OPERATION_INTEGRITY', 'The conditional Canon operation differs from its attributable event.')
+            raise LaneError('CANON_OPERATION_INTEGRITY', 'The conditional task exchange authority operation differs from its attributable event.')
         record = json.loads(event['result_json'])
         operation = record['operation']
         kind = event['kind']
@@ -1480,7 +1480,7 @@ class CanonStore:
             operation, row = self._operation_record(connection, canonical)
             if operation['dedup_key'] != key or operation['identity_digest'] != identity:
                 code = 'CANON_BACKFIRE_DEDUP_CONFLICT' if kind == 'backfire' else 'CANON_TASK_RESULT_DEDUP_CONFLICT'
-                raise LaneError(code, 'The same semantic key already names different exact Canon request content.')
+                raise LaneError(code, 'The same semantic key already names different exact task exchange authority request content.')
             if event is None:
                 self._event(connection,request.request_id,kind+'_replay',actor_id,request_digest,
                     {'exchange_id':row['exchange_id'],'canonical_request_id':canonical['request_id'],'dedup_key':key})
@@ -1640,7 +1640,7 @@ class CanonStore:
             body=dict(row)
             digest=body.pop('digest')
             if row['sequence']!=sequence or row['previous_digest']!=previous or content_digest(body)!=digest:
-                raise LaneError('CANON_HISTORY_INTEGRITY','The Canon event chain is inconsistent.')
+                raise LaneError('CANON_HISTORY_INTEGRITY','The task exchange authority event chain is inconsistent.')
             previous=digest
         return {'events_verified':len(rows),'head':previous}
 
@@ -1654,7 +1654,7 @@ class CanonStore:
         """Read a complete bounded pending set; the continuation owner seals it.
 
         The caller holds the project mutation lock or a coherent snapshot.
-        Packet content and receiver decisions stay with the Canon owner.
+        Packet content and receiver decisions stay with the task exchange authority owner.
         """
         ids = sorted(set(participant_ids))
         if (not 1 <= len(ids) <= 32 or len(ids) != len(participant_ids)
@@ -1768,11 +1768,11 @@ class CanonStore:
             counts={table:connection.execute('SELECT COUNT(*) FROM '+table).fetchone()[0]
                 if self._table(connection,table) else 0 for table in tables}
             if sum(counts.values())>request.record_limit:
-                raise LaneError('CANON_INSPECTION_BUDGET','Canon inspection exceeds the selected total record budget.')
+                raise LaneError('CANON_INSPECTION_BUDGET','task exchange authority inspection exceeds the selected total record budget.')
             integrity=[row[0] for row in connection.execute('PRAGMA quick_check')]
             foreign_keys=[list(row) for row in connection.execute('PRAGMA foreign_key_check')]
             if integrity!=['ok'] or foreign_keys:
-                raise LaneError('CANON_DATABASE_INTEGRITY','Canon database or foreign-key checks failed.')
+                raise LaneError('CANON_DATABASE_INTEGRITY','task exchange authority database or foreign-key checks failed.')
             history=self._verify_history(connection,limit=request.record_limit)
             initialized=self._table(connection,'canon_participants')
             migrations=[]
@@ -1784,7 +1784,7 @@ class CanonStore:
                 migrations=[dict(row) for row in connection.execute('SELECT owner,version,digest FROM schema_migrations WHERE owner=? ORDER BY version',('canon',))]
                 expected=[{'owner':m.owner,'version':m.version,'digest':m.digest} for m in CANON_MIGRATIONS]
                 if migrations!=expected:
-                    raise LaneError('CANON_SCHEMA_INTEGRITY','Canon migration identities differ from the executable owner.')
+                    raise LaneError('CANON_SCHEMA_INTEGRITY','task exchange authority migration identities differ from the executable owner.')
                 verify_schema_history_files(self.store,connection)
                 for row in connection.execute('SELECT participant_id FROM canon_participants'):
                     self.participant(connection,row[0])
@@ -1833,13 +1833,13 @@ class CanonStore:
 
 
 def register_canon_actions(engine):
-    def remote_context(context, project_id, action='canon_graph'):
+    def remote_context(context, project_id, action='task_evidence_graph'):
         from .lane_reader import LaneReader
         target = LaneReader(engine)._context(context, project_id)
         engine.registry.validate(action, {}, target)
         return target
 
-    def remote_read(context, project_id, read, action='canon_graph'):
+    def remote_read(context, project_id, read, action='task_evidence_graph'):
         import time
 
         from .storage import bounded_project_read
@@ -1882,12 +1882,12 @@ def register_canon_actions(engine):
                 return CanonStore(store).bind_task_edge(request, lease, actor_id=context.client_id, source_edge=source)
 
     for name, description, input_model, handler in [
-        ('canon_task_edge_register', 'Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.',
+        ('task_evidence_edge_register', 'Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.',
             CanonTaskEdgeRegister, task_edge_register),
-        ('canon_task_edge_bind', 'Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.',
+        ('task_evidence_edge_bind', 'Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.',
             CanonTaskEdgeBind, task_edge_bind)]:
         engine.registry.register(ActionSpec(name, description, input_model, CanonTaskEdgeResult, handler,
-            permission='write', profile='canon', mutates=True, workflow='canon'))
+            permission='write', profile='canon', mutates=True, workflow='exchange-task-evidence'))
     def packet_mutation(method):
         def run(context, request):
             foreign, destination, snapshot, remote_ids = [], None, None, set()
@@ -1899,23 +1899,23 @@ def register_canon_actions(engine):
                     message = getattr(CanonStore(project),f'_{method}_message')(connection, request)
             if method == 'backfire' and request.return_route.project_id != context.project_id:
                 return_snapshot = remote_read(context, request.return_route.project_id,
-                    lambda canon, connection:canon._return_contract_snapshot(connection,request.return_contract),'canon_read')
+                    lambda canon, connection:canon._return_contract_snapshot(connection,request.return_contract),'task_evidence_read')
                 remote_ids.add(request.return_route.project_id)
             if method == 'expect':
                 for endpoint in request.sender_endpoints:
                     if endpoint.project_id != context.project_id:
                         foreign.append(remote_read(context, endpoint.project_id,
-                            lambda canon, connection, endpoint=endpoint:canon.participant(connection, endpoint.participant_id), 'canon_read'))
+                            lambda canon, connection, endpoint=endpoint:canon.participant(connection, endpoint.participant_id), 'task_evidence_read'))
                         remote_ids.add(endpoint.project_id)
             elif method in {'send','task_result','backfire'} and message.destination_project_id and message.destination_project_id != context.project_id:
                 destination = remote_read(context, message.destination_project_id,
-                    lambda canon, connection:canon.participant(connection, message.receiver_id), 'canon_read')
+                    lambda canon, connection:canon.participant(connection, message.receiver_id), 'task_evidence_read')
                 remote_ids.add(message.destination_project_id)
             elif method == 'receive':
                 if request.source_project_id == context.project_id:
                     raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Local sends already record their receiver input in this project.')
                 snapshot = remote_read(context, request.source_project_id,
-                    lambda canon, connection:canon.source_snapshot(connection, request), 'canon_read')
+                    lambda canon, connection:canon.source_snapshot(connection, request), 'task_evidence_read')
                 remote_ids.add(request.source_project_id)
             elif method == 'decide' and request.decision == 'admit':
                 project = engine.directory.open(context.project_id)
@@ -1924,12 +1924,12 @@ def register_canon_actions(engine):
                     source_id, digest = row['source_project_id'], row['envelope_digest']
                 if source_id != context.project_id:
                     locator = CanonReceive(source_project_id=source_id, exchange_id=request.exchange_id, envelope_digest=digest)
-                    snapshot = remote_read(context, source_id, lambda canon, connection:canon.source_snapshot(connection, locator), 'canon_read')
+                    snapshot = remote_read(context, source_id, lambda canon, connection:canon.source_snapshot(connection, locator), 'task_evidence_read')
                     remote_ids.add(source_id)
             store = engine.directory.open(context.project_id, write=True)
             with engine.project_work.mutation(store, kind='capture') as lease:
                 for project_id in remote_ids:
-                    remote_context(context, project_id, 'canon_read')
+                    remote_context(context, project_id, 'task_evidence_read')
                 with lease.coordinated_transaction(['canon','receipts']):
                     options = {'expect':{'foreign_participants':foreign}, 'send':{'destination_participant':destination},
                         'receive':{'source_snapshot':snapshot}, 'decide':{'source_snapshot':snapshot}, 'task_result':{'destination_participant':destination},
@@ -1945,41 +1945,41 @@ def register_canon_actions(engine):
                     return getattr(CanonStore(store),method)(request,lease,actor_id=context.client_id)
         return run
     for name,description,input_model,output_model,method in [
-        ('canon_join','Register a project participant owned by this engine client; does not create a host task.',CanonJoin,CanonParticipant,'join'),
-        ('canon_expect','Version the receiver-owned typed expected-input contract.',CanonExpected,CanonContractResult,'expect'),
-        ('canon_send','Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.',CanonSend,CanonSent,'send'),
-        ('canon_receive','Receive an exact source-sealed packet as its destination participant; never mutate the source project.',CanonReceive,CanonSent,'receive'),
-        ('canon_task_result','Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.',CanonTaskResult,CanonOperationSent,'task_result'),
-        ('canon_backfire','Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.',CanonBackfire,CanonOperationSent,'backfire'),
-        ('canon_decide','Admit, reject or request clarification on the exact receiver-owned input.',CanonDecide,CanonDecisionResult,'decide'),
-        ('canon_supersede','Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.',CanonSupersede,CanonSuperseded,'supersede')]:
-        engine.registry.register(ActionSpec(name,description,input_model,output_model,packet_mutation(method) if method in {'expect','send','receive','decide','task_result','backfire'} else mutation(method),permission='write',profile='canon',mutates=True, workflow='canon'))
-    engine.registry.register(ActionSpec('canon_read','Inspect bounded project participants, expected inputs and exchange history.',CanonRead,CanonPage,
+        ('task_evidence_participant_register','Register a project participant owned by this engine client; does not create a host task.',CanonJoin,CanonParticipant,'join'),
+        ('task_evidence_expect','Version the receiver-owned typed expected-input contract.',CanonExpected,CanonContractResult,'expect'),
+        ('task_evidence_send','Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.',CanonSend,CanonSent,'send'),
+        ('task_evidence_receive','Receive an exact source-sealed packet as its destination participant; never mutate the source project.',CanonReceive,CanonSent,'receive'),
+        ('task_evidence_result','Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.',CanonTaskResult,CanonOperationSent,'task_result'),
+        ('task_evidence_input_request','Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.',CanonBackfire,CanonOperationSent,'backfire'),
+        ('task_evidence_decide','Admit, reject or request clarification on the exact receiver-owned input.',CanonDecide,CanonDecisionResult,'decide'),
+        ('task_evidence_supersede','Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.',CanonSupersede,CanonSuperseded,'supersede')]:
+        engine.registry.register(ActionSpec(name,description,input_model,output_model,packet_mutation(method) if method in {'expect','send','receive','decide','task_result','backfire'} else mutation(method),permission='write',profile='canon',mutates=True, workflow='exchange-task-evidence'))
+    engine.registry.register(ActionSpec('task_evidence_read','Inspect bounded project participants, expected inputs and exchange history.',CanonRead,CanonPage,
         lambda context,request:CanonStore(engine.directory.open(context.project_id)).read(request),profile='canon',queryable_in_delta=True,
-        cross_project_read=True,read_migrations=CANON_MIGRATIONS, workflow='canon'))
+        cross_project_read=True,read_migrations=CANON_MIGRATIONS, workflow='exchange-task-evidence'))
     def classify_packet(context, request):
         if request.source_project_id == context.project_id:
-            raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Use canon_classify for an unsealed local message.')
+            raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Use task_evidence_classify for an unsealed local message.')
         snapshot = remote_read(context, request.source_project_id,
-            lambda canon, connection:canon.source_snapshot(connection, request, preview=True), 'canon_read')
+            lambda canon, connection:canon.source_snapshot(connection, request, preview=True), 'task_evidence_read')
         return CanonStore(engine.directory.open(context.project_id)).classify_packet(request, snapshot)
 
-    engine.registry.register(ActionSpec('canon_packet_classify',
+    engine.registry.register(ActionSpec('task_evidence_packet_classify',
         'Preview an exact foreign source packet against the current receiving project without storing or admitting it.',
         CanonReceive,CanonPacketClassification,classify_packet,profile='canon',queryable_in_delta=True,
-        read_migrations=CANON_MIGRATIONS,workflow='canon'))
-    engine.registry.register(ActionSpec('canon_classify',
-        'Classify a proposed Canon message against the current receiver contract without storing or admitting it.',
+        read_migrations=CANON_MIGRATIONS,workflow='exchange-task-evidence'))
+    engine.registry.register(ActionSpec('task_evidence_classify',
+        'Classify a proposed task exchange authority message against the current receiver contract without storing or admitting it.',
         CanonSend, CanonClassification,
         lambda context, request: CanonStore(engine.directory.open(context.project_id)).classify(request),
-        profile='canon', queryable_in_delta=True, read_migrations=CANON_MIGRATIONS, workflow='canon'))
+        profile='canon', queryable_in_delta=True, read_migrations=CANON_MIGRATIONS, workflow='exchange-task-evidence'))
     for name,description,input_model,output_model,method in [
-        ('canon_inbox','Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.',
+        ('task_evidence_inbox','Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.',
             CanonInbox,CanonInboxPage,'inbox'),
-        ('canon_inspect','Verify bounded Canon database, schema, object digests and event-chain state without modifying it.',
+        ('task_evidence_inspect','Verify bounded task exchange authority database, schema, object digests and event-chain state without modifying it.',
             CanonInspect,CanonInspection,'inspect'),
-        ('canon_graph','Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.',
+        ('task_evidence_graph','Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.',
             CanonTaskGraphRead,CanonTaskGraph,'task_graph')]:
         engine.registry.register(ActionSpec(name,description,input_model,output_model,
             lambda context,request,method=method:getattr(CanonStore(engine.directory.open(context.project_id)),method)(request),
-            profile='canon',queryable_in_delta=True,cross_project_read=True,read_migrations=CANON_MIGRATIONS,workflow='canon'))
+            profile='canon',queryable_in_delta=True,cross_project_read=True,read_migrations=CANON_MIGRATIONS,workflow='exchange-task-evidence'))

@@ -28,8 +28,8 @@ def projects(system, tmp_path):
     selections = [ProjectSelection(project_id=p.project_id, permissions=['read','write']) for p in (first,second)]
     _, sender = engine.clients.connect(ConnectRequest(projects=selections))
     _, receiver = engine.clients.connect(ConnectRequest(projects=selections))
-    a = call(engine, first, sender, 'canon_join', {'label':'Source participant'}).result['participant_id']
-    b = call(engine, second, receiver, 'canon_join', {'label':'Destination participant'}).result['participant_id']
+    a = call(engine, first, sender, 'task_evidence_participant_register', {'label':'Source participant'}).result['participant_id']
+    b = call(engine, second, receiver, 'task_evidence_participant_register', {'label':'Destination participant'}).result['participant_id']
     return engine, first, second, sender, receiver, a, b
 
 
@@ -43,14 +43,14 @@ def packet(projects, **changes):
     engine, first, second, sender, _, a, b = projects
     arguments = {'request_id':str(uuid4()),'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
         'kind':'requirements','payload':{'summary':'Inspect the bounded input'}, **changes}
-    return successful(engine, first, sender, 'canon_send', arguments), arguments
+    return successful(engine, first, sender, 'task_evidence_send', arguments), arguments
 
 
 def received(projects, sealed):
     engine, first, second, _, receiver, _, _ = projects
     arguments = {'request_id':str(uuid4()),'source_project_id':first.project_id,
         'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
-    return successful(engine, second, receiver, 'canon_receive', arguments), arguments
+    return successful(engine, second, receiver, 'task_evidence_receive', arguments), arguments
 
 
 def snapshot(project):
@@ -63,61 +63,61 @@ def test_seal_receive_preserve_separate_projects_files_and_receiver_ownership(pr
     sealed, sent_args = packet(projects)
     assert sealed['state'] == 'sealed' and sealed['local_role'] == 'outbox'
     assert snapshot(second) == destination_before
-    assert successful(engine, first, sender, 'canon_inbox')['packets'] == []
-    assert successful(engine, first, sender, 'canon_read')['exchanges'][0]['local_role'] == 'outbox'
-    assert successful(engine, first, sender, 'canon_send', sent_args)['duplicate']
+    assert successful(engine, first, sender, 'task_evidence_inbox')['packets'] == []
+    assert successful(engine, first, sender, 'task_evidence_read')['exchanges'][0]['local_role'] == 'outbox'
+    assert successful(engine, first, sender, 'task_evidence_send', sent_args)['duplicate']
     source_before = snapshot(first)
     delivered, args = received(projects, sealed)
     assert delivered['state'] == 'received' and delivered['local_role'] == 'inbox'
     assert snapshot(first) == source_before
     assert (first.root/sealed['artifact_path']).read_bytes() == (second.root/delivered['artifact_path']).read_bytes()
-    assert successful(engine, second, receiver, 'canon_receive', args)['duplicate']
+    assert successful(engine, second, receiver, 'task_evidence_receive', args)['duplicate']
     assert snapshot(first) == source_before
-    assert call(engine, second, sender, 'canon_receive', args).error.code == 'CANON_OWNER_MISMATCH'
-    assert call(engine, first, sender, 'canon_decide', {'exchange_id':sealed['exchange_id'],
+    assert call(engine, second, sender, 'task_evidence_receive', args).error.code == 'CANON_OWNER_MISMATCH'
+    assert call(engine, first, sender, 'task_evidence_decide', {'exchange_id':sealed['exchange_id'],
         'envelope_digest':sealed['envelope_digest'],'expected_version':1,'decision':'reject','reason':'Wrong project'}).error.code == 'CANON_RECEIVER_PROJECT_REQUIRED'
     with second.lane('canon').connection(read_only=True) as db:
         assert [r[0] for r in db.execute('SELECT participant_id FROM canon_participants')] == [b]
     with first.lane('canon').connection(read_only=True) as db:
         assert [r[0] for r in db.execute('SELECT participant_id FROM canon_participants')] == [a]
-    inspected = successful(engine, second, receiver, 'canon_inspect')
+    inspected = successful(engine, second, receiver, 'task_evidence_inspect')
     assert inspected['objects_verified']['exchanges'] == 1 and inspected['foreign_key_errors'] == []
 
 
 def test_cross_project_edge_result_only_closes_after_exact_source_admission(projects):
     engine, first, second, sender, receiver, a, b = projects
-    target_contract = successful(engine, second, receiver, 'canon_expect', {'receiver_id':b,'contract_key':'requirements',
+    target_contract = successful(engine, second, receiver, 'task_evidence_expect', {'receiver_id':b,'contract_key':'requirements',
         'sender_endpoints':[{'project_id':first.project_id,'participant_id':a}],'kinds':['requirements'],'auto_admit':True})
-    result_contract = successful(engine, first, sender, 'canon_expect', {'receiver_id':a,'contract_key':'result',
+    result_contract = successful(engine, first, sender, 'task_evidence_expect', {'receiver_id':a,'contract_key':'result',
         'sender_endpoints':[{'project_id':second.project_id,'participant_id':b}],'kinds':['result'],'fields':{'count':'integer'}})
-    edge = successful(engine, first, sender, 'canon_task_edge_register', {'source_id':a,
+    edge = successful(engine, first, sender, 'task_evidence_edge_register', {'source_id':a,
         'destination':{'project_id':second.project_id,'participant_id':b},'contract_digest':target_contract['contract_digest'],
         'expected_return_contract':result_contract['contract_digest'],'schema_digest':content_digest(CanonPayload.model_json_schema())})
     sealed, _ = packet(projects, expected_contract=target_contract['contract_digest'],return_contract=result_contract['contract_digest'],edge_id=edge['edge_id'])
     locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
     # Sealing alone neither copies an edge into the destination nor admits input.
-    assert call(engine, second, receiver, 'canon_receive', locator).error.code == 'CANON_EDGE_NOT_FOUND'
-    successful(engine, second, receiver, 'canon_task_edge_bind', {'source_project_id':first.project_id,
+    assert call(engine, second, receiver, 'task_evidence_receive', locator).error.code == 'CANON_EDGE_NOT_FOUND'
+    successful(engine, second, receiver, 'task_evidence_edge_bind', {'source_project_id':first.project_id,
         'edge_id':edge['edge_id'],'edge_digest':edge['edge_digest']})
-    incoming = successful(engine, second, receiver, 'canon_receive', locator)
+    incoming = successful(engine, second, receiver, 'task_evidence_receive', locator)
     assert incoming['state'] == 'admitted'
     before = snapshot(first)
-    result = successful(engine, second, receiver, 'canon_task_result', {'edge_id':edge['edge_id'],'reply_to':incoming['exchange_id'],
+    result = successful(engine, second, receiver, 'task_evidence_result', {'edge_id':edge['edge_id'],'reply_to':incoming['exchange_id'],
         'payload':{'summary':'Two verified observations','fields':{'count':2}}})
     assert result['state'] == 'sealed' and snapshot(first) == before
-    assert len(successful(engine, first, sender, 'canon_graph')['missing_returns']) == 1
-    returned = successful(engine, first, sender, 'canon_receive', {'source_project_id':second.project_id,
+    assert len(successful(engine, first, sender, 'task_evidence_graph')['missing_returns']) == 1
+    returned = successful(engine, first, sender, 'task_evidence_receive', {'source_project_id':second.project_id,
         'exchange_id':result['exchange_id'],'envelope_digest':result['envelope_digest']})
     assert returned['state'] == 'received'
-    assert len(successful(engine, first, sender, 'canon_graph')['missing_returns']) == 1
+    assert len(successful(engine, first, sender, 'task_evidence_graph')['missing_returns']) == 1
     peer_before = snapshot(second)
-    decision = successful(engine, first, sender, 'canon_decide', {'exchange_id':returned['exchange_id'],
+    decision = successful(engine, first, sender, 'task_evidence_decide', {'exchange_id':returned['exchange_id'],
         'envelope_digest':returned['envelope_digest'],'expected_version':1,'decision':'admit','reason':'Verified the exact typed result.'})
     assert decision['state'] == 'admitted' and snapshot(second) == peer_before
-    graph = successful(engine, first, sender, 'canon_graph')
+    graph = successful(engine, first, sender, 'task_evidence_graph')
     assert graph['missing_returns'] == []
     assert graph['edges'][0]['local_admitted_returns'][0]['exchange_id'] == returned['exchange_id']
-    assert successful(engine, second, receiver, 'canon_graph')['missing_returns'][0]['state'] == 'source_return_state_not_read'
+    assert successful(engine, second, receiver, 'task_evidence_graph')['missing_returns'][0]['state'] == 'source_return_state_not_read'
     # The original source's outbound state remains a seal, not a copied peer decision.
     with first.lane('canon').connection(read_only=True) as db:
         assert CanonStore(first).exchange(db, sealed['exchange_id'])[0]['state'] == 'sealed'
@@ -125,7 +125,7 @@ def test_cross_project_edge_result_only_closes_after_exact_source_admission(proj
 
 def test_incompatible_foreign_input_preserves_reasons_and_requires_receiver_accept(projects):
     engine, first, second, sender, receiver, a, b = projects
-    contract = successful(engine, second, receiver, 'canon_expect', {'receiver_id':b,'contract_key':'typed',
+    contract = successful(engine, second, receiver, 'task_evidence_expect', {'receiver_id':b,'contract_key':'typed',
         'sender_endpoints':[{'project_id':first.project_id,'participant_id':a}],'kinds':['requirements'],
         'fields':{'count':'integer'},'auto_admit':True})
     sealed, _ = packet(projects,expected_contract=contract['contract_digest'],payload={'summary':'An incompatible field','fields':{'count':'two'}})
@@ -134,12 +134,12 @@ def test_incompatible_foreign_input_preserves_reasons_and_requires_receiver_acce
     assert incoming['compatibility_reasons'] == ['CANON_PAYLOAD_TYPE_MISMATCH'] and incoming['receiver_decision_required']
     args = {'exchange_id':incoming['exchange_id'],'envelope_digest':incoming['envelope_digest'],
         'expected_version':1,'decision':'admit','reason':'The receiver explicitly accepts this exact incompatible input.'}
-    assert call(engine, second, receiver, 'canon_decide', args).error.code == 'CANON_INPUT_ACCEPT_REQUIRED'
-    assert call(engine, second, sender, 'canon_decide', {**args,'incompatible_input_decision':'ACCEPT'}).error.code == 'CANON_OWNER_MISMATCH'
-    result = successful(engine, second, receiver, 'canon_decide', {**args,'incompatible_input_decision':'ACCEPT'})
+    assert call(engine, second, receiver, 'task_evidence_decide', args).error.code == 'CANON_INPUT_ACCEPT_REQUIRED'
+    assert call(engine, second, sender, 'task_evidence_decide', {**args,'incompatible_input_decision':'ACCEPT'}).error.code == 'CANON_OWNER_MISMATCH'
+    result = successful(engine, second, receiver, 'task_evidence_decide', {**args,'incompatible_input_decision':'ACCEPT'})
     assert result['compatibility_reasons'] == ['CANON_PAYLOAD_TYPE_MISMATCH']
     assert result['incompatible_input_decision'] == 'ACCEPT' and not result['plan_mutated'] and not result['source_write_granted']
-    inbox = successful(engine, second, receiver, 'canon_inbox', {'exchange_id':incoming['exchange_id']})
+    inbox = successful(engine, second, receiver, 'task_evidence_inbox', {'exchange_id':incoming['exchange_id']})
     assert inbox['packets'][0]['events'][-1]['result']['compatibility_reasons'] == ['CANON_PAYLOAD_TYPE_MISMATCH']
     assert inbox['packets'][0]['admission_at_receipt']['compatibility_reasons'] == ['CANON_PAYLOAD_TYPE_MISMATCH']
 
@@ -148,20 +148,20 @@ def test_foreign_preview_is_read_only_and_receiver_rechecks_a_replaced_contract(
     engine, first, second, sender, receiver, a, b = projects
     arguments = {'receiver_id':b,'contract_key':'preview','sender_endpoints':[{'project_id':first.project_id,'participant_id':a}],
         'kinds':['requirements'],'auto_admit':True}
-    contract = successful(engine,second,receiver,'canon_expect',arguments)
+    contract = successful(engine,second,receiver,'task_evidence_expect',arguments)
     sealed,_ = packet(projects,expected_contract=contract['contract_digest'])
     locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
     before = snapshot(first),snapshot(second)
-    preview = successful(engine,second,receiver,'canon_packet_classify',locator)
+    preview = successful(engine,second,receiver,'task_evidence_packet_classify',locator)
     assert preview['classification'] == 'expected' and preview['automatic_admission_permitted']
     assert not preview['admission_performed'] and not preview['project_mutated']
     assert (snapshot(first),snapshot(second)) == before
-    successful(engine,second,receiver,'canon_expect',{**arguments,'expected_version':1,'active':False})
+    successful(engine,second,receiver,'task_evidence_expect',{**arguments,'expected_version':1,'active':False})
     source_before = snapshot(first)
-    incoming = successful(engine,second,receiver,'canon_receive',locator)
+    incoming = successful(engine,second,receiver,'task_evidence_receive',locator)
     assert incoming['state'] == 'received' and incoming['compatibility_reasons'] == ['CANON_CONTRACT_MISMATCH']
     assert snapshot(first) == source_before
-    assert successful(engine,first,sender,'canon_read')['exchanges'][0]['state'] == 'sealed'
+    assert successful(engine,first,sender,'task_evidence_read')['exchanges'][0]['state'] == 'sealed'
 
 
 def test_expired_foreign_packet_is_previewed_as_ineligible_and_cannot_be_received(projects, monkeypatch):
@@ -177,10 +177,10 @@ def test_expired_foreign_packet_is_previewed_as_ineligible_and_cannot_be_receive
     monkeypatch.setattr(module,'datetime',Later)
     locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
     before = snapshot(first),snapshot(second)
-    preview = successful(engine,second,receiver,'canon_packet_classify',locator)
+    preview = successful(engine,second,receiver,'task_evidence_packet_classify',locator)
     assert preview['classification'] == 'undefined_or_incompatible' and preview['reasons'] == ['CANON_EXCHANGE_EXPIRED']
     assert (snapshot(first),snapshot(second)) == before
-    assert call(engine,second,receiver,'canon_receive',locator).error.code == 'CANON_EXCHANGE_EXPIRED'
+    assert call(engine,second,receiver,'task_evidence_receive',locator).error.code == 'CANON_EXCHANGE_EXPIRED'
 
 
 def test_foreign_reference_is_verified_in_its_source_lane_and_rechecked_before_receive(projects):
@@ -199,11 +199,11 @@ def test_foreign_reference_is_verified_in_its_source_lane_and_rechecked_before_r
     with engine.project_work.mutation(first) as lease, lease.transaction('local_code') as db:
         db.execute('DELETE FROM objects WHERE digest=?',(digest,))
     before = snapshot(first),snapshot(second)
-    preview = successful(engine,second,receiver,'canon_packet_classify',locator)
+    preview = successful(engine,second,receiver,'task_evidence_packet_classify',locator)
     assert preview['reasons'] == ['MEMORY_SOURCE_MISMATCH'] and (snapshot(first),snapshot(second)) == before
-    assert call(engine,second,receiver,'canon_receive',locator).error.code == 'MEMORY_SOURCE_MISMATCH'
+    assert call(engine,second,receiver,'task_evidence_receive',locator).error.code == 'MEMORY_SOURCE_MISMATCH'
     # Explicit incompatible-input acceptance cannot bypass missing source evidence.
-    assert call(engine,second,receiver,'canon_decide',{'exchange_id':incoming['exchange_id'],
+    assert call(engine,second,receiver,'task_evidence_decide',{'exchange_id':incoming['exchange_id'],
         'envelope_digest':incoming['envelope_digest'],'expected_version':1,'decision':'admit','reason':'Attempted stale reference',
         'incompatible_input_decision':'ACCEPT'}).error.code == 'MEMORY_SOURCE_MISMATCH'
 
@@ -223,13 +223,13 @@ def test_hash_consistent_event_cannot_attest_a_different_source_envelope(project
             (row['result_json'],content_digest(row),row['sequence']))
     assert CanonStore(first).verify_history()['events_verified'] >= 2
     locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
-    assert call(engine,second,receiver,'canon_packet_classify',locator).error.code == 'CANON_SOURCE_SEAL_INTEGRITY'
-    assert call(engine,second,receiver,'canon_receive',locator).error.code == 'CANON_SOURCE_SEAL_INTEGRITY'
+    assert call(engine,second,receiver,'task_evidence_packet_classify',locator).error.code == 'CANON_SOURCE_SEAL_INTEGRITY'
+    assert call(engine,second,receiver,'task_evidence_receive',locator).error.code == 'CANON_SOURCE_SEAL_INTEGRITY'
 
 
 def test_deciding_absent_input_reports_the_domain_error_without_initializing_canon(system):
     engine, project, _, client = system
-    result = call(engine,project,client,'canon_decide',{'exchange_id':str(uuid4()),'envelope_digest':'0'*64,
+    result = call(engine,project,client,'task_evidence_decide',{'exchange_id':str(uuid4()),'envelope_digest':'0'*64,
         'expected_version':1,'decision':'admit','reason':'No input exists'})
     assert result.error.code == 'CANON_EXCHANGE_NOT_FOUND'
     with project.lane('canon').connection(read_only=True) as db:
@@ -260,13 +260,13 @@ def test_foreign_selection_expiry_digest_and_registered_file_are_enforced(projec
     sealed, _ = packet(projects)
     locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
     _, unselected = engine.clients.connect(ConnectRequest(projects=[ProjectSelection(project_id=second.project_id,permissions=['read','write'])]))
-    assert call(engine, second, unselected, 'canon_receive', locator).error.code in {'PROJECT_NOT_SELECTED','PROJECT_PERMISSION_DENIED'}
-    assert call(engine, second, receiver, 'canon_receive', {**locator,'envelope_digest':'0'*64}).error.code == 'CANON_SOURCE_ENVELOPE_MISMATCH'
+    assert call(engine, second, unselected, 'task_evidence_receive', locator).error.code in {'PROJECT_NOT_SELECTED','PROJECT_PERMISSION_DENIED'}
+    assert call(engine, second, receiver, 'task_evidence_receive', {**locator,'envelope_digest':'0'*64}).error.code == 'CANON_SOURCE_ENVELOPE_MISMATCH'
     path = first.root/sealed['artifact_path']
     path.write_bytes(path.read_bytes()+b' ')
-    assert call(engine, second, receiver, 'canon_receive', locator).error.code == 'CANON_PACKET_FILE_INTEGRITY'
+    assert call(engine, second, receiver, 'task_evidence_receive', locator).error.code == 'CANON_PACKET_FILE_INTEGRITY'
     engine, first, second, sender, _, a, b = projects
-    result = call(engine, first, sender, 'canon_send', {'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
+    result = call(engine, first, sender, 'task_evidence_send', {'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
         'kind':'requirements','payload':{'summary':'Expired'},'expires_at':(datetime.now(UTC)-timedelta(seconds=1)).isoformat()})
     assert result.error.code == 'CANON_EXCHANGE_EXPIRED'
 
@@ -284,10 +284,10 @@ def test_packet_files_are_registered_for_recovery_and_orphans_are_excluded(proje
     request = {'request_id':str(uuid4()),'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
         'kind':'evidence','payload':{'summary':'An interrupted seal'}}
     before = CanonStore(first).verify_history()
-    assert call(engine, first, sender, 'canon_send', request).status == 'error'
+    assert call(engine, first, sender, 'task_evidence_send', request).status == 'error'
     assert CanonStore(first).verify_history() == before
     monkeypatch.setattr(CanonStore, '_event', staticmethod(original))
-    retried = successful(engine, first, sender, 'canon_send', request)
+    retried = successful(engine, first, sender, 'task_evidence_send', request)
     for project, expected in ((first,{sealed['artifact_path'],retried['artifact_path']}),(second,{incoming['artifact_path']})):
         with project_snapshot(project.root):
             selected = inventory(project,require_quiescent=False)['files']
@@ -366,10 +366,10 @@ def test_packet_and_graph_files_survive_actual_backup_and_fresh_root_restore(pro
     from evidence_lane_plugin.storage import ProjectStore
 
     engine, first, second, sender, receiver, a, b = projects
-    edge = successful(engine,first,sender,'canon_task_edge_register',{'source_id':a,
+    edge = successful(engine,first,sender,'task_evidence_edge_register',{'source_id':a,
         'destination':{'project_id':second.project_id,'participant_id':b},'contract_digest':'a'*64,
         'schema_digest':content_digest(CanonPayload.model_json_schema()),'expected_return_contract':'b'*64})
-    successful(engine,second,receiver,'canon_task_edge_bind',{'source_project_id':first.project_id,
+    successful(engine,second,receiver,'task_evidence_edge_bind',{'source_project_id':first.project_id,
         'edge_id':edge['edge_id'],'edge_digest':edge['edge_digest']})
     sealed, _ = packet(projects)
     incoming, _ = received(projects, sealed)
@@ -424,54 +424,54 @@ def test_two_mcp_clients_exchange_typed_edge_results_through_persistent_backend(
                 assert result['tool_execution']['env_uop']['action_name'] == action
                 assert result['tool_execution']['native_host_tool_attested'] is False
                 return result['result']
-            a = (await invoke(source,first,'canon_join',{'label':'MCP source'}))['participant_id']
-            b = (await invoke(target,second,'canon_join',{'label':'MCP receiver'}))['participant_id']
-            expected = await invoke(target,second,'canon_expect',{'receiver_id':b,'contract_key':'mcp_input',
+            a = (await invoke(source,first,'task_evidence_participant_register',{'label':'MCP source'}))['participant_id']
+            b = (await invoke(target,second,'task_evidence_participant_register',{'label':'MCP receiver'}))['participant_id']
+            expected = await invoke(target,second,'task_evidence_expect',{'receiver_id':b,'contract_key':'mcp_input',
                 'sender_endpoints':[{'project_id':first.project_id,'participant_id':a}],'kinds':['requirements'],'auto_admit':True})
-            returning = await invoke(source,first,'canon_expect',{'receiver_id':a,'contract_key':'mcp_return',
+            returning = await invoke(source,first,'task_evidence_expect',{'receiver_id':a,'contract_key':'mcp_return',
                 'sender_endpoints':[{'project_id':second.project_id,'participant_id':b}],'kinds':['result'],
                 'fields':{'count':'integer'},'auto_admit':True})
-            edge = await invoke(source,first,'canon_task_edge_register',{'source_id':a,
+            edge = await invoke(source,first,'task_evidence_edge_register',{'source_id':a,
                 'destination':{'project_id':second.project_id,'participant_id':b},'contract_digest':expected['contract_digest'],
                 'expected_return_contract':returning['contract_digest'],'schema_digest':content_digest(CanonPayload.model_json_schema())})
-            await invoke(target,second,'canon_task_edge_bind',{'source_project_id':first.project_id,
+            await invoke(target,second,'task_evidence_edge_bind',{'source_project_id':first.project_id,
                 'edge_id':edge['edge_id'],'edge_digest':edge['edge_digest']})
-            sealed = await invoke(source,first,'canon_send',{'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
+            sealed = await invoke(source,first,'task_evidence_send',{'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
                 'kind':'requirements','payload':{'summary':'Inspect the exact input'},'edge_id':edge['edge_id'],
                 'expected_contract':expected['contract_digest'],'return_contract':returning['contract_digest']})
             locator = {'source_project_id':first.project_id,'exchange_id':sealed['exchange_id'],'envelope_digest':sealed['envelope_digest']}
             before = snapshot(first),snapshot(second)
-            preview = await invoke(target,second,'canon_packet_classify',locator)
+            preview = await invoke(target,second,'task_evidence_packet_classify',locator)
             assert preview['automatic_admission_permitted'] and (snapshot(first),snapshot(second)) == before
-            incoming = await invoke(target,second,'canon_receive',locator)
+            incoming = await invoke(target,second,'task_evidence_receive',locator)
             assert incoming['state'] == 'admitted'
-            result = await invoke(target,second,'canon_task_result',{'edge_id':edge['edge_id'],'reply_to':incoming['exchange_id'],
+            result = await invoke(target,second,'task_evidence_result',{'edge_id':edge['edge_id'],'reply_to':incoming['exchange_id'],
                 'payload':{'summary':'One observation','fields':{'count':1}}})
             assert result['state'] == 'sealed'
-            returned = await invoke(source,first,'canon_receive',{'source_project_id':second.project_id,
+            returned = await invoke(source,first,'task_evidence_receive',{'source_project_id':second.project_id,
                 'exchange_id':result['exchange_id'],'envelope_digest':result['envelope_digest']})
             assert returned['state'] == 'admitted'
-            graph = await invoke(source,first,'canon_graph')
+            graph = await invoke(source,first,'task_evidence_graph')
             assert graph['missing_returns'] == [] and graph['native_task_attestation'] == 'not_provided'
-            conditional = await invoke(source,first,'canon_expect',{'receiver_id':a,'contract_key':'mcp_backfire',
+            conditional = await invoke(source,first,'task_evidence_expect',{'receiver_id':a,'contract_key':'mcp_backfire',
                 'sender_endpoints':[{'project_id':second.project_id,'participant_id':b}],'kinds':['backfire'],'auto_admit':True})
-            correction_return = await invoke(target,second,'canon_expect',{'receiver_id':b,'contract_key':'mcp_backfire_return',
+            correction_return = await invoke(target,second,'task_evidence_expect',{'receiver_id':b,'contract_key':'mcp_backfire_return',
                 'sender_endpoints':[{'project_id':first.project_id,'participant_id':a}],'kinds':['result'],'auto_admit':True})
             arguments = {'admitted_exchange_id':incoming['exchange_id'],'admitted_envelope_digest':incoming['envelope_digest'],
                 'failure_class':'LINKED_TASK_INPUT_REQUIRED','recipient':{'project_id':first.project_id,'participant_id':a},
                 'requested_contract':conditional['contract_digest'],'requested_revision':2,'payload':{'summary':'An upstream input requires action'},
                 'dependency_ids':[edge['edge_id']],'return_route':{'project_id':second.project_id,'participant_id':b},
                 'return_contract':correction_return['contract_digest'],'expires_at':(datetime.now(UTC)+timedelta(hours=1)).isoformat()}
-            proposed = await invoke(target,second,'canon_backfire',arguments)
-            replay = await invoke(target,second,'canon_backfire',arguments)
+            proposed = await invoke(target,second,'task_evidence_input_request',arguments)
+            replay = await invoke(target,second,'task_evidence_input_request',arguments)
             assert replay['duplicate'] and replay['envelope_digest'] == proposed['envelope_digest'] and not replay['automatic_retry_allowed']
-            admitted_backfire = await invoke(source,first,'canon_receive',{'source_project_id':second.project_id,
+            admitted_backfire = await invoke(source,first,'task_evidence_receive',{'source_project_id':second.project_id,
                 'exchange_id':proposed['exchange_id'],'envelope_digest':proposed['envelope_digest']})
             assert admitted_backfire['state'] == 'admitted'
-            correction_result = await invoke(source,first,'canon_send',{'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
+            correction_result = await invoke(source,first,'task_evidence_send',{'sender_id':a,'receiver_id':b,'destination_project_id':second.project_id,
                 'kind':'result','reply_to':proposed['exchange_id'],'expected_contract':correction_return['contract_digest'],
                 'payload':{'summary':'The required linked-task input is supplied'}})
-            corrected = await invoke(target,second,'canon_receive',{'source_project_id':first.project_id,
+            corrected = await invoke(target,second,'task_evidence_receive',{'source_project_id':first.project_id,
                 'exchange_id':correction_result['exchange_id'],'envelope_digest':correction_result['envelope_digest']})
             assert corrected['state'] == 'admitted'
     with LocalEndpoint(engine,studio_enabled=False):

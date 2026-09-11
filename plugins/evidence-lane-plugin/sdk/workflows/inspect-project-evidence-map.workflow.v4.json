@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 517,
+    "path": "sdk/workflows/skills/inspect-project-evidence-map/workflow.dot",
+    "sha256": "c45976a2f5632c51e858aa51e21afa0d0a86e3f0f7f312506e5c2e17ea982172"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 487,
+    "path": "sdk/workflows/skills/inspect-project-evidence-map/workflow.mmd",
+    "sha256": "74135f6e603ef9583b6ef47f63d4d16ea2b65be55fde02c731ca1a7ac8b614d2"
+  },
+  "package": {
+    "bytes": 5078,
+    "path": "sdk/workflows/skills/inspect-project-evidence-map/workflow.v4.json",
+    "sha256": "d26b648afdb18ab30d2976ea9a16fe2a1d0328bf85858a502a3c23e6969e8e5f"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "inspect-project-evidence-map",
+  "source_skill": {
+    "bytes": 1740,
+    "path": "skills/inspect-project-evidence-map/SKILL.md",
+    "sha256": "499c09360adb400600c78ad146408f195ae7e49b8d925144022e94b214d6749e"
+  },
+  "status": "PASS",
+  "title": "Inspect project evidence map",
+  "workflow": "inspect-project-evidence-map"
+}

@@ -112,7 +112,7 @@ def verify_enrichment(context, request, output):
 def register_enrichment_actions(engine):
     engine.registry.register(ActionSpec('document_enrich', 'Add a separate completed Docling projection to an exact DOCX snapshot.',
         DocumentEnrich, DocumentResult, enrich, permission='write', mutates=True, requires_delta=True, profile='document',
-        workflow='source-intake', worker_operations=('document_enrich',),
+        workflow='manage-project-sources', worker_operations=('document_enrich',),
         verification_checks=('document_enrichment_integrity',), verifier=verify_enrichment,
         tool_routes=(ToolRoute('document_enrich.docling', enrich, ('Python', 'Docling'), systems=('Windows',)),)))
 
@@ -133,5 +133,5 @@ def register_enrichment_actions(engine):
                 'enrichment_manifest_object': digest(canonical_json_bytes(body)), 'document': structure,
                 'native_layout_fidelity': 'not_claimed'})
     engine.registry.register(ActionSpec('document_enrichment_read', 'Read a bounded Markdown excerpt and optional structured projection from an exact completed rich conversion.',
-        DocumentEnrichmentRead, DocumentResult, read, profile='document', workflow='source-intake', queryable_in_delta=True,
+        DocumentEnrichmentRead, DocumentResult, read, profile='document', workflow='manage-project-sources', queryable_in_delta=True,
         cross_project_read=True, studio_read=True, read_migrations=DOC_MIGRATIONS))

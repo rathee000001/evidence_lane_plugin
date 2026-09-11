@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "authorities/project_universe/build-refresh-contract.schema.json",
-      "sha256": "951be0adec247420fbdec0cd3a74a20518f4fceac27ae7345bec53f69b716a57"
+      "sha256": "5c70e597f5fe0f7632029db7b578edeea75f7d7a69b0049d210b5bb4afae6bee"
     },
     {
       "path": "authorities/project_universe/dot-artifact.schema.json",
-      "sha256": "6d64b85327262acb673a0aa09987b76ced31a34f518472ec1511cfd3be84a91b"
+      "sha256": "5c61873946cc428a3d00b7e89a8f5620b254ac49e1fb530b62ac537c023fda69"
     },
     {
       "path": "authorities/project_universe/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/project_universe/manifest.v4.json",
-      "sha256": "f74b0d12b20d8ef26ff74f9d267a95bf2f4bd7b8ab2a6606cd723437d98d6620"
+      "sha256": "f4ac594ef9009df4e16dd381e9851a93086b86fc42cbbf7df1453fb13da35d6e"
     },
     {
       "path": "authorities/project_universe/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_universe/mmd-artifact.schema.json",
-      "sha256": "bb04b10cb617dd7e0cf66aacfb0e45caef1da5e2e8789bb12e3442da9bb1cb07"
+      "sha256": "5dba28a313aa7d1e226cdd1057955097efb8be3abba0e86ca79a8c885735bbc9"
     },
     {
       "path": "authorities/project_universe/pointer-contract.schema.json",
@@ -32,11 +32,11 @@
     },
     {
       "path": "authorities/project_universe/pointer-contract.v4.json",
-      "sha256": "7ee028f4f79f8f64c9babf92b5a9f603876170c09bf537695e09bd87cf7d4ed8"
+      "sha256": "3cca702e600c6726f609d3390078a874a308d98439d6f82c8e13a05e04feef9c"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
-      "sha256": "c7c0345677afcd68d092f282fc6ffb2b6b1289b117472948eb735493a7ec1f69"
+      "sha256": "004ed6a76374a6a7c610e615531ca1e4f4a60d8143a25d76dd4f28f400d8cfc9"
     },
     {
       "path": "authorities/project_universe/refresh-receipt.schema.json",

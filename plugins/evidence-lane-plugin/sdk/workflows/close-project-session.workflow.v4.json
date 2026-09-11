@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 505,
+    "path": "sdk/workflows/skills/close-project-session/workflow.dot",
+    "sha256": "59d4603d636dce94576329e1e41e83d5dbe162456324997042dd30f6fcb942d4"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 475,
+    "path": "sdk/workflows/skills/close-project-session/workflow.mmd",
+    "sha256": "b21e58df76a73d492b24be79aec9fffacf8b2cba188fd275e6d6837591ee0644"
+  },
+  "package": {
+    "bytes": 2752,
+    "path": "sdk/workflows/skills/close-project-session/workflow.v4.json",
+    "sha256": "172e6e30dba25d16bd953ed3f4cb6d4eaa7f528a932a63c32bc0f2dcaf162111"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "close-project-session",
+  "source_skill": {
+    "bytes": 1174,
+    "path": "skills/close-project-session/SKILL.md",
+    "sha256": "f9664bbe90c8f5559152e03a35b4544d6f2e8321761a43ddde48047e076b5352"
+  },
+  "status": "PASS",
+  "title": "Close a project session",
+  "workflow": "close-project-session"
+}

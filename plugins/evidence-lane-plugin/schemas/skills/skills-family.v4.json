@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "schemas/skills/skill-registry.v4.json",
-      "sha256": "c1f125b81024060cbf651bcff92baa8b54052f6ee130544fb1796769cf1d2a65"
+      "sha256": "ee8431d086b6948acaeacfbe290ba59895fb233e6e94bc7a4ddc0a9c7c8af2c0"
     }
   ],
   "purpose": "Complete skills schema family",

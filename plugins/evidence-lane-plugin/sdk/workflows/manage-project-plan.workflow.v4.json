@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 500,
+    "path": "sdk/workflows/skills/manage-project-plan/workflow.dot",
+    "sha256": "e682db5e78a7f17d35876fa665c2222e83cbb42c407a54bda695fff43d76f067"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 470,
+    "path": "sdk/workflows/skills/manage-project-plan/workflow.mmd",
+    "sha256": "b4db927f2ffc4ec3407ad91c0cc35eb52e8c2f98747b250af1dc72df8533256c"
+  },
+  "package": {
+    "bytes": 6212,
+    "path": "sdk/workflows/skills/manage-project-plan/workflow.v4.json",
+    "sha256": "f01f756b1f3373d86cb887044d78418d5e245afddbcca23cc97361b0d67e6b0a"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "manage-project-plan",
+  "source_skill": {
+    "bytes": 5869,
+    "path": "skills/manage-project-plan/SKILL.md",
+    "sha256": "90ee43bc3b7571eff4082d086b4080fa74f63ca2a34e9828e8fdbd5afa8488a3"
+  },
+  "status": "PASS",
+  "title": "Manage project plan",
+  "workflow": "manage-project-plan"
+}

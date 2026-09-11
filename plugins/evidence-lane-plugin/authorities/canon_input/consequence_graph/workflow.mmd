@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=78DF007A597BDBC8491BC779D7F1563474A0D7F6DD3118E0317D0029739C3E71
+%% LANGGRAPH_EXPORT_SHA256=3A59C6E13DE6633E9D68505F50839159BA09688234A89FF0C7490550186045C9
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -20,29 +20,29 @@ flowchart TB
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
   owner["canon_consequence_graph current executable owner"]:::default
-  action_canon_backfire["canon_backfire"]:::default
-  action_canon_graph["canon_graph"]:::default
-  action_canon_inspect["canon_inspect"]:::default
-  action_canon_task_edge_bind["canon_task_edge_bind"]:::default
-  action_canon_task_edge_register["canon_task_edge_register"]:::default
-  action_canon_task_result["canon_task_result"]:::default
-  sdk -->|"write"| action_canon_backfire
-  action_canon_backfire -->|"canon"| writer
-  sdk -->|"read"| action_canon_graph
-  action_canon_graph -->|"canon"| read
-  sdk -->|"read"| action_canon_inspect
-  action_canon_inspect -->|"canon"| read
-  sdk -->|"write"| action_canon_task_edge_bind
-  action_canon_task_edge_bind -->|"canon"| writer
-  sdk -->|"write"| action_canon_task_edge_register
-  action_canon_task_edge_register -->|"canon"| writer
-  sdk -->|"write"| action_canon_task_result
-  action_canon_task_result -->|"canon"| writer
+  action_task_evidence_edge_bind["task_evidence_edge_bind"]:::default
+  action_task_evidence_edge_register["task_evidence_edge_register"]:::default
+  action_task_evidence_graph["task_evidence_graph"]:::default
+  action_task_evidence_input_request["task_evidence_input_request"]:::default
+  action_task_evidence_inspect["task_evidence_inspect"]:::default
+  action_task_evidence_result["task_evidence_result"]:::default
+  sdk -->|"write"| action_task_evidence_edge_bind
+  action_task_evidence_edge_bind -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_edge_register
+  action_task_evidence_edge_register -->|"exchange-task-evidence"| writer
+  sdk -->|"read"| action_task_evidence_graph
+  action_task_evidence_graph -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_input_request
+  action_task_evidence_input_request -->|"exchange-task-evidence"| writer
+  sdk -->|"read"| action_task_evidence_inspect
+  action_task_evidence_inspect -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_result
+  action_task_evidence_result -->|"exchange-task-evidence"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  action_canon_backfire ~~~ action_canon_graph
-  action_canon_graph ~~~ action_canon_inspect
-  action_canon_task_edge_bind ~~~ action_canon_task_edge_register
-  action_canon_task_edge_register ~~~ action_canon_task_result
+  action_task_evidence_edge_bind ~~~ action_task_evidence_edge_register
+  action_task_evidence_edge_register ~~~ action_task_evidence_graph
+  action_task_evidence_input_request ~~~ action_task_evidence_inspect
+  action_task_evidence_inspect ~~~ action_task_evidence_result
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

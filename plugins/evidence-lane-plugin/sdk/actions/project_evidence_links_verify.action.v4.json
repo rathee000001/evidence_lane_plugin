@@ -1,0 +1,13 @@
+{
+  "action": "project_evidence_links_verify",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "contract": "schemas/actions/project_evidence_links_verify.v4.schema.json",
+  "contract_sha256": "57406380f3543f59604dab53384dcf77613939c8ae40ef5f14efc66b021df96c",
+  "installed_execution_claimed": false,
+  "request_envelope": "schemas/action-request.v4.schema.json",
+  "response_envelope": "schemas/action-response.v4.schema.json",
+  "schema": "evidence-lane.sdk-action.v4"
+}

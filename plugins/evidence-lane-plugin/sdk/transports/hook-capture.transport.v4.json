@@ -1,0 +1,22 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "credentials_recorded": false,
+  "installed_execution_claimed": false,
+  "project_administration_inferred": false,
+  "schema": "evidence-lane.sdk-transport-contract.v4",
+  "sources": [
+    {
+      "bytes": 24166,
+      "path": "src/evidence_lane_plugin/capture_routing.py",
+      "sha256": "319fbe6589843117f647a49118a520205006eba9bf369d316d8cfa582f499b53"
+    },
+    {
+      "bytes": 5085,
+      "path": "hooks/hooks.json",
+      "sha256": "c27286f3d37ef5594f4fe73ab5c9e25d43b68161f0acb5f745c75a50f6a3dec7"
+    }
+  ],
+  "status": "PASS",
+  "transport": "hook-capture.transport.v4"
+}

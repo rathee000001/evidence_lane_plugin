@@ -4,10 +4,10 @@
   "ordinal": 25,
   "tool": "OpenXML_CSV_JSON_parser",
   "requirement": "REQUIRED_INTERNAL",
-  "classification": "EVIDENCE_LANE_INTERNAL_COMPONENT",
-  "install_mode": "package_internal",
+  "classification": "PLUGIN_ENGINE_COMPONENT",
+  "install_mode": "packaged_plugin_engine_code",
   "license_expression_or_terms": "MIT",
-  "license_evidence": "LICENSE.md",
+  "license_evidence": "Evidence Lane-owned engine code or a standard-library/Windows host capability; no tunnel distribution role.",
   "evidence_paths": [
     "LICENSE.md"
   ],
@@ -26,5 +26,16 @@
   "catalog_ordinal": 24,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "03cf5185e58597b8b7ac9bb63c9dcaf64e76065c969d420b357bfb1a59e84761"
+  "delivery_owner": "managed_plugin_and_studio_engine_source",
+  "provisioning_route": "packaged_engine_code_or_standard_library",
+  "studio_bundle_component": "core-engine-studio",
+  "studio_bundle_member": false,
+  "external_configuration_required": false,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "4c51c038fa99a2f518828b9e96c2116511d06c42d4084bd801ee4b25fb62d2a4",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "245f2e69c24e30c557948c6c70eece702b8cb241665eb49b622fc17d1f0b0552"
 }

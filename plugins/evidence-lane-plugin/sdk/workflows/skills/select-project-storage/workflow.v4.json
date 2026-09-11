@@ -1,0 +1,90 @@
+{
+  "action_bindings": [
+    "sdk/actions/project_register.action.v4.json",
+    "sdk/actions/storage_connector_inspect.action.v4.json",
+    "sdk/actions/storage_connector_select.action.v4.json",
+    "sdk/actions/storage_status.action.v4.json"
+  ],
+  "action_count": 4,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+      "mutates": true,
+      "name": "project_register",
+      "permission": "project_admin",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "select-project-storage"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
+      "mutates": false,
+      "name": "storage_connector_inspect",
+      "permission": "read",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": true,
+      "workflow": "select-project-storage"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
+      "mutates": true,
+      "name": "storage_connector_select",
+      "permission": "admin",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "select-project-storage"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
+      "mutates": false,
+      "name": "storage_status",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": true,
+      "workflow": "select-project-storage"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $select-project-storage to inspect or select my project storage root.",
+  "description": "Inspect or explicitly select durable project state and its separate lane databases. Use for storage routing and project root selection.",
+  "dot": "sdk/workflows/skills/select-project-storage/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/select-project-storage/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "select-project-storage",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Select project storage",
+  "workflow": "select-project-storage"
+}

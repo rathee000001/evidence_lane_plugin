@@ -112,7 +112,7 @@ def verify_enrichment(context, request, output):
 def register_enrichment_actions(engine):
     engine.registry.register(ActionSpec('presentation_enrich', 'Add a separate completed Docling projection to an exact PPTX snapshot.',
         PresentationEnrich, PresentationResult, enrich, permission='write', mutates=True, requires_delta=True, profile='presentation',
-        workflow='source-intake', worker_operations=('presentation_enrich',),
+        workflow='manage-project-sources', worker_operations=('presentation_enrich',),
         verification_checks=('presentation_enrichment_integrity',), verifier=verify_enrichment,
         tool_routes=(ToolRoute('presentation_enrich.docling', enrich, ('Python', 'Docling'), systems=('Windows',)),)))
 
@@ -133,5 +133,5 @@ def register_enrichment_actions(engine):
                 'enrichment_manifest_object': digest(canonical_json_bytes(body)), 'document': structure,
                 'native_layout_fidelity': 'not_claimed'})
     engine.registry.register(ActionSpec('presentation_enrichment_read', 'Read a bounded Markdown excerpt and optional structured projection from an exact completed rich conversion.',
-        PresentationEnrichmentRead, PresentationResult, read, profile='presentation', workflow='source-intake', queryable_in_delta=True,
+        PresentationEnrichmentRead, PresentationResult, read, profile='presentation', workflow='manage-project-sources', queryable_in_delta=True,
         cross_project_read=True, studio_read=True, read_migrations=PPT_MIGRATIONS))

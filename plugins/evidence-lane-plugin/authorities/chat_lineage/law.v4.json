@@ -25,7 +25,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/SessionStart/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/SessionStart/event.schema.json",
         "event_contract": "hooks/events/SessionStart/event.v4.json",
         "pipeline_contract": "hooks/events/SessionStart/pipeline.v4.json",
@@ -49,7 +50,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/SubagentStart/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/SubagentStart/event.schema.json",
         "event_contract": "hooks/events/SubagentStart/event.v4.json",
         "pipeline_contract": "hooks/events/SubagentStart/pipeline.v4.json",
@@ -59,10 +61,7 @@
         "remote_config_env": "EVIDENCE_LANE_REMOTE_CONFIG",
         "host_control_output": false,
         "bounded_context_output": false,
-        "automatic_retry": false,
-        "observer_identity_transport": "bounded_agent_id_sha256_and_reported_type",
-        "observer_payload_retention": "metadata_only",
-        "subagent_control_output": false
+        "automatic_retry": false
       },
       {
         "name": "UserPromptSubmit",
@@ -75,7 +74,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/UserPromptSubmit/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/UserPromptSubmit/event.schema.json",
         "event_contract": "hooks/events/UserPromptSubmit/event.v4.json",
         "pipeline_contract": "hooks/events/UserPromptSubmit/pipeline.v4.json",
@@ -100,7 +100,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/PreToolUse/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/PreToolUse/event.schema.json",
         "event_contract": "hooks/events/PreToolUse/event.v4.json",
         "pipeline_contract": "hooks/events/PreToolUse/pipeline.v4.json",
@@ -124,7 +125,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/PermissionRequest/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/PermissionRequest/event.schema.json",
         "event_contract": "hooks/events/PermissionRequest/event.v4.json",
         "pipeline_contract": "hooks/events/PermissionRequest/pipeline.v4.json",
@@ -150,7 +152,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/PostToolUse/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/PostToolUse/event.schema.json",
         "event_contract": "hooks/events/PostToolUse/event.v4.json",
         "pipeline_contract": "hooks/events/PostToolUse/pipeline.v4.json",
@@ -173,7 +176,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/PreCompact/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/PreCompact/event.schema.json",
         "event_contract": "hooks/events/PreCompact/event.v4.json",
         "pipeline_contract": "hooks/events/PreCompact/pipeline.v4.json",
@@ -196,7 +200,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/PostCompact/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.PostCompactHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/PostCompact/event.schema.json",
         "event_contract": "hooks/events/PostCompact/event.v4.json",
         "pipeline_contract": "hooks/events/PostCompact/pipeline.v4.json",
@@ -220,7 +225,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/Stop/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.StopHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/Stop/event.schema.json",
         "event_contract": "hooks/events/Stop/event.v4.json",
         "pipeline_contract": "hooks/events/Stop/pipeline.v4.json",
@@ -244,7 +250,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/SubagentStop/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStopHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/SubagentStop/event.schema.json",
         "event_contract": "hooks/events/SubagentStop/event.v4.json",
         "pipeline_contract": "hooks/events/SubagentStop/pipeline.v4.json",
@@ -254,10 +261,7 @@
         "remote_config_env": "EVIDENCE_LANE_REMOTE_CONFIG",
         "host_control_output": false,
         "bounded_context_output": false,
-        "automatic_retry": false,
-        "observer_identity_transport": "bounded_agent_id_sha256_and_reported_type",
-        "observer_payload_retention": "metadata_only",
-        "subagent_control_output": false
+        "automatic_retry": false
       },
       {
         "name": "Interrupt",
@@ -269,7 +273,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/Interrupt/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.InterruptHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/Interrupt/event.schema.json",
         "event_contract": "hooks/events/Interrupt/event.v4.json",
         "pipeline_contract": "hooks/events/Interrupt/pipeline.v4.json",
@@ -292,7 +297,8 @@
           "turn_id"
         ],
         "handler": "hooks/events/SessionEnd/handler.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionEndHandler",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
         "input_schema": "hooks/events/SessionEnd/event.schema.json",
         "event_contract": "hooks/events/SessionEnd/event.v4.json",
         "pipeline_contract": "hooks/events/SessionEnd/pipeline.v4.json",
@@ -306,12 +312,26 @@
       }
     ],
     "pipeline": [
-      "read_bounded_input",
-      "validate_and_redact_visible_fields",
-      "verify_bound_engine_build",
-      "deliver_once_to_bound_project",
-      "verify_receipt_and_emit_bounded_output"
+      "validate_and_redact_input",
+      "classify_event",
+      "handle_event",
+      "authenticate_and_deliver_once",
+      "verify_and_seal_receipt",
+      "project_bounded_output"
     ],
+    "stage_owners": {
+      "validate_and_redact_input": "hook_admission.admit_hook",
+      "classify_event": "hook_classification.classify_hook",
+      "handle_event": "hook_event_handlers.<Event>Handler.handle",
+      "authenticate_and_deliver_once": "hook_transport.deliver_hook",
+      "verify_and_seal_receipt": "hook_receipts.seal_hook_receipt",
+      "project_bounded_output": "hook_output.project_hook_output"
+    },
+    "runtime_bridge": "hooks/runner.mjs",
+    "ambient_python_required": false,
+    "event_isolation_owner": "src/evidence_lane_plugin/hook_event_isolation.py",
+    "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
+    "lifecycle_boundary_owner": "src/evidence_lane_plugin/hook_lifecycle_boundary.py",
     "native_installation_verified": false
   },
   "binding": "Explicit selected project/client/session and attributed visible input; no CWD fallback",

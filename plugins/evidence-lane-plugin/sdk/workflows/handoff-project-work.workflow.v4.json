@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 501,
+    "path": "sdk/workflows/skills/handoff-project-work/workflow.dot",
+    "sha256": "174173721ef016aebce6a1bd855dd4ee8b5ad267b1ce05415c944062f634f361"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 471,
+    "path": "sdk/workflows/skills/handoff-project-work/workflow.mmd",
+    "sha256": "e18dbd42f9600e6ba9d0a892aade6528b74d0a5f0679bf59a31fcd3824a2ebf8"
+  },
+  "package": {
+    "bytes": 3792,
+    "path": "sdk/workflows/skills/handoff-project-work/workflow.v4.json",
+    "sha256": "29caf68d88da5e346164369bad41426797d989fe5527fe05c2e3e719bc0391cd"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "handoff-project-work",
+  "source_skill": {
+    "bytes": 1825,
+    "path": "skills/handoff-project-work/SKILL.md",
+    "sha256": "c59af354f35c04d4eb6a9276ba1f5061baf68d3b6cd6fe448e7375e0c1dff8f9"
+  },
+  "status": "PASS",
+  "title": "Handoff project work",
+  "workflow": "handoff-project-work"
+}

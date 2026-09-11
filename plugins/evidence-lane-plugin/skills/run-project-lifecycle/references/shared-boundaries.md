@@ -18,7 +18,7 @@ managed toolchain. Tools, dependencies and model assets belong to the shared
 installation; catalog membership does not establish installation or readiness.
 
 Every authority and sector owns its SQLite database, schema history and files.
-Root PV publishes coordinated lane references. Plan, ChatLineage, Canon,
+project evidence head coordinator publishes coordinated lane references. Plan, ChatLineage, task exchange authority,
 Memory, Learning, Sources, Receipts and Universe remain distinct. Source files,
 host instructions and host memory keep their original authority and provenance.
 

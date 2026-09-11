@@ -1,0 +1,15 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "lane_id": "research",
+  "manifest": {
+    "bytes": 95215,
+    "path": "authorities/project_sectors/research/manifest.v4.json",
+    "sha256": "5dbcea331bd41786add6eccff031e99a0893efc5f2a20e26539f1d814a291437"
+  },
+  "project_state": "separate_lane_sqlite_and_files",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-project-sector-binding.v4",
+  "status": "PASS"
+}

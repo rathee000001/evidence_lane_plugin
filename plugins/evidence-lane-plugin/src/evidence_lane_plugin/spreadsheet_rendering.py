@@ -255,12 +255,12 @@ def register_spreadsheet_rendering(engine):
         ('spreadsheet_recalculate', SpreadsheetRecalculate, recalculate, ('tabular_snapshot_integrity',), verify_snapshot, ('Python', 'LibreOffice'))):
         engine.registry.register(ActionSpec(action, 'Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.',
             contracts.model_for('data_excel', model), TabularResult, handler, permission='write', mutates=True, requires_delta=True,
-            profile='spreadsheet', workflow='build', worker_operations=(action,), verification_checks=checks, verifier=verifier,
+            profile='spreadsheet', workflow='execute-project-plan', worker_operations=(action,), verification_checks=checks, verifier=verifier,
             tool_routes=(ToolRoute(action + '.calc', handler, tools, systems=('Windows',)),)))
     def read(context, request):
         store = engine.directory.open(context.project_id)
         with project_snapshot(store.root):
             return result(store, 'data_excel', 'spreadsheet_render_read', read_render(store, request.derivative_id))
     engine.registry.register(ActionSpec('spreadsheet_render_read', 'Read and verify an exact workbook rendering and its natural artifacts.',
-        contracts.model_for('data_excel', DerivativeRead), TabularResult, read, profile='spreadsheet', workflow='source-intake',
+        contracts.model_for('data_excel', DerivativeRead), TabularResult, read, profile='spreadsheet', workflow='manage-project-sources',
         queryable_in_delta=True, cross_project_read=True, studio_read=True, read_migrations=tabular_migrations('data_excel')))

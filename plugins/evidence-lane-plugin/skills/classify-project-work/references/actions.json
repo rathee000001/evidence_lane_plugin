@@ -1,13 +1,13 @@
 {
-  "action_set_digest": "fe02b13f94a593b804d077c0fddf095662bd93873cbc7bf1af55689f08cae7eb",
+  "action_set_digest": "4ba5c16126578f86e618a44a55de6edd6a1baa98b74be68a4929776e4bd7e69e",
   "actions": [
     {
       "cross_project_read": false,
       "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
-      "input_schema_digest": "949468654a4af500c4f976f22eadb12d19244196029d4849f9f330f259e6749c",
+      "input_schema_digest": "614788ebe347521d8337859a4e7d7dbe8ab46351690fd3d8e5d1fa2a861c2075",
       "mutates": false,
-      "name": "mode_classify",
-      "output_schema_digest": "5a818313833cdeba7f69d68a1e45ab8d82d908d7f9092ee330bc1e7981bd681d",
+      "name": "project_work_classify",
+      "output_schema_digest": "30ee77c9b745804c311f08eabe3bc30876b0fa7aa5cd02a20cf56141dbce9fc2",
       "permission": "read",
       "profile": "core",
       "project_required": false,
@@ -20,5 +20,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "mode"
+  "workflow": "classify-project-work"
 }

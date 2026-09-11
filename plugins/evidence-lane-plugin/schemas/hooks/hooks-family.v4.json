@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "schemas/hooks/hook-family.v4.json",
-      "sha256": "3f853f979de299ecc6797e617713243946ff0f3e0b74be804ca10ebd2044d3a0"
+      "sha256": "1e7f9e2beab57efc98bf2f694c28fab036f97eb5b2fbd0b0444dd7a5e6702e2c"
     }
   ],
   "purpose": "Complete hooks schema family",

@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/SessionEnd/handler.py",
   "event": "SessionEnd",
   "event_contract": "hooks/events/SessionEnd/event.v4.json",
-  "event_contract_sha256": "f873bfd03f19908e8b8733d3f551129442b94021f6807153b49f86bab0ce36db",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "d3c420542ea48f1d52f7a5c51a2654fe8dcffbd0c92249d2e83ce313998b5a22",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionEndHandler",
   "input_schema": "schemas/hooks/SessionEnd.v4.schema.json",
   "input_schema_sha256": "6983feb7225d2113f3981e38f3cdc6efbef1027d88c79562bcedfdc951dfd643",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/SessionEnd/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/SessionEnd/02-classify_event.stage.v4.json",
+    "hooks/events/SessionEnd/03-handle_event.stage.v4.json",
+    "hooks/events/SessionEnd/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/SessionEnd/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/SessionEnd/06-project_bounded_output.stage.v4.json"
+  ]
 }

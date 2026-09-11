@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B680EBC25F0597EB7EB2FE3F3EABE7036ED4BF1236B5BDEAA7E0C7976D8BD834
+%% LANGGRAPH_EXPORT_SHA256=F524B92C1CCC0B82B9E60300673D1AB0587DC17FBAADF9A1824B8A901B7DADD3
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -20,60 +20,60 @@ flowchart TB
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
   owner["canon current executable owner"]:::default
-  action_canon_backfire["canon_backfire"]:::default
-  action_canon_classify["canon_classify"]:::default
-  action_canon_decide["canon_decide"]:::default
-  action_canon_expect["canon_expect"]:::default
-  action_canon_graph["canon_graph"]:::default
-  action_canon_inbox["canon_inbox"]:::default
-  action_canon_inspect["canon_inspect"]:::default
-  action_canon_join["canon_join"]:::default
-  action_canon_packet_classify["canon_packet_classify"]:::default
-  action_canon_read["canon_read"]:::default
-  action_canon_receive["canon_receive"]:::default
-  action_canon_send["canon_send"]:::default
-  action_canon_supersede["canon_supersede"]:::default
-  action_canon_task_edge_bind["canon_task_edge_bind"]:::default
-  action_canon_task_edge_register["canon_task_edge_register"]:::default
-  action_canon_task_result["canon_task_result"]:::default
-  sdk -->|"write"| action_canon_backfire
-  action_canon_backfire -->|"canon"| writer
-  sdk -->|"read"| action_canon_classify
-  action_canon_classify -->|"canon"| read
-  sdk -->|"write"| action_canon_decide
-  action_canon_decide -->|"canon"| writer
-  sdk -->|"write"| action_canon_expect
-  action_canon_expect -->|"canon"| writer
-  sdk -->|"read"| action_canon_graph
-  action_canon_graph -->|"canon"| read
-  sdk -->|"read"| action_canon_inbox
-  action_canon_inbox -->|"canon"| read
-  sdk -->|"read"| action_canon_inspect
-  action_canon_inspect -->|"canon"| read
-  sdk -->|"write"| action_canon_join
-  action_canon_join -->|"canon"| writer
-  sdk -->|"read"| action_canon_packet_classify
-  action_canon_packet_classify -->|"canon"| read
-  sdk -->|"read"| action_canon_read
-  action_canon_read -->|"canon"| read
-  sdk -->|"write"| action_canon_receive
-  action_canon_receive -->|"canon"| writer
-  sdk -->|"write"| action_canon_send
-  action_canon_send -->|"canon"| writer
-  sdk -->|"write"| action_canon_supersede
-  action_canon_supersede -->|"canon"| writer
-  sdk -->|"write"| action_canon_task_edge_bind
-  action_canon_task_edge_bind -->|"canon"| writer
-  sdk -->|"write"| action_canon_task_edge_register
-  action_canon_task_edge_register -->|"canon"| writer
-  sdk -->|"write"| action_canon_task_result
-  action_canon_task_result -->|"canon"| writer
+  action_task_evidence_classify["task_evidence_classify"]:::default
+  action_task_evidence_decide["task_evidence_decide"]:::default
+  action_task_evidence_edge_bind["task_evidence_edge_bind"]:::default
+  action_task_evidence_edge_register["task_evidence_edge_register"]:::default
+  action_task_evidence_expect["task_evidence_expect"]:::default
+  action_task_evidence_graph["task_evidence_graph"]:::default
+  action_task_evidence_inbox["task_evidence_inbox"]:::default
+  action_task_evidence_input_request["task_evidence_input_request"]:::default
+  action_task_evidence_inspect["task_evidence_inspect"]:::default
+  action_task_evidence_packet_classify["task_evidence_packet_classify"]:::default
+  action_task_evidence_participant_register["task_evidence_participant_register"]:::default
+  action_task_evidence_read["task_evidence_read"]:::default
+  action_task_evidence_receive["task_evidence_receive"]:::default
+  action_task_evidence_result["task_evidence_result"]:::default
+  action_task_evidence_send["task_evidence_send"]:::default
+  action_task_evidence_supersede["task_evidence_supersede"]:::default
+  sdk -->|"read"| action_task_evidence_classify
+  action_task_evidence_classify -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_decide
+  action_task_evidence_decide -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_edge_bind
+  action_task_evidence_edge_bind -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_edge_register
+  action_task_evidence_edge_register -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_expect
+  action_task_evidence_expect -->|"exchange-task-evidence"| writer
+  sdk -->|"read"| action_task_evidence_graph
+  action_task_evidence_graph -->|"exchange-task-evidence"| read
+  sdk -->|"read"| action_task_evidence_inbox
+  action_task_evidence_inbox -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_input_request
+  action_task_evidence_input_request -->|"exchange-task-evidence"| writer
+  sdk -->|"read"| action_task_evidence_inspect
+  action_task_evidence_inspect -->|"exchange-task-evidence"| read
+  sdk -->|"read"| action_task_evidence_packet_classify
+  action_task_evidence_packet_classify -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_participant_register
+  action_task_evidence_participant_register -->|"exchange-task-evidence"| writer
+  sdk -->|"read"| action_task_evidence_read
+  action_task_evidence_read -->|"exchange-task-evidence"| read
+  sdk -->|"write"| action_task_evidence_receive
+  action_task_evidence_receive -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_result
+  action_task_evidence_result -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_send
+  action_task_evidence_send -->|"exchange-task-evidence"| writer
+  sdk -->|"write"| action_task_evidence_supersede
+  action_task_evidence_supersede -->|"exchange-task-evidence"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  action_canon_backfire ~~~ action_canon_classify
-  action_canon_decide ~~~ action_canon_expect
-  action_canon_inspect ~~~ action_canon_join
-  action_canon_receive ~~~ action_canon_send
-  action_canon_task_edge_register ~~~ action_canon_task_result
+  action_task_evidence_classify ~~~ action_task_evidence_decide
+  action_task_evidence_edge_bind ~~~ action_task_evidence_edge_register
+  action_task_evidence_inbox ~~~ action_task_evidence_input_request
+  action_task_evidence_participant_register ~~~ action_task_evidence_read
+  action_task_evidence_send ~~~ action_task_evidence_supersede
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "env/SESSION_FLASH_MANIFEST.json",
-      "sha256": "b069ed5521808e90c711f93d5e716be60c91e79e953fe060ce28af6adc4d39de"
+      "sha256": "c82882cf898dbf243a9b39b975db0d9031a16ac81bcea494205b4bfd3eb10bac"
     },
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
-      "sha256": "f66faecae73d6b6a9238e6d226b34f3e4173e82ef242f9cee46c9d057465e72e"
+      "sha256": "bdfe71a677261f370b05cebe425fa0942b5b967f5866c9653fe36d0c0b6cf792"
     },
     {
       "path": "env/codex-environment-policy.v4.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/codex_action_plane.py",
-      "sha256": "ebffb1179b94a782fba8e6d9b275b13dd13f7bc4e94a8ddc2a07affec4c176a8"
+      "sha256": "22826eeb0997a12824103e79fa3514c103c08d041c825b89bb637c9d9649c92a"
     },
     {
       "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",

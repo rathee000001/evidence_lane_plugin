@@ -993,6 +993,79 @@
       ]
     },
     {
+      "name": "code_snapshot_summary",
+      "profile": "code",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "code_snapshot_summary",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "code_snapshot_summary.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3250d8be609a53d5c00ad4485bd0f37096c3a444fd03b164eead23de96d27da7"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "localcode",
+          "version": 1,
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
+        },
+        {
+          "owner": "localcode",
+          "version": 2,
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
+        },
+        {
+          "owner": "localcode",
+          "version": 3,
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
+        },
+        {
+          "owner": "githubcode",
+          "version": 1,
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
+        },
+        {
+          "owner": "githubcode",
+          "version": 2,
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
+        },
+        {
+          "owner": "githubcode",
+          "version": 3,
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
+        }
+      ]
+    },
+    {
       "name": "fetch",
       "profile": "code",
       "permission": "read",
@@ -1030,79 +1103,6 @@
         "worker_operations": [],
         "installation_implied": false,
         "contract_digest": "580664b25232b1a5d57c74e2259b551f86e5504cf6fd4b22bcf30e912a988f16"
-      },
-      "verification_checks": [],
-      "read_schemas": [
-        {
-          "owner": "localcode",
-          "version": 1,
-          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
-        },
-        {
-          "owner": "localcode",
-          "version": 2,
-          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
-        },
-        {
-          "owner": "localcode",
-          "version": 3,
-          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
-        },
-        {
-          "owner": "githubcode",
-          "version": 1,
-          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
-        },
-        {
-          "owner": "githubcode",
-          "version": 2,
-          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
-        },
-        {
-          "owner": "githubcode",
-          "version": 3,
-          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
-        }
-      ]
-    },
-    {
-      "name": "pv_summary",
-      "profile": "code",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_summary",
-        "profile": "code",
-        "routes": [
-          {
-            "route_id": "pv_summary.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1"
       },
       "verification_checks": [],
       "read_schemas": [
@@ -1266,7 +1266,7 @@
       "version": 1,
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "consumer": "artifact_export",
-      "implementation_digest": "6ba4b3c2a7d3878d067d119e32cdea879dbeb973e9e4fbe2a1f622813c6e262e",
+      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
       "files": {
         "mmd": "local_code.mmd",
         "dot": "local_code.dot",
@@ -1395,13 +1395,13 @@
     "node_count": 20,
     "edge_count": 38,
     "group_count": 0,
-    "semantic_topology_sha256": "6F6DFA572A751D81944BF9BDA14B23ED84DCC92F52B27FF2F03C977D8B93057F",
-    "mmd_sha256": "69BEA1722B104E962A138A9CFE87FE84824AEC2CEE45BC51AE1399AB2CCA873E",
-    "dot_sha256": "584894B05980128BBD4823F4CB17E8A8BF080FA0D5D78F3B58486183DC4F36F5",
+    "semantic_topology_sha256": "BBE4FD89D7D015DC7DF9BE7396540E63DD69280C6B660C18988D1DC73B06BEA6",
+    "mmd_sha256": "D9FBDD4DAD58FFD8E4102CD41A3EC74026B2DA26D5E69E381A8D312886401A8D",
+    "dot_sha256": "8EA3D53B73D393E807FA5F0ED4CFA4A25AB5206341A07478B2D5034FCFC3ABFE",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "72EBA9A268829C7FF8CED5800FAC9965B2BC90D77F13278F6CEB11480E0ABE2B",
+    "langgraph_export_sha256": "B51E769279FAFB129F7D9CEC2FF4016719CF4DA49967CDCC38C5AE8572D7FF1C",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -1423,7 +1423,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "8478354A18534D2EFF5BBD466F7B781B93BEF4524C6CF0B28678A92440DE5A4F"
+    "receipt_sha256": "1EE27E802D2FB4C87FC5F990A9B7673988E1E4E0888753C782A24E923C6CDF6C"
   },
   "graph_role": "source_package_schema_and_executable_routes",
   "project_data_copied": false

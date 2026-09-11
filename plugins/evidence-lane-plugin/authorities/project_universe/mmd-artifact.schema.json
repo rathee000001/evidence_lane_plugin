@@ -78,10 +78,10 @@
       "version": 1,
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "consumer": "artifact_export",
-      "implementation_digest": "a11fb6be622a7174feb16a3e09299beeb3b98afaf1bdaa19fb14037a33258042",
+      "implementation_digest": "d063feb5bb5cef90caecc875d9147a0c3f1e807f7f64cf1c9e3aabaeee9dbe27",
       "files": {
-        "mmd": "bigger_universe.mmd",
-        "dot": "bigger_universe.dot"
+        "mmd": "project_evidence_network.mmd",
+        "dot": "project_evidence_network.dot"
       },
       "scope": {
         "query": false,
@@ -148,9 +148,9 @@
       "lane_id": "universe",
       "folder": "authorities/universe",
       "version": 1,
-      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.",
+      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "consumer": "artifact_export",
-      "implementation_digest": "27102655df6ef2785429352b1bbd58850425a73abeb8349cbaa13e1241b5fd71",
+      "implementation_digest": "cd1c9faf8fef3b9d007e7db81c2a77fd05e482799c594ace90c0c807fe7a3ed2",
       "files": {
         "mmd": "project_universe.mmd",
         "dot": "project_universe.dot"

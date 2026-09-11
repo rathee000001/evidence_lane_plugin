@@ -1,13 +1,13 @@
 {
   "action": "project_deselect",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/project_deselect.action.v4.json",
-  "sdk_binding_sha256": "5389b440c6d8a2420dd94e11803578cf613cc3309dbccc450ac9f75c8be6130e",
+  "sdk_binding_sha256": "fce70901c2a2c2e7710323f888cbece5ef4492ad269e8b0642f046433a0c31dd",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "actions": [
     {
       "cross_project_read": true,
@@ -108,7 +108,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": false,
@@ -346,7 +346,7 @@
       "worker_operations": [
         "spreadsheet_edit"
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "cross_project_read": false,
@@ -662,7 +662,7 @@
         "tabular_parse_content",
         "render_lane_view"
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "cross_project_read": false,
@@ -952,7 +952,7 @@
       "worker_operations": [
         "spreadsheet_generate"
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "cross_project_read": false,
@@ -1111,7 +1111,7 @@
       "worker_operations": [
         "tabular_parse_file"
       ],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": false,
@@ -1264,7 +1264,7 @@
       "worker_operations": [
         "tabular_parse_file"
       ],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": false,
@@ -1396,7 +1396,7 @@
       "worker_operations": [
         "tabular_inspect"
       ],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": false,
@@ -1528,7 +1528,7 @@
       "worker_operations": [
         "tabular_inspect"
       ],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": true,
@@ -1645,7 +1645,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": true,
@@ -1851,7 +1851,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": true,
@@ -2003,7 +2003,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "cross_project_read": false,
@@ -2132,7 +2132,7 @@
       "worker_operations": [
         "spreadsheet_recalculate"
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "cross_project_read": false,
@@ -2284,7 +2284,7 @@
       "worker_operations": [
         "tabular_parse_file"
       ],
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "cross_project_read": false,
@@ -2437,7 +2437,7 @@
       "worker_operations": [
         "tabular_parse_file"
       ],
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "cross_project_read": false,
@@ -2582,7 +2582,7 @@
       "worker_operations": [
         "spreadsheet_render"
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "cross_project_read": true,
@@ -2699,7 +2699,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     }
   ],
   "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",

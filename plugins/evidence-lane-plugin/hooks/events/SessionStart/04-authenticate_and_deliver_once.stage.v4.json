@@ -1,0 +1,11 @@
+{
+  "automatic_retry": false,
+  "capture_only": true,
+  "event": "SessionStart",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
+  "implementation": "hook_transport.deliver_hook",
+  "ordinal": 4,
+  "owner": "hook_transport",
+  "schema": "evidence-lane.native-hook-stage.v4",
+  "stage": "authenticate_and_deliver_once"
+}

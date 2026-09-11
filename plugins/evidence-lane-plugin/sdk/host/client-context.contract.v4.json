@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "client-context.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Keep each client session and explicit project permissions distinct from engine and host identity.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 18713,
+      "path": "src/evidence_lane_plugin/connections.py",
+      "sha256": "4678bd33f293fdd1976a218ddbe442b25f93857f76a2415941378a9e752ee59b"
+    },
+    {
+      "bytes": 9675,
+      "path": "src/evidence_lane_plugin/mcp_adapter.py",
+      "sha256": "17564247ae0a34209c2b63960a7ad7c3fff537a25a055715cc48f9e3d449a531"
+    }
+  ],
+  "status": "PASS"
+}

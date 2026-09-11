@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "runtime",
-      "workflow": "toolchain",
+      "workflow": "select-project-tools",
       "required_tools": [],
       "toolchain": {
         "operation": "accelerator_configure",
@@ -55,7 +55,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "runtime",
-      "workflow": "toolchain",
+      "workflow": "select-project-tools",
       "required_tools": [],
       "toolchain": {
         "operation": "accelerator_read",
@@ -98,7 +98,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chatlineage",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "capture_bind",
@@ -141,7 +141,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "extensions",
-      "workflow": "additional-plugin",
+      "workflow": "configure-project-connector",
       "required_tools": [],
       "toolchain": {
         "operation": "connector_configure",
@@ -184,7 +184,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "extensions",
-      "workflow": "plugin",
+      "workflow": "inspect-project-connectors",
       "required_tools": [],
       "toolchain": {
         "operation": "connector_read",
@@ -227,7 +227,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "extensions",
-      "workflow": "drop-additional-plugin",
+      "workflow": "revoke-project-connector",
       "required_tools": [],
       "toolchain": {
         "operation": "connector_revoke",
@@ -270,7 +270,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "core",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "remote_git_action_read",
@@ -313,7 +313,7 @@
       "requires_delta": true,
       "project_required": true,
       "profile": "code",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [
         "Python",
         "SQLite_FTS5_BM25",
@@ -365,7 +365,7 @@
       "requires_delta": true,
       "project_required": true,
       "profile": "code",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [
         "Python",
         "SQLite_FTS5_BM25",
@@ -416,7 +416,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_boot",
@@ -459,7 +459,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_context",
@@ -502,7 +502,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_exit",
@@ -545,7 +545,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "receipts",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_exit_boundary",
@@ -588,7 +588,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_resume",
@@ -631,7 +631,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_status",
@@ -674,7 +674,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "receipts",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "required_tools": [],
       "toolchain": {
         "operation": "storage_connector_inspect",
@@ -717,7 +717,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "receipts",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "required_tools": [],
       "toolchain": {
         "operation": "storage_connector_select",

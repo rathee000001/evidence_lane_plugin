@@ -26,11 +26,11 @@ def test_inbox_exact_receiver_state_and_visible_events_without_payload_or_writes
     pending, _ = send(pair, payload={'summary':'Payload must stay absent','fields':{'body':'Raw body stays in the envelope'}})
     admitted, _ = send(pair)
     decision, _ = decide(pair, admitted, reason='Receiver chose this exact requirement.')
-    outgoing = invoke(receiver, 'canon_send', CanonSend(sender_id=target, receiver_id=source,
+    outgoing = invoke(receiver, 'task_evidence_send', CanonSend(sender_id=target, receiver_id=source,
         kind='evidence', payload={'summary':'Outgoing evidence'}))
     assert outgoing.status == 'ok', outgoing
     before = project.pv_head(), project.lane_catalog()
-    response = invoke(sender, 'canon_inbox', {'receiver_id':target,'states':['admitted']})
+    response = invoke(sender, 'task_evidence_inbox', {'receiver_id':target,'states':['admitted']})
     assert response.status == 'ok', response
     page = response.result
     assert project.pv_head() == before[0] and project.lane_catalog() == before[1]
@@ -42,12 +42,12 @@ def test_inbox_exact_receiver_state_and_visible_events_without_payload_or_writes
     assert event['actor_id'] == receiver.client_id and event['result']['reason'] == decision.result['reason']
     assert event['reason_evidence'] == 'recorded_event'
     assert page['projection_digest'] == content_digest({key:value for key,value in page.items() if key != 'projection_digest'})
-    pending_page = invoke(receiver, 'canon_inbox', {'receiver_id':target,'states':['received']}).result
+    pending_page = invoke(receiver, 'task_evidence_inbox', {'receiver_id':target,'states':['received']}).result
     assert pending_page['packets'][0]['exchange_id'] == pending.result['exchange_id']
     assert 'Raw body stays in the envelope' not in json.dumps(pending_page)
     assert 'Payload must stay absent' not in json.dumps(pending_page)
     assert pending_page['raw_payload_returned'] is False
-    wrong = invoke(sender, 'canon_inbox', {'receiver_id':target,'exchange_id':outgoing.result['exchange_id']})
+    wrong = invoke(sender, 'task_evidence_inbox', {'receiver_id':target,'exchange_id':outgoing.result['exchange_id']})
     assert wrong.error.code == 'CANON_INBOX_ROUTE_MISMATCH'
 
 
@@ -56,7 +56,7 @@ def test_inbox_packet_and_event_cursors_allow_complete_bounded_retrieval(pair):
     first, _ = send(pair)
     decide(pair, first)
     second, _ = send(pair)
-    first_page = invoke(receiver, 'canon_inbox', {'receiver_id':target,'limit':1,'events_per_packet':1}).result
+    first_page = invoke(receiver, 'task_evidence_inbox', {'receiver_id':target,'limit':1,'events_per_packet':1}).result
     packet = first_page['packets'][0]
     assert first_page['truncated'] and packet['events_truncated']
     assert packet['events'][0]['kind'] == 'send'
@@ -64,7 +64,7 @@ def test_inbox_packet_and_event_cursors_allow_complete_bounded_retrieval(pair):
         after_event_sequence=packet['last_event_sequence'], events_per_packet=1))
     assert events.packets[0]['events'][0]['kind'] == 'decide'
     assert events.packets[0]['events_truncated'] is False
-    next_page = invoke(receiver, 'canon_inbox', {'receiver_id':target,'after_sequence':first_page['last_sequence'],'limit':1}).result
+    next_page = invoke(receiver, 'task_evidence_inbox', {'receiver_id':target,'after_sequence':first_page['last_sequence'],'limit':1}).result
     assert next_page['packets'][0]['exchange_id'] == second.result['exchange_id'] and not next_page['truncated']
     assert next_page['history'] == first_page['history']
 
@@ -76,12 +76,12 @@ def test_inbox_metadata_preserves_payload_identity_and_supersession(pair):
     correction, request = send(pair, kind='correction', supersedes=first.result['exchange_id'])
     decide(pair, correction)
     before = project.pv_head()
-    page = invoke(receiver, 'canon_inbox', {'receiver_id':target}).result
+    page = invoke(receiver, 'task_evidence_inbox', {'receiver_id':target}).result
     old, current = page['packets']
     assert old['state'] == 'superseded' and old['supersession']['successor_id'] == current['exchange_id']
     assert current['payload_digest'] == content_digest(request.payload.model_dump())
     assert current['supersedes'] == old['exchange_id']
-    inspected = invoke(receiver, 'canon_inspect', {})
+    inspected = invoke(receiver, 'task_evidence_inspect', {})
     assert inspected.status == 'ok', inspected
     assert inspected.result['objects_verified']['supersession_links'] == 1
     assert inspected.result['historical_supersession_links_unavailable'] == 0
@@ -90,13 +90,13 @@ def test_inbox_metadata_preserves_payload_identity_and_supersession(pair):
 
 def test_inspector_reports_actual_counts_schema_and_integrity_scope(pair):
     invoke, _, receiver, source, target, (_, project, _, _) = pair
-    contract = invoke(receiver, 'canon_expect', CanonExpected(receiver_id=target, contract_key='typed_input',
+    contract = invoke(receiver, 'task_evidence_expect', CanonExpected(receiver_id=target, contract_key='typed_input',
         sender_ids=[source], kinds=['requirements']))
     assert contract.status == 'ok'
     first, _ = send(pair)
     decide(pair, first, decision='reject')
     before = project.pv_head(), project.lane_catalog()
-    result = invoke(receiver, 'canon_inspect', {})
+    result = invoke(receiver, 'task_evidence_inspect', {})
     assert result.status == 'ok', result
     value = result.result
     assert value['initialized'] and value['integrity'] == ['ok'] and value['foreign_key_errors'] == []
@@ -131,18 +131,18 @@ def test_read_budgets_do_not_report_partial_integrity_success(pair):
     invoke, _, receiver, _, target, (_, project, _, _) = pair
     send(pair)
     before = project.pv_head()
-    assert invoke(receiver,'canon_inspect',{'record_limit':1}).error.code == 'CANON_INSPECTION_BUDGET'
-    assert invoke(receiver,'canon_inbox',{'receiver_id':target,'history_limit':1}).error.code == 'CANON_HISTORY_BUDGET'
+    assert invoke(receiver,'task_evidence_inspect',{'record_limit':1}).error.code == 'CANON_INSPECTION_BUDGET'
+    assert invoke(receiver,'task_evidence_inbox',{'receiver_id':target,'history_limit':1}).error.code == 'CANON_HISTORY_BUDGET'
     assert project.pv_head() == before
 
 
 def test_project_inboxes_preserve_multiple_receiver_routes_without_identity_inference(pair):
     invoke, sender, receiver, source, target, _ = pair
     first, _ = send(pair)
-    second = invoke(receiver, 'canon_send', CanonSend(sender_id=target, receiver_id=source,
+    second = invoke(receiver, 'task_evidence_send', CanonSend(sender_id=target, receiver_id=source,
         kind='evidence', payload={'summary':'Another receiver inbox'}))
     assert second.status == 'ok'
-    page = invoke(sender, 'canon_inbox', {}).result
+    page = invoke(sender, 'task_evidence_inbox', {}).result
     assert page['receiver'] is None and page['packet_count'] == 2
     assert {item['exchange_id'] for item in page['packets']} == {first.result['exchange_id'],second.result['exchange_id']}
     assert {item['receiver_id'] for item in page['packets']} == {source,target}
@@ -158,22 +158,22 @@ def test_inbox_byte_budget_can_be_resolved_by_bounded_event_pagination(pair):
             owner.decide(CanonDecide(exchange_id=sent.result['exchange_id'],envelope_digest=sent.result['envelope_digest'],
                 expected_version=version,decision='clarify',reason='A'*1000),lease,actor_id=receiver.client_id)
     before = project.pv_head()
-    oversized = invoke(receiver,'canon_inbox',{'receiver_id':target,'max_bytes':16384,'events_per_packet':50})
+    oversized = invoke(receiver,'task_evidence_inbox',{'receiver_id':target,'max_bytes':16384,'events_per_packet':50})
     assert oversized.error.code == 'CANON_INBOX_ITEM_BUDGET'
-    bounded = invoke(receiver,'canon_inbox',{'receiver_id':target,'max_bytes':16384,'events_per_packet':2})
+    bounded = invoke(receiver,'task_evidence_inbox',{'receiver_id':target,'max_bytes':16384,'events_per_packet':2})
     assert bounded.status == 'ok', bounded
     assert bounded.result['packets'][0]['events_truncated']
     assert len(json.dumps(bounded.result).encode()) <= 16384
     assert project.pv_head() == before
 
 
-@pytest.mark.parametrize('action', ['canon_inbox','canon_inspect'])
+@pytest.mark.parametrize('action', ['task_evidence_inbox','task_evidence_inspect'])
 def test_damaged_event_json_cannot_disappear_from_inspection(pair, action):
     invoke, _, receiver, _, target, (engine, project, _, _) = pair
     sent, request = send(pair)
     with engine.project_work.mutation(project) as lease, lease.transaction('canon') as connection:
         connection.execute('UPDATE canon_events SET result_json=? WHERE request_id=?', ('{}',request.request_id))
-    arguments = {'receiver_id':target} if action == 'canon_inbox' else {}
+    arguments = {'receiver_id':target} if action == 'task_evidence_inbox' else {}
     assert invoke(receiver,action,arguments).error.code == 'CANON_HISTORY_INTEGRITY'
     assert sent.result['state'] == 'received'
 
@@ -187,17 +187,17 @@ def test_inspector_validates_objects_beyond_sqlite_integrity(pair, statement, co
     send(pair)
     with engine.project_work.mutation(project) as lease, lease.transaction('canon') as connection:
         connection.execute(statement)
-    assert invoke(receiver,'canon_inspect',{}).error.code == code
+    assert invoke(receiver,'task_evidence_inspect',{}).error.code == code
 
 
 def test_current_contract_pointer_is_checked_against_its_receiver_and_key(pair):
     invoke, _, receiver, source, target, (engine, project, _, _) = pair
     for key in ('first','second'):
-        assert invoke(receiver, 'canon_expect', CanonExpected(receiver_id=target, contract_key=key,
+        assert invoke(receiver, 'task_evidence_expect', CanonExpected(receiver_id=target, contract_key=key,
             sender_ids=[source], kinds=['evidence'])).status == 'ok'
     with engine.project_work.mutation(project) as lease, lease.transaction('canon') as connection:
         connection.execute("UPDATE canon_contract_current SET contract_digest=(SELECT contract_digest FROM canon_contract_current WHERE contract_key='second') WHERE contract_key='first'")
-    assert invoke(receiver,'canon_inspect',{}).error.code == 'CANON_CONTRACT_INTEGRITY'
+    assert invoke(receiver,'task_evidence_inspect',{}).error.code == 'CANON_CONTRACT_INTEGRITY'
 
 
 def test_inspection_actions_through_read_only_mcp_and_real_backend(pair):
@@ -223,7 +223,7 @@ def test_inspection_actions_through_read_only_mcp_and_real_backend(pair):
         async with (stdio_client(parameters) as (read,write),
                     ClientSession(read,write,read_timeout_seconds=timedelta(seconds=30)) as session):
             await session.initialize()
-            for action,arguments in [('canon_inbox',{'receiver_id':target}),('canon_inspect',{})]:
+            for action,arguments in [('task_evidence_inbox',{'receiver_id':target}),('task_evidence_inspect',{})]:
                 response = (await session.call_tool(action,{'project_id':project.project_id,'arguments':arguments})).structuredContent
                 assert response and response['status'] == 'ok', response
                 assert response['result']['project_mutated'] is False

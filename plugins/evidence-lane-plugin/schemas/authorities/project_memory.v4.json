@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/project_memory/dot-artifact.schema.json",
-      "sha256": "47b0fb5a841ad9ac8e20b0e6b25015d1188e1de5e924d0449bdb60d9ec060f32"
+      "sha256": "6382925994eb6d9a5017fe729aa2eb3334af0e29c33b1c6531c2d5435601ab47"
     },
     {
       "path": "authorities/project_memory/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/project_memory/manifest.v4.json",
-      "sha256": "3ad4708cc52977a4bc5b49c44c1d3decddf597f5ae671a7bf2d79cb6fa7b0d83"
+      "sha256": "e595c81cb2a1493a954e986c24cfa1c3bd0ace5edaab72e23ea830fb57279bc9"
     },
     {
       "path": "authorities/project_memory/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
-      "sha256": "7b08402a7742e92a41d731eb25cd2c35c90b6e69c8776f174a793632266db7d6"
+      "sha256": "56680157390a38367ef849544fe891b0fb5516011c69cd4e928363ffbb5f3b9d"
     },
     {
       "path": "authorities/project_memory/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/project_memory/pointer-contract.v4.json",
-      "sha256": "3ad2315543e24fe28ed9a7971b722f9adf4cbe639bf160cfc1ffaf5273ffbb32"
+      "sha256": "ed84a502914cb3dfff10a69ef5863271cd5b8773fe36616f0c6a37cc4fbf969c"
     },
     {
       "path": "authorities/project_memory/reader-contract.schema.json",

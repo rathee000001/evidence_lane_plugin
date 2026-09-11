@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'canon'
-ACTIONS = {'canon_classify': True, 'canon_graph': True, 'canon_inbox': True, 'canon_inspect': True, 'canon_packet_classify': True, 'canon_read': True}
+ACTIONS = {'task_evidence_classify': True, 'task_evidence_graph': True, 'task_evidence_inbox': True, 'task_evidence_inspect': True, 'task_evidence_packet_classify': True, 'task_evidence_read': True}
 
 
 def read_authority(client, **request):

@@ -1,0 +1,11 @@
+{
+  "automatic_retry": false,
+  "capture_only": true,
+  "event": "SubagentStart",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
+  "implementation": "hook_classification.classify_hook",
+  "ordinal": 2,
+  "owner": "hook_classification",
+  "schema": "evidence-lane.native-hook-stage.v4",
+  "stage": "classify_event"
+}

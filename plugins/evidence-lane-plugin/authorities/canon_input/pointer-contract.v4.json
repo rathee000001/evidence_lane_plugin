@@ -46,7 +46,7 @@
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "13090f969c0c51ec6d0cbf17ae5330ec9d94624cbbed9ecb6f26e257e6d05cd7",
+      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",

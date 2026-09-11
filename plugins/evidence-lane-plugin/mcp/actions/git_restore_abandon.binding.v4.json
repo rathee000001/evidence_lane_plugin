@@ -1,13 +1,13 @@
 {
   "action": "git_restore_abandon",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/git_restore_abandon.action.v4.json",
-  "sdk_binding_sha256": "783e5749638cd2add044630d9e637b52ffb7f84d2ad8e1b5f7d62ee3460e06be",
+  "sdk_binding_sha256": "2c07d5d3883e865917d0ea106a0c1f6d9fb8b3e61b4d1d8269726ac2baf7c766",
   "tool": {
     "annotations": {
       "destructiveHint": true,

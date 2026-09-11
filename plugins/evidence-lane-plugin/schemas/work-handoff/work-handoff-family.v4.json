@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "src/evidence_lane_plugin/session_authority.py",
-      "sha256": "c893ad93e818cacc7abf8a0ce205bdfe93e51e140c4946be7a849548ccc1b6b9"
+      "sha256": "7a329d92c4130793bd8c8d140cc8527a5044169d5b4d6f44f740d07fc754a1b4"
     },
     {
       "path": "src/evidence_lane_plugin/task_binding_registry.py",
-      "sha256": "ca915051bce122694147158f6c84f9e7dd7018c71cb1ff887c7d0d0a74fac04c"
+      "sha256": "c75af7929d4f8af4e2ca48530b64d16afea1a130a01ed3d51cbdcafbdd11a4be"
     }
   ],
   "purpose": "Exact client continuation and recovery contracts",

@@ -400,7 +400,7 @@
             "ordinary_turn",
             "delta_append",
             "session_exit",
-            "state_travel",
+            "work_handoff",
             "goal_completion"
           ],
           "title": "Kind",

@@ -76,8 +76,8 @@
     "code_semantic_query",
     "code_semantic_query_faiss",
     "code_semantic_query_vec",
+    "code_snapshot_summary",
     "fetch",
-    "pv_summary",
     "source_snapshot_retire",
     "source_snapshot_state"
   ],

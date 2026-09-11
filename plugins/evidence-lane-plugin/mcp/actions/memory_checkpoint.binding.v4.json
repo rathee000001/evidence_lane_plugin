@@ -1,13 +1,13 @@
 {
   "action": "memory_checkpoint",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/memory_checkpoint.action.v4.json",
-  "sdk_binding_sha256": "9eb4ce68f086a7ca1739e7bfcfaa28e0564e41e96a6dd139d1456a7905f8bda9",
+  "sdk_binding_sha256": "0f425133e92a4b390979e2dc1025565679347817c7c14c0aae2d52967942bf46",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -1,0 +1,590 @@
+{
+  "action": "task_evidence_send",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/task_evidence_send.action.v4.json",
+  "sdk_binding_sha256": "0f20d19edb51873897eaebc9f983ca67f33e033e3fdd4e2a3fd3ce4c3d21fd1a",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.",
+    "inputSchema": {
+      "$defs": {
+        "CanonBackfireDetails": {
+          "additionalProperties": false,
+          "properties": {
+            "admitted_envelope_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Admitted Envelope Digest",
+              "type": "string"
+            },
+            "admitted_exchange_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Admitted Exchange Id",
+              "type": "string"
+            },
+            "automatic_retry_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Automatic Retry Allowed",
+              "type": "boolean"
+            },
+            "dependency_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Dependency Ids",
+              "type": "array"
+            },
+            "failure_class": {
+              "enum": [
+                "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
+                "MISSING_INFORMATION_FROM_SOURCE",
+                "NEW_REQUIREMENT_FROM_SOURCE",
+                "LINKED_TASK_INPUT_REQUIRED"
+              ],
+              "title": "Failure Class",
+              "type": "string"
+            },
+            "requested_revision": {
+              "maximum": 1000000,
+              "minimum": 2,
+              "title": "Requested Revision",
+              "type": "integer"
+            },
+            "return_route": {
+              "$ref": "#/$defs/CanonTaskEndpoint"
+            },
+            "trace": {
+              "items": {
+                "$ref": "#/$defs/CanonTaskEndpoint"
+              },
+              "maxItems": 32,
+              "title": "Trace",
+              "type": "array"
+            }
+          },
+          "required": [
+            "admitted_exchange_id",
+            "admitted_envelope_digest",
+            "failure_class",
+            "requested_revision",
+            "return_route"
+          ],
+          "title": "CanonBackfireDetails",
+          "type": "object"
+        },
+        "CanonPayload": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "maxProperties": 32,
+              "title": "Fields",
+              "type": "object"
+            },
+            "references": {
+              "items": {
+                "$ref": "#/$defs/MemoryReference"
+              },
+              "maxItems": 20,
+              "title": "References",
+              "type": "array"
+            },
+            "summary": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "summary"
+          ],
+          "title": "CanonPayload",
+          "type": "object"
+        },
+        "CanonTaskEndpoint": {
+          "additionalProperties": false,
+          "properties": {
+            "participant_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Participant Id",
+              "type": "string"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "project_id",
+            "participant_id"
+          ],
+          "title": "CanonTaskEndpoint",
+          "type": "object"
+        },
+        "MemoryReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Digest",
+              "type": "string"
+            },
+            "key": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "plan_task",
+                "lineage_event",
+                "learning_version",
+                "receipt",
+                "source_object",
+                "canon_exchange"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "lane_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lane Id"
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Profile"
+            },
+            "revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision"
+            }
+          },
+          "required": [
+            "kind",
+            "key",
+            "digest"
+          ],
+          "title": "MemoryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "backfire": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CanonBackfireDetails"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "destination_project_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Destination Project Id"
+            },
+            "edge_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Edge Id"
+            },
+            "expected_contract": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Contract"
+            },
+            "expires_at": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expires At"
+            },
+            "kind": {
+              "enum": [
+                "requirements",
+                "evidence",
+                "correction",
+                "plan_proposal",
+                "result",
+                "clarification",
+                "backfire"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "payload": {
+              "$ref": "#/$defs/CanonPayload"
+            },
+            "receiver_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Receiver Id",
+              "type": "string"
+            },
+            "reply_to": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reply To"
+            },
+            "request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Request Id",
+              "type": "string"
+            },
+            "return_contract": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Return Contract"
+            },
+            "sender_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Sender Id",
+              "type": "string"
+            },
+            "supersedes": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Supersedes"
+            }
+          },
+          "required": [
+            "sender_id",
+            "receiver_id",
+            "kind",
+            "payload"
+          ],
+          "title": "CanonSend",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "task_evidence_send",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

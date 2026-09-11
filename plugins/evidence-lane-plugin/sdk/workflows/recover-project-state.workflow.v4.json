@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 504,
+    "path": "sdk/workflows/skills/recover-project-state/workflow.dot",
+    "sha256": "1282c63c0333f205c70c38205e490c1d0da9e26e1e0fc0b39995ff2f298fdc06"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 474,
+    "path": "sdk/workflows/skills/recover-project-state/workflow.mmd",
+    "sha256": "54eb741467bf72b8f9989f4cd7392cd966b87f2190997115b6a955a9d62a15de"
+  },
+  "package": {
+    "bytes": 7947,
+    "path": "sdk/workflows/skills/recover-project-state/workflow.v4.json",
+    "sha256": "dfb96f68aee1630cb36bf3f436e7d1314a83fadbf983838ed28bb3ade86f5f2c"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "recover-project-state",
+  "source_skill": {
+    "bytes": 3027,
+    "path": "skills/recover-project-state/SKILL.md",
+    "sha256": "371d193f1e03f47eca1ff0f7b29f37d312b42b0d4db97702898c393c2b35d53b"
+  },
+  "status": "PASS",
+  "title": "Recover project state",
+  "workflow": "recover-project-state"
+}

@@ -1,13 +1,13 @@
 {
   "action": "pdf_render_read",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/pdf_render_read.action.v4.json",
-  "sdk_binding_sha256": "cb672c6d0c8b88bb9bb76c38df837b07ca4c5f0a772766c9b21a2712badd1ef5",
+  "sdk_binding_sha256": "fbbddfd00bf02610bcfdcb5077fa141ea6c3978ae245c53fca8a4dbb93410132",
   "tool": {
     "annotations": {
       "destructiveHint": false,

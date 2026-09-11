@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": false,
   "entrypoint": "hooks/events/PreCompact/handler.py",
   "event": "PreCompact",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/PreCompact/event.schema.json",
   "members": [
     {
       "path": "hooks/events/PreCompact/handler.py",
-      "sha256": "82346d9e0122723fb30456e5a7498effd490d0bdbaa1159885251d54328d9f9c"
+      "sha256": "7709b7d4b607454c47e507f85492934b748cc991c1165188afe3cb5734f242b2"
     },
     {
       "path": "hooks/events/PreCompact/event.schema.json",
       "sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a"
     },
     {
+      "path": "hooks/events/PreCompact/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "945e21f2c91d9492e96261bfad2cb6caa2cf2de2b254ceae59d966673eedcdd4"
+    },
+    {
+      "path": "hooks/events/PreCompact/02-classify_event.stage.v4.json",
+      "sha256": "fc3151dfe4d2e8d3c525e3b96da5a2089da38200a6f3cd8c6040c84c8e7ccf6e"
+    },
+    {
+      "path": "hooks/events/PreCompact/03-handle_event.stage.v4.json",
+      "sha256": "ec40ee8a3b5365d1e11d2c7378e9dc915c02a99b3045233bc75b6f43f13a0c75"
+    },
+    {
+      "path": "hooks/events/PreCompact/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "2738e83548f382dceabf4d19ada5410e5d568ad246be51e949971454847c0737"
+    },
+    {
+      "path": "hooks/events/PreCompact/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "2e8de4d4b15c98cf94a6b7a20d6a668453f678c42fb0e1242b9819cd41103710"
+    },
+    {
+      "path": "hooks/events/PreCompact/06-project_bounded_output.stage.v4.json",
+      "sha256": "432252a022e45712bb976c5f69ee89c06dc79c2459be1275dec9632b36aad3c7"
+    },
+    {
       "path": "hooks/events/PreCompact/pipeline.v4.json",
-      "sha256": "d00dc617b50c8899e3a379a7dbe8112ca897191b112e41c09661844da082b946"
+      "sha256": "adb6aeb207a94d4ec766801c75f9f41293d5e78bf11a84a69e70006638e8d972"
     },
     {
       "path": "hooks/events/PreCompact/README.md",
-      "sha256": "d81763f40af0f9892db6d7d52166a79db654129f1a2986f9055a8c4f5af8cea9"
+      "sha256": "4a1097550503651183d1581dbd33694229add54e719d92785d62ec1f02f5861e"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

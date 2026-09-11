@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/PermissionRequest/handler.py",
   "event": "PermissionRequest",
   "event_contract": "hooks/events/PermissionRequest/event.v4.json",
-  "event_contract_sha256": "9082079808661835939394c28c23360c39f6c92443612d9938bd1da3e73974ed",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "0ee39a4725ea56ae8b704ad20acd9dae61af10c0c4c990a64f4bcabc16cfa8ab",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
   "input_schema": "schemas/hooks/PermissionRequest.v4.schema.json",
   "input_schema_sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/PermissionRequest/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/PermissionRequest/02-classify_event.stage.v4.json",
+    "hooks/events/PermissionRequest/03-handle_event.stage.v4.json",
+    "hooks/events/PermissionRequest/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/PermissionRequest/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/PermissionRequest/06-project_bounded_output.stage.v4.json"
+  ]
 }

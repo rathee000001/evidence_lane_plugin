@@ -136,6 +136,6 @@ def verify_conversion(context, request, output):
 def register_conversion_actions(engine):
     engine.registry.register(ActionSpec('presentation_convert', 'Convert exact legacy PPT/ODP bytes into a separate versioned PPTX while retaining the original.',
         PresentationConvert, PresentationResult, convert_presentation, permission='write', mutates=True, requires_delta=True,
-        profile='presentation', workflow='source-intake', path_fields=('filename',), worker_operations=('presentation_convert',),
+        profile='presentation', workflow='manage-project-sources', path_fields=('filename',), worker_operations=('presentation_convert',),
         verification_checks=('presentation_snapshot_integrity', 'presentation_source_hash_unchanged'), verifier=verify_conversion,
         tool_routes=(ToolRoute('presentation_convert.shared_office', convert_presentation, ('Python', 'LibreOffice', 'PPTX_OpenXML'), systems=('Windows',)),)))

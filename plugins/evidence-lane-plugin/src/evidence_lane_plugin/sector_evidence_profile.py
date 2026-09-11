@@ -519,7 +519,7 @@ def register_evidence_sector_actions(engine):
     for lane_id in PREFIX:
         for media in (False, True):
             selected_groups = {key: tools for key, tools in groups.items() if (key in {'raster', 'vector', 'media'}) is media}
-            for suffix, workflow in (('index', 'source-intake'), ('refresh', 'refresh')):
+            for suffix, workflow in (('index', 'manage-project-sources'), ('refresh', 'refresh-project-evidence')):
                 action = lane_id + '_' + suffix + ('_media' if media else '')
                 engine.registry.register(ActionSpec(action,
                     'Index exact selected source bytes and attributed bounded facts in the separate ' + lane_id + ' lane.',
@@ -536,7 +536,7 @@ def register_evidence_sector_actions(engine):
             engine.registry.register(ActionSpec(action,
                 'Read bounded current identities, literal search, typed facts or historical bytes in the ' + lane_id + ' lane.',
                 model_for(lane_id, model), EvidenceResult, reader(function, action), profile=lane_id,
-                workflow='source-intake', queryable_in_delta=True, cross_project_read=True, studio_read=True,
+                workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True, studio_read=True,
                 read_migrations=migrations(lane_id),
                 search=SearchRoute((lane_id,), 'rows', lane_id + '_current', 'files', 'text', 'any', rerank_text='text') if suffix == 'query' else None,
                 fetch=FetchRoute((lane_id,), 'snapshot') if suffix == 'read' else None))

@@ -1,0 +1,72 @@
+{
+  "action": "source_snapshot_retire",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/source_snapshot_retire.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/source_snapshot_retire.binding.v4.json",
+  "outer_route": {
+    "action": "source_snapshot_retire",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "sources",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "refresh-project-evidence"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/source_snapshot_retire.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+      "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "source_selector.local_files",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python"
+      ],
+      "worker_operations": []
+    },
+    {
+      "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+      "argument_suffixes": {},
+      "argument_values": {
+        "lane_id": [
+          "github_code"
+        ]
+      },
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "source_selector.git_checkpoint",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "Git"
+      ],
+      "worker_operations": [
+        "code_git_checkpoint"
+      ]
+    }
+  ]
+}

@@ -6,13 +6,56 @@
   "reader": "reader.py:read_authority",
   "actions": [
     {
+      "name": "code_snapshot_summary",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "code",
+      "workflow": "manage-project-sources",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "code_snapshot_summary",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "code_snapshot_summary.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3250d8be609a53d5c00ad4485bd0f37096c3a444fd03b164eead23de96d27da7"
+      },
+      "verification_checks": []
+    },
+    {
       "name": "continuation_recovery_cancel",
       "permission": "admin",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_recovery_cancel",
@@ -55,7 +98,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_recovery_offer",
@@ -92,56 +135,13 @@
       "verification_checks": []
     },
     {
-      "name": "cross_project_query",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "projects",
-      "workflow": "universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "cross_project_query",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "cross_project_query.engine",
-            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "163da55d048e3d52a0495603be565b812855b18ab1f706c4c9053155d0e7294a"
-      },
-      "verification_checks": []
-    },
-    {
       "name": "git_restore",
       "permission": "admin",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [
         "Git"
       ],
@@ -187,7 +187,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "git_restore_abandon",
@@ -230,7 +230,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [
         "Git"
       ],
@@ -276,7 +276,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [
         "Git"
       ],
@@ -322,7 +322,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "lane_catalog",
@@ -365,7 +365,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "projects",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "lane_fetch",
@@ -408,7 +408,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "lane_search",
@@ -484,7 +484,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "lane_status",
@@ -521,13 +521,56 @@
       "verification_checks": []
     },
     {
+      "name": "linked_project_evidence_query",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "projects",
+      "workflow": "inspect-project-evidence-map",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "linked_project_evidence_query",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "linked_project_evidence_query.engine",
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b24f5106d47604b73d4ff55ee9f2327b4bbd75d80cf22b593f29bca75b8cab20"
+      },
+      "verification_checks": []
+    },
+    {
       "name": "project_backup",
       "permission": "admin",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "project_backup",
@@ -570,7 +613,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "project_backup_verify",
@@ -613,7 +656,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "project_catalog",
@@ -656,7 +699,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "project_deselect",
@@ -693,13 +736,99 @@
       "verification_checks": []
     },
     {
+      "name": "project_evidence_heads_compare",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "projects",
+      "workflow": "evidence-lane",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_heads_compare",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "project_evidence_heads_compare.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "33e9e6edfe2ac85aae832c4b702b4f90967b0dfed6ccf143aeef6561dd65a81f"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_history",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "projects",
+      "workflow": "evidence-lane",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_history",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "project_evidence_history.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f9e12fa821f2d86d569c16e201532a14ae7f620485ae8a65e3b2b4d9d4273533"
+      },
+      "verification_checks": []
+    },
+    {
       "name": "project_recovery_inspect",
       "permission": "read",
       "mutates": false,
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "project_recovery_inspect",
@@ -742,7 +871,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "required_tools": [],
       "toolchain": {
         "operation": "project_register",
@@ -785,7 +914,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "project_select",
@@ -828,7 +957,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "core",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "project_status",
@@ -865,142 +994,13 @@
       "verification_checks": []
     },
     {
-      "name": "pv_diff",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "projects",
-      "workflow": "evi",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_diff",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "pv_diff.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "66db82899224e22c85b343304cc738915d54ad6a3dae715cb009afc1462cb545"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "pv_history",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "projects",
-      "workflow": "evi",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_history",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "pv_history.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "03d3b1f1359f1337dd9c04a05399238f45ac1f2bfa7d154896646627d590e66d"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "pv_summary",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "code",
-      "workflow": "source-intake",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_summary",
-        "profile": "code",
-        "routes": [
-          {
-            "route_id": "pv_summary.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1"
-      },
-      "verification_checks": []
-    },
-    {
       "name": "restoration_read",
       "permission": "read",
       "mutates": false,
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [],
       "toolchain": {
         "operation": "restoration_read",
@@ -1043,7 +1043,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "required_tools": [
         "Git"
       ],
@@ -1089,7 +1089,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [],
       "toolchain": {
         "operation": "search",
@@ -1165,7 +1165,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "core",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "required_tools": [],
       "toolchain": {
         "operation": "storage_status",

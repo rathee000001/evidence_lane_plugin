@@ -1,6 +1,9 @@
 interface:
   display_name: "Link project evidence network"
   short_description: "Link hash-only summaries across projects"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $link-project-evidence-network to inspect or update the selected cross-project network."
 dependencies:
   tools:

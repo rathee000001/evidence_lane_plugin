@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "523c331d45ce88076adbbfdfa6502a8678637f82b498dd180b4a00b1b444d78d",
+  "action_set_digest": "013f5139d5fe0f0e8a16726c919fdc3ce75267c6bf20be0f9f9ac8cfe37fe810",
   "actions": [
     {
       "cross_project_read": true,
@@ -224,6 +224,20 @@
       "queryable_in_delta": true,
       "requires_delta": false,
       "studio_read": false
+    },
+    {
+      "cross_project_read": true,
+      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+      "input_schema_digest": "973f36204a07e8dcc626a265fe3593c22112739edebf5b557f9c007e2f755946",
+      "mutates": false,
+      "name": "code_snapshot_summary",
+      "output_schema_digest": "63cd24992c02c9a5245fceacbbb99ab097db4e6b41dbfcf2d669b77d66d2f1f2",
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": true
     },
     {
       "cross_project_read": true,
@@ -1067,20 +1081,6 @@
     },
     {
       "cross_project_read": true,
-      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
-      "input_schema_digest": "973f36204a07e8dcc626a265fe3593c22112739edebf5b557f9c007e2f755946",
-      "mutates": false,
-      "name": "pv_summary",
-      "output_schema_digest": "63cd24992c02c9a5245fceacbbb99ab097db4e6b41dbfcf2d669b77d66d2f1f2",
-      "permission": "read",
-      "profile": "code",
-      "project_required": true,
-      "queryable_in_delta": true,
-      "requires_delta": false,
-      "studio_read": true
-    },
-    {
-      "cross_project_read": true,
       "description": "Read bounded current identities, literal search, typed facts or historical bytes in the research lane.",
       "input_schema_digest": "842ce44b867b209c9e520c36e9b6a1cdb32c5e209e5fedcc99d62fefb2fd2e93",
       "mutates": false,
@@ -1672,5 +1672,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "source-intake"
+  "workflow": "manage-project-sources"
 }

@@ -12,7 +12,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/lane-contract.v4.json",
-      "sha256": "13301a14b8b2de839ec7bfa6b243403f333b6f7b028599009236992822894c58"
+      "sha256": "c6f3dd6809820abf908fa3bb03e000d83f5c513955952b307e5b647cff428431"
     },
     {
       "path": "authorities/project_sectors/local_code/lane-pointer.schema.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/manifest.v4.json",
-      "sha256": "a68b09791818372d0daf65069b8119467bcdab26311da88e0af26871eee16158"
+      "sha256": "25d50e6073d81b1c26958016ffd6a6553d6dedcfda032a1f0daf8254e3e405ff"
     },
     {
       "path": "authorities/project_sectors/local_code/migration-history.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "authorities/project_sectors/local_code/reader-contract.schema.json",
-      "sha256": "da273a90e0bdd129f44a9688bb650d63874025eed67ccc372ff2647a0b72bf6b"
+      "sha256": "f4b540598c1e54cb663c0d3fd40b9edbda9f6628c2b74bd80f854c388f599ba5"
     },
     {
       "path": "authorities/project_sectors/local_code/refresh-receipt.schema.json",

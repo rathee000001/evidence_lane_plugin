@@ -29,21 +29,21 @@ flowchart TB
   action_session_resume["session_resume"]:::default
   action_session_status["session_status"]:::default
   sdk -->|"read"| action_env_uop_inspect
-  action_env_uop_inspect -->|"evi"| read
+  action_env_uop_inspect -->|"evidence-lane"| read
   sdk -->|"write"| action_session_boot
-  action_session_boot -->|"boot"| writer
+  action_session_boot -->|"open-project-session"| writer
   sdk -->|"read"| action_session_context
-  action_session_context -->|"boot"| read
+  action_session_context -->|"open-project-session"| read
   sdk -->|"write"| action_session_exit
-  action_session_exit -->|"exit-boot"| writer
+  action_session_exit -->|"close-project-session"| writer
   sdk -->|"read"| action_session_exit_boundary
-  action_session_exit_boundary -->|"exit-boot"| read
+  action_session_exit_boundary -->|"close-project-session"| read
   sdk -->|"read"| action_session_flash_status
-  action_session_flash_status -->|"boot"| read
+  action_session_flash_status -->|"open-project-session"| read
   sdk -->|"write"| action_session_resume
-  action_session_resume -->|"boot"| writer
+  action_session_resume -->|"open-project-session"| writer
   sdk -->|"read"| action_session_status
-  action_session_status -->|"boot"| read
+  action_session_status -->|"open-project-session"| read
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

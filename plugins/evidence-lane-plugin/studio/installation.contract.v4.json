@@ -1,0 +1,42 @@
+{
+  "bundle_plan": {
+    "bytes": 540817,
+    "path": "provisioning/full-bundle-plan.v4.json",
+    "sha256": "8d1fd7b58a14adfd18d9d9670dc2d8e0c16421cf6f32d76b8b28ab0f981e65f3"
+  },
+  "canonical_installer": {
+    "bytes": 95463,
+    "path": "scripts/first_detection.py",
+    "sha256": "aeb4bf5c49d5516e526b211a1629d24f1c14e550b5f0c34b73d80fe1c52b66ec"
+  },
+  "discoverable_alias": "studio/install.py",
+  "explicit_bootstrap": {
+    "bytes": 3588,
+    "path": "scripts/bootstrap.py",
+    "sha256": "2518a5a6f5b8591665762d8aa97fde9aa36607d55283ca7dfb64ff44b4e710b2"
+  },
+  "first_detection_outside_initialize": true,
+  "managed_plugin_owner": "codex_plugin_manager",
+  "managed_plugin_source": "plugins/evidence-lane-plugin",
+  "mcp_first_detection": {
+    "bytes": 4439,
+    "path": "scripts/run_mcp.py",
+    "sha256": "7ac1f50924fee654350d12b7010b8e64107b122194905e4207ab0a256f50e44f"
+  },
+  "native_installation_verified": false,
+  "project_state_changed": false,
+  "release_binding": {
+    "embedded_digest": false,
+    "path": "provisioning/release-binding.v4.json",
+    "verified_at_runtime_by": "scripts/first_detection.py:validate_binding"
+  },
+  "schema": "evidence-lane.studio-installation-link.v4",
+  "stable_direct_folders": [
+    "app",
+    "plugin",
+    "engine",
+    "toolchains"
+  ],
+  "studio_source": "apps/evidence-lane-studio",
+  "windows_installation_root": "C:/Apps/EvidenceLaneStudio"
+}

@@ -11,7 +11,7 @@ digraph workflow_instructions {
   owner [label="instructions current executable owner" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   action_instructions_inspect [label=instructions_inspect color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   sdk -> action_instructions_inspect [label=read]
-  action_instructions_inspect -> read [label=instructions]
+  action_instructions_inspect -> read [label="inspect-project-instructions"]
   writer -> owner [label="owned mutation and attributed result"]
   owner -> read [label="published state"]
 }

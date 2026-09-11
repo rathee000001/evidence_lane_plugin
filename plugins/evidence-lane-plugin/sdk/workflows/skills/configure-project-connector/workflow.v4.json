@@ -1,0 +1,45 @@
+{
+  "action_bindings": [
+    "sdk/actions/connector_configure.action.v4.json"
+  ],
+  "action_count": 1,
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Add or configure one versioned project extension grant without executing its backend.",
+      "mutates": true,
+      "name": "connector_configure",
+      "permission": "admin",
+      "profile": "extensions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "requires_delta": false,
+      "studio_read": false,
+      "workflow": "configure-project-connector"
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "default_prompt": "Use $configure-project-connector to configure the selected project connector.",
+  "description": "Configure an Evidence Lane project connector and its bounded grant. Use to add or change connector access within that project.",
+  "dot": "sdk/workflows/skills/configure-project-connector/workflow.dot",
+  "installation_verified": false,
+  "installed_execution_claimed": false,
+  "mermaid": "sdk/workflows/skills/configure-project-connector/workflow.mmd",
+  "schema": "evidence-lane.sdk-skill-workflow.v4",
+  "skill": "configure-project-connector",
+  "stages": [
+    "intent_and_skill_resolution",
+    "typed_action_resolution",
+    "sdk_and_mcp_transport",
+    "persistent_engine_api",
+    "project_and_lane_admission",
+    "bounded_operation_execution",
+    "coordinated_publication",
+    "read_only_studio_observation"
+  ],
+  "status": "PASS",
+  "title": "Configure project connector",
+  "workflow": "configure-project-connector"
+}

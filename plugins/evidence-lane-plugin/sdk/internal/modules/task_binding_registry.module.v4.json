@@ -1,0 +1,25 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.task_binding_registry",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "continuation_accept",
+    "continuation_cancel",
+    "continuation_offer",
+    "continuation_read",
+    "continuation_recovery_cancel",
+    "continuation_recovery_offer"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 31050,
+    "path": "src/evidence_lane_plugin/task_binding_registry.py",
+    "sha256": "c75af7929d4f8af4e2ca48530b64d16afea1a130a01ed3d51cbdcafbdd11a4be"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'universe'
-ACTIONS = {'bigger_universe_create': True, 'bigger_universe_grant': True, 'bigger_universe_link': True, 'bigger_universe_register': True, 'bigger_universe_revoke': True, 'project_link': True, 'project_unlink': True}
+ACTIONS = {'project_evidence_link': True, 'project_evidence_network_create': True, 'project_evidence_network_grant': True, 'project_evidence_network_link': True, 'project_evidence_network_register': True, 'project_evidence_network_revoke': True, 'project_evidence_unlink': True}
 
 
 def build_authority(client, **request):

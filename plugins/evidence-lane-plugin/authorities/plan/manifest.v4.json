@@ -308,7 +308,7 @@
       },
       "permission": "write",
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -426,7 +426,7 @@
       },
       "permission": "write",
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -581,7 +581,7 @@
       },
       "permission": "read",
       "profile": "delta",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -888,7 +888,7 @@
       },
       "permission": "read",
       "profile": "delta",
-      "workflow": "build",
+      "workflow": "execute-project-plan",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1055,7 +1055,7 @@
       },
       "permission": "admin",
       "profile": "plan",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -1216,7 +1216,7 @@
       },
       "permission": "read",
       "profile": "plan",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2419,7 +2419,7 @@
       },
       "permission": "write",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -2742,7 +2742,7 @@
       },
       "permission": "admin",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -2992,7 +2992,7 @@
       },
       "permission": "read",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -3271,7 +3271,7 @@
       },
       "permission": "write",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -4084,7 +4084,7 @@
       },
       "permission": "read",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -5326,7 +5326,7 @@
       },
       "permission": "write",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -5537,7 +5537,7 @@
       },
       "permission": "read",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -5711,7 +5711,7 @@
       },
       "permission": "write",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -6123,7 +6123,7 @@
       },
       "permission": "read",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -6695,7 +6695,7 @@
       },
       "permission": "write",
       "profile": "plan",
-      "workflow": "plan",
+      "workflow": "manage-project-plan",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -6750,7 +6750,7 @@
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "1554d49eb5fb3530d012d2abd0b25a0e43764cb547937cca635910339eb46c4a",
+      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",
@@ -6838,7 +6838,7 @@
     },
     {
       "path": "authorities/plan/dot-artifact.schema.json",
-      "sha256": "191755e3a783a3ec1be95297c6f5c73ece658e825c0f423ab5748f7660907fd5"
+      "sha256": "a3129cd11de68c54e715e52eb1eb3a883bc36c202c1b4d3a0d7be9856538d632"
     },
     {
       "path": "authorities/plan/law.v4.json",
@@ -6854,7 +6854,7 @@
     },
     {
       "path": "authorities/plan/mmd-artifact.schema.json",
-      "sha256": "ab2379afbcd423f9f2e3f809e527acea6376c3b0f1bc7e36e08e31f02105c7d7"
+      "sha256": "db2f09b6178f30c273e95a263fa9704fd3a5477d97bdb0f0d7c715efd558b53a"
     },
     {
       "path": "authorities/plan/plan.dot",
@@ -6870,7 +6870,7 @@
     },
     {
       "path": "authorities/plan/plan.tools.json",
-      "sha256": "575c1fc1282c0bd62fbada966feff0038de8adb0a3350d41fa80ac6d40da5f67"
+      "sha256": "356d195bb9279d18cef9ae7f1397101a477bc33034ef1f99d7491752d63e4224"
     },
     {
       "path": "authorities/plan/pointer-contract.schema.json",
@@ -6878,7 +6878,7 @@
     },
     {
       "path": "authorities/plan/pointer-contract.v4.json",
-      "sha256": "12a69643c377972f158ac027724d36b8de08f4fb6009ad5e67e5b454472a4352"
+      "sha256": "cfcc9e2dba370450ff8287127c5e3344094812803e2deec57dcf82df3cd7f6ed"
     },
     {
       "path": "authorities/plan/reader-contract.schema.json",
@@ -6922,15 +6922,15 @@
     },
     {
       "path": "authorities/plan/workflow.dot",
-      "sha256": "6352c420b34cee372e373710bd0e6302d8bea1c780d667a6ba71724e3178a5c4"
+      "sha256": "51ad036ccb85d4fcb745f48a8a8e65cdabf631c592de07d30ebfb9c7bd8cd7bd"
     },
     {
       "path": "authorities/plan/workflow.mmd",
-      "sha256": "8a0b4bbf010c5bace7364fa182a0c34c9d51bc641b95f1238f99ef677de7e617"
+      "sha256": "733eea5ccf051bb07a602cc16161a8c324220bba4e12398cd6263c243cc4f05d"
     },
     {
       "path": "authorities/plan/workflow.v4.json",
-      "sha256": "1e3302dcd8f1ff6172e3cfdfb4c1ba8985f1a4593e44c4e39ce0d35e085ebb43"
+      "sha256": "9e43b1f86073970b3637f630493d1ae8a9cd0917da3aa46b25b65ea1879407bb"
     }
   ]
 }

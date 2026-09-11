@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": true,
   "entrypoint": "hooks/events/SessionStart/handler.py",
   "event": "SessionStart",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/SessionStart/event.schema.json",
   "members": [
     {
       "path": "hooks/events/SessionStart/handler.py",
-      "sha256": "c486fea9e2c5f1d2c3b6b7f722f5bbbca4c6b581aa15f9cbc39566ae52954d14"
+      "sha256": "24dc95f862c8adb154ea2afeb8f7a91f043a0a345a72a60cd796da3a095369da"
     },
     {
       "path": "hooks/events/SessionStart/event.schema.json",
       "sha256": "543596dc2b3dad5a2fdc929da107c8dcb26f22670ef8667dbf7e786bf7104747"
     },
     {
+      "path": "hooks/events/SessionStart/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "fa6cac8964f9435412ace0de3a2441ece9db50125da44d36a964db8a13a1e6de"
+    },
+    {
+      "path": "hooks/events/SessionStart/02-classify_event.stage.v4.json",
+      "sha256": "bbab6b0a1d20903858ca2beb18e2ede46fd8d2006e006b2bd3a1fbc861823fab"
+    },
+    {
+      "path": "hooks/events/SessionStart/03-handle_event.stage.v4.json",
+      "sha256": "7702c846739b80373d40d8c85efdbbbc6cb8cd4dac907872bbaaf5d494b294f3"
+    },
+    {
+      "path": "hooks/events/SessionStart/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "944312e5957e9a81afb5d21396681a199e6021396202a21f6f36b4da0c98ae47"
+    },
+    {
+      "path": "hooks/events/SessionStart/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "6090fa68b03f0e9a519afd630b485d3d3180ec4d97402438ca482c19d29991c3"
+    },
+    {
+      "path": "hooks/events/SessionStart/06-project_bounded_output.stage.v4.json",
+      "sha256": "898c5514dc58f948b758b71c5675d4df4069c55573d373d488b95d1a5e8af376"
+    },
+    {
       "path": "hooks/events/SessionStart/pipeline.v4.json",
-      "sha256": "4feeaaed380c6fb6e9c0a581d7bfc08e2a351ef8734bfaca1cc668b5ed7765b2"
+      "sha256": "bd0964cae424cc1a5adcf4b602c466eae5d7c8dca5eab58b06134bad5d717bc5"
     },
     {
       "path": "hooks/events/SessionStart/README.md",
-      "sha256": "122a2838d86ba0339dfc504fca2016994840986365c372eaee7ea496e092ca81"
+      "sha256": "8ad21f874e846a83aab5617399a38768493e661c2ec33fcd5f22e2969906660a"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

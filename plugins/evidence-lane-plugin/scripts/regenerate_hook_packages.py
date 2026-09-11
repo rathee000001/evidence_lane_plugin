@@ -20,6 +20,7 @@ from evidence_lane_plugin.hook_contract import (
     hook_manifest,
     hook_registry,
 )
+from evidence_lane_plugin.hook_event_handlers import handler_class_for_event
 
 
 def encoded(value) -> bytes:
@@ -33,6 +34,7 @@ def digest(value) -> str:
 
 
 def handler_source(name: str) -> str:
+    handler = handler_class_for_event(name).__name__
     return f'''"""Packaged {name} hook entrypoint; generated from the v4 hook contract."""
 import sys
 from pathlib import Path
@@ -40,8 +42,22 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 if __name__ == "__main__":
-    from evidence_lane_plugin.hook_contract import main_for_event
-    raise SystemExit(main_for_event("{name}"))
+    from evidence_lane_plugin.hook_contract import main_for_handler
+    from evidence_lane_plugin.hook_event_handlers import {handler}
+    raise SystemExit(main_for_handler({handler}))
+'''
+
+
+def invoke_source() -> str:
+    return '''"""Generic documented Hook launcher; event packages use fixed handler classes."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+if __name__ == "__main__":
+    from evidence_lane_plugin.hook_contract import main
+    raise SystemExit(main())
 '''
 
 
@@ -50,14 +66,15 @@ def event_readme(name: str) -> str:
     return f'''# {name}
 
 This directory owns the packaged Evidence Lane handler for the documented
-`{name}` event. The handler validates and redacts the event's visible fields,
-verifies the selected v4 engine build, submits one event to the explicitly bound
-project session, verifies the returned event identity, and {context}.
+`{name}` event. Its fixed handler class runs the distinct admission,
+classification, event handling, authenticated transport, receipt sealing and
+bounded-output owners, and {context}.
 
 The handler never selects a project from a title or path, starts lifecycle work,
 controls a subagent, changes a Goal, retries an uncertain delivery, or reads a
 host transcript. `event.schema.json` describes admitted input and
-`pipeline.v4.json` binds every stage to the shared executable implementation.
+`pipeline.v4.json` and the numbered stage contracts bind every step to its
+executable owner. Event isolation prevents stage reuse or automatic replay.
 '''
 
 
@@ -65,6 +82,25 @@ def exports() -> dict[str, object]:
     outputs: dict[str, object] = {
         "hooks/hooks.json": hook_manifest(),
         "hooks/hook-event-registry.v4.json": hook_registry(),
+        "hooks/invoke_hook.py": invoke_source(),
+        "hooks/event-isolation.policy.v4.json": {
+            "schema": "evidence-lane.hook-event-isolation-policy.v4",
+            "owner": "src/evidence_lane_plugin/hook_event_isolation.py",
+            "one_process_per_occurrence": True,
+            "raw_input_persisted": False,
+            "automatic_retry": False,
+            "terminal_replay": False,
+            "lifecycle_control": False,
+        },
+        "hooks/hook-stage-registry.v4.json": {
+            "schema": "evidence-lane.hook-stage-registry.v4",
+            "stage_count": len(HOOK_PIPELINE),
+            "stages": list(HOOK_PIPELINE),
+            "event_specific_handler_classes": True,
+            "monolithic_hook_implementation": False,
+            "runtime_bridge": "hooks/runner.mjs",
+            "ambient_python_required": False,
+        },
     }
     hook_events = []
     sdk_events = []
@@ -77,12 +113,33 @@ def exports() -> dict[str, object]:
         contract_path = f"hooks/events/{name}/event.v4.json"
         central_schema_path = f"schemas/hooks/{name}.v4.schema.json"
         sdk_path = f"sdk/hooks/events/{name}.v4.json"
+        handler_class = handler_class_for_event(name)
         outputs[handler_path] = handler_source(name)
         outputs[schema_path] = hook_event_input_schema(name)
+        stage_paths = []
+        for ordinal, stage in enumerate(HOOK_PIPELINE, 1):
+            stage_path = f"hooks/events/{name}/{ordinal:02d}-{stage['id']}.stage.v4.json"
+            implementation = stage["implementation"]
+            if stage["id"] == "handle_event":
+                implementation = f"hook_event_handlers.{handler_class.__name__}.handle"
+            outputs[stage_path] = {
+                "schema": "evidence-lane.native-hook-stage.v4",
+                "event": name,
+                "ordinal": ordinal,
+                "stage": stage["id"],
+                "owner": stage["owner"],
+                "implementation": implementation,
+                "handler_class": f"evidence_lane_plugin.hook_event_handlers.{handler_class.__name__}",
+                "automatic_retry": False,
+                "capture_only": True,
+            }
+            stage_paths.append(stage_path)
         outputs[pipeline_path] = {
             "schema": "evidence-lane.native-hook-pipeline.v4",
             "event": name,
             "stages": list(HOOK_PIPELINE),
+            "stage_contracts": stage_paths,
+            "distinct_executable_owners": True,
             "separate_process_per_stage": False,
             "automatic_retry": False,
         }
@@ -90,7 +147,7 @@ def exports() -> dict[str, object]:
         contract = hook_event_contract(name)
         contract["members"] = [
             {"path": path, "sha256": digest(outputs[path])}
-            for path in (handler_path, schema_path, pipeline_path, readme_path)
+            for path in (handler_path, schema_path, *stage_paths, pipeline_path, readme_path)
         ]
         outputs[contract_path] = contract
         outputs[central_schema_path] = outputs[schema_path]
@@ -103,7 +160,11 @@ def exports() -> dict[str, object]:
             "input_schema": central_schema_path,
             "input_schema_sha256": digest(outputs[central_schema_path]),
             "shared_runtime": "sdk/hooks/runtime.py",
-            "execution_owner": "evidence_lane_plugin.hook_contract",
+            "execution_owner": "evidence_lane_plugin.hook_pipeline",
+            "handler_class": f"evidence_lane_plugin.hook_event_handlers.{handler_class.__name__}",
+            "runtime_bridge": "hooks/runner.mjs",
+            "ambient_python_required": False,
+            "stage_contracts": stage_paths,
             "automatic_retry": False,
             "installed_execution_claimed": False,
         }
@@ -114,7 +175,11 @@ def exports() -> dict[str, object]:
         "schema": "evidence-lane.hook-event-package-registry.v4",
         "event_count": len(hook_events),
         "events": hook_events,
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
+        "stage_registry": "hooks/hook-stage-registry.v4.json",
+        "event_handler_owner": "src/evidence_lane_plugin/hook_event_handlers.py",
+        "runtime_bridge": "hooks/runner.mjs",
+        "ambient_python_required": False,
         "old_tunnel_host_required": False,
         "native_installation_verified": False,
     }
@@ -123,14 +188,18 @@ def exports() -> dict[str, object]:
         "event_count": len(sdk_events),
         "events": sdk_events,
         "runtime": "sdk/hooks/runtime.py",
-        "shared_implementation": "src/evidence_lane_plugin/hook_contract.py",
+        "pipeline_owner": "src/evidence_lane_plugin/hook_pipeline.py",
+        "event_handler_owner": "src/evidence_lane_plugin/hook_event_handlers.py",
+        "runtime_bridge": "hooks/runner.mjs",
+        "ambient_python_required": False,
         "native_installation_verified": False,
     }
     outputs["schemas/hooks/hook-family.v4.json"] = {
         "schema": "evidence-lane.hook-schema-family.v4",
         "event_count": len(schemas),
         "events": schemas,
-        "admission_owner": "evidence_lane_plugin.hook_contract.prepare_hook",
+        "admission_owner": "evidence_lane_plugin.hook_admission.admit_hook",
+        "classification_owner": "evidence_lane_plugin.hook_classification.classify_hook",
         "native_installation_verified": False,
     }
     return outputs

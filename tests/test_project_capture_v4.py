@@ -259,7 +259,7 @@ def test_sparse_hook_prompt_resupply_modes_and_steer_preserve_source_hash(sparse
     status = call(sparse_system, 'prompt_index_status').result['index']['entries'][0]
     assert status['classification_state'] == 'source_text_unavailable'
     args = {'classification_id': str(uuid4()), 'source_event_id': result.event_id, 'source_cursor': result.cursor,
-            'intent': 'work', 'focus': 'Index a source', 'workflow': 'build', 'next_action': 'delta_enter',
+        'intent': 'work', 'focus': 'Index a source', 'workflow': 'execute-project-plan', 'next_action': 'delta_enter',
             'lanes': ['local_code'], 'explicit_modes': ['CD']}
     assert call(sparse_system, 'task_classify', args).error.code == 'CAPTURE_SOURCE_RESUPPLY_REQUIRED'
     assert call(sparse_system, 'task_classify', {**args, 'source_text': 'wrong'}).error.code == 'CAPTURE_SOURCE_MISMATCH'
@@ -306,7 +306,7 @@ def test_sparse_mode_hash_survives_real_delta_execution_and_verified_exit(sparse
     assert source.status == 'ok', source.error
     classified = call(sparse_system, 'task_classify', {'classification_id': str(uuid4()),
         'source_event_id': source.result['event_id'], 'source_cursor': source.result['cursor'],
-        'source_text': text, 'intent': 'work', 'focus': 'Index selected code', 'workflow': 'build',
+        'source_text': text, 'intent': 'work', 'focus': 'Index selected code', 'workflow': 'execute-project-plan',
         'next_action': 'delta_enter', 'lanes': ['local_code'], 'explicit_modes': ['CD']})
     assert classified.status == 'ok', classified.error
     binding = classified.result['task_mode_binding']
@@ -329,7 +329,7 @@ def test_sparse_truncated_source_cannot_be_reclassified_as_complete(sparse_syste
     assert source.status == 'ok', source.error
     response = call(sparse_system, 'task_classify', {'classification_id': str(uuid4()),
         'source_event_id': source.result['event_id'], 'source_cursor': source.result['cursor'], 'source_text': text,
-        'intent': 'informational', 'focus': 'Inspect', 'workflow': 'plan', 'next_action': 'plan_read'})
+        'intent': 'informational', 'focus': 'Inspect', 'workflow': 'manage-project-plan', 'next_action': 'plan_read'})
     assert response.error.code == 'PROMPT_SOURCE_TRUNCATED'
 
 

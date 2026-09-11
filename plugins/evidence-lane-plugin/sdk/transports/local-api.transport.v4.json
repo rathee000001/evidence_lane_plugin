@@ -1,0 +1,22 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "credentials_recorded": false,
+  "installed_execution_claimed": false,
+  "project_administration_inferred": false,
+  "schema": "evidence-lane.sdk-transport-contract.v4",
+  "sources": [
+    {
+      "bytes": 21893,
+      "path": "src/evidence_lane_plugin/local_transport.py",
+      "sha256": "5868d3e8cbe56dac2b590f47074d9d818a1e2eac05875f7f8291b7c7ab627b97"
+    },
+    {
+      "bytes": 2988,
+      "path": "schemas/transports/local-connect.v4.schema.json",
+      "sha256": "d41cc2cdc595060e0ad297100b406c385c8f42e5490133f924881d7051bc23f4"
+    }
+  ],
+  "status": "PASS",
+  "transport": "local-api.transport.v4"
+}

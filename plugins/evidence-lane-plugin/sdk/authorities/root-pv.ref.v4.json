@@ -1,0 +1,14 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 4227,
+    "path": "authorities/project_authority/manifest.v4.json",
+    "sha256": "53649c7662a3416eb92473f97e6ed4103e37177318b000ab520495527ea22896"
+  },
+  "role": "coordinate_exact_separate_lane_heads_and_receipts",
+  "schema": "evidence-lane.sdk-root-pv-ref.v4",
+  "status": "PASS",
+  "universal_business_database": false
+}

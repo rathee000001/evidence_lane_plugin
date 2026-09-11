@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "local-install.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Install one exact side-by-side Windows release and publish its pointer only after validation.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 3277,
+      "path": "authorities/session_authority/installation-layout.v4.json",
+      "sha256": "cef946824307ea4b4a212e4ce3b41319899783a610a205ee2a8d0030199b0935"
+    },
+    {
+      "bytes": 95463,
+      "path": "scripts/first_detection.py",
+      "sha256": "aeb4bf5c49d5516e526b211a1629d24f1c14e550b5f0c34b73d80fe1c52b66ec"
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "select-toolchain.operation.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Choose current primary/fallback tools from measured readiness and task scope.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 11194,
+      "path": "src/evidence_lane_plugin/env_uop_tool_routing.py",
+      "sha256": "d5bdc6b92029822852adfec41ff224519bfa7c096f4b144c7159d929b8eec5e1"
+    },
+    {
+      "bytes": 464313,
+      "path": "toolchains/operation-toolchains.v4.json",
+      "sha256": "0dcdb0786883578245b8ce7e547f7d4b7342ad25b19fa45dd2c36a04916874e9"
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,9 @@
+{
+  "automatic_retry": false,
+  "lifecycle_control": false,
+  "one_process_per_occurrence": true,
+  "owner": "src/evidence_lane_plugin/hook_event_isolation.py",
+  "raw_input_persisted": false,
+  "schema": "evidence-lane.hook-event-isolation-policy.v4",
+  "terminal_replay": false
+}

@@ -283,8 +283,8 @@ def register_storage_actions(engine):
     engine.registry.register(ActionSpec('storage_connector_inspect',
         'Read the verified storage selection chain and current authenticated backend evidence without changing routing.',
         StorageInspect, StorageSelectionResult, lambda context, request: service(context).inspect(context, request),
-        workflow='storage', profile='receipts', queryable_in_delta=True, studio_read=True))
+        workflow='select-project-storage', profile='receipts', queryable_in_delta=True, studio_read=True))
     engine.registry.register(ActionSpec('storage_connector_select',
         'Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.',
         StorageSelect, StorageSelectionResult, lambda context, request: service(context, True).select(context, request),
-        workflow='storage', profile='receipts', permission='admin', mutates=True))
+        workflow='select-project-storage', profile='receipts', permission='admin', mutates=True))

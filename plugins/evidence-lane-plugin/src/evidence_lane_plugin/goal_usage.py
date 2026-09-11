@@ -18,7 +18,7 @@ from .redaction import contains_secret, redact, redact_text
 
 GOAL_COMPLETION_COMMAND = "MARK GOAL COMPLETE"
 GOAL_COMPLETION_DISPOSITIONS = (
-    "COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
+    "COMPLETE_THIS_TASK_AND_HANDOFF_WORK",
     "COMPLETE_FULLY",
 )
 RICH_GOAL_COMPLETION_METRICS_ROUTE = (
@@ -1096,7 +1096,7 @@ def build_goal_completion_authorization(
     The retained Python name does not make this helper an authorizer. Strings
     supplied by a caller establish neither human consent nor the current task
     identity. Only the supported native Goal operation and its attributed
-    result can establish completion. Requested State Travel and full closure
+    result can establish completion. Requested project handoff and full closure
     remain requests here; neither changes a Goal, HIL or project pointer.
     """
 
@@ -1126,11 +1126,11 @@ def build_goal_completion_authorization(
         "current_task_id": task_id,
         "disposition": exact_disposition,
         "current_task_goal_completed": None,
-        "state_travel_requested": (
-            exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
+        "work_handoff_requested": (
+            exact_disposition == "COMPLETE_THIS_TASK_AND_HANDOFF_WORK"
         ),
         "successor_goal_required": (
-            exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
+            exact_disposition == "COMPLETE_THIS_TASK_AND_HANDOFF_WORK"
         ),
         "full_goal_completion_requested": exact_disposition == "COMPLETE_FULLY",
         "full_goal_closed": None,

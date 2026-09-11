@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tomllib
@@ -14,7 +15,7 @@ import httpx
 import pytest
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.errors import LaneError
-from evidence_lane_plugin.launcher import ensure_local_engine, runtime_root
+from evidence_lane_plugin.launcher import _windows_service_flags, ensure_local_engine, runtime_root
 from evidence_lane_plugin.local_transport import LocalEndpoint, LocalTransport
 from evidence_lane_plugin.service import request_owner_control
 from mcp import ClientSession, StdioServerParameters
@@ -150,8 +151,13 @@ if __name__ == '__main__':
         assert command[-2:] == ['--runtime-root', str(root)]
         assert command[1:3] == ['-I', '-B']
         assert command[3] == str(PLUGIN / 'scripts/run_engine.py')
-        assert options['creationflags'] == getattr(subprocess, 'CREATE_NO_WINDOW', 0)
-        process = subprocess.Popen([sys.executable, str(script), str(PLUGIN / 'src'), str(root)], **options)
+        assert options['creationflags'] == _windows_service_flags()
+        fixture_options = {
+            **options,
+            'creationflags': getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+            'env': {**os.environ, 'EVIDENCE_LANE_STUDIO_ROOT': str(tmp_path / 'shared-studio')},
+        }
+        process = subprocess.Popen([sys.executable, str(script), str(PLUGIN / 'src'), str(root)], **fixture_options)
         processes.append(process)
         return process
     try:
@@ -163,11 +169,17 @@ if __name__ == '__main__':
             assert transport.instance_id == first['instance_id']
     finally:
         if processes:
-            request_owner_control(root, 'shutdown')
-            assert processes[0].wait(timeout=15) == 0
+            try:
+                request_owner_control(root, 'shutdown')
+            except LaneError as error:
+                assert error.code == 'ENGINE_UNAVAILABLE'
+                processes[0].terminate()
+                processes[0].wait(timeout=15)
+            else:
+                assert processes[0].wait(timeout=15) == 0
 
 
-def test_invalid_discovery_and_relative_root_do_not_launch_or_overwrite(tmp_path):
+def test_invalid_discovery_is_removed_only_after_runtime_ownership_is_free(tmp_path):
     for selected in [Path('relative'), Path('bad\nroot')]:
         with pytest.raises(LaneError) as error:
             runtime_root(selected)
@@ -177,11 +189,15 @@ def test_invalid_discovery_and_relative_root_do_not_launch_or_overwrite(tmp_path
     endpoint = root / 'endpoint.json'
     endpoint.write_bytes(b'{unrelated or corrupt discovery')
     calls = []
+    process = SimpleNamespace(poll=lambda: 1)
     with pytest.raises(LaneError) as error:
-        ensure_local_engine(root, spawn=lambda *args, **kwargs: calls.append(args))
-    assert error.value.code == 'RUNTIME_DISCOVERY_INVALID'
-    assert endpoint.read_bytes() == b'{unrelated or corrupt discovery'
-    assert not calls
+        ensure_local_engine(
+            root,
+            spawn=lambda *args, **kwargs: calls.append((args, kwargs)) or process,
+        )
+    assert error.value.code == 'ENGINE_START_FAILED'
+    assert not endpoint.exists()
+    assert len(calls) == 1
 
 
 def test_invalid_package_arguments_are_rejected_by_runtime_parser(tmp_path, monkeypatch):

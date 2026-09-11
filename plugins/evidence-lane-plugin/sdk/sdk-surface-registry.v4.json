@@ -1,73 +1,203 @@
 {
   "action_count": 297,
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "families": [
     {
+      "complete_member_surface": true,
+      "member_count": 300,
       "name": "actions",
       "path": "sdk/actions/dispatcher.py",
+      "registry": {
+        "path": "sdk/actions/action-manifest.v4.json",
+        "sha256": "960a7af31632d8b9004b71675df88eb474266e27f1222fe9f59f535afabd63fb"
+      },
+      "runtime": {
+        "path": "sdk/actions/dispatcher.py",
+        "sha256": "95df7c5ff49308a282490fa5596ca640cde3717b5d896c5a2caa5fccec3729a4"
+      },
       "sha256": "95df7c5ff49308a282490fa5596ca640cde3717b5d896c5a2caa5fccec3729a4"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 31,
       "name": "authorities",
       "path": "sdk/authorities/runtime.py",
-      "sha256": "5cd309984ef76d19ca4f63125895f9c38003fb944411a882210abb5ddf66f313"
+      "registry": {
+        "path": "sdk/authorities/named-authorities.ref.v4.json",
+        "sha256": "f5b2466346cd551ced475666aa7a59be79c17d1612ee3b27f02fb85c1f8c628c"
+      },
+      "runtime": {
+        "path": "sdk/authorities/runtime.py",
+        "sha256": "8e9f490af0caebe2fbff95a19c90b221c8eeeac4cf3ec5f81219c26c84bc75df"
+      },
+      "sha256": "8e9f490af0caebe2fbff95a19c90b221c8eeeac4cf3ec5f81219c26c84bc75df"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 9,
       "name": "delta",
       "path": "sdk/delta/runtime.py",
-      "sha256": "791d8674873834c6af5e1d268e21da04d41d27a24af74218c206e0cce22c19e0"
+      "registry": {
+        "path": "sdk/delta/delta-workflow-registry.v4.json",
+        "sha256": "efee95e74e1595dffe13022b925f3aba20ecb8da7cfcae574cf02bfefb79b6ae"
+      },
+      "runtime": {
+        "path": "sdk/delta/runtime.py",
+        "sha256": "9920fe8457ec2ee0d9a799a513a388877fd6126d15eb2761327aac2f9c82db44"
+      },
+      "sha256": "9920fe8457ec2ee0d9a799a513a388877fd6126d15eb2761327aac2f9c82db44"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 11,
       "name": "env_uop",
       "path": "sdk/env_uop/runtime.py",
-      "sha256": "7c22680aab51914c3b41ac39a8f27e82b77c4aa655313eeab95ddb85bfde3338"
+      "registry": {
+        "path": "sdk/env_uop/env-uop-contract-registry.v4.json",
+        "sha256": "71c13bffb631d3018919c37860250e3a67abb70fa7a405a0e9ad7cc2196f3708"
+      },
+      "runtime": {
+        "path": "sdk/env_uop/runtime.py",
+        "sha256": "c29185229a8a081352afabcadb2da5578d3aff3de58494b6f3493a193d3635ca"
+      },
+      "sha256": "c29185229a8a081352afabcadb2da5578d3aff3de58494b6f3493a193d3635ca"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 16,
       "name": "hooks",
       "path": "sdk/hooks/runtime.py",
-      "sha256": "54d386a1516b2b8758f2ac51d6ff8970202681bd3ca521ad5e86dfb7ff0eba20"
+      "registry": {
+        "path": "sdk/hooks/hook-runtime.ref.v4.json",
+        "sha256": "ffd55e3749eb6a9bee5da524ebf65d9aa580ddd3e80781a64ee573734ab12843"
+      },
+      "runtime": {
+        "path": "sdk/hooks/runtime.py",
+        "sha256": "6b5bb1266a1894fe8e425ea3cb51800dc6bc0445c89add82ad9e799847b636ed"
+      },
+      "sha256": "6b5bb1266a1894fe8e425ea3cb51800dc6bc0445c89add82ad9e799847b636ed"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 15,
       "name": "host",
       "path": "sdk/host/runtime.py",
-      "sha256": "076dac43b96ad157467ca7f06c621e7772cfb03843975f4c9a8a0e298bd29d8b"
+      "registry": {
+        "path": "sdk/host/host-contract-registry.v4.json",
+        "sha256": "69a6e0853b74ccefc8cdc5dd7539b5858eacc2ecac7da6960649684cdce5b17b"
+      },
+      "runtime": {
+        "path": "sdk/host/runtime.py",
+        "sha256": "34252f77b3ab4d24a10440b71176630e5c203f983941bbc7d0ad9e4f6cc8d6e8"
+      },
+      "sha256": "34252f77b3ab4d24a10440b71176630e5c203f983941bbc7d0ad9e4f6cc8d6e8"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 291,
       "name": "internal",
       "path": "sdk/internal/runtime.py",
-      "sha256": "a365908d72f0cce5a82abcf85bffa7ed85b75310a0ea0483d66252f450682bd2"
+      "registry": {
+        "path": "sdk/internal/module-registry.v4.json",
+        "sha256": "beeb168074586e5a2c236cc215976f00a5af8ab90d955c57d3ec758a2d56c220"
+      },
+      "runtime": {
+        "path": "sdk/internal/runtime.py",
+        "sha256": "409c8884c872327804857b9127fea29143f988496a3a0ab04ad11df67ad6291f"
+      },
+      "sha256": "409c8884c872327804857b9127fea29143f988496a3a0ab04ad11df67ad6291f"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 6,
       "name": "plan",
       "path": "sdk/plan/runtime.py",
-      "sha256": "2c23e733f1a8d3193151dae00c81729202d612dbb805a385b714d7c8d6266e8b"
+      "registry": {
+        "path": "sdk/plan/plan-contract-registry.v4.json",
+        "sha256": "f84fce4d8e652498f2ac872e53fc975cc90a88ea09129bad08a79bd51b68b9ef"
+      },
+      "runtime": {
+        "path": "sdk/plan/runtime.py",
+        "sha256": "e6031d23a23895950dedaf01fbb0a5878c403b224144670a1bc3720f422d808e"
+      },
+      "sha256": "e6031d23a23895950dedaf01fbb0a5878c403b224144670a1bc3720f422d808e"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 7,
       "name": "recovery",
       "path": "sdk/recovery/runtime.py",
-      "sha256": "7570f31cefe7f619dcc678f74bb860879c1d0d0dea83cf781f319a896de43eee"
+      "registry": {
+        "path": "sdk/recovery/recovery-contract-registry.v4.json",
+        "sha256": "170198ea50273632c22aade12904e0cdc07d6605315396335e6a30ac34fd53b1"
+      },
+      "runtime": {
+        "path": "sdk/recovery/runtime.py",
+        "sha256": "5c053e4267895d22217a6de117d204077b463b6ced5d1ba16666fa1c476ffe67"
+      },
+      "sha256": "5c053e4267895d22217a6de117d204077b463b6ced5d1ba16666fa1c476ffe67"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 301,
       "name": "routing",
       "path": "sdk/routing/router.py",
-      "sha256": "bbb105770773d529f0bf3d9c138e4040a53f053f22c4f36c2894ab3236ec8d94"
+      "registry": {
+        "path": "sdk/routing/mcp-action-routing.v4.json",
+        "sha256": "eaa015a7bb92ee0853a38e4a08b1d944bc87a3ac6f8164e817e46894f6741606"
+      },
+      "runtime": {
+        "path": "sdk/routing/router.py",
+        "sha256": "2f1a355f7849ecf04115ecdacb9de026a248873589914ab77a05ea3b2d1cabd6"
+      },
+      "sha256": "2f1a355f7849ecf04115ecdacb9de026a248873589914ab77a05ea3b2d1cabd6"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 3,
       "name": "skills",
       "path": "sdk/skills/runtime.py",
-      "sha256": "eb094d7f37a214ad20ce4e532af8a72b5b51a1f62db24924e96b60582a5caac0"
+      "registry": {
+        "path": "sdk/skills/skill-bindings.v4.json",
+        "sha256": "218e62239a7379793cadcf2515886489cfe373f9015f2220dbd43a3b9b377b1b"
+      },
+      "runtime": {
+        "path": "sdk/skills/runtime.py",
+        "sha256": "a4d82861a6a539cf4f16cbeb147e88822e5c6c6263376f35130cc8d306930259"
+      },
+      "sha256": "a4d82861a6a539cf4f16cbeb147e88822e5c6c6263376f35130cc8d306930259"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 7,
       "name": "transports",
       "path": "sdk/transports/runtime.py",
-      "sha256": "ac1998e7e0f6222d095a83c78e40819bdb1f80c82a0cff165db6e80d1e3c2f9a"
+      "registry": {
+        "path": "sdk/transports/transport-registry.v4.json",
+        "sha256": "a7e98c8c68949b49923f78678f1cd26b5a79c2b76c8b4c9acbe054c672b1da86"
+      },
+      "runtime": {
+        "path": "sdk/transports/runtime.py",
+        "sha256": "1d02b82669d8bb1c66de0d216acb5faafdc9310f8ac6d5bdf7433c46de9598f5"
+      },
+      "sha256": "1d02b82669d8bb1c66de0d216acb5faafdc9310f8ac6d5bdf7433c46de9598f5"
     },
     {
+      "complete_member_surface": true,
+      "member_count": 102,
       "name": "workflows",
       "path": "sdk/workflows/runtime.py",
-      "sha256": "117063cf373ccb18264566bf1250d5f8e91ca8b2550b300970b1d3d0a9cce33f"
+      "registry": {
+        "path": "sdk/workflows/workflow-package-registry.v4.json",
+        "sha256": "ebe4b7e67edfc48492a337576eff3a1406ca4f0bac0bdc47a7ce8708ca66d7b2"
+      },
+      "runtime": {
+        "path": "sdk/workflows/runtime.py",
+        "sha256": "4c556f6c2b9fe83a16b32c41652e06ffc0e562f6a00c95c7a5999347d5d8504b"
+      },
+      "sha256": "4c556f6c2b9fe83a16b32c41652e06ffc0e562f6a00c95c7a5999347d5d8504b"
     }
   ],
   "family_count": 13,

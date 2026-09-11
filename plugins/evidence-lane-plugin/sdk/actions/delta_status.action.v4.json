@@ -1,11 +1,11 @@
 {
   "action": "delta_status",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/delta_status.v4.schema.json",
-  "contract_sha256": "3925a31ccf95c8bf564d81870b615cf92f1c65f9f3b2249ddcc0fcabacbd463b",
+  "contract_sha256": "85539ba77a89ba81741bcddc4b15bda581acd12dfe728f6af0655d85510ca45a",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

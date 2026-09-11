@@ -1,0 +1,370 @@
+{
+  "action": "media_export",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/media_export.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/media_export.binding.v4.json",
+  "outer_route": {
+    "action": "media_export",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "images_ocr",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "execute-project-plan"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/media_export.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".bmp",
+          ".gif",
+          ".jpeg",
+          ".jpg",
+          ".png",
+          ".tif",
+          ".tiff",
+          ".webp"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.raster",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "Pillow"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".svg"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.vector",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "defusedxml"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".avi",
+          ".flac",
+          ".m4a",
+          ".mkv",
+          ".mov",
+          ".mp3",
+          ".mp4",
+          ".ogg",
+          ".wav",
+          ".webm"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.container",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "FFmpeg"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".bmp",
+          ".gif",
+          ".jpeg",
+          ".jpg",
+          ".png",
+          ".tif",
+          ".tiff",
+          ".webp"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.raster_view",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "Pillow",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes",
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".svg"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.vector_view",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "defusedxml",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes",
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.media_profile:export_media",
+      "applicable": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {
+        "filename": [
+          ".avi",
+          ".flac",
+          ".m4a",
+          ".mkv",
+          ".mov",
+          ".mp3",
+          ".mp4",
+          ".ogg",
+          ".wav",
+          ".webm"
+        ]
+      },
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "media_export.container_view",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "FFmpeg",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "images_ocr.structure"
+      },
+      "worker_operations": [
+        "media_parse_bytes",
+        "render_lane_view"
+      ]
+    }
+  ]
+}

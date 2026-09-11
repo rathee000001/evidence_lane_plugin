@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/chat_lineage/dot-artifact.schema.json",
-      "sha256": "deff77a20f59a2fa0043d74e566b1bab7f2b879fef5a9d444af61368bfcdf62e"
+      "sha256": "689e5a22c0601018c5fbae87e89fc1e20eb4bb7548d9c61d47d90b920f6d34d3"
     },
     {
       "path": "authorities/chat_lineage/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/chat_lineage/manifest.v4.json",
-      "sha256": "a2ccbed1286fc25677bb6178094e065c24ccf9228eea8611a96f20d82537bf68"
+      "sha256": "386e629119c8fe2577496a077bc29656b78e92fc34f6a37b0a02a9a3124c75a6"
     },
     {
       "path": "authorities/chat_lineage/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/chat_lineage/mmd-artifact.schema.json",
-      "sha256": "4677d800d14a45f12a0f218559b69c16deb63f5787c6b4cdda2d461ee3f2313b"
+      "sha256": "3a0f3508c9b07ccf403784f38cb8c528d9528bc05b9ae36f464b0a7973158b3e"
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.v4.json",
-      "sha256": "ebfd27baaa231d8d1c657e0b512b6e8a29eacfacaa870cfb8065be72fa233a08"
+      "sha256": "dd51574d336576a512ec0307a9bba74e7235dc40a25d01eed111e87a82526955"
     },
     {
       "path": "authorities/chat_lineage/reader-contract.schema.json",

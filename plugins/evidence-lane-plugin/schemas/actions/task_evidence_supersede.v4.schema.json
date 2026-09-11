@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "envelope_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Envelope Digest",
+        "type": "string"
+      },
+      "exchange_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Exchange Id",
+        "type": "string"
+      },
+      "expected_version": {
+        "minimum": 1,
+        "title": "Expected Version",
+        "type": "integer"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "successor_envelope_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Successor Envelope Digest",
+        "type": "string"
+      },
+      "successor_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Successor Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "exchange_id",
+      "envelope_digest",
+      "expected_version",
+      "successor_id",
+      "successor_envelope_digest"
+    ],
+    "title": "CanonSupersede",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "task_evidence_supersede",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "decision_basis": {
+        "enum": [
+          "receiver_explicit",
+          "receiver_expected_contract",
+          "receiver_correction_admission"
+        ],
+        "title": "Decision Basis",
+        "type": "string"
+      },
+      "duplicate": {
+        "default": false,
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "envelope_digest": {
+        "title": "Envelope Digest",
+        "type": "string"
+      },
+      "exchange_id": {
+        "title": "Exchange Id",
+        "type": "string"
+      },
+      "plan_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Plan Mutated",
+        "type": "boolean"
+      },
+      "receiver_id": {
+        "title": "Receiver Id",
+        "type": "string"
+      },
+      "source_write_granted": {
+        "const": false,
+        "default": false,
+        "title": "Source Write Granted",
+        "type": "boolean"
+      },
+      "state": {
+        "const": "superseded",
+        "default": "superseded",
+        "title": "State",
+        "type": "string"
+      },
+      "successor_envelope_digest": {
+        "title": "Successor Envelope Digest",
+        "type": "string"
+      },
+      "successor_id": {
+        "title": "Successor Id",
+        "type": "string"
+      },
+      "version": {
+        "title": "Version",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "exchange_id",
+      "envelope_digest",
+      "successor_id",
+      "successor_envelope_digest",
+      "receiver_id",
+      "version",
+      "decision_basis"
+    ],
+    "title": "CanonSuperseded",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "canon",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "17bed192fb2a656f115d2730a89e95c837762858b056946f446a9fbb88e5bc58",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "task_evidence_supersede",
+    "profile": "canon",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.mutation.<locals>.run",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "task_evidence_supersede.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "exchange-task-evidence"
+}

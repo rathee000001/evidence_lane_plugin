@@ -487,6 +487,6 @@ def register_toolchain_actions(engine):
         return ResolveResult(resolution=engine.registry.tool_router.resolve(spec, context, arguments=arguments))
 
     engine.registry.register(ActionSpec('toolchain_catalog', 'Read shared tool declarations and executable operation routes; installation and execution remain separately qualified.',
-        CatalogRequest, CatalogResult, catalog, project_required=False, workflow='toolchain'))
+        CatalogRequest, CatalogResult, catalog, project_required=False, workflow='select-project-tools'))
     engine.registry.register(ActionSpec('toolchain_resolve', 'Inspect ordered compatible routes for an authorized operation without invoking or installing tools.',
-        ResolveRequest, ResolveResult, resolve, project_required=False, workflow='toolchain'))
+        ResolveRequest, ResolveResult, resolve, project_required=False, workflow='select-project-tools'))

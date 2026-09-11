@@ -205,11 +205,11 @@ class DeltaService:
         self._drivers = {}
         self._drivers_lock = threading.Lock()
         engine.registry.register(ActionSpec("delta_enter", "Run one registered operation under the exact Plan task contract.",
-            DeltaEnter, DeltaAdmission, self.enter, permission="write", mutates=True, profile="delta", queued=True, workflow='build'))
+            DeltaEnter, DeltaAdmission, self.enter, permission="write", mutates=True, profile="delta", queued=True, workflow='execute-project-plan'))
         engine.registry.register(ActionSpec('delta_enter_planned',
             'Run the operation already bound to one exact Plan task through its owning Delta executor and verifier.',
             PlannedDeltaEnter, DeltaAdmission, self.enter_planned, permission='write', mutates=True,
-            profile='delta', queued=True, workflow='build'))
+            profile='delta', queued=True, workflow='execute-project-plan'))
 
     def enter_planned(self, context, request):
         store = self.engine.directory.open(context.project_id, write=True)

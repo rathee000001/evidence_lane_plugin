@@ -1,4 +1,4 @@
-"""Separate lane commits, durable undo, and one atomic Root PV publication.
+"""Separate lane commits, durable undo, and one atomic project evidence head coordinator publication.
 
 Readers pin the root in rollback-journal mode. Writers keep it exclusive while
 changing lane databases. The durable prepared journal closes the crash gap:
@@ -246,7 +246,7 @@ def coordinated_transaction(project, lanes, *, writer=None, expected_revision=No
         if active.project.root != project.root:
             raise LaneError('COMMIT_PROJECT_SCOPE', 'A coordinated write belongs to one project.')
         if expected_revision is not None and expected_revision != _root_head(active.root)['revision']:
-            raise LaneError('STALE_ROOT_REVISION', 'The selected Root PV revision changed.')
+            raise LaneError('STALE_ROOT_REVISION', 'The selected project evidence head coordinator revision changed.')
         for lane_id in selected:
             active.connection(lane_id)
         with active.savepoint():
@@ -255,7 +255,7 @@ def coordinated_transaction(project, lanes, *, writer=None, expected_revision=No
     with _writer_lock(project, writer), ExitStack() as stack:
         with project.connection(read_only=True) as observed:
             if expected_revision is not None and _root_head(observed)['revision'] != expected_revision:
-                raise LaneError('STALE_ROOT_REVISION', 'The selected Root PV revision changed.')
+                raise LaneError('STALE_ROOT_REVISION', 'The selected project evidence head coordinator revision changed.')
             if writer is not None:
                 writer.check_commit(observed)
         # Initialization adds only empty lane identity/catalog state, never a
@@ -266,14 +266,14 @@ def coordinated_transaction(project, lanes, *, writer=None, expected_revision=No
         root = stack.enter_context(project._raw_connection(read_only=False))
         root.execute('BEGIN EXCLUSIVE')
         if root.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
-            raise LaneError('UNSUPPORTED_JOURNAL_MODE', 'Root PV publication requires DELETE journal mode.')
+            raise LaneError('UNSUPPORTED_JOURNAL_MODE', 'project evidence head coordinator publication requires DELETE journal mode.')
         if _pending(root):
             raise LaneError('PROJECT_RECOVERY_REQUIRED', 'Recover the interrupted lane commit before writing.')
         if writer is not None:
             writer.check_commit(root)
         before_root = _root_head(root)
         if expected_revision is not None and before_root['revision'] != expected_revision:
-            raise LaneError('STALE_ROOT_REVISION', 'The selected Root PV revision changed.')
+            raise LaneError('STALE_ROOT_REVISION', 'The selected project evidence head coordinator revision changed.')
         before_heads = _heads(root)
         for lane in lane_stores.values():
             lane._verify_published_head(root)

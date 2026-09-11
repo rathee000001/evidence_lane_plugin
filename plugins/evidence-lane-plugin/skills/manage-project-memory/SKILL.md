@@ -24,5 +24,5 @@ This bounded update commits with completion; it copies no source payload and
 does not require a second Memory write from the agent.
 No source payloads are copied. `memory_checkpoint` pins the current task/Plan references;
 `memory_rehydrate` reports compatibility and changes for a selected checkpoint.
-Keep host MEMORY.md, instructions, Canon, ChatLineage and Learning separate.
+Keep host MEMORY.md, instructions, task exchange authority, ChatLineage and Learning separate.
 Neither a remembered fact nor a checkpoint proves current native attachment.

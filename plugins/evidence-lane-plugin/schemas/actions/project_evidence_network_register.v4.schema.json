@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Capture verified member lane hashes, reuse unchanged content and preserve historical heads.",
+  "inputSchema": {
+    "$defs": {
+      "UniverseInspect": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 67108864,
+            "maximum": 268435456,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 4096,
+            "maximum": 20000,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          },
+          "verify_files": {
+            "default": true,
+            "title": "Verify Files",
+            "type": "boolean"
+          }
+        },
+        "title": "UniverseInspect",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_snapshot_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Snapshot Sha256",
+        "type": "string"
+      },
+      "expected_version": {
+        "default": 0,
+        "minimum": 0,
+        "title": "Expected Version",
+        "type": "integer"
+      },
+      "inspection": {
+        "$ref": "#/$defs/UniverseInspect"
+      },
+      "target_project_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Target Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "target_project_id",
+      "expected_snapshot_sha256"
+    ],
+    "title": "FederationRegister",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "project_evidence_network_register",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "federation_id": {
+        "title": "Federation Id",
+        "type": "string"
+      },
+      "member_projects_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Member Projects Mutated",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_truth_merged": {
+        "const": false,
+        "default": false,
+        "title": "Project Truth Merged",
+        "type": "boolean"
+      },
+      "raw_cross_project_payload_copied": {
+        "const": false,
+        "default": false,
+        "title": "Raw Cross Project Payload Copied",
+        "type": "boolean"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "state": {
+        "title": "State",
+        "type": "string"
+      },
+      "writes_performed": {
+        "title": "Writes Performed",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "federation_id",
+      "state",
+      "result",
+      "writes_performed"
+    ],
+    "title": "FederationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "universe",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4e6bdf007cb1ca6cf06f60521e5c54287bbca273ed132077bc37bab897acaca9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_evidence_network_register",
+    "profile": "universe",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.register",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_evidence_network_register.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "link-project-evidence-network"
+}

@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "work-handoff.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Bind task continuation to explicit clients, projects, sessions and exact ownership receipts.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 31050,
+      "path": "src/evidence_lane_plugin/task_binding_registry.py",
+      "sha256": "c75af7929d4f8af4e2ca48530b64d16afea1a130a01ed3d51cbdcafbdd11a4be"
+    },
+    {
+      "bytes": 13507,
+      "path": "src/evidence_lane_plugin/session_authority.py",
+      "sha256": "7a329d92c4130793bd8c8d140cc8527a5044169d5b4d6f44f740d07fc754a1b4"
+    }
+  ],
+  "status": "PASS"
+}

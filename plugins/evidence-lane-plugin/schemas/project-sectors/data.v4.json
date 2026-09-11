@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/data/manifest.v4.json",
-      "sha256": "9cd1c96c2cf6e8382d77ccbfce85b2d1d024209ce016ae52b3833619169a626f"
+      "sha256": "1cf31200c89a2b8e3d915cab4ef5edb7af764a76a78f2a62e45a25a6a3321419"
     },
     {
       "path": "authorities/project_sectors/data/migration-history.json",

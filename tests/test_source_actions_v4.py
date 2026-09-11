@@ -63,8 +63,8 @@ def test_registered_source_actions_publish_owning_files_and_attributed_receipts(
     # A data profile is not a first-class workflow. Refresh keeps its original
     # owner even when its operations read or replace Sources-owned records.
     refresh = {'source_prepare_refresh', 'source_snapshot_state', 'source_snapshot_retire'}
-    assert {name for name, row in sources.items() if row['workflow'] == 'refresh'} == refresh
-    assert all(row['workflow'] == 'source-intake' for name, row in sources.items() if name not in refresh)
+    assert {name for name, row in sources.items() if row['workflow'] == 'refresh-project-evidence'} == refresh
+    assert all(row['workflow'] == 'manage-project-sources' for name, row in sources.items() if name not in refresh)
     (store.source_root / 'module.py').write_text('def measure():\n    return 43\n')
     changed = invoke(selected, 'source_verify', batch_id=batch)
     assert changed.status == 'error' or changed.result['result']['status'] != 'PASS'
@@ -141,10 +141,12 @@ def test_native_source_intake_sqlite_and_graph_use_existing_component_bodies(tmp
             async with native(engine.root, store.project_id, permissions=('read', 'write')) as session:
                 tools = await session.list_tools()
                 assert {'source_register', 'source_graph', 'source_inspect_sqlite', 'source_read'} <= {t.name for t in tools.tools}
-                catalog = await call(session, 'workflow_catalog', workflow='source-intake')
+                catalog = await call(session, 'workflow_catalog', workflow='manage-project-sources')
                 assert catalog['result']['workflows'][0]['skill'] == 'manage-project-sources'
                 assert {row['name'] for row in catalog['result']['workflows'][0]['actions']} == {
-                    row['name'] for row in engine.registry.schemas() if row['workflow'] == 'source-intake'}
+                    row['name'] for row in engine.registry.schemas()
+                    if row['workflow'] == 'manage-project-sources'
+                }
                 registered = await call(session, 'source_register', store.project_id, sources=[str(code), str(database)])
                 assert registered['status'] == 'ok', registered
                 batch = registered['result']['result']['source_authority']['batch_id']

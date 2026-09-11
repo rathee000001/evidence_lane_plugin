@@ -677,16 +677,16 @@ def register_memory_actions(engine):
             return ProjectMemory(store).checkpoint(request, lease, actor_id=context.client_id, source_task_binding=context.native_task_id)
 
     engine.registry.register(ActionSpec('memory_ingest', 'Index bounded attributed locators and typed links to existing project records.',
-        MemoryIngest, MemoryIngested, ingest, permission='write', profile='memory', mutates=True, workflow='memory'))
+        MemoryIngest, MemoryIngested, ingest, permission='write', profile='memory', mutates=True, workflow='manage-project-memory'))
     engine.registry.register(ActionSpec('project_memory_record_link',
         'Record two locators and one evidence-backed Project Memory link atomically; derive endpoint identities inside the engine.',
-        MemoryRecordLink, MemoryIngested, record_link, permission='write', profile='memory', mutates=True, workflow='memory'))
+        MemoryRecordLink, MemoryIngested, record_link, permission='write', profile='memory', mutates=True, workflow='manage-project-memory'))
     engine.registry.register(ActionSpec('memory_read', 'Search a bounded project-local locator slice without loading source payloads.',
         MemoryRead, MemoryPage, lambda context, request: ProjectMemory(engine.directory.open(context.project_id)).read(request),
-        profile='memory', queryable_in_delta=True, cross_project_read=True, read_migrations=read_schemas, workflow='memory',
+        profile='memory', queryable_in_delta=True, cross_project_read=True, read_migrations=read_schemas, workflow='manage-project-memory',
         search=SearchRoute(('memory',), 'locators')))
     engine.registry.register(ActionSpec('memory_checkpoint', 'Pin a bounded Memory slice to current Plan and attributed visible lineage.',
-        MemoryCheckpoint, MemoryCheckpointResult, checkpoint, permission='write', profile='memory', mutates=True, workflow='memory'))
+        MemoryCheckpoint, MemoryCheckpointResult, checkpoint, permission='write', profile='memory', mutates=True, workflow='manage-project-memory'))
     engine.registry.register(ActionSpec('memory_rehydrate', 'Read a checkpoint slice with explicit attribution and current compatibility.',
         MemoryRehydrate, MemoryContinuity, lambda context, request: ProjectMemory(engine.directory.open(context.project_id)).rehydrate(request, receiver_client_id=context.client_id),
-        profile='memory', queryable_in_delta=True, workflow='memory'))
+        profile='memory', queryable_in_delta=True, workflow='manage-project-memory'))

@@ -1,13 +1,24 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "entrypoint": "hooks/events/SubagentStop/handler.py",
   "event": "SubagentStop",
   "event_contract": "hooks/events/SubagentStop/event.v4.json",
-  "event_contract_sha256": "201b0feb7a8a4938e7f00c99b287c6d06691ea63c7cad94e1edef4dcaba03e38",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "event_contract_sha256": "865eb97917e476e9329f6519bdefc27a9c9eb29ddf9f3ce853cbb51932196c51",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStopHandler",
   "input_schema": "schemas/hooks/SubagentStop.v4.schema.json",
   "input_schema_sha256": "68084e83ffbd997c8ec31e41203aa281dae20696ca99f5bae41f2c0a2d9ea889",
   "installed_execution_claimed": false,
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",
-  "shared_runtime": "sdk/hooks/runtime.py"
+  "shared_runtime": "sdk/hooks/runtime.py",
+  "stage_contracts": [
+    "hooks/events/SubagentStop/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/SubagentStop/02-classify_event.stage.v4.json",
+    "hooks/events/SubagentStop/03-handle_event.stage.v4.json",
+    "hooks/events/SubagentStop/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/SubagentStop/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/SubagentStop/06-project_bounded_output.stage.v4.json"
+  ]
 }

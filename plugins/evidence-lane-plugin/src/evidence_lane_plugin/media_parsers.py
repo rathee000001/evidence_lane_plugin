@@ -77,7 +77,7 @@ def _scalar(value, depth=0):
     try:
         number = float(value)
         return number if math.isfinite(number) else None
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return {"type": type(value).__name__}
 
 

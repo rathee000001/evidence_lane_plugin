@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
-    "AuthorityRequest_bigger_universe_create": {
+    "AuthorityRequest_project_evidence_link": {
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
@@ -16,252 +16,7 @@
           "type": "string"
         },
         "action": {
-          "const": "bigger_universe_create",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/FederationCreate"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_bigger_universe_create",
-      "type": "object"
-    },
-    "AuthorityRequest_bigger_universe_grant": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "bigger_universe_grant",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/FederationGrant"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_bigger_universe_grant",
-      "type": "object"
-    },
-    "AuthorityRequest_bigger_universe_link": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "bigger_universe_link",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/FederationLink"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_bigger_universe_link",
-      "type": "object"
-    },
-    "AuthorityRequest_bigger_universe_register": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "bigger_universe_register",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/FederationRegister"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_bigger_universe_register",
-      "type": "object"
-    },
-    "AuthorityRequest_bigger_universe_revoke": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "bigger_universe_revoke",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/FederationRevoke"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_bigger_universe_revoke",
-      "type": "object"
-    },
-    "AuthorityRequest_project_link": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "project_link",
+          "const": "project_evidence_link",
           "title": "Action",
           "type": "string"
         },
@@ -292,10 +47,10 @@
         "project_id",
         "arguments"
       ],
-      "title": "AuthorityRequest_project_link",
+      "title": "AuthorityRequest_project_evidence_link",
       "type": "object"
     },
-    "AuthorityRequest_project_unlink": {
+    "AuthorityRequest_project_evidence_network_create": {
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
@@ -310,7 +65,252 @@
           "type": "string"
         },
         "action": {
-          "const": "project_unlink",
+          "const": "project_evidence_network_create",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/FederationCreate"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_network_create",
+      "type": "object"
+    },
+    "AuthorityRequest_project_evidence_network_grant": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_network_grant",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/FederationGrant"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_network_grant",
+      "type": "object"
+    },
+    "AuthorityRequest_project_evidence_network_link": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_network_link",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/FederationLink"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_network_link",
+      "type": "object"
+    },
+    "AuthorityRequest_project_evidence_network_register": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_network_register",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/FederationRegister"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_network_register",
+      "type": "object"
+    },
+    "AuthorityRequest_project_evidence_network_revoke": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_network_revoke",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/FederationRevoke"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_network_revoke",
+      "type": "object"
+    },
+    "AuthorityRequest_project_evidence_unlink": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_unlink",
           "title": "Action",
           "type": "string"
         },
@@ -341,7 +341,7 @@
         "project_id",
         "arguments"
       ],
-      "title": "AuthorityRequest_project_unlink",
+      "title": "AuthorityRequest_project_evidence_unlink",
       "type": "object"
     },
     "FederationCreate": {
@@ -559,37 +559,37 @@
   },
   "discriminator": {
     "mapping": {
-      "bigger_universe_create": "#/$defs/AuthorityRequest_bigger_universe_create",
-      "bigger_universe_grant": "#/$defs/AuthorityRequest_bigger_universe_grant",
-      "bigger_universe_link": "#/$defs/AuthorityRequest_bigger_universe_link",
-      "bigger_universe_register": "#/$defs/AuthorityRequest_bigger_universe_register",
-      "bigger_universe_revoke": "#/$defs/AuthorityRequest_bigger_universe_revoke",
-      "project_link": "#/$defs/AuthorityRequest_project_link",
-      "project_unlink": "#/$defs/AuthorityRequest_project_unlink"
+      "project_evidence_link": "#/$defs/AuthorityRequest_project_evidence_link",
+      "project_evidence_network_create": "#/$defs/AuthorityRequest_project_evidence_network_create",
+      "project_evidence_network_grant": "#/$defs/AuthorityRequest_project_evidence_network_grant",
+      "project_evidence_network_link": "#/$defs/AuthorityRequest_project_evidence_network_link",
+      "project_evidence_network_register": "#/$defs/AuthorityRequest_project_evidence_network_register",
+      "project_evidence_network_revoke": "#/$defs/AuthorityRequest_project_evidence_network_revoke",
+      "project_evidence_unlink": "#/$defs/AuthorityRequest_project_evidence_unlink"
     },
     "propertyName": "action"
   },
   "oneOf": [
     {
-      "$ref": "#/$defs/AuthorityRequest_bigger_universe_create"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_link"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_bigger_universe_grant"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_network_create"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_bigger_universe_link"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_network_grant"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_bigger_universe_register"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_network_link"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_bigger_universe_revoke"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_network_register"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_project_link"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_network_revoke"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_project_unlink"
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_unlink"
     }
   ],
   "title": "universe typed SDK requests"

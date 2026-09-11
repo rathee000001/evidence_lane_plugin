@@ -1,0 +1,28 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "runtime-install-restart.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Separate plugin installation, engine activation, Studio visibility and later Codex restart proof.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 4439,
+      "path": "scripts/run_mcp.py",
+      "sha256": "7ac1f50924fee654350d12b7010b8e64107b122194905e4207ab0a256f50e44f"
+    },
+    {
+      "bytes": 6969,
+      "path": "src/evidence_lane_plugin/launcher.py",
+      "sha256": "dd3b524bc01d898ead43c3911d99cfa8d4945d56393eee264758b614859aaa1d"
+    },
+    {
+      "bytes": 5256,
+      "path": "src/evidence_lane_plugin/startup.py",
+      "sha256": "079a0f3c45e77b3ebaf240abc4a785a741d165bb715161941e3fc1fd049ad421"
+    }
+  ],
+  "status": "PASS"
+}

@@ -5,7 +5,651 @@
   "storage": "The parent Canon lane and its attributed events; no separate graph database",
   "actions": [
     {
-      "name": "canon_backfire",
+      "name": "task_evidence_edge_bind",
+      "description": "Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Project Id",
+            "type": "string"
+          },
+          "edge_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "edge_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Edge Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_project_id",
+          "edge_id",
+          "edge_digest"
+        ],
+        "title": "CanonTaskEdgeBind",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "edge_id": {
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "edge_digest": {
+            "title": "Edge Digest",
+            "type": "string"
+          },
+          "edge": {
+            "additionalProperties": true,
+            "title": "Edge",
+            "type": "object"
+          },
+          "artifact_path": {
+            "title": "Artifact Path",
+            "type": "string"
+          },
+          "local_role": {
+            "enum": [
+              "source",
+              "destination",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "destination_bound": {
+            "title": "Destination Bound",
+            "type": "boolean"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "contract_hash_evidence": {
+            "const": "declared_scope_verified_when_used_by_exchange",
+            "default": "declared_scope_verified_when_used_by_exchange",
+            "title": "Contract Hash Evidence",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "host_task_created": {
+            "const": false,
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "edge_id",
+          "edge_digest",
+          "edge",
+          "artifact_path",
+          "local_role",
+          "destination_bound"
+        ],
+        "title": "CanonTaskEdgeResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_edge_bind",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_edge_bind.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_bind",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "82b1b7b68e32631d1d8a0b25b2b9652f5ead18bb9784ed8e1c457f6f471fcc58"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "task_evidence_edge_register",
+      "description": "Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.",
+      "inputSchema": {
+        "$defs": {
+          "CanonTaskEndpoint": {
+            "additionalProperties": false,
+            "properties": {
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              },
+              "participant_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Participant Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "participant_id"
+            ],
+            "title": "CanonTaskEndpoint",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "edge_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "destination": {
+            "$ref": "#/$defs/CanonTaskEndpoint"
+          },
+          "direction": {
+            "default": "downstream",
+            "enum": [
+              "upstream",
+              "downstream",
+              "lateral"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "schema_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Schema Digest",
+            "type": "string"
+          },
+          "expected_return_contract": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Return Contract",
+            "type": "string"
+          },
+          "edge_revision": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Edge Revision",
+            "type": "integer"
+          },
+          "dependency_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Dependency Ids",
+            "type": "array"
+          },
+          "task_mode": {
+            "default": "top_level_task",
+            "enum": [
+              "top_level_task",
+              "subagent"
+            ],
+            "title": "Task Mode",
+            "type": "string"
+          },
+          "scope_class": {
+            "default": "read_only",
+            "enum": [
+              "read_only",
+              "governed_read_write"
+            ],
+            "title": "Scope Class",
+            "type": "string"
+          },
+          "permitted_actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Actions",
+            "type": "array"
+          },
+          "permitted_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Paths",
+            "type": "array"
+          },
+          "permitted_tools": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Permitted Tools",
+            "type": "array"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          }
+        },
+        "required": [
+          "source_id",
+          "destination",
+          "contract_digest",
+          "schema_digest",
+          "expected_return_contract"
+        ],
+        "title": "CanonTaskEdgeRegister",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "edge_id": {
+            "title": "Edge Id",
+            "type": "string"
+          },
+          "edge_digest": {
+            "title": "Edge Digest",
+            "type": "string"
+          },
+          "edge": {
+            "additionalProperties": true,
+            "title": "Edge",
+            "type": "object"
+          },
+          "artifact_path": {
+            "title": "Artifact Path",
+            "type": "string"
+          },
+          "local_role": {
+            "enum": [
+              "source",
+              "destination",
+              "both"
+            ],
+            "title": "Local Role",
+            "type": "string"
+          },
+          "destination_bound": {
+            "title": "Destination Bound",
+            "type": "boolean"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "contract_hash_evidence": {
+            "const": "declared_scope_verified_when_used_by_exchange",
+            "default": "declared_scope_verified_when_used_by_exchange",
+            "title": "Contract Hash Evidence",
+            "type": "string"
+          },
+          "source_write_granted": {
+            "const": false,
+            "default": false,
+            "title": "Source Write Granted",
+            "type": "boolean"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "host_task_created": {
+            "const": false,
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "edge_id",
+          "edge_digest",
+          "edge",
+          "artifact_path",
+          "local_role",
+          "destination_bound"
+        ],
+        "title": "CanonTaskEdgeResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_edge_register",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_edge_register.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_register",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "e4eb894bfb89815b89e3d0833e5b0f6e6f28d351afda9d64f386cf6b62dde2a4"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "task_evidence_graph",
+      "description": "Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "record_limit": {
+            "default": 5000,
+            "maximum": 50000,
+            "minimum": 1,
+            "title": "Record Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 16384,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "title": "CanonTaskGraphRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "edges": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "missing_returns": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Missing Returns",
+            "type": "array"
+          },
+          "history": {
+            "additionalProperties": true,
+            "title": "History",
+            "type": "object"
+          },
+          "graph_digest": {
+            "title": "Graph Digest",
+            "type": "string"
+          },
+          "cycle_check_scope": {
+            "const": "all_edges_recorded_in_selected_project",
+            "default": "all_edges_recorded_in_selected_project",
+            "title": "Cycle Check Scope",
+            "type": "string"
+          },
+          "cross_project_graph_complete": {
+            "const": false,
+            "default": false,
+            "title": "Cross Project Graph Complete",
+            "type": "boolean"
+          },
+          "fan_in_supported": {
+            "const": true,
+            "default": true,
+            "title": "Fan In Supported",
+            "type": "boolean"
+          },
+          "fan_out_supported": {
+            "const": true,
+            "default": true,
+            "title": "Fan Out Supported",
+            "type": "boolean"
+          },
+          "cycles_allowed": {
+            "const": false,
+            "default": false,
+            "title": "Cycles Allowed",
+            "type": "boolean"
+          },
+          "project_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Mutated",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "nodes",
+          "edges",
+          "missing_returns",
+          "history",
+          "graph_digest"
+        ],
+        "title": "CanonTaskGraph",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "canon",
+      "workflow": "exchange-task-evidence",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_evidence_graph",
+        "profile": "canon",
+        "routes": [
+          {
+            "route_id": "task_evidence_graph.engine",
+            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7786edf00d8e3599f00a16d1fa39ff327243fd6b112ad2288f25254bad04fa3b"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "canon",
+          "version": 1,
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7"
+        },
+        {
+          "owner": "canon",
+          "version": 2,
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb"
+        },
+        {
+          "owner": "canon",
+          "version": 3,
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11"
+        },
+        {
+          "owner": "canon",
+          "version": 4,
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da"
+        },
+        {
+          "owner": "canon",
+          "version": 5,
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393"
+        }
+      ]
+    },
+    {
+      "name": "task_evidence_input_request",
       "description": "Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.",
       "inputSchema": {
         "$defs": {
@@ -343,17 +987,17 @@
       },
       "permission": "write",
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_backfire",
+        "operation": "task_evidence_input_request",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_backfire.engine",
+            "route_id": "task_evidence_input_request.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
             "tool_ids": [
               "Python"
@@ -378,7 +1022,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "4141a89c67c4df11d82cd54641fecdf5b6c42b55b8989c96028e2a2362645307"
+        "contract_digest": "90b49a224b14ffc8b776185020ed7dd3bd006a6e638b2b103e6096fd61f1f4a0"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -390,199 +1034,8 @@
       "read_schemas": []
     },
     {
-      "name": "canon_graph",
-      "description": "Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "record_limit": {
-            "default": 5000,
-            "maximum": 50000,
-            "minimum": 1,
-            "title": "Record Limit",
-            "type": "integer"
-          },
-          "max_bytes": {
-            "default": 262144,
-            "maximum": 1048576,
-            "minimum": 16384,
-            "title": "Max Bytes",
-            "type": "integer"
-          }
-        },
-        "title": "CanonTaskGraphRead",
-        "type": "object"
-      },
-      "outputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "nodes": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Nodes",
-            "type": "array"
-          },
-          "edges": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "title": "Edges",
-            "type": "array"
-          },
-          "missing_returns": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "title": "Missing Returns",
-            "type": "array"
-          },
-          "history": {
-            "additionalProperties": true,
-            "title": "History",
-            "type": "object"
-          },
-          "graph_digest": {
-            "title": "Graph Digest",
-            "type": "string"
-          },
-          "cycle_check_scope": {
-            "const": "all_edges_recorded_in_selected_project",
-            "default": "all_edges_recorded_in_selected_project",
-            "title": "Cycle Check Scope",
-            "type": "string"
-          },
-          "cross_project_graph_complete": {
-            "const": false,
-            "default": false,
-            "title": "Cross Project Graph Complete",
-            "type": "boolean"
-          },
-          "fan_in_supported": {
-            "const": true,
-            "default": true,
-            "title": "Fan In Supported",
-            "type": "boolean"
-          },
-          "fan_out_supported": {
-            "const": true,
-            "default": true,
-            "title": "Fan Out Supported",
-            "type": "boolean"
-          },
-          "cycles_allowed": {
-            "const": false,
-            "default": false,
-            "title": "Cycles Allowed",
-            "type": "boolean"
-          },
-          "project_mutated": {
-            "const": false,
-            "default": false,
-            "title": "Project Mutated",
-            "type": "boolean"
-          },
-          "native_task_attestation": {
-            "const": "not_provided",
-            "default": "not_provided",
-            "title": "Native Task Attestation",
-            "type": "string"
-          }
-        },
-        "required": [
-          "project_id",
-          "nodes",
-          "edges",
-          "missing_returns",
-          "history",
-          "graph_digest"
-        ],
-        "title": "CanonTaskGraph",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "canon",
-      "workflow": "canon",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_graph",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_graph.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d577320e53130614b0728a150c8b0d23e3fd336f6b794f779a06c2da7c9e5b4c"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": false,
-      "verification_checks": [],
-      "cross_project_read": true,
-      "read_schemas": [
-        {
-          "owner": "canon",
-          "version": 1,
-          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7"
-        },
-        {
-          "owner": "canon",
-          "version": 2,
-          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb"
-        },
-        {
-          "owner": "canon",
-          "version": 3,
-          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11"
-        },
-        {
-          "owner": "canon",
-          "version": 4,
-          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da"
-        },
-        {
-          "owner": "canon",
-          "version": 5,
-          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393"
-        }
-      ]
-    },
-    {
-      "name": "canon_inspect",
-      "description": "Verify bounded Canon database, schema, object digests and event-chain state without modifying it.",
+      "name": "task_evidence_inspect",
+      "description": "Verify bounded task exchange authority database, schema, object digests and event-chain state without modifying it.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -724,17 +1177,17 @@
       },
       "permission": "read",
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_inspect",
+        "operation": "task_evidence_inspect",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_inspect.engine",
+            "route_id": "task_evidence_inspect.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
             "tool_ids": [
               "Python"
@@ -759,7 +1212,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "d43d08549ef7e8485258cb6f36ba761e1c1feb5eacb346f948dc6c7086af5727"
+        "contract_digest": "341034f503ef89e82e81839d1cff378fa3b218ceb568353b2e0395bc539fd222"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -797,460 +1250,7 @@
       ]
     },
     {
-      "name": "canon_task_edge_bind",
-      "description": "Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "request_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Request Id",
-            "type": "string"
-          },
-          "source_project_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Source Project Id",
-            "type": "string"
-          },
-          "edge_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Edge Id",
-            "type": "string"
-          },
-          "edge_digest": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Edge Digest",
-            "type": "string"
-          }
-        },
-        "required": [
-          "source_project_id",
-          "edge_id",
-          "edge_digest"
-        ],
-        "title": "CanonTaskEdgeBind",
-        "type": "object"
-      },
-      "outputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "edge_id": {
-            "title": "Edge Id",
-            "type": "string"
-          },
-          "edge_digest": {
-            "title": "Edge Digest",
-            "type": "string"
-          },
-          "edge": {
-            "additionalProperties": true,
-            "title": "Edge",
-            "type": "object"
-          },
-          "artifact_path": {
-            "title": "Artifact Path",
-            "type": "string"
-          },
-          "local_role": {
-            "enum": [
-              "source",
-              "destination",
-              "both"
-            ],
-            "title": "Local Role",
-            "type": "string"
-          },
-          "destination_bound": {
-            "title": "Destination Bound",
-            "type": "boolean"
-          },
-          "duplicate": {
-            "default": false,
-            "title": "Duplicate",
-            "type": "boolean"
-          },
-          "contract_hash_evidence": {
-            "const": "declared_scope_verified_when_used_by_exchange",
-            "default": "declared_scope_verified_when_used_by_exchange",
-            "title": "Contract Hash Evidence",
-            "type": "string"
-          },
-          "source_write_granted": {
-            "const": false,
-            "default": false,
-            "title": "Source Write Granted",
-            "type": "boolean"
-          },
-          "plan_mutated": {
-            "const": false,
-            "default": false,
-            "title": "Plan Mutated",
-            "type": "boolean"
-          },
-          "host_task_created": {
-            "const": false,
-            "default": false,
-            "title": "Host Task Created",
-            "type": "boolean"
-          },
-          "native_task_attestation": {
-            "const": "not_provided",
-            "default": "not_provided",
-            "title": "Native Task Attestation",
-            "type": "string"
-          }
-        },
-        "required": [
-          "project_id",
-          "edge_id",
-          "edge_digest",
-          "edge",
-          "artifact_path",
-          "local_role",
-          "destination_bound"
-        ],
-        "title": "CanonTaskEdgeResult",
-        "type": "object"
-      },
-      "permission": "write",
-      "profile": "canon",
-      "workflow": "canon",
-      "mutates": true,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_task_edge_bind",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_task_edge_bind.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_bind",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "317d9302ff41db3b47750348ff8d29b1f088cb0d171ca4f8c22593148eab716a"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": false,
-      "studio_read": false,
-      "verification_checks": [],
-      "cross_project_read": false,
-      "read_schemas": []
-    },
-    {
-      "name": "canon_task_edge_register",
-      "description": "Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.",
-      "inputSchema": {
-        "$defs": {
-          "CanonTaskEndpoint": {
-            "additionalProperties": false,
-            "properties": {
-              "project_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Project Id",
-                "type": "string"
-              },
-              "participant_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Participant Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "project_id",
-              "participant_id"
-            ],
-            "title": "CanonTaskEndpoint",
-            "type": "object"
-          }
-        },
-        "additionalProperties": false,
-        "properties": {
-          "request_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Request Id",
-            "type": "string"
-          },
-          "edge_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Edge Id",
-            "type": "string"
-          },
-          "source_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "title": "Source Id",
-            "type": "string"
-          },
-          "destination": {
-            "$ref": "#/$defs/CanonTaskEndpoint"
-          },
-          "direction": {
-            "default": "downstream",
-            "enum": [
-              "upstream",
-              "downstream",
-              "lateral"
-            ],
-            "title": "Direction",
-            "type": "string"
-          },
-          "contract_digest": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Contract Digest",
-            "type": "string"
-          },
-          "schema_digest": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Schema Digest",
-            "type": "string"
-          },
-          "expected_return_contract": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Expected Return Contract",
-            "type": "string"
-          },
-          "edge_revision": {
-            "default": 1,
-            "minimum": 1,
-            "title": "Edge Revision",
-            "type": "integer"
-          },
-          "dependency_ids": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 32,
-            "title": "Dependency Ids",
-            "type": "array"
-          },
-          "task_mode": {
-            "default": "top_level_task",
-            "enum": [
-              "top_level_task",
-              "subagent"
-            ],
-            "title": "Task Mode",
-            "type": "string"
-          },
-          "scope_class": {
-            "default": "read_only",
-            "enum": [
-              "read_only",
-              "governed_read_write"
-            ],
-            "title": "Scope Class",
-            "type": "string"
-          },
-          "permitted_actions": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 32,
-            "title": "Permitted Actions",
-            "type": "array"
-          },
-          "permitted_paths": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 32,
-            "title": "Permitted Paths",
-            "type": "array"
-          },
-          "permitted_tools": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 32,
-            "title": "Permitted Tools",
-            "type": "array"
-          },
-          "expires_at": {
-            "anyOf": [
-              {
-                "maxLength": 40,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Expires At"
-          }
-        },
-        "required": [
-          "source_id",
-          "destination",
-          "contract_digest",
-          "schema_digest",
-          "expected_return_contract"
-        ],
-        "title": "CanonTaskEdgeRegister",
-        "type": "object"
-      },
-      "outputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "edge_id": {
-            "title": "Edge Id",
-            "type": "string"
-          },
-          "edge_digest": {
-            "title": "Edge Digest",
-            "type": "string"
-          },
-          "edge": {
-            "additionalProperties": true,
-            "title": "Edge",
-            "type": "object"
-          },
-          "artifact_path": {
-            "title": "Artifact Path",
-            "type": "string"
-          },
-          "local_role": {
-            "enum": [
-              "source",
-              "destination",
-              "both"
-            ],
-            "title": "Local Role",
-            "type": "string"
-          },
-          "destination_bound": {
-            "title": "Destination Bound",
-            "type": "boolean"
-          },
-          "duplicate": {
-            "default": false,
-            "title": "Duplicate",
-            "type": "boolean"
-          },
-          "contract_hash_evidence": {
-            "const": "declared_scope_verified_when_used_by_exchange",
-            "default": "declared_scope_verified_when_used_by_exchange",
-            "title": "Contract Hash Evidence",
-            "type": "string"
-          },
-          "source_write_granted": {
-            "const": false,
-            "default": false,
-            "title": "Source Write Granted",
-            "type": "boolean"
-          },
-          "plan_mutated": {
-            "const": false,
-            "default": false,
-            "title": "Plan Mutated",
-            "type": "boolean"
-          },
-          "host_task_created": {
-            "const": false,
-            "default": false,
-            "title": "Host Task Created",
-            "type": "boolean"
-          },
-          "native_task_attestation": {
-            "const": "not_provided",
-            "default": "not_provided",
-            "title": "Native Task Attestation",
-            "type": "string"
-          }
-        },
-        "required": [
-          "project_id",
-          "edge_id",
-          "edge_digest",
-          "edge",
-          "artifact_path",
-          "local_role",
-          "destination_bound"
-        ],
-        "title": "CanonTaskEdgeResult",
-        "type": "object"
-      },
-      "permission": "write",
-      "profile": "canon",
-      "workflow": "canon",
-      "mutates": true,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "canon_task_edge_register",
-        "profile": "canon",
-        "routes": [
-          {
-            "route_id": "canon_task_edge_register.engine",
-            "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.task_edge_register",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d17e1d264e1a7d4c8c79c29905e8ea009ea8c90964a1d74ddf7ea907dc5b9171"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": false,
-      "studio_read": false,
-      "verification_checks": [],
-      "cross_project_read": false,
-      "read_schemas": []
-    },
-    {
-      "name": "canon_task_result",
+      "name": "task_evidence_result",
       "description": "Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.",
       "inputSchema": {
         "$defs": {
@@ -1519,17 +1519,17 @@
       },
       "permission": "write",
       "profile": "canon",
-      "workflow": "canon",
+      "workflow": "exchange-task-evidence",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
       "required_tools": [],
       "toolchain": {
-        "operation": "canon_task_result",
+        "operation": "task_evidence_result",
         "profile": "canon",
         "routes": [
           {
-            "route_id": "canon_task_result.engine",
+            "route_id": "task_evidence_result.engine",
             "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.packet_mutation.<locals>.run",
             "tool_ids": [
               "Python"
@@ -1554,7 +1554,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "dd2c36a5107e019087997247d5792373ce60ce5051ef4a62eb70b2517147b3be"
+        "contract_digest": "dfb3a869634142f5a4a221144c93192d2e91f0a693e0b2ad28eab274b4206745"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1574,7 +1574,7 @@
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "13090f969c0c51ec6d0cbf17ae5330ec9d94624cbbed9ecb6f26e257e6d05cd7",
+      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",
@@ -1692,13 +1692,13 @@
     "node_count": 11,
     "edge_count": 14,
     "group_count": 0,
-    "semantic_topology_sha256": "88ACA038538461E9EF4BFA598E6C8A3408FEBEC8416E0C04D13DCA648333EA6A",
-    "mmd_sha256": "83999CB4DDD5F0F405C30E507822EEE3C869A11C35EF83E539DAC4B452FA6481",
-    "dot_sha256": "EFFC39024A728FE31E9549CB57BBFB91BC2ECF21B8417719DB84FAB6CF745F75",
+    "semantic_topology_sha256": "A6E9404DAD04C290A5CD302741425365D111B1776FF019D76953B444F0CBAB87",
+    "mmd_sha256": "CD8926F3F103022A5D51A6D7666BCE53C52B759D68B6CEEB48E6C910D9277FA1",
+    "dot_sha256": "07F867EE390703A432D57C7957A36B7E4211E2D62F99501F8EE0441E15A191CE",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "78DF007A597BDBC8491BC779D7F1563474A0D7F6DD3118E0317D0029739C3E71",
+    "langgraph_export_sha256": "3A59C6E13DE6633E9D68505F50839159BA09688234A89FF0C7490550186045C9",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -1720,7 +1720,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "62B424D88C11803B166C30FB735754BA78CF07EF0DFBED7CE64F8C8D09E407C7"
+    "receipt_sha256": "52DC3562E36456F99EE5658E99310005A104708BEB8F51482C1BEBB74D489335"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false

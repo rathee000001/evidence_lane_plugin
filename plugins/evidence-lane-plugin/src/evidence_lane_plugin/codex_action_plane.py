@@ -98,7 +98,7 @@ def _insert(connection, table, row):
 
 def classify_action_workflow_classes(action):
     profile = action.get('profile', 'core')
-    workflow = action.get('workflow', 'evi')
+    workflow = action.get('workflow', 'evidence-lane')
     if profile in {'local_code', 'github_code', 'code'}:
         return ['CODE', 'RETRIEVAL'] if not action.get('mutates') else ['CODE']
     if profile in {'docs', 'document', 'ppt', 'presentation'}:
@@ -109,9 +109,16 @@ def classify_action_workflow_classes(action):
         return ['OCR_MEDIA']
     if profile == 'research':
         return ['WEB_RESEARCH']
-    return {'source-intake': ['SOURCE_ROUTING', 'RETRIEVAL'], 'brain-scaling': ['RETRIEVAL'],
-            'memory': ['RETRIEVAL'], 'universe': ['RETRIEVAL'], 'toolchain': ['GOVERNANCE', 'RUNTIME'],
-            'boot': ['RUNTIME'], 'exit-boot': ['RUNTIME'], 'recover': ['RECOVERY']}.get(workflow, ['GOVERNANCE'])
+    return {
+        'manage-project-sources': ['SOURCE_ROUTING', 'RETRIEVAL'],
+        'retrieve-project-evidence': ['RETRIEVAL'],
+        'manage-project-memory': ['RETRIEVAL'],
+        'inspect-project-evidence-map': ['RETRIEVAL'],
+        'select-project-tools': ['GOVERNANCE', 'RUNTIME'],
+        'open-project-session': ['RUNTIME'],
+        'close-project-session': ['RUNTIME'],
+        'recover-project-state': ['RECOVERY'],
+    }.get(workflow, ['GOVERNANCE'])
 
 
 def action_event(action):
@@ -128,9 +135,9 @@ def action_event(action):
         return 'HOST_PLAN_PROJECTION'
     if name == 'delta_enter':
         return 'DELTA_ENTRY'
-    if name in {'entry_classify', 'mode_classify', 'task_classify'}:
+    if name in {'entry_classify', 'project_work_classify', 'task_classify'}:
         return 'PROMPT_ENTRY'
-    if action.get('workflow') == 'recover':
+    if action.get('workflow') == 'recover-project-state':
         return 'RECOVERY'
     if not action.get('mutates'):
         return 'MID_DELTA_QUERY'
@@ -190,6 +197,19 @@ def _populate(plugin_root, env, uop, registry):
     from .operating_modes import MODE_DEFINITIONS
     for definition in MODE_DEFINITIONS:
         policy = work_policy(definition)
+        _insert(env, 'env_mode_policy_v4', {
+            'mode_id': definition['id'],
+            'policy_json': _json({
+                'schema': 'evidence-lane.env-mode-policy.v4',
+                'mode_id': definition['id'],
+                'name': definition['name'],
+                'aliases': list(definition['aliases']),
+                'lane_templates': list(definition['lanes']),
+                'work_policy': policy,
+                'classification_authorizes_execution': False,
+                'current_registry_required': True,
+            }),
+        })
         _insert(env, 'env_work_policy_v4', {
             'work_id': policy['work_id'], 'work_name': policy['work_name'],
             'lane_templates_json': _json(policy['lane_templates']),

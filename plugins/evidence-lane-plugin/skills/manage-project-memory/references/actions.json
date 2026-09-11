@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "9792c922807bd671824077fb428017d092b3168a25101b72567003dc595d9d37",
+  "action_set_digest": "58fe7f961a3d6b0861a278bc2804295d8261e23ea862e81dea178c713f02c8db",
   "actions": [
     {
       "cross_project_read": false,
@@ -104,5 +104,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "memory"
+  "workflow": "manage-project-memory"
 }

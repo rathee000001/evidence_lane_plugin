@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "disclose-and-verify.operation.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Record checked gates, selected route, evidence basis, fallback and result verification.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 25054,
+      "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+    },
+    {
+      "bytes": 32535,
+      "path": "src/evidence_lane_plugin/tool_routes.py",
+      "sha256": "c8a9ac3a612f6daa4ee72161f50cf802b685b88f8b4b762eacb058da2c3366e5"
+    }
+  ],
+  "status": "PASS"
+}

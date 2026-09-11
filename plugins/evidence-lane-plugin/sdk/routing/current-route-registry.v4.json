@@ -1,6 +1,6 @@
 {
   "authority": "engine_typed_action_registry",
-  "digest": "765a40956ebcd24ac8717a0fbaa5fbfc3c7326c3525f8e9dd3677cac9ee35cd9",
+  "digest": "1314d1795613202f8fcbe34a0632be1837fa7940a49d6e5ac72e57d80cc9ce1c",
   "removed_routes_have_fallback": false,
   "routes": [
     {
@@ -10,7 +10,7 @@
       "owner": "runtime",
       "permission": "admin",
       "project_required": true,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "accelerator_read",
@@ -19,7 +19,7 @@
       "owner": "runtime",
       "permission": "read",
       "project_required": true,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "artifacts_current",
@@ -28,7 +28,7 @@
       "owner": "artifacts",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "artifacts_index",
@@ -37,7 +37,7 @@
       "owner": "artifacts",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "artifacts_index_media",
@@ -46,7 +46,7 @@
       "owner": "artifacts",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "artifacts_query",
@@ -55,7 +55,7 @@
       "owner": "artifacts",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "artifacts_read",
@@ -64,7 +64,7 @@
       "owner": "artifacts",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "artifacts_refresh",
@@ -73,7 +73,7 @@
       "owner": "artifacts",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "artifacts_refresh_media",
@@ -82,223 +82,7 @@
       "owner": "artifacts",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
-    },
-    {
-      "action": "bigger_universe_create",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_grant",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_link",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_read",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "universe",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_register",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_revoke",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "bigger_universe_verify",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "universe",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "bigger-universe"
-    },
-    {
-      "action": "brain_slice_select",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "core",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "brain-scaling"
-    },
-    {
-      "action": "canon_backfire",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_classify",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_decide",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_expect",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_graph",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_inbox",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_inspect",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_join",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_packet_classify",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_read",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "canon",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_receive",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_send",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_supersede",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_task_edge_bind",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_task_edge_register",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
-    },
-    {
-      "action": "canon_task_result",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "canon",
-      "permission": "write",
-      "project_required": true,
-      "workflow": "canon"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "capture_bind",
@@ -307,7 +91,7 @@
       "owner": "chatlineage",
       "permission": "write",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "client_context",
@@ -316,7 +100,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "code_apply",
@@ -325,7 +109,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "code_current",
@@ -334,7 +118,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_impact",
@@ -343,7 +127,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_index",
@@ -352,7 +136,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_index_git",
@@ -361,7 +145,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_index_syntax",
@@ -370,7 +154,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_query",
@@ -379,7 +163,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_read",
@@ -388,7 +172,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_refresh",
@@ -397,7 +181,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "code_refresh_git",
@@ -406,7 +190,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "code_semantic_index",
@@ -415,7 +199,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_semantic_query",
@@ -424,7 +208,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_semantic_query_faiss",
@@ -433,7 +217,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "code_semantic_query_vec",
@@ -442,7 +226,16 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
+    },
+    {
+      "action": "code_snapshot_summary",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "manage-project-sources"
     },
     {
       "action": "connector_configure",
@@ -451,7 +244,7 @@
       "owner": "extensions",
       "permission": "admin",
       "project_required": true,
-      "workflow": "additional-plugin"
+      "workflow": "configure-project-connector"
     },
     {
       "action": "connector_read",
@@ -460,7 +253,7 @@
       "owner": "extensions",
       "permission": "read",
       "project_required": true,
-      "workflow": "plugin"
+      "workflow": "inspect-project-connectors"
     },
     {
       "action": "connector_revoke",
@@ -469,7 +262,7 @@
       "owner": "extensions",
       "permission": "admin",
       "project_required": true,
-      "workflow": "drop-additional-plugin"
+      "workflow": "revoke-project-connector"
     },
     {
       "action": "context_index_query",
@@ -478,7 +271,7 @@
       "owner": "memory",
       "permission": "tools",
       "project_required": true,
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "context_index_sync",
@@ -487,7 +280,7 @@
       "owner": "memory",
       "permission": "publish",
       "project_required": true,
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "continuation_accept",
@@ -496,7 +289,7 @@
       "owner": "continuity",
       "permission": "write",
       "project_required": true,
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action": "continuation_cancel",
@@ -505,7 +298,7 @@
       "owner": "continuity",
       "permission": "write",
       "project_required": true,
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action": "continuation_context",
@@ -514,7 +307,7 @@
       "owner": "continuity",
       "permission": "read",
       "project_required": true,
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action": "continuation_offer",
@@ -523,7 +316,7 @@
       "owner": "continuity",
       "permission": "write",
       "project_required": true,
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action": "continuation_read",
@@ -532,7 +325,7 @@
       "owner": "continuity",
       "permission": "read",
       "project_required": true,
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action": "continuation_recovery_cancel",
@@ -541,7 +334,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "continuation_recovery_offer",
@@ -550,16 +343,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
-    },
-    {
-      "action": "cross_project_query",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "projects",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "universe"
+      "workflow": "recover-project-state"
     },
     {
       "action": "custom_current",
@@ -568,7 +352,7 @@
       "owner": "custom",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_index",
@@ -577,7 +361,7 @@
       "owner": "custom",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_index_media",
@@ -586,7 +370,7 @@
       "owner": "custom",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_lane_configure",
@@ -595,7 +379,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_lanes_read",
@@ -604,7 +388,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_query",
@@ -613,7 +397,7 @@
       "owner": "custom",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_read",
@@ -622,7 +406,7 @@
       "owner": "custom",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "custom_refresh",
@@ -631,7 +415,7 @@
       "owner": "custom",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "custom_refresh_media",
@@ -640,7 +424,7 @@
       "owner": "custom",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "data_current",
@@ -649,7 +433,7 @@
       "owner": "data",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_export",
@@ -658,7 +442,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "data_generate",
@@ -667,7 +451,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "data_index",
@@ -676,7 +460,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_index_arrow",
@@ -685,7 +469,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_inspect_duckdb",
@@ -694,7 +478,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_inspect_pandas",
@@ -703,7 +487,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_inspect_polars",
@@ -712,7 +496,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_inspection_read",
@@ -721,7 +505,7 @@
       "owner": "data",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_query",
@@ -730,7 +514,7 @@
       "owner": "data",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_read",
@@ -739,7 +523,7 @@
       "owner": "data",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "data_refresh",
@@ -748,7 +532,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "data_refresh_arrow",
@@ -757,7 +541,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "data_transform",
@@ -766,7 +550,7 @@
       "owner": "data",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "delta_enter",
@@ -775,7 +559,7 @@
       "owner": "delta",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "delta_enter_planned",
@@ -784,7 +568,7 @@
       "owner": "delta",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "delta_query",
@@ -793,7 +577,7 @@
       "owner": "delta",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "delta_status",
@@ -802,7 +586,7 @@
       "owner": "delta",
       "permission": "read",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "document_convert",
@@ -811,7 +595,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_current",
@@ -820,7 +604,7 @@
       "owner": "document",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_edit",
@@ -829,7 +613,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "document_enrich",
@@ -838,7 +622,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_enrichment_read",
@@ -847,7 +631,7 @@
       "owner": "document",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_export",
@@ -856,7 +640,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "document_generate",
@@ -865,7 +649,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "document_index",
@@ -874,7 +658,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_query",
@@ -883,7 +667,7 @@
       "owner": "document",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_read",
@@ -892,7 +676,7 @@
       "owner": "document",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "document_refresh",
@@ -901,7 +685,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "document_render",
@@ -910,7 +694,7 @@
       "owner": "document",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "document_render_read",
@@ -919,7 +703,7 @@
       "owner": "document",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "engine_health",
@@ -928,7 +712,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "enroll_project",
@@ -937,7 +721,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "env_uop_inspect",
@@ -946,7 +730,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "evaluation_feedback_export",
@@ -955,7 +739,7 @@
       "owner": "core",
       "permission": "publish",
       "project_required": true,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "fetch",
@@ -964,7 +748,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "git_branch_authority",
@@ -973,7 +757,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "git_restore",
@@ -982,7 +766,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "git_restore_abandon",
@@ -991,7 +775,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "git_restore_preview",
@@ -1000,7 +784,7 @@
       "owner": "recovery",
       "permission": "read",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "git_restore_reconcile",
@@ -1009,7 +793,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "git_sync_selected",
@@ -1018,7 +802,7 @@
       "owner": "code",
       "permission": "write",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "github_repository_inspect",
@@ -1027,7 +811,7 @@
       "owner": "code",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "instructions_inspect",
@@ -1036,7 +820,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "instructions"
+      "workflow": "inspect-project-instructions"
     },
     {
       "action": "job_reconcile_effect",
@@ -1045,7 +829,7 @@
       "owner": "plan",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "job_recovery_inspect",
@@ -1054,7 +838,7 @@
       "owner": "plan",
       "permission": "read",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "lane_catalog",
@@ -1063,7 +847,7 @@
       "owner": "projects",
       "permission": "read",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_configure_routes",
@@ -1072,7 +856,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "lane_fetch",
@@ -1081,7 +865,7 @@
       "owner": "projects",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "lane_search",
@@ -1090,7 +874,7 @@
       "owner": "projects",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_status",
@@ -1099,7 +883,7 @@
       "owner": "projects",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_view_catalog",
@@ -1108,7 +892,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_view_preview",
@@ -1117,7 +901,7 @@
       "owner": "artifacts",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_view_read",
@@ -1126,7 +910,7 @@
       "owner": "artifacts",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lane_view_refresh",
@@ -1135,7 +919,7 @@
       "owner": "artifacts",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "learning_read",
@@ -1144,7 +928,7 @@
       "owner": "learning",
       "permission": "read",
       "project_required": true,
-      "workflow": "learning"
+      "workflow": "manage-project-lessons"
     },
     {
       "action": "learning_record_host_memory_import",
@@ -1153,7 +937,7 @@
       "owner": "learning",
       "permission": "write",
       "project_required": true,
-      "workflow": "learning"
+      "workflow": "manage-project-lessons"
     },
     {
       "action": "learning_revoke",
@@ -1162,7 +946,7 @@
       "owner": "learning",
       "permission": "write",
       "project_required": true,
-      "workflow": "learning"
+      "workflow": "manage-project-lessons"
     },
     {
       "action": "lifecycle_transition_law",
@@ -1171,7 +955,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "lineage_read",
@@ -1180,7 +964,7 @@
       "owner": "chatlineage",
       "permission": "read",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "lineage_record",
@@ -1189,16 +973,16 @@
       "owner": "chatlineage",
       "permission": "write",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
-      "action": "linked_projects_read",
+      "action": "linked_project_evidence_query",
       "implementation": "evidence_lane_plugin.sdk.dispatch",
       "mutates": false,
-      "owner": "universe",
+      "owner": "projects",
       "permission": "read",
       "project_required": true,
-      "workflow": "universe"
+      "workflow": "inspect-project-evidence-map"
     },
     {
       "action": "media_current",
@@ -1207,7 +991,7 @@
       "owner": "images_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_export",
@@ -1216,7 +1000,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "media_extract",
@@ -1225,7 +1009,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_extraction_read",
@@ -1234,7 +1018,7 @@
       "owner": "images_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_index",
@@ -1243,7 +1027,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_ocr",
@@ -1252,7 +1036,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_ocr_read",
@@ -1261,7 +1045,7 @@
       "owner": "images_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_query",
@@ -1270,7 +1054,7 @@
       "owner": "images_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_read",
@@ -1279,7 +1063,7 @@
       "owner": "images_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "media_refresh",
@@ -1288,7 +1072,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "media_transform",
@@ -1297,7 +1081,7 @@
       "owner": "images_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "memory_checkpoint",
@@ -1306,7 +1090,7 @@
       "owner": "memory",
       "permission": "write",
       "project_required": true,
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "memory_ingest",
@@ -1315,7 +1099,7 @@
       "owner": "memory",
       "permission": "write",
       "project_required": true,
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "memory_read",
@@ -1324,7 +1108,7 @@
       "owner": "memory",
       "permission": "read",
       "project_required": true,
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "memory_rehydrate",
@@ -1333,16 +1117,7 @@
       "owner": "memory",
       "permission": "read",
       "project_required": true,
-      "workflow": "memory"
-    },
-    {
-      "action": "mode_classify",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "core",
-      "permission": "read",
-      "project_required": false,
-      "workflow": "mode"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "observability_export",
@@ -1351,7 +1126,7 @@
       "owner": "core",
       "permission": "publish",
       "project_required": true,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "pdf_current",
@@ -1360,7 +1135,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_edit",
@@ -1369,7 +1144,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "pdf_enrich",
@@ -1378,7 +1153,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_enrichment_read",
@@ -1387,7 +1162,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_export",
@@ -1396,7 +1171,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "pdf_generate",
@@ -1405,7 +1180,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "pdf_index",
@@ -1414,7 +1189,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_ocr",
@@ -1423,7 +1198,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_ocr_read",
@@ -1432,7 +1207,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_query",
@@ -1441,7 +1216,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_read",
@@ -1450,7 +1225,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_refresh",
@@ -1459,7 +1234,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "pdf_render",
@@ -1468,7 +1243,7 @@
       "owner": "pdf_ocr",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "pdf_render_read",
@@ -1477,7 +1252,7 @@
       "owner": "pdf_ocr",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "plan_create",
@@ -1486,7 +1261,7 @@
       "owner": "plan",
       "permission": "write",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "plan_host_bind",
@@ -1495,7 +1270,7 @@
       "owner": "plan",
       "permission": "admin",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "plan_host_status",
@@ -1504,7 +1279,7 @@
       "owner": "plan",
       "permission": "read",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "plan_host_sync",
@@ -1513,7 +1288,7 @@
       "owner": "plan",
       "permission": "write",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "plan_read",
@@ -1522,7 +1297,7 @@
       "owner": "plan",
       "permission": "read",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "plan_refresh",
@@ -1531,7 +1306,7 @@
       "owner": "plan",
       "permission": "write",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "powerbi_current",
@@ -1540,7 +1315,7 @@
       "owner": "power_bi",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "powerbi_edit",
@@ -1549,7 +1324,7 @@
       "owner": "power_bi",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "powerbi_export",
@@ -1558,7 +1333,7 @@
       "owner": "power_bi",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "powerbi_generate",
@@ -1567,7 +1342,7 @@
       "owner": "power_bi",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "powerbi_index",
@@ -1576,7 +1351,7 @@
       "owner": "power_bi",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "powerbi_query",
@@ -1585,7 +1360,7 @@
       "owner": "power_bi",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "powerbi_read",
@@ -1594,7 +1369,7 @@
       "owner": "power_bi",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "powerbi_refresh",
@@ -1603,7 +1378,7 @@
       "owner": "power_bi",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "powerbi_schema",
@@ -1612,7 +1387,7 @@
       "owner": "power_bi",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_convert",
@@ -1621,7 +1396,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_current",
@@ -1630,7 +1405,7 @@
       "owner": "presentation",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_edit",
@@ -1639,7 +1414,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "presentation_enrich",
@@ -1648,7 +1423,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_enrichment_read",
@@ -1657,7 +1432,7 @@
       "owner": "presentation",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_export",
@@ -1666,7 +1441,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "presentation_generate",
@@ -1675,7 +1450,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "presentation_index",
@@ -1684,7 +1459,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_query",
@@ -1693,7 +1468,7 @@
       "owner": "presentation",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_read",
@@ -1702,7 +1477,7 @@
       "owner": "presentation",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "presentation_refresh",
@@ -1711,7 +1486,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "presentation_render",
@@ -1720,7 +1495,7 @@
       "owner": "presentation",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "presentation_render_read",
@@ -1729,7 +1504,7 @@
       "owner": "presentation",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "project_backup",
@@ -1738,7 +1513,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "project_backup_verify",
@@ -1747,7 +1522,7 @@
       "owner": "recovery",
       "permission": "admin",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "project_catalog",
@@ -1756,7 +1531,7 @@
       "owner": "core",
       "permission": "project_admin",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "project_deselect",
@@ -1765,16 +1540,151 @@
       "owner": "core",
       "permission": "project_admin",
       "project_required": false,
-      "workflow": "exit-boot"
+      "workflow": "close-project-session"
     },
     {
-      "action": "project_link",
+      "action": "project_evidence_heads_compare",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evidence-lane"
+    },
+    {
+      "action": "project_evidence_history",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evidence-lane"
+    },
+    {
+      "action": "project_evidence_link",
       "implementation": "evidence_lane_plugin.sdk.dispatch",
       "mutates": true,
       "owner": "universe",
       "permission": "write",
       "project_required": true,
-      "workflow": "universe"
+      "workflow": "inspect-project-evidence-map"
+    },
+    {
+      "action": "project_evidence_links_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "inspect-project-evidence-map"
+    },
+    {
+      "action": "project_evidence_links_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "inspect-project-evidence-map"
+    },
+    {
+      "action": "project_evidence_map_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "inspect-project-evidence-map"
+    },
+    {
+      "action": "project_evidence_map_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "inspect-project-evidence-map"
+    },
+    {
+      "action": "project_evidence_network_create",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_grant",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_link",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_revoke",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_network_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "link-project-evidence-network"
+    },
+    {
+      "action": "project_evidence_select",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "retrieve-project-evidence"
+    },
+    {
+      "action": "project_evidence_unlink",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "inspect-project-evidence-map"
     },
     {
       "action": "project_memory_record_link",
@@ -1783,16 +1693,7 @@
       "owner": "memory",
       "permission": "write",
       "project_required": true,
-      "workflow": "memory"
-    },
-    {
-      "action": "project_recipe",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "core",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "project-recipe"
+      "workflow": "manage-project-memory"
     },
     {
       "action": "project_recovery_inspect",
@@ -1801,7 +1702,7 @@
       "owner": "recovery",
       "permission": "read",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "project_register",
@@ -1810,7 +1711,7 @@
       "owner": "core",
       "permission": "project_admin",
       "project_required": false,
-      "workflow": "storage"
+      "workflow": "select-project-storage"
     },
     {
       "action": "project_select",
@@ -1819,7 +1720,7 @@
       "owner": "core",
       "permission": "project_admin",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "project_status",
@@ -1828,16 +1729,25 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
-      "action": "project_unlink",
+      "action": "project_work_classify",
       "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "universe",
-      "permission": "write",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "classify-project-work"
+    },
+    {
+      "action": "project_workflow_configure",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
       "project_required": true,
-      "workflow": "universe"
+      "workflow": "configure-project-workflow"
     },
     {
       "action": "prompt_index_status",
@@ -1846,34 +1756,7 @@
       "owner": "chat_lineage",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
-    },
-    {
-      "action": "pv_diff",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "projects",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "evi"
-    },
-    {
-      "action": "pv_history",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "projects",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "evi"
-    },
-    {
-      "action": "pv_summary",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "code",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "remote_git_action_read",
@@ -1882,7 +1765,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "remote_git_execute_push",
@@ -1891,7 +1774,7 @@
       "owner": "code",
       "permission": "publish",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "remote_git_prepare_push",
@@ -1900,7 +1783,7 @@
       "owner": "code",
       "permission": "publish",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     },
     {
       "action": "render_project_panel",
@@ -1909,7 +1792,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "render_runtime_panel",
@@ -1918,7 +1801,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "research_current",
@@ -1927,7 +1810,7 @@
       "owner": "research",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_index",
@@ -1936,7 +1819,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_index_media",
@@ -1945,7 +1828,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_query",
@@ -1954,7 +1837,7 @@
       "owner": "research",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_read",
@@ -1963,7 +1846,7 @@
       "owner": "research",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_refresh",
@@ -1972,7 +1855,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "research_refresh_media",
@@ -1981,7 +1864,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "research_web_capture",
@@ -1990,7 +1873,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_web_discover",
@@ -1999,7 +1882,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "research_web_extract",
@@ -2008,7 +1891,7 @@
       "owner": "research",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "restoration_read",
@@ -2017,7 +1900,7 @@
       "owner": "recovery",
       "permission": "read",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "restoration_reindex",
@@ -2026,7 +1909,7 @@
       "owner": "recovery",
       "permission": "write",
       "project_required": true,
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action": "runtime_doctor",
@@ -2035,7 +1918,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "runtime_status",
@@ -2044,7 +1927,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "search",
@@ -2053,7 +1936,7 @@
       "owner": "projects",
       "permission": "read",
       "project_required": true,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action": "session_boot",
@@ -2062,7 +1945,7 @@
       "owner": "sessions",
       "permission": "write",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "session_context",
@@ -2071,7 +1954,7 @@
       "owner": "sessions",
       "permission": "read",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "session_exit",
@@ -2080,7 +1963,7 @@
       "owner": "sessions",
       "permission": "write",
       "project_required": true,
-      "workflow": "exit-boot"
+      "workflow": "close-project-session"
     },
     {
       "action": "session_exit_boundary",
@@ -2089,7 +1972,7 @@
       "owner": "receipts",
       "permission": "read",
       "project_required": true,
-      "workflow": "exit-boot"
+      "workflow": "close-project-session"
     },
     {
       "action": "session_flash_status",
@@ -2098,7 +1981,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "session_resume",
@@ -2107,7 +1990,7 @@
       "owner": "sessions",
       "permission": "write",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "session_status",
@@ -2116,7 +1999,7 @@
       "owner": "sessions",
       "permission": "read",
       "project_required": true,
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action": "source_classify",
@@ -2125,7 +2008,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_crosswalk",
@@ -2134,7 +2017,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_git_history",
@@ -2143,7 +2026,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_git_impact",
@@ -2152,7 +2035,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_graph",
@@ -2161,7 +2044,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_graph_diff",
@@ -2170,7 +2053,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_graph_impact",
@@ -2179,7 +2062,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_identity",
@@ -2188,7 +2071,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_inspect_sqlite",
@@ -2197,7 +2080,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_materialization_read",
@@ -2206,7 +2089,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_materialization_reconcile",
@@ -2215,7 +2098,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_materialize",
@@ -2224,7 +2107,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_preparation_read",
@@ -2233,7 +2116,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_prepare_refresh",
@@ -2242,7 +2125,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "source_prepare_tasks",
@@ -2251,7 +2134,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_read",
@@ -2260,7 +2143,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_reconcile_archives",
@@ -2269,7 +2152,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_register",
@@ -2278,7 +2161,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_routes_read",
@@ -2287,7 +2170,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_schema_configure",
@@ -2296,7 +2179,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_schema_map",
@@ -2305,7 +2188,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "source_snapshot_retire",
@@ -2314,7 +2197,7 @@
       "owner": "sources",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "source_snapshot_state",
@@ -2323,7 +2206,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "source_verify",
@@ -2332,7 +2215,7 @@
       "owner": "sources",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_current",
@@ -2341,7 +2224,7 @@
       "owner": "spreadsheet",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_edit",
@@ -2350,7 +2233,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "spreadsheet_export",
@@ -2359,7 +2242,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "spreadsheet_generate",
@@ -2368,7 +2251,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "spreadsheet_index",
@@ -2377,7 +2260,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_index_values",
@@ -2386,7 +2269,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_inspect_openpyxl",
@@ -2395,7 +2278,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_inspect_pandas",
@@ -2404,7 +2287,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_inspection_read",
@@ -2413,7 +2296,7 @@
       "owner": "spreadsheet",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_query",
@@ -2422,7 +2305,7 @@
       "owner": "spreadsheet",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_read",
@@ -2431,7 +2314,7 @@
       "owner": "spreadsheet",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "spreadsheet_recalculate",
@@ -2440,7 +2323,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "spreadsheet_refresh",
@@ -2449,7 +2332,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "spreadsheet_refresh_values",
@@ -2458,7 +2341,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "spreadsheet_render",
@@ -2467,7 +2350,7 @@
       "owner": "spreadsheet",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "spreadsheet_render_read",
@@ -2476,7 +2359,7 @@
       "owner": "spreadsheet",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "steer_preview",
@@ -2485,7 +2368,7 @@
       "owner": "plan",
       "permission": "read",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "steer_submit",
@@ -2494,7 +2377,7 @@
       "owner": "plan",
       "permission": "write",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "storage_connector_inspect",
@@ -2503,7 +2386,7 @@
       "owner": "receipts",
       "permission": "read",
       "project_required": true,
-      "workflow": "storage"
+      "workflow": "select-project-storage"
     },
     {
       "action": "storage_connector_select",
@@ -2512,7 +2395,7 @@
       "owner": "receipts",
       "permission": "admin",
       "project_required": true,
-      "workflow": "storage"
+      "workflow": "select-project-storage"
     },
     {
       "action": "storage_status",
@@ -2521,7 +2404,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": true,
-      "workflow": "storage"
+      "workflow": "select-project-storage"
     },
     {
       "action": "tableau_current",
@@ -2530,7 +2413,7 @@
       "owner": "tableau",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "tableau_edit",
@@ -2539,7 +2422,7 @@
       "owner": "tableau",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "tableau_export",
@@ -2548,7 +2431,7 @@
       "owner": "tableau",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "tableau_generate",
@@ -2557,7 +2440,7 @@
       "owner": "tableau",
       "permission": "write",
       "project_required": true,
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action": "tableau_index",
@@ -2566,7 +2449,7 @@
       "owner": "tableau",
       "permission": "write",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "tableau_query",
@@ -2575,7 +2458,7 @@
       "owner": "tableau",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "tableau_read",
@@ -2584,7 +2467,7 @@
       "owner": "tableau",
       "permission": "read",
       "project_required": true,
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action": "tableau_refresh",
@@ -2593,7 +2476,7 @@
       "owner": "tableau",
       "permission": "write",
       "project_required": true,
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action": "task_classify",
@@ -2602,7 +2485,151 @@
       "owner": "chat_lineage",
       "permission": "write",
       "project_required": true,
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
+    },
+    {
+      "action": "task_evidence_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_decide",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_edge_bind",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_edge_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_expect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_graph",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_inbox",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_input_request",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_packet_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_participant_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_receive",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_result",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_send",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
+    },
+    {
+      "action": "task_evidence_supersede",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exchange-task-evidence"
     },
     {
       "action": "toolchain_catalog",
@@ -2611,7 +2638,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action": "toolchain_resolve",
@@ -2620,34 +2647,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "toolchain"
-    },
-    {
-      "action": "universe_inspect",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "universe",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "universe"
-    },
-    {
-      "action": "universe_links_verify",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "universe",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "universe"
-    },
-    {
-      "action": "universe_query",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "universe",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "universe"
+      "workflow": "select-project-tools"
     },
     {
       "action": "validation_policy_read",
@@ -2656,7 +2656,7 @@
       "owner": "plan",
       "permission": "read",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "validation_policy_set",
@@ -2665,7 +2665,7 @@
       "owner": "plan",
       "permission": "write",
       "project_required": true,
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action": "workflow_catalog",
@@ -2674,7 +2674,7 @@
       "owner": "core",
       "permission": "read",
       "project_required": false,
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     }
   ],
   "schema": "evidence-lane.current-implementation-registry.v4"

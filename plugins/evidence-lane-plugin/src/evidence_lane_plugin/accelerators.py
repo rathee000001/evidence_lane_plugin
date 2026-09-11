@@ -123,9 +123,9 @@ def register_accelerator_actions(engine):
             return result(service.configure(request.config, context, lease, expected_revision=request.expected_revision))
 
     engine.registry.register(ActionSpec('accelerator_read', 'Read the project compute preference without claiming a successful backend selection.',
-        AcceleratorRead, AcceleratorSettings, read, profile='runtime', workflow='toolchain', studio_read=True))
+        AcceleratorRead, AcceleratorSettings, read, profile='runtime', workflow='select-project-tools', studio_read=True))
     engine.registry.register(ActionSpec('accelerator_configure', 'Version the project compute preference with an exact current settings revision.',
-        AcceleratorConfigure, AcceleratorSettings, configure, permission='admin', profile='runtime', workflow='toolchain', mutates=True))
+        AcceleratorConfigure, AcceleratorSettings, configure, permission='admin', profile='runtime', workflow='select-project-tools', mutates=True))
 
 
 def probe_nvidia_devices() -> list[DeviceObservation]:

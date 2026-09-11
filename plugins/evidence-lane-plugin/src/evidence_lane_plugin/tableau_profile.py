@@ -130,7 +130,7 @@ def register_tableau_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for action, workflow in (('tableau_index', 'source-intake'), ('tableau_refresh', 'refresh')):
+    for action, workflow in (('tableau_index', 'manage-project-sources'), ('tableau_refresh', 'refresh-project-evidence')):
         engine.registry.register(ActionSpec(action, 'Snapshot Tableau XML, package members and bounded native Hyper samples in the separate Tableau lane.',
             TableauIndex, TableauResult, index_tableau, permission='write', mutates=True, requires_delta=True,
             profile='tableau', workflow=workflow, path_fields=('filename',), source_lanes=('tableau',),
@@ -141,7 +141,7 @@ def register_tableau_actions(engine):
             ('tableau_edit', TableauEdit, edit_tableau, 'tableau_edit')):
         engine.registry.register(ActionSpec(action, 'Publish a new native Hyper extract or an exact selected XML edit as immutable lane-owned bytes.',
             model, TableauResult, handler, permission='write', mutates=True, requires_delta=True,
-            profile='tableau', workflow='build', worker_operations=(worker,),
+            profile='tableau', workflow='execute-project-plan', worker_operations=(worker,),
             verification_checks=('tableau_snapshot_integrity',), verifier=verify_tableau,
             tool_routes=(ToolRoute(action + '.native', handler, ('Python', 'lxml', 'Tableau_Hyper_API'), systems=('Windows',)),)))
 
@@ -157,13 +157,13 @@ def register_tableau_actions(engine):
         ('tableau_query', TableauQuery, query_tableau, 'Read bounded typed metadata, stored Hyper samples or literal FTS5/BM25 matches.'),
         ('tableau_read', TableauRead, read_tableau, 'Read an exact immutable Tableau file or package member by byte range.')):
         engine.registry.register(ActionSpec(action, description, model, TableauResult, query_handler(function, action),
-            profile='tableau', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+            profile='tableau', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
             studio_read=True, read_migrations=TABLEAU_MIGRATIONS,
             search=SearchRoute(('tableau',), 'rows', 'tableau_current', 'tableaus', 'text', 'any', rerank_text='text') if action == 'tableau_query' else None,
             fetch=FetchRoute(('tableau',), 'tableau') if action == 'tableau_read' else None))
     engine.registry.register(ActionSpec('tableau_export', 'Export an exact Tableau version with a journaled effect and destination hash binding.',
         TableauExport, TableauResult, export_tableau, permission='write', mutates=True, requires_delta=True,
-        profile='tableau', workflow='build', path_fields=('filename',),
+        profile='tableau', workflow='execute-project-plan', path_fields=('filename',),
         verification_checks=('tableau_export_hash_verified',), verifier=verify_exported,
         worker_operations=('tableau_parse_content', 'render_lane_view'), tool_routes=tuple(ToolRoute('tableau_export.' + ('view' if render else 'native'), export_tableau,
                 (*('Python', 'lxml', 'Tableau_Hyper_API'), *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),

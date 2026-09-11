@@ -1,5 +1,6 @@
 {
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Add or configure one versioned project extension grant without executing its backend.",
@@ -290,5 +291,5 @@
   },
   "verification_checks": [],
   "worker_operations": [],
-  "workflow": "additional-plugin"
+  "workflow": "configure-project-connector"
 }

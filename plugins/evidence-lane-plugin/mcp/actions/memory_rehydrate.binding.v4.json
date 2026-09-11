@@ -1,13 +1,13 @@
 {
   "action": "memory_rehydrate",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/memory_rehydrate.action.v4.json",
-  "sdk_binding_sha256": "e9f4b7633f3a72c57da01e5a20a2c31071e0af9b1ef441f342e617969244ed53",
+  "sdk_binding_sha256": "366ac9c2ab9d281faa1a970421695beeb3222c8ea6bfa5e9c54b1fe7a06ec0de",
   "tool": {
     "annotations": {
       "destructiveHint": false,

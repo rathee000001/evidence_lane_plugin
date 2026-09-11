@@ -122,6 +122,6 @@ def verify_conversion(context, request, output):
 def register_conversion_actions(engine):
     engine.registry.register(ActionSpec('document_convert', 'Convert exact legacy DOC/RTF bytes into a separate versioned DOCX while retaining the original.',
         DocumentConvert, DocumentResult, convert_document, permission='write', mutates=True, requires_delta=True,
-        profile='document', workflow='source-intake', path_fields=('filename',), worker_operations=('document_convert',),
+        profile='document', workflow='manage-project-sources', path_fields=('filename',), worker_operations=('document_convert',),
         verification_checks=('document_snapshot_integrity', 'document_source_hash_unchanged'), verifier=verify_conversion,
         tool_routes=(ToolRoute('document_convert.shared_office', convert_document, ('Python', 'LibreOffice', 'DOCX_OpenXML'), systems=('Windows',)),)))

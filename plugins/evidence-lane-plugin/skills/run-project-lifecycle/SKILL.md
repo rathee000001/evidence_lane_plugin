@@ -42,6 +42,6 @@ Project Memory index contributes up to four exact locator references through
 its own checkpoint and rehydrate APIs; raw Memory content is not replayed.
 An altered session, Plan, source-bound mode or relevant lane head requires
 fresh owning reads. Never reconstruct authority from a conversation summary.
-Handle queries, steers, verified exits, State Travel, recovery and closure
+Handle queries, steers, verified exits, project handoff, recovery and closure
 through their exact owners. Preserve project isolation, one writer and truthful
 status through the complete lifecycle.

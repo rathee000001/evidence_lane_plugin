@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "authorities/canon_input/build-refresh-contract.schema.json",
-      "sha256": "af2cc296ae50af5d574fcdd281822340c1c29ae8afa6ab48955173185ebced08"
+      "sha256": "e08903e753c701c006798c2d0f58bd7262d8537d61ab80768b3d1b6b0da56c6f"
     },
     {
       "path": "authorities/canon_input/dot-artifact.schema.json",
-      "sha256": "99f55ce3b65acb9b9792d9af487c8d539ca0a44e8493023571ee8d91a7096871"
+      "sha256": "91e5974f8c0f6c4a9598704f76e283c804ed2df58cdbfa5a9c1ffca8ebf492da"
     },
     {
       "path": "authorities/canon_input/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/canon_input/manifest.v4.json",
-      "sha256": "4cac9aeda3ec1206bf9fbb8b61c9b7654bce2ce8131defa68685eb69c7fcbf67"
+      "sha256": "3839564d048750115bb703ebc5183a19738fc48df89dc31b6331bc62d980e4cf"
     },
     {
       "path": "authorities/canon_input/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/canon_input/mmd-artifact.schema.json",
-      "sha256": "9d9fc630e267f3b14f4e32b731e1808c7f548595134d4adfb8ed6ee79eedeafa"
+      "sha256": "a8aa0fe43dbc6b337a929943f3e6efdf0653eb127439ac7fe0638dbdf899f52e"
     },
     {
       "path": "authorities/canon_input/pointer-contract.schema.json",
@@ -32,11 +32,11 @@
     },
     {
       "path": "authorities/canon_input/pointer-contract.v4.json",
-      "sha256": "31a12e3e276b56ca33a9ee7516d9429bc6d28e7dabd5e6902a9955d1d4d8ad58"
+      "sha256": "aa04c87b986e770fea64e7b7f58e79455b537f1c82673c9d1efc60a25f2d39cb"
     },
     {
       "path": "authorities/canon_input/reader-contract.schema.json",
-      "sha256": "a8500a4181db14584737e9c74e67b202088a6d3dab5ba265dfbde6643b748515"
+      "sha256": "29c80328f01505f936fa89a5ad819f0a5101c81cbbe01df52bb375cf9498323a"
     },
     {
       "path": "authorities/canon_input/refresh-receipt.schema.json",

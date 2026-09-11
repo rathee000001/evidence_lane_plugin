@@ -8,7 +8,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/project_memory.py",
-      "sha256": "a060fb69725b4c6fe68be83ef09d0d8f70c2e03f241e6f75686bd038d6f13fd6"
+      "sha256": "4cc82ffc31649888f39dcf0bbb5a63a22b46d2f21dc1f13d88129cd31cb240cc"
     }
   ],
   "purpose": "Attributed project-memory storage and retrieval contracts",

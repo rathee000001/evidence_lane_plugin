@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Project workflows, source evidence and lane-specific tools over a persistent engine.",
   "author": {
     "name": "Praveen Rathee",
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Evidence Lane",
     "shortDescription": "Project work with persistent state, source evidence and scoped tools.",
-    "longDescription": "Evidence Lane connects Codex to a persistent project engine and visible read-only Studio. Each authority and sector lane owns its separate SQLite database and files; root PV coordinates their heads. Distinct first-class skills route project workflows through the typed engine, lane contracts and selected tools.",
+    "longDescription": "Evidence Lane connects Codex to a persistent project engine and visible read-only Studio. Each authority and sector lane owns its separate SQLite database and files; the project evidence head coordinator binds their current heads. Distinct first-class skills route project workflows through the typed engine, lane contracts and selected tools.",
     "developerName": "Praveen Rathee",
     "category": "Developer Tools",
     "websiteURL": "https://evidencelane.org",

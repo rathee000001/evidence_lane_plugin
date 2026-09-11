@@ -1,0 +1,39 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.tabular_profile",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "data_current",
+    "data_export",
+    "data_generate",
+    "data_index",
+    "data_index_arrow",
+    "data_query",
+    "data_read",
+    "data_refresh",
+    "data_refresh_arrow",
+    "data_transform",
+    "spreadsheet_current",
+    "spreadsheet_edit",
+    "spreadsheet_export",
+    "spreadsheet_generate",
+    "spreadsheet_index",
+    "spreadsheet_index_values",
+    "spreadsheet_query",
+    "spreadsheet_read",
+    "spreadsheet_refresh",
+    "spreadsheet_refresh_values"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 44957,
+    "path": "src/evidence_lane_plugin/tabular_profile.py",
+    "sha256": "4d5be11aaefa96605b18f9a24730c54998380e565cb9700e666055029ff700fd"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

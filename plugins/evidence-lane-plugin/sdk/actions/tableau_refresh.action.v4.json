@@ -1,11 +1,11 @@
 {
   "action": "tableau_refresh",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/tableau_refresh.v4.schema.json",
-  "contract_sha256": "c74b567ce0a9e4106ce7e1a06047bb98a68dddece196b4e4d906c225fbcca5bd",
+  "contract_sha256": "0f955c1889458f9ccf1663c9a961ccc91aa275339d9f26f7513931e7120d3d4f",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

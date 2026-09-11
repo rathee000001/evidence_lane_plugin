@@ -12,7 +12,7 @@
     },
     {
       "path": "authorities/project_sectors/github_code/lane-contract.v4.json",
-      "sha256": "f5e2628a22eebd5241f70b97478aa5e6e3d2a191bb8b9a804ff5eae9fca84ca8"
+      "sha256": "27135be54360b4b5e3e10364de34aac54439da1fe5d0a829745d8a8e63b48fca"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-pointer.schema.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/github_code/manifest.v4.json",
-      "sha256": "d226574de108cb3b84be12ecdcb5fb0ba884133cdb21ce761e42f66fc23f0ddb"
+      "sha256": "665956a26858c7927ec579b32048bf4889fbfe8e0cc1eefd8b6a8ba497cb1d50"
     },
     {
       "path": "authorities/project_sectors/github_code/migration-history.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "authorities/project_sectors/github_code/reader-contract.schema.json",
-      "sha256": "d268b7a951168d2ae69a94df68cf322d32c0813d1149fe7c148868611393bdec"
+      "sha256": "ea997d1ba822440e7c186d24a12914f9e86883bd1cdafe7d9fa260391d6e0457"
     },
     {
       "path": "authorities/project_sectors/github_code/refresh-receipt.schema.json",

@@ -115,14 +115,14 @@
     {
       "aliases": [
         "canon",
-        "Canon",
+        "task exchange authority",
         "canon_input"
       ],
       "canonical_lane_id": "canon",
       "chunker_version": "authority_owned",
       "command": "evi canon",
       "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
-      "display_label": "Canon",
+      "display_label": "task exchange authority",
       "dot_filename": "canon.dot",
       "extensions": [],
       "files_relative_path": "authorities/canon/files",

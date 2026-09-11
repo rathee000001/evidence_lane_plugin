@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 503,
+    "path": "sdk/workflows/skills/run-project-lifecycle/workflow.dot",
+    "sha256": "7ab1f6f9efd4c759c9266ac4ec2a088cff30562cb0e9baf5829007ff9c47bf38"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 473,
+    "path": "sdk/workflows/skills/run-project-lifecycle/workflow.mmd",
+    "sha256": "c764babf688854fdfd7d576f5848ad44b414ece7c9de928beac767a7a7b73575"
+  },
+  "package": {
+    "bytes": 5910,
+    "path": "sdk/workflows/skills/run-project-lifecycle/workflow.v4.json",
+    "sha256": "9a500fb80e12d604ebf68cc49c84c99116c1b8a042e5f95ac8ce7921e6c2f193"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "run-project-lifecycle",
+  "source_skill": {
+    "bytes": 3235,
+    "path": "skills/run-project-lifecycle/SKILL.md",
+    "sha256": "551b2a238933448ec3ab094ff1dc5e12dc5c2b718f55000a379c92fab74ce09d"
+  },
+  "status": "PASS",
+  "title": "Run project lifecycle",
+  "workflow": "run-project-lifecycle"
+}

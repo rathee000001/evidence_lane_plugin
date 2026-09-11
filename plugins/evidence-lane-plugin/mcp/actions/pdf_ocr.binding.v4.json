@@ -1,13 +1,13 @@
 {
   "action": "pdf_ocr",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/pdf_ocr.action.v4.json",
-  "sdk_binding_sha256": "8e2660f64dff75b68f364b3952b9e0f75fce4ba0599563c3e14d100aa2a65f73",
+  "sdk_binding_sha256": "d5ccaa0c5ddd6f8998c2327514c5bf2259b3e0d29196521d2aa33f65abcea9e9",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "github-app-connection.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Describe later GitHub App distribution without claiming a configured installation.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 123824,
+      "path": "src/evidence_lane_plugin/github_app_distribution.py",
+      "sha256": "483fff6ebd62c82431b064cb53029d8c95a0d30b027237ebb138c22f78637053"
+    }
+  ],
+  "status": "PASS"
+}

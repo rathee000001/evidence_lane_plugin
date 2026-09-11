@@ -143,12 +143,12 @@ def register_project_actions(engine):
                 storage_selection=StorageSelection(engine, store).inspect(context, StorageInspect()).model_dump(mode='json'))
 
     engine.registry.register(ActionSpec('project_catalog', 'Read registered project roots through the owner-granted native administration channel.',
-        ProjectCatalogRequest, ProjectCatalog, read, permission='project_admin', workflow='evi', project_required=False))
+        ProjectCatalogRequest, ProjectCatalog, read, permission='project_admin', workflow='evidence-lane', project_required=False))
     engine.registry.register(ActionSpec('project_register', 'Register or create an explicitly selected external project root; preserve existing project bytes.',
-        ProjectRegister, ProjectRecord, register, permission='project_admin', mutates=True, workflow='storage', project_required=False))
+        ProjectRegister, ProjectRecord, register, permission='project_admin', mutates=True, workflow='select-project-storage', project_required=False))
     engine.registry.register(ActionSpec('project_select', 'Select one registered project and its explicit permissions on this owner-authorized client.',
-        ProjectSelection, ProjectSelected, select, permission='project_admin', mutates=True, workflow='boot', project_required=False))
+        ProjectSelection, ProjectSelected, select, permission='project_admin', mutates=True, workflow='open-project-session', project_required=False))
     engine.registry.register(ActionSpec('project_deselect', 'Revoke this client selection at a closed session boundary while preserving the project.',
-        ProjectDeselect, ProjectDeselected, deselect, permission='project_admin', mutates=True, workflow='exit-boot', project_required=False))
+        ProjectDeselect, ProjectDeselected, deselect, permission='project_admin', mutates=True, workflow='close-project-session', project_required=False))
     engine.registry.register(ActionSpec('storage_status', 'Read distinct source, state, engine and plugin roots and the exact published lane references.',
-        StorageStatusRequest, StorageStatus, storage, workflow='storage', queryable_in_delta=True, studio_read=True))
+        StorageStatusRequest, StorageStatus, storage, workflow='select-project-storage', queryable_in_delta=True, studio_read=True))

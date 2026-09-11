@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "actions": [
     {
       "cross_project_read": false,
@@ -88,7 +88,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "cross_project_read": false,
@@ -310,7 +310,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "cross_project_read": false,
@@ -492,7 +492,7 @@
       },
       "verification_checks": [],
       "worker_operations": [],
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "cross_project_read": false,
@@ -792,7 +792,7 @@
       "worker_operations": [
         "render_lane_view"
       ],
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     }
   ],
   "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
@@ -1354,7 +1354,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
       "lane_id": "artifacts",
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "node_kinds": [
@@ -1450,7 +1450,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "13090f969c0c51ec6d0cbf17ae5330ec9d94624cbbed9ecb6f26e257e6d05cd7",
+      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
       "lane_id": "canon",
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "node_kinds": [
@@ -1546,7 +1546,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
       "lane_id": "chat_lineage",
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "node_kinds": [
@@ -1617,7 +1617,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
       "lane_id": "custom",
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "node_kinds": [
@@ -1700,7 +1700,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
       "lane_id": "data",
       "meaning": "Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.",
       "node_kinds": [
@@ -1776,7 +1776,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
       "lane_id": "data_excel",
       "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
       "node_kinds": [
@@ -1849,7 +1849,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "ca6a234f7964e58ec99d9f7b770f938c02352f74859932f5a24cfff118348193",
+      "implementation_digest": "324516aca0f6295c86c5ed4326bd9f0309dd6c2b9bd93f164820ab763946e22a",
       "lane_id": "docs",
       "meaning": "Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.",
       "node_kinds": [
@@ -1931,7 +1931,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "6ba4b3c2a7d3878d067d119e32cdea879dbeb973e9e4fbe2a1f622813c6e262e",
+      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
       "lane_id": "github_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2017,7 +2017,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "media_heads",
-      "implementation_digest": "7a40977b4817ace14448599811f26d71c5816bf6a34886fccafd4d74a1fedb4b",
+      "implementation_digest": "33f536ccae0e090ca562c91d03c47b8d27adfaceb43d0a0e397ee95a1a5347a4",
       "lane_id": "images_ocr",
       "meaning": "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
       "node_kinds": [
@@ -2099,7 +2099,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
       "lane_id": "learning",
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "node_kinds": [
@@ -2173,7 +2173,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "6ba4b3c2a7d3878d067d119e32cdea879dbeb973e9e4fbe2a1f622813c6e262e",
+      "implementation_digest": "9eb0c44f0e180b656b63fccbc77c214164555df69a09400e8cb260ae9217910c",
       "lane_id": "local_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2263,7 +2263,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
       "lane_id": "memory",
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "node_kinds": [
@@ -2386,7 +2386,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "pdf_heads",
-      "implementation_digest": "cd849ab7274bc7c34e608f8709fba723f345cea7fd29052731d1b1041af51a59",
+      "implementation_digest": "82b32a5c057310dd63b9c581488338fede19ad500a08e06424ff7a26b1368814",
       "lane_id": "pdf_ocr",
       "meaning": "Page, native form/widget and separate OCR evidence locators.",
       "node_kinds": [
@@ -2468,7 +2468,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "1554d49eb5fb3530d012d2abd0b25a0e43764cb547937cca635910339eb46c4a",
+      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
       "lane_id": "plan",
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "node_kinds": [
@@ -2545,7 +2545,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "3f033df904ee45a4a3305639cc69db7aed3a7accf53ea00810f4f4e31d619ef1",
+      "implementation_digest": "0c50a61e463500f454cf5e63972f0fb94481d89122812dbc541a47e7891ccee1",
       "lane_id": "power_bi",
       "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
       "node_kinds": [
@@ -2625,7 +2625,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "5a7382ed1f557ccbf79317fca5c42114f00d8e5b77f0102d241099664d5e2c75",
+      "implementation_digest": "c9969651745a31df27d21d193066c3186c4d6c075c38b6facb9bef748d8cf328",
       "lane_id": "ppt",
       "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
       "node_kinds": [
@@ -2705,7 +2705,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "implementation_digest": "f9bf195999ecacb6f34737f14f96e1e5b9b01b0feb9afb42e9c853afa6888e37",
       "lane_id": "research",
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "node_kinds": [
@@ -2804,7 +2804,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "e962bf6dd006d079c76b4d7771062c8871ea956fd9810d9036ba73df174eb0fb",
+      "implementation_digest": "a3f200b10b610f4c3c60f5ed48a6a965dcb0cf15c4104a30f6d72dd3108544d4",
       "lane_id": "tableau",
       "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
       "node_kinds": [
@@ -2871,8 +2871,8 @@
         "HASH_TARGET"
       ],
       "files": {
-        "dot": "bigger_universe.dot",
-        "mmd": "bigger_universe.mmd"
+        "dot": "project_evidence_network.dot",
+        "mmd": "project_evidence_network.mmd"
       },
       "folder": "authorities/universe",
       "graph_execution": {
@@ -2882,7 +2882,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "federation_view_head",
-      "implementation_digest": "a11fb6be622a7174feb16a3e09299beeb3b98afaf1bdaa19fb14037a33258042",
+      "implementation_digest": "d063feb5bb5cef90caecc875d9147a0c3f1e807f7f64cf1c9e3aabaeee9dbe27",
       "lane_id": "universe",
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "node_kinds": [
@@ -2956,9 +2956,9 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "universe_topology_head",
-      "implementation_digest": "27102655df6ef2785429352b1bbd58850425a73abeb8349cbaa13e1241b5fd71",
+      "implementation_digest": "cd1c9faf8fef3b9d007e7db81c2a77fd05e482799c594ace90c0c807fe7a3ed2",
       "lane_id": "universe",
-      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.",
+      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "node_kinds": [
         "project",
         "lane",

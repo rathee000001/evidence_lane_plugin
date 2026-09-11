@@ -132,7 +132,7 @@ def validate_document(part, document, *, required=False):
         )
     try:
         error = next(Draft7Validator(schema, registry=registry).iter_errors(document), None)
-    except Unresolvable, RecursionError, ValueError:
+    except (Unresolvable, RecursionError, ValueError):
         raise LaneError(
             "POWERBI_SCHEMA_REFERENCE_INVALID",
             "The report does not resolve against the closed schema bundle.",

@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 501,
+    "path": "sdk/workflows/skills/select-project-tools/workflow.dot",
+    "sha256": "858700d10ec962d10c997772904f6bd3427efa7d73e667ca7f864380c6ec8ceb"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 471,
+    "path": "sdk/workflows/skills/select-project-tools/workflow.mmd",
+    "sha256": "c6883e348975830ca09d0edbeeae76e953cfd5306715ba6f5247231efd1749ee"
+  },
+  "package": {
+    "bytes": 4852,
+    "path": "sdk/workflows/skills/select-project-tools/workflow.v4.json",
+    "sha256": "4383c30c2cd5dad63268b9532c4fa7292e12223ea23355805f52675137b856e4"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "select-project-tools",
+  "source_skill": {
+    "bytes": 1991,
+    "path": "skills/select-project-tools/SKILL.md",
+    "sha256": "a33f79186a0f8a235ed39831b19708cb2095ef22f33837b5afbd3c837913ed8c"
+  },
+  "status": "PASS",
+  "title": "Select project tools",
+  "workflow": "select-project-tools"
+}

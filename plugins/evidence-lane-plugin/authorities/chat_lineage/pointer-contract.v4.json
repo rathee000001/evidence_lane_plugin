@@ -46,7 +46,7 @@
       "version": 1,
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "consumer": "artifact_export",
-      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
       "files": {
         "mmd": "chat_lineage.mmd",
         "dot": "chat_lineage.dot"

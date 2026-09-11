@@ -14,7 +14,7 @@ uncertain effects, then use `session_exit` with the user's closure reason.
 Read back closed state and detached capture. If also requested, use
 `project_deselect` with its exact permissions to revoke this client selection.
 Use `session_exit_boundary` when distinguishing closure from ordinary append,
-native State Travel or Goal completion. It verifies exact supplied local
+native project handoff or Goal completion. It verifies exact supplied local
 references and reports absent native evidence; it never emits a terminal receipt.
 Closing a session does not remove project state, uninstall tools, stop the
 shared Engine or change unrelated clients or native Goal status.

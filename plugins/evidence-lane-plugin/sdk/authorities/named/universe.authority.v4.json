@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "authority_id": "universe",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 69092,
+    "path": "authorities/project_universe/manifest.v4.json",
+    "sha256": "f4ac594ef9009df4e16dd381e9851a93086b86fc42cbbf7df1453fb13da35d6e"
+  },
+  "path": "authorities/project_universe",
+  "project_state": "separate_lane_sqlite_and_files",
+  "root_pv_role": "coordinate_published_lane_head",
+  "runtime_execution_inferred": false,
+  "runtime_module": "evidence_lane_plugin.project_universe",
+  "schema": "evidence-lane.sdk-authority-binding.v4",
+  "status": "PASS"
+}

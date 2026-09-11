@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "studio-window.contract.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Keep Studio visible and read-only while the engine remains independent of window close/minimize.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 4206,
+      "path": "src/evidence_lane_plugin/studio_window.py",
+      "sha256": "10a4ff8fa52a91d517b795c13c862cabb570debf38ba809f91c9dd2b2a16e322"
+    },
+    {
+      "bytes": 12678,
+      "path": "src/evidence_lane_plugin/studio_gateway.py",
+      "sha256": "11a1b3c12fd8d216acd401bff89f2285dcc960f22249cac384e03433031bb29d"
+    }
+  ],
+  "status": "PASS"
+}

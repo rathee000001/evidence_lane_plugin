@@ -1,0 +1,15 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "lane_id": "power_bi",
+  "manifest": {
+    "bytes": 64256,
+    "path": "authorities/project_sectors/power_bi/manifest.v4.json",
+    "sha256": "b7fa6c8624d07e285bb75826efe0376611fa8a6d1a0dc1ba5d4bbe3298b0f392"
+  },
+  "project_state": "separate_lane_sqlite_and_files",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-project-sector-binding.v4",
+  "status": "PASS"
+}

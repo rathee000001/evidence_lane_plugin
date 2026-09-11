@@ -6,364 +6,20 @@
   "reader": "reader.py:read_authority",
   "actions": [
     {
-      "name": "bigger_universe_create",
+      "name": "project_evidence_link",
       "permission": "write",
       "mutates": true,
       "requires_delta": false,
       "project_required": true,
       "profile": "universe",
-      "workflow": "bigger-universe",
+      "workflow": "inspect-project-evidence-map",
       "required_tools": [],
       "toolchain": {
-        "operation": "bigger_universe_create",
+        "operation": "project_evidence_link",
         "profile": "universe",
         "routes": [
           {
-            "route_id": "bigger_universe_create.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.create",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "dc25084e7d5cd401ce9460e094456f5ef387a08c56d206cc79f9a9bef3352e59"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_grant",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_grant",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_grant.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.grant",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "4836cff1dbce73d2117e1a7fac5b71f5d53e0709fdd0a8decaefdf321fa8b76b"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_link",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_link",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_link.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.link",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "9295ae1f5411a7f42560d7b5597ebb5f8b188bdb519f4971fec92e588e5313b2"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_read",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_read",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_read.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "7f0264daf61dfa75f80ae9e34aecba97a2761f31f2c492795889eebae2807554"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_register",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_register",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_register.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.register",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "b790c9fad6414c7260586b355d286f5b8fa151f71a85447d7a1aafb4e43a8c92"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_revoke",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_revoke",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_revoke.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.revoke",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "8b6c33fc344cb3137ce2a5a9a064a4b957c2759e80c90495cb82c9d67c573ddf"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "bigger_universe_verify",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "bigger-universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "bigger_universe_verify",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "bigger_universe_verify.engine",
-            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d93324ab0cd5c0357111632741974e0f9b5fcfada1a5dd695757ccb49b31373e"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "linked_projects_read",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "linked_projects_read",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "linked_projects_read.engine",
-            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "9b0b11b319fb7a782e3756d962f9a4d5c359acc2177070eb151082c3ace027fd"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "project_link",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "project_link",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "project_link.engine",
+            "route_id": "project_evidence_link.engine",
             "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.link",
             "tool_ids": [
               "Python"
@@ -388,111 +44,25 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "da0f3dac342768e48f580f6767f3109a9e792ba0d518cd632fe6bb6e0457f6f2"
+        "contract_digest": "d89f721e277847cbdd21435c92b455dac74f71c751c7ca8077895b9e5187b385"
       },
       "verification_checks": []
     },
     {
-      "name": "project_unlink",
-      "permission": "write",
-      "mutates": true,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "project_unlink",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "project_unlink.engine",
-            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.unlink",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d007d56a1c12268f06fc55566aaf9bc36ce1c02d0b33c34a99531ba2d225a68d"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "universe_inspect",
+      "name": "project_evidence_links_read",
       "permission": "read",
       "mutates": false,
       "requires_delta": false,
       "project_required": true,
       "profile": "universe",
-      "workflow": "universe",
+      "workflow": "inspect-project-evidence-map",
       "required_tools": [],
       "toolchain": {
-        "operation": "universe_inspect",
+        "operation": "project_evidence_links_read",
         "profile": "universe",
         "routes": [
           {
-            "route_id": "universe_inspect.engine",
-            "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "f45a8c631289873c079be2c8ed187a4bd9ea18a10b0e7a7e398177fd51d9eee5"
-      },
-      "verification_checks": []
-    },
-    {
-      "name": "universe_links_verify",
-      "permission": "read",
-      "mutates": false,
-      "requires_delta": false,
-      "project_required": true,
-      "profile": "universe",
-      "workflow": "universe",
-      "required_tools": [],
-      "toolchain": {
-        "operation": "universe_links_verify",
-        "profile": "universe",
-        "routes": [
-          {
-            "route_id": "universe_links_verify.engine",
+            "route_id": "project_evidence_links_read.engine",
             "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
             "tool_ids": [
               "Python"
@@ -517,25 +87,68 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "160c4945841d2ec447b59837fe9d6de0ae98a19297cf12851b4880c46f0fe48c"
+        "contract_digest": "06bafea56b509187b3b1319124f7a1b10b926f1ae945757af001f48baff54fcf"
       },
       "verification_checks": []
     },
     {
-      "name": "universe_query",
+      "name": "project_evidence_links_verify",
       "permission": "read",
       "mutates": false,
       "requires_delta": false,
       "project_required": true,
       "profile": "universe",
-      "workflow": "universe",
+      "workflow": "inspect-project-evidence-map",
       "required_tools": [],
       "toolchain": {
-        "operation": "universe_query",
+        "operation": "project_evidence_links_verify",
         "profile": "universe",
         "routes": [
           {
-            "route_id": "universe_query.engine",
+            "route_id": "project_evidence_links_verify.engine",
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ec64d344c47ea93464a6ec9630cdeef4f66941d202739e3100670924594fc244"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_map_inspect",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "inspect-project-evidence-map",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_map_inspect",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_map_inspect.engine",
             "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
             "tool_ids": [
               "Python"
@@ -560,7 +173,394 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "a9e43624555d8a6508ea0ebbae7ed9699aabc02d78a510f878919ce82848b516"
+        "contract_digest": "0c4743eec92cf299f10bd6f8aaedfdcef777bcf40fcd3b9884fcec9e5547406c"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_map_query",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "inspect-project-evidence-map",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_map_query",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_map_query.engine",
+            "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4ae865553582c86d54ccdeff96aa3bdebc7aab70b367c92a999428bd428116b7"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_create",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_create",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_create.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.create",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4e265019ada5b0ad70199eb3bcdb617a445dc66b32f6182507a6e733be1f7d79"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_grant",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_grant",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_grant.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.grant",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "d094427509099202ad6a7d01672beaf8fa3baf01f0c1523a9bb7402ceee7e8c6"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_link",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_link",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_link.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.link",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "8d4f95e14bb13306b76cc79c77c642aca091f73878aff2c79086b6dfefd62786"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_read",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_read.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4830319628b0a4f334906c5720aa1e6222ba6f0267a6c523106cd843a344de27"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_register",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_register",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_register.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.register",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4e6bdf007cb1ca6cf06f60521e5c54287bbca273ed132077bc37bab897acaca9"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_revoke",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_revoke",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_revoke.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.revoke",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ef115ae3b29136d79e33ebbf6775e41da368bb7b480fdfbef87f473e02575957"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_network_verify",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "link-project-evidence-network",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_network_verify",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_network_verify.engine",
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "00b25464ec72ccc6fe4befa1c1307ebafb3d214ded2e42ca0d8232f5a6b59872"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_evidence_unlink",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "universe",
+      "workflow": "inspect-project-evidence-map",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_unlink",
+        "profile": "universe",
+        "routes": [
+          {
+            "route_id": "project_evidence_unlink.engine",
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.unlink",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "e462a50ab52ba6e7a3e134576478a019efc84dfd1343c6487c49666da023a01d"
       },
       "verification_checks": []
     }
@@ -573,10 +573,10 @@
       "version": 1,
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "consumer": "artifact_export",
-      "implementation_digest": "a11fb6be622a7174feb16a3e09299beeb3b98afaf1bdaa19fb14037a33258042",
+      "implementation_digest": "d063feb5bb5cef90caecc875d9147a0c3f1e807f7f64cf1c9e3aabaeee9dbe27",
       "files": {
-        "mmd": "bigger_universe.mmd",
-        "dot": "bigger_universe.dot"
+        "mmd": "project_evidence_network.mmd",
+        "dot": "project_evidence_network.dot"
       },
       "scope": {
         "query": false,
@@ -643,9 +643,9 @@
       "lane_id": "universe",
       "folder": "authorities/universe",
       "version": 1,
-      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.",
+      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "consumer": "artifact_export",
-      "implementation_digest": "27102655df6ef2785429352b1bbd58850425a73abeb8349cbaa13e1241b5fd71",
+      "implementation_digest": "cd1c9faf8fef3b9d007e7db81c2a77fd05e482799c594ace90c0c807fe7a3ed2",
       "files": {
         "mmd": "project_universe.mmd",
         "dot": "project_universe.dot"

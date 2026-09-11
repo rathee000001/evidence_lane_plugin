@@ -1,0 +1,25 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "member_count": 3,
+  "members": [
+    {
+      "bytes": 762,
+      "path": "sdk/plan/host-projection.v4.json",
+      "sha256": "b9708406a6ac345852d922230e9a1774904f8a0c200551063e9e302cafbefbea"
+    },
+    {
+      "bytes": 751,
+      "path": "sdk/plan/plan-contracts.v4.json",
+      "sha256": "9b9242759c060726c3068d5c17ce8ade25ab8eba4410ff7e29f343e1b883418a"
+    },
+    {
+      "bytes": 756,
+      "path": "sdk/plan/semantic-steer.v4.json",
+      "sha256": "58ded230cce5d5cbd5a69d8ca16e864df5419e0b4761880ce3db465773253bcf"
+    }
+  ],
+  "schema": "evidence-lane.sdk-plan-contract-registry.v4",
+  "status": "PASS"
+}

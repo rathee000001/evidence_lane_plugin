@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read this project's attributed links without opening or authorizing their targets.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "after_project_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "After Project Id"
+      },
+      "include_unlinked": {
+        "default": false,
+        "title": "Include Unlinked",
+        "type": "boolean"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 50,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "title": "LinkedProjectsRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_evidence_links_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "last_project_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Last Project Id"
+      },
+      "links": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Links",
+        "type": "array"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "target_access_checked": {
+        "const": false,
+        "default": false,
+        "title": "Target Access Checked",
+        "type": "boolean"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "links",
+      "last_project_id",
+      "truncated"
+    ],
+    "title": "LinkedProjectsPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "universe",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "06bafea56b509187b3b1319124f7a1b10b926f1ae945757af001f48baff54fcf",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_evidence_links_read",
+    "profile": "universe",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_evidence_links_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "inspect-project-evidence-map"
+}

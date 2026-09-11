@@ -1,11 +1,11 @@
 {
   "action": "lineage_record",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/lineage_record.v4.schema.json",
-  "contract_sha256": "d6527ac8bd977795b92305d759011833ecb1bbd6e4befce4e1607bbf6d45b623",
+  "contract_sha256": "f2f4b9eab3e778a010f3a6522efb4206d474ca61ebe95917d18bf898d469c89c",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

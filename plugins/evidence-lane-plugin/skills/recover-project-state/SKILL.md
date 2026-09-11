@@ -24,7 +24,7 @@ Plan; this operation never declares task or Goal success.
 
 Use `project_recovery_inspect` and the exact recovery records
 before acting. `project_backup` creates a coherent snapshot of separate lanes;
-it includes Root PV, all initialized lane databases, registered content,
+it includes project evidence head coordinator, all initialized lane databases, registered content,
 schema history and historical natural views. `project_backup_verify` verifies
 the selected backup. Offline database recovery requires a stopped Engine and
 a fresh state root. Use the configured plugin Python with the packaged

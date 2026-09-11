@@ -93,7 +93,7 @@ function CanonView({ project }: { project: NonNullable<Snapshot['project']> }) {
     const request = ++sequence.current;
     setBusy(true); setError('');
     try {
-      const result = await api<typeof project.canon>('read', {project_id: project.project_id, action: 'canon_read', arguments: {after_sequence: after, limit: 20}});
+      const result = await api<typeof project.canon>('read', {project_id: project.project_id, action: 'task_evidence_read', arguments: {after_sequence: after, limit: 20}});
       if (request === sequence.current) setLoaded(result);
     } catch (reason) { if (request === sequence.current) setError(reason instanceof Error ? reason.message : 'Unable to read the next exchanges.'); }
     finally { if (request === sequence.current) setBusy(false); }

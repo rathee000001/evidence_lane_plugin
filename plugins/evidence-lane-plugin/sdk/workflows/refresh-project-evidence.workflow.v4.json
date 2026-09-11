@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 510,
+    "path": "sdk/workflows/skills/refresh-project-evidence/workflow.dot",
+    "sha256": "121176438fe9b48dd108706c9f269bd07a510abd1b577f260cc5b7a0f0f8455c"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 480,
+    "path": "sdk/workflows/skills/refresh-project-evidence/workflow.mmd",
+    "sha256": "4590cab074587e0d95fac2236d7afe74cb273bb26e09086aa787e46f8c153ab6"
+  },
+  "package": {
+    "bytes": 12778,
+    "path": "sdk/workflows/skills/refresh-project-evidence/workflow.v4.json",
+    "sha256": "facfab7b3bd22d9f15e6045a01a4049fe085f38fe3d0573963838b8b38ca9360"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "refresh-project-evidence",
+  "source_skill": {
+    "bytes": 3816,
+    "path": "skills/refresh-project-evidence/SKILL.md",
+    "sha256": "d5290b07c8257b616ae9041d3f22cda7cea6875f50c20b9ef863dc1a98b9383d"
+  },
+  "status": "PASS",
+  "title": "Refresh project evidence",
+  "workflow": "refresh-project-evidence"
+}

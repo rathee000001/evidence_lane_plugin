@@ -488,7 +488,7 @@ def register_restoration_actions(engine):
     engine.registry.register(ActionSpec('git_restore_preview', 'Inspect an exact local Git commit and fresh workspace restoration.',
         GitRestoreSelection, GitRestorePreview,
         preview,
-        profile='recovery',studio_read=True,required_tools=('Git',), workflow='recover'))
+        profile='recovery',studio_read=True,required_tools=('Git',), workflow='recover-project-state'))
     def execute(reconcile=False):
         def handler(context,request):
             store = engine.directory.open(context.project_id,write=True)
@@ -498,19 +498,19 @@ def register_restoration_actions(engine):
                     authorize=lambda: authorize_source(context, store, 'admin')))
         return handler
     engine.registry.register(ActionSpec('git_restore', 'Restore a fresh local Git workspace and require a new source-bound Plan revision.',
-        GitRestoreExecute, GitRestored, execute(), permission='admin',mutates=True,profile='recovery',required_tools=('Git',), workflow='recover'))
+        GitRestoreExecute, GitRestored, execute(), permission='admin',mutates=True,profile='recovery',required_tools=('Git',), workflow='recover-project-state'))
     engine.registry.register(ActionSpec('git_restore_reconcile', 'Verify a recorded fresh workspace and finish its source change without rerunning clone.',
-        GitRestoreExecute, GitRestored, execute(True),permission='admin',mutates=True,profile='recovery',required_tools=('Git',), workflow='recover'))
+        GitRestoreExecute, GitRestored, execute(True),permission='admin',mutates=True,profile='recovery',required_tools=('Git',), workflow='recover-project-state'))
     def abandon(context,request):
         store = engine.directory.open(context.project_id,write=True)
         with engine.project_work.mutation(store) as lease:
             return SourceRestoration(engine,store).abandon(request,lease,actor_id=context.client_id)
     engine.registry.register(ActionSpec('git_restore_abandon','Abandon a pending restoration record while preserving all files.',
-        RestoreAbandon,RestoreAbandoned,abandon,permission='admin',mutates=True,profile='recovery', workflow='recover'))
+        RestoreAbandon,RestoreAbandoned,abandon,permission='admin',mutates=True,profile='recovery', workflow='recover-project-state'))
     engine.registry.register(ActionSpec('restoration_read','Read source restoration history and the Plan refresh boundary.',
         RestorationRead,RestorationState,
         lambda context,request:SourceRestoration(engine,engine.directory.open(context.project_id)).read(request),
-        profile='recovery',queryable_in_delta=True, workflow='recover'))
+        profile='recovery',queryable_in_delta=True, workflow='recover-project-state'))
 
     def reindex(context, request):
         store = engine.directory.open(context.project_id, write=True)
@@ -520,4 +520,4 @@ def register_restoration_actions(engine):
                 authorize=lambda: authorize_source(context, store, 'write')))
     engine.registry.register(ActionSpec('restoration_reindex', 'Reindex the exact restored source root and retain its file and extraction coverage before Plan refresh.',
         RestorationReindex, RestorationReindexed, reindex, permission='write', mutates=True,
-        profile='recovery', required_tools=('Git',), workflow='recover'))
+        profile='recovery', required_tools=('Git',), workflow='recover-project-state'))

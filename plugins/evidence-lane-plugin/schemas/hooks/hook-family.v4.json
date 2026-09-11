@@ -1,5 +1,6 @@
 {
-  "admission_owner": "evidence_lane_plugin.hook_contract.prepare_hook",
+  "admission_owner": "evidence_lane_plugin.hook_admission.admit_hook",
+  "classification_owner": "evidence_lane_plugin.hook_classification.classify_hook",
   "event_count": 12,
   "events": [
     {

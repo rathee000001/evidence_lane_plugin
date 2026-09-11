@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "required_tools": [
         "SQLite_FTS5_BM25",
         "rank_bm25"
@@ -60,7 +60,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_boot",
@@ -103,7 +103,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_context",
@@ -146,7 +146,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_exit",
@@ -189,7 +189,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "receipts",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_exit_boundary",
@@ -232,7 +232,7 @@
       "requires_delta": false,
       "project_required": false,
       "profile": "core",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_flash_status",
@@ -275,7 +275,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_resume",
@@ -318,7 +318,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "sessions",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "session_status",

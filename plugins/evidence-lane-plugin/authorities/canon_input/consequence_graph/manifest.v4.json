@@ -15,11 +15,11 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/build-refresh-contract.schema.json",
-      "sha256": "868d8e3ab10dce2716bfd25f8a8e7cc7a6264f2b2db76ac1651b3a81919fe8e0"
+      "sha256": "e7882cf33f1580b645622b5344d1e70bcc903b367a765e1fd86afecdaf3e97e0"
     },
     {
       "path": "authorities/canon_input/consequence_graph/builder.py",
-      "sha256": "0a2cca033d003e376274cf257ddf73d99770c1ecc20df5b5b409c68d39cd32f8"
+      "sha256": "7f9aa49ace76882aa4c43c0efc8b5d576bc25d0dcd200e34e3d31205b50ac84d"
     },
     {
       "path": "authorities/canon_input/consequence_graph/manifest.schema.json",
@@ -27,11 +27,11 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/reader-contract.schema.json",
-      "sha256": "48d3b55db5ab607c6fe781a1b2219e80314287165770b4af4f6429042ed68ccf"
+      "sha256": "425267128531b50b35cac4e891032cc18a09606071a4e7921a20fd7cd3209712"
     },
     {
       "path": "authorities/canon_input/consequence_graph/reader.py",
-      "sha256": "1fd81c92b4f03e22436abc33c714de16a19b29519e96f922b374ba2b220f83e2"
+      "sha256": "4a1c425a483ef11a1efc944b53c04123b8f2f76a65b9773de5bac72c21fdbdd3"
     },
     {
       "path": "authorities/canon_input/consequence_graph/refresh-receipt.schema.json",
@@ -51,7 +51,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "06b89c8336ec6aaf7ef20c5750c121bd7b335b39b3d8d1cac44abc5a98e7abba"
+      "sha256": "e5bef3aa4f63b8fe0c4b0c7a170018f1995ba40cdef69692c72ad63dad93dd3a"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -59,15 +59,15 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.dot",
-      "sha256": "effc39024a728fe31e9549cb57bbfb91bc2ecf21b8417719db84fab6cf745f75"
+      "sha256": "07f867ee390703a432d57c7957a36b7e4211e2d62f99501f8ee0441e15a191ce"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.mmd",
-      "sha256": "83999cb4ddd5f0f405c30e507822eee3c869a11c35ef83e539dac4b452fa6481"
+      "sha256": "cd8926f3f103022a5d51a6d7666bce53c52b759d68b6ceeb48e6c910d9277fa1"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "2ff730209993ce1e34c110c8a9e0877ef262cc4c7a0fbf7a0a259c76d51f3213"
+      "sha256": "78a1e56590e6d8ca96c157cdf2794f0654d952f2d26c84f6ac6704a6447bcc88"
     }
   ]
 }

@@ -335,14 +335,14 @@ def register_selector_actions(engine):
 
     engine.registry.register(ActionSpec('source_snapshot_state',
         'Inspect an owning local-source snapshot, retained lineage head and retirement without refreshing source bytes.',
-        SnapshotSelection, SourceOperationResult, read, profile='sources', workflow='refresh',
+        SnapshotSelection, SourceOperationResult, read, profile='sources', workflow='refresh-project-evidence',
         queryable_in_delta=True, cross_project_read=True, studio_read=True))
     from .lanes import SECTOR_LANE_IDS, lane_family
     from .tool_routes import ToolRoute
     engine.registry.register(ActionSpec('source_snapshot_retire',
         'Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.',
         SnapshotRetire, SourceOperationResult, retire, permission='write', mutates=True, requires_delta=True,
-        profile='sources', workflow='refresh', required_tools=('Python',),
+        profile='sources', workflow='refresh-project-evidence', required_tools=('Python',),
         verification_checks=('source_selector_retirement_verified',), verifier=verify,
         worker_operations=('code_git_checkpoint',), tool_routes=(
             ToolRoute('source_selector.local_files', retire, ('Python',),

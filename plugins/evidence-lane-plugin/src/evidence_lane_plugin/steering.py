@@ -226,7 +226,7 @@ def register_steer_actions(engine):
                 from .prompt_index import EntryClassify, PromptIndex
                 classification = EntryClassify(classification_id=request.request_id, source_event_id=request.source_event_id,
                     source_cursor=request.source_cursor, intent=request.intent, focus=request.rationale,
-                    workflow='plan', next_action='plan_refresh' if request.intent == 'semantic' else 'plan_read', lanes=['plan'],
+                    workflow='manage-project-plan', next_action='plan_refresh' if request.intent == 'semantic' else 'plan_read', lanes=['plan'],
                     source_text=request.source_text)
                 PromptIndex(store).classify(classification, lease, client_id=context.client_id, registry=engine.registry)
             checkpoint = engine.project_work.checkpoint_idle_plan(store, lease,
@@ -237,6 +237,6 @@ def register_steer_actions(engine):
 
     engine.registry.register(ActionSpec("steer_preview", "Inspect a visible input's declared intent without changing Plan or project data.",
         SteerIntent, SteerAssessment, lambda context, request: Steering(engine.directory.open(context.project_id)).preview(request, actor_id=context.client_id),
-        profile="plan", workflow='plan'))
+        profile="plan", workflow='manage-project-plan'))
     engine.registry.register(ActionSpec("steer_submit", "Queue an exact visible change or stop; checkpoint an unstarted selected task, while admitted jobs keep their owning checkpoint route.",
-        SteerIntent, SteerQueued, submit, permission="write", profile="plan", mutates=True, workflow='plan'))
+        SteerIntent, SteerQueued, submit, permission="write", profile="plan", mutates=True, workflow='manage-project-plan'))

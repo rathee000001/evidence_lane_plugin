@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 502,
+    "path": "sdk/workflows/skills/open-project-session/workflow.dot",
+    "sha256": "db4df01ef2e93825b28db570687040c1ddef744bd760c7fb8409e2fc008793d0"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 472,
+    "path": "sdk/workflows/skills/open-project-session/workflow.mmd",
+    "sha256": "9efacdfe1bfbf6e4f3e45e697454383f1f55111f6b78bb5c094cab9c9da64d3f"
+  },
+  "package": {
+    "bytes": 7272,
+    "path": "sdk/workflows/skills/open-project-session/workflow.v4.json",
+    "sha256": "ee565a7ee66da30bfe4bf307483d725102063d5faa60f7bb58996dec808586e3"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "open-project-session",
+  "source_skill": {
+    "bytes": 2173,
+    "path": "skills/open-project-session/SKILL.md",
+    "sha256": "99228faaa6a7cc215d66daba16a9b4e6f3e52439f6028c76fa90dd2b705a8aa6"
+  },
+  "status": "PASS",
+  "title": "Open project session",
+  "workflow": "open-project-session"
+}

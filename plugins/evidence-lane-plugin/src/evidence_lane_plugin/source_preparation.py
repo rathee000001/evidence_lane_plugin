@@ -341,15 +341,15 @@ def register_preparation_actions(engine):
     engine.registry.register(ActionSpec('source_prepare_tasks',
         'Prepare complete bounded selected-source file routes and owning Plan tasks; does not adopt a Plan or run parsers.',
         SourcePrepare, SourceOperationResult, prepare, permission='write', mutates=True,
-        profile='sources', workflow='source-intake'))
+        profile='sources', workflow='manage-project-sources'))
     engine.registry.register(ActionSpec('source_prepare_refresh',
         'Prepare changed, new and deleted selected sources as exact owning parser and retirement Plan tasks; preserve unselected scopes and history.',
         SourceRefreshPrepare, SourceOperationResult, prepare, permission='write', mutates=True,
-        profile='sources', workflow='refresh'))
+        profile='sources', workflow='refresh-project-evidence'))
     engine.registry.register(ActionSpec('source_preparation_read',
         'Read an exact historical source task preparation with its immutable parent and child route bindings.',
         PreparationRead, SourceOperationResult,
         lambda c, r: _source_action_result(engine.directory.open(c.project_id), 'source_preparation_read',
             read_preparation(engine.directory.open(c.project_id), r.preparation_id)),
-        profile='sources', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+        profile='sources', workflow='manage-project-sources', queryable_in_delta=True, cross_project_read=True,
         studio_read=True, read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))

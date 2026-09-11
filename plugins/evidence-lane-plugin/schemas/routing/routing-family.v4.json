@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "sdk/routing/current-route-registry.v4.json",
-      "sha256": "c59f7b2bf1aa43e702901741e622a5c059620337c7ec6cbebb7d357e59a7497f"
+      "sha256": "edc4629700086e2a7dfc47abf973803b3177212462f585c04b5b62994ccd668f"
     },
     {
       "path": "sdk/routing/router.py",
-      "sha256": "bbb105770773d529f0bf3d9c138e4040a53f053f22c4f36c2894ab3236ec8d94"
+      "sha256": "2f1a355f7849ecf04115ecdacb9de026a248873589914ab77a05ea3b2d1cabd6"
     },
     {
       "path": "src/evidence_lane_plugin/current_route_registry.py",

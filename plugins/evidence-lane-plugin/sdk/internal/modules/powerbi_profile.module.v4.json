@@ -1,0 +1,28 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "execution_logic_duplicated_in_binding": false,
+  "installed_execution_claimed": false,
+  "module": "evidence_lane_plugin.powerbi_profile",
+  "public_action_registry": "sdk/internal/public-action-registry.v4.json",
+  "registered_action_handlers": [
+    "powerbi_current",
+    "powerbi_edit",
+    "powerbi_export",
+    "powerbi_generate",
+    "powerbi_index",
+    "powerbi_query",
+    "powerbi_read",
+    "powerbi_refresh",
+    "powerbi_schema"
+  ],
+  "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
+  "schema": "evidence-lane.sdk-internal-module-binding.v4",
+  "source": {
+    "bytes": 55126,
+    "path": "src/evidence_lane_plugin/powerbi_profile.py",
+    "sha256": "cc662cb96fdff22e06e2d26c1dfe779b6404f6fff9fa67ebfe51a2b24390835d"
+  },
+  "status": "PASS",
+  "workflow_registry": "sdk/internal/workflow-registry.v4.json"
+}

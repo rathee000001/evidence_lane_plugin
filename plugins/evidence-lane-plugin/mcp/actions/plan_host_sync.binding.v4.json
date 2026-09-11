@@ -1,13 +1,13 @@
 {
   "action": "plan_host_sync",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/plan_host_sync.action.v4.json",
-  "sdk_binding_sha256": "cbe9c788146294d9f9d73d659b53c1f3d0045a282558d20bff1d209b5cbd8dc3",
+  "sdk_binding_sha256": "65223353b9b7a497922992087c70c6c23b097dd4edd8e47737470bf477f7a05e",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -686,9 +686,9 @@ def register_validation_actions(engine):
 
     engine.registry.register(ActionSpec('validation_policy_set',
         'Save an exact project validation policy revision without executing checks or changing task contracts.',
-        ValidationPolicySet, ValidationPolicySnapshot, configure, profile='plan', workflow='plan', permission='write', mutates=True))
+        ValidationPolicySet, ValidationPolicySnapshot, configure, profile='plan', workflow='manage-project-plan', permission='write', mutates=True))
     engine.registry.register(ActionSpec('validation_policy_read',
         'Read one project-owned validation policy revision; absence does not inherit plugin CI.',
         ValidationPolicyRead, ValidationPolicySnapshot,
         lambda context, request: ValidationPolicyStore(engine.directory.open(context.project_id)).read(request),
-        profile='plan', workflow='plan', queryable_in_delta=True, cross_project_read=True, read_migrations=VALIDATION_MIGRATIONS))
+        profile='plan', workflow='manage-project-plan', queryable_in_delta=True, cross_project_read=True, read_migrations=VALIDATION_MIGRATIONS))

@@ -1,13 +1,13 @@
 {
   "action": "learning_record_host_memory_import",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/learning_record_host_memory_import.action.v4.json",
-  "sdk_binding_sha256": "8511ca69c9176d5f8bf595d640426e1bc7ea129d512b15ddcda875895ad0ca84",
+  "sdk_binding_sha256": "91f5ee1cd3844759b1b2ff588115a7ec9e3cd73ced1a595bfebb4d55279c5eab",
   "tool": {
     "annotations": {
       "destructiveHint": true,

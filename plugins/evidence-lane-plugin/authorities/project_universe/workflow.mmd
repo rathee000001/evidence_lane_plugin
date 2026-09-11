@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=307F3A2F98EB7A911C667033460D3B97178E71B8981260EEB28ED55765E80862
+%% LANGGRAPH_EXPORT_SHA256=95FB86D61AE60849407E12ED8FE0B8BA93D040D7528552D39400B87A4C75F5E8
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -20,51 +20,51 @@ flowchart TB
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
   owner["universe current executable owner"]:::default
-  action_bigger_universe_create["bigger_universe_create"]:::default
-  action_bigger_universe_grant["bigger_universe_grant"]:::default
-  action_bigger_universe_link["bigger_universe_link"]:::default
-  action_bigger_universe_read["bigger_universe_read"]:::default
-  action_bigger_universe_register["bigger_universe_register"]:::default
-  action_bigger_universe_revoke["bigger_universe_revoke"]:::default
-  action_bigger_universe_verify["bigger_universe_verify"]:::default
-  action_linked_projects_read["linked_projects_read"]:::default
-  action_project_link["project_link"]:::default
-  action_project_unlink["project_unlink"]:::default
-  action_universe_inspect["universe_inspect"]:::default
-  action_universe_links_verify["universe_links_verify"]:::default
-  action_universe_query["universe_query"]:::default
-  sdk -->|"write"| action_bigger_universe_create
-  action_bigger_universe_create -->|"bigger-universe"| writer
-  sdk -->|"write"| action_bigger_universe_grant
-  action_bigger_universe_grant -->|"bigger-universe"| writer
-  sdk -->|"write"| action_bigger_universe_link
-  action_bigger_universe_link -->|"bigger-universe"| writer
-  sdk -->|"read"| action_bigger_universe_read
-  action_bigger_universe_read -->|"bigger-universe"| read
-  sdk -->|"write"| action_bigger_universe_register
-  action_bigger_universe_register -->|"bigger-universe"| writer
-  sdk -->|"write"| action_bigger_universe_revoke
-  action_bigger_universe_revoke -->|"bigger-universe"| writer
-  sdk -->|"read"| action_bigger_universe_verify
-  action_bigger_universe_verify -->|"bigger-universe"| read
-  sdk -->|"read"| action_linked_projects_read
-  action_linked_projects_read -->|"universe"| read
-  sdk -->|"write"| action_project_link
-  action_project_link -->|"universe"| writer
-  sdk -->|"write"| action_project_unlink
-  action_project_unlink -->|"universe"| writer
-  sdk -->|"read"| action_universe_inspect
-  action_universe_inspect -->|"universe"| read
-  sdk -->|"read"| action_universe_links_verify
-  action_universe_links_verify -->|"universe"| read
-  sdk -->|"read"| action_universe_query
-  action_universe_query -->|"universe"| read
+  action_project_evidence_link["project_evidence_link"]:::default
+  action_project_evidence_links_read["project_evidence_links_read"]:::default
+  action_project_evidence_links_verify["project_evidence_links_verify"]:::default
+  action_project_evidence_map_inspect["project_evidence_map_inspect"]:::default
+  action_project_evidence_map_query["project_evidence_map_query"]:::default
+  action_project_evidence_network_create["project_evidence_network_create"]:::default
+  action_project_evidence_network_grant["project_evidence_network_grant"]:::default
+  action_project_evidence_network_link["project_evidence_network_link"]:::default
+  action_project_evidence_network_read["project_evidence_network_read"]:::default
+  action_project_evidence_network_register["project_evidence_network_register"]:::default
+  action_project_evidence_network_revoke["project_evidence_network_revoke"]:::default
+  action_project_evidence_network_verify["project_evidence_network_verify"]:::default
+  action_project_evidence_unlink["project_evidence_unlink"]:::default
+  sdk -->|"write"| action_project_evidence_link
+  action_project_evidence_link -->|"inspect-project-evidence-map"| writer
+  sdk -->|"read"| action_project_evidence_links_read
+  action_project_evidence_links_read -->|"inspect-project-evidence-map"| read
+  sdk -->|"read"| action_project_evidence_links_verify
+  action_project_evidence_links_verify -->|"inspect-project-evidence-map"| read
+  sdk -->|"read"| action_project_evidence_map_inspect
+  action_project_evidence_map_inspect -->|"inspect-project-evidence-map"| read
+  sdk -->|"read"| action_project_evidence_map_query
+  action_project_evidence_map_query -->|"inspect-project-evidence-map"| read
+  sdk -->|"write"| action_project_evidence_network_create
+  action_project_evidence_network_create -->|"link-project-evidence-network"| writer
+  sdk -->|"write"| action_project_evidence_network_grant
+  action_project_evidence_network_grant -->|"link-project-evidence-network"| writer
+  sdk -->|"write"| action_project_evidence_network_link
+  action_project_evidence_network_link -->|"link-project-evidence-network"| writer
+  sdk -->|"read"| action_project_evidence_network_read
+  action_project_evidence_network_read -->|"link-project-evidence-network"| read
+  sdk -->|"write"| action_project_evidence_network_register
+  action_project_evidence_network_register -->|"link-project-evidence-network"| writer
+  sdk -->|"write"| action_project_evidence_network_revoke
+  action_project_evidence_network_revoke -->|"link-project-evidence-network"| writer
+  sdk -->|"read"| action_project_evidence_network_verify
+  action_project_evidence_network_verify -->|"link-project-evidence-network"| read
+  sdk -->|"write"| action_project_evidence_unlink
+  action_project_evidence_unlink -->|"inspect-project-evidence-map"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  action_bigger_universe_create ~~~ action_bigger_universe_grant
-  action_bigger_universe_link ~~~ action_bigger_universe_read
-  action_bigger_universe_revoke ~~~ action_bigger_universe_verify
-  action_project_link ~~~ action_project_unlink
-  action_universe_inspect ~~~ action_universe_links_verify
+  action_project_evidence_link ~~~ action_project_evidence_links_read
+  action_project_evidence_links_verify ~~~ action_project_evidence_map_inspect
+  action_project_evidence_network_create ~~~ action_project_evidence_network_grant
+  action_project_evidence_network_read ~~~ action_project_evidence_network_register
+  action_project_evidence_network_revoke ~~~ action_project_evidence_network_verify
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

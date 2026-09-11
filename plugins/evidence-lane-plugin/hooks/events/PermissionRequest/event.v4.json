@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": false,
   "entrypoint": "hooks/events/PermissionRequest/handler.py",
   "event": "PermissionRequest",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/PermissionRequest/event.schema.json",
   "members": [
     {
       "path": "hooks/events/PermissionRequest/handler.py",
-      "sha256": "de6b2c470b545f556250e0fe8654731eff599535134d4f7a089c13246ec423da"
+      "sha256": "01fbf55c5b946abb074818ceded8f11afc1e36a869ec01084bc1e87779028f7d"
     },
     {
       "path": "hooks/events/PermissionRequest/event.schema.json",
       "sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98"
     },
     {
+      "path": "hooks/events/PermissionRequest/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "5fc815707a004444d794884aff57b49bfbe35209730219dd58929270b6c59d2b"
+    },
+    {
+      "path": "hooks/events/PermissionRequest/02-classify_event.stage.v4.json",
+      "sha256": "2bd0e12adedc29140c9f52269f23f11c7aa654a67329684c48489609145a5dc1"
+    },
+    {
+      "path": "hooks/events/PermissionRequest/03-handle_event.stage.v4.json",
+      "sha256": "dcebd7a623908c6d6225773e4da5c774be019c7fa359d3e74100259b43dc5b90"
+    },
+    {
+      "path": "hooks/events/PermissionRequest/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "93ca3f5e5ac45c94296d36a8b96d80b52cd7d21cbbb10897908c2430384f1087"
+    },
+    {
+      "path": "hooks/events/PermissionRequest/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "8ae39c1271fd84b982714412ae26d9c3142a9b917362b1027e764061a235984d"
+    },
+    {
+      "path": "hooks/events/PermissionRequest/06-project_bounded_output.stage.v4.json",
+      "sha256": "4ca685739accd236af691e462a8a01413254a8724ebb16ca9eb4e386e63a7018"
+    },
+    {
       "path": "hooks/events/PermissionRequest/pipeline.v4.json",
-      "sha256": "9e798290b4040ad7c094297a7570a81a3eff983c9f3d27218909cab756a76eb4"
+      "sha256": "691723cb467dd19f61676894af1bada8b1b2071a42975142d1c9ae8d994d744c"
     },
     {
       "path": "hooks/events/PermissionRequest/README.md",
-      "sha256": "5f67953be7f3e4dfc2a1b27a5c2aef54f224f5ea3d0411dadfca9b60ebf62e4c"
+      "sha256": "3216fc70024c727fd3eae215e55600a73fe75031d475da5c7af82f71c994df6f"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

@@ -1,0 +1,14 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 4002,
+    "path": "authorities/session_authority/manifest.v4.json",
+    "sha256": "a683ae934be97b1f92ae81106206caab5b0dd65070a511939bf903e30b9ab860"
+  },
+  "owner_id": "session_authority",
+  "schema": "evidence-lane.sdk-workflow-authority-owner.v4",
+  "separate_from_project_memory": true,
+  "status": "PASS"
+}

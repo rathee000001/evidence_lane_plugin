@@ -1,0 +1,24 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "contract": "route-operation.operation.v4",
+  "formula_engine": false,
+  "installed_execution_claimed": false,
+  "legacy_env15_uop15_translation": false,
+  "purpose": "Select the exact registered action route and host-compatible execution owner.",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.sdk-env-uop-contract.v4",
+  "sources": [
+    {
+      "bytes": 27980,
+      "path": "src/evidence_lane_plugin/codex_action_plane.py",
+      "sha256": "22826eeb0997a12824103e79fa3514c103c08d041c825b89bb637c9d9649c92a"
+    },
+    {
+      "bytes": 952,
+      "path": "src/evidence_lane_plugin/current_route_registry.py",
+      "sha256": "7072480708e5d61dfd732689f9c6cd8b532afa677443c018dd99eeb5379d2f89"
+    }
+  ],
+  "status": "PASS"
+}

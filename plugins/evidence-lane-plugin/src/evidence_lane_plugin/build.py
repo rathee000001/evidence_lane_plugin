@@ -27,7 +27,7 @@ def runtime_source_identity() -> dict:
 PACKAGE_DIRECTORIES = frozenset(
     {".codex-plugin", "src", "scripts", "skills", "hooks", "contracts", "assets",
      "authorities", "sectors", "env", "uop", "schemas", "sdk", "mcp",
-     "manifests", "toolchains", "tests", "provisioning"}
+     "manifests", "toolchains", "tests", "provisioning", "studio"}
 )
 PACKAGE_FILES = frozenset(
     {".mcp.json", "README.md", "LICENSE.md", "COPYRIGHT.md", "THIRD_PARTY_NOTICES.md", "pyproject.toml",
@@ -44,7 +44,7 @@ def package_contents(root: Path) -> dict:
     metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
     if (
         metadata.get("name") != "evidence-lane-plugin"
-        or metadata.get("version", "").split("+")[0] != "4.0.1"
+        or metadata.get("version", "").split("+")[0] != "4.0.2"
     ):
         raise LaneError("PACKAGE_IDENTITY_INVALID", "A canonical v4 plugin manifest is required.")
     files: list[dict] = []

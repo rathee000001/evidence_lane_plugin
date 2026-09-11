@@ -1,11 +1,11 @@
 {
   "action": "source_snapshot_retire",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/source_snapshot_retire.v4.schema.json",
-  "contract_sha256": "ed60c5214468d9695cea2abe56431b1daa9ed2f6572c15ed1c7f28c3abd3b965",
+  "contract_sha256": "7f1cb0aeadf77d42591e93d1e502c3d341416d5d46e15219fb2178e4b214a92b",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

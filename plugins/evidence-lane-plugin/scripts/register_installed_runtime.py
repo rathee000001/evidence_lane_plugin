@@ -28,8 +28,10 @@ def register(
     startup_backend=None,
     shortcut_backend=None,
     appdata: Path | None = None,
+    desktop: Path | None = None,
     system: str | None = None,
 ) -> dict[str, Any]:
+    from evidence_lane_plugin.errors import LaneError
     from evidence_lane_plugin.projects import atomic_json
     from evidence_lane_plugin.shortcuts import StudioShortcut
     from evidence_lane_plugin.startup import LoginStartup
@@ -39,11 +41,11 @@ def register(
         raise RuntimeError("WINDOWS_REGISTRATION_REQUIRED")
     installation = installation_root.resolve(strict=True)
     release = release_root.resolve(strict=True)
-    if release.parent != installation / "releases":
+    if release != installation:
         raise RuntimeError("RELEASE_ROOT_OUTSIDE_INSTALLATION")
-    plugin_root = release / "app/plugin"
-    runtime_root = release / "runtime/engine"
-    pythonw = release / "runtime/engine/venv/Scripts/pythonw.exe"
+    plugin_root = release / "plugin"
+    runtime_root = release / "engine"
+    pythonw = release / "engine/venv/Scripts/pythonw.exe"
     launcher = release / "app/EvidenceLaneStudio.exe"
     if (
         not plugin_root.is_dir()
@@ -52,31 +54,71 @@ def register(
         or not launcher.is_file()
     ):
         raise RuntimeError("INSTALLED_ENTRYPOINT_MISSING")
-    destination = appdata or Path(
+    start_menu = appdata or Path(
         os.environ.get("APPDATA", str(Path.home() / "AppData/Roaming"))
     ) / "Microsoft/Windows/Start Menu/Programs/Evidence Lane"
-    startup = LoginStartup(
+    desktop_root = desktop or Path(
+        os.environ.get("OneDrive", str(Path.home()))
+    ) / "Desktop"
+    startup_owner = LoginStartup(
         pythonw,
         runtime_root,
         plugin_root=plugin_root,
         launcher_executable=launcher,
         backend=startup_backend,
-    ).install()
-    shortcut = StudioShortcut(
+    )
+    start_menu_owner = StudioShortcut(
         pythonw,
         runtime_root,
-        destination,
+        start_menu,
         plugin_root=plugin_root,
         launcher_executable=launcher,
         backend=shortcut_backend,
-    ).install()
+    )
+    desktop_owner = StudioShortcut(
+        pythonw,
+        runtime_root,
+        desktop_root,
+        plugin_root=plugin_root,
+        launcher_executable=launcher,
+        backend=shortcut_backend,
+    )
+    startup_before = startup_owner.status()
+    start_menu_shortcut = None
+    desktop_shortcut = None
+    try:
+        startup = startup_owner.install()
+        start_menu_shortcut = start_menu_owner.install()
+        desktop_shortcut = desktop_owner.install()
+    except Exception as reason:
+        rollback_errors = []
+        for owner, result in (
+            (desktop_owner, desktop_shortcut),
+            (start_menu_owner, start_menu_shortcut),
+        ):
+            if result is not None and result.get("changed") is True:
+                try:
+                    owner.uninstall()
+                except (LaneError, OSError, RuntimeError) as rollback_error:
+                    rollback_errors.append(type(rollback_error).__name__)
+        if startup_before.get("entry_present") is False:
+            try:
+                startup_owner.uninstall()
+            except (LaneError, OSError, RuntimeError) as rollback_error:
+                rollback_errors.append(type(rollback_error).__name__)
+        if rollback_errors:
+            raise RuntimeError("INSTALLATION_REGISTRATION_ROLLBACK_FAILED") from reason
+        raise
     body = {
         "schema": "evidence-lane.installed-runtime-registration.v4",
         "status": "PASS",
         "installation_root": str(installation),
         "release_root": str(release),
         "startup": startup,
-        "shortcut": shortcut,
+        "shortcuts": {
+            "start_menu": start_menu_shortcut,
+            "desktop": desktop_shortcut,
+        },
         "current_windows_user": True,
         "studio_visible": True,
         "engine_console_hidden": True,

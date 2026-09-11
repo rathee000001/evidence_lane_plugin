@@ -294,15 +294,15 @@ def route_env_uop_operation(selection, *, mode_id, action_name, lane_id, tool_id
     return {**result, 'route_sha256': _digest(result)}
 
 
-class ModeClassify(Contract):
+class WorkClassificationRequest(Contract):
     request: str = Field(min_length=1, max_length=12000)
-    explicit_modes: list[str] = Field(default_factory=list, max_length=16)
+    explicit_work_classes: list[str] = Field(default_factory=list, max_length=16)
     code_lane: Literal['local_code', 'github_code'] = 'local_code'
-    custom_modes: list[dict] = Field(default_factory=list, max_length=8)
+    custom_work_classes: list[dict] = Field(default_factory=list, max_length=8)
 
 
-class ModeClassification(Contract):
-    classification: dict
+class WorkClassificationResult(Contract):
+    work_classification: dict
     plan_changed: Literal[False] = False
     effects_authorized: Literal[False] = False
 
@@ -325,20 +325,24 @@ def register_mode_actions(engine):
     def classify(context, request):
         from .operating_modes import classify_operating_modes
         if contains_secret(request.model_dump(mode='json')):
-            raise LaneError('ENV_UOP_SECRET_VALUE_FORBIDDEN', 'Mode input must not contain raw credentials.')
-        result = classify_operating_modes(request.request, explicit_modes=request.explicit_modes,
-            code_lane=request.code_lane, custom_modes=request.custom_modes)
-        return ModeClassification(classification=redact(result))
+            raise LaneError('ENV_UOP_SECRET_VALUE_FORBIDDEN', 'Work classification input must not contain raw credentials.')
+        result = classify_operating_modes(
+            request.request,
+            explicit_modes=request.explicit_work_classes,
+            code_lane=request.code_lane,
+            custom_modes=request.custom_work_classes,
+        )
+        return WorkClassificationResult(work_classification=redact(result))
 
     def inspect(context, request):
         result = SessionFlashAuthority().query_policy(request.role, request.query, request.limit, registry=engine.registry)
         return OperatingPolicyResult(role=request.role, manifest_digest=result['manifest_digest'], matches=result['matches'])
 
-    engine.registry.register(ActionSpec('mode_classify', 'Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.',
-        ModeClassify, ModeClassification, classify, workflow='mode', project_required=False, queryable_in_delta=True,
+    engine.registry.register(ActionSpec('project_work_classify', 'Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.',
+        WorkClassificationRequest, WorkClassificationResult, classify, workflow='classify-project-work', project_required=False, queryable_in_delta=True,
         required_tools=('ENV_UOP_classifier',)))
     engine.registry.register(ActionSpec('env_uop_inspect', 'Retrieve bounded current ENV/UOP policy from its own locked SQLite/FTS index.',
-        OperatingPolicyInspect, OperatingPolicyResult, inspect, workflow='evi', project_required=False, queryable_in_delta=True,
+        OperatingPolicyInspect, OperatingPolicyResult, inspect, workflow='evidence-lane', project_required=False, queryable_in_delta=True,
         required_tools=('SQLite_FTS5_BM25', 'rank_bm25')))
 
 
@@ -542,4 +546,3 @@ def _normalize_env_uop_execution_budget(
         "max_total_tool_invocations": max_tool,
     }
     return {**core, "budget_sha256": sha256_bytes(canonical_json_bytes(core))}
-

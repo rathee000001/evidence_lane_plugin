@@ -34,10 +34,15 @@ from evidence_lane_plugin.remote_api import (
 )
 from evidence_lane_plugin.remote_transport import RemoteClientConfig
 from evidence_lane_plugin.sdk import ActionRequest, ActionResponse
+from evidence_lane_plugin.sdk_projection import complete_sdk_outputs
 from evidence_lane_plugin.workflow_surface import skill_action_reference
+
+JSON_SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema'
 
 
 def encoded(value):
+    if isinstance(value, str):
+        return value.encode('utf-8')
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + '\n').encode('utf-8')
 
 
@@ -71,6 +76,30 @@ def _owner_schema_members(folder):
     if not selected:
         raise RuntimeError('An owning package has no schema members: ' + folder)
     return selected
+
+
+def _normalize_schema_documents(outputs):
+    """Include every real schema and make its dialect explicit.
+
+    Registries, manifests, catalogs and aggregate bundles remain ordinary
+    versioned JSON. Only files whose contract name ends in ``.schema.json``
+    are normalized as JSON Schema documents.
+    """
+    schema_root = PLUGIN_ROOT / 'schemas'
+    for path in sorted(schema_root.rglob('*.schema.json')):
+        relative = path.relative_to(PLUGIN_ROOT).as_posix()
+        if relative not in outputs:
+            outputs[relative] = json.loads(path.read_text(encoding='utf-8'))
+    for relative, value in list(outputs.items()):
+        if not relative.startswith('schemas/') or not relative.endswith('.schema.json'):
+            continue
+        if not isinstance(value, dict):
+            raise TypeError('A JSON Schema document must be an object: ' + relative)
+        dialect = value.get('$schema')
+        if dialect not in {None, JSON_SCHEMA_DIALECT}:
+            raise RuntimeError('A JSON Schema document declares another dialect: ' + relative)
+        outputs[relative] = {'$schema': JSON_SCHEMA_DIALECT, **value}
+    return outputs
 
 
 def exports(registry):
@@ -161,6 +190,9 @@ def exports(registry):
         'schema': 'evidence-lane.mcp-manifest.v4', **envelope,
         'action_count': len(actions),
         'members': [{'path': item, 'sha256': digest(outputs[item])} for item in mcp]}
+
+    outputs.update(complete_sdk_outputs(
+        PLUGIN_ROOT, registry, actions, envelope, outputs))
 
     family_paths = []
     authority_root = PLUGIN_ROOT / 'authorities'
@@ -273,26 +305,42 @@ def exports(registry):
                              'pv-learning-hil', 'connector-brain'],
     }
 
+    _normalize_schema_documents(outputs)
+
     sdk_families = {
-        'actions': 'sdk/actions/dispatcher.py',
-        'authorities': 'sdk/authorities/runtime.py',
-        'delta': 'sdk/delta/runtime.py',
-        'env_uop': 'sdk/env_uop/runtime.py',
-        'hooks': 'sdk/hooks/runtime.py',
-        'host': 'sdk/host/runtime.py',
-        'internal': 'sdk/internal/runtime.py',
-        'plan': 'sdk/plan/runtime.py',
-        'recovery': 'sdk/recovery/runtime.py',
-        'routing': 'sdk/routing/router.py',
-        'skills': 'sdk/skills/runtime.py',
-        'transports': 'sdk/transports/runtime.py',
-        'workflows': 'sdk/workflows/runtime.py',
+        'actions': ('sdk/actions/dispatcher.py', 'sdk/actions/action-manifest.v4.json'),
+        'authorities': ('sdk/authorities/runtime.py', 'sdk/authorities/named-authorities.ref.v4.json'),
+        'delta': ('sdk/delta/runtime.py', 'sdk/delta/delta-workflow-registry.v4.json'),
+        'env_uop': ('sdk/env_uop/runtime.py', 'sdk/env_uop/env-uop-contract-registry.v4.json'),
+        'hooks': ('sdk/hooks/runtime.py', 'sdk/hooks/hook-runtime.ref.v4.json'),
+        'host': ('sdk/host/runtime.py', 'sdk/host/host-contract-registry.v4.json'),
+        'internal': ('sdk/internal/runtime.py', 'sdk/internal/module-registry.v4.json'),
+        'plan': ('sdk/plan/runtime.py', 'sdk/plan/plan-contract-registry.v4.json'),
+        'recovery': ('sdk/recovery/runtime.py', 'sdk/recovery/recovery-contract-registry.v4.json'),
+        'routing': ('sdk/routing/router.py', 'sdk/routing/mcp-action-routing.v4.json'),
+        'skills': ('sdk/skills/runtime.py', 'sdk/skills/skill-bindings.v4.json'),
+        'transports': ('sdk/transports/runtime.py', 'sdk/transports/transport-registry.v4.json'),
+        'workflows': ('sdk/workflows/runtime.py', 'sdk/workflows/workflow-package-registry.v4.json'),
     }
+    sdk_family_rows = []
+    for name, (runtime_path, registry_path) in sorted(sdk_families.items()):
+        prefix = f'sdk/{name}/'
+        member_paths = {path.relative_to(PLUGIN_ROOT).as_posix()
+                        for path in (PLUGIN_ROOT / 'sdk' / name).rglob('*')
+                        if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc'}
+        member_paths.update(path for path in outputs if path.startswith(prefix))
+        sdk_family_rows.append({
+            'name': name,
+            **_member(runtime_path, outputs),
+            'runtime': _member(runtime_path, outputs),
+            'registry': _member(registry_path, outputs),
+            'member_count': len(member_paths),
+            'complete_member_surface': True,
+        })
     outputs['sdk/sdk-surface-registry.v4.json'] = {
         'schema': 'evidence-lane.sdk-surface-registry.v4', **envelope,
         'family_count': len(sdk_families), 'action_count': len(actions),
-        'families': [{'name': name, **_member(path, outputs)}
-                     for name, path in sorted(sdk_families.items())],
+        'families': sdk_family_rows,
         'per_action_manifest': 'sdk/actions/action-manifest.v4.json',
         'automatic_mutation_retry': False,
         'removed_families': [{'name': 'rollback',
@@ -346,7 +394,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     arguments = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix='evi-registry-projection-') as directory:
+    with tempfile.TemporaryDirectory(prefix='evidence-lane-registry-projection-') as directory:
         registry = Engine(Path(directory)).registry
         registry.freeze()
         print(json.dumps(generate(registry, check=arguments.check)))

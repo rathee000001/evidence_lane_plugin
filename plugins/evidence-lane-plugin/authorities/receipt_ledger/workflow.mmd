@@ -38,41 +38,41 @@ flowchart TB
   action_storage_connector_inspect["storage_connector_inspect"]:::default
   action_storage_connector_select["storage_connector_select"]:::default
   sdk -->|"admin"| action_accelerator_configure
-  action_accelerator_configure -->|"toolchain"| writer
+  action_accelerator_configure -->|"select-project-tools"| writer
   sdk -->|"read"| action_accelerator_read
-  action_accelerator_read -->|"toolchain"| read
+  action_accelerator_read -->|"select-project-tools"| read
   sdk -->|"write"| action_capture_bind
-  action_capture_bind -->|"boot"| writer
+  action_capture_bind -->|"open-project-session"| writer
   sdk -->|"admin"| action_connector_configure
-  action_connector_configure -->|"additional-plugin"| writer
+  action_connector_configure -->|"configure-project-connector"| writer
   sdk -->|"read"| action_connector_read
-  action_connector_read -->|"plugin"| read
+  action_connector_read -->|"inspect-project-connectors"| read
   sdk -->|"admin"| action_connector_revoke
-  action_connector_revoke -->|"drop-additional-plugin"| writer
+  action_connector_revoke -->|"revoke-project-connector"| writer
   sdk -->|"read"| action_remote_git_action_read
-  action_remote_git_action_read -->|"lifecycle"| read
+  action_remote_git_action_read -->|"run-project-lifecycle"| read
   sdk -->|"publish"| action_remote_git_execute_push
   delta -->|"required current operation contract"| action_remote_git_execute_push
-  action_remote_git_execute_push -->|"lifecycle"| writer
+  action_remote_git_execute_push -->|"run-project-lifecycle"| writer
   sdk -->|"publish"| action_remote_git_prepare_push
   delta -->|"required current operation contract"| action_remote_git_prepare_push
-  action_remote_git_prepare_push -->|"lifecycle"| writer
+  action_remote_git_prepare_push -->|"run-project-lifecycle"| writer
   sdk -->|"write"| action_session_boot
-  action_session_boot -->|"boot"| writer
+  action_session_boot -->|"open-project-session"| writer
   sdk -->|"read"| action_session_context
-  action_session_context -->|"boot"| read
+  action_session_context -->|"open-project-session"| read
   sdk -->|"write"| action_session_exit
-  action_session_exit -->|"exit-boot"| writer
+  action_session_exit -->|"close-project-session"| writer
   sdk -->|"read"| action_session_exit_boundary
-  action_session_exit_boundary -->|"exit-boot"| read
+  action_session_exit_boundary -->|"close-project-session"| read
   sdk -->|"write"| action_session_resume
-  action_session_resume -->|"boot"| writer
+  action_session_resume -->|"open-project-session"| writer
   sdk -->|"read"| action_session_status
-  action_session_status -->|"boot"| read
+  action_session_status -->|"open-project-session"| read
   sdk -->|"read"| action_storage_connector_inspect
-  action_storage_connector_inspect -->|"storage"| read
+  action_storage_connector_inspect -->|"select-project-storage"| read
   sdk -->|"admin"| action_storage_connector_select
-  action_storage_connector_select -->|"storage"| writer
+  action_storage_connector_select -->|"select-project-storage"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN

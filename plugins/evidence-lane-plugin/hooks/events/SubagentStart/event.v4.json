@@ -1,27 +1,53 @@
 {
+  "ambient_python_required": false,
   "automatic_retry": false,
   "bounded_context_output": false,
   "entrypoint": "hooks/events/SubagentStart/handler.py",
   "event": "SubagentStart",
-  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "execution_owner": "evidence_lane_plugin.hook_pipeline",
+  "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
   "host_control_output": false,
   "input_schema": "hooks/events/SubagentStart/event.schema.json",
   "members": [
     {
       "path": "hooks/events/SubagentStart/handler.py",
-      "sha256": "e069460585c35af41f82f9a7363cbc6c0bfac860ed00e792638d9aae64214c87"
+      "sha256": "a4573c79db4ac872c8ec933ba041cfbb69e3eafedef4be60524319779574cd6c"
     },
     {
       "path": "hooks/events/SubagentStart/event.schema.json",
       "sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a"
     },
     {
+      "path": "hooks/events/SubagentStart/01-validate_and_redact_input.stage.v4.json",
+      "sha256": "763baf2b8fab1e6b0d9e783df92dc9122117e8fa40137414241246a5cc97c6d6"
+    },
+    {
+      "path": "hooks/events/SubagentStart/02-classify_event.stage.v4.json",
+      "sha256": "66ec322cc36829b51028988a34ee3d7a6ade085d608a005067e82f73bfc21383"
+    },
+    {
+      "path": "hooks/events/SubagentStart/03-handle_event.stage.v4.json",
+      "sha256": "0fd92cc180806e3dda0e788213cb40b325cd63132fdb2726d235866503fdb3e7"
+    },
+    {
+      "path": "hooks/events/SubagentStart/04-authenticate_and_deliver_once.stage.v4.json",
+      "sha256": "e125cb9182add51552dd5ec46ffee43ae978354bab1af32d224dd7690161728a"
+    },
+    {
+      "path": "hooks/events/SubagentStart/05-verify_and_seal_receipt.stage.v4.json",
+      "sha256": "236b5cc7c9e8b7ac1e2dd357759013be7fd0d683b90afb3a6e467bbfa5f845b0"
+    },
+    {
+      "path": "hooks/events/SubagentStart/06-project_bounded_output.stage.v4.json",
+      "sha256": "6e0cb2bf102acd8b98eb306015fd3de405227184d3c3c3af11465718a7dd9f6c"
+    },
+    {
       "path": "hooks/events/SubagentStart/pipeline.v4.json",
-      "sha256": "adbb3ad242e8158428a1c1afcfb18ec5fdb4d6afb8847b3c8402fe336a5c4137"
+      "sha256": "767be7920be5a5933daa640f465300713338eb7e9d4e94849c8526a75f905f2f"
     },
     {
       "path": "hooks/events/SubagentStart/README.md",
-      "sha256": "e2c187f98695773b7efdf2d6562044d6d0da746ce326259d223ea645c03c3700"
+      "sha256": "7506770da74513d8ef08db461f232db4cd51cda4602e3a52f06f1420b2c752c1"
     }
   ],
   "native_installation_verified": false,
@@ -30,6 +56,7 @@
   "remote_route": "/remote/v4/capture",
   "requires_explicit_project_session_binding": true,
   "route": "/v4/capture",
+  "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-event.v4",
   "subagent_control_output": false
 }

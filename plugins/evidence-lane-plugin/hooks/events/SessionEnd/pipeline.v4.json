@@ -1,35 +1,48 @@
 {
   "automatic_retry": false,
+  "distinct_executable_owners": true,
   "event": "SessionEnd",
   "schema": "evidence-lane.native-hook-pipeline.v4",
   "separate_process_per_stage": false,
+  "stage_contracts": [
+    "hooks/events/SessionEnd/01-validate_and_redact_input.stage.v4.json",
+    "hooks/events/SessionEnd/02-classify_event.stage.v4.json",
+    "hooks/events/SessionEnd/03-handle_event.stage.v4.json",
+    "hooks/events/SessionEnd/04-authenticate_and_deliver_once.stage.v4.json",
+    "hooks/events/SessionEnd/05-verify_and_seal_receipt.stage.v4.json",
+    "hooks/events/SessionEnd/06-project_bounded_output.stage.v4.json"
+  ],
   "stages": [
     {
-      "id": "read_bounded_input",
-      "implementation": "hook_contract.main_for_event",
-      "max_bytes": 262144,
-      "owner": "event_handler"
+      "id": "validate_and_redact_input",
+      "implementation": "hook_admission.admit_hook",
+      "owner": "hook_admission"
     },
     {
-      "id": "validate_and_redact_visible_fields",
-      "implementation": "hook_contract.prepare_hook",
-      "owner": "shared_hook_contract"
+      "id": "classify_event",
+      "implementation": "hook_classification.classify_hook",
+      "owner": "hook_classification"
     },
     {
-      "id": "verify_bound_engine_build",
-      "implementation": "hook_contract.submit_hook and launcher.verify_engine_binding",
-      "owner": "shared_hook_contract"
+      "id": "handle_event",
+      "implementation": "hook_event_handlers.<Event>Handler.handle",
+      "owner": "event_specific_handler"
     },
     {
       "automatic_retry": false,
-      "id": "deliver_once_to_bound_project",
-      "implementation": "hook_contract.submit_hook",
-      "owner": "shared_hook_contract"
+      "id": "authenticate_and_deliver_once",
+      "implementation": "hook_transport.deliver_hook",
+      "owner": "hook_transport"
     },
     {
-      "id": "verify_receipt_and_emit_bounded_output",
-      "implementation": "hook_contract.context_hook_output",
-      "owner": "shared_hook_contract"
+      "id": "verify_and_seal_receipt",
+      "implementation": "hook_receipts.seal_hook_receipt",
+      "owner": "hook_receipts"
+    },
+    {
+      "id": "project_bounded_output",
+      "implementation": "hook_output.project_hook_output",
+      "owner": "hook_output"
     }
   ]
 }

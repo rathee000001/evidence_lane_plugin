@@ -134,7 +134,7 @@ class EnvUopRuntime:
                 'occurrence_ordinals': source.selection.occurrence_ordinals, 'lane_id': source.lane_id,
                 'data_locality': 'verified_local_source_scope'} if source is not None else None,
             'unbound_source_locality': 'owning_operation_verifies_inputs' if source is None else None,
-            'project_class_selection': 'separate_source_recipe_and_optional_task_mode',
+            'project_class_selection': 'separate_source_workflow_and_optional_task_classification',
             'project_reclassification_inferred': False}
         body = {'schema':ENV_UOP_TOOL_ROUTING_SCHEMA,'manifest_digest':policy['manifest_digest'],
             'action_name':spec.name,'action_schema_sha256':binding['schema_sha256'],'owner_skill':binding['owner_skill'],

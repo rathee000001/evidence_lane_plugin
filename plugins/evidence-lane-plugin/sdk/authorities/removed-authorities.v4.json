@@ -1,0 +1,14 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "installed_execution_claimed": false,
+  "removed": [
+    "project_overlay",
+    "connector_brain",
+    "accepted_folder",
+    "pv_learning_hil"
+  ],
+  "restored_by_sdk_projection": false,
+  "schema": "evidence-lane.sdk-removed-authorities.v4",
+  "status": "PASS"
+}

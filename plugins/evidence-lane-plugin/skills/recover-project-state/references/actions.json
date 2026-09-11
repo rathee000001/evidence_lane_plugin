@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "b8fc426a53ea17c78a6b87d5cdb4203e4537d0a07b4c420b9d88c2d7e11d8196",
+  "action_set_digest": "8386fee15085deb61db66807a95455917c81d773056c0294df09f279639e9366",
   "actions": [
     {
       "cross_project_read": false,
@@ -188,5 +188,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "recover"
+  "workflow": "recover-project-state"
 }

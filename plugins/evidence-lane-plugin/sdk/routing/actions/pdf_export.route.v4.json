@@ -1,0 +1,424 @@
+{
+  "action": "pdf_export",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "automatic_retry": false,
+  "contract_schema": "schemas/actions/pdf_export.v4.schema.json",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "mcp_binding": "mcp/actions/pdf_export.binding.v4.json",
+  "outer_route": {
+    "action": "pdf_export",
+    "implementation": "evidence_lane_plugin.sdk.dispatch",
+    "mutates": true,
+    "owner": "pdf_ocr",
+    "permission": "write",
+    "project_required": true,
+    "workflow": "execute-project-plan"
+  },
+  "schema": "evidence-lane.sdk-action-route.v4",
+  "sdk_binding": "sdk/actions/pdf_export.action.v4.json",
+  "status": "PASS",
+  "toolchain_routes": [
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pymupdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "PyMuPDF",
+        "pdfplumber"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pdfplumber",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pypdf",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.poppler",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber",
+        "Poppler_pdftotext_pdfinfo"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pymupdf_view",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "PyMuPDF",
+        "pdfplumber",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes",
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pdfplumber_view",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes",
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.pypdf_view",
+      "systems": [
+        "Windows",
+        "Darwin",
+        "Linux"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes",
+        "render_lane_view"
+      ]
+    },
+    {
+      "adapter": "evidence_lane_plugin.pdf_profile:export_pdf",
+      "applicable": "evidence_lane_plugin.pdf_profile:register_pdf_actions.<locals>.export_route.<locals>.applicable",
+      "argument_suffixes": {},
+      "argument_values": {},
+      "extension": null,
+      "fidelity": "exact_contract",
+      "host_profiles": [],
+      "provider": "engine_cpu",
+      "reason": "Registered engine adapter",
+      "route_id": "pdf_export.poppler_view",
+      "systems": [
+        "Windows"
+      ],
+      "tool_ids": [
+        "Python",
+        "pypdf",
+        "pdfplumber",
+        "Poppler_pdftotext_pdfinfo",
+        "LangGraph_Mermaid_engine",
+        "Python_Graphviz_DOT_engine",
+        "rustworkx"
+      ],
+      "view_refresh": {
+        "native_dot": {
+          "client_families": [
+            "codex_desktop",
+            "codex_cli",
+            "codex_vm"
+          ],
+          "engine_systems": [
+            "Windows"
+          ],
+          "tool_ids": [
+            "Graphviz_dot"
+          ]
+        },
+        "preserve": [
+          "scope",
+          "formats",
+          "include_pointer",
+          "dot_validation"
+        ],
+        "selection": "existing_consumer_exact_snapshot",
+        "view_id": "pdf_ocr.structure"
+      },
+      "worker_operations": [
+        "pdf_parse_bytes",
+        "render_lane_view"
+      ]
+    }
+  ]
+}

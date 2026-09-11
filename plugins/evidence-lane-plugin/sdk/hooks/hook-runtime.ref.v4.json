@@ -1,0 +1,75 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "events": [
+    {
+      "bytes": 1204,
+      "path": "sdk/hooks/events/Interrupt.v4.json",
+      "sha256": "8cb3dce6919d3099e44bf8b6f5ecda829f9d394f3d975a3856dbfc68f4982562"
+    },
+    {
+      "bytes": 1292,
+      "path": "sdk/hooks/events/PermissionRequest.v4.json",
+      "sha256": "a7f3dfac72df37ae4c213a4ce3daf375ca69973bc3ebf7709bf2c1feb67b8a14"
+    },
+    {
+      "bytes": 1226,
+      "path": "sdk/hooks/events/PostCompact.v4.json",
+      "sha256": "1e6ba0768efbc3bbc51351bcc9f4260e5413fa4c8d9193d9bb5e3f71bd2ee83a"
+    },
+    {
+      "bytes": 1226,
+      "path": "sdk/hooks/events/PostToolUse.v4.json",
+      "sha256": "e4d2a68131d3c937661d44bc352884e131dd5eb50bd08fc75d1d0ca3358d657f"
+    },
+    {
+      "bytes": 1215,
+      "path": "sdk/hooks/events/PreCompact.v4.json",
+      "sha256": "471a0b437bb7c9f91fd86990e1bb660ae57470c26f3d061758cc47127be9c870"
+    },
+    {
+      "bytes": 1215,
+      "path": "sdk/hooks/events/PreToolUse.v4.json",
+      "sha256": "35e3002c407ceab182be35a1b66fe369f5f259a7922b0c00a814c363f70eb10b"
+    },
+    {
+      "bytes": 1215,
+      "path": "sdk/hooks/events/SessionEnd.v4.json",
+      "sha256": "f6917687bff5d9d7f8853766acf8b07c79681c1a36bfcf2e20192c2bfa7422c2"
+    },
+    {
+      "bytes": 1237,
+      "path": "sdk/hooks/events/SessionStart.v4.json",
+      "sha256": "a3aaa77d4083c933bb50d4a3730a68219bcf59c24eb1d6124f9fa1203931e1c9"
+    },
+    {
+      "bytes": 1149,
+      "path": "sdk/hooks/events/Stop.v4.json",
+      "sha256": "17d5cfafd726f41f8ad3c3dc1de14d4c9b123fc020abf0cceaab298f5dab9015"
+    },
+    {
+      "bytes": 1248,
+      "path": "sdk/hooks/events/SubagentStart.v4.json",
+      "sha256": "88d9170588a59ebfcfb2e50f2f8170437b2451d34c8f617a8b79101b968f13a0"
+    },
+    {
+      "bytes": 1237,
+      "path": "sdk/hooks/events/SubagentStop.v4.json",
+      "sha256": "cdbc1d9d710154a37e3b0346d4801c2ebea2fab487d566f9788e767a258a938e"
+    },
+    {
+      "bytes": 1281,
+      "path": "sdk/hooks/events/UserPromptSubmit.v4.json",
+      "sha256": "02231a66f391608731ea8284ccfadf40f80d7648183039e8e3bc1099258850d2"
+    }
+  ],
+  "hooks_are_lifecycle_engine": false,
+  "installed_execution_claimed": false,
+  "runtime": {
+    "bytes": 2552,
+    "path": "sdk/hooks/hook-runtime.v4.json",
+    "sha256": "536cab0a398fa190a4b4c53a2667a73079c96fcdb1d904403563c4fb20d69a1f"
+  },
+  "schema": "evidence-lane.sdk-hook-runtime-ref.v4",
+  "status": "PASS"
+}

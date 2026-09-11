@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "schemas/actions/action-manifest.v4.json",
-      "sha256": "6d919ed107542944e9b3e72ca3bd18ca8a54df9eeea12fa7613b6cb4daa4d937"
+      "sha256": "ba3ddfde3d704ecf2b5e6a019bbdfda193530e6ea6ae3e22dd00dd0c25c688d4"
     }
   ],
   "purpose": "Complete actions schema family",

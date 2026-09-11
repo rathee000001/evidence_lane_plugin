@@ -1,6 +1,6 @@
 """Exact files belonging to one coherent, published set of lane databases.
 
-Only registry-owned files are admitted. A Root PV read pins every lane while
+Only registry-owned files are admitted. A project evidence head coordinator read pins every lane while
 bytes are copied; lane database bytes must remain identical to their head hash.
 """
 from __future__ import annotations

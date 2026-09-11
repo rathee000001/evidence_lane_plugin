@@ -26,6 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--installation-root", type=Path)
     parser.add_argument("--ghostscript-license-receipt", type=Path)
+    parser.add_argument("--deferred-marker", type=Path)
     args = parser.parse_args(argv)
     module = _module()
     environment = dict(os.environ)
@@ -41,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
             args.ghostscript_license_receipt.absolute()
         )
         grants.append("ghostscript")
+    succeeded = False
     try:
         binding, _ = module.validate_binding(PLUGIN)
         if binding["status"] != "RELEASE_BOUND":
@@ -61,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
             license_grants=grants,
         )
         result = installer.ensure()
+        succeeded = True
         print(
             json.dumps(
                 {
@@ -85,6 +88,12 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
+    finally:
+        if succeeded and args.deferred_marker is not None:
+            marker = args.deferred_marker.absolute()
+            expected = module.installation_root(environment) / ".installation-started.json"
+            if marker == expected:
+                marker.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

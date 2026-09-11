@@ -264,7 +264,7 @@ def register_discovery_actions(engine):
     engine.registry.register(ActionSpec('research_web_discover',
         'Discover bounded attributed sources through selected DDGS providers and preserve their response bundle in Research.',
         Discover, EvidenceResult, discover, permission='write', mutates=True, requires_delta=True,
-        profile='research', workflow='source-intake', worker_operations=('research_discover_sources',),
+        profile='research', workflow='manage-project-sources', worker_operations=('research_discover_sources',),
         verification_checks=('research_discovery_snapshot_integrity',), verifier=verify,
         tool_routes=(ToolRoute('research_web_discover.ddgs', discover, ('Python', 'DDGS', 'HTTPX', 'lxml'),
             reason='Pinned DDGS provider parsing and ranking over bounded HTTPX requests; targets remain unvisited.'),)))

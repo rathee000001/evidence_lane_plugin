@@ -8,11 +8,11 @@
     },
     {
       "path": "src/evidence_lane_plugin/canon_runtime_continuity.py",
-      "sha256": "0b654ad6c48071b632f0d8588f52bf4c241c9fdcfdb45157849c040aad30f734"
+      "sha256": "52f5ad87b2319ec6bc2aa055336f555a2b2fb1895b2934d3c965a1f78ba20cdb"
     },
     {
       "path": "src/evidence_lane_plugin/canon_task_graph.py",
-      "sha256": "fd28aa1c9d4a17043ddacea4c7094a951f5828930e7749974b595f908769c71e"
+      "sha256": "8a551f4afd2c22cbcc63d918b8eca7c54045688366be76824ca3e8e6824aa9cb"
     }
   ],
   "purpose": "Typed task evidence exchange contracts",

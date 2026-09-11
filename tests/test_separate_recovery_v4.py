@@ -132,7 +132,7 @@ def test_recovered_federation_revokes_old_grants_without_rewriting_members_or_li
     engine, projects, _, call = federation
     records = create_and_register(federation)
     request = grant_link(federation, records)
-    linked = call('bigger_universe_link', request)
+    linked = call('project_evidence_network_link', request)
     assert linked.status == 'ok', linked.error
     before_members = [hashes(project) for project in projects[1:]]
     _, admin = engine.clients.connect(ConnectRequest(projects=[ProjectSelection(
@@ -156,9 +156,9 @@ def test_recovered_federation_revokes_old_grants_without_rewriting_members_or_li
         def read(action, arguments=None):
             return sdk.execute(ActionRequest(action=action, project_id=projects[0].project_id,
                 arguments=arguments or {}), session)
-        assert read('bigger_universe_verify').status == 'ok'
-        assert read('bigger_universe_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
-        assert read('bigger_universe_read', {'view': 'links'}).result['result']['records'] == [linked.result['result']]
+        assert read('project_evidence_network_verify').status == 'ok'
+        assert read('project_evidence_network_link', request).error.code == 'FEDERATION_GRANT_INACTIVE'
+        assert read('project_evidence_network_read', {'view': 'links'}).result['result']['records'] == [linked.result['result']]
     assert [hashes(project) for project in projects[1:]] == before_members
 
 

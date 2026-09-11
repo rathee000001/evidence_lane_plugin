@@ -267,7 +267,7 @@ def register_github_actions(engine):
         resource_fields=('repository',), plugin_id_field='plugin_id')
     engine.registry.register(ActionSpec(GITHUB_OPERATION,
         'Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.',
-        GitHubInspectionRequest, GitHubInspectionResult, handler, profile='code', workflow='source-intake',
+        GitHubInspectionRequest, GitHubInspectionResult, handler, profile='code', workflow='manage-project-sources',
         requires_delta=True, verifier=verify_github_inspection, verification_checks=('github_snapshot_integrity',),
         required_tools=('Python', 'PyGithub'),
         tool_routes=(ToolRoute(GITHUB_OPERATION + '.pygithub', handler, ('Python', 'PyGithub'), extension=extension),)))

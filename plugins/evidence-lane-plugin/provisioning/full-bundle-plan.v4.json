@@ -3,7 +3,7 @@
   "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
   "plugin": {
     "id": "evidence-lane-plugin",
-    "version": "4.0.1",
+    "version": "4.0.2",
     "repository": "https://github.com/rathee000001/evidence_lane_plugin",
     "sparse_root": "plugins/evidence-lane-plugin"
   },
@@ -292,7 +292,7 @@
             "13bd0c01cada861ce9cd4a09ff36c5a245185477c5fe6ce52d266c46e69f76e5"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -322,7 +322,7 @@
             "8bab70de7b2d00b5300fb289bcf38d8b241400f3184c1e95e8ce706fb0e8686b"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         },
         {
           "distribution": "langchain-core",
@@ -331,7 +331,7 @@
             "954a84132a5cb0435d27b910e336347b6744ecc18fbeef1e2de7029a0959841a"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -351,7 +351,7 @@
             "54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -371,7 +371,7 @@
             "6a54d267826732a8507f81df40785b107f7592af20f451a39a59005147caf84c"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -431,7 +431,7 @@
             "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_CODE_ACCEPTANCE"
@@ -451,7 +451,7 @@
             "05d9d27a18c4bcbefada602480ec9e01e0bc949d432e0ced5df77edac195919c"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_CONFIGURED_GATE"
@@ -471,7 +471,7 @@
             "4956f34d145e145562a0a0bf367f642bbc85c04ec2baf47ae015947c3169a85d"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_CONFIGURED_GATE"
@@ -521,7 +521,7 @@
             "3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         },
         {
           "distribution": "olefile",
@@ -551,7 +551,7 @@
             "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -581,7 +581,7 @@
             "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -601,7 +601,7 @@
             "cd8f7c6dc98527058ee6264219343f5392240a6f1bfa654fc5d79023020d0c92"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -621,7 +621,7 @@
             "408c60e8c5671c87dec3fda2268475bafcd05dfc7684c72ad15adb050ae5dc45"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -641,7 +641,7 @@
             "2e093efbecb5317372f819228fa4b4e6157eee48d3f0a7b0303705ebf81a7104"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -661,7 +661,7 @@
             "87e9673cd8a3445024fe38e7f91b55fa3428437eec9b7a7ff7d81979520c0d2d"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         },
         {
           "distribution": "pillow",
@@ -670,7 +670,7 @@
             "fdafc9cce40277e0f7a0feabce0ee50dd2fa1800f3b38015e51296b5e814048d"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         },
         {
           "distribution": "olefile",
@@ -861,7 +861,7 @@
             "fdafc9cce40277e0f7a0feabce0ee50dd2fa1800f3b38015e51296b5e814048d"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1001,7 +1001,7 @@
             "2726bca5e7193f61c5dde8b12500a6de2d9acf6d1a1c0be9e8c2e706437991df"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1021,7 +1021,7 @@
             "45a282cde31d808236fd7ea9d919b128653c8b38b393d1c4ab335c62924d9aba"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1041,7 +1041,7 @@
             "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_FOR_CONFIGURED_NETWORK_ADAPTERS"
@@ -1061,7 +1061,7 @@
             "aed8db4f6d71c51efb89530e12d9464e7bf2923d46c3205dc794a2a93f8c0648"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         },
         {
           "distribution": "pyjwt",
@@ -1070,7 +1070,7 @@
             "66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_PROTECTED_REMOTE_PROFILES"
@@ -1211,7 +1211,7 @@
             "87e9673cd8a3445024fe38e7f91b55fa3428437eec9b7a7ff7d81979520c0d2d"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1231,7 +1231,7 @@
             "d6f88de62e1d4e38ecb1077eb9724cd0eff29d2a08ca16a401e9b9e93f117cf9"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1251,7 +1251,7 @@
             "a189a0bedfd14009030fde5f85bb6f77c56897cb839b5c25315dd7d4e3e290ba"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1271,7 +1271,7 @@
             "00569167ffdab3d7767a4cdf589b7f57e777a5ed28d12907d8c58769ec734acc"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1291,7 +1291,7 @@
             "ac43592a6201264dfc4f9c361cbe3eb3fea96e54437010a159d5e7365360ed98"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1311,7 +1311,7 @@
             "9dc826c4b50e64f6c4e4d07a3a9cb075ef70ba3899dc43ec5493dc3d7b04b353"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1331,7 +1331,7 @@
             "3c32e993bc57be6d177f7d5d31edb93f30726d798ad86ff9066d75d9bf2e0b6b"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1351,7 +1351,7 @@
             "fe6bc9f9e6ef8493f1be34e14c17176c188d744aea03c1dbd76fe2f6bd17f0fc"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1445,7 +1445,7 @@
             "7bd4a95571adadfc271746fa146a4bcfd89c0cf731e49c3d1ad863290adbe8ae"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1486,7 +1486,7 @@
             "f86e41a149d7d05a9969337e3946a9c171c06a5d42680896daaba624aeac8da1"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1506,7 +1506,7 @@
             "0ba092c291c94baceb5eff768aa0d56400a457585bc0175925a5a5510303da42"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1526,7 +1526,7 @@
             "ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1546,7 +1546,7 @@
             "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1587,7 +1587,7 @@
             "0b1ac5bf6609b2716c7954011c5fef6254922df029f45d032ee4ebf5d363cbed"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1607,7 +1607,7 @@
             "904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1627,7 +1627,7 @@
             "6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1647,7 +1647,7 @@
             "175d9198c958a263f51a06a54368ba0b41294942c0cd29f4aa71be03dbcd5f4a"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1667,7 +1667,7 @@
             "192ada2a76e4afc7d6b37e500c9bfeba1731e6506697445a5ba1c4af8bf0b924"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1708,7 +1708,7 @@
             "6c90d2a259f5c89f4fcf01f97af15708416a59ffedddff006d67222ab30d0fb0"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1728,7 +1728,7 @@
             "e8c947097eae7892cb3d26868d637f79f47b4a0554bc6b80065dfe5aac3705dd"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1748,7 +1748,7 @@
             "874c0cea22c3bf2b78c7f8df831bfaad3c0a89b7301d45a188db581652b4b465"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1768,7 +1768,7 @@
             "1fa62fc1c88fba77a68b28291b5aabdd69e5f38b34e59721a064ae3169b59bb5"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -1816,7 +1816,7 @@
             "91feb30971df6ac53d51503970e4aac67e4d9bc7834535f2b7cd3674645003ac"
           ],
           "lock_path": "toolchains/locks/development.lock.txt",
-          "lock_sha256": "1d6aeec4c6ccfac95d8ef26331dd2d7cd65d564add16b34a69a99614e8cae770"
+          "lock_sha256": "75c16c07fd2d76b887510ec8afd614a7cb5a9ae2e46a2c30a931c7b3cae57d3f"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -2049,7 +2049,7 @@
             "d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce"
           ],
           "lock_path": "toolchains/locks/engine.lock.txt",
-          "lock_sha256": "cae61c5ff2baca2d22fc463f9185b1c79c214f60c4510412dcccbc03e7f1c1fa"
+          "lock_sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
         }
       ],
       "base_requirement": "REQUIRED_DEPENDENCY"
@@ -2080,7 +2080,7 @@
     {
       "runtime_id": "cpu",
       "manifest": "toolchains/providers/cpu.json",
-      "manifest_sha256": "98bf9dced42c665caefc0fcc498577ac34ac64dbff53ff8ed1aabbead0701092",
+      "manifest_sha256": "5eb90a45afe71e0b5da275493d4778d90fba83471d380163d9bb231abf0e85a2",
       "lock": "toolchains/providers/cpu.lock.txt",
       "lock_sha256": "81355c2e1422dc28dcf47ab7132c486a8165983f865cfc25c2af05f12775c680",
       "python_version": "3.14",
@@ -2098,7 +2098,7 @@
     {
       "runtime_id": "cuda",
       "manifest": "toolchains/providers/cuda.json",
-      "manifest_sha256": "e27352d9a9b570f075c56446abc01984bf72f7f6bd2da6f4fef7486730b31b9e",
+      "manifest_sha256": "81f52bf8d21c848c423427aeb6f7f81e4bdb8384127cafd70b92b3794aae4cf8",
       "lock": "toolchains/providers/cuda.lock.txt",
       "lock_sha256": "c00b50f016f91d7eee9df938f681cec81f73c8c170a7b94d711b0c642d9560e1",
       "python_version": "3.14",
@@ -2116,7 +2116,7 @@
     {
       "runtime_id": "directml",
       "manifest": "toolchains/providers/directml.json",
-      "manifest_sha256": "785e02c71bcb71a5b2b4eed9b248625cb6d479f074e18b88775908a6fb00030b",
+      "manifest_sha256": "a11392ef0789bb579f986c362b43f87b4227332b33cfdeacba8928ca916d1edf",
       "lock": "toolchains/providers/directml.lock.txt",
       "lock_sha256": "8925261b7b2ab2f2ef055a1b637d604936b15bd0da95070c440bc0f66a1e2b5a",
       "python_version": "3.12",
@@ -2161,21 +2161,21 @@
     {
       "asset_id": "rapidocr_models",
       "manifest": "toolchains/pdf-ocr-models.v4.json",
-      "manifest_sha256": "99806ddb8c0f0cf9895c1d2206d516f26c7ae053c9a0542472e283743128df52",
+      "manifest_sha256": "2d2e713885b203d1d06b1be10579ad43470dc5ff9708ad90330e026c22ab2fd1",
       "file_count": 3,
       "total_bytes": 31749509
     },
     {
       "asset_id": "tesseract_languages",
       "manifest": "toolchains/tesseract-models.v4.json",
-      "manifest_sha256": "9ca25bd5dcbb9962b15b13767c9f6fd4f80d4efa6493927c5dae3e0076c81dfa",
+      "manifest_sha256": "a4523bcaf96423e5a78e66ace6bb145e96857632c1cde9e7af067fcf75bdf8a5",
       "file_count": 2,
       "total_bytes": 4124446
     },
     {
       "asset_id": "docling_models",
       "manifest": "toolchains/docling-models.v4.json",
-      "manifest_sha256": "dc1d22c82da76053bd7870aaa70d513909342413411ec150d3f08d07e175aadd",
+      "manifest_sha256": "0b76bfbed781595bf1a3517fc71e7bd334584a8382b28f13169a24567f94e9c5",
       "file_count": 7,
       "total_bytes": 384434788
     }
@@ -2519,7 +2519,7 @@
       "source_lock": "requirements.runtime.lock.txt",
       "source_lock_sha256": "84b96dd7113a407d3c809f9fc9671f0591fe53c45c74d75563f0b7e3c8c27500",
       "source_lock_receipt": "requirements.runtime-lock.v4.json",
-      "source_lock_receipt_sha256": "ce8d83bf59523c4d06d4fcf9f9e9835224e7961d4f310dd97bd6d461e4617aee",
+      "source_lock_receipt_sha256": "4786f13aebc5bbff2934a271275796edafbaac7105a8b54095d8ba3ef616a53f",
       "wheelhouse": "install-inputs/engine/wheelhouse",
       "offline_lock": "install-inputs/engine/core.offline.lock.txt",
       "license_index": "install-inputs/engine/runtime-wheel-licenses.json",
@@ -10043,12 +10043,12 @@
       "operation": "create_venv",
       "component_id": "core-engine-studio",
       "interpreter": "toolchains/python/base/cp314/python.exe",
-      "target": "runtime/engine/venv"
+      "target": "engine/venv"
     },
     {
       "operation": "pip_install",
       "component_id": "core-engine-studio",
-      "environment": "runtime/engine/venv",
+      "environment": "engine/venv",
       "wheelhouse": "install-inputs/engine/wheelhouse",
       "requirements": [
         "install-inputs/engine/core.offline.lock.txt"
@@ -10121,19 +10121,19 @@
     }
   ],
   "entrypoints": {
-    "runtime_python": "runtime/engine/venv/Scripts/python.exe",
-    "runtime_pythonw": "runtime/engine/venv/Scripts/pythonw.exe",
-    "plugin_root": "app/plugin",
+    "runtime_python": "engine/venv/Scripts/python.exe",
+    "runtime_pythonw": "engine/venv/Scripts/pythonw.exe",
+    "plugin_root": "plugin",
     "studio_launcher_executable": "app/EvidenceLaneStudio.exe",
-    "mcp_launcher": "app/plugin/scripts/run_mcp.py",
-    "engine_launcher": "app/plugin/scripts/run_engine.py",
-    "installation_self_test": "app/plugin/scripts/verify_installed_runtime.py",
-    "installation_registration": "app/plugin/scripts/register_installed_runtime.py"
+    "mcp_launcher": "plugin/scripts/run_mcp.py",
+    "engine_launcher": "plugin/scripts/run_engine.py",
+    "installation_self_test": "plugin/scripts/verify_installed_runtime.py",
+    "installation_registration": "plugin/scripts/register_installed_runtime.py"
   },
   "source_inputs": [
     {
       "path": "toolchains/shared-toolchain.v4.json",
-      "sha256": "34f9a2a5300424498083f30ab3d2c1bfe7833f63e7b8fb6107ccf027fa59d542",
+      "sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
       "bytes": 111628
     },
     {
@@ -10173,8 +10173,8 @@
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "839ed29475368a68d69f4c129869bcff9aab038da98b890f9e544d267c707b5e",
-      "bytes": 1768
+      "sha256": "b36830808772293b1d054dc63e1d3aace1d62ed64d75bf8bb0e97f987f5d3798",
+      "bytes": 1800
     },
     {
       "path": "requirements.runtime.lock.txt",
@@ -10183,62 +10183,62 @@
     },
     {
       "path": "requirements.runtime-lock.v4.json",
-      "sha256": "ce8d83bf59523c4d06d4fcf9f9e9835224e7961d4f310dd97bd6d461e4617aee",
-      "bytes": 1595
+      "sha256": "4786f13aebc5bbff2934a271275796edafbaac7105a8b54095d8ba3ef616a53f",
+      "bytes": 1650
     },
     {
       "path": ".mcp.json",
-      "sha256": "8bf7ed7621111dd5cafb62495270d9fbffeff4289ab45ded8f209720a7b1bee0",
-      "bytes": 625
+      "sha256": "d9d76ce0ae58e5d3d3bdb5e24c3e5c2a965cf6707ce6c8abcf3934e5a391e984",
+      "bytes": 794
     },
     {
       "path": "authorities/session_authority/installation-layout.v4.json",
-      "sha256": "d34115344544af31b6cc8bd41032729d77db71b215c96323662295aab3fe38f7",
-      "bytes": 3208
+      "sha256": "cef946824307ea4b4a212e4ce3b41319899783a610a205ee2a8d0030199b0935",
+      "bytes": 3277
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "50f8be5dc8d37f69b3771003884cd33ec85184467ed13ac80914a8d55fdb5ebc",
+      "sha256": "3ed8c857b5048ccfec50cd5b012a369f873e99f37641b212aacb5bde3aa5f223",
       "bytes": 3996
     },
     {
       "path": "schemas/install/first-detection-bundle-plan.v4.schema.json",
-      "sha256": "0f44b0883ab7c15938e8b67595e0341895bd7b229c2b420f8ff0a72e5fca8927",
+      "sha256": "d006861c2994d9b61275f010bd889c6646091d5db553d220edb87f3f033e24db",
       "bytes": 2655
     },
     {
       "path": "schemas/install/first-detection-component.v4.schema.json",
-      "sha256": "004035a6e0dbc738e88f3a6559cf01355b4c51ae4bd7b398e56d1f8be743061b",
-      "bytes": 1884
+      "sha256": "e93fc57d66ecc7f6382c7107c9f825afdf804998cb06407139f0781f70e318e2",
+      "bytes": 1886
     },
     {
       "path": "schemas/install/first-detection-installation.v4.schema.json",
-      "sha256": "a6635ca2c00e9a5784195fa9248a8d797510dd5a8d13d3b1a947250b90538c73",
-      "bytes": 1634
+      "sha256": "688023358127f4c594e12c70cceff0c722e08990da98dcb4f691372f3e260ff6",
+      "bytes": 1508
     },
     {
       "path": "schemas/install/explicit-license-grant.v4.schema.json",
-      "sha256": "afcbdfe40fe5017f8881ec12d095cb3a9793f9682ed1dab7d465dccd7abf2887",
+      "sha256": "a7be7ec4311c60aaae17aae06989c4dbadf5cff3ff5f5a716b87be0a1f18bc06",
       "bytes": 1125
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
-      "sha256": "1d4aeff3fac2ddd48f5dba149cdc5752f81718d3dd010ef591a924ab214164e0",
+      "sha256": "b9def67c9ecc83caba4be1420eae216a82518f57536127ed1d6f053bed6e0547",
       "bytes": 1803
     },
     {
       "path": "schemas/install/installed-file-manifest.v4.schema.json",
-      "sha256": "0e6a217a53f71947dabb58a94f42db0d8748aa3e847fc151f2d608e384f80e39",
+      "sha256": "fcb9d6d6b33d342d3b8a33d8db7f96c40faf06aa6827a335b986e3352206b3c2",
       "bytes": 1087
     },
     {
       "path": "schemas/install/runtime-wheel-license-index.v4.schema.json",
-      "sha256": "1f3708069593c5524f9a58d9e0294f17d8edca2c492d89782cfb8225eacb1e6b",
+      "sha256": "303b6bfe75210276fcb75308700670ac3cff6359bb2e9834854357e6f97b6b43",
       "bytes": 779
     },
     {
       "path": "schemas/install/first-detection-status.v4.schema.json",
-      "sha256": "6d9d19c573531b61de967cbc5899b334a480d3cf14ee4c7397afbe3fc2a44a64",
+      "sha256": "f93914cc79f2438a4a462ec77237eeb5783669bec1ee369e8687eea31a244113",
       "bytes": 1007
     },
     {
@@ -10248,22 +10248,22 @@
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-      "sha256": "4e917b284034760e532814e8358f80eae936b186f67843ae50bdee09a7ec68a5",
-      "bytes": 8408
+      "sha256": "764a2f0b896211ce6aa992e5b264e1c435e5b246b0ed3ed3397807915d0fb3f6",
+      "bytes": 8132
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-      "sha256": "0c63b2da7780b3c74e7aeec21efa60aa05f7f7316bcbbbe39d0da361147a70c5",
+      "sha256": "ecc4263d314e73476b2e7a4c4544a9cffe03701f9a02e3d370fb18f86fa39f44",
       "bytes": 9216
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-      "sha256": "2b5a761505b5dc8a84257a434639a1c164faeb658506923ed494ae5f756d7255",
-      "bytes": 502
+      "sha256": "beab0ebfa2b5acf166e07c80bbdd034ef9e135caa5190d6db41db8ce61a84ff6",
+      "bytes": 513
     },
     {
       "path": "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
-      "sha256": "2b788927097b2412ed9e7909c7572332b780488db4069e9045f16841fa9cdb35",
+      "sha256": "f06068dea2d56b75f3d43bb44f15a6b0b277dd333b9c055c44decf3cb76d8c37",
       "bytes": 2069
     },
     {
@@ -10273,33 +10273,33 @@
     },
     {
       "path": "toolchains/pdf-ocr-models.v4.json",
-      "sha256": "99806ddb8c0f0cf9895c1d2206d516f26c7ae053c9a0542472e283743128df52",
-      "bytes": 1074
+      "sha256": "2d2e713885b203d1d06b1be10579ad43470dc5ff9708ad90330e026c22ab2fd1",
+      "bytes": 1101
     },
     {
       "path": "toolchains/tesseract-models.v4.json",
-      "sha256": "9ca25bd5dcbb9962b15b13767c9f6fd4f80d4efa6493927c5dae3e0076c81dfa",
-      "bytes": 912
+      "sha256": "a4523bcaf96423e5a78e66ace6bb145e96857632c1cde9e7af067fcf75bdf8a5",
+      "bytes": 938
     },
     {
       "path": "toolchains/docling-models.v4.json",
-      "sha256": "dc1d22c82da76053bd7870aaa70d513909342413411ec150d3f08d07e175aadd",
-      "bytes": 3115
+      "sha256": "0b76bfbed781595bf1a3517fc71e7bd334584a8382b28f13169a24567f94e9c5",
+      "bytes": 3186
     },
     {
       "path": "toolchains/providers/cpu.json",
-      "sha256": "98bf9dced42c665caefc0fcc498577ac34ac64dbff53ff8ed1aabbead0701092",
-      "bytes": 13774
+      "sha256": "5eb90a45afe71e0b5da275493d4778d90fba83471d380163d9bb231abf0e85a2",
+      "bytes": 14057
     },
     {
       "path": "toolchains/providers/cuda.json",
-      "sha256": "e27352d9a9b570f075c56446abc01984bf72f7f6bd2da6f4fef7486730b31b9e",
-      "bytes": 13788
+      "sha256": "81f52bf8d21c848c423427aeb6f7f81e4bdb8384127cafd70b92b3794aae4cf8",
+      "bytes": 14071
     },
     {
       "path": "toolchains/providers/directml.json",
-      "sha256": "785e02c71bcb71a5b2b4eed9b248625cb6d479f074e18b88775908a6fb00030b",
-      "bytes": 8977
+      "sha256": "a11392ef0789bb579f986c362b43f87b4227332b33cfdeacba8928ca916d1edf",
+      "bytes": 9149
     },
     {
       "path": "toolchains/providers/rocm.json",
@@ -10328,18 +10328,18 @@
     },
     {
       "path": "toolchains/licenses/retained-install-license-index.v4.json",
-      "sha256": "00b4cafd0182ea6a8249647a998a0f4253b3a14aae5f8f017945ec5dc1f3bc3b",
-      "bytes": 46226
+      "sha256": "af73b8905b0be989f691d0e7c2cab5f17fd01d73b9d0b13cc242471c2db38a72",
+      "bytes": 78870
     },
     {
       "path": "toolchains/license-policy.v4.json",
-      "sha256": "0fd69a20a4bc21dbe1e8d6704ccc483a7ecda4af183d3ac4f4d50077bec5771d",
-      "bytes": 1394
+      "sha256": "1ea1fce7ad1743d369063bf086c1ebea322fe63a89a9669dad18473ee74933b5",
+      "bytes": 1624
     }
   ],
   "license_index": {
     "path": "toolchains/licenses/retained-install-license-index.v4.json",
-    "sha256": "00b4cafd0182ea6a8249647a998a0f4253b3a14aae5f8f017945ec5dc1f3bc3b",
+    "sha256": "af73b8905b0be989f691d0e7c2cab5f17fd01d73b9d0b13cc242471c2db38a72",
     "record_count": 103
   },
   "excluded_office": {
@@ -10365,5 +10365,5 @@
   },
   "installation_state": "not_installed",
   "installed_native_execution_claimed": false,
-  "receipt_sha256": "059cdc3f6b9cac1de41023c3a97adbd9da14f11806ba7a35291923359c4bdd12"
+  "receipt_sha256": "e311ca4daf3f4be3679f48403502a6522e4b0e8a5cd32faa14ed6b7609aada1f"
 }

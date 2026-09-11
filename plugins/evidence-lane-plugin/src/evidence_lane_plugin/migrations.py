@@ -114,7 +114,7 @@ def _authorizer(owner: str):
 def _migration_lane(store, owner):
     if owner == 'writer':
         if isinstance(store, LaneStore):
-            raise LaneError('SCHEMA_LANE_MISMATCH', 'Writer fencing belongs only to Root PV.')
+            raise LaneError('SCHEMA_LANE_MISMATCH', 'Writer fencing belongs only to project evidence head coordinator.')
         return None
     if owner == 'views':
         if not isinstance(store, LaneStore):

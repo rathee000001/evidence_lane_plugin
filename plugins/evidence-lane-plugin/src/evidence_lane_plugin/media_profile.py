@@ -1170,7 +1170,7 @@ def register_media_actions(engine):
     def verify_exported(context, request, output):
         return verify_export(context, request, output, engine=engine)
 
-    for name, workflow in [("media_index", "source-intake"), ("media_refresh", "refresh")]:
+    for name, workflow in [("media_index", "manage-project-sources"), ("media_refresh", "refresh-project-evidence")]:
         engine.registry.register(
             ActionSpec(
                 name,
@@ -1223,7 +1223,7 @@ def register_media_actions(engine):
             mutates=True,
             requires_delta=True,
             profile="images_ocr",
-            workflow="build",
+            workflow="execute-project-plan",
             worker_operations=("media_transform",),
             verification_checks=("media_snapshot_integrity",),
             verifier=verify_media,
@@ -1264,7 +1264,7 @@ def register_media_actions(engine):
                 MediaResult,
                 reader(function, name),
                 profile="images_ocr",
-                workflow="source-intake",
+                workflow="manage-project-sources",
                 queryable_in_delta=True,
                 cross_project_read=True,
                 studio_read=True,
@@ -1284,7 +1284,7 @@ def register_media_actions(engine):
             mutates=True,
             requires_delta=True,
             profile="images_ocr",
-            workflow="build",
+            workflow="execute-project-plan",
             path_fields=("filename",),
             verification_checks=("media_export_hash_verified",),
             verifier=verify_exported, worker_operations=("media_parse_bytes", "render_lane_view"),

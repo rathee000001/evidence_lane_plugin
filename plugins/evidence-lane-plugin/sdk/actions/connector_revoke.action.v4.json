@@ -1,11 +1,11 @@
 {
   "action": "connector_revoke",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/connector_revoke.v4.schema.json",
-  "contract_sha256": "b1451cd928393c685f355f9de7fb419b399ba3a4163a84c0ebd5e4e635e514a9",
+  "contract_sha256": "eb9fdf7e8baf31ca43ac086caf2d39d6917bd404cc0987ba6d2f2c9f7d082715",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

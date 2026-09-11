@@ -5,6 +5,168 @@
   "storage": "root-pv.sqlite3 for project identity, writer fencing, lane heads and coordinated recovery only",
   "actions": [
     {
+      "name": "code_snapshot_summary",
+      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "max_read_bytes": {
+            "default": 67108864,
+            "maximum": 134217728,
+            "minimum": 1024,
+            "title": "Max Read Bytes",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "Summary",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "code",
+      "workflow": "manage-project-sources",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "code_snapshot_summary",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "code_snapshot_summary.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3250d8be609a53d5c00ad4485bd0f37096c3a444fd03b164eead23de96d27da7"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "localcode",
+          "version": 1,
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
+        },
+        {
+          "owner": "localcode",
+          "version": 2,
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
+        },
+        {
+          "owner": "localcode",
+          "version": 3,
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
+        },
+        {
+          "owner": "githubcode",
+          "version": 1,
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
+        },
+        {
+          "owner": "githubcode",
+          "version": 2,
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
+        },
+        {
+          "owner": "githubcode",
+          "version": 3,
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
+        }
+      ]
+    },
+    {
       "name": "continuation_recovery_cancel",
       "description": "Administratively cancel an exact stale, unconsumed continuation.",
       "inputSchema": {
@@ -61,7 +223,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -282,7 +444,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -323,225 +485,6 @@
       "path_fields": [],
       "queued": false,
       "queryable_in_delta": false,
-      "studio_read": false,
-      "verification_checks": [],
-      "cross_project_read": false,
-      "read_schemas": []
-    },
-    {
-      "name": "cross_project_query",
-      "description": "Read explicit authorized projects in place with bounded attributed owner views.",
-      "inputSchema": {
-        "$defs": {
-          "JsonValue": {},
-          "OwnerQuery": {
-            "additionalProperties": false,
-            "properties": {
-              "action": {
-                "pattern": "^[a-z][a-z0-9_]{0,63}$",
-                "title": "Action",
-                "type": "string"
-              },
-              "arguments": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Arguments",
-                "type": "object"
-              }
-            },
-            "required": [
-              "action"
-            ],
-            "title": "OwnerQuery",
-            "type": "object"
-          },
-          "ProjectQuery": {
-            "additionalProperties": false,
-            "properties": {
-              "project_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Project Id",
-                "type": "string"
-              },
-              "queries": {
-                "items": {
-                  "$ref": "#/$defs/OwnerQuery"
-                },
-                "maxItems": 4,
-                "minItems": 1,
-                "title": "Queries",
-                "type": "array"
-              },
-              "expected_plan_revision": {
-                "anyOf": [
-                  {
-                    "minimum": 1,
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Expected Plan Revision"
-              }
-            },
-            "required": [
-              "project_id",
-              "queries"
-            ],
-            "title": "ProjectQuery",
-            "type": "object"
-          }
-        },
-        "additionalProperties": false,
-        "properties": {
-          "projects": {
-            "items": {
-              "$ref": "#/$defs/ProjectQuery"
-            },
-            "maxItems": 4,
-            "minItems": 2,
-            "title": "Projects",
-            "type": "array"
-          },
-          "require_links": {
-            "default": false,
-            "title": "Require Links",
-            "type": "boolean"
-          },
-          "timeout_ms": {
-            "default": 10000,
-            "maximum": 30000,
-            "minimum": 100,
-            "title": "Timeout Ms",
-            "type": "integer"
-          },
-          "max_bytes": {
-            "default": 131072,
-            "maximum": 262144,
-            "minimum": 2048,
-            "title": "Max Bytes",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "projects"
-        ],
-        "title": "CrossProjectQuery",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "JsonValue": {}
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "source_client_id": {
-            "title": "Source Client Id",
-            "type": "string"
-          },
-          "projects": {
-            "items": {
-              "additionalProperties": {
-                "$ref": "#/$defs/JsonValue"
-              },
-              "type": "object"
-            },
-            "title": "Projects",
-            "type": "array"
-          },
-          "observed_at": {
-            "title": "Observed At",
-            "type": "string"
-          },
-          "elapsed_ms": {
-            "title": "Elapsed Ms",
-            "type": "integer"
-          },
-          "snapshot_scope": {
-            "const": "independent_project_reads_with_unchanged_plan_and_schema",
-            "default": "independent_project_reads_with_unchanged_plan_and_schema",
-            "title": "Snapshot Scope",
-            "type": "string"
-          },
-          "mutation_performed": {
-            "const": false,
-            "default": false,
-            "title": "Mutation Performed",
-            "type": "boolean"
-          },
-          "refresh_performed": {
-            "const": false,
-            "default": false,
-            "title": "Refresh Performed",
-            "type": "boolean"
-          },
-          "databases_merged": {
-            "const": false,
-            "default": false,
-            "title": "Databases Merged",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "source_client_id",
-          "projects",
-          "observed_at",
-          "elapsed_ms"
-        ],
-        "title": "CrossProjectPage",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "projects",
-      "workflow": "universe",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "cross_project_query",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "cross_project_query.engine",
-            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "163da55d048e3d52a0495603be565b812855b18ab1f706c4c9053155d0e7294a"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
       "studio_read": false,
       "verification_checks": [],
       "cross_project_read": false,
@@ -671,7 +614,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -770,7 +713,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -927,7 +870,7 @@
       },
       "permission": "read",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1100,7 +1043,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -1242,7 +1185,7 @@
       },
       "permission": "read",
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": false,
       "requires_delta": false,
@@ -1456,7 +1399,7 @@
       },
       "permission": "read",
       "profile": "projects",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1701,7 +1644,7 @@
       },
       "permission": "read",
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1891,7 +1834,7 @@
       },
       "permission": "read",
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -1935,6 +1878,225 @@
       "studio_read": true,
       "verification_checks": [],
       "cross_project_read": true,
+      "read_schemas": []
+    },
+    {
+      "name": "linked_project_evidence_query",
+      "description": "Read explicit authorized projects in place with bounded attributed owner views.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {},
+          "OwnerQuery": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Action",
+                "type": "string"
+              },
+              "arguments": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Arguments",
+                "type": "object"
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "title": "OwnerQuery",
+            "type": "object"
+          },
+          "ProjectQuery": {
+            "additionalProperties": false,
+            "properties": {
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              },
+              "queries": {
+                "items": {
+                  "$ref": "#/$defs/OwnerQuery"
+                },
+                "maxItems": 4,
+                "minItems": 1,
+                "title": "Queries",
+                "type": "array"
+              },
+              "expected_plan_revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Expected Plan Revision"
+              }
+            },
+            "required": [
+              "project_id",
+              "queries"
+            ],
+            "title": "ProjectQuery",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "projects": {
+            "items": {
+              "$ref": "#/$defs/ProjectQuery"
+            },
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Projects",
+            "type": "array"
+          },
+          "require_links": {
+            "default": false,
+            "title": "Require Links",
+            "type": "boolean"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "projects"
+        ],
+        "title": "CrossProjectQuery",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "projects": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Projects",
+            "type": "array"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "snapshot_scope": {
+            "const": "independent_project_reads_with_unchanged_plan_and_schema",
+            "default": "independent_project_reads_with_unchanged_plan_and_schema",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "databases_merged": {
+            "const": false,
+            "default": false,
+            "title": "Databases Merged",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "source_client_id",
+          "projects",
+          "observed_at",
+          "elapsed_ms"
+        ],
+        "title": "CrossProjectPage",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "projects",
+      "workflow": "inspect-project-evidence-map",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "linked_project_evidence_query",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "linked_project_evidence_query.engine",
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b24f5106d47604b73d4ff55ee9f2327b4bbd75d80cf22b593f29bca75b8cab20"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
       "read_schemas": []
     },
     {
@@ -2037,7 +2199,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -2159,7 +2321,7 @@
       },
       "permission": "admin",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2343,7 +2505,7 @@
       },
       "permission": "project_admin",
       "profile": "core",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": false,
       "requires_delta": false,
@@ -2448,7 +2610,7 @@
       },
       "permission": "project_admin",
       "profile": "core",
-      "workflow": "exit-boot",
+      "workflow": "close-project-session",
       "mutates": true,
       "project_required": false,
       "requires_delta": false,
@@ -2492,6 +2654,300 @@
       "studio_read": false,
       "verification_checks": [],
       "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "project_evidence_heads_compare",
+      "description": "Compare exact published project evidence lane heads without reading historical content.",
+      "inputSchema": {
+        "$defs": {
+          "RootReference": {
+            "additionalProperties": false,
+            "properties": {
+              "singleton": {
+                "const": 1,
+                "default": 1,
+                "title": "Singleton",
+                "type": "integer"
+              },
+              "revision": {
+                "minimum": 0,
+                "title": "Revision",
+                "type": "integer"
+              },
+              "head_digest": {
+                "pattern": "^(?:[0-9a-f]{64})?$",
+                "title": "Head Digest",
+                "type": "string"
+              },
+              "commit_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Commit Id"
+              }
+            },
+            "required": [
+              "revision",
+              "head_digest",
+              "commit_id"
+            ],
+            "title": "RootReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "max_commits": {
+            "default": 128,
+            "maximum": 2048,
+            "minimum": 1,
+            "title": "Max Commits",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          },
+          "left_root": {
+            "$ref": "#/$defs/RootReference"
+          },
+          "right_root": {
+            "$ref": "#/$defs/RootReference"
+          }
+        },
+        "required": [
+          "left_root",
+          "right_root"
+        ],
+        "title": "Diff",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "projects",
+      "workflow": "evidence-lane",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_heads_compare",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "project_evidence_heads_compare.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "33e9e6edfe2ac85aae832c4b702b4f90967b0dfed6ccf143aeef6561dd65a81f"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": []
+    },
+    {
+      "name": "project_evidence_history",
+      "description": "Read bounded verified project evidence-head references from current ancestry.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_commits": {
+            "default": 128,
+            "maximum": 2048,
+            "minimum": 1,
+            "title": "Max Commits",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "title": "History",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "projects",
+      "workflow": "evidence-lane",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_evidence_history",
+        "profile": "projects",
+        "routes": [
+          {
+            "route_id": "project_evidence_history.engine",
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f9e12fa821f2d86d569c16e201532a14ae7f620485ae8a65e3b2b4d9d4273533"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
       "read_schemas": []
     },
     {
@@ -2568,7 +3024,7 @@
       },
       "permission": "read",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -2781,7 +3237,7 @@
       },
       "permission": "project_admin",
       "profile": "core",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "mutates": true,
       "project_required": false,
       "requires_delta": false,
@@ -2962,7 +3418,7 @@
       },
       "permission": "project_admin",
       "profile": "core",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "mutates": true,
       "project_required": false,
       "requires_delta": false,
@@ -3053,7 +3509,7 @@
       },
       "permission": "read",
       "profile": "core",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -3098,462 +3554,6 @@
       "verification_checks": [],
       "cross_project_read": true,
       "read_schemas": []
-    },
-    {
-      "name": "pv_diff",
-      "description": "Compare exact published Root PV lane database heads without reading historical content.",
-      "inputSchema": {
-        "$defs": {
-          "RootReference": {
-            "additionalProperties": false,
-            "properties": {
-              "singleton": {
-                "const": 1,
-                "default": 1,
-                "title": "Singleton",
-                "type": "integer"
-              },
-              "revision": {
-                "minimum": 0,
-                "title": "Revision",
-                "type": "integer"
-              },
-              "head_digest": {
-                "pattern": "^(?:[0-9a-f]{64})?$",
-                "title": "Head Digest",
-                "type": "string"
-              },
-              "commit_id": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "title": "Commit Id"
-              }
-            },
-            "required": [
-              "revision",
-              "head_digest",
-              "commit_id"
-            ],
-            "title": "RootReference",
-            "type": "object"
-          }
-        },
-        "additionalProperties": false,
-        "properties": {
-          "max_commits": {
-            "default": 128,
-            "maximum": 2048,
-            "minimum": 1,
-            "title": "Max Commits",
-            "type": "integer"
-          },
-          "max_bytes": {
-            "default": 1048576,
-            "maximum": 2097152,
-            "minimum": 4096,
-            "title": "Max Bytes",
-            "type": "integer"
-          },
-          "timeout_ms": {
-            "default": 10000,
-            "maximum": 30000,
-            "minimum": 100,
-            "title": "Timeout Ms",
-            "type": "integer"
-          },
-          "left_root": {
-            "$ref": "#/$defs/RootReference"
-          },
-          "right_root": {
-            "$ref": "#/$defs/RootReference"
-          }
-        },
-        "required": [
-          "left_root",
-          "right_root"
-        ],
-        "title": "Diff",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "JsonValue": {}
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "operation": {
-            "title": "Operation",
-            "type": "string"
-          },
-          "result": {
-            "additionalProperties": {
-              "$ref": "#/$defs/JsonValue"
-            },
-            "title": "Result",
-            "type": "object"
-          },
-          "mutation_performed": {
-            "const": false,
-            "default": false,
-            "title": "Mutation Performed",
-            "type": "boolean"
-          },
-          "refresh_performed": {
-            "const": false,
-            "default": false,
-            "title": "Refresh Performed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "operation",
-          "result"
-        ],
-        "title": "ReadResult",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "projects",
-      "workflow": "evi",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_diff",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "pv_diff.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "66db82899224e22c85b343304cc738915d54ad6a3dae715cb009afc1462cb545"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": true,
-      "verification_checks": [],
-      "cross_project_read": true,
-      "read_schemas": []
-    },
-    {
-      "name": "pv_history",
-      "description": "Read bounded, verified published Root PV references from current ancestry.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "max_commits": {
-            "default": 128,
-            "maximum": 2048,
-            "minimum": 1,
-            "title": "Max Commits",
-            "type": "integer"
-          },
-          "max_bytes": {
-            "default": 1048576,
-            "maximum": 2097152,
-            "minimum": 4096,
-            "title": "Max Bytes",
-            "type": "integer"
-          },
-          "timeout_ms": {
-            "default": 10000,
-            "maximum": 30000,
-            "minimum": 100,
-            "title": "Timeout Ms",
-            "type": "integer"
-          }
-        },
-        "title": "History",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "JsonValue": {}
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "operation": {
-            "title": "Operation",
-            "type": "string"
-          },
-          "result": {
-            "additionalProperties": {
-              "$ref": "#/$defs/JsonValue"
-            },
-            "title": "Result",
-            "type": "object"
-          },
-          "mutation_performed": {
-            "const": false,
-            "default": false,
-            "title": "Mutation Performed",
-            "type": "boolean"
-          },
-          "refresh_performed": {
-            "const": false,
-            "default": false,
-            "title": "Refresh Performed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "operation",
-          "result"
-        ],
-        "title": "ReadResult",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "projects",
-      "workflow": "evi",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_history",
-        "profile": "projects",
-        "routes": [
-          {
-            "route_id": "pv_history.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "03d3b1f1359f1337dd9c04a05399238f45ac1f2bfa7d154896646627d590e66d"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": true,
-      "verification_checks": [],
-      "cross_project_read": true,
-      "read_schemas": []
-    },
-    {
-      "name": "pv_summary",
-      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "lane_id": {
-            "default": "local_code",
-            "enum": [
-              "local_code",
-              "github_code"
-            ],
-            "title": "Lane Id",
-            "type": "string"
-          },
-          "snapshot_id": {
-            "pattern": "^[0-9a-f]{64}$",
-            "title": "Snapshot Id",
-            "type": "string"
-          },
-          "max_read_bytes": {
-            "default": 67108864,
-            "maximum": 134217728,
-            "minimum": 1024,
-            "title": "Max Read Bytes",
-            "type": "integer"
-          },
-          "timeout_ms": {
-            "default": 10000,
-            "maximum": 30000,
-            "minimum": 100,
-            "title": "Timeout Ms",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "snapshot_id"
-        ],
-        "title": "Summary",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "JsonValue": {}
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "operation": {
-            "title": "Operation",
-            "type": "string"
-          },
-          "result": {
-            "additionalProperties": {
-              "$ref": "#/$defs/JsonValue"
-            },
-            "title": "Result",
-            "type": "object"
-          },
-          "mutation_performed": {
-            "const": false,
-            "default": false,
-            "title": "Mutation Performed",
-            "type": "boolean"
-          },
-          "refresh_performed": {
-            "const": false,
-            "default": false,
-            "title": "Refresh Performed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "operation",
-          "result"
-        ],
-        "title": "ReadResult",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "code",
-      "workflow": "source-intake",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "pv_summary",
-        "profile": "code",
-        "routes": [
-          {
-            "route_id": "pv_summary.engine",
-            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": true,
-      "verification_checks": [],
-      "cross_project_read": true,
-      "read_schemas": [
-        {
-          "owner": "localcode",
-          "version": 1,
-          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0"
-        },
-        {
-          "owner": "localcode",
-          "version": 2,
-          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d"
-        },
-        {
-          "owner": "localcode",
-          "version": 3,
-          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131"
-        },
-        {
-          "owner": "githubcode",
-          "version": 1,
-          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
-        },
-        {
-          "owner": "githubcode",
-          "version": 2,
-          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
-        },
-        {
-          "owner": "githubcode",
-          "version": 3,
-          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
-        }
-      ]
     },
     {
       "name": "restoration_read",
@@ -3637,7 +3637,7 @@
       },
       "permission": "read",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -3799,7 +3799,7 @@
       },
       "permission": "write",
       "profile": "recovery",
-      "workflow": "recover",
+      "workflow": "recover-project-state",
       "mutates": true,
       "project_required": true,
       "requires_delta": false,
@@ -4049,7 +4049,7 @@
       },
       "permission": "read",
       "profile": "projects",
-      "workflow": "evi",
+      "workflow": "evidence-lane",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -4226,7 +4226,7 @@
       },
       "permission": "read",
       "profile": "core",
-      "workflow": "storage",
+      "workflow": "select-project-storage",
       "mutates": false,
       "project_required": true,
       "requires_delta": false,
@@ -4289,13 +4289,13 @@
     "node_count": 31,
     "edge_count": 54,
     "group_count": 0,
-    "semantic_topology_sha256": "B62D6F9D43FD7EFE97C356D72D75EBFAE0494E33B93312BC9DD17586D5A63912",
-    "mmd_sha256": "47DD5DDDC031F8E67889840835B9823A6E030FDAFB95808E75C10883231BD156",
-    "dot_sha256": "DD61EFD7C72F5D3844B19EB96BC5298B5208C559A885658AC744A412D4BF5DF4",
+    "semantic_topology_sha256": "B1EEC01A9B4F7EAA9CCE925C4EA0D58B5FF12AB125DAB67DB74D53334EF08837",
+    "mmd_sha256": "6D826055FD13B99DACCF34E376DFCCED9E6603798D15CE574B730A55B65D3A8C",
+    "dot_sha256": "A5E22E29D15FD16574236BE9E3B1E877E812C0D485C61A743300A713C9571246",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "E9FADAB69BDA00E8095335DF81C2F8A14FF2ACF0B984B55F446CB59ACEC0D6F3",
+    "langgraph_export_sha256": "789320ADBB3D55E8DDD97DEC8D3CB857A2A08815213C7F7AB90BAC3C918BD16A",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -4317,7 +4317,7 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "C7FE6B5E90F6C1D0B662601A126280CA9A0296F7ACDE6AD38B6625865E82DD66"
+    "receipt_sha256": "E6A18796E631854FA78652C44955B920D142E2E5D029FC9D604B807499AE92A7"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false

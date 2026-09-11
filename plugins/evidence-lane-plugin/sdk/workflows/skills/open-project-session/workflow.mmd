@@ -1,0 +1,9 @@
+flowchart LR
+  user["User intent: Open project session"] --> skill["$open-project-session"]
+  skill --> registry["Typed action and workflow registries"]
+  registry --> sdk["SDK/MCP selection: 12 eligible actions"]
+  sdk --> engine["Persistent engine API"]
+  engine --> owner["Owning authority or sector lane"]
+  owner --> worker["Bounded tool worker when required"]
+  worker --> receipt["Validated result and receipt"]
+  receipt --> studio["Read-only Studio observation"]

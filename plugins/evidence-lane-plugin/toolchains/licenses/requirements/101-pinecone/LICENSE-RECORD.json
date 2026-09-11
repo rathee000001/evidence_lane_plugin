@@ -4,10 +4,10 @@
   "ordinal": 101,
   "tool": "Pinecone",
   "requirement": "CONFIGURED_EXTERNAL_SERVICE",
-  "classification": "EXTERNAL_OR_REPOSITORY_GATE",
-  "install_mode": "not_installed_by_tunnel",
+  "classification": "EXTERNAL_SERVICE_CONFIGURATION",
+  "install_mode": "packaged_adapter_external_service_not_redistributed",
   "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
-  "license_evidence": "validated at the repository/delivery gate; no binary redistributed",
+  "license_evidence": "The adapter is packaged, but the external service and its terms remain external and explicitly configured.",
   "evidence_paths": [
     "toolchains/tool-definitions.v4.json"
   ],
@@ -24,5 +24,16 @@
   "catalog_ordinal": 92,
   "source_definition": "toolchains/tool-definitions.v4.json",
   "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
-  "receipt_sha256": "51d050fda539c6c42aff87f9e78eeffe7b3109ff85f504ad01a08b535d06e594"
+  "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
+  "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
+  "studio_bundle_component": null,
+  "studio_bundle_member": false,
+  "external_configuration_required": true,
+  "shared_once_across_projects": true,
+  "tunnel_dependency": false,
+  "installed_by_tunnel": false,
+  "current_toolchain_entry_sha256": "0fb23c6d1571032c63015543e2b8591a3b569bb85bd8d919f48fd2125500abce",
+  "shared_toolchain_sha256": "29282d31d15b00f0464ece9ba0817492805b303b307c86f755e23a63983a5205",
+  "tool_catalog_sha256": "8c8836423a1c7d5eca29e7050b3e5e85477eeaaab3b468e4ee92e9095b2b0c8b",
+  "receipt_sha256": "0c14758b423d9c3449d769ac119cd478bb7dfa82b90f886f717676ad76ce3902"
 }

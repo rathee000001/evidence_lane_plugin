@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "core",
-      "workflow": "instructions",
+      "workflow": "inspect-project-instructions",
       "required_tools": [],
       "toolchain": {
         "operation": "instructions_inspect",

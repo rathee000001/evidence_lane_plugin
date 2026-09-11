@@ -12,7 +12,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chatlineage",
-      "workflow": "boot",
+      "workflow": "open-project-session",
       "required_tools": [],
       "toolchain": {
         "operation": "capture_bind",
@@ -55,7 +55,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "continuity",
-      "workflow": "state-travel",
+      "workflow": "handoff-project-work",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_accept",
@@ -98,7 +98,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "continuity",
-      "workflow": "state-travel",
+      "workflow": "handoff-project-work",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_cancel",
@@ -141,7 +141,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "continuity",
-      "workflow": "state-travel",
+      "workflow": "handoff-project-work",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_context",
@@ -184,7 +184,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "continuity",
-      "workflow": "state-travel",
+      "workflow": "handoff-project-work",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_offer",
@@ -227,7 +227,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "continuity",
-      "workflow": "state-travel",
+      "workflow": "handoff-project-work",
       "required_tools": [],
       "toolchain": {
         "operation": "continuation_read",
@@ -270,7 +270,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chatlineage",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "lineage_read",
@@ -313,7 +313,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chatlineage",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "lineage_record",
@@ -356,7 +356,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chat_lineage",
-      "workflow": "source-intake",
+      "workflow": "manage-project-sources",
       "required_tools": [],
       "toolchain": {
         "operation": "prompt_index_status",
@@ -399,7 +399,7 @@
       "requires_delta": false,
       "project_required": true,
       "profile": "chat_lineage",
-      "workflow": "lifecycle",
+      "workflow": "run-project-lifecycle",
       "required_tools": [],
       "toolchain": {
         "operation": "task_classify",
@@ -444,7 +444,7 @@
       "version": 1,
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "consumer": "artifact_export",
-      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
       "files": {
         "mmd": "chat_lineage.mmd",
         "dot": "chat_lineage.dot"

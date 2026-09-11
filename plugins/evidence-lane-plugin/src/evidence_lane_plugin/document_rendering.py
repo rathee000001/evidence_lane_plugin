@@ -313,7 +313,7 @@ def register_render_actions(engine):
     from .tool_routes import ToolRoute
     engine.registry.register(ActionSpec('document_render', 'Render exact document bytes to PDF and page PNGs using the verified shared office runtime.',
         DocumentRender, DocumentResult, render_document, permission='write', mutates=True, requires_delta=True,
-        profile='document', workflow='build', worker_operations=('document_render',),
+        profile='document', workflow='execute-project-plan', worker_operations=('document_render',),
         verification_checks=('document_render_bytes_verified',), verifier=verify_render,
         tool_routes=(ToolRoute('document_render.shared_office', render_document, ('Python', 'LibreOffice', 'pypdfium2'), systems=('Windows',)),)))
 
@@ -322,5 +322,5 @@ def register_render_actions(engine):
         with project_snapshot(store.root):
             return result(store, 'document_render_read', read_render(store, request.render_id))
     engine.registry.register(ActionSpec('document_render_read', 'Read and verify one immutable document-render manifest and its artifacts.',
-        DocumentRenderRead, DocumentResult, read, profile='document', workflow='source-intake', queryable_in_delta=True,
+        DocumentRenderRead, DocumentResult, read, profile='document', workflow='manage-project-sources', queryable_in_delta=True,
         cross_project_read=True, studio_read=True, read_migrations=DOC_MIGRATIONS))

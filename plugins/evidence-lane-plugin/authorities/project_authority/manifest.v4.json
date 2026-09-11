@@ -56,15 +56,15 @@
     },
     {
       "path": "authorities/project_authority/project_authority.tools.json",
-      "sha256": "879429d13d40d3da0938f4b6f94a90150cacc2f3503d6bd9563d58ef744aec9a"
+      "sha256": "89d91dd2aaa94d38f860a6d964efb5d5ee248949995bf8c2098a502d1fac9225"
     },
     {
       "path": "authorities/project_authority/reader-contract.schema.json",
-      "sha256": "4aab0b3c93bf9a148959faa2d8ae82329b89c148bfc79f90237a7ea74db0b2ea"
+      "sha256": "189bbcc89b0ce077ca39b21cece3b6e0b047517f7377e06441735883a9dcca35"
     },
     {
       "path": "authorities/project_authority/reader.py",
-      "sha256": "38f922f722340cfb66b6e2680b1178cdd7233645674c2c4d0300194ec0b81f87"
+      "sha256": "50c7719938e10f41c7c6a52a0fd4858ab974be22d493762eb31e5f39e2db4a0a"
     },
     {
       "path": "authorities/project_authority/refresh-receipt.schema.json",
@@ -96,15 +96,15 @@
     },
     {
       "path": "authorities/project_authority/workflow.dot",
-      "sha256": "dd61efd7c72f5d3844b19eb96bc5298b5208c559a885658ac744a412d4bf5df4"
+      "sha256": "a5e22e29d15fd16574236be9e3b1e877e812c0d485c61a743300a713c9571246"
     },
     {
       "path": "authorities/project_authority/workflow.mmd",
-      "sha256": "47dd5dddc031f8e67889840835b9823a6e030fdafb95808e75c10883231bd156"
+      "sha256": "6d826055fd13b99daccf34e376dfcced9e6603798d15ce574b730a55b65d3a8c"
     },
     {
       "path": "authorities/project_authority/workflow.v4.json",
-      "sha256": "9fca73b0fc95b9e837bf024cb97e559bb8167cc38f33213dc21eb441900c9fca"
+      "sha256": "f8ee95eb6104cff15f0b8b55d12d445437940e5f33ee43134d8937913f379655"
     }
   ]
 }

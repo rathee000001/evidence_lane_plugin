@@ -288,7 +288,7 @@ def query_semantics(engine, context, request, *, sqlite_vec=False, faiss=False):
 def register_semantic_actions(engine):
     engine.registry.register(ActionSpec('code_semantic_index', 'Add a bounded optional embedding page over exact Code chunk identities using the pinned offline model.',
         SemanticIndex, CodeResult, index_semantics, permission='write', mutates=True, requires_delta=True,
-        profile='code', workflow='source-intake', worker_operations=('code_embed_text',),
+        profile='code', workflow='manage-project-sources', worker_operations=('code_embed_text',),
         verification_checks=('code_embedding_hashes_verified',), verifier=verify_semantics,
         tool_routes=(ToolRoute('code_semantic_index.local_model', index_semantics, ('Python', 'SentenceTransformers'),
             systems=('Windows',), compute=EMBEDDING_COMPUTE),)))
@@ -302,7 +302,7 @@ def register_semantic_actions(engine):
             ('code_semantic_query_vec', vector_query, ('Python', 'SentenceTransformers', 'sqlite_vec')),
             ('code_semantic_query_faiss', faiss_query, ('Python', 'SentenceTransformers', 'FAISS_CPU'))):
         engine.registry.register(ActionSpec(name, 'Rank a bounded model-matched Code embedding page without changing project state.',
-            SemanticQuery, CodeResult, handler, profile='code', workflow='source-intake', queryable_in_delta=True,
+            SemanticQuery, CodeResult, handler, profile='code', workflow='manage-project-sources', queryable_in_delta=True,
             worker_operations=('code_embed_text',),
             read_migrations=(*semantic_migrations('local_code'), *semantic_migrations('github_code')),
             tool_routes=(ToolRoute(name + '.local_model', handler, tools, systems=('Windows',), compute=EMBEDDING_COMPUTE),)))

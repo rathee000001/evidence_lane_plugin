@@ -42,7 +42,7 @@ def accept(pair,result,**changes):
 def test_exact_transfer_preserves_plan_and_closes_source_write_access(pair):
     invoke,sender,receiver,source,target,system=pair
     plan(system)
-    extra=invoke(sender,'canon_join',CanonJoin(label='Second source participant'))
+    extra=invoke(sender,'task_evidence_participant_register',CanonJoin(label='Second source participant'))
     assert extra.status=='ok'
     before=PlanStore(system[1]).snapshot().model_dump()
     offered,_=offer(pair)
@@ -54,9 +54,9 @@ def test_exact_transfer_preserves_plan_and_closes_source_write_access(pair):
     assert invoke(receiver,'continuation_accept',request).result==result.result
     assert PlanStore(system[1]).snapshot().model_dump()==before
     assert invoke(sender,'continuation_read',{}).status=='ok'
-    denied=invoke(sender,'canon_join',CanonJoin(label='Must not reopen source work'))
+    denied=invoke(sender,'task_evidence_participant_register',CanonJoin(label='Must not reopen source work'))
     assert denied.error.code=='SOURCE_CLIENT_CLOSEOUT_ONLY'
-    sent=invoke(receiver,'canon_send',CanonSend(sender_id=source,receiver_id=target,kind='evidence',payload=CanonPayload(summary='Continued participant records new evidence')))
+    sent=invoke(receiver,'task_evidence_send',CanonSend(sender_id=source,receiver_id=target,kind='evidence',payload=CanonPayload(summary='Continued participant records new evidence')))
     assert sent.status=='ok',sent.error
     with system[1].lane('chat_lineage').connection(read_only=True) as connection:
         assert connection.execute('SELECT count(*) FROM continuation_bindings').fetchone()[0]==2
@@ -120,7 +120,7 @@ def test_failed_receipt_rolls_back_all_owners_and_source_closeout(pair,monkeypat
     assert failed.error and failed.error.code=='TOOL_ADAPTER_FAILED', failed
     assert injected==['project_participant_continued']
     assert CanonStore(system[1]).read().participants==before_owners
-    assert invoke(sender,'canon_join',CanonJoin(label='Source remains authorized')).status=='ok'
+    assert invoke(sender,'task_evidence_participant_register',CanonJoin(label='Source remains authorized')).status=='ok'
     with system[1].lane('chat_lineage').connection(read_only=True) as connection:
         assert connection.execute('SELECT count(*) FROM continuation_bindings').fetchone()[0]==0
         assert connection.execute('SELECT count(*) FROM continuation_retired_clients').fetchone()[0]==0
@@ -136,7 +136,7 @@ def test_owner_set_change_and_uncertain_jobs_block_acceptance(pair):
     invoke,sender,_receiver,_source,_target,system=pair
     plan(system)
     offered,_=offer(pair)
-    invoke(sender,'canon_join',CanonJoin(label='New source role'))
+    invoke(sender,'task_evidence_participant_register',CanonJoin(label='New source role'))
     assert accept(pair,offered)[0].error.code=='CONTINUATION_OWNERSHIP_CHANGED'
     with system[0].project_work.mutation(system[1]) as lease:
         queue=JobQueue(system[1]);queue.initialize(lease)
@@ -196,7 +196,7 @@ def test_previously_authenticated_waiting_source_write_is_rechecked_after_cutove
         with original(*args,**kwargs) as lease:yield lease
     monkeypatch.setattr(system[0].project_work,'mutation',delayed)
     with ThreadPoolExecutor(max_workers=1,thread_name_prefix='stale-source') as pool:
-        pending=pool.submit(invoke,sender,'canon_join',CanonJoin(label='Late write must not succeed'))
+        pending=pool.submit(invoke,sender,'task_evidence_participant_register',CanonJoin(label='Late write must not succeed'))
         assert entered.wait(5)
         try:
             assert accept(pair,offered)[0].status=='ok'
@@ -214,7 +214,7 @@ def test_successive_continuations_preserve_each_participant_history(pair):
     accepted,_=accept(pair,first)
     assert accepted.status=='ok'
     _,third=system[0].clients.connect(ConnectRequest(projects=[ProjectSelection(project_id=system[1].project_id,permissions=['read','write'])]))
-    endpoint=invoke(third,'canon_join',CanonJoin(label='Third client'))
+    endpoint=invoke(third,'task_evidence_participant_register',CanonJoin(label='Third client'))
     assert endpoint.status=='ok'
     view=PlanStore(system[1]).task('first',expected_revision=1)
     second=invoke(receiver,'continuation_offer',ContinuationOffer(participant_id=source,destination_participant_id=endpoint.result['participant_id'],task_id='first',plan_revision=1,contract_digest=view.contract_digest))
@@ -223,7 +223,7 @@ def test_successive_continuations_preserve_each_participant_history(pair):
     assert moved.status=='ok',moved.error
     assert moved.result['owner_generation']==3
     assert set(moved.result['transferred_participant_ids'])=={source,target}
-    assert invoke(receiver,'canon_join',CanonJoin(label='Second client cannot reopen')).error.code=='SOURCE_CLIENT_CLOSEOUT_ONLY'
+    assert invoke(receiver,'task_evidence_participant_register',CanonJoin(label='Second client cannot reopen')).error.code=='SOURCE_CLIENT_CLOSEOUT_ONLY'
     history=invoke(third,'continuation_read',{}).result['offers']
     assert [item['result']['owner_generation'] for item in history]==[2,3]
     assert TaskContinuity(system[1]).verify_history()['events_verified']==4

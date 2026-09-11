@@ -46,7 +46,7 @@
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",

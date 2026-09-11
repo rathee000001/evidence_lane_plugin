@@ -1,11 +1,11 @@
 {
   "action": "enroll_project",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/enroll_project.v4.schema.json",
-  "contract_sha256": "dd33e7944a236e2b22d1247806de4759ee0db088e02b7adf4ea7cf4f8d6b6399",
+  "contract_sha256": "dcd5ef50c86d38f94ce5f74c1db755ce3e084f8d9a23ffdf82d89cdd050d938a",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

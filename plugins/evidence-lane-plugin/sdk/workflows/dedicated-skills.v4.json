@@ -136,9 +136,9 @@
         },
         {
           "cross_project_read": true,
-          "description": "Compare exact published Root PV lane database heads without reading historical content.",
+          "description": "Compare exact published project evidence lane heads without reading historical content.",
           "mutates": false,
-          "name": "pv_diff",
+          "name": "project_evidence_heads_compare",
           "permission": "read",
           "profile": "projects",
           "project_required": true,
@@ -149,9 +149,9 @@
         },
         {
           "cross_project_read": true,
-          "description": "Read bounded, verified published Root PV references from current ancestry.",
+          "description": "Read bounded verified project evidence-head references from current ancestry.",
           "mutates": false,
-          "name": "pv_history",
+          "name": "project_evidence_history",
           "permission": "read",
           "profile": "projects",
           "project_required": true,
@@ -236,7 +236,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "evi"
+      "workflow": "evidence-lane"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -434,7 +434,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "boot"
+      "workflow": "open-project-session"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -879,7 +879,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "build"
+      "workflow": "execute-project-plan"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -1051,7 +1051,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "plan"
+      "workflow": "manage-project-plan"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -1263,6 +1263,19 @@
           "queued": false,
           "requires_delta": false,
           "studio_read": false
+        },
+        {
+          "cross_project_read": true,
+          "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+          "mutates": false,
+          "name": "code_snapshot_summary",
+          "permission": "read",
+          "profile": "code",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": true
         },
         {
           "cross_project_read": true,
@@ -2046,19 +2059,6 @@
         },
         {
           "cross_project_read": true,
-          "description": "Summarize verified bytes and facts of one exact Code snapshot.",
-          "mutates": false,
-          "name": "pv_summary",
-          "permission": "read",
-          "profile": "code",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": true
-        },
-        {
-          "cross_project_read": true,
           "description": "Read bounded current identities, literal search, typed facts or historical bytes in the research lane.",
           "mutates": false,
           "name": "research_current",
@@ -2640,29 +2640,16 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "source-intake"
+      "workflow": "manage-project-sources"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
       "actions": [
         {
           "cross_project_read": false,
-          "description": "Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.",
-          "mutates": true,
-          "name": "canon_backfire",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Classify a proposed Canon message against the current receiver contract without storing or admitting it.",
+          "description": "Classify a proposed task exchange authority message against the current receiver contract without storing or admitting it.",
           "mutates": false,
-          "name": "canon_classify",
+          "name": "task_evidence_classify",
           "permission": "read",
           "profile": "canon",
           "project_required": true,
@@ -2675,137 +2662,7 @@
           "cross_project_read": false,
           "description": "Admit, reject or request clarification on the exact receiver-owned input.",
           "mutates": true,
-          "name": "canon_decide",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Version the receiver-owned typed expected-input contract.",
-          "mutates": true,
-          "name": "canon_expect",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": true,
-          "description": "Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.",
-          "mutates": false,
-          "name": "canon_graph",
-          "permission": "read",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": true,
-          "description": "Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.",
-          "mutates": false,
-          "name": "canon_inbox",
-          "permission": "read",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": true,
-          "description": "Verify bounded Canon database, schema, object digests and event-chain state without modifying it.",
-          "mutates": false,
-          "name": "canon_inspect",
-          "permission": "read",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Register a project participant owned by this engine client; does not create a host task.",
-          "mutates": true,
-          "name": "canon_join",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Preview an exact foreign source packet against the current receiving project without storing or admitting it.",
-          "mutates": false,
-          "name": "canon_packet_classify",
-          "permission": "read",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": true,
-          "description": "Inspect bounded project participants, expected inputs and exchange history.",
-          "mutates": false,
-          "name": "canon_read",
-          "permission": "read",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Receive an exact source-sealed packet as its destination participant; never mutate the source project.",
-          "mutates": true,
-          "name": "canon_receive",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.",
-          "mutates": true,
-          "name": "canon_send",
-          "permission": "write",
-          "profile": "canon",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.",
-          "mutates": true,
-          "name": "canon_supersede",
+          "name": "task_evidence_decide",
           "permission": "write",
           "profile": "canon",
           "project_required": true,
@@ -2818,7 +2675,7 @@
           "cross_project_read": false,
           "description": "Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.",
           "mutates": true,
-          "name": "canon_task_edge_bind",
+          "name": "task_evidence_edge_bind",
           "permission": "write",
           "profile": "canon",
           "project_required": true,
@@ -2831,7 +2688,124 @@
           "cross_project_read": false,
           "description": "Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.",
           "mutates": true,
-          "name": "canon_task_edge_register",
+          "name": "task_evidence_edge_register",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Version the receiver-owned typed expected-input contract.",
+          "mutates": true,
+          "name": "task_evidence_expect",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": true,
+          "description": "Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.",
+          "mutates": false,
+          "name": "task_evidence_graph",
+          "permission": "read",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": true,
+          "description": "Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.",
+          "mutates": false,
+          "name": "task_evidence_inbox",
+          "permission": "read",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.",
+          "mutates": true,
+          "name": "task_evidence_input_request",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": true,
+          "description": "Verify bounded task exchange authority database, schema, object digests and event-chain state without modifying it.",
+          "mutates": false,
+          "name": "task_evidence_inspect",
+          "permission": "read",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Preview an exact foreign source packet against the current receiving project without storing or admitting it.",
+          "mutates": false,
+          "name": "task_evidence_packet_classify",
+          "permission": "read",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Register a project participant owned by this engine client; does not create a host task.",
+          "mutates": true,
+          "name": "task_evidence_participant_register",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": true,
+          "description": "Inspect bounded project participants, expected inputs and exchange history.",
+          "mutates": false,
+          "name": "task_evidence_read",
+          "permission": "read",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Receive an exact source-sealed packet as its destination participant; never mutate the source project.",
+          "mutates": true,
+          "name": "task_evidence_receive",
           "permission": "write",
           "profile": "canon",
           "project_required": true,
@@ -2844,7 +2818,33 @@
           "cross_project_read": false,
           "description": "Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.",
           "mutates": true,
-          "name": "canon_task_result",
+          "name": "task_evidence_result",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.",
+          "mutates": true,
+          "name": "task_evidence_send",
+          "permission": "write",
+          "profile": "canon",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
+        },
+        {
+          "cross_project_read": false,
+          "description": "Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.",
+          "mutates": true,
+          "name": "task_evidence_supersede",
           "permission": "write",
           "profile": "canon",
           "project_required": true,
@@ -2890,7 +2890,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "canon"
+      "workflow": "exchange-task-evidence"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3023,7 +3023,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "memory"
+      "workflow": "manage-project-memory"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3104,7 +3104,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "learning"
+      "workflow": "manage-project-lessons"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3159,7 +3159,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "instructions"
+      "workflow": "inspect-project-instructions"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3168,7 +3168,7 @@
           "cross_project_read": false,
           "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
           "mutates": false,
-          "name": "project_recipe",
+          "name": "project_workflow_configure",
           "permission": "read",
           "profile": "core",
           "project_required": true,
@@ -3214,7 +3214,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "project-recipe"
+      "workflow": "configure-project-workflow"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3223,7 +3223,7 @@
           "cross_project_read": false,
           "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
           "mutates": false,
-          "name": "mode_classify",
+          "name": "project_work_classify",
           "permission": "read",
           "profile": "core",
           "project_required": false,
@@ -3269,7 +3269,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "mode"
+      "workflow": "classify-project-work"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3278,7 +3278,7 @@
           "cross_project_read": false,
           "description": "Select deterministic metadata slices using explicit estimated-token and item budgets; verify content through its owning authority.",
           "mutates": false,
-          "name": "brain_slice_select",
+          "name": "project_evidence_select",
           "permission": "read",
           "profile": "core",
           "project_required": true,
@@ -3324,7 +3324,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "brain-scaling"
+      "workflow": "retrieve-project-evidence"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3652,7 +3652,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "refresh"
+      "workflow": "refresh-project-evidence"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3707,7 +3707,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "plugin"
+      "workflow": "inspect-project-connectors"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3762,7 +3762,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "additional-plugin"
+      "workflow": "configure-project-connector"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3817,7 +3817,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "drop-additional-plugin"
+      "workflow": "revoke-project-connector"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -3950,7 +3950,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "toolchain"
+      "workflow": "select-project-tools"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4044,7 +4044,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "storage"
+      "workflow": "select-project-storage"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4053,7 +4053,7 @@
           "cross_project_read": false,
           "description": "Read explicit authorized projects in place with bounded attributed owner views.",
           "mutates": false,
-          "name": "cross_project_query",
+          "name": "linked_project_evidence_query",
           "permission": "read",
           "profile": "projects",
           "project_required": true,
@@ -4064,22 +4064,9 @@
         },
         {
           "cross_project_read": false,
-          "description": "Read this project's attributed links without opening or authorizing their targets.",
-          "mutates": false,
-          "name": "linked_projects_read",
-          "permission": "read",
-          "profile": "universe",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
           "description": "Link an explicitly selected project without granting access or copying its data.",
           "mutates": true,
-          "name": "project_link",
+          "name": "project_evidence_link",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4090,35 +4077,22 @@
         },
         {
           "cross_project_read": false,
-          "description": "Remove the current project link while retaining its recorded history.",
-          "mutates": true,
-          "name": "project_unlink",
-          "permission": "write",
-          "profile": "universe",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
-          "description": "Verify coherent Root PV, initialized lane heads and bounded registered-file identities without refresh.",
+          "description": "Read this project's attributed links without opening or authorizing their targets.",
           "mutates": false,
-          "name": "universe_inspect",
+          "name": "project_evidence_links_read",
           "permission": "read",
           "profile": "universe",
           "project_required": true,
           "queryable_in_delta": true,
           "queued": false,
           "requires_delta": false,
-          "studio_read": true
+          "studio_read": false
         },
         {
           "cross_project_read": false,
           "description": "Verify bounded project link history and current bindings without opening member projects.",
           "mutates": false,
-          "name": "universe_links_verify",
+          "name": "project_evidence_links_verify",
           "permission": "read",
           "profile": "universe",
           "project_required": true,
@@ -4129,9 +4103,9 @@
         },
         {
           "cross_project_read": false,
-          "description": "Read or literally filter bounded Root PV, lane, Plan, Source and project-link nodes; follow category cursors.",
+          "description": "Verify coherent project evidence head coordinator, initialized lane heads and bounded registered-file identities without refresh.",
           "mutates": false,
-          "name": "universe_query",
+          "name": "project_evidence_map_inspect",
           "permission": "read",
           "profile": "universe",
           "project_required": true,
@@ -4139,6 +4113,32 @@
           "queued": false,
           "requires_delta": false,
           "studio_read": true
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read or literally filter bounded project evidence head coordinator, lane, Plan, Source and project-link nodes; follow category cursors.",
+          "mutates": false,
+          "name": "project_evidence_map_query",
+          "permission": "read",
+          "profile": "universe",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": true
+        },
+        {
+          "cross_project_read": false,
+          "description": "Remove the current project link while retaining its recorded history.",
+          "mutates": true,
+          "name": "project_evidence_unlink",
+          "permission": "write",
+          "profile": "universe",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "requires_delta": false,
+          "studio_read": false
         }
       ],
       "installation_verified": false,
@@ -4177,7 +4177,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "universe"
+      "workflow": "inspect-project-evidence-map"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4186,7 +4186,7 @@
           "cross_project_read": false,
           "description": "Create an explicitly selected federation in a separate coordinator project.",
           "mutates": true,
-          "name": "bigger_universe_create",
+          "name": "project_evidence_network_create",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4199,7 +4199,7 @@
           "cross_project_read": false,
           "description": "Issue an explicit expiring grant for one relation between two authorized member references.",
           "mutates": true,
-          "name": "bigger_universe_grant",
+          "name": "project_evidence_network_grant",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4212,7 +4212,7 @@
           "cross_project_read": false,
           "description": "Append a hash-only cross-project edge under its exact active grant and current member read access.",
           "mutates": true,
-          "name": "bigger_universe_link",
+          "name": "project_evidence_network_link",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4225,7 +4225,7 @@
           "cross_project_read": false,
           "description": "Read bounded historical federation hash references without opening member data.",
           "mutates": false,
-          "name": "bigger_universe_read",
+          "name": "project_evidence_network_read",
           "permission": "read",
           "profile": "universe",
           "project_required": true,
@@ -4238,7 +4238,7 @@
           "cross_project_read": false,
           "description": "Capture verified member lane hashes, reuse unchanged content and preserve historical heads.",
           "mutates": true,
-          "name": "bigger_universe_register",
+          "name": "project_evidence_network_register",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4251,7 +4251,7 @@
           "cross_project_read": false,
           "description": "Revoke a federation edge grant while retaining its grant and link history.",
           "mutates": true,
-          "name": "bigger_universe_revoke",
+          "name": "project_evidence_network_revoke",
           "permission": "write",
           "profile": "universe",
           "project_required": true,
@@ -4264,7 +4264,7 @@
           "cross_project_read": false,
           "description": "Verify bounded federation identities, historical heads and explicit grant links.",
           "mutates": false,
-          "name": "bigger_universe_verify",
+          "name": "project_evidence_network_verify",
           "permission": "read",
           "profile": "universe",
           "project_required": true,
@@ -4310,7 +4310,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "bigger-universe"
+      "workflow": "link-project-evidence-network"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4343,7 +4343,7 @@
         },
         {
           "cross_project_read": false,
-          "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+          "description": "Read attributed Plan, task exchange authority, Memory and lineage locators for an accepted project continuation.",
           "mutates": false,
           "name": "continuation_context",
           "permission": "read",
@@ -4417,7 +4417,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "state-travel"
+      "workflow": "handoff-project-work"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4628,7 +4628,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "recover"
+      "workflow": "recover-project-state"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4661,7 +4661,7 @@
         },
         {
           "cross_project_read": false,
-          "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or State Travel proof cannot become a terminal receipt.",
+          "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.",
           "mutates": false,
           "name": "session_exit_boundary",
           "permission": "read",
@@ -4709,7 +4709,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "exit-boot"
+      "workflow": "close-project-session"
     },
     {
       "action_order": "selected_by_user_intent_and_current_contract",
@@ -4868,7 +4868,7 @@
           "stage": "human_observation"
         }
       ],
-      "workflow": "lifecycle"
+      "workflow": "run-project-lifecycle"
     }
   ]
 }

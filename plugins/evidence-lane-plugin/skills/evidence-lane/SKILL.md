@@ -17,7 +17,7 @@ in one selected project. These read-only views have an MCP Apps resource and
 structured-data fallback. Page with `offset` and `limit` through the native
 action; tab navigation never submits commands. Registered tools/lanes do not
 establish execution, installed Studio readiness or native task attestation.
-Use `pv_history` for bounded exact published Root PV references and `pv_diff`
+Use `project_evidence_history` for bounded exact published project evidence head coordinator references and `project_evidence_heads_compare`
 to compare two of them. The result describes recorded lane database heads;
 it does not recover historical file contents or counts. Same-byte lane
 republication is disclosed separately. These reads do not change the Plan.

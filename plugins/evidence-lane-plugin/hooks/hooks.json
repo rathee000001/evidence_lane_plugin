@@ -5,8 +5,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/Interrupt/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\Interrupt\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt",
             "statusMessage": "Record bound Evidence Lane Interrupt evidence",
             "timeout": 3,
             "type": "command"
@@ -18,8 +18,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/PermissionRequest/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\PermissionRequest\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest",
             "statusMessage": "Record bound Evidence Lane PermissionRequest evidence",
             "timeout": 10,
             "type": "command"
@@ -31,8 +31,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/PostCompact/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\PostCompact\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact",
             "statusMessage": "Record bound Evidence Lane PostCompact evidence",
             "timeout": 10,
             "type": "command"
@@ -44,8 +44,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/PostToolUse/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\PostToolUse\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse",
             "statusMessage": "Record bound Evidence Lane PostToolUse evidence",
             "timeout": 10,
             "type": "command"
@@ -57,8 +57,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/PreCompact/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\PreCompact\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact",
             "statusMessage": "Record bound Evidence Lane PreCompact evidence",
             "timeout": 10,
             "type": "command"
@@ -70,8 +70,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/PreToolUse/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\PreToolUse\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse",
             "statusMessage": "Record bound Evidence Lane PreToolUse evidence",
             "timeout": 10,
             "type": "command"
@@ -83,8 +83,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/SessionEnd/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\SessionEnd\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd",
             "statusMessage": "Record bound Evidence Lane SessionEnd evidence",
             "timeout": 3,
             "type": "command"
@@ -97,8 +97,8 @@
         "hooks": [
           {
             "additionalContextLimit": 3000,
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/SessionStart/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\SessionStart\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart",
             "statusMessage": "Record bound Evidence Lane SessionStart evidence",
             "timeout": 10,
             "type": "command"
@@ -110,8 +110,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/Stop/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\Stop\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop",
             "statusMessage": "Record bound Evidence Lane Stop evidence",
             "timeout": 10,
             "type": "command"
@@ -123,8 +123,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/SubagentStart/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\SubagentStart\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart",
             "statusMessage": "Record bound Evidence Lane SubagentStart evidence",
             "timeout": 10,
             "type": "command"
@@ -136,8 +136,8 @@
       {
         "hooks": [
           {
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/SubagentStop/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\SubagentStop\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop",
             "statusMessage": "Record bound Evidence Lane SubagentStop evidence",
             "timeout": 10,
             "type": "command"
@@ -150,8 +150,8 @@
         "hooks": [
           {
             "additionalContextLimit": 3000,
-            "command": "python3 -I -B \"${PLUGIN_ROOT}/hooks/events/UserPromptSubmit/handler.py\"",
-            "commandWindows": "& python -I -B \"${PLUGIN_ROOT}\\hooks\\events\\UserPromptSubmit\\handler.py\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit",
             "statusMessage": "Record bound Evidence Lane UserPromptSubmit evidence",
             "timeout": 10,
             "type": "command"

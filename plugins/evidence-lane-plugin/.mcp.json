@@ -2,11 +2,9 @@
   "mcpServers": {
     "evidence-lane": {
       "cwd": ".",
-      "command": "python",
+      "command": "node",
       "args": [
-        "-I",
-        "-B",
-        "./scripts/run_mcp.py",
+        "./mcp/server.mjs",
         "--transport",
         "stdio",
         "--local-project-administration"
@@ -17,10 +15,16 @@
         "EVIDENCE_LANE_HOST_PROFILE",
         "EVIDENCE_LANE_GHOSTSCRIPT_LICENSE_RECEIPT",
         "EVIDENCE_LANE_REMOTE_CONFIG",
-        "EVIDENCE_LANE_REMOTE_TOKEN"
+        "EVIDENCE_LANE_REMOTE_TOKEN",
+        "EVIDENCE_LANE_PYTHON",
+        "CODEX_MCP_NODE_PATH",
+        "CODEX_BROWSER_USE_NODE_PATH",
+        "CODEX_ELECTRON_RESOURCES_PATH",
+        "CODEX_CLI_PATH",
+        "XDG_CACHE_HOME"
       ],
-      "required": true,
-      "startup_timeout_sec": 7200,
+      "required": false,
+      "startup_timeout_sec": 120,
       "tool_timeout_sec": 60
     }
   }

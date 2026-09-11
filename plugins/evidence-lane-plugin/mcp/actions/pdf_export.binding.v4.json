@@ -1,13 +1,13 @@
 {
   "action": "pdf_export",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/pdf_export.action.v4.json",
-  "sdk_binding_sha256": "2cedbcf4d73404453f42430587c055c548f1fa1e0964e596837f3b46bc951c3d",
+  "sdk_binding_sha256": "5384a93111ddbd172d77ed8ea86b5d606c31186b4fc51cb5c3685bd889ef8391",
   "tool": {
     "annotations": {
       "destructiveHint": true,

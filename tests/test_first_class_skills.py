@@ -37,7 +37,7 @@ def audit():
 
 def copy_package(tmp_path):
     target = tmp_path / 'plugin'
-    for directory in ['skills', 'schemas/skills', 'sdk/workflows']:
+    for directory in ['skills', 'schemas/skills', 'sdk/workflows', 'assets']:
         shutil.copytree(PLUGIN / directory, target / directory)
     return target
 
@@ -62,8 +62,8 @@ def test_skills_and_sdk_references_match_actual_registry(tmp_path):
 def test_dynamic_operation_is_discovered_and_stale_reference_is_detected(tmp_path):
     engine = Engine(tmp_path / 'runtime')
     engine.registry.register(ActionSpec('document_fixture', 'Fixture document operation.', Empty, Empty,
-        lambda *_: {}, workflow='build', permission='write', mutates=True, requires_delta=True))
-    result = engine.registry.workflow_schemas('build')
+        lambda *_: {}, workflow='execute-project-plan', permission='write', mutates=True, requires_delta=True))
+    result = engine.registry.workflow_schemas('execute-project-plan')
     assert any(a['name'] == 'document_fixture' for a in result[0]['actions'])
     report = audit().audit(registry=engine.registry)
     assert any(i['skill'] == 'execute-project-plan' and i['code'] == 'live-action-reference-mismatch' for i in report['issues'])
@@ -84,7 +84,7 @@ def test_unrecognized_or_retired_workflow_is_rejected(tmp_path, workflow, code):
 def test_standalone_copy_keeps_local_references_and_detects_missing_resource(tmp_path):
     target = copy_package(tmp_path)
     assert audit().audit(target, active_surface=True)['status'] == 'PASS'
-    lifecycle_skill = next(row.skill for row in WORKFLOWS if row.name == 'lifecycle')
+    lifecycle_skill = next(row.skill for row in WORKFLOWS if row.name == 'run-project-lifecycle')
     (target / 'skills' / lifecycle_skill / 'references/shared-boundaries.md').unlink()
     result = audit().audit(target, active_surface=True)
     assert result['status'] == 'FAIL'
@@ -147,7 +147,7 @@ def test_resealed_skill_catalog_cannot_change_original_workflow_provenance(tmp_p
     target = copy_package(tmp_path)
     path = target / 'skills/skill-surface-registry.v4.json'
     surface = json.loads(path.read_bytes())
-    lifecycle = next(row for row in surface['skills'] if row['workflow'] == 'lifecycle')
+    lifecycle = next(row for row in surface['skills'] if row['workflow'] == 'run-project-lifecycle')
     lifecycle['source_skill'] = 'manage-project-plan'
     surface['digest'] = digest({key: value for key, value in surface.items() if key != 'digest'})
     path.write_text(json.dumps(surface), encoding='utf-8')
@@ -164,25 +164,31 @@ def test_current_mcp_protocol_exposes_workflow_discovery_without_project_access(
         async with (stdio_client(params) as (read, write),
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session):
             await session.initialize()
-            result = await session.call_tool('workflow_catalog', {'arguments':{'workflow':'recover'}})
+            result = await session.call_tool('workflow_catalog', {'arguments':{'workflow':'recover-project-state'}})
             assert not result.isError
             body = result.structuredContent['result']
             assert len(body['workflows']) == 1 and body['workflows'][0]['skill'] == 'recover-project-state'
             assert not body['permission_granted']
             assert engine.clients.status()[0]['project_ids'] == []
-            renamed = {
-                'lifecycle': 'run-project-lifecycle', 'brain-scaling': 'retrieve-project-evidence',
-                'plugin': 'inspect-project-connectors', 'additional-plugin': 'configure-project-connector',
-                'drop-additional-plugin': 'revoke-project-connector', 'exit-boot': 'close-project-session',
-            }
-            for workflow_id, skill_name in renamed.items():
+            current = [
+                'run-project-lifecycle', 'retrieve-project-evidence',
+                'inspect-project-connectors', 'configure-project-connector',
+                'revoke-project-connector', 'close-project-session',
+            ]
+            for workflow_id in current:
                 discovered = await session.call_tool('workflow_catalog', {'arguments': {'workflow': workflow_id}})
                 assert not discovered.isError
                 catalog = discovered.structuredContent['result']
-                assert catalog['workflows'][0]['skill'] == skill_name
+                assert catalog['workflows'][0]['skill'] == workflow_id
                 assert [row['name'] for row in catalog['workflows'][0]['actions']] == [
                     row['name'] for row in engine.registry.schemas() if row['workflow'] == workflow_id]
                 assert not catalog['permission_granted']
+            for retired in ('lifecycle', 'brain-scaling', 'plugin', 'additional-plugin',
+                            'drop-additional-plugin', 'exit-boot'):
+                rejected = await session.call_tool(
+                    'workflow_catalog', {'arguments': {'workflow': retired}}
+                )
+                assert rejected.isError
             assert engine.clients.status()[0]['project_ids'] == []
             bad = await session.call_tool('workflow_catalog', {'arguments':{'workflow':'evi-formula'}})
             # The MCP library rejects an invalid enum before the engine handler.
@@ -190,10 +196,10 @@ def test_current_mcp_protocol_exposes_workflow_discovery_without_project_access(
             assert engine.clients.status()[0]['project_ids'] == []
             names = {tool.name for tool in (await session.list_tools()).tools}
             assert 'workflow_catalog' in names and not names.intersection({'pv_status','pv_state_travel_resume','formula_engine_run'})
-            classified = await session.call_tool('mode_classify', {'arguments': {
-                'request': 'Analyze and plan this source correction.', 'explicit_modes': ['AL', 'PL']}})
+            classified = await session.call_tool('project_work_classify', {'arguments': {
+                'request': 'Analyze and plan this source correction.', 'explicit_work_classes': ['AL', 'PL']}})
             assert not classified.isError, classified
-            selection = classified.structuredContent['result']['classification']['mode_governance']
+            selection = classified.structuredContent['result']['work_classification']['mode_governance']
             assert [row['mode_id'] for row in selection['contracts']] == ['AL', 'PL']
             assert not selection['selection_authorizes_work']
             assert classified.structuredContent['tool_execution']['env_uop']['owner_skill'] == 'classify-project-work'

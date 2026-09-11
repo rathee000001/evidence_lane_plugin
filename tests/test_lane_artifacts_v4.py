@@ -229,11 +229,11 @@ def test_canon_view_tracks_receiver_decision_and_preserves_source_authorities(pa
 
 def test_canon_contract_and_reply_relationships_are_kept_distinct(pair):
     invoke,sender,receiver,source_id,target_id,_ = pair
-    expected = invoke(receiver, 'canon_expect', CanonExpected(receiver_id=target_id, contract_key='review', sender_ids=[source_id], kinds=['requirements']))
+    expected = invoke(receiver, 'task_evidence_expect', CanonExpected(receiver_id=target_id, contract_key='review', sender_ids=[source_id], kinds=['requirements']))
     assert expected.status == 'ok', expected.error
     first,_ = send(pair, expected_contract=expected.result['contract_digest'])
     decide(pair, first, 'clarify')
-    reply = invoke(receiver, 'canon_send', CanonSend(sender_id=target_id,receiver_id=source_id,kind='clarification',
+    reply = invoke(receiver, 'task_evidence_send', CanonSend(sender_id=target_id,receiver_id=source_id,kind='clarification',
         reply_to=first.result['exchange_id'],payload=CanonPayload(summary='Clarify the bounded requirement')))
     assert reply.status == 'ok', reply.error
     def call(action, arguments=None):return invoke(sender, action, arguments or {})
@@ -289,13 +289,13 @@ def test_universe_topology_exports_separately_and_registers_natural_artifact_has
         assert connection.execute('SELECT view_id FROM views_current').fetchone()[0] == 'universe.topology'
     with store.connection(read_only=True) as connection:
         assert not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='views_current'").fetchone()
-    inspected = call('universe_inspect')
+    inspected = call('project_evidence_map_inspect')
     assert inspected.status == 'ok', inspected.error
     universe = next(row for row in inspected.result['lanes'] if row['lane_id'] == 'universe')
     assert universe['artifact_references'][0]['snapshot_digest'] == published['snapshot_digest']
     assert {row['role'] for row in universe['artifact_references'][0]['files']} == {'mmd', 'dot'}
     Path(published['files'][0]['path']).write_text('changed derived graph')
-    assert call('universe_inspect').error.code == 'UNIVERSE_VIEW_INTEGRITY'
+    assert call('project_evidence_map_inspect').error.code == 'UNIVERSE_VIEW_INTEGRITY'
 
 
 def test_universe_topology_becomes_stale_after_plan_change_without_auto_refresh(views):

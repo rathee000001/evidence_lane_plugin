@@ -1,6 +1,9 @@
 interface:
   display_name: "Recover project state"
   short_description: "Back up, verify and recover project state"
+  icon_small: "./assets/evidence-lane-skill.png"
+  icon_large: "./assets/evidence-lane-skill.png"
+  brand_color: "#18A9C8"
   default_prompt: "Use $recover-project-state to inspect or recover my project state."
 dependencies:
   tools:

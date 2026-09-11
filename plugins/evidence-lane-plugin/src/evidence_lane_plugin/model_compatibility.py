@@ -152,7 +152,7 @@ def model_compatibility_catalog() -> dict[str, Any]:
             "TOOL_CAPABLE_WHEN_MODEL_SUPPORTS_IT_BUT_NOT_QUALIFIED_FOR_LONG_"
             "GOVERNED_AUTONOMY_WITHOUT_REPRESENTATIVE_TESTS"
         ),
-        "state_travel_requires_exact_profile_replay": True,
+        "work_handoff_requires_exact_profile_replay": True,
         "official_sources": [
             "https://developers.openai.com/api/docs/models",
             "https://developers.openai.com/api/docs/models/gpt-5.4",
@@ -260,7 +260,7 @@ def classify_model_compatibility(
         ),
         "reasons": sorted(set(reasons)),
         "profile_name_alone_is_proof": False,
-        "state_travel_exact_profile_replay_required": True,
+        "work_handoff_exact_profile_replay_required": True,
         "chatgpt_surface_exposed": False,
     }
     return {**core, "receipt_sha256": sha256_bytes(canonical_json_bytes(core))}

@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 513,
+    "path": "sdk/workflows/skills/configure-project-workflow/workflow.dot",
+    "sha256": "11b6823374def45801c17a0e097b2e3393c2929fa27618040667b68eb3fe8207"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 483,
+    "path": "sdk/workflows/skills/configure-project-workflow/workflow.mmd",
+    "sha256": "cc3eff7c049bcc2fff5dd03d7e41113eb53897f76cef481aa904b22dad31f12b"
+  },
+  "package": {
+    "bytes": 1799,
+    "path": "sdk/workflows/skills/configure-project-workflow/workflow.v4.json",
+    "sha256": "6ebdf4143b9cd17cff523ce5d8b213275621ff902af375822071bd9291ec0f81"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "configure-project-workflow",
+  "source_skill": {
+    "bytes": 2850,
+    "path": "skills/configure-project-workflow/SKILL.md",
+    "sha256": "039f15db188a08b5efaefa18d350e392cad3a49da6a0540fdd5f3f50cb4c5e42"
+  },
+  "status": "PASS",
+  "title": "Configure project workflow",
+  "workflow": "configure-project-workflow"
+}

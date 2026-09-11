@@ -4,11 +4,11 @@
   "members": [
     {
       "path": ".mcp.json",
-      "sha256": "8bf7ed7621111dd5cafb62495270d9fbffeff4289ab45ded8f209720a7b1bee0"
+      "sha256": "d9d76ce0ae58e5d3d3bdb5e24c3e5c2a965cf6707ce6c8abcf3934e5a391e984"
     },
     {
       "path": "mcp/mcp-manifest.v4.json",
-      "sha256": "33942a738adc28e747c8e597d9dfeb1f9efe15370703a9868578210464e160dd"
+      "sha256": "11f4316baf958e097e8c8d8098bd4368bc2c4711670ea4175782d3da66b4fa21"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_adapter.py",

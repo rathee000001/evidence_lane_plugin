@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "244b85dc28f010d622e0205db558f4ca1243ec0c1fb378fb8a32ee318d8cbb20",
+  "action_set_digest": "7438889496235493587e190270ce6714efa39fef130c3bde60525e3f2f8e7e81",
   "actions": [
     {
       "cross_project_read": true,
@@ -48,5 +48,5 @@
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-actions.v4",
   "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
-  "workflow": "learning"
+  "workflow": "manage-project-lessons"
 }

@@ -1,11 +1,11 @@
 {
   "action": "workflow_catalog",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/workflow_catalog.v4.schema.json",
-  "contract_sha256": "74fc24aa4a045a882fd667a002c6a158549f6fd3c88fa04b81da4151fb9dcccb",
+  "contract_sha256": "9e1cb3c6d501556aad32fa5e898475dda9b056926bd27e6e41d89460e0357b2c",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

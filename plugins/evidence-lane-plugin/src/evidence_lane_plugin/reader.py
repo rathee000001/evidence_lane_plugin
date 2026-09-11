@@ -1,6 +1,6 @@
 """Bounded source reads and published lane comparisons in the original owner.
 
-Code snapshots own exact source bytes. Root PV coordinates recorded lane heads;
+Code snapshots own exact source bytes. project evidence head coordinator coordinates recorded lane heads;
 its journal is not a historical content database. All operations are read-only.
 """
 from __future__ import annotations
@@ -187,7 +187,7 @@ def checked_publication(connection, project_id, current, expected_heads=None):
             raise ValueError('Unexplained lane transition')
         return before, body['before_heads'], body['published_heads']
     except (KeyError, TypeError, ValueError, AttributeError) as error:
-        raise LaneError('READER_HISTORY_INTEGRITY', 'The published Root PV history is inconsistent.') from error
+        raise LaneError('READER_HISTORY_INTEGRITY', 'The published project evidence head coordinator history is inconsistent.') from error
 
 
 class PVReader:
@@ -332,10 +332,10 @@ class PVReader:
             with self.store.connection(read_only=True) as connection:
                 for _ in range(request.max_commits):
                     if time.monotonic() >= deadline:
-                        raise LaneError('READER_TIMEOUT', 'Reduce the Root PV history range.')
+                        raise LaneError('READER_TIMEOUT', 'Reduce the project evidence head coordinator history range.')
                     if current['revision'] == 0:
                         if expected not in (None, []):
-                            raise LaneError('READER_HISTORY_INTEGRITY', 'Initial Root PV has published lane heads.')
+                            raise LaneError('READER_HISTORY_INTEGRITY', 'Initial project evidence head coordinator has published lane heads.')
                         rows.append({'root': current, 'heads': []})
                         return head, rows, False
                     parent, prior_heads, heads = checked_publication(connection, self.store.project_id, current, expected)
@@ -351,7 +351,7 @@ class PVReader:
                     current, expected = parent, prior_heads
                 if current['revision'] == 0:
                     if expected:
-                        raise LaneError('READER_HISTORY_INTEGRITY', 'Initial Root PV has published lane heads.')
+                        raise LaneError('READER_HISTORY_INTEGRITY', 'Initial project evidence head coordinator has published lane heads.')
                     rows.append({'root': current, 'heads': []})
                     return head, rows, False
                 if minimum is not None:
@@ -405,10 +405,10 @@ def register_reader_actions(engine):
         return read
 
     for name, model, method, description, profile, workflow in (
-        ('fetch', Fetch, 'fetch', 'Fetch exact stored Code file or chunk bytes with bounded text or base64 output.', 'code', 'source-intake'),
-        ('pv_summary', Summary, 'project_summary', 'Summarize verified bytes and facts of one exact Code snapshot.', 'code', 'source-intake'),
-        ('pv_history', History, 'history', 'Read bounded, verified published Root PV references from current ancestry.', 'projects', 'evi'),
-        ('pv_diff', Diff, 'diff', 'Compare exact published Root PV lane database heads without reading historical content.', 'projects', 'evi')):
+        ('fetch', Fetch, 'fetch', 'Fetch exact stored Code file or chunk bytes with bounded text or base64 output.', 'code', 'manage-project-sources'),
+        ('code_snapshot_summary', Summary, 'project_summary', 'Summarize verified bytes and facts of one exact Code snapshot.', 'code', 'manage-project-sources'),
+        ('project_evidence_history', History, 'history', 'Read bounded verified project evidence-head references from current ancestry.', 'projects', 'evidence-lane'),
+        ('project_evidence_heads_compare', Diff, 'diff', 'Compare exact published project evidence lane heads without reading historical content.', 'projects', 'evidence-lane')):
         engine.registry.register(ActionSpec(name, description, model, ReadResult, handler(method, name),
             profile=profile, workflow=workflow, queryable_in_delta=True, cross_project_read=True, studio_read=True,
             read_migrations=(*code_migrations('local_code'), *code_migrations('github_code')) if profile == 'code' else (),

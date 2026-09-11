@@ -1,7 +1,7 @@
 """Project-owned links to separately authorized roots; never a merged authority.
 
 Attributed identities and link history live in this project's Universe SQLite.
-Coherent Root PV/lane inspection and its derived graph are in universe_snapshot;
+Coherent project evidence head coordinator/lane inspection and its derived graph are in universe_snapshot;
 hash-only federation lives in a separately selected coordinator's Universe.
 Accepted-PV dependencies are removed, with no merged project business database.
 """
@@ -236,14 +236,14 @@ def register_project_link_actions(engine):
                 context.authorize('write')
             return ProjectUniverse(source).change(request, lease, actor_id=context.client_id)
 
-    engine.registry.register(ActionSpec("project_link", "Link an explicitly selected project without granting access or copying its data.",
-        ProjectLink, ProjectLinkResult, link, permission="write", profile="universe", mutates=True, workflow='universe'))
-    engine.registry.register(ActionSpec("project_unlink", "Remove the current project link while retaining its recorded history.",
-        ProjectUnlink, ProjectLinkResult, unlink, permission="write", profile="universe", mutates=True, workflow='universe'))
-    engine.registry.register(ActionSpec("linked_projects_read", "Read this project's attributed links without opening or authorizing their targets.",
+    engine.registry.register(ActionSpec("project_evidence_link", "Link an explicitly selected project without granting access or copying its data.",
+        ProjectLink, ProjectLinkResult, link, permission="write", profile="universe", mutates=True, workflow='inspect-project-evidence-map'))
+    engine.registry.register(ActionSpec("project_evidence_unlink", "Remove the current project link while retaining its recorded history.",
+        ProjectUnlink, ProjectLinkResult, unlink, permission="write", profile="universe", mutates=True, workflow='inspect-project-evidence-map'))
+    engine.registry.register(ActionSpec("project_evidence_links_read", "Read this project's attributed links without opening or authorizing their targets.",
         LinkedProjectsRead, LinkedProjectsPage, lambda context, request: ProjectUniverse(engine.directory.open(context.project_id)).read(request),
-        profile="universe", queryable_in_delta=True, workflow='universe'))
-    engine.registry.register(ActionSpec('universe_links_verify', 'Verify bounded project link history and current bindings without opening member projects.',
+        profile="universe", queryable_in_delta=True, workflow='inspect-project-evidence-map'))
+    engine.registry.register(ActionSpec('project_evidence_links_verify', 'Verify bounded project link history and current bindings without opening member projects.',
         ProjectLinksVerify, ProjectLinksVerified,
         lambda context, request: ProjectUniverse(engine.directory.open(context.project_id)).verify(request),
-        profile='universe', queryable_in_delta=True, workflow='universe', studio_read=True))
+        profile='universe', queryable_in_delta=True, workflow='inspect-project-evidence-map', studio_read=True))

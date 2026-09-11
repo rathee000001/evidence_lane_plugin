@@ -1,0 +1,23 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "configured_state_is_runtime_activation": false,
+  "contract": "public-backend-readiness.v4",
+  "installed_execution_claimed": false,
+  "native_identity_inferred": false,
+  "purpose": "Report measured backend readiness without treating configuration as activation.",
+  "schema": "evidence-lane.sdk-host-contract.v4",
+  "sources": [
+    {
+      "bytes": 6754,
+      "path": "manifests/engine-connection.v4.json",
+      "sha256": "4f732d24a7aad45278f18ab8a065611e09200d32492a9ccab98ebc663c1cb4a2"
+    },
+    {
+      "bytes": 12700,
+      "path": "src/evidence_lane_plugin/runtime_health.py",
+      "sha256": "b59700a537c4ca660cac2e94026cebd0da35617ec12c891fcd6fed2e18a2a6b5"
+    }
+  ],
+  "status": "PASS"
+}

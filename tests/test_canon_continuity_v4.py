@@ -43,9 +43,9 @@ def continuation_authority_files(project):
 def test_offer_seals_all_source_participants_pending_locators_without_payload_or_decisions(pair):
     invoke, sender, receiver, source, target, system = pair
     plan(system)
-    extra = invoke(sender, 'canon_join', CanonJoin(label='Second transferred role')).result['participant_id']
+    extra = invoke(sender, 'task_evidence_participant_register', CanonJoin(label='Second transferred role')).result['participant_id']
     pending, _ = send(pair, payload={'summary':'Private-to-envelope payload is not a checkpoint field'})
-    incoming = invoke(receiver, 'canon_send', CanonSend(sender_id=target, receiver_id=extra,
+    incoming = invoke(receiver, 'task_evidence_send', CanonSend(sender_id=target, receiver_id=extra,
         kind='evidence', payload={'summary':'Second role incoming'}))
     assert incoming.status == 'ok'
     admitted, _ = send(pair)
@@ -72,13 +72,13 @@ def test_changed_canon_requires_fresh_offer_before_any_owner_change(pair, change
     pending, _ = send(pair)
     offered, _ = offer(pair)
     if change == 'incoming':
-        result = invoke(receiver, 'canon_send', CanonSend(sender_id=target, receiver_id=source,
+        result = invoke(receiver, 'task_evidence_send', CanonSend(sender_id=target, receiver_id=source,
             kind='evidence', payload={'summary':'New input'}))
         assert result.status == 'ok'
     elif change == 'decision':
         decide(pair, pending)
     else:
-        result = invoke(receiver, 'canon_expect', CanonExpected(receiver_id=target,
+        result = invoke(receiver, 'task_evidence_expect', CanonExpected(receiver_id=target,
             contract_key='new_contract', sender_ids=[source], kinds=['requirements']))
         assert result.status == 'ok'
     before = continuation_authority_files(system[1])
@@ -185,9 +185,9 @@ def test_mcp_continuation_checkpoint_and_read_only_studio(system):
                         response = await session.call_tool(action, {'project_id':project.project_id, 'arguments':arguments})
                         assert not response.isError and response.structuredContent['status'] == 'ok', response
                         return response.structuredContent['result']
-                    source = await call(source_session, 'canon_join', {'request_id':str(uuid4()), 'label':'Protocol source'})
-                    destination = await call(destination_session, 'canon_join', {'request_id':str(uuid4()), 'label':'Protocol destination'})
-                    await call(source_session, 'canon_send', {'sender_id':source['participant_id'],
+                    source = await call(source_session, 'task_evidence_participant_register', {'request_id':str(uuid4()), 'label':'Protocol source'})
+                    destination = await call(destination_session, 'task_evidence_participant_register', {'request_id':str(uuid4()), 'label':'Protocol destination'})
+                    await call(source_session, 'task_evidence_send', {'sender_id':source['participant_id'],
                         'receiver_id':destination['participant_id'], 'kind':'evidence', 'payload':{'summary':'Visible input'}})
                     offered = await call(source_session, 'continuation_offer', {'participant_id':source['participant_id'],
                         'destination_participant_id':destination['participant_id'], 'task_id':'first',
@@ -197,7 +197,7 @@ def test_mcp_continuation_checkpoint_and_read_only_studio(system):
                     assert accepted['canon_checkpoint_digest'] == offered['canon_checkpoint_digest']
                     context = await call(destination_session, 'continuation_context', args)
                     assert context['canon_continuity']['pending_count_at_offer'] == 1
-                    denied = await source_session.call_tool('canon_join', {'project_id':project.project_id,
+                    denied = await source_session.call_tool('task_evidence_participant_register', {'project_id':project.project_id,
                         'arguments':{'label':'Closed source cannot write'}})
                     assert denied.isError and denied.structuredContent['error']['code'] == 'SOURCE_CLIENT_CLOSEOUT_ONLY'
                     return args

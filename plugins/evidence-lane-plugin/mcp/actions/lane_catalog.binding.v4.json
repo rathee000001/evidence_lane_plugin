@@ -1,13 +1,13 @@
 {
   "action": "lane_catalog",
-  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/lane_catalog.action.v4.json",
-  "sdk_binding_sha256": "1430bed10a190001e937c79f9be7d225a2374543e4d86164eb1b94415fdc1380",
+  "sdk_binding_sha256": "2e1ab7aaade12d8eed278b304cba88758471a5d630167ae0502e91b09fa447b4",
   "tool": {
     "annotations": {
       "destructiveHint": false,

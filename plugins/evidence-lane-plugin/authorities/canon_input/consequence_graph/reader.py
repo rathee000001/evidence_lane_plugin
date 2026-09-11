@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'canon_consequence_graph'
-ACTIONS = {'canon_graph': True, 'canon_inspect': True}
+ACTIONS = {'task_evidence_graph': True, 'task_evidence_inspect': True}
 
 
 def read_authority(client, **request):

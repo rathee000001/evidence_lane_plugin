@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'canon'
-ACTIONS = {'canon_backfire': True, 'canon_decide': True, 'canon_expect': True, 'canon_join': True, 'canon_receive': True, 'canon_send': True, 'canon_supersede': True, 'canon_task_edge_bind': True, 'canon_task_edge_register': True, 'canon_task_result': True}
+ACTIONS = {'task_evidence_decide': True, 'task_evidence_edge_bind': True, 'task_evidence_edge_register': True, 'task_evidence_expect': True, 'task_evidence_input_request': True, 'task_evidence_participant_register': True, 'task_evidence_receive': True, 'task_evidence_result': True, 'task_evidence_send': True, 'task_evidence_supersede': True}
 
 
 def build_authority(client, **request):

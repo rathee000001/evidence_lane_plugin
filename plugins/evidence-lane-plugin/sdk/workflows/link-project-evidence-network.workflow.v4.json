@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 519,
+    "path": "sdk/workflows/skills/link-project-evidence-network/workflow.dot",
+    "sha256": "7017e58099ee62861e35cf86147684e58c2c439191d26a0ad597f4a620db0a4d"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 489,
+    "path": "sdk/workflows/skills/link-project-evidence-network/workflow.mmd",
+    "sha256": "811ff8c830db3777aa2c74b8e45500c41c8c06359953b33576bf92139cfcdac3"
+  },
+  "package": {
+    "bytes": 5068,
+    "path": "sdk/workflows/skills/link-project-evidence-network/workflow.v4.json",
+    "sha256": "b17a0810fd6942a31ca130fe512299ffe584ddbfa5e23b2947205d2d70efe6a0"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "link-project-evidence-network",
+  "source_skill": {
+    "bytes": 1986,
+    "path": "skills/link-project-evidence-network/SKILL.md",
+    "sha256": "75adf26f6e82fa3c8581b075c1306843de888e2fd46bcfd7e8c662e2182eb3cf"
+  },
+  "status": "PASS",
+  "title": "Link project evidence network",
+  "workflow": "link-project-evidence-network"
+}

@@ -1,0 +1,30 @@
+{
+  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "authority": "engine_typed_action_registry",
+  "dot": {
+    "bytes": 503,
+    "path": "sdk/workflows/skills/manage-project-memory/workflow.dot",
+    "sha256": "75fd5d6bab600d1eda9633ab10507d65653b3a07c998fc4acbe41ce4dd3b474c"
+  },
+  "installed_execution_claimed": false,
+  "mermaid": {
+    "bytes": 473,
+    "path": "sdk/workflows/skills/manage-project-memory/workflow.mmd",
+    "sha256": "b8cc656b4efa6a3f64c61031827c14e3fee3a477056b66af5dd7cf905ad18f83"
+  },
+  "package": {
+    "bytes": 4825,
+    "path": "sdk/workflows/skills/manage-project-memory/workflow.v4.json",
+    "sha256": "5b439963d7b33910ae38230e05b907721015728e05c6d9f99038872b2a7c1c76"
+  },
+  "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
+  "skill": "manage-project-memory",
+  "source_skill": {
+    "bytes": 1847,
+    "path": "skills/manage-project-memory/SKILL.md",
+    "sha256": "90ba16a08b20a09d465704ac6dba5a0732eb4a3840b23a0c56bc8eecc8b214b5"
+  },
+  "status": "PASS",
+  "title": "Manage project memory",
+  "workflow": "manage-project-memory"
+}

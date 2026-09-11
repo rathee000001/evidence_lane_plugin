@@ -12,7 +12,7 @@
     },
     {
       "path": "authorities/session_authority/manifest.v4.json",
-      "sha256": "dff6a652f8d19bcf44daa69966721ba80aa42a6c28ea5fcbfbef47d503c91a34"
+      "sha256": "a683ae934be97b1f92ae81106206caab5b0dd65070a511939bf903e30b9ab860"
     },
     {
       "path": "authorities/session_authority/pointer-contract.schema.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/session_authority/reader-contract.schema.json",
-      "sha256": "59b5a62c9ddaa9a2db35ea89bdb8bea63686db7a53430b32e31012b9fb0a17c8"
+      "sha256": "d455640333e093ffb6e734947fc3db873fb64e750da889e00cc4eedebfe4d65e"
     },
     {
       "path": "authorities/session_authority/refresh-receipt.schema.json",

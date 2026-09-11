@@ -176,7 +176,7 @@ def compile_authority_assets(registry, lane_id):
     if lane_id == 'canon':
         consequence = folder + '/consequence_graph'
         actions = [row for row in authority_actions(registry, 'canon') if row['name'] in {
-            'canon_graph', 'canon_inspect', 'canon_task_result', 'canon_backfire', 'canon_task_edge_bind', 'canon_task_edge_register'}]
+            'task_evidence_graph', 'task_evidence_inspect', 'task_evidence_result', 'task_evidence_input_request', 'task_evidence_edge_bind', 'task_evidence_edge_register'}]
         additions, _ = compile_workflow_assets(registry, 'canon_consequence_graph', consequence,
             actions=actions, storage='The parent Canon lane and its attributed events; no separate graph database',
             runtime_modules=['evidence_lane_plugin.canon_consequence_graph', 'evidence_lane_plugin.canon_task_graph'], views=views)

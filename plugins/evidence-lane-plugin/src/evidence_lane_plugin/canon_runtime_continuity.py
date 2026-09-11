@@ -123,6 +123,6 @@ def _read_continuation_context(store,request):
 
 
 def register_continuation_context(engine):
-    engine.registry.register(ActionSpec('continuation_context','Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.',
+    engine.registry.register(ActionSpec('continuation_context','Read attributed Plan, task exchange authority, Memory and lineage locators for an accepted project continuation.',
         ContinuationContextRequest,ContinuationContext,lambda context,request:read_continuation_context(engine.directory.open(context.project_id),request),
-        profile='continuity',queryable_in_delta=True, workflow='state-travel'))
+        profile='continuity',queryable_in_delta=True, workflow='handoff-project-work'))

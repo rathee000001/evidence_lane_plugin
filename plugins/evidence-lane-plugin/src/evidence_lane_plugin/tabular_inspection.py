@@ -200,7 +200,7 @@ def register_inspections(engine):
             tools = ('Python', ENGINES[adapter][0], 'pyarrow') if adapter == 'duckdb' else ('Python', ENGINES[adapter][0])
             engine.registry.register(ActionSpec(action, 'Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.',
                 contracts.model_for(lane_id, Inspection), TabularResult, inspect_snapshot, permission='write', mutates=True,
-                requires_delta=True, profile=prefix, workflow='source-intake', worker_operations=('tabular_inspect',),
+                requires_delta=True, profile=prefix, workflow='manage-project-sources', worker_operations=('tabular_inspect',),
                 tool_routes=(ToolRoute(action + '.library', inspect_snapshot, tools),),
                 verification_checks=('tabular_inspection_reconciled',), verifier=verify_inspection))
         def reader(context, request):
@@ -208,5 +208,5 @@ def register_inspections(engine):
             with project_snapshot(store.root):
                 return result(store, request.lane_id, 'inspection_read', read_inspection(store, request.lane_id, request.derivative_id))
         engine.registry.register(ActionSpec(prefix + '_inspection_read', 'Read an exact library inspection and its source binding.',
-            contracts.model_for(lane_id, InspectionRead), TabularResult, reader, profile=prefix, workflow='source-intake',
+            contracts.model_for(lane_id, InspectionRead), TabularResult, reader, profile=prefix, workflow='manage-project-sources',
             queryable_in_delta=True, cross_project_read=True, studio_read=True, read_migrations=tabular_migrations(lane_id)))

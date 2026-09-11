@@ -14,9 +14,9 @@ current exact project participants and Plan contract. At a safe boundary use
 uses `continuation_accept` with the exact offer digest; cancellation uses its
 own current contract. Preserve attribution and keep the source closeout-only
 after transfer. Bind the resumed project session through the Boot skill.
-The offer seals the complete bounded pending Canon locator set for all
-transferred participants. Changed Canon activity requires a fresh offer.
-`continuation_context` distinguishes that sealed context from current Canon;
+The offer seals the complete bounded pending task exchange authority locator set for all
+transferred participants. Changed task exchange authority activity requires a fresh offer.
+`continuation_context` distinguishes that sealed context from current task exchange authority;
 `continuation_read` exposes the complete checkpoint. No receiver decision is
 replayed. Historical offers without this checkpoint must be cancelled and
 replaced before transferring ownership.
