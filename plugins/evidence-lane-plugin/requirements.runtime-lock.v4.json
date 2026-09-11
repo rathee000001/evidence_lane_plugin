@@ -1,0 +1,55 @@
+{
+  "schema": "evidence-lane.resolved-runtime-lock.v4",
+  "status": "COMPLETE_PREINSTALL_LOCK",
+  "target": {
+    "python_version": "3.14",
+    "python_platform": "x86_64-pc-windows-msvc"
+  },
+  "compile_command": [
+    "python",
+    "-B",
+    "-m",
+    "uv",
+    "pip",
+    "compile",
+    "requirements.runtime.in",
+    "--python-version",
+    "3.14",
+    "--python-platform",
+    "x86_64-pc-windows-msvc",
+    "--generate-hashes",
+    "--quiet",
+    "--no-header",
+    "--output-file",
+    "plugins/evidence-lane-plugin/requirements.runtime.lock.txt"
+  ],
+  "inputs": [
+    {
+      "path": "requirements.runtime.in",
+      "bytes": 48,
+      "sha256": "9681bbf898d79f38c54e0ad69bfcea341cd8b046f3fa6cfc9dd6c4e263f0d812"
+    },
+    {
+      "path": "requirements.in",
+      "bytes": 160,
+      "sha256": "b27b8493abdbc37f406bd6a79ce7b01e18729502d75c24551091f9a22e2b9773"
+    },
+    {
+      "path": "requirements.toolchain.in",
+      "bytes": 1262,
+      "sha256": "660ab1de3144a3e03537ce966fac1f4898d5fa128bec7aeb5bff6a124c99ff83"
+    },
+    {
+      "path": "plugins/evidence-lane-plugin/requirements.lock.txt",
+      "bytes": 5896,
+      "sha256": "d224186ac163ec0551cba896436c50554400821406fdc1acad028cd98bebc4fd"
+    }
+  ],
+  "output": "requirements.runtime.lock.txt",
+  "output_bytes": 422689,
+  "output_sha256": "84b96dd7113a407d3c809f9fc9671f0591fe53c45c74d75563f0b7e3c8c27500",
+  "package_count": 272,
+  "direct_network_locations": 0,
+  "release_builder_rewrites_to_single-wheel_offline_lock": true,
+  "receipt_sha256": "ddda8298edef4cb950e222a4bb5d367b6cfcf84903eee27570698d02bf834f6f"
+}

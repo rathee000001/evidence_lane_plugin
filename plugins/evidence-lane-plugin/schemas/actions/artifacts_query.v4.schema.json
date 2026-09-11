@@ -1,0 +1,179 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read bounded current identities, literal search, typed facts or historical bytes in the artifacts lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "collection": {
+        "default": "text",
+        "title": "Collection",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "artifacts",
+        "default": "artifacts",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "match_mode": {
+        "default": "all",
+        "enum": [
+          "all",
+          "any"
+        ],
+        "title": "Match Mode",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 65536,
+        "maximum": 262144,
+        "minimum": 2048,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      },
+      "query": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "ArtifactsQuery",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "artifacts_query",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "artifacts",
+  "project_required": true,
+  "project_search": {
+    "basis": "sqlite_fts5_bm25",
+    "collection": "text",
+    "current_action": "artifacts_current",
+    "current_items": "files",
+    "items": "rows",
+    "lanes": [
+      "artifacts"
+    ],
+    "match_mode": "any",
+    "rerank_text": "text"
+  },
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53",
+      "owner": "artifacts",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "69d57f00300cd9e3483e2d83014a983690108f0d9d03e4782c31d09414c6af1f",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "artifacts_query",
+    "profile": "artifacts",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "artifacts_query.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

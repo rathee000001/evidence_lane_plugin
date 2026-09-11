@@ -1,25 +1,947 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_authority support refresh request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "project_root",
-    "authority_id"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_continuation_recovery_cancel": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "continuation_recovery_cancel",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ContinuationCancel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_continuation_recovery_cancel",
+      "type": "object"
     },
-    "project_root": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_continuation_recovery_offer": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "continuation_recovery_offer",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ContinuationRecoveryOffer"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_continuation_recovery_offer",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "project_authority"
+    "AuthorityRequest_git_restore": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "git_restore",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/GitRestoreExecute"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_git_restore",
+      "type": "object"
+    },
+    "AuthorityRequest_git_restore_abandon": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "git_restore_abandon",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/RestoreAbandon"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_git_restore_abandon",
+      "type": "object"
+    },
+    "AuthorityRequest_git_restore_reconcile": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "git_restore_reconcile",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/GitRestoreExecute"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_git_restore_reconcile",
+      "type": "object"
+    },
+    "AuthorityRequest_project_backup": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_backup",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/BackupRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_backup",
+      "type": "object"
+    },
+    "AuthorityRequest_project_deselect": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_deselect",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectDeselect"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_deselect",
+      "type": "object"
+    },
+    "AuthorityRequest_project_register": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_register",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectRegister"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_register",
+      "type": "object"
+    },
+    "AuthorityRequest_project_select": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_select",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectSelection"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_select",
+      "type": "object"
+    },
+    "AuthorityRequest_restoration_reindex": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "restoration_reindex",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/RestorationReindex"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_restoration_reindex",
+      "type": "object"
+    },
+    "BackupRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination_root"
+      ],
+      "title": "BackupRequest",
+      "type": "object"
+    },
+    "ContinuationCancel": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "reason"
+      ],
+      "title": "ContinuationCancel",
+      "type": "object"
+    },
+    "ContinuationOffer": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "destination_participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Destination Participant Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "memory_checkpoint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Checkpoint"
+        },
+        "expires_in_seconds": {
+          "default": 3600,
+          "maximum": 86400,
+          "minimum": 30,
+          "title": "Expires In Seconds",
+          "type": "integer"
+        },
+        "require_native_attestation": {
+          "default": false,
+          "title": "Require Native Attestation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "participant_id",
+        "destination_participant_id",
+        "plan_revision",
+        "task_id",
+        "contract_digest"
+      ],
+      "title": "ContinuationOffer",
+      "type": "object"
+    },
+    "ContinuationRecoveryOffer": {
+      "additionalProperties": false,
+      "properties": {
+        "offer": {
+          "$ref": "#/$defs/ContinuationOffer"
+        },
+        "expected_source_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Source Participant Digest",
+          "type": "string"
+        },
+        "expected_destination_participant_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Destination Participant Digest",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "offer",
+        "expected_source_participant_digest",
+        "expected_destination_participant_digest",
+        "reason"
+      ],
+      "title": "ContinuationRecoveryOffer",
+      "type": "object"
+    },
+    "GitRestoreExecute": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "destination_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Destination Root",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "expected_preview_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Preview Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "commit",
+        "destination_root",
+        "expected_preview_digest"
+      ],
+      "title": "GitRestoreExecute",
+      "type": "object"
+    },
+    "ProjectDeselect": {
+      "additionalProperties": false,
+      "properties": {
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_permissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Expected Permissions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id",
+        "expected_permissions"
+      ],
+      "title": "ProjectDeselect",
+      "type": "object"
+    },
+    "ProjectRegister": {
+      "additionalProperties": false,
+      "properties": {
+        "state_root": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "State Root",
+          "type": "string"
+        },
+        "source_root": {
+          "anyOf": [
+            {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Root"
+        },
+        "create": {
+          "default": false,
+          "title": "Create",
+          "type": "boolean"
+        },
+        "read_only": {
+          "default": true,
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "display_name": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "sensitivity": {
+          "anyOf": [
+            {
+              "enum": [
+                "PUBLIC",
+                "INTERNAL",
+                "PRIVATE",
+                "CONFIDENTIAL",
+                "RESTRICTED"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sensitivity"
+        },
+        "capture_route": {
+          "anyOf": [
+            {
+              "enum": [
+                "GOVERNED_PROJECT_FULL",
+                "ENV_BUILDER_SPARSE"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capture Route"
+        }
+      },
+      "required": [
+        "state_root"
+      ],
+      "title": "ProjectRegister",
+      "type": "object"
+    },
+    "ProjectSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "permissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Permissions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id"
+      ],
+      "title": "ProjectSelection",
+      "type": "object"
+    },
+    "RestorationReindex": {
+      "additionalProperties": false,
+      "properties": {
+        "restore_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Restore Digest",
+          "type": "string"
+        },
+        "max_files": {
+          "default": 5000,
+          "maximum": 25000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 67108864,
+          "maximum": 268435456,
+          "minimum": 8388608,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "restore_digest"
+      ],
+      "title": "RestorationReindex",
+      "type": "object"
+    },
+    "RestoreAbandon": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "expected_preview_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Preview Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_preview_digest"
+      ],
+      "title": "RestoreAbandon",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "254821AA5C95FB055370D5973121F80EE561AF2A8FEE86D0F1CD36DE07103D4E"
+  "discriminator": {
+    "mapping": {
+      "continuation_recovery_cancel": "#/$defs/AuthorityRequest_continuation_recovery_cancel",
+      "continuation_recovery_offer": "#/$defs/AuthorityRequest_continuation_recovery_offer",
+      "git_restore": "#/$defs/AuthorityRequest_git_restore",
+      "git_restore_abandon": "#/$defs/AuthorityRequest_git_restore_abandon",
+      "git_restore_reconcile": "#/$defs/AuthorityRequest_git_restore_reconcile",
+      "project_backup": "#/$defs/AuthorityRequest_project_backup",
+      "project_deselect": "#/$defs/AuthorityRequest_project_deselect",
+      "project_register": "#/$defs/AuthorityRequest_project_register",
+      "project_select": "#/$defs/AuthorityRequest_project_select",
+      "restoration_reindex": "#/$defs/AuthorityRequest_restoration_reindex"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_continuation_recovery_cancel"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_continuation_recovery_offer"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_git_restore"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_git_restore_abandon"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_git_restore_reconcile"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_backup"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_deselect"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_register"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_select"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_restoration_reindex"
+    }
+  ],
+  "title": "project_authority typed SDK requests"
 }

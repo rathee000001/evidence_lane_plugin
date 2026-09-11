@@ -1,0 +1,229 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or State Travel proof cannot become a terminal receipt.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Continuation Digest"
+      },
+      "continuation_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Continuation Id"
+      },
+      "kind": {
+        "enum": [
+          "ordinary_turn",
+          "delta_append",
+          "session_exit",
+          "state_travel",
+          "goal_completion"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "source_cursor": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Cursor"
+      },
+      "source_event_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Event Id"
+      }
+    },
+    "required": [
+      "kind"
+    ],
+    "title": "SessionBoundaryRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "session_exit_boundary",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_reference": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Continuation Reference"
+      },
+      "evidence_state": {
+        "title": "Evidence State",
+        "type": "string"
+      },
+      "flash_digest": {
+        "title": "Flash Digest",
+        "type": "string"
+      },
+      "kind": {
+        "title": "Kind",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "next_requirement": {
+        "title": "Next Requirement",
+        "type": "string"
+      },
+      "plan_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      },
+      "policy": {
+        "additionalProperties": true,
+        "title": "Policy",
+        "type": "object"
+      },
+      "policy_event": {
+        "title": "Policy Event",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "source_reference": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Reference"
+      },
+      "terminal_exit_allowed": {
+        "const": false,
+        "default": false,
+        "title": "Terminal Exit Allowed",
+        "type": "boolean"
+      },
+      "terminal_receipt_emitted": {
+        "const": false,
+        "default": false,
+        "title": "Terminal Receipt Emitted",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "kind",
+      "policy_event",
+      "flash_digest",
+      "policy",
+      "evidence_state",
+      "next_requirement"
+    ],
+    "title": "SessionBoundaryResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "receipts",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4570b723432e785020abff068cae6cb6b6e9699fcef570ce80c0c35f8ee3eb30",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "session_exit_boundary",
+    "profile": "receipts",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.session:SessionManager.boundary",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "session_exit_boundary.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "exit-boot"
+}

@@ -1,0 +1,675 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AuthorityRequest_capture_bind": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "capture_bind",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CaptureBind"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_capture_bind",
+      "type": "object"
+    },
+    "AuthorityRequest_continuation_accept": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "continuation_accept",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ContinuationAccept"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_continuation_accept",
+      "type": "object"
+    },
+    "AuthorityRequest_continuation_cancel": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "continuation_cancel",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ContinuationCancel"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_continuation_cancel",
+      "type": "object"
+    },
+    "AuthorityRequest_continuation_offer": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "continuation_offer",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ContinuationOffer"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_continuation_offer",
+      "type": "object"
+    },
+    "AuthorityRequest_lineage_record": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lineage_record",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LineageRecord"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lineage_record",
+      "type": "object"
+    },
+    "AuthorityRequest_task_classify": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "task_classify",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/EntryClassify"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_task_classify",
+      "type": "object"
+    },
+    "CaptureBind": {
+      "additionalProperties": false,
+      "properties": {
+        "reported_session_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "title": "Reported Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reported_session_id"
+      ],
+      "title": "CaptureBind",
+      "type": "object"
+    },
+    "ContinuationAccept": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest"
+      ],
+      "title": "ContinuationAccept",
+      "type": "object"
+    },
+    "ContinuationCancel": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "continuation_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Continuation Id",
+          "type": "string"
+        },
+        "continuation_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Continuation Digest",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "continuation_id",
+        "continuation_digest",
+        "reason"
+      ],
+      "title": "ContinuationCancel",
+      "type": "object"
+    },
+    "ContinuationOffer": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "destination_participant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Destination Participant Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "memory_checkpoint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Checkpoint"
+        },
+        "expires_in_seconds": {
+          "default": 3600,
+          "maximum": 86400,
+          "minimum": 30,
+          "title": "Expires In Seconds",
+          "type": "integer"
+        },
+        "require_native_attestation": {
+          "default": false,
+          "title": "Require Native Attestation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "participant_id",
+        "destination_participant_id",
+        "plan_revision",
+        "task_id",
+        "contract_digest"
+      ],
+      "title": "ContinuationOffer",
+      "type": "object"
+    },
+    "EntryClassify": {
+      "additionalProperties": false,
+      "properties": {
+        "classification_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Classification Id",
+          "type": "string"
+        },
+        "source_event_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Source Event Id",
+          "type": "string"
+        },
+        "source_cursor": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Cursor",
+          "type": "string"
+        },
+        "intent": {
+          "enum": [
+            "informational",
+            "semantic",
+            "stop",
+            "work"
+          ],
+          "title": "Intent",
+          "type": "string"
+        },
+        "focus": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Focus",
+          "type": "string"
+        },
+        "workflow": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Workflow",
+          "type": "string"
+        },
+        "next_action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Next Action",
+          "type": "string"
+        },
+        "lanes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Lanes",
+          "type": "array"
+        },
+        "explicit_modes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Explicit Modes",
+          "type": "array"
+        },
+        "custom_modes": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "maxItems": 8,
+          "title": "Custom Modes",
+          "type": "array"
+        },
+        "code_lane": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Lane",
+          "type": "string"
+        },
+        "source_text": {
+          "anyOf": [
+            {
+              "maxLength": 65536,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Text"
+        }
+      },
+      "required": [
+        "classification_id",
+        "source_event_id",
+        "source_cursor",
+        "intent",
+        "focus",
+        "workflow",
+        "next_action"
+      ],
+      "title": "EntryClassify",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "LineageRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "prompt",
+            "steer",
+            "assistant",
+            "tool_call",
+            "tool_result",
+            "session",
+            "interrupt",
+            "receipt",
+            "handoff"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Payload",
+          "type": "object"
+        },
+        "parent_event_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Event Id"
+        },
+        "reported_session_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Session Id"
+        },
+        "reported_turn_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Turn Id"
+        },
+        "tool_use_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Use Id"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "LineageRecord",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "capture_bind": "#/$defs/AuthorityRequest_capture_bind",
+      "continuation_accept": "#/$defs/AuthorityRequest_continuation_accept",
+      "continuation_cancel": "#/$defs/AuthorityRequest_continuation_cancel",
+      "continuation_offer": "#/$defs/AuthorityRequest_continuation_offer",
+      "lineage_record": "#/$defs/AuthorityRequest_lineage_record",
+      "task_classify": "#/$defs/AuthorityRequest_task_classify"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_capture_bind"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_continuation_accept"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_continuation_cancel"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_continuation_offer"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lineage_record"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_task_classify"
+    }
+  ],
+  "title": "chat_lineage typed SDK requests"
+}

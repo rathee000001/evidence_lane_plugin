@@ -1,0 +1,111 @@
+{
+  "schema": "evidence-lane.authority-pointer-contract.v4",
+  "lane_id": "chat_lineage",
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "chat_lineage",
+    "folder": "authorities/chat_lineage",
+    "files_root": "authorities/chat_lineage/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "chat_lineage_authority_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "tasks_visible_events_ancestry_steers_handoffs"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "chat_lineage.mmd",
+      "dot": "chat_lineage.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "D8E6973B64B9370AFAEE35A0CE21426B8F2FD642D21EF3566B35E5C8A5F52511"
+  },
+  "views": [
+    {
+      "view_id": "chat_lineage.ancestry",
+      "lane_id": "chat_lineage",
+      "folder": "authorities/chat_lineage",
+      "version": 1,
+      "meaning": "Visible conversation events and their recorded parent ancestry.",
+      "consumer": "artifact_export",
+      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "files": {
+        "mmd": "chat_lineage.mmd",
+        "dot": "chat_lineage.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "lineage"
+      ],
+      "node_kinds": [
+        "lineage_event"
+      ],
+      "edge_kinds": [
+        "PARENT_OF"
+      ],
+      "schemas": [
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "role": "Exact immutable selected-view navigation; never a second current-state authority",
+  "automatic_bundle": false
+}

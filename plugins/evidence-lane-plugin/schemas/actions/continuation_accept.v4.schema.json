@@ -1,0 +1,186 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Accept a destination-pinned project continuation and put the source client in read-only closeout.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Continuation Digest",
+        "type": "string"
+      },
+      "continuation_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "continuation_id",
+      "continuation_digest"
+    ],
+    "title": "ContinuationAccept",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "continuation_accept",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "binding_digest": {
+        "title": "Binding Digest",
+        "type": "string"
+      },
+      "canon_checkpoint_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Canon Checkpoint Digest"
+      },
+      "canon_decisions_replayed": {
+        "default": false,
+        "title": "Canon Decisions Replayed",
+        "type": "boolean"
+      },
+      "continuation_id": {
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "host_session_attached": {
+        "default": false,
+        "title": "Host Session Attached",
+        "type": "boolean"
+      },
+      "jobs_replayed": {
+        "default": false,
+        "title": "Jobs Replayed",
+        "type": "boolean"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "owner_client_id": {
+        "title": "Owner Client Id",
+        "type": "string"
+      },
+      "owner_generation": {
+        "title": "Owner Generation",
+        "type": "integer"
+      },
+      "participant_id": {
+        "title": "Participant Id",
+        "type": "string"
+      },
+      "plan_mutated": {
+        "default": false,
+        "title": "Plan Mutated",
+        "type": "boolean"
+      },
+      "plan_revision": {
+        "title": "Plan Revision",
+        "type": "integer"
+      },
+      "previous_owner_client_id": {
+        "title": "Previous Owner Client Id",
+        "type": "string"
+      },
+      "source_bytes_reverified": {
+        "default": false,
+        "title": "Source Bytes Reverified",
+        "type": "boolean"
+      },
+      "source_client_closeout_only": {
+        "default": true,
+        "title": "Source Client Closeout Only",
+        "type": "boolean"
+      },
+      "task_id": {
+        "title": "Task Id",
+        "type": "string"
+      },
+      "transferred_participant_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Transferred Participant Ids",
+        "type": "array"
+      }
+    },
+    "required": [
+      "continuation_id",
+      "participant_id",
+      "owner_generation",
+      "owner_client_id",
+      "previous_owner_client_id",
+      "binding_digest",
+      "plan_revision",
+      "task_id",
+      "transferred_participant_ids"
+    ],
+    "title": "ContinuationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "continuity",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "b73b55c1fb1dde978212ebd3a2dd796dee738c07eca8a7942276fe905ea67ff5",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "continuation_accept",
+    "profile": "continuity",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "continuation_accept.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "state-travel"
+}

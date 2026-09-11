@@ -1,433 +1,212 @@
 {
-  "schema": "evidence-lane.installed-authority-tools.v1",
-  "status": "PASS",
-  "authority_id": "agent_learning",
-  "database": "agent-learning.sqlite",
-  "query_order": [
-    "agent-learning.mmd",
-    "agent-learning.dot",
-    "agent-learning.sqlite"
-  ],
-  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
-  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
-  "runtime_binding": "runtime.py",
-  "builder_binding": "builder.py:refresh",
-  "reader_binding": "reader.py:validate",
-  "linked_public_actions": [
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "learning",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
     {
-      "name": "learning_decide_candidate",
-      "schema_sha256": "A6FAAF7B15F4D7DB515C88F391F851013079998BE3E57105732684A420EF1459",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_decide_candidate"
-        },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "decide_candidate",
-          "read_only": false
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
+      "name": "learning_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "learning",
+      "workflow": "learning",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_read",
+        "profile": "learning",
+        "routes": [
           {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-candidate",
-            "order": 7
+            "route_id": "learning_read.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
-    {
-      "name": "learning_inspect",
-      "schema_sha256": "01B06073F895CBC106E9EF2115C36F31C046135F8C9F5C5CADE56714481FBFD9",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_inspect"
-        },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "inspect",
-          "read_only": true
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 4
-          }
-        ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a"
+      },
+      "verification_checks": []
     },
     {
       "name": "learning_record_host_memory_import",
-      "schema_sha256": "2340148A3D7012E226E918546878ACBC8A363B768AC665E3FB33292A03E417F0",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_record_host_memory_import"
-        },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "record_host_memory_import",
-          "read_only": false
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "learning",
+      "workflow": "learning",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_record_host_memory_import",
+        "profile": "learning",
+        "routes": [
           {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-host-memory-import",
-            "order": 5
+            "route_id": "learning_record_host_memory_import.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.import_provenance",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
-    {
-      "name": "learning_retrieve",
-      "schema_sha256": "84B4029990990FD8E1348AD0F6D07FD1FE10056F2ADDFBDBF8A2D1209C1D5A88",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_retrieve"
-        },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "retrieve",
-          "read_only": true
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 4
-          }
-        ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b72a8be78377c67a0177ed641dfff56fb7e0babca24d02d717960cd4a82b1c50"
+      },
+      "verification_checks": []
     },
     {
       "name": "learning_revoke",
-      "schema_sha256": "39BC006F5A3216FEC507633CEAE8645FEE6FF16E2C656867B2971DD55D5A2635",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_revoke"
-        },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "revoke",
-          "read_only": false
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "learning",
+      "workflow": "learning",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_revoke",
+        "profile": "learning",
+        "routes": [
           {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-revoke",
-            "order": 8
+            "route_id": "learning_revoke.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.revoke",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46"
+      },
+      "verification_checks": []
+    }
+  ],
+  "views": [
     {
-      "name": "learning_seal_candidate",
-      "schema_sha256": "0B2E6136DCB9C688AD7579C40CACCBEC65048D41B1E0E951A37B923A103ABA1B",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-learning",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "learning_seal_candidate"
+      "view_id": "learning.provenance",
+      "lane_id": "learning",
+      "folder": "authorities/learning",
+      "version": 1,
+      "meaning": "Verified observations, their exact source receipts and version relationships.",
+      "consumer": "artifact_export",
+      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "files": {
+        "mmd": "agent-learning.mmd",
+        "dot": "agent-learning.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "learning"
+      ],
+      "node_kinds": [
+        "learning_version",
+        "verified_exit"
+      ],
+      "edge_kinds": [
+        "VERIFIED_SOURCE_OF",
+        "PREVIOUS_VERSION"
+      ],
+      "schemas": [
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
         },
-        "internal_sdk": {
-          "module_id": "agent_learning",
-          "operation": "seal_candidate",
-          "read_only": false
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-candidate",
-            "order": 6
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_query",
-      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_query"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 8
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_status",
-      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_status"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 6
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_task_backlog",
-      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_task_backlog"
-        },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 7
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          }
-        ],
-        "executable": true
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
       }
     }
   ],
-  "linked_skills": {
-    "skills/evi-learning/SKILL.md": "42AB4B361F38BD7744078B647190D28FB642D1F701CC90D79C53BEA12913E8E5"
-  },
-  "canonical_source_hashes": {
-    "src/evidence_lane_plugin/agent_learning.py": "BF75C699067155F4C0CD3E757954F9BC99372B485F400811AC4C659F0D3A9572",
-    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
-  },
-  "linked_subauthorities": [],
-  "llama_index_refresh_receipt": {
-    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
-    "status": "PASS",
-    "sequence": 1,
-    "authority_id": "agent_learning",
-    "source_count": 1,
-    "node_count": 1,
-    "indexed_table_count": 1,
-    "indexed_tables": [
-      "learning_schema_metadata"
-    ],
-    "llama_index_core_version": "0.14.23",
-    "node_parser": "SentenceSplitter(480,64)",
-    "sqlite_backend": "FTS5_BM25",
-    "sqlite_remains_authority": true,
-    "mmd_dot_remain_traversal_maps": true,
-    "prior_receipt_sha256": null,
-    "recorded_at": "2000-01-01T00:00:00Z",
-    "receipt_sha256": "F53C0B37EFD3D57F4CCD6E93E6D3F63B365ACBA7A2A50BFC3EBDBDE7A16E8BE5"
-  },
-  "graph_pipeline_receipt": {
-    "schema": "evidence-lane.semantic-graph-pipeline.v1",
-    "status": "PASS",
-    "graph": "agent_learning_authority",
-    "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 171,
-    "edge_count": 179,
-    "group_count": 1,
-    "semantic_topology_sha256": "AB6C3738FE1518F515FA22C8B5065A1117772B2A5A98AFB90AFB0E21B02B8134",
-    "mmd_sha256": "C12D300EBCCB8D5956C198FD67E40190E00FB383FBF9DE16573B8F17CDDBECCB",
-    "dot_sha256": "F64CF91A54F309439DD7E0D9DE67139BC1AE4D4C7643162EDF1D4F6A7B71DAB3",
-    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
-    "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "AFFB5ABBF05C9BFC98A88DCFC7C5E4484C02F924B375288EFAF619F48897B5E0",
-    "dot_exporter": "PYTHON_GRAPHVIZ",
-    "python_graphviz_version": "0.21",
-    "native_graphviz_dot_available": false,
-    "native_graphviz_hidden_runtime_available": false,
-    "native_graphviz_validation": null,
-    "graph_analysis": {
-      "status": "UNAVAILABLE",
-      "engine": "rustworkx",
-      "authority_replaced": false
-    },
-    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
-    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
-    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 101,
-    "balanced_two_dimensional_projection": true,
-    "layout_constraints_change_semantic_topology": false,
-    "mmd_and_dot_are_sqlite_traversal_maps": true,
-    "sqlite_authority_replaced": false,
-    "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "D098A104316FDB6C9053B46A89A6F09F4EDCC77E7109A97EF6C66A6E2714E9CB"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/agent_learning/workflow.v1.json",
-    "mmd": "authorities/agent_learning/workflow.mmd",
-    "dot": "authorities/agent_learning/workflow.dot",
-    "json_sha256": "F65F33034D336E6F0715D836A044E85690319FA22EDDDABC31F064C49787ABB2",
-    "mmd_sha256": "80A7AB2611274DB7F96D810C6CB2652F9D4485E41758FD1BDE57E5A8F663F6CD",
-    "dot_sha256": "D055CC9E10DB06BFAAD86A6253A09E5706F9434276E443BC20D2A6EB71D1B464"
-  },
-  "receipt_sha256": "CF3602287B08752EE521FEC2DE9E382FFBD0AF67D1149838BE0B937A02976E79"
+  "dependency_installation_inferred": false,
+  "planned_actions": [],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
 }

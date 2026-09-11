@@ -1,4 +1,4 @@
-"""Deterministic ENV15 mode intersections mapped to canonical Evidence Lanes."""
+"""Retained deterministic mode intersections over current authority/sector owners."""
 
 from __future__ import annotations
 
@@ -15,13 +15,13 @@ MODE_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "id": "D",
         "name": "discussion",
         "aliases": ("discussion", "meeting", "conversation"),
-        "lanes": ("discussion",),
+        "lanes": ("chat_lineage",),
     },
     {
         "id": "AL",
         "name": "analysis",
         "aliases": ("analysis", "analyze", "forensic", "audit"),
-        "lanes": ("analysis",),
+        "lanes": ("sources", "receipts"),
     },
     {
         "id": "PL",
@@ -45,7 +45,7 @@ MODE_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "id": "VAL",
         "name": "validation",
         "aliases": ("validation", "validate", "verification", "verify", "test", "qa"),
-        "lanes": ("analysis", "artifacts"),
+        "lanes": ("receipts", "artifacts"),
     },
     {
         "id": "RS",
@@ -79,15 +79,15 @@ MODE_DEFINITIONS: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PB",
-        "name": "project brain builder",
-        "aliases": ("project brain", "brain builder", "pv candidate loader"),
-        "lanes": ("brain_loader", "sqlite_brain"),
+        "name": "selected structured source",
+        "aliases": ("selected sqlite", "sqlite source", "structured source"),
+        "lanes": ("custom",),
     },
     {
         "id": "ENG",
-        "name": "project engulf",
-        "aliases": ("project engulf", "engulf"),
-        "lanes": ("project_engulf",),
+        "name": "source intake",
+        "aliases": ("source intake", "source registration"),
+        "lanes": ("sources",),
     },
     {
         "id": "CE",
@@ -246,7 +246,7 @@ def classify_operating_modes(
         ):
             raise EvidenceLaneError(
                 "CUSTOM_MODE_DEPENDENCY_POLICY_REQUIRED",
-                "ENV15 Custom mode requires an explicit dependency list and fail-closed BLOCK policy.",
+                "Custom project work requires an explicit dependency list and fail-closed BLOCK policy.",
                 status="BLOCKED",
                 details={"name": name},
             )
@@ -325,7 +325,7 @@ def classify_operating_modes(
             },
         )
 
-    lanes = ["mode", "chat_lineage"]
+    lanes = ["chat_lineage"]
     selected_details: list[dict[str, Any]] = []
     for mode_id in selected:
         definition = cast(
@@ -364,12 +364,12 @@ def classify_operating_modes(
     ]
     result = {
         "status": "PASS",
-        "schema": "evidence-lane.mode-classification.v1",
+        "schema": "evidence-lane.mode-classification.v4",
         "request": exact_request,
         "mode_namespace_authority": (
-            "ENV15_LOCKED_PLUS_EXPLICIT_CUSTOM_SCHEMA"
+            "CURRENT_LOCKED_ENV_PLUS_EXPLICIT_CUSTOM_SCHEMA"
             if custom_definitions
-            else "ENV15_LOCKED_READ_ONLY"
+            else "CURRENT_LOCKED_ENV_READ_ONLY"
         ),
         "selected_modes": selected_details,
         "mode_intersection": "+".join(selected),
@@ -379,7 +379,7 @@ def classify_operating_modes(
         "chat_lineage": {
             "canonical_lane_id": "chat_lineage",
             "included": True,
-            "automatic_append_write_lane": True,
+            "automatic_append_write_lane": False,
             "private_reasoning_excluded": True,
         },
         "custom_mode_schemas": [

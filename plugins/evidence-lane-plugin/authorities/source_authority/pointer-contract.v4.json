@@ -1,0 +1,44 @@
+{
+  "schema": "evidence-lane.authority-pointer-contract.v4",
+  "lane_id": "sources",
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "sources",
+    "folder": "authorities/sources",
+    "files_root": "authorities/sources/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "sources_authority_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "source_identities_versions_locators_and_sector_references"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "sources.mmd",
+      "dot": "sources.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "EFBE8C42F8F9A5FD227ABE77DB7713E33ED92394F165B836BA566E35757624E6"
+  },
+  "views": [],
+  "role": "Exact immutable selected-view navigation; never a second current-state authority",
+  "automatic_bundle": false
+}

@@ -1,0 +1,1080 @@
+{
+  "schema": "evidence-lane.empty-sector-schema.v4",
+  "lane_id": "custom",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "af04303fab79e26bdf943a9f4e81627de8012adf54855ddabe4b65a9dcbfd897",
+  "tables": [
+    {
+      "name": "custom_archive_member",
+      "type": "table",
+      "sql": "CREATE TABLE custom_archive_member(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_chunk",
+      "type": "table",
+      "sql": "CREATE TABLE custom_chunk(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            chunk_id TEXT NOT NULL,item_id TEXT NOT NULL,ordinal INTEGER NOT NULL,\n            text_object TEXT NOT NULL REFERENCES objects(digest),PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_chunk_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE custom_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text_content",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_current",
+      "type": "table",
+      "sql": "CREATE TABLE custom_current(source_id TEXT PRIMARY KEY REFERENCES custom_file(source_id),\n            snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_decision",
+      "type": "table",
+      "sql": "CREATE TABLE custom_decision(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_evidence",
+      "type": "table",
+      "sql": "CREATE TABLE custom_evidence(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_file",
+      "type": "table",
+      "sql": "CREATE TABLE custom_file(source_id TEXT PRIMARY KEY,logical_name TEXT NOT NULL,\n            source_path TEXT NOT NULL,created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "logical_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_item",
+      "type": "table",
+      "sql": "CREATE TABLE custom_item(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_native_fact",
+      "type": "table",
+      "sql": "CREATE TABLE custom_native_fact(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_next_action",
+      "type": "table",
+      "sql": "CREATE TABLE custom_next_action(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_review_required",
+      "type": "table",
+      "sql": "CREATE TABLE custom_review_required(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_source",
+      "type": "table",
+      "sql": "CREATE TABLE custom_source(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_sqlite_receipt",
+      "type": "table",
+      "sql": "CREATE TABLE custom_sqlite_receipt(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_sqlite_relationship",
+      "type": "table",
+      "sql": "CREATE TABLE custom_sqlite_relationship(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_sqlite_row",
+      "type": "table",
+      "sql": "CREATE TABLE custom_sqlite_row(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_sqlite_schema_object",
+      "type": "table",
+      "sql": "CREATE TABLE custom_sqlite_schema_object(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_sqlite_table",
+      "type": "table",
+      "sql": "CREATE TABLE custom_sqlite_table(snapshot_id TEXT NOT NULL REFERENCES custom_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "item_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "part",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "custom_version",
+      "type": "table",
+      "sql": "CREATE TABLE custom_version(snapshot_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES custom_file(source_id),\n            generation INTEGER NOT NULL CHECK(generation>0),\n            previous_snapshot TEXT REFERENCES custom_version(snapshot_id),\n            manifest_object TEXT NOT NULL REFERENCES objects(digest),raw_object TEXT NOT NULL REFERENCES objects(digest),\n            facts_object TEXT NOT NULL REFERENCES objects(digest),parser_contract TEXT NOT NULL,\n            created_at TEXT NOT NULL,UNIQUE(source_id,generation)) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_snapshot",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "manifest_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "raw_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "facts_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parser_contract",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "selector_retirement",
+      "type": "table",
+      "sql": "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "proof_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "custom_archive_member",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_chunk",
+      "target": "objects",
+      "column": "text_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "custom_chunk",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_current",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_current",
+      "target": "custom_file",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "custom_decision",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_evidence",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_item",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_native_fact",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_next_action",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_review_required",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_source",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_sqlite_receipt",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_sqlite_relationship",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_sqlite_row",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_sqlite_schema_object",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_sqlite_table",
+      "target": "custom_version",
+      "column": "snapshot_id",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_version",
+      "target": "objects",
+      "column": "facts_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "custom_version",
+      "target": "objects",
+      "column": "raw_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "custom_version",
+      "target": "objects",
+      "column": "manifest_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "custom_version",
+      "target": "custom_version",
+      "column": "previous_snapshot",
+      "target_column": "snapshot_id"
+    },
+    {
+      "source": "custom_version",
+      "target": "custom_file",
+      "column": "source_id",
+      "target_column": "source_id"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "proof_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "selector_retirement",
+      "target": "objects",
+      "column": "snapshot_id",
+      "target_column": "digest"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

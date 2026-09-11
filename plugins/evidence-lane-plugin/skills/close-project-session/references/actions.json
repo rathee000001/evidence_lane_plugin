@@ -1,0 +1,52 @@
+{
+  "action_set_digest": "3b360be589371980cba8eac13993fa627addc18b1360757b7203f32ea2b68278",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Revoke this client selection at a closed session boundary while preserving the project.",
+      "input_schema_digest": "7eee0042d8aefa67487748034d4a83c3e2bb400e0925afa3bdb2664755c5e145",
+      "mutates": true,
+      "name": "project_deselect",
+      "output_schema_digest": "adf832bd31d562fd12d863a5960ef744efcf8dc173e78fe91ac756b9cc50b4af",
+      "permission": "project_admin",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Close the exact current session at a safe boundary and detach its capture binding.",
+      "input_schema_digest": "c0296d4dbd821d96c68905afb13831f0ba5da1c43586b5c1a3cba76bacd38d53",
+      "mutates": true,
+      "name": "session_exit",
+      "output_schema_digest": "779c512de19ecc5fa7cb72114092e4c9d1ce54730309b0f2cddbbd04a63c38ec",
+      "permission": "write",
+      "profile": "sessions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or State Travel proof cannot become a terminal receipt.",
+      "input_schema_digest": "872626efbbe916b6ff13a64f30c9438f619927cc9ffd53e22f607418f6f2eba6",
+      "mutates": false,
+      "name": "session_exit_boundary",
+      "output_schema_digest": "2abcbdba6473ad87666780c365ce666809c13b42c29a78d8e998539ef94856d9",
+      "permission": "read",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "exit-boot"
+}

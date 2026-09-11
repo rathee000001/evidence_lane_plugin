@@ -1,0 +1,90 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "data_excel",
+  "source_package_folder": "authorities/project_sectors/data_excel",
+  "project_state_folder": "sectors/data_excel",
+  "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
+  "files": "sectors/data_excel/files",
+  "schema_history": "sectors/data_excel/schema-history",
+  "migrations": [
+    {
+      "owner": "dataexcel",
+      "version": 1,
+      "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06"
+    },
+    {
+      "owner": "dataexcelselector",
+      "version": 1,
+      "digest": "2689665c824cec64def6fd3c64a4324520449ce7bf24e7c9a63f7b5822f83442"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "data_excel",
+    "folder": "sectors/data_excel",
+    "files_root": "sectors/data_excel/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "data_excel_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".xlsx",
+        ".xlsm",
+        ".xls",
+        ".xlsb",
+        ".ods",
+        ".xltx",
+        ".xltm",
+        ".pdf",
+        ".png"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "workbook_sheet_formula_dependencies"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "data_excel.mmd",
+      "dot": "data_excel.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C"
+  },
+  "actions": [
+    "source_snapshot_retire",
+    "source_snapshot_state",
+    "spreadsheet_current",
+    "spreadsheet_edit",
+    "spreadsheet_export",
+    "spreadsheet_generate",
+    "spreadsheet_index",
+    "spreadsheet_index_values",
+    "spreadsheet_inspect_openpyxl",
+    "spreadsheet_inspect_pandas",
+    "spreadsheet_inspection_read",
+    "spreadsheet_query",
+    "spreadsheet_read",
+    "spreadsheet_recalculate",
+    "spreadsheet_refresh",
+    "spreadsheet_refresh_values",
+    "spreadsheet_render",
+    "spreadsheet_render_read"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

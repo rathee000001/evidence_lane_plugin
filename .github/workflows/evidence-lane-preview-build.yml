@@ -1,10 +1,8 @@
-name: Evidence Lane preview build
+name: Evidence Lane candidate preview
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "agent/**"
+  pull_request:
 
 permissions:
   contents: read
@@ -15,83 +13,51 @@ concurrency:
 
 jobs:
   preview-build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: windows-latest
+    timeout-minutes: 45
     steps:
-      - name: Checkout exact study commit
+      - name: Checkout exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Build and prove exact durable MCP image
-        env:
-          EVIDENCE_LANE_RELEASE_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          mkdir -p .runtime/ci
-          image_tag="evidence-lane-ci:${EVIDENCE_LANE_RELEASE_SHA}"
-          container_name="evidence-lane-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          cleanup() {
-            docker rm --force "${container_name}" >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
-          docker build \
-            --build-arg "EVIDENCE_LANE_RELEASE_SHA=${EVIDENCE_LANE_RELEASE_SHA}" \
-            --tag "${image_tag}" \
-            .
-          docker run --rm --entrypoint python "${image_tag}" -c \
-            'import json, os, stat; import evidence_lane_plugin; from evidence_lane_plugin.engine_identity import identity_repository_root, git_source_commit; root = identity_repository_root(evidence_lane_plugin.__file__); marker = root / ".evidence-lane-release-sha"; print(json.dumps({"marker_commit": marker.read_text(encoding="ascii"), "marker_is_symlink": marker.is_symlink(), "marker_mode": oct(stat.S_IMODE(marker.stat().st_mode)), "marker_uid": marker.stat().st_uid, "reported_commit": git_source_commit(root), "runtime_can_write_marker": os.access(marker, os.W_OK), "runtime_uid": os.getuid()}, sort_keys=True))' \
-            > .runtime/ci/durable-image-identity.json
-          python -c \
-            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-identity.json").read_text(encoding="utf-8")); expected = os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["reported_commit"] == expected; assert payload["marker_commit"] == expected; assert payload["marker_is_symlink"] is False; assert payload["runtime_can_write_marker"] is False; assert payload["runtime_uid"] != payload["marker_uid"]'
-          docker run --detach \
-            --name "${container_name}" \
-            --publish 127.0.0.1::8080 \
-            --tmpfs /var/lib/evidence-lane:rw,noexec,nosuid,nodev,mode=1777 \
-            --env EVIDENCE_LANE_MCP_BEARER_TOKEN=ci-container-proof-token \
-            --env EVIDENCE_LANE_MCP_BASE_URL=https://mcp.example.invalid \
-            "${image_tag}" >/dev/null
-          address="$(docker port "${container_name}" 8080/tcp)"
-          ready=false
-          for _ in $(seq 1 60); do
-            if curl --fail --silent --show-error \
-              "http://${address}/healthz" \
-              --output .runtime/ci/durable-image-health.json; then
-              ready=true
-              break
-            fi
-            if [ "$(docker inspect --format '{{.State.Running}}' "${container_name}")" != true ]; then
-              docker logs "${container_name}"
-              exit 1
-            fi
-            sleep 2
-          done
-          test "${ready}" = true
-          python -c \
-            'import json, os, pathlib; payload = json.loads(pathlib.Path(".runtime/ci/durable-image-health.json").read_text(encoding="utf-8")); assert payload["status"] == "PASS"; assert payload["release_sha"] == os.environ["EVIDENCE_LANE_RELEASE_SHA"]; assert payload["mcp_route_identity"]["status"] == "PASS"; assert payload["mcp_route_identity"]["tool_count"] == 91'
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          version: 11.9.0
-          run_install: false
+          python-version: "3.14.2"
+          cache: pip
+          cache-dependency-path: requirements-dev.lock.txt
+      - name: Install hash-locked repository dependencies
+        shell: pwsh
+        run: |
+          python -B -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: "24"
-          cache: pnpm
-          cache-dependency-path: apps/evidence-lane-app/pnpm-lock.yaml
-      - name: Install preview dependencies
-        run: pnpm --dir apps/evidence-lane-app install --frozen-lockfile
-      - name: Execute preview build contract
+          node-version: "24.15.0"
+          cache: npm
+          cache-dependency-path: apps/evidence-lane-studio/package-lock.json
+      - name: Install Studio dependencies
+        shell: pwsh
+        run: |
+          npm ci --prefix apps/evidence-lane-studio --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run current package regression profile
         uses: ./.github/actions/evidence-lane-ci
         with:
-          profile: preview-build
-          receipt_path: .runtime/ci/preview-build-receipt.json
-      - name: Upload preview build receipt
+          profile: package
+          python_executable: python
+      - name: Build current local Studio
+        shell: pwsh
+        run: |
+          python -B scripts/build_studio.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload candidate preview receipt
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: evidence-lane-preview-build-receipt
+          name: evidence-lane-candidate-preview-receipt
           path: |
-            .runtime/ci/preview-build-receipt.json
-            .runtime/ci/durable-image-identity.json
-            .runtime/ci/durable-image-health.json
+            .work/ci/package/receipt.json
+            .work/ci/package/pytest.xml
+            plugins/evidence-lane-plugin/src/evidence_lane_plugin/studio/assets-manifest.json
           if-no-files-found: error
           retention-days: 7

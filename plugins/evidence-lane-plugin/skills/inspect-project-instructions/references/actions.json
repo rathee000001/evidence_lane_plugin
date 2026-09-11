@@ -1,0 +1,24 @@
+{
+  "action_set_digest": "79f084f65e818919ee21ac4309ca2bb4832373495ae251d21489dabfd191aca9",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Inspect scoped instruction and separate workspace/host recall file hashes; never import or modify their contents.",
+      "input_schema_digest": "9fa80106962b99342f2fefe4fbbf45030eb91f73365ab5af480ca750d58b3c2b",
+      "mutates": false,
+      "name": "instructions_inspect",
+      "output_schema_digest": "3d25c4f26a3a2914101f852067efebb8434b106ad7dfe018ec933799460e836b",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "instructions"
+}

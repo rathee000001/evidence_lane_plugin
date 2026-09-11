@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/PreCompact/handler.py",
+  "event": "PreCompact",
+  "event_contract": "hooks/events/PreCompact/event.v4.json",
+  "event_contract_sha256": "04fd4ad0ef8204c25bbce756b19fc37f248079e44d5f639860f8ffdb87b423f2",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/PreCompact.v4.schema.json",
+  "input_schema_sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

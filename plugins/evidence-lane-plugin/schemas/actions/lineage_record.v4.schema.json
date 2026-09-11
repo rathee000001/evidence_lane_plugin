@@ -1,0 +1,196 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Record bounded visible content with agent-report provenance.",
+  "inputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "event_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Event Id",
+        "type": "string"
+      },
+      "kind": {
+        "enum": [
+          "prompt",
+          "steer",
+          "assistant",
+          "tool_call",
+          "tool_result",
+          "session",
+          "interrupt",
+          "receipt",
+          "handoff"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "parent_event_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Parent Event Id"
+      },
+      "payload": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Payload",
+        "type": "object"
+      },
+      "reported_session_id": {
+        "anyOf": [
+          {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reported Session Id"
+      },
+      "reported_turn_id": {
+        "anyOf": [
+          {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reported Turn Id"
+      },
+      "tool_use_id": {
+        "anyOf": [
+          {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Tool Use Id"
+      }
+    },
+    "required": [
+      "kind",
+      "payload"
+    ],
+    "title": "LineageRecord",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "lineage_record",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "cursor": {
+        "title": "Cursor",
+        "type": "string"
+      },
+      "duplicate": {
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "event_id": {
+        "title": "Event Id",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "payload_digest": {
+        "title": "Payload Digest",
+        "type": "string"
+      },
+      "provenance": {
+        "title": "Provenance",
+        "type": "string"
+      },
+      "sequence": {
+        "title": "Sequence",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "event_id",
+      "sequence",
+      "cursor",
+      "payload_digest",
+      "duplicate",
+      "provenance"
+    ],
+    "title": "LineageAppendResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "chatlineage",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "f08384de72bfa55d05a3cb0d958999a2aa35ccb92368db3f00145f9e2d8cc357",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lineage_record",
+    "profile": "chatlineage",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.append",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lineage_record.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

@@ -1,0 +1,13 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "actions",
+  "members": [
+    {
+      "path": "schemas/actions/action-manifest.v4.json",
+      "sha256": "6d919ed107542944e9b3e72ca3bd18ca8a54df9eeea12fa7613b6cb4daa4d937"
+    }
+  ],
+  "purpose": "Complete actions schema family",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

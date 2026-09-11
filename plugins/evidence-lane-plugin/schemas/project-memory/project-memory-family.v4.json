@@ -1,0 +1,17 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "project-memory",
+  "members": [
+    {
+      "path": "authorities/project_memory/schema.sql",
+      "sha256": "c5504cbb072a9bcb740676df2fd6cbf1e287bb64fff928036bba9a0bd3b0bc00"
+    },
+    {
+      "path": "src/evidence_lane_plugin/project_memory.py",
+      "sha256": "a060fb69725b4c6fe68be83ef09d0d8f70c2e03f241e6f75686bd038d6f13fd6"
+    }
+  ],
+  "purpose": "Attributed project-memory storage and retrieval contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

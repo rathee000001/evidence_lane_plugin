@@ -1,0 +1,9 @@
+{
+  "owner_id": "instructions",
+  "modules": [
+    "evidence_lane_plugin.agent_configuration"
+  ],
+  "storage": "Scoped instruction and separate workspace/host recall files; no database",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

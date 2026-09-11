@@ -1,0 +1,45 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "instructions",
+  "members": [
+    {
+      "path": "authorities/instructions/authority-contract.schema.json",
+      "sha256": "d545613e247fcb8654af815639774317966cfb04343d2575ad3050e6d44c8fad"
+    },
+    {
+      "path": "authorities/instructions/build-refresh-contract.schema.json",
+      "sha256": "68251578825b5efb7595c50df85d72c92b4d52cfc8c93809bff75afef5dc3a88"
+    },
+    {
+      "path": "authorities/instructions/manifest.schema.json",
+      "sha256": "6d8aef1dd723e80a4586d7a9648a9fb5cdea072e723073e1af86d9b9d30c6234"
+    },
+    {
+      "path": "authorities/instructions/manifest.v4.json",
+      "sha256": "dd4b05e7d5815e3a6cd671faf7927812ce24a188c82ba22f5dd446fa0e8bd7f3"
+    },
+    {
+      "path": "authorities/instructions/reader-contract.schema.json",
+      "sha256": "898c116cf58e907efbd8af0889394f85d8e9246e531c143c111857d2b685505b"
+    },
+    {
+      "path": "authorities/instructions/refresh-receipt.schema.json",
+      "sha256": "186600eab40eb7ecb0fa51782b44f2d6bc28339ab38b7b96f8241a6c8b8ab29a"
+    },
+    {
+      "path": "authorities/instructions/runtime-binding.schema.json",
+      "sha256": "30fab867819a5c175d0bc208b749fbac6baff8b6414288d8b0e61362b7bf4f9c"
+    },
+    {
+      "path": "authorities/instructions/runtime-binding.v4.json",
+      "sha256": "0aa068b4dc2383933f4079c82803aee2cee06144380190798ec8cd9b5abdf06f"
+    },
+    {
+      "path": "authorities/instructions/tools.schema.json",
+      "sha256": "802c82f75b7273e6a37468537227753344f37ed9c5606e6dc11f326fd8c66bc0"
+    }
+  ],
+  "purpose": "Complete current authority owner schema and contract index",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

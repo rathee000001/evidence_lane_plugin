@@ -11,20 +11,22 @@ from __future__ import annotations
 import fnmatch
 import json
 import re
-import sqlite3
 from collections import Counter
 from collections.abc import Mapping
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import Any, cast
 
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes
-from .lanes import CANONICAL_LANE_IDS, resolve_lane_id
+from .lanes import SECTOR_LANE_IDS, is_named_custom_lane, resolve_lane_id
 from .source_authority import (
+    _connect,
     initialize_source_authority_registry,
     load_source_batch,
     snapshot_source_authority_registry,
+    source_authority_write,
 )
+from .storage import LaneStore, ProjectStore
 from .timeutil import utc_now
 
 CUSTOM_SOURCE_SCHEMA = "evidence-lane.custom-source-schema.v1"
@@ -110,12 +112,7 @@ _FIELD_KEYS = frozenset(
 )
 
 
-def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=5000")
-    return connection
+
 
 
 def _unknown_keys(raw: Mapping[str, Any], allowed: frozenset[str]) -> list[str]:
@@ -227,7 +224,7 @@ def _compile_selector(raw: Any, ordinal: int) -> dict[str, Any]:
     for alias in _string_list(
         raw.get("lane_ids"),
         field=f"selectors[{ordinal}].lane_ids",
-        maximum=len(CANONICAL_LANE_IDS),
+        maximum=len(SECTOR_LANE_IDS),
     ):
         try:
             lane_id = resolve_lane_id(alias)
@@ -238,6 +235,8 @@ def _compile_selector(raw: Any, ordinal: int) -> dict[str, Any]:
                 status="BLOCKED",
                 details={"selector_id": selector_id, "lane": alias},
             ) from error
+        require(lane_id in SECTOR_LANE_IDS or is_named_custom_lane(lane_id), "CUSTOM_SOURCE_SCHEMA_LANE_INVALID",
+                "A source selector must name a retained sector, not an authority.", status="BLOCKED")
         if lane_id not in lane_ids:
             lane_ids.append(lane_id)
     source_path_globs = [
@@ -440,6 +439,8 @@ def compile_custom_source_schema(definition: Mapping[str, Any]) -> dict[str, Any
             status="BLOCKED",
             details={"target_lane": definition.get("target_lane")},
         ) from error
+    require(target_lane_id in SECTOR_LANE_IDS or is_named_custom_lane(target_lane_id), "CUSTOM_SOURCE_SCHEMA_TARGET_LANE_INVALID",
+            "Custom source schemas target retained sectors, not project authorities.", status="BLOCKED")
     raw_selectors = definition.get("selectors")
     raw_fields = definition.get("fields")
     require(
@@ -835,8 +836,9 @@ def _map_fields(
     return mapped
 
 
+@source_authority_write
 def compile_and_map_custom_source_schema(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     definition: Mapping[str, Any],
 ) -> dict[str, Any]:
@@ -847,7 +849,7 @@ def compile_and_map_custom_source_schema(
     compiled = compile_custom_source_schema(definition)
     schema_sha256 = str(compiled["schema_sha256"])
 
-    with _connect(target) as connection:
+    with _connect(target, write=True) as connection:
         for dependency in compiled["dependency_policy"]["requires"]:
             row = connection.execute(
                 """SELECT schema_sha256 FROM source_custom_schema
@@ -1071,7 +1073,7 @@ def compile_and_map_custom_source_schema(
             schema_id=compiled["schema_id"],
             schema_version=compiled["schema_version"],
         )
-        with connection:
+        with target.transaction():
             if existing_schema is None:
                 connection.execute(
                     "INSERT INTO source_custom_schema VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1151,8 +1153,9 @@ def compile_and_map_custom_source_schema(
     }
 
 
+@source_authority_write
 def configure_source_intake_schema_pill(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     *,
     operation: str,
@@ -1188,7 +1191,7 @@ def configure_source_intake_schema_pill(
         schema_title=compiled["title"],
     )
     target = initialize_source_authority_registry(registry_path)
-    with _connect(target) as connection:
+    with _connect(target, write=True) as connection:
         rows = connection.execute(
             """SELECT schema_version, schema_sha256 FROM source_custom_schema
             WHERE schema_id=? ORDER BY schema_version""",

@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 54,
   "tool": "jq",
@@ -7,9 +7,9 @@
   "classification": "NATIVE_RUNTIME_ASSET",
   "install_mode": "portable_executable",
   "license_expression_or_terms": "MIT",
-  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
   "evidence_paths": [
-    "toolchains/native-tools.v1.json"
+    "toolchains/native-tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -25,5 +25,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "2B88044109965923B8190D5BB92BB6B65759ABFC3F4946CD5F29E77E739D6E0D"
+  "historical_ordinal": 54,
+  "catalog_ordinal": 53,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "da6009157498d1b5fb7485aceecbf49c2640794e6ef86c6446f11ea70e3fac11"
 }

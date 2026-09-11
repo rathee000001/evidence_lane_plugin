@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": true,
+  "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
+  "event": "UserPromptSubmit",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/UserPromptSubmit/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/UserPromptSubmit/handler.py",
+      "sha256": "69c2ad952fb7e611ba43db206410e5cf1188318a926eab1c4e60d3de0fdf12d4"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/event.schema.json",
+      "sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/pipeline.v4.json",
+      "sha256": "0d53b9e141970b3ab8d8b807d4416f8b50071bdea33f5632daae0679d924baa8"
+    },
+    {
+      "path": "hooks/events/UserPromptSubmit/README.md",
+      "sha256": "d7db741f5ec0d6b05aace7b22560e927ee8e0cccb81ce0bcc7273d01a92a8b4a"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 3,
+  "pipeline": "hooks/events/UserPromptSubmit/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

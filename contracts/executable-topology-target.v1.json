@@ -1,0 +1,323 @@
+{
+  "schema": "evidence-lane.executable-topology-target.v1",
+  "status": "SOURCE_IMPLEMENTATION_TARGET_NO_PROJECT_HIL",
+  "sourceTask": "01a04074-da0c-7f32-8d38-fe48f7db5df6",
+  "destinationTask": "01a06ee0-a98e-7e61-b3dc-2e67598b3ff0",
+  "current_sector_count": 18,
+  "target_sector_count": 12,
+  "sector_dispositions": [
+    {
+      "id": "github_code",
+      "decision": "MERGE",
+      "target": "code",
+      "evidence": "Remote repository/history adapter; shares _CODE_SCHEMA with local code.",
+      "migration": "Preserve repository URL, ref and immutable commit/blob identities."
+    },
+    {
+      "id": "local_code",
+      "decision": "MERGE",
+      "target": "code",
+      "evidence": "Dirty working-tree adapter; shares the code schema but has different source identity.",
+      "migration": "Retain worktree paths, untracked bytes and dirty fingerprints separately from commits."
+    },
+    {
+      "id": "chat_lineage",
+      "decision": "MOVE",
+      "target": "authority:chat_lineage",
+      "evidence": "Owns turn preparation, visible input/output, lineage heads and hash chains; it is session evidence.",
+      "migration": "Move runtime capture/lineage ownership outside sectors. Imported chats stay attributed source evidence."
+    },
+    {
+      "id": "discussion",
+      "decision": "KEEP",
+      "target": "discussion",
+      "evidence": "Typed discussion decisions, action items and hard-gate mentions support distinct queries.",
+      "migration": "Keep imported statements descriptive; never infer approval from extracted text."
+    },
+    {
+      "id": "analysis",
+      "decision": "KEEP",
+      "target": "analysis",
+      "evidence": "Typed claims, supporting evidence, risks, alternatives and unknowns differ from generic document structure.",
+      "migration": "Keep source attribution and distinguish extracted conclusions from verified project decisions."
+    },
+    {
+      "id": "plan",
+      "decision": "MOVE",
+      "target": "authority:plan",
+      "evidence": "Executable Plan ownership belongs to the canonical Plan DB, not the document parser.",
+      "migration": "Route imported plans to Docs with a plan profile; never copy imported plan rows into executable authority automatically."
+    },
+    {
+      "id": "mode",
+      "decision": "MOVE",
+      "target": "sidecar:mode",
+      "evidence": "Operating-mode selection is a control workflow, not a source domain.",
+      "migration": "Use existing evi-mode/operating-mode authority; imported rule documents remain Docs evidence."
+    },
+    {
+      "id": "docs",
+      "decision": "KEEP",
+      "target": "docs",
+      "evidence": "Preserves headings, paragraphs, tables, embedded images and format provenance.",
+      "migration": "Add imported-plan/rule profiles without giving document text instruction authority."
+    },
+    {
+      "id": "data_excel",
+      "decision": "KEEP_EXTEND",
+      "target": "data_excel",
+      "evidence": "Workbook, formula, range and structured-data evidence merits a dedicated data lane.",
+      "migration": "Add direct SQLite inspection; retain schema/table/query provenance and read-only input handling."
+    },
+    {
+      "id": "ppt",
+      "decision": "KEEP",
+      "target": "ppt",
+      "evidence": "Slide, shape, relationship and speaker-note structure is distinct from document paragraphs.",
+      "migration": "Preserve slide identities and layout/relationship evidence."
+    },
+    {
+      "id": "pdf_ocr",
+      "decision": "KEEP",
+      "target": "pdf_ocr",
+      "evidence": "Page/block geometry and OCR evidence are distinct from plain text extraction.",
+      "migration": "Retain page coordinates, confidence and actual parser/OCR execution receipts."
+    },
+    {
+      "id": "images_ocr",
+      "decision": "KEEP",
+      "target": "images_ocr",
+      "evidence": "Image metadata, OCR regions and visual-source evidence are independently useful.",
+      "migration": "Retain image identity and region provenance; do not collapse into PDF records."
+    },
+    {
+      "id": "artifacts",
+      "decision": "KEEP",
+      "target": "artifacts",
+      "evidence": "Tracks generated deliverables, media and their evidence relationships.",
+      "migration": "Keep generated outputs separate from source truth and unsupported extraction claims."
+    },
+    {
+      "id": "custom",
+      "decision": "KEEP",
+      "target": "custom",
+      "evidence": "A bounded declarative extension route is needed for project-specific sources.",
+      "migration": "Require schema and capability evidence; no arbitrary executable fallback."
+    },
+    {
+      "id": "brain_loader",
+      "decision": "RENAME_NARROW",
+      "target": "project_pv_zip_loader",
+      "evidence": "The current parser inspects package members, manifests, pointers and embedded databases.",
+      "migration": "Display Project / PV ZIP Loader. Accept manifest-bearing project/PV packages; send raw SQLite to Data. Loading never promotes or resumes a project."
+    },
+    {
+      "id": "research",
+      "decision": "KEEP",
+      "target": "research",
+      "evidence": "Preserves questions, hypotheses, methods, evidence and limitations.",
+      "migration": "Keep retrieval evidence and source dates; search results do not become accepted conclusions."
+    },
+    {
+      "id": "project_engulf",
+      "decision": "MOVE",
+      "target": "workflow:source_intake",
+      "evidence": "Classifies project files and dispatches them to other lanes; this is orchestration.",
+      "migration": "Retain inventory, mapping, conflict and intake receipts in Source Authority; remove a redundant selectable sector."
+    },
+    {
+      "id": "sqlite_brain",
+      "decision": "MERGE",
+      "target": "data_excel",
+      "evidence": "Database/schema/FTS/integrity inspection is a data adapter, not an independent project brain.",
+      "migration": "Preserve SQLite schema and integrity findings while routing direct DB input through Data."
+    }
+  ],
+  "authority_dispositions": [
+    {
+      "id": "agent_learning",
+      "decision": "KEEP_CONDITIONAL",
+      "reason": "Accepted reusable procedural lessons have a separate Learning HIL; load only relevant lessons."
+    },
+    {
+      "id": "canon_input",
+      "decision": "KEEP_CONDITIONAL",
+      "reason": "Cross-task typed exchanges need independent contracts and receiver decisions; inactive when no exchange is requested."
+    },
+    {
+      "id": "project_memory",
+      "decision": "KEEP",
+      "reason": "Project-specific bounded recall remains separate from host memory, source truth and learning."
+    },
+    {
+      "id": "project_overlay",
+      "decision": "KEEP",
+      "reason": "Unaccepted proposals and their evidence must remain separate from accepted Project Truth."
+    },
+    {
+      "id": "source_authority",
+      "decision": "KEEP",
+      "reason": "Owns exact incoming-source identities, exclusions, classification and intake provenance."
+    },
+    {
+      "id": "project_universe",
+      "decision": "KEEP_DERIVED",
+      "reason": "Relationship/integrity graph is a rebuildable index, not another truth owner; query it only when needed."
+    },
+    {
+      "id": "connector_brain",
+      "decision": "KEEP_CONDITIONAL",
+      "reason": "Connector grants, scopes and binding metadata have a distinct lifecycle; activate only selected connectors."
+    },
+    {
+      "id": "project_authority",
+      "decision": "KEEP",
+      "reason": "Owns accepted project state, pointer and promotion boundaries."
+    },
+    {
+      "id": "receipt_ledger",
+      "decision": "KEEP",
+      "reason": "Owns attributable execution and decision receipts; caller-supplied PASS is insufficient."
+    },
+    {
+      "id": "session_authority",
+      "decision": "KEEP",
+      "reason": "Owns task/session attachment and runtime continuity without becoming the executable package."
+    },
+    {
+      "id": "instructions",
+      "decision": "KEEP",
+      "reason": "AGENTS/host-recall chains remain distinct and do not require another project SQLite database."
+    },
+    {
+      "id": "plan",
+      "decision": "ADD_TO_NON_SECTOR_REGISTRY",
+      "reason": "Expose the existing canonical executable Plan as an authority; do not create a second canonical Plan DB."
+    },
+    {
+      "id": "chat_lineage",
+      "decision": "ADD_TO_NON_SECTOR_REGISTRY",
+      "reason": "Expose existing project/task lineage as append-only evidence authority; preserve event IDs, hashes and metrics."
+    }
+  ],
+  "prior_native_step_to_current_step": {
+    "10": [
+      11
+    ],
+    "11": [
+      19
+    ],
+    "12": [
+      19,
+      20
+    ],
+    "13": [
+      15
+    ],
+    "14": [
+      16
+    ],
+    "15": [
+      17
+    ],
+    "16": [
+      18
+    ],
+    "17": [
+      14
+    ],
+    "18": [
+      21
+    ],
+    "19": [
+      22
+    ],
+    "20": [
+      23
+    ],
+    "21": [
+      24
+    ],
+    "22": [
+      25
+    ],
+    "23": [
+      26
+    ],
+    "24": [
+      28
+    ],
+    "25": [
+      29
+    ],
+    "26": [
+      30
+    ],
+    "27": [
+      30
+    ],
+    "28": [
+      31,
+      32,
+      33
+    ],
+    "29": [
+      34
+    ],
+    "30": [
+      34
+    ],
+    "01": [
+      1,
+      2
+    ],
+    "02": [
+      1
+    ],
+    "03": [
+      1,
+      4
+    ],
+    "04": [
+      9
+    ],
+    "05": [
+      9
+    ],
+    "06": [
+      10
+    ],
+    "07": [
+      8
+    ],
+    "08": [
+      11
+    ],
+    "09": [
+      12
+    ]
+  },
+  "canonical_plan_mutated": false,
+  "live_project_migration_performed": false,
+  "implementation_rules": [
+    "Build and test migrations in disposable projects before touching this live project.",
+    "Keep legacy schema and lane IDs in historical provenance and explicit migration receipts; do not retain competing executable aliases.",
+    "Do not reopen accepted ZIPs as lifecycle, Plan, Goal or State Travel sources.",
+    "Preserve candidate and pending-HIL bytes; a layout migration cannot imply promotion.",
+    "Use one stable local selector with a fresh immutable version directory; retire old inactive payloads after replacement proof.",
+    "One local install before commit; one verified-main install after merge. No separate State Travel repair installation.",
+    "Run sequentially without subagents; only one native step active."
+  ],
+  "verdict": "FIX_THEN_PURSUE",
+  "confidence": "HIGH_FOR_ROLE_SEPARATION_MEDIUM_FOR_MIGRATION_COST",
+  "evidence_that_changes_verdict": "A preserved query or workflow cannot be reproduced by the proposed target, or migration cannot preserve source/event identities and candidate integrity.",
+  "workspace_agent_memory": {
+    "instruction_file": "AGENTS.md",
+    "recall_file": "MEMORY.md",
+    "optional_workspace_skills": ".agents/skills",
+    "recall_is_instruction_authority": false,
+    "project_memory_db_replaced": false,
+    "host_memory_written": false,
+    "scope": "EXACT_REPOSITORY_ROOT_TO_CWD"
+  }
+}

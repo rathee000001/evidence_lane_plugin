@@ -18,6 +18,7 @@ from typing import Any
 
 from llama_index.core import Document
 from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.utils import globals_helper
 
 from .compact_storage import compress_exact_bytes, decompress_exact_bytes
 from .hashing import canonical_json_bytes, sha256_bytes
@@ -37,7 +38,7 @@ _EXCLUDED_TABLE_PREFIXES = (
     "authority_index_",
     "sqlite_",
 )
-_FTS_SHADOW_SUFFIXES = ("_data", "_idx", "_content", "_docsize", "_config")
+_FTS_MODULE = re.compile(r'\bUSING\s+["`\[]?fts[345]\b', re.IGNORECASE)
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +126,37 @@ def llama_index_nodes(
     return rows
 
 
+def prewarm_llama_index_sentence_splitter() -> str:
+    """Resolve the lazy NLTK/SciPy tokenizer stack before lane workers start.
+
+    LlamaIndex defers its NLTK tokenizer import until the first real split.  If
+    multiple lane workers reach that cold import together, Python's import lock
+    can leave one worker importing SciPy while another waits inside the same
+    NLTK initialization barrier.  A deterministic single-thread split before
+    the lane executor removes that cold-start race without serializing lane
+    work.
+    """
+
+    # A short document does not necessarily enter SentenceSplitter._split and
+    # therefore does not touch the lazy Punkt property at all. Resolve that
+    # property explicitly on the calling thread; returning from the property
+    # proves the complete NLTK import (including its SciPy imports) finished
+    # before any lane worker can contend for Python's import lock.
+    tokenizer = globals_helper.punkt_tokenizer
+    probe_text = "Evidence Lane initializes one sentence. It verifies another."
+    spans = list(tokenizer.span_tokenize(probe_text))
+    if len(spans) != 2:
+        raise RuntimeError("LLAMA_INDEX_PUNKT_TOKENIZER_PREWARM_FAILED")
+
+    nodes = llama_index_nodes(
+        "Evidence Lane initializes deterministic sentence splitting.",
+        source_id="evidence-lane-llama-index-prewarm",
+    )
+    if len(nodes) != 1:
+        raise RuntimeError("LLAMA_INDEX_SENTENCE_SPLITTER_PREWARM_FAILED")
+    return "llama-index-sentence-splitter"
+
+
 def ensure_authority_index_schema(connection: sqlite3.Connection) -> None:
     legacy_columns = {
         str(row[1])
@@ -205,18 +237,27 @@ def ensure_authority_index_schema(connection: sqlite3.Connection) -> None:
 
 
 def _table_names(connection: sqlite3.Connection) -> list[str]:
-    rows = [
-        str(row[0])
-        for row in connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-        )
-    ]
+    # SQLite owns shadow-table identity. Suffix tests silently discard ordinary
+    # authority tables such as user_data or app_config, and miss FTS4 shadows.
+    # table_list is supported by the SQLite versions required for our STRICT
+    # and contentless-delete schemas.
+    table_types = {
+        str(row[1]): str(row[2])
+        for row in connection.execute("PRAGMA main.table_list")
+        if row[0] == "main"
+    }
+    rows = list(connection.execute(
+        "SELECT name,sql FROM main.sqlite_master WHERE type='table' ORDER BY name"
+    ))
     return [
         table
-        for table in rows
+        for table, sql in rows
         if _SAFE_IDENTIFIER.fullmatch(table)
         and not table.startswith(_EXCLUDED_TABLE_PREFIXES)
-        and not table.endswith(_FTS_SHADOW_SUFFIXES)
+        and table_types.get(table) != "shadow"
+        and not (
+            table_types.get(table) == "virtual" and _FTS_MODULE.search(sql or "")
+        )
         and not table.endswith(
             (
                 "_engulfed_row_cas",
@@ -225,7 +266,6 @@ def _table_names(connection: sqlite3.Connection) -> list[str]:
                 "_engulf_receipt",
             )
         )
-        and "_fts" not in table
     ]
 
 
@@ -599,6 +639,7 @@ __all__ = [
     "IndexedNode",
     "ensure_authority_index_schema",
     "llama_index_nodes",
+    "prewarm_llama_index_sentence_splitter",
     "query_authority_index",
     "rebuild_connection_authority_index",
     "rebuild_sqlite_authority_index",

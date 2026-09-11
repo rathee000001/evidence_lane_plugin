@@ -1,0 +1,131 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Verify the selected registered source bytes remain unchanged.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "batch_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:-]+$",
+        "title": "Batch Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "batch_id"
+    ],
+    "title": "SourceBatchRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "source_verify",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "eb6c022b95032fd4878e9143c5c4a654e7a4ff764d5a8915ebdd2852548ba23a",
+      "owner": "sources",
+      "version": 1
+    },
+    {
+      "digest": "c52b0c7790268be4c3846be088014a4377c9de49fdd6bfbf9f28278681a3cdc1",
+      "owner": "sources",
+      "version": 2
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "bd1e03ebd286551883773e0696b6d136914b0ea355f60e2cec6823abcfcff7f2",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "source_verify",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_verify.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

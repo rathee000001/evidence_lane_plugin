@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "nonce": {
+      "pattern": "^[A-Za-z0-9_-]{43,128}$",
+      "title": "Nonce",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Project Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "nonce"
+  ],
+  "title": "ProbeRequest",
+  "type": "object"
+}

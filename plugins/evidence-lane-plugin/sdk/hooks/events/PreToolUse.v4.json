@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/PreToolUse/handler.py",
+  "event": "PreToolUse",
+  "event_contract": "hooks/events/PreToolUse/event.v4.json",
+  "event_contract_sha256": "253f6979f94769a160ae0a2b05c7a3ff498b637b8245e9df96383c6a755a95ae",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/PreToolUse.v4.schema.json",
+  "input_schema_sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

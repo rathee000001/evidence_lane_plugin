@@ -1,0 +1,42 @@
+{
+  "$id": "evidence-lane://hooks/Interrupt/input/v4",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "hook_event_name": {
+      "const": "Interrupt"
+    },
+    "model": {
+      "maxLength": 200,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "session_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "turn_id": {
+      "maxLength": 128,
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "hook_event_name",
+    "session_id"
+  ],
+  "title": "Evidence Lane Interrupt visible input",
+  "type": "object",
+  "x-evidence-lane-captured-fields": [
+    "hook_event_name",
+    "model",
+    "session_id",
+    "turn_id"
+  ],
+  "x-native-task-attestation": "not_provided"
+}

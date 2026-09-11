@@ -1,0 +1,195 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Index bounded exact source bytes and attributed parser facts in a selected Code lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "git_snapshot_id": {
+        "anyOf": [
+          {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Git Snapshot Id"
+      },
+      "lane_id": {
+        "const": "local_code",
+        "default": "local_code",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_file_bytes": {
+        "default": 262144,
+        "maximum": 1048576,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "max_files": {
+        "default": 64,
+        "maximum": 512,
+        "minimum": 1,
+        "title": "Max Files",
+        "type": "integer"
+      },
+      "max_total_bytes": {
+        "default": 4194304,
+        "maximum": 33554432,
+        "minimum": 1,
+        "title": "Max Total Bytes",
+        "type": "integer"
+      },
+      "paths": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "minItems": 1,
+        "title": "Paths",
+        "type": "array"
+      }
+    },
+    "required": [
+      "paths"
+    ],
+    "title": "CodeIndex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "code_index",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "CodeResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "paths"
+  ],
+  "permission": "write",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "source_materialization": {
+    "auxiliary_paths": [],
+    "execution": "current_plan_delta",
+    "group_limit": 32,
+    "path_argument": "paths",
+    "preparation_is_execution": false
+  },
+  "source_routes": {
+    "implicit_global_default": false,
+    "lanes": [
+      "local_code"
+    ],
+    "path_fields": [
+      "paths"
+    ],
+    "selection": "delta_enter.source_route"
+  },
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "3cc13748c77fe394c3088be713048fda5e0c7f430a1a996dad326454302969b4",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "code_index",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.indexed",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_index.registered_parser",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Python_structural_parser"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "code_parse_file"
+    ]
+  },
+  "verification_checks": [
+    "code_snapshot_integrity",
+    "code_source_hashes_unchanged"
+  ],
+  "worker_operations": [
+    "code_parse_file"
+  ],
+  "workflow": "source-intake"
+}

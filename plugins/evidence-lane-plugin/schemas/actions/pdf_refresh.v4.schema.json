@@ -1,0 +1,261 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Snapshot exact PDF bytes, page text, geometry and separate form/widget evidence.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "extract_tables": {
+        "default": true,
+        "title": "Extract Tables",
+        "type": "boolean"
+      },
+      "filename": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Filename",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_file_bytes": {
+        "default": 8388608,
+        "maximum": 16777216,
+        "minimum": 1,
+        "title": "Max File Bytes",
+        "type": "integer"
+      },
+      "max_pages": {
+        "default": 100,
+        "maximum": 500,
+        "minimum": 1,
+        "title": "Max Pages",
+        "type": "integer"
+      },
+      "text_backend": {
+        "default": "auto",
+        "enum": [
+          "auto",
+          "pymupdf",
+          "pdfplumber",
+          "pypdf",
+          "poppler"
+        ],
+        "title": "Text Backend",
+        "type": "string"
+      }
+    },
+    "required": [
+      "filename"
+    ],
+    "title": "PdfIndex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "pdf_refresh",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PdfResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "filename"
+  ],
+  "permission": "write",
+  "profile": "pdf_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "source_routes": {
+    "implicit_global_default": false,
+    "lanes": [
+      "pdf_ocr"
+    ],
+    "path_fields": [
+      "filename"
+    ],
+    "selection": "delta_enter.source_route"
+  },
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "af0ff9d093d2b4f5962f42f952bf973eb01a68c85f9f8fb8e82a7134e41a9967",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "pdf_refresh",
+    "profile": "pdf_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:index_pdf",
+        "argument_suffixes": {},
+        "argument_values": {
+          "text_backend": [
+            "auto",
+            "pymupdf"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pdf_refresh.native_pdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "PyMuPDF",
+          "pdfplumber"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_plumber",
+        "argument_suffixes": {},
+        "argument_values": {
+          "text_backend": [
+            "auto",
+            "pdfplumber"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Attributed pdfplumber text and tables.",
+        "route_id": "pdf_refresh.pdfplumber",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pdfplumber"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_pypdf",
+        "argument_suffixes": {},
+        "argument_values": {
+          "text_backend": [
+            "auto",
+            "pypdf"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Retained pypdf text backend with separate geometric tables.",
+        "route_id": "pdf_refresh.pypdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pdfplumber"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:index_pdf_poppler",
+        "argument_suffixes": {},
+        "argument_values": {
+          "text_backend": [
+            "auto",
+            "poppler"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Verified Poppler native text backend with exact page binding.",
+        "route_id": "pdf_refresh.poppler",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "pdfplumber",
+          "Poppler_pdftotext_pdfinfo"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "pdf_parse_file"
+    ]
+  },
+  "verification_checks": [
+    "pdf_snapshot_integrity",
+    "pdf_source_hash_unchanged"
+  ],
+  "worker_operations": [
+    "pdf_parse_file"
+  ],
+  "workflow": "refresh"
+}

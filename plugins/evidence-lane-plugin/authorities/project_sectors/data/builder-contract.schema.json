@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "plan_revision": {
+      "minimum": 1,
+      "title": "Plan Revision",
+      "type": "integer"
+    },
+    "contract_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Contract Digest",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "plan_revision",
+    "contract_digest"
+  ],
+  "title": "Structured data planned builder arguments",
+  "type": "object",
+  "x-public-action": "delta_enter_planned",
+  "x-sector-lane": "data",
+  "x-operation-actions": [
+    "data_export",
+    "data_generate",
+    "data_index",
+    "data_index_arrow",
+    "data_inspect_duckdb",
+    "data_inspect_pandas",
+    "data_inspect_polars",
+    "data_refresh",
+    "data_refresh_arrow",
+    "data_transform",
+    "source_snapshot_retire"
+  ],
+  "x-project-id-required": true
+}

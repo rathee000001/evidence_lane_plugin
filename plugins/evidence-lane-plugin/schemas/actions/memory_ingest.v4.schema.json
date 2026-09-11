@@ -1,0 +1,286 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Index bounded attributed locators and typed links to existing project records.",
+  "inputSchema": {
+    "$defs": {
+      "MemoryEdge": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/$defs/MemoryReference"
+          },
+          "kind": {
+            "enum": [
+              "DERIVED_FROM",
+              "EVIDENCES",
+              "LEARNED_FROM",
+              "MAPS_TO",
+              "RELATED_TO",
+              "REVOKES",
+              "SUPERSEDES",
+              "SUPPRESSES"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "target_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "target_id",
+          "kind",
+          "evidence"
+        ],
+        "title": "MemoryEdge",
+        "type": "object"
+      },
+      "MemoryLocator": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "reference": {
+            "$ref": "#/$defs/MemoryReference"
+          },
+          "search_terms": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 24,
+            "title": "Search Terms",
+            "type": "array"
+          }
+        },
+        "required": [
+          "reference",
+          "label"
+        ],
+        "title": "MemoryLocator",
+        "type": "object"
+      },
+      "MemoryReference": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Digest",
+            "type": "string"
+          },
+          "key": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "plan_task",
+              "lineage_event",
+              "learning_version",
+              "receipt",
+              "source_object",
+              "canon_exchange"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lane_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Lane Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Revision"
+          }
+        },
+        "required": [
+          "kind",
+          "key",
+          "digest"
+        ],
+        "title": "MemoryReference",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "edges": {
+        "items": {
+          "$ref": "#/$defs/MemoryEdge"
+        },
+        "maxItems": 100,
+        "title": "Edges",
+        "type": "array"
+      },
+      "locators": {
+        "items": {
+          "$ref": "#/$defs/MemoryLocator"
+        },
+        "maxItems": 100,
+        "title": "Locators",
+        "type": "array"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "title": "MemoryIngest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "memory_ingest",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority": {
+        "const": "project_memory",
+        "default": "project_memory",
+        "title": "Authority",
+        "type": "string"
+      },
+      "duplicate": {
+        "default": false,
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "edge_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Edge Ids",
+        "type": "array"
+      },
+      "head": {
+        "title": "Head",
+        "type": "string"
+      },
+      "link_semantics": {
+        "default": "agent_report",
+        "enum": [
+          "agent_report",
+          "engine_verified_exit"
+        ],
+        "title": "Link Semantics",
+        "type": "string"
+      },
+      "locator_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Locator Ids",
+        "type": "array"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "source_authorities_mutated": {
+        "default": false,
+        "title": "Source Authorities Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "locator_ids",
+      "edge_ids",
+      "head"
+    ],
+    "title": "MemoryIngested",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "memory",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7ca3a34e16f65051a08d8da7cdbd67fa85cc4b03efb80a6aa69bab0b17fd31c8",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "memory_ingest",
+    "profile": "memory",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.ingest",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "memory_ingest.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "memory"
+}

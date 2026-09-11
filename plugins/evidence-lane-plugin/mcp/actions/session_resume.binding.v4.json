@@ -1,0 +1,294 @@
+{
+  "action": "session_resume",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/session_resume.action.v4.json",
+  "sdk_binding_sha256": "facee55c390fc3341e3350778f0c63163b126c46454450654eb47d34089cbed6",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Resume the exact project session without duplicating or silently taking over a live owner.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "continuation_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Continuation Id"
+            },
+            "expected_event_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Expected Event Digest",
+              "type": "string"
+            },
+            "expected_generation": {
+              "minimum": 1,
+              "title": "Expected Generation",
+              "type": "integer"
+            },
+            "expected_root_pv_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Expected Root Pv Digest",
+              "type": "string"
+            },
+            "reported_session_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Reported Session Id",
+              "type": "string"
+            },
+            "require_native_attestation": {
+              "default": false,
+              "title": "Require Native Attestation",
+              "type": "boolean"
+            },
+            "session_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "reported_session_id",
+            "expected_root_pv_digest",
+            "session_id",
+            "expected_generation",
+            "expected_event_digest"
+          ],
+          "title": "SessionResume",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "session_resume",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

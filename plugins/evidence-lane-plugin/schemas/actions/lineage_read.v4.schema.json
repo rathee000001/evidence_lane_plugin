@@ -1,0 +1,181 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Search or page through the selected project's visible ChatLineage.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "after_sequence": {
+        "default": 0,
+        "minimum": 0,
+        "title": "After Sequence",
+        "type": "integer"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 50,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "match_mode": {
+        "default": "all",
+        "enum": [
+          "all",
+          "any"
+        ],
+        "title": "Match Mode",
+        "type": "string"
+      },
+      "query": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Query"
+      }
+    },
+    "title": "LineageRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "lineage_read",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority": {
+        "const": "project_sqlite",
+        "default": "project_sqlite",
+        "title": "Authority",
+        "type": "string"
+      },
+      "current_cursor": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Current Cursor"
+      },
+      "events": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Events",
+        "type": "array"
+      },
+      "last_sequence": {
+        "title": "Last Sequence",
+        "type": "integer"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "query_mode": {
+        "enum": [
+          "sequence",
+          "fts5"
+        ],
+        "title": "Query Mode",
+        "type": "string"
+      },
+      "total_events": {
+        "title": "Total Events",
+        "type": "integer"
+      },
+      "truncated": {
+        "title": "Truncated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "events",
+      "total_events",
+      "current_cursor",
+      "last_sequence",
+      "truncated",
+      "query_mode"
+    ],
+    "title": "LineagePage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "chatlineage",
+  "project_required": true,
+  "project_search": {
+    "basis": "sqlite_fts5_sequence",
+    "collection": null,
+    "current_action": null,
+    "current_items": null,
+    "items": "events",
+    "lanes": [
+      "chat_lineage"
+    ],
+    "match_mode": "any",
+    "rerank_text": null
+  },
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c",
+      "owner": "lineage",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "2879ddaca16fa7b3353286114f1c793c54e4e19aa160d43d12b38b8d3ba9ca5e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lineage_read",
+    "profile": "chatlineage",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lineage_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

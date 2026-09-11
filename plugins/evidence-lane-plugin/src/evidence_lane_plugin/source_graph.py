@@ -11,7 +11,6 @@ from __future__ import annotations
 import ast
 import json
 import re
-import sqlite3
 import tomllib
 import unicodedata
 import zipfile
@@ -23,7 +22,8 @@ from typing import Any
 from .dependency_detection import parse_pnpm_lock_dependencies
 from .errors import EvidenceLaneError, require
 from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
-from .source_authority import initialize_source_authority_registry
+from .source_authority import _connect, initialize_source_authority_registry, source_authority_write
+from .storage import LaneStore, ProjectStore
 from .timeutil import utc_now
 
 GRAPH_SCHEMA = "evidence-lane.source-graph.v1"
@@ -149,12 +149,7 @@ class RegisteredMember:
     policy_reason: str
 
 
-def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=5000")
-    return connection
+
 
 
 def _canonical_text(value: str) -> str:
@@ -217,7 +212,7 @@ def _decode(payload: bytes) -> tuple[str | None, str | None]:
 
 
 def _load_occurrences(
-    registry_path: Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     occurrence_ordinals: list[int] | None,
 ) -> tuple[str, list[RegisteredOccurrence]]:
@@ -292,7 +287,7 @@ def _load_occurrences(
 
 
 def _members_for_occurrences(
-    registry_path: Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     occurrences: list[RegisteredOccurrence],
 ) -> tuple[list[RegisteredMember], list[dict[str, Any]]]:
@@ -1176,7 +1171,7 @@ def _internal_import_candidates(
 
 
 def _graph_existing(
-    registry_path: Path, graph_id: str
+    registry_path: ProjectStore | LaneStore, graph_id: str
 ) -> dict[str, Any] | None:
     with _connect(registry_path) as connection:
         row = connection.execute(
@@ -1214,8 +1209,9 @@ def _matches_prefix(member_path: str, prefixes: list[str]) -> bool:
     return any(exact == prefix or exact.startswith(prefix + "/") for prefix in prefixes)
 
 
+@source_authority_write
 def build_registered_source_graph(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     *,
     occurrence_ordinals: list[int] | None = None,
@@ -1844,7 +1840,7 @@ def build_registered_source_graph(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         connection.execute(
             """INSERT INTO source_graph_snapshot VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -1970,7 +1966,7 @@ def build_registered_source_graph(
 
 
 def _require_graphs(
-    registry_path: Path, graph_ids: list[str]
+    registry_path: ProjectStore | LaneStore, graph_ids: list[str]
 ) -> dict[str, dict[str, Any]]:
     require(
         bool(graph_ids) and len(set(graph_ids)) == len(graph_ids),
@@ -2000,8 +1996,9 @@ def _require_graphs(
     return found
 
 
+@source_authority_write
 def diff_source_graphs(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     from_graph_id: str,
     to_graph_id: str,
     *,
@@ -2122,7 +2119,7 @@ def diff_source_graphs(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         connection.execute(
             """INSERT INTO source_graph_diff VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -2169,8 +2166,9 @@ def diff_source_graphs(
     return receipt
 
 
+@source_authority_write
 def source_graph_impact(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     graph_id: str,
     seed_node_ids: list[str],
     *,
@@ -2371,7 +2369,7 @@ def source_graph_impact(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         connection.execute(
             """INSERT INTO source_graph_impact VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",

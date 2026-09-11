@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "assets": {
+    "/studio/app.js": {
+      "file": "app.js",
+      "content_type": "text/javascript; charset=utf-8",
+      "sha256": "2f2d87ac6b8144ca46557402d93b0fc239775b3cfcb938b4e33fd435b21b66c9",
+      "bytes": 266820
+    },
+    "/studio/assets/energy_routes-LMCTUTgm.svg": {
+      "file": "assets/energy_routes-LMCTUTgm.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "5cc394ddb0b6eec61fddc4b2e4c4042abca62c0c9d38ae03bfcf72d630690baf",
+      "bytes": 1248899
+    },
+    "/studio/assets/evidence-lane-full-logo.png": {
+      "file": "assets/evidence-lane-full-logo.png",
+      "content_type": "image/png",
+      "sha256": "fb7356284760a9af436b08b75158b9407e582f8107077fc585e4c8f716530933",
+      "bytes": 2419538
+    },
+    "/studio/assets/evidence-lane-icon.png": {
+      "file": "assets/evidence-lane-icon.png",
+      "content_type": "image/png",
+      "sha256": "5f3ed419b62661f703f5df763b4dc562645f621935aa99fc3def87b8a129c4fa",
+      "bytes": 5639
+    },
+    "/studio/assets/evidence-os-cube-app-icon-transparent.png": {
+      "file": "assets/evidence-os-cube-app-icon-transparent.png",
+      "content_type": "image/png",
+      "sha256": "54d8548328f33fefea8c76fadd092bda21f5ee9c7bba06e9eb1dcc296e69efb4",
+      "bytes": 1456084
+    },
+    "/studio/assets/left_core-ClBz78z3.svg": {
+      "file": "assets/left_core-ClBz78z3.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "61b519e869d8f97b0c242acfb8bdc0da8d516fa195bda651a797b33e8e8e6714",
+      "bytes": 1283565
+    },
+    "/studio/assets/s_core-DJ6p_OEt.svg": {
+      "file": "assets/s_core-DJ6p_OEt.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "06daa6939cf7dbf733f8e39460f4b14895fdd9f7f8c08a1006e542eb75dfc22e",
+      "bytes": 233012
+    },
+    "/studio/": {
+      "file": "index.html",
+      "content_type": "text/html; charset=utf-8",
+      "sha256": "a6446799e20b993de5ed017e064df306e3837eae5d344a563857166b21ac9749",
+      "bytes": 459
+    },
+    "/studio/styles.css": {
+      "file": "styles.css",
+      "content_type": "text/css; charset=utf-8",
+      "sha256": "645e276a2f0051bdebee2c9ea556760a5756176a00148ae28e18dec2d6be3bd2",
+      "bytes": 250021
+    }
+  }
+}

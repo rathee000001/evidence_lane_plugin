@@ -15,6 +15,8 @@ _PATTERNS: tuple[re.Pattern[str], ...] = (
     PRIVATE_KEY_PATTERN,
 )
 
+_SECRET_KEYS = re.compile(r"(?i)^(authorization|cookie|set_cookie|api_key|apikey|access_token|refresh_token|token|password|secret|client_secret|private_key|credential)$")
+
 
 def redact_text(value: str) -> str:
     redacted = value
@@ -27,7 +29,8 @@ def redact(value: Any) -> Any:
     if isinstance(value, str):
         return redact_text(value)
     if isinstance(value, dict):
-        return {str(key): redact(item) for key, item in value.items()}
+        return {str(key): "[REDACTED]" if _SECRET_KEYS.fullmatch(str(key).replace("-", "_")) else redact(item)
+                for key, item in value.items()}
     if isinstance(value, list):
         return [redact(item) for item in value]
     if isinstance(value, tuple):

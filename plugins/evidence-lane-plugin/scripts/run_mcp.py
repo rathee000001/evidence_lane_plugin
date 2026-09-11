@@ -1,379 +1,80 @@
-"""Launch the plugin MCP from exact source plus a durable derived runtime."""
-
+"""Release-aware launcher: provision once, then connect through the installed runtime."""
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
-
-# Fixed derived-runtime launcher only; no shell command is constructed.
-import subprocess  # nosec B404
 import sys
-import tomllib
 from pathlib import Path
 
-_SCRIPT_ROOT = Path(__file__).resolve().parent
-if str(_SCRIPT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_SCRIPT_ROOT))
-from runtime_contract import (
-    ACCELERATOR_PROFILES,
-    marker_is_valid,
-    runtime_environment,
-    runtime_identity,
-    runtime_marker,
-    runtime_projection_root,
-)
+PLUGIN = Path(__file__).resolve().parents[1]
 
 
-def _venv_python(environment: Path) -> Path:
-    if os.name == "nt":
-        return environment / "Scripts" / "python.exe"
-    return environment / "bin" / "python"
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--transport",
-        choices=("stdio", "streamable-http"),
-        default="stdio",
-    )
-    parser.add_argument(
-        "--accelerator-profile",
-        choices=ACCELERATOR_PROFILES,
-        default=os.environ.get("EVIDENCE_LANE_ACCELERATOR_PROFILE", "cpu").strip().lower(),
-    )
-    parser.add_argument(
-        "--accelerator-memory-budget-percent",
-        type=int,
-        default=int(os.environ.get("EVIDENCE_LANE_ACCELERATOR_MEMORY_BUDGET_PERCENT", "80")),
-    )
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8765)
-    startup_mode = parser.add_mutually_exclusive_group()
-    startup_mode.add_argument("--bootstrap-only", action="store_true")
-    startup_mode.add_argument("--prewarm-only", action="store_true")
-    parser.add_argument("--runtime-control-root")
-    parser.add_argument(
-        "--host-profile",
-        choices=("CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"),
-        default=os.environ.get("EVIDENCE_LANE_HOST_PROFILE", "CODEX_DESKTOP"),
-    )
-    return parser
-
-
-def _expected_runtime_version(plugin_root: Path) -> str:
-    project = tomllib.loads(
-        (plugin_root / "pyproject.toml").read_text(encoding="utf-8")
-    )
-    return str(project["project"]["version"])
-
-
-def _expected_dependency_version(plugin_root: Path, package: str) -> str:
-    project = tomllib.loads(
-        (plugin_root / "pyproject.toml").read_text(encoding="utf-8")
-    )
-    prefix = package.casefold() + "=="
-    for dependency in project["project"]["dependencies"]:
-        normalized = str(dependency).strip()
-        if normalized.casefold().startswith(prefix):
-            return normalized.split("==", 1)[1].split(";", 1)[0].strip()
-    raise SystemExit(f"Missing exact {package} dependency pin in pyproject.toml.")
-
-
-def _runtime_ready(
-    python: Path,
-    plugin_root: Path,
-    marker: Path,
-    expected_version: str,
-    expected_pydantic_version: str,
-) -> bool:
-    """Reject interrupted, partial, or stale durable environments."""
-
-    if not python.is_file() or not marker_is_valid(plugin_root, marker):
-        return False
-    source = plugin_root / "src"
+def _first_detection(argv: list[str]) -> dict:
+    source = PLUGIN / "scripts/first_detection.py"
+    spec = importlib.util.spec_from_file_location("evidence_lane_first_detection", source)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("FIRST_DETECTION_LAUNCHER_MISSING")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     try:
-        completed = subprocess.run(  # nosec B603
-            [
-                str(python),
-                "-c",
-                (
-                    "import sys; sys.path.insert(0, sys.argv[3]); import mcp; "
-                    "import pydantic; "
-                    "from evidence_lane_plugin.constants import ENGINE_VERSION; "
-                    "raise SystemExit(0 if (ENGINE_VERSION == sys.argv[1] and "
-                    "pydantic.__version__ == sys.argv[2]) else 41)"
-                ),
-                expected_version,
-                expected_pydantic_version,
-                str(source),
-            ],
-            check=False,
-            stdin=subprocess.DEVNULL,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=30,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return False
-    return completed.returncode == 0
-
-
-def _bootstrap_runtime(
-    plugin_root: Path,
-    environment: Path,
-    marker: Path,
-) -> None:
-    bootstrap = plugin_root / "scripts" / "bootstrap.py"
-    if not bootstrap.is_file():
-        raise SystemExit(f"Missing plugin bootstrap: {bootstrap}")
-    completed = subprocess.run(  # nosec B603
-        [
-            sys.executable,
-            str(bootstrap),
-            "--environment",
-            str(environment),
-            "--identity-file",
-            str(marker),
-        ],
-        check=False,
-        # MCP stdio reserves stdout exclusively for JSON-RPC. Bootstrap and
-        # package-manager progress remain visible on the diagnostic stream.
-        stdout=sys.stderr,
-        stderr=sys.stderr,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
-    if completed.returncode != 0:
-        raise SystemExit(
-            f"Evidence Lane bootstrap failed with exit code {completed.returncode}."
-        )
-
-
-def _activate_installed_runtime_authority(plugin_root: Path) -> dict[str, object]:
-    """Activate the exact installed build even when its dependency runtime is reused."""
-
-    source = plugin_root / "src"
-    sys.path.insert(0, str(source))
-    from evidence_lane_plugin.service import EvidenceLaneService
-
-    service = EvidenceLaneService()
-    installation = service.sessions.ensure_installation()
-    flash = service.flash_authority.ensure_flashed()
-    receipt = dict(flash.get("receipt") or {})
-    migration = dict(flash.get("build_migration") or {})
-    plugin_manifest = json.loads(
-        (plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
-    )
-    expected_plugin_version = str(plugin_manifest.get("version") or "")
-    if (
-        flash.get("status") != "PASS"
-        or not expected_plugin_version
-        or receipt.get("plugin_version") != expected_plugin_version
-    ):
-        raise SystemExit(
-            "Installed Evidence Lane Flash authority did not activate the exact package build."
-        )
-    return {
-        "schema": "evidence-lane.codex-installed-runtime-authority-prewarm.v1",
-        "status": "PASS",
-        "installation_version": installation.get("version"),
-        "flash_plugin_version": receipt.get("plugin_version"),
-        "flash_action": flash.get("flash_action"),
-        "flash_receipt_sha256": flash.get("receipt_sha256"),
-        "flash_build_migration_receipt_sha256": migration.get("receipt_sha256"),
-        "flash_migration_scope": migration.get("migration_scope"),
-        "project_state_mutated": migration.get("project_state_mutated", False),
-        "candidate_mutated": migration.get("candidate_mutated", False),
-        "pointer_moved": migration.get("pointer_moved", False),
-    }
-
-
-def main() -> int:
-    args = _parser().parse_args()
-    plugin_root = Path(__file__).resolve().parents[1]
-    # The launcher owns this binding. Never inherit a stale source, cache, or
-    # donor-task package root into the public MCP/SDK/skill/toolchain chain.
-    os.environ["EVIDENCE_LANE_PLUGIN_ROOT"] = str(plugin_root)
-    if args.runtime_control_root:
-        os.environ["EVIDENCE_LANE_RUNTIME_CONTROL_ROOT"] = str(
-            Path(args.runtime_control_root).resolve()
-        )
-    os.environ["EVIDENCE_LANE_HOST_PROFILE"] = args.host_profile
-    if not 1 <= args.accelerator_memory_budget_percent <= 95:
-        raise SystemExit("Accelerator memory budget must be between 1 and 95 percent.")
-    os.environ["EVIDENCE_LANE_ACCELERATOR_PROFILE"] = args.accelerator_profile
-    os.environ["EVIDENCE_LANE_ACCELERATOR_MEMORY_BUDGET_PERCENT"] = str(
-        args.accelerator_memory_budget_percent
-    )
-    expected_version = _expected_runtime_version(plugin_root)
-    expected_pydantic_version = _expected_dependency_version(plugin_root, "pydantic")
-    environment = runtime_environment(plugin_root)
-    marker = runtime_marker(plugin_root)
-    python = _venv_python(environment)
-    runtime_ready = _runtime_ready(
-        python,
-        plugin_root,
-        marker,
-        expected_version,
-        expected_pydantic_version,
-    )
-    if not runtime_ready and not (args.bootstrap_only or args.prewarm_only):
-        raise SystemExit(
-            "Evidence Lane runtime is not prewarmed. Run the explicit installer/prewarm "
-            "route before starting the MCP server; normal startup never installs."
-        )
-    if not runtime_ready:
-        _bootstrap_runtime(plugin_root, environment, marker)
-    if not _runtime_ready(
-        python,
-        plugin_root,
-        marker,
-        expected_version,
-        expected_pydantic_version,
-    ):
-        raise SystemExit(
-            "Evidence Lane dependencies are unavailable after the governed bootstrap."
-        )
-    if args.bootstrap_only and Path(sys.executable).resolve() != python.resolve():
-        completed = subprocess.run(  # nosec B603
-            [
-                str(python),
-                str(Path(__file__).resolve()),
-                "--bootstrap-only",
-                "--host-profile",
-                args.host_profile,
-                "--accelerator-profile",
-                args.accelerator_profile,
-                "--accelerator-memory-budget-percent",
-                str(args.accelerator_memory_budget_percent),
-                *(
-                    ["--runtime-control-root", args.runtime_control_root]
-                    if args.runtime_control_root
-                    else []
-                ),
-            ],
-            check=False,
-            stdin=subprocess.DEVNULL,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        return completed.returncode
-    if args.bootstrap_only:
-        runtime_authority = _activate_installed_runtime_authority(plugin_root)
-        payload = {
-            "schema": "evidence-lane.codex-runtime-bootstrap.v1",
-            "status": "PASS",
-            "runtime_identity": runtime_identity(plugin_root),
-            "runtime_projection_root": str(runtime_projection_root(plugin_root)),
-            "runtime_environment": str(environment),
-            "runtime_python": str(python),
-            "toolchain_inspected": False,
-            "native_toolchain_required": False,
-            "runtime_authority": runtime_authority,
-        }
-        print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
-        return 0
-    if args.prewarm_only and Path(sys.executable).resolve() != python.resolve():
-        completed = subprocess.run(  # nosec B603
-            [
-                str(python),
-                str(Path(__file__).resolve()),
-                "--prewarm-only",
-                "--host-profile",
-                args.host_profile,
-                "--accelerator-profile",
-                args.accelerator_profile,
-                "--accelerator-memory-budget-percent",
-                str(args.accelerator_memory_budget_percent),
-                *(
-                    ["--runtime-control-root", args.runtime_control_root]
-                    if args.runtime_control_root
-                    else []
-                ),
-            ],
-            check=False,
-            stdin=subprocess.DEVNULL,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        return completed.returncode
-    if args.prewarm_only:
-        source = plugin_root / "src"
-        sys.path.insert(0, str(source))
-        from evidence_lane_plugin.hardware_acceleration import (
-            resolve_hardware_acceleration,
-        )
-        from evidence_lane_plugin.runtime_toolchain import inspect_runtime_toolchain
-
-        toolchain = inspect_runtime_toolchain(plugin_root, prewarm_native=True)
-        acceleration = resolve_hardware_acceleration(
-            action_classes=["RETRIEVAL", "OCR_MEDIA", "EVALUATION"],
-            requested_profile=args.accelerator_profile,
-            enabled_vendor_plugins=(
-                [args.accelerator_profile]
-                if args.accelerator_profile in {"nvidia", "amd"}
-                else []
+        result = module.prepare_mcp(PLUGIN, argv)
+    except module.FirstDetectionError as error:
+        print(
+            json.dumps(
+                {
+                    "status": "error",
+                    "error": {"code": error.code, "message": str(error)},
+                }
             ),
-            memory_budget_percent=args.accelerator_memory_budget_percent,
+            file=sys.stderr,
         )
-        payload = {
-            "schema": "evidence-lane.codex-native-runtime-prewarm.v1",
-            "status": "PASS" if toolchain["status"] == "PASS" else "FAIL",
-            "runtime_identity": runtime_identity(plugin_root),
-            "runtime_projection_root": str(runtime_projection_root(plugin_root)),
-            "runtime_environment": str(environment),
-            "runtime_python": str(python),
-            "runtime_toolchain": toolchain,
-            "hardware_acceleration": acceleration,
-        }
-        print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
-        return 0
-    if Path(sys.executable).resolve() != python.resolve():
-        completed = subprocess.run(  # nosec B603
-            [
-                str(python),
-                str(Path(__file__).resolve()),
-                "--transport",
-                args.transport,
-                "--host",
-                args.host,
-                "--port",
-                str(args.port),
-                "--host-profile",
-                args.host_profile,
-                "--accelerator-profile",
-                args.accelerator_profile,
-                "--accelerator-memory-budget-percent",
-                str(args.accelerator_memory_budget_percent),
-                *(
-                    ["--runtime-control-root", args.runtime_control_root]
-                    if args.runtime_control_root
-                    else []
-                ),
-            ],
-            check=False,
-            # The stdio relay must remain in the MCP client's process group so
-            # client termination reaches the whole relay. Its caller owns the
-            # hidden console contract. Non-stdio relays have no such transport
-            # coupling and receive the Windows no-console flag directly.
-            creationflags=(
-                0
-                if args.transport == "stdio"
-                else getattr(subprocess, "CREATE_NO_WINDOW", 0)
-            ),
-        )
-        return completed.returncode
-    source = plugin_root / "src"
-    sys.path.insert(0, str(source))
-    try:
-        from evidence_lane_plugin.mcp_server import run_server
-    except ModuleNotFoundError as exc:
-        raise SystemExit(
-            "Evidence Lane dependencies are unavailable after the governed bootstrap."
-        ) from exc
-    run_server(transport=args.transport, host=args.host, port=args.port)
-    return 0
+        raise SystemExit(1) from error
+    if result["reexec"]:
+        os.execve(result["command"][0], result["command"], result["environment"])
+    return result
 
+
+def main(argv: list[str] | None = None) -> None:
+    selected_argv = list(sys.argv[1:] if argv is None else argv)
+    detection = _first_detection(selected_argv)
+    active_plugin = Path(
+        detection.get("plugin_root", PLUGIN)
+    )
+    sys.path.insert(0, str(active_plugin / "src"))
+    from evidence_lane_plugin.host_routing import HOST_MATRIX
+    from evidence_lane_plugin.launcher import ensure_local_engine, runtime_root
+    from evidence_lane_plugin.mcp_adapter import add_selection_arguments, configured_selections
+    from evidence_lane_plugin.mcp_server import run_server
+    parser = argparse.ArgumentParser(description="Evidence Lane native engine connection")
+    location = parser.add_mutually_exclusive_group()
+    location.add_argument("--runtime-root", type=Path)
+    location.add_argument("--remote-config", type=Path)
+    parser.add_argument("--transport", choices=["stdio"], default="stdio")
+    parser.add_argument("--host-profile", choices=sorted(HOST_MATRIX), default=os.environ.get('EVIDENCE_LANE_HOST_PROFILE', 'unknown'))
+    parser.add_argument('--local-project-administration', action='store_true',
+        help='Grant project administration only when this packaged launcher selects the local owner route.')
+    add_selection_arguments(parser)
+    args = parser.parse_args(selected_argv)
+    remote = os.environ.get('EVIDENCE_LANE_REMOTE_CONFIG')
+    if remote and args.remote_config is None:
+        if args.runtime_root is not None or os.environ.get('EVIDENCE_LANE_RUNTIME_ROOT'):
+            parser.error('Select one explicit local runtime or remote configuration for both MCP and hooks.')
+        args.remote_config = Path(remote)
+    if args.remote_config is None and args.local_project_administration:
+        args.manage_projects = True
+    selections = configured_selections(args, parser)
+    if args.remote_config is None:
+        if args.host_profile in {'codex_vm_persistent', 'codex_vm_ephemeral'}:
+            parser.error('Configured VM profiles require an explicitly verified remote engine before local startup.')
+        args.runtime_root = runtime_root(args.runtime_root)
+        ensure_local_engine(args.runtime_root)
+    elif args.manage_projects:
+        parser.error('Remote connections cannot request local project administration.')
+    run_server(runtime_root=args.runtime_root, remote_config=args.remote_config,
+               host_profile=args.host_profile, transport=args.transport, project_selections=selections,
+               manage_projects=args.manage_projects)
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

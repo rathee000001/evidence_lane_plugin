@@ -1,0 +1,150 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Create and verify a consistent project database and registered-file backup.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "destination_root": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Destination Root",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "destination_root"
+    ],
+    "title": "BackupRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "project_backup",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "backup_root": {
+        "title": "Backup Root",
+        "type": "string"
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string"
+      },
+      "database_digest": {
+        "title": "Database Digest",
+        "type": "string"
+      },
+      "file_count": {
+        "title": "File Count",
+        "type": "integer"
+      },
+      "lane_count": {
+        "default": 0,
+        "title": "Lane Count",
+        "type": "integer"
+      },
+      "live_source_workspace_copied": {
+        "default": false,
+        "title": "Live Source Workspace Copied",
+        "type": "boolean"
+      },
+      "manifest_digest": {
+        "title": "Manifest Digest",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "root_pv": {
+        "additionalProperties": true,
+        "title": "Root Pv",
+        "type": "object"
+      },
+      "runtime_credentials_included": {
+        "default": false,
+        "title": "Runtime Credentials Included",
+        "type": "boolean"
+      },
+      "scope": {
+        "default": "coherent_root_pv_separate_lane_databases_registered_files_and_schema_view_history",
+        "title": "Scope",
+        "type": "string"
+      },
+      "total_bytes": {
+        "title": "Total Bytes",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "request_id",
+      "backup_root",
+      "manifest_digest",
+      "database_digest",
+      "file_count",
+      "total_bytes",
+      "created_at"
+    ],
+    "title": "BackupResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "02eba1b323a0c8c57a46ccfaaa8ceb1fc1df5343bd06f0f908e3c46aed296457",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_backup",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.backup",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_backup.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

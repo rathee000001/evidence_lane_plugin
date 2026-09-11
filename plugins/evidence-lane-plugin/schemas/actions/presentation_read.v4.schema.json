@@ -1,0 +1,153 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read a bounded base64 byte range from an exact immutable presentation.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 65536,
+        "maximum": 131072,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 8388608,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      },
+      "representation": {
+        "default": "presentation",
+        "enum": [
+          "presentation",
+          "original_source"
+        ],
+        "title": "Representation",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "PresentationRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "lane_fetch": {
+    "digest_result": "sha256",
+    "lanes": [
+      "ppt"
+    ],
+    "offset_argument": "offset",
+    "path_argument": null,
+    "path_prefix": "",
+    "path_result": "logical_name",
+    "primary_representation": "presentation",
+    "size_result": "total_bytes"
+  },
+  "mutates": false,
+  "name": "presentation_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PresentationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "presentation",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91",
+      "owner": "ppt",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "92f231535b69cbcd10cf8963b52a9dd905513b4d31c8b29989db7f530b8f1011",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "presentation_read",
+    "profile": "presentation",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.presentation_profile:register_presentation_actions.<locals>.query_handler.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "presentation_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

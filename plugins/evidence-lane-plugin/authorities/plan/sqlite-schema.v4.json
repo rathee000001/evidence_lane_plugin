@@ -1,0 +1,1316 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "plan",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "7a1c97bbf0f7b0c12c9ada236e1aef05cecff3d269a5f66ed1d75cfc0041a779",
+  "tables": [
+    {
+      "name": "delta_exits",
+      "type": "table",
+      "sql": "CREATE TABLE delta_exits (job_id TEXT PRIMARY KEY REFERENCES delta_runs(job_id),\n       verification_object TEXT NOT NULL REFERENCES objects(digest),\n       receipt_id TEXT NOT NULL UNIQUE, next_task_id TEXT, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "verification_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "next_task_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "delta_runs",
+      "type": "table",
+      "sql": "CREATE TABLE delta_runs (\n       job_id TEXT PRIMARY KEY REFERENCES jobs_jobs(job_id), request_id TEXT NOT NULL UNIQUE,\n       actor_id TEXT NOT NULL, task_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n       contract_digest TEXT NOT NULL, binding_digest TEXT NOT NULL, entry_object TEXT NOT NULL REFERENCES objects(digest),\n       state TEXT NOT NULL CHECK(state IN ('queued','running','awaiting_verification','blocked','verified')),\n       result_object TEXT REFERENCES objects(digest), error_code TEXT,\n       created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(plan_revision,task_id),\n       FOREIGN KEY(plan_revision,task_id) REFERENCES plan_tasks(revision,task_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "contract_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entry_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_object",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "error_code",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "jobs_effects",
+      "type": "table",
+      "sql": "CREATE TABLE jobs_effects (\n            effect_id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs_jobs(job_id),\n            effect_key TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('prepared','confirmed','absent')),\n            description TEXT NOT NULL, evidence_object TEXT REFERENCES objects(digest),\n            created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(job_id,effect_key))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "effect_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "effect_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "evidence_object",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "jobs_jobs",
+      "type": "table",
+      "sql": "CREATE TABLE jobs_jobs (\n            job_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n            client_id TEXT NOT NULL, request_digest TEXT NOT NULL,\n            request_json TEXT NOT NULL CHECK(json_valid(request_json)),\n            action TEXT NOT NULL, plan_revision INTEGER,\n            state TEXT NOT NULL CHECK(state IN\n                ('queued','running','checkpointed','cancelled','succeeded','failed','uncertain','superseded')),\n            owner_fence INTEGER, execution_id TEXT, phase TEXT NOT NULL DEFAULT 'admitted',\n            checkpoint_object TEXT REFERENCES objects(digest), resumable INTEGER NOT NULL DEFAULT 0,\n            cancellation_reason TEXT, result_json TEXT CHECK(json_valid(result_json)),\n            error_code TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "action",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "owner_fence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "execution_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "phase",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "checkpoint_object",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "resumable",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "cancellation_reason",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "error_code",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_current",
+      "type": "table",
+      "sql": "CREATE TABLE plan_current (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), event_head TEXT)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "event_head",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_dependencies",
+      "type": "table",
+      "sql": "CREATE TABLE plan_dependencies (\n        revision INTEGER NOT NULL, task_id TEXT NOT NULL, dependency_id TEXT NOT NULL,\n        PRIMARY KEY(revision,task_id,dependency_id),\n        FOREIGN KEY(revision,task_id) REFERENCES plan_tasks(revision,task_id),\n        FOREIGN KEY(revision,dependency_id) REFERENCES plan_tasks(revision,task_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "dependency_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 3
+        }
+      ]
+    },
+    {
+      "name": "plan_events",
+      "type": "table",
+      "sql": "CREATE TABLE plan_events (\n        sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), task_id TEXT,\n        kind TEXT NOT NULL, actor_id TEXT NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),\n        previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "task_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_host_bindings",
+      "type": "table",
+      "sql": "CREATE TABLE plan_host_bindings (\n        binding_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n        host_task_id TEXT NOT NULL, host_plan_id TEXT NOT NULL, plan_path TEXT NOT NULL,\n        current_sha256 TEXT NOT NULL CHECK(length(current_sha256)=64),\n        bound_by TEXT NOT NULL, binding_digest TEXT NOT NULL UNIQUE,\n        active INTEGER NOT NULL CHECK(active IN (0,1)),\n        created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "binding_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "host_task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "host_plan_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "current_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "bound_by",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "active",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_host_projections",
+      "type": "table",
+      "sql": "CREATE TABLE plan_host_projections (\n        sequence INTEGER PRIMARY KEY, projection_id TEXT NOT NULL UNIQUE,\n        binding_id TEXT REFERENCES plan_host_bindings(binding_id),\n        plan_revision INTEGER NOT NULL REFERENCES plan_revisions(revision),\n        plan_event_head TEXT NOT NULL, document_digest TEXT NOT NULL,\n        rows_json TEXT NOT NULL CHECK(json_valid(rows_json)),\n        rows_digest TEXT NOT NULL CHECK(length(rows_digest)=64),\n        markdown_text TEXT NOT NULL, markdown_sha256 TEXT NOT NULL CHECK(length(markdown_sha256)=64),\n        state TEXT NOT NULL CHECK(state IN ('unbound','pending','publishing','confirmed','superseded')),\n        previous_projection_id TEXT, prepared_by TEXT NOT NULL, prepared_at TEXT NOT NULL,\n        attempts INTEGER NOT NULL DEFAULT 0, last_error TEXT,\n        file_before_sha256 TEXT, file_after_sha256 TEXT,\n        confirmed_at TEXT)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "projection_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "binding_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_event_head",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "document_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rows_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rows_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "markdown_text",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "markdown_sha256",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_projection_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "prepared_by",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "prepared_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "attempts",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "last_error",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "file_before_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "file_after_sha256",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "confirmed_at",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_revisions",
+      "type": "table",
+      "sql": "CREATE TABLE plan_revisions (\n        revision INTEGER PRIMARY KEY, plan_id TEXT NOT NULL, title TEXT NOT NULL,\n        request_id TEXT NOT NULL UNIQUE, document_json TEXT NOT NULL CHECK(json_valid(document_json)),\n        document_digest TEXT NOT NULL, parent_revision INTEGER REFERENCES plan_revisions(revision),\n        actor_id TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "plan_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "document_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "document_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "plan_tasks",
+      "type": "table",
+      "sql": "CREATE TABLE plan_tasks (\n        revision INTEGER NOT NULL REFERENCES plan_revisions(revision), task_id TEXT NOT NULL,\n        position INTEGER NOT NULL, definition_json TEXT NOT NULL CHECK(json_valid(definition_json)),\n        contract_digest TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN\n          ('queued','active','completed','blocked','failed','cancelled','superseded')),\n        last_event TEXT, PRIMARY KEY(revision,task_id), UNIQUE(revision,position))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "position",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "definition_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "contract_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "last_event",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "steer_control",
+      "type": "table",
+      "sql": "CREATE TABLE steer_control (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1), paused INTEGER NOT NULL CHECK(paused IN (0,1)),\n        source_event_id TEXT NOT NULL, source_cursor TEXT NOT NULL, actor_id TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "paused",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_cursor",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "steer_interrupts",
+      "type": "table",
+      "sql": "CREATE TABLE steer_interrupts (\n        event_id TEXT PRIMARY KEY, source_cursor TEXT NOT NULL, actor_id TEXT NOT NULL,\n        receipt_id TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_cursor",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "steer_requests",
+      "type": "table",
+      "sql": "CREATE TABLE steer_requests (\n        request_id TEXT PRIMARY KEY, source_event_id TEXT NOT NULL, source_cursor TEXT NOT NULL,\n        actor_id TEXT NOT NULL, expected_revision INTEGER NOT NULL, intent TEXT NOT NULL CHECK(intent IN ('semantic','stop')),\n        affected_json TEXT NOT NULL CHECK(json_valid(affected_json)), rationale TEXT NOT NULL,\n        identity_digest TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN\n           ('pending','checkpointing','ready','applied','rejected','superseded')),\n        checkpoint_object TEXT REFERENCES objects(digest), applied_revision INTEGER,\n        created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_cursor",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "expected_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "intent",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "affected_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "rationale",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "checkpoint_object",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "validation_policy_current",
+      "type": "table",
+      "sql": "CREATE TABLE validation_policy_current (\n        singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n        revision INTEGER NOT NULL REFERENCES validation_policy_revisions(revision))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "validation_policy_revisions",
+      "type": "table",
+      "sql": "CREATE TABLE validation_policy_revisions (\n        revision INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n        request_digest TEXT NOT NULL, policy_json TEXT NOT NULL CHECK(json_valid(policy_json)),\n        policy_digest TEXT NOT NULL, previous_digest TEXT, revision_digest TEXT NOT NULL UNIQUE,\n        actor_id TEXT NOT NULL, receipt_id TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "request_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "policy_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "policy_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "revision_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "validationrun_summaries",
+      "type": "table",
+      "sql": "CREATE TABLE validationrun_summaries (\n        job_id TEXT PRIMARY KEY, task_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n        contract_digest TEXT NOT NULL, summary_object TEXT NOT NULL, receipt_id TEXT NOT NULL UNIQUE)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "task_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "plan_revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "contract_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "summary_object",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receipt_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "delta_exits",
+      "target": "objects",
+      "column": "verification_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "delta_exits",
+      "target": "delta_runs",
+      "column": "job_id",
+      "target_column": "job_id"
+    },
+    {
+      "source": "delta_runs",
+      "target": "plan_tasks",
+      "column": "plan_revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "delta_runs",
+      "target": "plan_tasks",
+      "column": "task_id",
+      "target_column": "task_id"
+    },
+    {
+      "source": "delta_runs",
+      "target": "objects",
+      "column": "result_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "delta_runs",
+      "target": "objects",
+      "column": "entry_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "delta_runs",
+      "target": "jobs_jobs",
+      "column": "job_id",
+      "target_column": "job_id"
+    },
+    {
+      "source": "jobs_effects",
+      "target": "objects",
+      "column": "evidence_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "jobs_effects",
+      "target": "jobs_jobs",
+      "column": "job_id",
+      "target_column": "job_id"
+    },
+    {
+      "source": "jobs_jobs",
+      "target": "objects",
+      "column": "checkpoint_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "plan_current",
+      "target": "plan_revisions",
+      "column": "revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_dependencies",
+      "target": "plan_tasks",
+      "column": "revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_dependencies",
+      "target": "plan_tasks",
+      "column": "dependency_id",
+      "target_column": "task_id"
+    },
+    {
+      "source": "plan_dependencies",
+      "target": "plan_tasks",
+      "column": "revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_dependencies",
+      "target": "plan_tasks",
+      "column": "task_id",
+      "target_column": "task_id"
+    },
+    {
+      "source": "plan_events",
+      "target": "plan_revisions",
+      "column": "revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_host_projections",
+      "target": "plan_revisions",
+      "column": "plan_revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_host_projections",
+      "target": "plan_host_bindings",
+      "column": "binding_id",
+      "target_column": "binding_id"
+    },
+    {
+      "source": "plan_revisions",
+      "target": "plan_revisions",
+      "column": "parent_revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "plan_tasks",
+      "target": "plan_revisions",
+      "column": "revision",
+      "target_column": "revision"
+    },
+    {
+      "source": "steer_requests",
+      "target": "objects",
+      "column": "checkpoint_object",
+      "target_column": "digest"
+    },
+    {
+      "source": "validation_policy_current",
+      "target": "validation_policy_revisions",
+      "column": "revision",
+      "target_column": "revision"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

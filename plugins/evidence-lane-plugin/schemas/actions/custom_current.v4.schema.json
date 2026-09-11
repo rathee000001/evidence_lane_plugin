@@ -1,0 +1,110 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read bounded current identities, literal search, typed facts or historical bytes in the custom lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "default": "custom",
+        "pattern": "^(?:custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      }
+    },
+    "title": "CustomSelection",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "custom_current",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "custom",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "9c0a24403f1a5a2ab9ce6e6accbf30ca181fb8be89a8b234754d1f0fa959d4c1",
+      "owner": "custom",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "7e54da638a2d71effcbe540fb3c622a6fd76032cb4048ef1085ba864aa86010e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "custom_current",
+    "profile": "custom",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "custom_current.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

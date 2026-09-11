@@ -1,0 +1,3038 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Read implemented per-lane view semantics, selected file roles and shared tools.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "view_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "View Ids",
+            "type": "array"
+          }
+        },
+        "title": "ViewCatalogRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_view_catalog",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "views": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Views",
+            "type": "array"
+          }
+        },
+        "required": [
+          "views"
+        ],
+        "title": "ViewCatalog",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "53db0f58fc6248e51c1e9f415e7043d9b81db730bf78b74dff3c7d84c58662be",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_view_catalog",
+        "profile": "core",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.catalog",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_view_catalog.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Preview a bounded lane graph and exact source binding without writing files.",
+      "inputSchema": {
+        "$defs": {
+          "ViewScope": {
+            "additionalProperties": false,
+            "properties": {
+              "edge_limit": {
+                "default": 200,
+                "maximum": 500,
+                "minimum": 0,
+                "title": "Edge Limit",
+                "type": "integer"
+              },
+              "include_history": {
+                "default": false,
+                "title": "Include History",
+                "type": "boolean"
+              },
+              "node_limit": {
+                "default": 100,
+                "maximum": 200,
+                "minimum": 1,
+                "title": "Node Limit",
+                "type": "integer"
+              },
+              "query": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Query"
+              }
+            },
+            "title": "ViewScope",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "$ref": "#/$defs/ViewScope"
+          },
+          "view_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_id"
+        ],
+        "title": "ViewPreview",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_view_preview",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {},
+          "ViewScope": {
+            "additionalProperties": false,
+            "properties": {
+              "edge_limit": {
+                "default": 200,
+                "maximum": 500,
+                "minimum": 0,
+                "title": "Edge Limit",
+                "type": "integer"
+              },
+              "include_history": {
+                "default": false,
+                "title": "Include History",
+                "type": "boolean"
+              },
+              "node_limit": {
+                "default": 100,
+                "maximum": 200,
+                "minimum": 1,
+                "title": "Node Limit",
+                "type": "integer"
+              },
+              "query": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Query"
+              }
+            },
+            "title": "ViewScope",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "files": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "object"
+          },
+          "files_written": {
+            "const": false,
+            "default": false,
+            "title": "Files Written",
+            "type": "boolean"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "graph": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Graph",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/$defs/ViewScope"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_head": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Source Head",
+            "type": "object"
+          },
+          "view_id": {
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "view_id",
+          "contract_digest",
+          "source_digest",
+          "source_head",
+          "generation",
+          "scope",
+          "graph",
+          "files"
+        ],
+        "title": "ViewPreviewResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "artifacts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "9fab7ff19ee7141e836a8d6a1a50bd76697bb29e8adbeae6461d99f310fb4f8d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_view_preview",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_view_preview.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Validate recorded lane artifacts and report stale bindings without refreshing them.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "include_content": {
+            "default": false,
+            "title": "Include Content",
+            "type": "boolean"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "snapshot_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Digest"
+          },
+          "view_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_id"
+        ],
+        "title": "ViewRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_view_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "title": "Checked At",
+            "type": "string"
+          },
+          "contents": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Contents"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "manifest": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Manifest"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "snapshot_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Digest"
+          },
+          "state": {
+            "enum": [
+              "not_materialized",
+              "fresh",
+              "stale",
+              "historical",
+              "contract_changed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "view_id": {
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "view_id",
+          "state",
+          "generation"
+        ],
+        "title": "ViewState",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "artifacts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "52a89111ae7dcef585856cf6116326532a48601738b9e5409ae31372ab4b1f8a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_view_read",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_view_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Export only selected lane artifacts from an exact verified source preview.",
+      "inputSchema": {
+        "$defs": {
+          "ViewScope": {
+            "additionalProperties": false,
+            "properties": {
+              "edge_limit": {
+                "default": 200,
+                "maximum": 500,
+                "minimum": 0,
+                "title": "Edge Limit",
+                "type": "integer"
+              },
+              "include_history": {
+                "default": false,
+                "title": "Include History",
+                "type": "boolean"
+              },
+              "node_limit": {
+                "default": 100,
+                "maximum": 200,
+                "minimum": 1,
+                "title": "Node Limit",
+                "type": "integer"
+              },
+              "query": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Query"
+              }
+            },
+            "title": "ViewScope",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "consumer": {
+            "const": "artifact_export",
+            "default": "artifact_export",
+            "title": "Consumer",
+            "type": "string"
+          },
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "dot_validation": {
+            "default": "source",
+            "enum": [
+              "source",
+              "native"
+            ],
+            "title": "Dot Validation",
+            "type": "string"
+          },
+          "expected_generation": {
+            "minimum": 0,
+            "title": "Expected Generation",
+            "type": "integer"
+          },
+          "formats": {
+            "items": {
+              "enum": [
+                "mmd",
+                "dot"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Formats",
+            "type": "array"
+          },
+          "include_pointer": {
+            "default": false,
+            "title": "Include Pointer",
+            "type": "boolean"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/$defs/ViewScope"
+          },
+          "source_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "view_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_id",
+          "expected_generation",
+          "contract_digest",
+          "source_digest"
+        ],
+        "title": "ViewRefresh",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "lane_view_refresh",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reused_snapshot": {
+            "default": false,
+            "title": "Reused Snapshot",
+            "type": "boolean"
+          },
+          "snapshot_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Digest"
+          },
+          "source_authority_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Authority Mutated",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "published",
+              "empty"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "view_id": {
+            "title": "View Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "view_id",
+          "state",
+          "generation",
+          "snapshot_digest",
+          "files"
+        ],
+        "title": "ViewPublished",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "artifacts",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "5c1c171a39077d208d6dcf64a88a0240bbc374328ae022845f7a4adcd0a4c897",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "lane_view_refresh",
+        "profile": "artifacts",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+            "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.pointer",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_view_refresh.pointer",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ],
+            "worker_operations": []
+          },
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+            "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.source",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Selected source export with bounded graph analysis; native DOT is not requested.",
+            "route_id": "lane_view_refresh.source",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "worker_operations": [
+              "render_lane_view"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+            "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.native",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [
+              "codex_desktop_stable",
+              "codex_desktop_beta",
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm_persistent",
+              "codex_vm_ephemeral"
+            ],
+            "provider": "engine_cpu",
+            "reason": "Explicit native DOT validation using the configured client profile and verified shared binary.",
+            "route_id": "lane_view_refresh.native_dot",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx",
+              "Graphviz_dot"
+            ],
+            "worker_operations": [
+              "render_lane_view"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "render_lane_view"
+        ]
+      },
+      "verification_checks": [],
+      "worker_operations": [
+        "render_lane_view"
+      ],
+      "workflow": "refresh"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "ViewCatalog": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "views": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Views",
+          "type": "array"
+        }
+      },
+      "required": [
+        "views"
+      ],
+      "title": "ViewCatalog",
+      "type": "object"
+    },
+    "ViewCatalogRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "view_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "View Ids",
+          "type": "array"
+        }
+      },
+      "title": "ViewCatalogRequest",
+      "type": "object"
+    },
+    "ViewPreview": {
+      "$defs": {
+        "ViewScope": {
+          "additionalProperties": false,
+          "properties": {
+            "edge_limit": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 0,
+              "title": "Edge Limit",
+              "type": "integer"
+            },
+            "include_history": {
+              "default": false,
+              "title": "Include History",
+              "type": "boolean"
+            },
+            "node_limit": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Node Limit",
+              "type": "integer"
+            },
+            "query": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Query"
+            }
+          },
+          "title": "ViewScope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/ViewScope"
+        },
+        "view_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "view_id"
+      ],
+      "title": "ViewPreview",
+      "type": "object"
+    },
+    "ViewPreviewResult": {
+      "$defs": {
+        "JsonValue": {},
+        "ViewScope": {
+          "additionalProperties": false,
+          "properties": {
+            "edge_limit": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 0,
+              "title": "Edge Limit",
+              "type": "integer"
+            },
+            "include_history": {
+              "default": false,
+              "title": "Include History",
+              "type": "boolean"
+            },
+            "node_limit": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Node Limit",
+              "type": "integer"
+            },
+            "query": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Query"
+            }
+          },
+          "title": "ViewScope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "contract_digest": {
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "files": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Files",
+          "type": "object"
+        },
+        "files_written": {
+          "const": false,
+          "default": false,
+          "title": "Files Written",
+          "type": "boolean"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "graph": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Graph",
+          "type": "object"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ViewScope"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_head": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Source Head",
+          "type": "object"
+        },
+        "view_id": {
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "view_id",
+        "contract_digest",
+        "source_digest",
+        "source_head",
+        "generation",
+        "scope",
+        "graph",
+        "files"
+      ],
+      "title": "ViewPreviewResult",
+      "type": "object"
+    },
+    "ViewPublished": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "reused_snapshot": {
+          "default": false,
+          "title": "Reused Snapshot",
+          "type": "boolean"
+        },
+        "snapshot_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Snapshot Digest"
+        },
+        "source_authority_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Source Authority Mutated",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "published",
+            "empty"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "view_id": {
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "view_id",
+        "state",
+        "generation",
+        "snapshot_digest",
+        "files"
+      ],
+      "title": "ViewPublished",
+      "type": "object"
+    },
+    "ViewRead": {
+      "additionalProperties": false,
+      "properties": {
+        "include_content": {
+          "default": false,
+          "title": "Include Content",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "snapshot_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Digest"
+        },
+        "view_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "view_id"
+      ],
+      "title": "ViewRead",
+      "type": "object"
+    },
+    "ViewRefresh": {
+      "$defs": {
+        "ViewScope": {
+          "additionalProperties": false,
+          "properties": {
+            "edge_limit": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 0,
+              "title": "Edge Limit",
+              "type": "integer"
+            },
+            "include_history": {
+              "default": false,
+              "title": "Include History",
+              "type": "boolean"
+            },
+            "node_limit": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Node Limit",
+              "type": "integer"
+            },
+            "query": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Query"
+            }
+          },
+          "title": "ViewScope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "consumer": {
+          "const": "artifact_export",
+          "default": "artifact_export",
+          "title": "Consumer",
+          "type": "string"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "dot_validation": {
+          "default": "source",
+          "enum": [
+            "source",
+            "native"
+          ],
+          "title": "Dot Validation",
+          "type": "string"
+        },
+        "expected_generation": {
+          "minimum": 0,
+          "title": "Expected Generation",
+          "type": "integer"
+        },
+        "formats": {
+          "items": {
+            "enum": [
+              "mmd",
+              "dot"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Formats",
+          "type": "array"
+        },
+        "include_pointer": {
+          "default": false,
+          "title": "Include Pointer",
+          "type": "boolean"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ViewScope"
+        },
+        "source_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "view_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "view_id",
+        "expected_generation",
+        "contract_digest",
+        "source_digest"
+      ],
+      "title": "ViewRefresh",
+      "type": "object"
+    },
+    "ViewState": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "checked_at": {
+          "title": "Checked At",
+          "type": "string"
+        },
+        "contents": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contents"
+        },
+        "generation": {
+          "title": "Generation",
+          "type": "integer"
+        },
+        "manifest": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "snapshot_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Digest"
+        },
+        "state": {
+          "enum": [
+            "not_materialized",
+            "fresh",
+            "stale",
+            "historical",
+            "contract_changed"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "view_id": {
+          "title": "View Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "view_id",
+        "state",
+        "generation"
+      ],
+      "title": "ViewState",
+      "type": "object"
+    }
+  },
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "views",
+  "views": [
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "SELECTED_ROW",
+        "DECLARES_FOREIGN_KEY",
+        "REFERENCES_TABLE",
+        "LISTS_MEMBER",
+        "REQUIRES_REVIEW",
+        "HAS_EXTRACTED_EVIDENCE"
+      ],
+      "files": {
+        "dot": "artifacts.dot",
+        "mmd": "artifacts.mmd",
+        "pointer": "lane_pointer.json"
+      },
+      "folder": "sectors/artifacts",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "lane_id": "artifacts",
+      "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
+      "node_kinds": [
+        "project_artifact",
+        "artifact_metadata",
+        "artifact_text_extract",
+        "artifact_relation_edge",
+        "artifact_review_required",
+        "artifact_media_probe",
+        "native_fact",
+        "archive_member",
+        "sqlite_schema_object",
+        "sqlite_table",
+        "sqlite_relationship",
+        "sqlite_row",
+        "sqlite_receipt",
+        "review_required",
+        "sqlite_table_reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53",
+          "owner": "artifacts",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "artifacts"
+      ],
+      "version": 1,
+      "view_id": "artifacts.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "EXPECTS",
+        "SENT",
+        "ADDRESSES",
+        "RECEIVER_RECEIVED",
+        "RECEIVER_ADMITTED",
+        "RECEIVER_REJECTED",
+        "RECEIVER_NEEDS_CLARIFICATION",
+        "RECEIVER_SUPERSEDED",
+        "REPLIES_TO",
+        "CORRECTS",
+        "SUPERSEDES",
+        "ADDRESSES_CONTRACT",
+        "CITES",
+        "REQUESTS_REVISION",
+        "DECLARES_RETURN_ROUTE",
+        "CORRECTION_TRACE"
+      ],
+      "files": {
+        "dot": "canon-input.dot",
+        "mmd": "canon-input.mmd",
+        "pointer": "consequence-graph-pointer.json"
+      },
+      "folder": "authorities/canon",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "declared_owner_events",
+      "implementation_digest": "13090f969c0c51ec6d0cbf17ae5330ec9d94624cbbed9ecb6f26e257e6d05cd7",
+      "lane_id": "canon",
+      "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
+      "node_kinds": [
+        "canon_participant",
+        "canon_contract",
+        "canon_exchange",
+        "canon_exchange_reference",
+        "evidence_reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        },
+        {
+          "digest": "0511b2ff2d9ebb4e0ca014ed855fd1b5f8ef9163a1f94af6530a133ae321bd42",
+          "owner": "continuation",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": false
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "canon",
+        "continuation"
+      ],
+      "version": 1,
+      "view_id": "canon.consequences"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "PARENT_OF"
+      ],
+      "files": {
+        "dot": "chat_lineage.dot",
+        "mmd": "chat_lineage.mmd"
+      },
+      "folder": "authorities/chat_lineage",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "declared_owner_events",
+      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "lane_id": "chat_lineage",
+      "meaning": "Visible conversation events and their recorded parent ancestry.",
+      "node_kinds": [
+        "lineage_event"
+      ],
+      "pointer_scope": null,
+      "schemas": [
+        {
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c",
+          "owner": "lineage",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "lineage"
+      ],
+      "version": 1,
+      "view_id": "chat_lineage.ancestry"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "SELECTED_ROW",
+        "DECLARES_FOREIGN_KEY",
+        "REFERENCES_TABLE",
+        "REPORTS_ASSERTION"
+      ],
+      "files": {
+        "dot": "custom.dot",
+        "mmd": "custom.mmd",
+        "pointer": "lane_pointer.json"
+      },
+      "folder": "sectors/custom",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "lane_id": "custom",
+      "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
+      "node_kinds": [
+        "custom_source",
+        "custom_item",
+        "custom_evidence",
+        "custom_decision",
+        "custom_next_action",
+        "native_fact",
+        "archive_member",
+        "sqlite_schema_object",
+        "sqlite_table",
+        "sqlite_relationship",
+        "sqlite_row",
+        "sqlite_receipt",
+        "review_required",
+        "sqlite_table_reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "9c0a24403f1a5a2ab9ce6e6accbf30ca181fb8be89a8b234754d1f0fa959d4c1",
+          "owner": "custom",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "custom"
+      ],
+      "version": 1,
+      "view_id": "custom.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "REFERENCES",
+        "RELATES",
+        "DERIVES"
+      ],
+      "files": {
+        "dot": "data.dot",
+        "mmd": "data.mmd",
+        "pointer": "data.pointer.json"
+      },
+      "folder": "sectors/data",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "lane_id": "data",
+      "meaning": "Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.",
+      "node_kinds": [
+        "source",
+        "sheet",
+        "table",
+        "column",
+        "formula",
+        "query",
+        "reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+          "owner": "data",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "data"
+      ],
+      "version": 1,
+      "view_id": "data.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "REFERENCES",
+        "RELATES",
+        "DERIVES"
+      ],
+      "files": {
+        "dot": "data_excel.dot",
+        "mmd": "data_excel.mmd",
+        "pointer": "data_excel.pointer.json"
+      },
+      "folder": "sectors/data_excel",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "557f512c48cb56e9681fa8459c7a44c3d62bb2c5d1e0028710371f1dae3163d5",
+      "lane_id": "data_excel",
+      "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
+      "node_kinds": [
+        "source",
+        "sheet",
+        "table",
+        "column",
+        "formula",
+        "query",
+        "reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "2d9ed8dc3fd65096e0688668018942aa6d533d64d2e3933130583d3f5260bc06",
+          "owner": "dataexcel",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "data_excel"
+      ],
+      "version": 1,
+      "view_id": "data_excel.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS"
+      ],
+      "files": {
+        "dot": "docs.dot",
+        "mmd": "docs.mmd",
+        "pointer": "docs.pointer.json"
+      },
+      "folder": "sectors/docs",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "ca6a234f7964e58ec99d9f7b770f938c02352f74859932f5a24cfff118348193",
+      "lane_id": "docs",
+      "meaning": "Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.",
+      "node_kinds": [
+        "document",
+        "document_heading",
+        "document_table",
+        "document_image",
+        "document_content_control"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+          "owner": "docs",
+          "version": 1
+        },
+        {
+          "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+          "owner": "docs",
+          "version": 2
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "docs"
+      ],
+      "version": 1,
+      "view_id": "docs.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "DECLARES",
+        "ROUTES",
+        "DEPENDS_ON",
+        "IMPORTS",
+        "REFERENCES_HISTORY",
+        "PUBLISHES_INDEX"
+      ],
+      "files": {
+        "dot": "github_code.dot",
+        "mmd": "github_code.mmd",
+        "pointer": "github_code.pointer.json"
+      },
+      "folder": "sectors/github_code",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "head",
+      "implementation_digest": "6ba4b3c2a7d3878d067d119e32cdea879dbeb973e9e4fbe2a1f622813c6e262e",
+      "lane_id": "github_code",
+      "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
+      "node_kinds": [
+        "code_repo",
+        "code_file",
+        "code_symbol",
+        "app_route",
+        "dependency_item",
+        "git_commit",
+        "project_artifact"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "githubcode"
+      ],
+      "version": 1,
+      "view_id": "github_code.relationships"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "DERIVED_FROM",
+        "OCR_EVIDENCE",
+        "REQUIRES_REVIEW"
+      ],
+      "files": {
+        "dot": "media.dot",
+        "mmd": "media.mmd",
+        "pointer": "media.pointer.json"
+      },
+      "folder": "sectors/images_ocr",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "media_heads",
+      "implementation_digest": "7a40977b4817ace14448599811f26d71c5816bf6a34886fccafd4d74a1fedb4b",
+      "lane_id": "images_ocr",
+      "meaning": "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
+      "node_kinds": [
+        "media",
+        "media_frame",
+        "media_exif",
+        "media_svg_element",
+        "media_svg_text",
+        "media_stream",
+        "media_tag",
+        "media_ocr_run",
+        "media_ocr_line",
+        "media_review_frame",
+        "media_extraction"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "6118a44cd7fd776b8553dae51c188751a324e3edb733efac42337879c5a43215",
+          "owner": "media",
+          "version": 1
+        },
+        {
+          "digest": "e6b275e15b5028be6c3b20556d64814ef016cf9ea72836e02994af3824a0a074",
+          "owner": "media",
+          "version": 2
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "media"
+      ],
+      "version": 1,
+      "view_id": "images_ocr.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "VERIFIED_SOURCE_OF",
+        "PREVIOUS_VERSION"
+      ],
+      "files": {
+        "dot": "agent-learning.dot",
+        "mmd": "agent-learning.mmd"
+      },
+      "folder": "authorities/learning",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "declared_owner_events",
+      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "lane_id": "learning",
+      "meaning": "Verified observations, their exact source receipts and version relationships.",
+      "node_kinds": [
+        "learning_version",
+        "verified_exit"
+      ],
+      "pointer_scope": null,
+      "schemas": [
+        {
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38",
+          "owner": "learning",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": true,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "learning"
+      ],
+      "version": 1,
+      "view_id": "learning.provenance"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "DECLARES",
+        "ROUTES",
+        "DEPENDS_ON",
+        "IMPORTS",
+        "REFERENCES_HISTORY",
+        "PUBLISHES_INDEX"
+      ],
+      "files": {
+        "dot": "local_code.dot",
+        "mmd": "local_code.mmd",
+        "pointer": "local_code.pointer.json"
+      },
+      "folder": "sectors/local_code",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "head",
+      "implementation_digest": "6ba4b3c2a7d3878d067d119e32cdea879dbeb973e9e4fbe2a1f622813c6e262e",
+      "lane_id": "local_code",
+      "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
+      "node_kinds": [
+        "code_repo",
+        "code_file",
+        "code_symbol",
+        "app_route",
+        "dependency_item",
+        "git_commit",
+        "project_artifact"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "localcode"
+      ],
+      "version": 1,
+      "view_id": "local_code.relationships"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "DERIVED_FROM",
+        "EVIDENCES",
+        "LEARNED_FROM",
+        "MAPS_TO",
+        "RELATED_TO",
+        "REVOKES",
+        "SUPERSEDES",
+        "SUPPRESSES"
+      ],
+      "files": {
+        "dot": "memory.dot",
+        "mmd": "memory.mmd",
+        "pointer": "memory-pointer.json"
+      },
+      "folder": "authorities/memory",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "declared_owner_events",
+      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "lane_id": "memory",
+      "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
+      "node_kinds": [
+        "memory_locator"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "0d277f8548d70efecf566af4644273de352f812d261f815bc069d2d6007185e9",
+          "owner": "memory",
+          "version": 1
+        },
+        {
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+          "owner": "plan",
+          "version": 1
+        },
+        {
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+          "owner": "plan",
+          "version": 2
+        },
+        {
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+          "owner": "plan",
+          "version": 3
+        },
+        {
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38",
+          "owner": "learning",
+          "version": 1
+        },
+        {
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+          "owner": "canon",
+          "version": 1
+        },
+        {
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+          "owner": "canon",
+          "version": 2
+        },
+        {
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+          "owner": "canon",
+          "version": 3
+        },
+        {
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+          "owner": "canon",
+          "version": 4
+        },
+        {
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+          "owner": "canon",
+          "version": 5
+        },
+        {
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c",
+          "owner": "lineage",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": true,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "memory",
+        "plan",
+        "learning",
+        "canon"
+      ],
+      "version": 1,
+      "view_id": "memory.links"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "DISPLAYED_BY",
+        "DERIVED_FROM",
+        "OCR_EVIDENCE"
+      ],
+      "files": {
+        "dot": "pdf.dot",
+        "mmd": "pdf.mmd",
+        "pointer": "pdf.pointer.json"
+      },
+      "folder": "sectors/pdf_ocr",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "pdf_heads",
+      "implementation_digest": "cd849ab7274bc7c34e608f8709fba723f345cea7fd29052731d1b1041af51a59",
+      "lane_id": "pdf_ocr",
+      "meaning": "Page, native form/widget and separate OCR evidence locators.",
+      "node_kinds": [
+        "pdf",
+        "pdf_page",
+        "pdf_text_block",
+        "pdf_image",
+        "pdf_table",
+        "pdf_form_field",
+        "pdf_widget",
+        "pdf_outline",
+        "pdf_attachment",
+        "pdf_ocr_run",
+        "pdf_ocr_line"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77",
+          "owner": "pdfocr",
+          "version": 1
+        },
+        {
+          "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70",
+          "owner": "pdfocr",
+          "version": 2
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "pdfocr"
+      ],
+      "version": 1,
+      "view_id": "pdf_ocr.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "DEPENDS_ON"
+      ],
+      "files": {
+        "dot": "plan.dot",
+        "mmd": "plan.mmd",
+        "pointer": "plan-pointer.json"
+      },
+      "folder": "authorities/plan",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "declared_owner_events",
+      "implementation_digest": "1554d49eb5fb3530d012d2abd0b25a0e43764cb547937cca635910339eb46c4a",
+      "lane_id": "plan",
+      "meaning": "Current Plan tasks, states and declared dependencies.",
+      "node_kinds": [
+        "plan_task"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+          "owner": "plan",
+          "version": 1
+        },
+        {
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+          "owner": "plan",
+          "version": 2
+        },
+        {
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+          "owner": "plan",
+          "version": 3
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": false
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "plan"
+      ],
+      "version": 1,
+      "view_id": "plan.dependencies"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS"
+      ],
+      "files": {
+        "dot": "powerbi.dot",
+        "mmd": "powerbi.mmd",
+        "pointer": "powerbi.pointer.json"
+      },
+      "folder": "sectors/power_bi",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "3f033df904ee45a4a3305639cc69db7aed3a7accf53ea00810f4f4e31d619ef1",
+      "lane_id": "power_bi",
+      "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
+      "node_kinds": [
+        "powerbi",
+        "powerbi_project",
+        "powerbi_report",
+        "powerbi_page",
+        "powerbi_visual",
+        "powerbi_model",
+        "powerbi_table",
+        "powerbi_column",
+        "powerbi_measure",
+        "powerbi_relationship",
+        "powerbi_reference",
+        "powerbi_data_source",
+        "powerbi_hierarchy"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "dcfdd040d5cd009173fdbe795799239ae481ab0bf69e2348caaf0d9588ec16b4",
+          "owner": "powerbi",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "powerbi"
+      ],
+      "version": 1,
+      "view_id": "power_bi.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "NEXT"
+      ],
+      "files": {
+        "dot": "ppt.dot",
+        "mmd": "ppt.mmd",
+        "pointer": "ppt.pointer.json"
+      },
+      "folder": "sectors/ppt",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "5a7382ed1f557ccbf79317fca5c42114f00d8e5b77f0102d241099664d5e2c75",
+      "lane_id": "ppt",
+      "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
+      "node_kinds": [
+        "presentation",
+        "presentation_slide",
+        "presentation_shape",
+        "presentation_table",
+        "presentation_image",
+        "presentation_notes",
+        "presentation_chart"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91",
+          "owner": "ppt",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "ppt"
+      ],
+      "version": 1,
+      "view_id": "ppt.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS",
+        "SELECTED_ROW",
+        "DECLARES_FOREIGN_KEY",
+        "REFERENCES_TABLE",
+        "REPORTS_CITATION",
+        "RECORDS_QUERY",
+        "REPORTS_SEARCH_RESULT",
+        "EXTRACTED_FROM_SAVED_RESPONSE"
+      ],
+      "files": {
+        "dot": "research.dot",
+        "mmd": "research.mmd",
+        "pointer": "lane_pointer.json"
+      },
+      "folder": "sectors/research",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "lane_id": "research",
+      "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
+      "node_kinds": [
+        "research_source",
+        "research_question",
+        "research_hypothesis",
+        "research_method",
+        "research_evidence",
+        "research_finding",
+        "research_limitation",
+        "research_citation",
+        "research_open_question",
+        "research_receipt",
+        "native_fact",
+        "archive_member",
+        "sqlite_schema_object",
+        "sqlite_table",
+        "sqlite_relationship",
+        "sqlite_row",
+        "sqlite_receipt",
+        "review_required",
+        "captured_page",
+        "discovery_query",
+        "saved_page_extraction",
+        "saved_response_reference",
+        "sqlite_table_reference"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88",
+          "owner": "research",
+          "version": 1
+        },
+        {
+          "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f",
+          "owner": "research",
+          "version": 2
+        },
+        {
+          "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9",
+          "owner": "research",
+          "version": 3
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "research"
+      ],
+      "version": 1,
+      "view_id": "research.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS"
+      ],
+      "files": {
+        "dot": "tableau.dot",
+        "mmd": "tableau.mmd",
+        "pointer": "tableau.pointer.json"
+      },
+      "folder": "sectors/tableau",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "<lambda>",
+      "implementation_digest": "e962bf6dd006d079c76b4d7771062c8871ea956fd9810d9036ba73df174eb0fb",
+      "lane_id": "tableau",
+      "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
+      "node_kinds": [
+        "tableau",
+        "tableau_workbook",
+        "tableau_datasource",
+        "tableau_sheet",
+        "tableau_dashboard",
+        "tableau_story",
+        "tableau_connection",
+        "tableau_relationship",
+        "tableau_hyper_schema",
+        "tableau_hyper_table"
+      ],
+      "pointer_scope": "immutable_snapshot_navigation",
+      "schemas": [
+        {
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87",
+          "owner": "tableau",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": true
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "tableau"
+      ],
+      "version": 1,
+      "view_id": "tableau.structure"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "REGISTERS_PROJECT",
+        "REFERENCES_LANE",
+        "HASH_SOURCE",
+        "HASH_TARGET"
+      ],
+      "files": {
+        "dot": "bigger_universe.dot",
+        "mmd": "bigger_universe.mmd"
+      },
+      "folder": "authorities/universe",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "federation_view_head",
+      "implementation_digest": "a11fb6be622a7174feb16a3e09299beeb3b98afaf1bdaa19fb14037a33258042",
+      "lane_id": "universe",
+      "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
+      "node_kinds": [
+        "federation",
+        "federation_member",
+        "mini_brain",
+        "federation_edge"
+      ],
+      "pointer_scope": null,
+      "schemas": [
+        {
+          "digest": "25bc500aed38d1cbdf7bbdaa841024564b81e9f9fe54b07fc926f7646092c53b",
+          "owner": "federation",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": true,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": false
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "federation"
+      ],
+      "version": 1,
+      "view_id": "universe.federation"
+    },
+    {
+      "authority": "owning_lane_sqlite",
+      "consumer": "artifact_export",
+      "current_selector": "owning_lane_sqlite",
+      "edge_kinds": [
+        "CONTAINS_LANE",
+        "GOVERNS_TASK",
+        "DEPENDS_ON",
+        "REGISTERS_SOURCE",
+        "INDEXES_SOURCE",
+        "LINKS_PROJECT"
+      ],
+      "files": {
+        "dot": "project_universe.dot",
+        "mmd": "project_universe.mmd"
+      },
+      "folder": "authorities/universe",
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      },
+      "head_reader": "universe_topology_head",
+      "implementation_digest": "27102655df6ef2785429352b1bbd58850425a73abeb8349cbaa13e1241b5fd71",
+      "lane_id": "universe",
+      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.",
+      "node_kinds": [
+        "project",
+        "lane",
+        "plan_task",
+        "source_reference",
+        "linked_project"
+      ],
+      "pointer_scope": null,
+      "schemas": [
+        {
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+          "owner": "plan",
+          "version": 1
+        },
+        {
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+          "owner": "plan",
+          "version": 2
+        },
+        {
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+          "owner": "plan",
+          "version": 3
+        },
+        {
+          "digest": "eb6c022b95032fd4878e9143c5c4a654e7a4ff764d5a8915ebdd2852548ba23a",
+          "owner": "sources",
+          "version": 1
+        },
+        {
+          "digest": "c52b0c7790268be4c3846be088014a4377c9de49fdd6bfbf9f28278681a3cdc1",
+          "owner": "sources",
+          "version": 2
+        },
+        {
+          "digest": "738098e3bde2ea457809e5735318c13863466e2433789f8c8da5390ea49e4617",
+          "owner": "universe",
+          "version": 1
+        }
+      ],
+      "scope": {
+        "include_history": false,
+        "max_edges": 500,
+        "max_nodes": 200,
+        "query": false
+      },
+      "shared_tools": {
+        "dot": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile",
+          "primary": "python_graphviz"
+        },
+        "mmd": {
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "primary": "langgraph_graph_exporter"
+        }
+      },
+      "source_owners": [
+        "plan",
+        "sources",
+        "universe"
+      ],
+      "version": 1,
+      "view_id": "universe.topology"
+    }
+  ]
+}

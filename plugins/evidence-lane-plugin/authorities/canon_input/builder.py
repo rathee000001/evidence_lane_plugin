@@ -1,10 +1,11 @@
-"""Build/refresh binding for this separate authority support system."""
+"""canon: authenticated public SDK mutation binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import refresh_authority_support
+OWNER_ID = 'canon'
+ACTIONS = {'canon_backfire': True, 'canon_decide': True, 'canon_expect': True, 'canon_join': True, 'canon_receive': True, 'canon_send': True, 'canon_supersede': True, 'canon_task_edge_bind': True, 'canon_task_edge_register': True, 'canon_task_result': True}
 
-AUTHORITY_ID = "canon_input"
 
-def refresh(project_root):
-    return refresh_authority_support(project_root, AUTHORITY_ID)
+def build_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "refresh"]
+__all__ = ["OWNER_ID", "build_authority"]

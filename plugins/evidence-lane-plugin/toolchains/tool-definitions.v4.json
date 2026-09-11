@@ -1,0 +1,2955 @@
+{
+  "schema": "evidence-lane.tool-definitions.v4",
+  "status": "CURRENT_RETAINED_ONLY",
+  "entry_count": 103,
+  "source_provenance": [
+    {
+      "historical_path": "toolchains/tool-requirement-matrix.v1.json",
+      "sha256": "5f8b1604a59bb8b758af995ae43a1502d89068b327e99a7c32125eff1c19b10a",
+      "bytes": 23840,
+      "role": "admitted development input retired after v4 rebase"
+    },
+    {
+      "historical_path": "toolchains/tool-execution-routing.v1.json",
+      "sha256": "342b1fdb7a8502ca494f9fdf9709c294fdce42de5f419e99d974c94f65294988",
+      "bytes": 106783,
+      "role": "admitted development input retired after v4 rebase"
+    },
+    {
+      "historical_path": "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md",
+      "sha256": "046b9f3f82219f1b6a590ca5b10464efd46b427db5da1b925e845c10d50f0067",
+      "bytes": 63718,
+      "role": "admitted development input retired after v4 rebase"
+    },
+    {
+      "historical_path": "toolchains/additional-tool-definitions.v4.json",
+      "sha256": "125f5833ee13437c545336d66f9e65f73a8607bca84c51af97020bb51f65c764",
+      "bytes": 8516,
+      "role": "admitted development input retired after v4 rebase"
+    }
+  ],
+  "selection_rule": "Lane + operation + contract + permissions + readiness + resource/fidelity budget; never execute every listed tool",
+  "entries": [
+    {
+      "tool_id": "Git",
+      "name": "Git",
+      "kind": "native_tool",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Refs, commits, parents, blobs, changes, and reviewed delivery.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [
+        "CODE"
+      ],
+      "fallback": [],
+      "action_order": {
+        "CODE": 1
+      },
+      "implementation_owner": "git_optional.py + git_history.py",
+      "requirement": "REQUIRED_SHARED_PORTABLE_OR_HOST_GIT",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Python",
+      "name": "Python",
+      "kind": "native_tool",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Polyglot projection and native server runtime.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE",
+        "RUNTIME_API"
+      ],
+      "primary": [
+        "RUNTIME_API"
+      ],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 2,
+        "RUNTIME_API": 1
+      },
+      "implementation_owner": "service.py + workers.py + hook_contract.py",
+      "requirement": "REQUIRED",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "hashlib_pathlib",
+      "name": "hashlib pathlib",
+      "kind": "internal_component",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Exact hashing and bounded path handling.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [
+        "SOURCE_ROUTING"
+      ],
+      "fallback": [],
+      "action_order": {
+        "SOURCE_ROUTING": 1
+      },
+      "implementation_owner": "hashing.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SQLite_CAS",
+      "name": "SQLite CAS",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Separate SQLite databases, schema histories and files for each authority and sector; Root PV coordinates their published references.",
+      "lanes": [
+        "chat_lineage",
+        "custom",
+        "plan"
+      ],
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary": [],
+      "fallback": [
+        "GOVERNANCE"
+      ],
+      "action_order": {
+        "GOVERNANCE": 4
+      },
+      "implementation_owner": "storage.py + lanes.py + lane_transactions.py",
+      "requirement": "REQUIRED",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SQLite_FTS5_BM25",
+      "name": "SQLite FTS5 BM25",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Bounded indexed retrieval from the selected project or explicitly linked read-only source.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 4
+      },
+      "implementation_owner": "sqlite_indexing.py + lane_reader.py",
+      "requirement": "REQUIRED",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "APSW_SQLite_engine",
+      "name": "APSW SQLite engine",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Full SQLite API, backup/serialize/session/RBU/tracing, best-practice diagnostics, and per-lane benchmarked bulk-build option.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL",
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL",
+        "DATA"
+      ],
+      "action_order": {
+        "RETRIEVAL": 3,
+        "DATA": 3
+      },
+      "implementation_owner": "sqlite_execution.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "deterministic_TFIDF",
+      "name": "deterministic TFIDF",
+      "kind": "internal_component",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Explicit term statistics and retrieval parity.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 14
+      },
+      "implementation_owner": "hybrid_retrieval.py + lane_reader.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "LangGraph_Mermaid_engine",
+      "name": "LangGraph Mermaid engine",
+      "kind": "library",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "Mermaid graph compilation/export only for the relationship view required by the selected lane contract.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary": [],
+      "fallback": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 2
+      },
+      "implementation_owner": "graph_pipeline.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Python_Graphviz_DOT_engine",
+      "name": "Python Graphviz DOT engine",
+      "kind": "library",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "DOT construction only for the relationship view required by the selected lane contract.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary": [],
+      "fallback": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 4
+      },
+      "implementation_owner": "graph_pipeline.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "LlamaIndex_SQLite_indexer",
+      "name": "LlamaIndex SQLite indexer",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Bounded document/node construction and retrieval within the owning project schema, with FTS and refresh receipts.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 2
+      },
+      "implementation_owner": "sqlite_indexing.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Mermaid_CLI_mmdc",
+      "name": "Mermaid CLI mmdc",
+      "kind": "library",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "Optional rendering of a contract-required derived Mermaid view; SQLite records remain authoritative.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary": [],
+      "fallback": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 6
+      },
+      "implementation_owner": "native_toolchain.py (optional renderer)",
+      "requirement": "OPTIONAL_HIDDEN_RUNTIME_RENDERER",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Graphviz_dot",
+      "name": "Graphviz dot",
+      "kind": "native_tool",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "Strict DOT parse, validation, layout, and deterministic derived rendering for every Graphviz-generated DOT.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary": [],
+      "fallback": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 5
+      },
+      "implementation_owner": "native_toolchain.py + graph_pipeline.py",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Python_structural_parser",
+      "name": "Python structural parser",
+      "kind": "internal_component",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "Bounded structural extraction.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 9
+      },
+      "implementation_owner": "code_parsers.py + code_profile.py + code_workers.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "NodeJS_TypeScript",
+      "name": "NodeJS TypeScript",
+      "kind": "native_tool",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "JavaScript and TypeScript manifests, routes, and site build.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE",
+        "DEPLOYMENT"
+      ],
+      "primary": [
+        "DEPLOYMENT"
+      ],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 3,
+        "DEPLOYMENT": 1
+      },
+      "implementation_owner": "repository CI and remote_adapter build",
+      "requirement": "REQUIRED_REPOSITORY_ONLY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pytest",
+      "name": "pytest",
+      "kind": "library",
+      "layer": "Internal governance, build, and quality",
+      "description": "Executable Python contracts.",
+      "lanes": [],
+      "action_classes": [],
+      "primary": [],
+      "fallback": [],
+      "action_order": {},
+      "implementation_owner": "plugin tests + repository tests",
+      "requirement": "REQUIRED_CODE_ACCEPTANCE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Ruff",
+      "name": "Ruff",
+      "kind": "library",
+      "layer": "Internal governance, build, and quality",
+      "description": "Python quality checks.",
+      "lanes": [],
+      "action_classes": [],
+      "primary": [],
+      "fallback": [],
+      "action_order": {},
+      "implementation_owner": "repository quality gate",
+      "requirement": "REQUIRED_CONFIGURED_GATE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "MyPy",
+      "name": "MyPy",
+      "kind": "library",
+      "layer": "Internal governance, build, and quality",
+      "description": "Typed-source checks.",
+      "lanes": [],
+      "action_classes": [],
+      "primary": [],
+      "fallback": [],
+      "action_order": {},
+      "implementation_owner": "repository type gate",
+      "requirement": "REQUIRED_CONFIGURED_GATE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Secret_redactor",
+      "name": "Secret redactor",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Credential-shaped value exclusion.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 2
+      },
+      "implementation_owner": "redaction.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Hash_chain_writer",
+      "name": "Hash chain writer",
+      "kind": "internal_component",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Idempotent visible-turn commit and lineage continuity.",
+      "lanes": [
+        "chat_lineage"
+      ],
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary": [],
+      "fallback": [
+        "GOVERNANCE"
+      ],
+      "action_order": {
+        "GOVERNANCE": 5
+      },
+      "implementation_owner": "lineage.py + storage.py + lane_transactions.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "ENV_UOP_classifier",
+      "name": "ENV UOP classifier",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Full locked ENV/UOP source, mode and workflow classification with current authority, grant and bounded execution policy.",
+      "lanes": [],
+      "action_classes": [
+        "GOVERNANCE"
+      ],
+      "primary": [
+        "GOVERNANCE"
+      ],
+      "fallback": [],
+      "action_order": {
+        "GOVERNANCE": 1
+      },
+      "implementation_owner": "operating_modes.py + mode_governance.py + env_uop_tool_routing.py",
+      "requirement": "REQUIRED_INTERNAL_AI_ACTION_PLANE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "DOCX_OpenXML",
+      "name": "DOCX OpenXML",
+      "kind": "internal_component",
+      "layer": "Documents, OCR, and media",
+      "description": "Native document structure, bounded DOCX authoring and exact paragraph edits with preserved package members.",
+      "lanes": [
+        "docs"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 6
+      },
+      "implementation_owner": "document_parsers.py + document_workers.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "defusedxml",
+      "name": "defusedxml",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Hardened XML parsing.",
+      "lanes": [
+        "docs",
+        "ppt"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 8
+      },
+      "implementation_owner": "media_parsers.py + sector_evidence_parsers.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "OpenXML_CSV_JSON_parser",
+      "name": "OpenXML CSV JSON parser",
+      "kind": "internal_component",
+      "layer": "Data, Excel, and databases",
+      "description": "Deterministic structural extraction.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DOCUMENT",
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT",
+        "DATA"
+      ],
+      "action_order": {
+        "DOCUMENT": 9,
+        "DATA": 10
+      },
+      "implementation_owner": "document_parsers.py + spreadsheet_parsers.py + structured_data.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "openpyxl",
+      "name": "openpyxl",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Workbook fidelity.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 6
+      },
+      "implementation_owner": "data_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pandas",
+      "name": "pandas",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Bounded tabular inspection.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 4
+      },
+      "implementation_owner": "data_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "python_calamine",
+      "name": "python calamine",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Legacy Excel extraction.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 7
+      },
+      "implementation_owner": "spreadsheet_parsers.py + tabular_profile.py + sector_evidence_parsers.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pyarrow",
+      "name": "pyarrow",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Parquet schema and bounded samples.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 5
+      },
+      "implementation_owner": "structured_data.py + tabular_profile.py + sector_evidence_parsers.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "PPTX_OpenXML",
+      "name": "PPTX OpenXML",
+      "kind": "internal_component",
+      "layer": "Documents, OCR, and media",
+      "description": "Native declared slide order, notes, objects, tables, images and relationships; editable PPTX generation and exact package-preserving edits.",
+      "lanes": [
+        "ppt"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 7
+      },
+      "implementation_owner": "presentation_parsers.py + presentation_authoring.py + presentation_workers.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pypdf",
+      "name": "pypdf",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Native PDF text and embedded-image extraction.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 4
+      },
+      "implementation_owner": "pdf_parsers.py + pdf_authoring.py + pdf_profile.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pypdfium2",
+      "name": "pypdfium2",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Full-page PDF raster fallback.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 10
+      },
+      "implementation_owner": "document_rendering.py + PDF lane rendering",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pdfplumber",
+      "name": "pdfplumber",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Structural PDF extraction.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 3
+      },
+      "implementation_owner": "pdf_parsers.py + pdf_profile.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "RapidOCR_ONNX_Runtime",
+      "name": "RapidOCR ONNX Runtime",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Local OCR.",
+      "lanes": [
+        "images_ocr",
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [
+        "OCR_MEDIA"
+      ],
+      "fallback": [],
+      "action_order": {
+        "OCR_MEDIA": 1
+      },
+      "implementation_owner": "pdf_ocr.py + media_ocr.py + provider_ocr.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "pytesseract_Tesseract",
+      "name": "pytesseract Tesseract",
+      "kind": "native_tool",
+      "layer": "Documents, OCR, and media",
+      "description": "Secondary local OCR.",
+      "lanes": [
+        "images_ocr",
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 2
+      },
+      "implementation_owner": "pdf_ocr.py + media_ocr.py + shared_native_tools.py",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Pillow",
+      "name": "Pillow",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Page and image pixels plus metadata.",
+      "lanes": [
+        "images_ocr",
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 4
+      },
+      "implementation_owner": "media_parsers.py + media_transform.py + pdf_authoring.py + presentation_authoring.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Poppler_pdftotext_pdfinfo",
+      "name": "Poppler pdftotext pdfinfo",
+      "kind": "native_tool",
+      "layer": "Documents, OCR, and media",
+      "description": "Local PDF text extraction and metadata fallback as separate GPL executables with exact license/source receipt.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 5
+      },
+      "implementation_owner": "native_toolchain.py + PDF fallbacks",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Ghostscript",
+      "name": "Ghostscript",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "PostScript/PDF fallback only when a compatible AGPL deployment or Artifex commercial-license reference is explicitly configured; never bundled into the Evidence Lane runtime by default.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 6
+      },
+      "implementation_owner": "native_toolchain.py license-gated PDF fallback",
+      "requirement": "OPTIONAL_EXTERNAL_LICENSE_GATED",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "OpenCV",
+      "name": "OpenCV",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Image-region preprocessing.",
+      "lanes": [
+        "images_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 3
+      },
+      "implementation_owner": "pdf_ocr.py + media_ocr.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Custom_schema_compiler",
+      "name": "Custom schema compiler",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Bounded user-defined lane contract.",
+      "lanes": [
+        "custom"
+      ],
+      "action_classes": [
+        "SOURCE_ROUTING",
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING",
+        "DATA"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 7,
+        "DATA": 11
+      },
+      "implementation_owner": "custom_source_schema.py + source_intake.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SQLite_immutable_URI_reader",
+      "name": "SQLite immutable URI reader",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Read-only database and package inspection.",
+      "lanes": [],
+      "action_classes": [
+        "DOCUMENT",
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT",
+        "DATA"
+      ],
+      "action_order": {
+        "DOCUMENT": 11,
+        "DATA": 12
+      },
+      "implementation_owner": "source_sqlite.py + selected_sqlite_parser.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Safe_archive_intake",
+      "name": "Safe archive intake",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Member, path, and manifest validation.",
+      "lanes": [],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 3
+      },
+      "implementation_owner": "source_authority.py + sector_evidence_parsers.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Citation_binder",
+      "name": "Citation binder",
+      "kind": "internal_component",
+      "layer": "Web, research, and source intake",
+      "description": "Claim, source, and date evidence binding.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 8
+      },
+      "implementation_owner": "web_toolchain.py + research lane",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Project_inventory",
+      "name": "Project inventory",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Files, components, relationships, and conflicts.",
+      "lanes": [],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 4
+      },
+      "implementation_owner": "source_intake.py + source_authority.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Git_detector",
+      "name": "Git detector",
+      "kind": "internal_component",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Repository identity when a readable Git worktree exists.",
+      "lanes": [],
+      "action_classes": [
+        "SOURCE_ROUTING"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 5
+      },
+      "implementation_owner": "git_optional.py",
+      "requirement": "OPTIONAL_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Compatibility_mapper",
+      "name": "Compatibility mapper",
+      "kind": "internal_component",
+      "layer": "Internal governance, build, and quality",
+      "description": "Schema version and sector mapping.",
+      "lanes": [],
+      "action_classes": [
+        "SOURCE_ROUTING",
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "SOURCE_ROUTING",
+        "DATA"
+      ],
+      "action_order": {
+        "SOURCE_ROUTING": 6,
+        "DATA": 13
+      },
+      "implementation_owner": "custom_source_schema.py + source_intake.py",
+      "requirement": "REQUIRED_INTERNAL",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "MCP_Python_SDK",
+      "name": "MCP Python SDK",
+      "kind": "mcp_framework",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Typed native tool transport and results.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API",
+        "MCP_COMPOSITION"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API",
+        "MCP_COMPOSITION"
+      ],
+      "action_order": {
+        "RUNTIME_API": 5,
+        "MCP_COMPOSITION": 2
+      },
+      "implementation_owner": "mcp_adapter.py + internal_sdk.py + local_transport.py + remote_transport.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Pydantic",
+      "name": "Pydantic",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Request and result validation.",
+      "lanes": [],
+      "action_classes": [
+        "GOVERNANCE",
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "GOVERNANCE",
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "GOVERNANCE": 3,
+        "RUNTIME_API": 6
+      },
+      "implementation_owner": "typed tool/request/result modules",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "HTTPX",
+      "name": "HTTPX",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Bounded HTTP client transport.",
+      "lanes": [],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 10
+      },
+      "implementation_owner": "web_toolchain.py + persistence.py + GitHub adapter",
+      "requirement": "REQUIRED_FOR_CONFIGURED_NETWORK_ADAPTERS",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Cryptography_PyJWT",
+      "name": "Cryptography PyJWT",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Envelope and JWT verification primitives.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 14
+      },
+      "implementation_owner": "auth.py + protected remote profiles",
+      "requirement": "REQUIRED_PROTECTED_REMOTE_PROFILES",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "PowerShell_Win32_APIs",
+      "name": "PowerShell Win32 APIs",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Windows process ownership, bounded background launch and current-user credential/runtime operations; PID is not native task attestation.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 13
+      },
+      "implementation_owner": "startup.py + shortcuts.py + windows_studio_launcher",
+      "requirement": "REQUIRED_WINDOWS_HOST",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "ripgrep_15_2_0",
+      "name": "ripgrep 15 2 0",
+      "kind": "library",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Exact hash-pinned file and content search; never the FTS authority.",
+      "lanes": [],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 7
+      },
+      "implementation_owner": "search_toolchain.py",
+      "requirement": "PACKAGED_PRE_INDEX_HELPER",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SevenZip_NSIS_extractor",
+      "name": "SevenZip NSIS extractor",
+      "kind": "native_tool",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Hash-pinned non-elevated extraction of the pinned Tesseract NSIS payload into the hidden plugin runtime.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 15
+      },
+      "implementation_owner": "build_first_detection_release.py + native-tool-definitions.v4.json",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "jq",
+      "name": "jq",
+      "kind": "native_tool",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Deterministic bounded JSON projection and verification.",
+      "lanes": [],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 8
+      },
+      "implementation_owner": "native_toolchain.py JSON validation/projection",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "FFmpeg",
+      "name": "FFmpeg",
+      "kind": "native_tool",
+      "layer": "Documents, OCR, and media",
+      "description": "Media metadata, bounded frame/audio extraction, and codec inspection through the hidden imageio-ffmpeg wheel binary.",
+      "lanes": [
+        "artifacts",
+        "images_ocr"
+      ],
+      "action_classes": [
+        "OCR_MEDIA"
+      ],
+      "primary": [],
+      "fallback": [
+        "OCR_MEDIA"
+      ],
+      "action_order": {
+        "OCR_MEDIA": 7
+      },
+      "implementation_owner": "native_toolchain.py media probe/extraction",
+      "requirement": "REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "PyMuPDF",
+      "name": "PyMuPDF",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Primary high-fidelity PDF extraction and page geometry.",
+      "lanes": [
+        "docs",
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT"
+      ],
+      "action_order": {
+        "DOCUMENT": 2
+      },
+      "implementation_owner": "pdf_parsers.py + pdf_profile.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Docling",
+      "name": "Docling",
+      "kind": "library",
+      "layer": "Documents, OCR, and media",
+      "description": "Primary rich document structure conversion; lane-specific fallbacks remain explicit.",
+      "lanes": [
+        "docs",
+        "pdf_ocr",
+        "ppt"
+      ],
+      "action_classes": [
+        "DOCUMENT"
+      ],
+      "primary": [
+        "DOCUMENT"
+      ],
+      "fallback": [],
+      "action_order": {
+        "DOCUMENT": 1
+      },
+      "implementation_owner": "document_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "lxml",
+      "name": "lxml",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Hardened structured XML and HTML parsing.",
+      "lanes": [
+        "docs",
+        "ppt"
+      ],
+      "action_classes": [
+        "DOCUMENT",
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "DOCUMENT",
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "DOCUMENT": 5,
+        "WEB_RESEARCH": 4
+      },
+      "implementation_owner": "web_toolchain.py + lane XML processing",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "BeautifulSoup4",
+      "name": "BeautifulSoup4",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Bounded HTML DOM extraction fallback.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 3
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "markdownify",
+      "name": "markdownify",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "HTML-to-Markdown projection.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 5
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "html2text",
+      "name": "html2text",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Secondary HTML-to-text conversion.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 6
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "trafilatura",
+      "name": "trafilatura",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Primary article/content extraction.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [
+        "WEB_RESEARCH"
+      ],
+      "fallback": [],
+      "action_order": {
+        "WEB_RESEARCH": 1
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "DuckDB",
+      "name": "DuckDB",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Analytical SQL over tabular/Parquet sources without replacing project SQLite authority.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [
+        "DATA"
+      ],
+      "fallback": [],
+      "action_order": {
+        "DATA": 1
+      },
+      "implementation_owner": "tabular_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SQLAlchemy",
+      "name": "SQLAlchemy",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Typed external database inspection and dialect mediation.",
+      "lanes": [
+        "custom",
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 9
+      },
+      "implementation_owner": "data_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Tableau_Hyper_API",
+      "name": "Tableau Hyper API",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Tableau Hyper extraction and schema inspection.",
+      "lanes": [
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 8
+      },
+      "implementation_owner": "data_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "LangChain",
+      "name": "LangChain",
+      "kind": "mcp_framework",
+      "layer": "RAG and workflow composition",
+      "description": "Runnable/tool composition beneath the selected lane contract and the engine permission, readiness and budget checks.",
+      "lanes": [],
+      "action_classes": [
+        "RETRIEVAL",
+        "GRAPH"
+      ],
+      "primary": [
+        "RETRIEVAL",
+        "GRAPH"
+      ],
+      "fallback": [],
+      "action_order": {
+        "RETRIEVAL": 1,
+        "GRAPH": 1
+      },
+      "implementation_owner": "hybrid_retrieval.py + graph_pipeline.py + SDK",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "SentenceTransformers",
+      "name": "SentenceTransformers",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Local semantic embedding primary where the lane permits vectors.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 8
+      },
+      "implementation_owner": "semantic_retrieval.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "FAISS_CPU",
+      "name": "FAISS CPU",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Local ephemeral/vector-sidecar retrieval; SQLite remains durable authority.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 9
+      },
+      "implementation_owner": "hybrid_retrieval.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "rank_bm25",
+      "name": "rank bm25",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Lexical parity/fallback verification beside SQLite FTS5 BM25.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 6
+      },
+      "implementation_owner": "hybrid_retrieval.py + sqlite_indexing.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "FastAPI",
+      "name": "FastAPI",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Typed private runtime API host.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 2
+      },
+      "implementation_owner": "runtime_api.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Uvicorn",
+      "name": "Uvicorn",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "ASGI server for configured persistent engine API hosting.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 3
+      },
+      "implementation_owner": "runtime_api.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Pydantic_Settings",
+      "name": "Pydantic Settings",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Typed secret-free runtime configuration.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 7
+      },
+      "implementation_owner": "runtime_api.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "python_multipart",
+      "name": "python multipart",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Bounded multipart source intake.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 8
+      },
+      "implementation_owner": "runtime_api.py source staging",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Requests",
+      "name": "Requests",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Synchronous bounded HTTP fallback behind HTTPX.",
+      "lanes": [],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 11
+      },
+      "implementation_owner": "web_toolchain.py fallback",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "aiofiles",
+      "name": "aiofiles",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Bounded asynchronous file streaming.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 9
+      },
+      "implementation_owner": "runtime_api.py bounded staging",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "orjson",
+      "name": "orjson",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Fast deterministic JSON transport; canonical hashing still uses the internal serializer.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 10
+      },
+      "implementation_owner": "runtime_api.py response transport",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "python_dotenv",
+      "name": "python dotenv",
+      "kind": "library",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Development configuration loader; secrets are never committed or copied into project authority.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 16
+      },
+      "implementation_owner": "runtime_api.py maintainer-only loader",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Tenacity",
+      "name": "Tenacity",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Bounded retry policy with explicit limits and receipts.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 11
+      },
+      "implementation_owner": "web_toolchain.py bounded retry",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "DDGS",
+      "name": "DDGS",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Configured web discovery fallback; not used without the active lane and network policy.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 9
+      },
+      "implementation_owner": "web_toolchain.py explicit discovery",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "PyGithub",
+      "name": "PyGithub",
+      "kind": "library",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "GitHub API inspection and reviewed delivery support.",
+      "lanes": [
+        "github_code"
+      ],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 5
+      },
+      "implementation_owner": "github_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "GitPython",
+      "name": "GitPython",
+      "kind": "library",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Repository graph and object inspection beside the Git CLI.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 4
+      },
+      "implementation_owner": "git_optional.py parity",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "tldextract",
+      "name": "tldextract",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Registrable-domain normalization.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 7
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "validators",
+      "name": "validators",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Typed URL and locator validation.",
+      "lanes": [],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 8
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "readability_lxml",
+      "name": "readability lxml",
+      "kind": "library",
+      "layer": "Web, research, and source intake",
+      "description": "Readable-content extraction fallback after Trafilatura.",
+      "lanes": [
+        "research"
+      ],
+      "action_classes": [
+        "WEB_RESEARCH"
+      ],
+      "primary": [],
+      "fallback": [
+        "WEB_RESEARCH"
+      ],
+      "action_order": {
+        "WEB_RESEARCH": 2
+      },
+      "implementation_owner": "web_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Polars",
+      "name": "Polars",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Lazy and streaming CSV/Parquet/NDJSON transforms with projection and predicate pushdown; DuckDB remains analytical SQL primary and results persist to owning SQLite.",
+      "lanes": [
+        "artifacts",
+        "data_excel"
+      ],
+      "action_classes": [
+        "DATA"
+      ],
+      "primary": [],
+      "fallback": [
+        "DATA"
+      ],
+      "action_order": {
+        "DATA": 2
+      },
+      "implementation_owner": "tabular_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "TreeSitter_LanguagePack",
+      "name": "TreeSitter LanguagePack",
+      "kind": "library",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "Multi-language concrete syntax trees, symbols, imports, calls, and syntax-error-tolerant structural extraction; deterministic parser remains fallback.",
+      "lanes": [
+        "github_code",
+        "local_code"
+      ],
+      "action_classes": [
+        "CODE"
+      ],
+      "primary": [],
+      "fallback": [
+        "CODE"
+      ],
+      "action_order": {
+        "CODE": 6
+      },
+      "implementation_owner": "code_toolchain.py + ingest.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "rustworkx",
+      "name": "rustworkx",
+      "kind": "library",
+      "layer": "Graphs, AST, and reconciliation",
+      "description": "High-performance graph connectivity, cycle, component, shortest-path, and centrality analysis over SQLite-derived graphs.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "GRAPH"
+      ],
+      "primary": [],
+      "fallback": [
+        "GRAPH"
+      ],
+      "action_order": {
+        "GRAPH": 3
+      },
+      "implementation_owner": "graph_pipeline.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "sqlite_vec",
+      "name": "sqlite vec",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Optional SQLite-local vector index when extension loading and the active lane policy pass; FTS5/BM25 remains mandatory and SQLite identities remain canonical.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 5
+      },
+      "implementation_owner": "semantic_retrieval.py",
+      "requirement": "CONDITIONAL_SQLITE_VECTOR_EXTENSION",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "HuggingFace_Hub_ModelSnapshot",
+      "name": "HuggingFace Hub ModelSnapshot",
+      "kind": "library",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Local-update-only revision-pinned BAAI/bge-small-en-v1.5 snapshot acquisition into the hidden runtime; normal lane execution is offline and never calls the Hub.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 17
+      },
+      "implementation_owner": "build_first_detection_release.py + embedding-model.v4.json",
+      "requirement": "REQUIRED_LOCAL_UPDATE_MODEL_ACQUISITION",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "NextJS_React_ThreeJS_FramerMotion",
+      "name": "NextJS React ThreeJS FramerMotion",
+      "kind": "library",
+      "layer": "Git, search, JSON, CI, and public adapter",
+      "description": "Static documentation, interaction, and visual rendering; no project authority.",
+      "lanes": [],
+      "action_classes": [
+        "DEPLOYMENT"
+      ],
+      "primary": [],
+      "fallback": [
+        "DEPLOYMENT"
+      ],
+      "action_order": {
+        "DEPLOYMENT": 2
+      },
+      "implementation_owner": "remote_adapter documentation projection",
+      "requirement": "REPOSITORY_PUBLIC_ADAPTER_ONLY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "OpenAI_Agents_SDK",
+      "name": "OpenAI Agents SDK",
+      "kind": "mcp_framework",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "Typed function-tool and MCP utility library; it does not create another agent owner or a separate Plan or memory authority.",
+      "lanes": [],
+      "action_classes": [
+        "GOVERNANCE",
+        "RETRIEVAL",
+        "CODE",
+        "DOCUMENT",
+        "OCR_MEDIA",
+        "DATA",
+        "WEB_RESEARCH",
+        "GRAPH",
+        "RUNTIME_API"
+      ],
+      "primary": [],
+      "fallback": [
+        "GOVERNANCE",
+        "RETRIEVAL",
+        "CODE",
+        "DOCUMENT",
+        "OCR_MEDIA",
+        "DATA",
+        "WEB_RESEARCH",
+        "GRAPH",
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "GOVERNANCE": 6,
+        "RETRIEVAL": 15,
+        "CODE": 12,
+        "DOCUMENT": 12,
+        "OCR_MEDIA": 8,
+        "DATA": 15,
+        "WEB_RESEARCH": 12,
+        "GRAPH": 7,
+        "RUNTIME_API": 22
+      },
+      "implementation_owner": "ecosystem_toolchain.py + internal_sdk.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "FastMCP",
+      "name": "FastMCP",
+      "kind": "mcp_framework",
+      "layer": "Persistent engine, MCP, and APIs",
+      "description": "MCP server/client composition framework beneath the typed action registry; distinct from connecting host clients and external tool providers.",
+      "lanes": [],
+      "action_classes": [
+        "RUNTIME_API",
+        "MCP_COMPOSITION"
+      ],
+      "primary": [
+        "MCP_COMPOSITION"
+      ],
+      "fallback": [
+        "RUNTIME_API"
+      ],
+      "action_order": {
+        "RUNTIME_API": 4,
+        "MCP_COMPOSITION": 1
+      },
+      "implementation_owner": "ecosystem_toolchain.py + mcp_server.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Pinecone",
+      "name": "Pinecone",
+      "kind": "external_service",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Conditional remote vector index adapter; content identities and durable truth remain in owning SQLite.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 10
+      },
+      "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Weaviate",
+      "name": "Weaviate",
+      "kind": "external_service",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Conditional remote hybrid/vector index adapter; rebuildable evidence index only.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 11
+      },
+      "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Milvus",
+      "name": "Milvus",
+      "kind": "external_service",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Conditional remote vector collection adapter; rebuildable evidence index only.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 12
+      },
+      "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "OpenSearch",
+      "name": "OpenSearch",
+      "kind": "external_service",
+      "layer": "Authority, indexing, and retrieval",
+      "description": "Conditional remote lexical/vector search adapter; SQLite/FTS identities remain canonical.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "RETRIEVAL"
+      ],
+      "primary": [],
+      "fallback": [
+        "RETRIEVAL"
+      ],
+      "action_order": {
+        "RETRIEVAL": 13
+      },
+      "implementation_owner": "context_index_routing.py + hybrid_retrieval.py",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "LangSmith",
+      "name": "LangSmith",
+      "kind": "external_service",
+      "layer": "Evaluation and testing",
+      "description": "Exact connector-bound feedback creation for one pre-existing run; Evidence Lane exports a bounded score and hash-only metadata but does not perform the evaluation.",
+      "lanes": [
+        "custom",
+        "github_code",
+        "local_code",
+        "plan",
+        "research"
+      ],
+      "action_classes": [
+        "EVALUATION"
+      ],
+      "primary": [
+        "EVALUATION"
+      ],
+      "fallback": [],
+      "action_order": {
+        "EVALUATION": 1
+      },
+      "implementation_owner": "evaluation_toolchain.py + ai_toolchain.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Langfuse",
+      "name": "Langfuse",
+      "kind": "external_service",
+      "layer": "Observability and telemetry",
+      "description": "Exact connector-bound OTLP/HTTP JSON delivery of one complete hash-only span; no background SDK queue or raw prompt/response export.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "OBSERVABILITY"
+      ],
+      "primary": [],
+      "fallback": [
+        "OBSERVABILITY"
+      ],
+      "action_order": {
+        "OBSERVABILITY": 2
+      },
+      "implementation_owner": "observability_toolchain.py + external_evidence_delivery.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "OpenTelemetry",
+      "name": "OpenTelemetry",
+      "kind": "external_service",
+      "layer": "Observability and telemetry",
+      "description": "Exact connector-bound OTLP/HTTP JSON trace, metric or log delivery with one bounded synchronous request.",
+      "lanes": [
+        "artifacts",
+        "chat_lineage",
+        "custom",
+        "data_excel",
+        "docs",
+        "github_code",
+        "images_ocr",
+        "local_code",
+        "pdf_ocr",
+        "plan",
+        "ppt",
+        "research"
+      ],
+      "action_classes": [
+        "OBSERVABILITY"
+      ],
+      "primary": [
+        "OBSERVABILITY"
+      ],
+      "fallback": [],
+      "action_order": {
+        "OBSERVABILITY": 1
+      },
+      "implementation_owner": "observability_toolchain.py + runtime trace correlation",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "Grafana",
+      "name": "Grafana",
+      "kind": "external_service",
+      "layer": "Observability and telemetry",
+      "description": "Configured dashboard/alert/trace-link evidence consumer; never execution authority.",
+      "lanes": [],
+      "action_classes": [
+        "OBSERVABILITY"
+      ],
+      "primary": [],
+      "fallback": [
+        "OBSERVABILITY"
+      ],
+      "action_order": {
+        "OBSERVABILITY": 4
+      },
+      "implementation_owner": "observability_toolchain.py + runtime evidence route",
+      "requirement": "CONFIGURED_EXTERNAL_SERVICE",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false
+    },
+    {
+      "tool_id": "LibreOffice",
+      "name": "LibreOffice",
+      "kind": "native_tool",
+      "layer": "Documents, OCR, and media",
+      "description": "Owned headless Office conversion and PDF rendering from a pinned shared runtime.",
+      "lanes": [
+        "docs",
+        "ppt",
+        "data_excel"
+      ],
+      "action_classes": [
+        "DOCUMENT_RENDER",
+        "OFFICE_CONVERT"
+      ],
+      "primary": [
+        "DOCUMENT_RENDER",
+        "OFFICE_CONVERT"
+      ],
+      "fallback": [],
+      "action_order": {
+        "DOCUMENT_RENDER": 1,
+        "OFFICE_CONVERT": 1
+      },
+      "implementation_owner": "document_rendering.py",
+      "requirement": "REQUIRED_NATIVE_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false,
+      "addition_reason": "The retained Office generation and render operations require a real shared office renderer."
+    },
+    {
+      "tool_id": "PowerBI_TOM",
+      "name": "Microsoft Power BI TOM",
+      "kind": "native_tool",
+      "layer": "Data, Excel, and databases",
+      "description": "Owned offline BIM/TMDL semantic model deserialization and serialization; no live connection or DAX execution.",
+      "lanes": [
+        "power_bi"
+      ],
+      "action_classes": [
+        "POWERBI_MODEL"
+      ],
+      "primary": [
+        "POWERBI_MODEL"
+      ],
+      "fallback": [],
+      "action_order": {
+        "POWERBI_MODEL": 1
+      },
+      "implementation_owner": "powerbi_native.py + toolchains/powerbi-adapter",
+      "requirement": "REQUIRED_NATIVE_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false,
+      "addition_reason": "The Power BI lane requires actual native model/data access and validated report definitions."
+    },
+    {
+      "tool_id": "PBIXRay",
+      "name": "PBIXRay isolated model reader",
+      "kind": "native_tool",
+      "layer": "Data, Excel, and databases",
+      "description": "Read embedded PBIX model metadata and bounded stored table rows through a pinned Python 3.13 runtime.",
+      "lanes": [
+        "power_bi"
+      ],
+      "action_classes": [
+        "POWERBI_STORED_DATA"
+      ],
+      "primary": [
+        "POWERBI_STORED_DATA"
+      ],
+      "fallback": [],
+      "action_order": {
+        "POWERBI_STORED_DATA": 1
+      },
+      "implementation_owner": "powerbi_native.py + powerbi_pbix_child.py",
+      "requirement": "REQUIRED_NATIVE_BINARY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false,
+      "addition_reason": "The Power BI lane requires actual native model/data access and validated report definitions."
+    },
+    {
+      "tool_id": "JSONSchema",
+      "name": "JSON Schema offline validator",
+      "kind": "library",
+      "layer": "Data, Excel, and databases",
+      "description": "Validate retained Power BI project/report definitions against exact packaged Microsoft schema versions without network resolution.",
+      "lanes": [
+        "power_bi"
+      ],
+      "action_classes": [
+        "POWERBI_REPORT_SCHEMA"
+      ],
+      "primary": [
+        "POWERBI_REPORT_SCHEMA"
+      ],
+      "fallback": [],
+      "action_order": {
+        "POWERBI_REPORT_SCHEMA": 1
+      },
+      "implementation_owner": "powerbi_json_schema.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false,
+      "addition_reason": "The Power BI lane requires actual native model/data access and validated report definitions."
+    },
+    {
+      "tool_id": "ReportLab",
+      "name": "ReportLab PDF authoring",
+      "kind": "library",
+      "layer": "Documents, PDF, OCR, and media",
+      "description": "Bounded PDF generation with embedded text fonts, tables, exact embedded images and interactive AcroForm fields.",
+      "lanes": [
+        "pdf_ocr"
+      ],
+      "action_classes": [
+        "PDF_GENERATE"
+      ],
+      "primary": [
+        "PDF_GENERATE"
+      ],
+      "fallback": [],
+      "action_order": {
+        "PDF_GENERATE": 1
+      },
+      "implementation_owner": "pdf_authoring.py",
+      "requirement": "REQUIRED_DEPENDENCY",
+      "lifecycle": "retained",
+      "retirement_reason": null,
+      "v4_operation_qualification": "pending",
+      "execution_authorized_by_catalog": false,
+      "addition_reason": "Retained PDF generation requires an actual authoring dependency, including interactive fields."
+    }
+  ]
+}

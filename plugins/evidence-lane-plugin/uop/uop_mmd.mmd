@@ -1,9 +1,9 @@
 flowchart TB
-%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=D8C950B0E697B0C116BD650FE8EA18BD33114C329CB289FB8DFBCF20A2FD482B
+%% LANGGRAPH_EXPORT_SHA256=5F2514272F289888506CE9FD885E4C4BD45C8782B175DE867282678CB4EA2F81
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=49
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=10
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,353 +15,1096 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
-  INPUT["ENV-selected Codex action context"]:::root
-  SOURCE["Source and authority precedence"]:::semantic
-  GATES["Work, privacy, disclosure, direct-purge and HIL gates"]:::warn
-  OPERATOR["Applicable governance operators only"]:::semantic
-  FALLBACK["Declared same-class fallback only"]:::semantic
-  OUTPUT["Governed result + receipt; cannot override ENV or Project Truth"]:::output
-  UOP15_BEHAVIOR_ROOT["Complete adapted ChatGPT UOP15 working behavior; Codex-governed, never host authority"]:::source
-  UOP15_BLOCK["BLOCK: block private personal/family/health/recruiter payload &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_COMPRESS["COMPRESS: knowledge compression operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_DBFORM["DBFORM: operators stored as relational rows / no private story &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_DELTA["DELTA: delta preservation operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_DISC["DISC: disclosure boundary operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_FU["FU: mode == flash_uop? &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_HUMAN["HUMAN: human gate operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_LANE["LANE: guide lane/formula selection &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_MODE["MODE: mode-cluster operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_NOENV["NOENV: CAN_OVERRIDE_ENV=false &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_NOPROJ["NOPROJ: CAN_OVERRIDE_PROJECT=false &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_PRECEDENCE["PRECEDENCE: direct / lineage-derived / telemetry / temp topology &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_PROFILE["PROFILE: .uepc_profile &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_RECEIPT["RECEIPT: operator receipt written to exit slip &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_ROUTE["ROUTE: source -&gt; gate -&gt; actor -&gt; constraint -&gt; action -&gt; output -&gt; validation -&gt; delta -&gt; next &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_SPATIAL["SPATIAL: spatial route operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_SRCSTATE["SRCSTATE: source-state operators &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_START["START: Prompt enters &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP14_DEEPRESEARCH["UOP14_DEEPRESEARCH: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP14_FUTURE_LAYER["UOP14_FUTURE_LAYER: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP14_PROMPT_OVERRIDE["UOP14_PROMPT_OVERRIDE: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP151_EXIT_GOVERNANCE["UOP151_EXIT_GOVERNANCE: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP15_LEGACY["UOP15_LEGACY: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP15_PUBLIC_LOCK["UOP15_PUBLIC_LOCK: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP15_RESEARCH["UOP15_RESEARCH: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOP15_SECTOR_GUIDANCE["UOP15_SECTOR_GUIDANCE: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOPLAW["UOPLAW: uop/uop_law.md &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOPLOCK["UOPLOCK: UOP write lock &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOPMUTATE["UOPMUTATE: scoped UOP mutation allowed &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOPRO["UOPRO: read-only UOP governance &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_UOPSQL["UOPSQL: uop/uop_sqlite.sqlite &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_NO["no: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  UOP15_YES["yes: &#124; owner=UOP_GENERAL_GOVERNANCE &#124; ACTIVE_ADAPTED"]:::semantic
-  subgraph OPERATORS["Operators"]
+  ROOT["UOP: locked operating policy and current executable bindings"]:::root
+  subgraph GROUP_uop_accelerator_policy_v4["uop accelerator policy"]
     direction TB
-    OPERATORS_ACCELERATOR_BUDGET_GATE["ACCELERATOR_BUDGET_GATE: Require user vendor-plugin grant, compatible runtime, bounded telemetry, no throttle, configured VRAM budget, and visible CPU fallback"]:::semantic
-    OPERATORS_DIRECT_PURGE_GATE["DIRECT_PURGE_GATE: Remove replaced route and references in the same Delta"]:::semantic
-    OPERATORS_DISCLOSURE_GATE["DISCLOSURE_GATE: Emit only user-visible result and receipt"]:::semantic
-    OPERATORS_ENTRY_SLIP_GATE["ENTRY_SLIP_GATE: Entry Slip classifies intent and focus; it is not an Exit Slip"]:::semantic
-    OPERATORS_EXIT_SLIP_GATE["EXIT_SLIP_GATE: Delta-exit append never emits an Exit Slip"]:::semantic
-    OPERATORS_FALLBACK_GATE["FALLBACK_GATE: Only declared same-class fallback may run and failure remains visible"]:::semantic
-    OPERATORS_LEARNING_HIL_GATE["LEARNING_HIL_GATE: Learning approval remains separate from Project approval"]:::semantic
-    OPERATORS_PRIVACY_GATE["PRIVACY_GATE: Secrets and private reasoning never leave their authority"]:::semantic
-    OPERATORS_PROJECT_HIL_GATE["PROJECT_HIL_GATE: Only exact owning Project token may promote"]:::semantic
-    OPERATORS_SOURCE_PRECEDENCE["SOURCE_PRECEDENCE: No source payload changes authority by itself"]:::semantic
-    OPERATORS_WORK_GATE["WORK_GATE: Only condition-true bounded work may run"]:::semantic
+    TABLE_uop_accelerator_policy_v4["uop_accelerator_policy_v4"]:::semantic
+    ROW_uop_accelerator_policy_v4_1["CPU<br/>DECLARED_POLICY"]:::semantic
+    ROW_uop_accelerator_policy_v4_2["NVIDIA_CUDA<br/>DECLARED_POLICY"]:::semantic
+    ROW_uop_accelerator_policy_v4_3["AMD_ROCM<br/>DECLARED_POLICY"]:::semantic
+    ROW_uop_accelerator_policy_v4_4["DIRECTML<br/>DECLARED_POLICY"]:::semantic
   end
-  subgraph HIL_POLICIES["Hil_Policies"]
+  subgraph GROUP_uop_action_policy_v4["uop action policy"]
     direction TB
-    HIL_POLICIES_CODE_REPOSITORY["CODE_REPOSITORY: PROJECT_AND_LEARNING"]:::warn
-    HIL_POLICIES_CUSTOM_PROJECT["CUSTOM_PROJECT: EXPLICIT_CUSTOM_SCHEMA"]:::warn
-    HIL_POLICIES_DATA_PROJECT["DATA_PROJECT: PROJECT_AND_LEARNING"]:::warn
-    HIL_POLICIES_DOCUMENT_PROJECT["DOCUMENT_PROJECT: PROJECT_AND_LEARNING"]:::warn
-    HIL_POLICIES_MEDIA_PROJECT["MEDIA_PROJECT: PROJECT_AND_LEARNING"]:::warn
-    HIL_POLICIES_MIXED_PROJECT["MIXED_PROJECT: PROJECT_AND_LEARNING"]:::warn
-    HIL_POLICIES_RESEARCH_STUDY["RESEARCH_STUDY: PROJECT_AND_LEARNING"]:::warn
+    TABLE_uop_action_policy_v4["uop_action_policy_v4"]:::semantic
+    ROW_uop_action_policy_v4_1["accelerator_configure<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_2["accelerator_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_3["artifacts_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_4["artifacts_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_5["artifacts_index_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_6["artifacts_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_7["artifacts_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_8["artifacts_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_9["artifacts_refresh_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_10["bigger_universe_create<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_11["bigger_universe_grant<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_12["bigger_universe_link<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_13["bigger_universe_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_14["bigger_universe_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_15["bigger_universe_revoke<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_16["bigger_universe_verify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_17["brain_slice_select<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_18["canon_backfire<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_19["canon_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_20["canon_decide<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_21["canon_expect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_22["canon_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_23["canon_inbox<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_24["canon_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_25["canon_join<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_26["canon_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_27["canon_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_28["canon_receive<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_29["canon_send<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_30["canon_supersede<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_31["canon_task_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_32["canon_task_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_33["canon_task_result<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_34["capture_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_35["client_context<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_36["code_apply<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_37["code_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_38["code_impact<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_39["code_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_40["code_index_git<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_41["code_index_syntax<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_42["code_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_43["code_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_44["code_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_45["code_refresh_git<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_46["code_semantic_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_47["code_semantic_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_48["code_semantic_query_faiss<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_49["code_semantic_query_vec<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_50["connector_configure<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_51["connector_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_52["connector_revoke<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_53["context_index_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_54["context_index_sync<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_55["continuation_accept<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_56["continuation_cancel<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_57["continuation_context<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_58["continuation_offer<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_59["continuation_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_60["continuation_recovery_cancel<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_61["continuation_recovery_offer<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_62["cross_project_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_63["custom_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_64["custom_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_65["custom_index_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_66["custom_lane_configure<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_67["custom_lanes_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_68["custom_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_69["custom_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_70["custom_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_71["custom_refresh_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_72["data_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_73["data_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_74["data_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_75["data_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_76["data_index_arrow<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_77["data_inspect_duckdb<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_78["data_inspect_pandas<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_79["data_inspect_polars<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_80["data_inspection_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_81["data_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_82["data_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_83["data_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_84["data_refresh_arrow<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_85["data_transform<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_86["delta_enter<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_87["delta_enter_planned<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_88["delta_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_89["delta_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_90["document_convert<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_91["document_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_92["document_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_93["document_enrich<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_94["document_enrichment_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_95["document_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_96["document_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_97["document_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_98["document_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_99["document_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_100["document_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_101["document_render<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_102["document_render_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_103["engine_health<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_104["enroll_project<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_105["env_uop_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_106["evaluation_feedback_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_107["fetch<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_108["git_branch_authority<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_109["git_restore<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_110["git_restore_abandon<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_111["git_restore_preview<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_112["git_restore_reconcile<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_113["git_sync_selected<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_114["github_repository_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_115["instructions_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_116["job_reconcile_effect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_117["job_recovery_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_118["lane_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_119["lane_configure_routes<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_120["lane_fetch<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_121["lane_search<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_122["lane_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_123["lane_view_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_124["lane_view_preview<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_125["lane_view_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_126["lane_view_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_127["learning_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_128["learning_record_host_memory_import<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_129["learning_revoke<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_130["lifecycle_transition_law<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_131["lineage_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_132["lineage_record<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_133["linked_projects_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_134["media_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_135["media_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_136["media_extract<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_137["media_extraction_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_138["media_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_139["media_ocr<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_140["media_ocr_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_141["media_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_142["media_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_143["media_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_144["media_transform<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_145["memory_checkpoint<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_146["memory_ingest<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_147["memory_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_148["memory_rehydrate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_149["mode_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_150["observability_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_151["pdf_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_152["pdf_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_153["pdf_enrich<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_154["pdf_enrichment_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_155["pdf_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_156["pdf_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_157["pdf_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_158["pdf_ocr<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_159["pdf_ocr_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_160["pdf_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_161["pdf_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_162["pdf_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_163["pdf_render<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_164["pdf_render_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_165["plan_create<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_166["plan_host_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_167["plan_host_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_168["plan_host_sync<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_169["plan_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_170["plan_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_171["powerbi_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_172["powerbi_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_173["powerbi_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_174["powerbi_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_175["powerbi_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_176["powerbi_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_177["powerbi_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_178["powerbi_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_179["powerbi_schema<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_180["presentation_convert<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_181["presentation_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_182["presentation_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_183["presentation_enrich<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_184["presentation_enrichment_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_185["presentation_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_186["presentation_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_187["presentation_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_188["presentation_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_189["presentation_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_190["presentation_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_191["presentation_render<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_192["presentation_render_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_193["project_backup<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_194["project_backup_verify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_195["project_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_196["project_deselect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_197["project_link<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_198["project_memory_record_link<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_199["project_recipe<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_200["project_recovery_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_201["project_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_202["project_select<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_203["project_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_204["project_unlink<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_205["prompt_index_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_206["pv_diff<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_207["pv_history<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_208["pv_summary<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_209["remote_git_action_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_210["remote_git_execute_push<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_211["remote_git_prepare_push<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_212["render_project_panel<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_213["render_runtime_panel<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_214["research_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_215["research_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_216["research_index_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_217["research_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_218["research_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_219["research_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_220["research_refresh_media<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_221["research_web_capture<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_222["research_web_discover<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_223["research_web_extract<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_224["restoration_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_225["restoration_reindex<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_226["runtime_doctor<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_227["runtime_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_228["search<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_229["session_boot<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_230["session_context<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_231["session_exit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_232["session_exit_boundary<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_233["session_flash_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_234["session_resume<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_235["session_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_236["source_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_237["source_crosswalk<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_238["source_git_history<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_239["source_git_impact<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_240["source_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_241["source_graph_diff<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_242["source_graph_impact<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_243["source_identity<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_244["source_inspect_sqlite<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_245["source_materialization_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_246["source_materialization_reconcile<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_247["source_materialize<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_248["source_preparation_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_249["source_prepare_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_250["source_prepare_tasks<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_251["source_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_252["source_reconcile_archives<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_253["source_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_254["source_routes_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_255["source_schema_configure<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_256["source_schema_map<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_257["source_snapshot_retire<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_258["source_snapshot_state<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_259["source_verify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_260["spreadsheet_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_261["spreadsheet_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_262["spreadsheet_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_263["spreadsheet_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_264["spreadsheet_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_265["spreadsheet_index_values<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_266["spreadsheet_inspect_openpyxl<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_267["spreadsheet_inspect_pandas<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_268["spreadsheet_inspection_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_269["spreadsheet_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_270["spreadsheet_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_271["spreadsheet_recalculate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_272["spreadsheet_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_273["spreadsheet_refresh_values<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_274["spreadsheet_render<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_275["spreadsheet_render_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_276["steer_preview<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_277["steer_submit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_278["storage_connector_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_279["storage_connector_select<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_280["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_281["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_282["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_283["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_284["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_285["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_286["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_287["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_288["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_289["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_290["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_291["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_292["universe_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_293["universe_links_verify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_294["universe_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_295["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_296["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_297["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
   end
-  subgraph HOST_POLICIES["Host_Policies"]
+  subgraph GROUP_uop_disclosure_policy_v4["uop disclosure policy"]
     direction TB
-    HOST_POLICIES_CODEX_CLI["CODEX_CLI: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
-    HOST_POLICIES_CODEX_DESKTOP_BETA["CODEX_DESKTOP_BETA: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
-    HOST_POLICIES_CODEX_DESKTOP_STABLE["CODEX_DESKTOP_STABLE: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
-    HOST_POLICIES_CODEX_VM_EPHEMERAL["CODEX_VM_EPHEMERAL: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
-    HOST_POLICIES_CODEX_VM_PERSISTENT["CODEX_VM_PERSISTENT: CODEX_HOST_VARIANT_BOUND_TO_CURRENT_RUNTIME"]:::semantic
+    TABLE_uop_disclosure_policy_v4["uop_disclosure_policy_v4"]:::semantic
+    ROW_uop_disclosure_policy_v4_1["VISIBLE_ATTRIBUTED_OUTPUT<br/>bounded permitted data only; no raw credentials or private reasoning"]:::semantic
   end
-  subgraph ACCELERATOR_POLICIES["Accelerator_Policies"]
+  subgraph GROUP_uop_fallback_policy_v4["uop fallback policy"]
     direction TB
-    ACCELERATOR_POLICIES_AMD_DIRECTML["AMD_DIRECTML: 80"]:::semantic
-    ACCELERATOR_POLICIES_AMD_ROCM["AMD_ROCM: 80"]:::semantic
-    ACCELERATOR_POLICIES_CPU["CPU: 100"]:::semantic
-    ACCELERATOR_POLICIES_NVIDIA_CUDA["NVIDIA_CUDA: 80"]:::semantic
+    TABLE_uop_fallback_policy_v4["uop_fallback_policy_v4"]:::semantic
+    ROW_uop_fallback_policy_v4_1["1<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_2["2<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_3["3<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_4["4<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_5["5<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_6["6<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_7["7<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_8["8<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_9["9<br/>ACTIVE"]:::semantic
+    ROW_uop_fallback_policy_v4_10["10<br/>ACTIVE"]:::semantic
   end
-  subgraph FALLBACKS["Fallbacks"]
+  subgraph GROUP_uop_host_policy_v4["uop host policy"]
     direction TB
-    FALLBACKS_CODE["CODE: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_DATA["DATA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_DEPLOYMENT["DEPLOYMENT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_DOCUMENT["DOCUMENT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_EVALUATION["EVALUATION: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_FORMULA["FORMULA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_GOVERNANCE["GOVERNANCE: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_GRAPH["GRAPH: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_MCP_TRANSPORT["MCP_TRANSPORT: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_OBSERVABILITY["OBSERVABILITY: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_OCR_MEDIA["OCR_MEDIA: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_RETRIEVAL["RETRIEVAL: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_RUNTIME["RUNTIME: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_SOURCE_ROUTING["SOURCE_ROUTING: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
-    FALLBACKS_WEB_RESEARCH["WEB_RESEARCH: ORDERED_AVAILABLE_TOOL_WITHIN_SAME_WORKFLOW_CLASS_ONLY"]:::semantic
+    TABLE_uop_host_policy_v4["uop_host_policy_v4"]:::semantic
+    ROW_uop_host_policy_v4_1["codex_cli<br/>selected_local_or_remote"]:::semantic
+    ROW_uop_host_policy_v4_2["codex_desktop<br/>selected_local_or_remote"]:::semantic
+    ROW_uop_host_policy_v4_3["codex_desktop_beta<br/>selected_local_or_remote"]:::semantic
+    ROW_uop_host_policy_v4_4["codex_desktop_stable<br/>selected_local_or_remote"]:::semantic
+    ROW_uop_host_policy_v4_5["codex_vm_ephemeral<br/>durable_remote_required"]:::semantic
+    ROW_uop_host_policy_v4_6["codex_vm_persistent<br/>durability_verification_required"]:::semantic
+    ROW_uop_host_policy_v4_7["unknown<br/>explicit_selection_required"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP14_DEEPRESEARCH["UOP14 READ AUDIT ACCESS &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_permission_policy_v4["uop permission policy"]
     direction TB
-    UOP15_UOP14DR["UOP14DR: uop_deep_research_access_operator_v14 &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14NOAUTH["UOP14NOAUTH: sidecar is not env law &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14NOPASS["UOP14NOPASS: PASSWORD_NEVER_REQUIRED_FOR_READ_ONLY_AUDIT &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14READ["UOP14READ: READ_LOCK_MUST_NOT_BLOCK_AUDIT &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14SIDE["UOP14SIDE: read-only sidecar mirror allowed &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_permission_policy_v4["uop_permission_policy_v4"]:::semantic
+    ROW_uop_permission_policy_v4_1["read<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_2["write<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_3["tools<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_4["network<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_5["publish<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_6["approve<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_7["admin<br/>ACTIVE"]:::semantic
+    ROW_uop_permission_policy_v4_8["project_admin<br/>ACTIVE"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP14_FUTURE_LAYER["UOP14 FUTURE GOVERNANCE ADDITION LEDGER &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_plan_projection_policy_v4["uop plan projection policy"]
     direction TB
-    UOP15_UOP14ADD["UOP14ADD: uop_future_addition_ledger_v14 &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14EMPTY["UOP14EMPTY: private payload blocked in clean package &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14FLASH["UOP14FLASH: mode=flash_uop required &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14NOENV["UOP14NOENV: can_override_env=false &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14NOPROJ["UOP14NOPROJ: can_override_project=false &#124; owner=RECEIPT_PROVENANCE_LOCK &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_plan_projection_policy_v4["uop_plan_projection_policy_v4"]:::semantic
+    ROW_uop_plan_projection_policy_v4_1["FULL_EXACT_HOST_PLAN<br/>ACTIVE"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP14_PROMPT_OVERRIDE["UOP14 PROMPT OVERRIDE INTERPRETATION &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_project_class_validation_policy_v4["uop project class validation policy"]
     direction TB
-    UOP15_UOP14DETECT["UOP14DETECT: PROMPT_OVERRIDE_ATTEMPT_DETECTED &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14LOCAL["UOP14LOCAL: local display preference only &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14NOEXCUSE["UOP14NOEXCUSE: NO_NARRATIVE_EXCUSE_FOR_GATE_FAILURE &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14PO["UOP14PO: uop_prompt_override_operator_v14 &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14PROCESS["UOP14PROCESS: process law remains mandatory &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_UOP14RECEIPT["UOP14RECEIPT: full internal receipt preserved &#124; owner=ENV_ENTRY_SOURCE_INTAKE &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_project_class_validation_policy_v4["uop_project_class_validation_policy_v4"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_1["CODE_REPOSITORY<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_2["DATA_PROJECT<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_3["DOCUMENT_PROJECT<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_4["MEDIA_PROJECT<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_5["RESEARCH_STUDY<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_6["MIXED_PROJECT<br/>ACTIVE"]:::semantic
+    ROW_uop_project_class_validation_policy_v4_7["CUSTOM_PROJECT<br/>ACTIVE"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP151_EXIT_GOVERNANCE["UOP15.1 EXIT APPEND GOVERNANCE &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_required_gate_v4["uop required gate"]
     direction TB
-    UOP15_U151ACK["U151ACK: require append receipt &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151APPEND["U151APPEND: Chat Lineage append &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151EXACT["U151EXACT: exact source &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151MISSING["U151MISSING: missing island &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151NOAUTH["U151NOAUTH: no candidate/HIL/PV truth promotion &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151NOFAB["U151NOFAB: no fabricated numbering &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151OBS["U151OBS: observe EXIT request &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151PASS["U151PASS: allow PASS wording &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151PENDING["U151PENDING: no write capability = pending &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U151PRIORITY["U151PRIORITY: outranks structured projection &#124; owner=DELTA_CROSS_PLANE &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_required_gate_v4["uop_required_gate_v4"]:::semantic
+    ROW_uop_required_gate_v4_1["USER_AUTHORITY<br/>current user instructions and explicit decisions retain precedence"]:::semantic
+    ROW_uop_required_gate_v4_2["CONNECTION_SCOPE<br/>use the authenticated current engine client"]:::semantic
+    ROW_uop_required_gate_v4_3["PROJECT_BINDING<br/>use the explicitly selected project and current grant"]:::semantic
+    ROW_uop_required_gate_v4_4["PERMISSION<br/>require the exact action permission"]:::semantic
+    ROW_uop_required_gate_v4_5["PLAN_TASK<br/>bind execution to the current Plan revision and task"]:::semantic
+    ROW_uop_required_gate_v4_6["SOURCE_CURRENTNESS<br/>verify selected source bytes and route before effect"]:::semantic
+    ROW_uop_required_gate_v4_7["TOOL_READINESS<br/>measure every required tool before invocation"]:::semantic
+    ROW_uop_required_gate_v4_8["SAME_CONTRACT_FALLBACK<br/>use only declared pre-invocation same-contract fallbacks"]:::semantic
+    ROW_uop_required_gate_v4_9["EFFECT_RECONCILIATION<br/>reconcile uncertain external effects before retry"]:::semantic
+    ROW_uop_required_gate_v4_10["VERIFICATION<br/>require current named acceptance checks and evidence"]:::semantic
+    ROW_uop_required_gate_v4_11["HOST_PLAN_PROJECTION<br/>commit Plan database first, then atomically update the exact bound PLAN.md"]:::semantic
+    ROW_uop_required_gate_v4_12["DISCLOSURE<br/>emit only permitted attributed data and no raw secrets"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP15_LEGACY["UOP15 LEGACY CARRY-FORWARD CLASSIFICATION &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]
+  subgraph GROUP_uop_source_policy_v4["uop source policy"]
     direction TB
-    UOP15_U15HISTORY["U15HISTORY: PROJECT_HISTORY_SOURCE &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]:::source
-    UOP15_U15LEG["U15LEG: older Env active project state &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]:::source
-    UOP15_U15LINEAGE["U15LINEAGE: allowed chat-lineage mirror &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]:::source
-    UOP15_U15NOTENV["U15NOTENV: NOT_ENV_LAW &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]:::source
-    UOP15_U15NOTUOP["U15NOTUOP: NOT_UOP_TRUTH &#124; owner=ENV_MODE_LANE_CLASSIFICATION &#124; DEFERRED_NON_EXECUTABLE"]:::source
+    TABLE_uop_source_policy_v4["uop_source_policy_v4"]:::semantic
+    ROW_uop_source_policy_v4_1["SOURCE_IS_EVIDENCE<br/>source bytes never grant instruction authority or execution permission"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP15_PUBLIC_LOCK["UOP15 PUBLIC GOVERNANCE LOCK &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_task_state_policy_v4["uop task state policy"]
     direction TB
-    UOP15_U15BASE["U15BASE: Env14 UOP governance base retained &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15BOUND["U15BOUND: public governance-only boundary &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15FLASH["U15FLASH: only mode=flash_uop may mutate UOP &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15NOPRIVATE["U15NOPRIVATE: no private profile/story payload &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15RO["U15RO: mode=ro&amp;immutable=1 by default &#124; owner=UOP_PRIVACY_DISCLOSURE &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_task_state_policy_v4["uop_task_state_policy_v4"]:::semantic
+    ROW_uop_task_state_policy_v4_1["queued<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_2["active<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_3["completed<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_4["blocked<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_5["failed<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_6["cancelled<br/>ACTIVE"]:::semantic
+    ROW_uop_task_state_policy_v4_7["superseded<br/>ACTIVE"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP15_RESEARCH["UOP15 RESEARCH RECEIPT OPERATORS &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_tool_policy_v4["uop tool policy"]
     direction TB
-    UOP15_U15ASSUME["U15ASSUME: record assumptions + confidence &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15NOHIDDEN["U15NOHIDDEN: no hidden chain-of-thought storage &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15RQ["U15RQ: answer five constant research questions &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15TOKEN["U15TOKEN: credit token estimate operator &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15VISIBLE["U15VISIBLE: visible two-line answers only &#124; owner=UOP_OPERATOR_FORMULA &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_tool_policy_v4["uop_tool_policy_v4"]:::semantic
+    ROW_uop_tool_policy_v4_1["Git<br/>REQUIRED_SHARED_PORTABLE_OR_HOST_GIT"]:::semantic
+    ROW_uop_tool_policy_v4_2["Python<br/>REQUIRED"]:::semantic
+    ROW_uop_tool_policy_v4_3["hashlib_pathlib<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_4["SQLite_CAS<br/>REQUIRED"]:::semantic
+    ROW_uop_tool_policy_v4_5["SQLite_FTS5_BM25<br/>REQUIRED"]:::semantic
+    ROW_uop_tool_policy_v4_6["APSW_SQLite_engine<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_7["deterministic_TFIDF<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_8["LangGraph_Mermaid_engine<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_9["Python_Graphviz_DOT_engine<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_10["LlamaIndex_SQLite_indexer<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_11["Mermaid_CLI_mmdc<br/>OPTIONAL_HIDDEN_RUNTIME_RENDERER"]:::semantic
+    ROW_uop_tool_policy_v4_12["Graphviz_dot<br/>REQUIRED_HIDDEN_RUNTIME_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_13["Python_structural_parser<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_14["NodeJS_TypeScript<br/>REQUIRED_REPOSITORY_ONLY"]:::semantic
+    ROW_uop_tool_policy_v4_15["pytest<br/>REQUIRED_CODE_ACCEPTANCE"]:::semantic
+    ROW_uop_tool_policy_v4_16["Ruff<br/>REQUIRED_CONFIGURED_GATE"]:::semantic
+    ROW_uop_tool_policy_v4_17["MyPy<br/>REQUIRED_CONFIGURED_GATE"]:::semantic
+    ROW_uop_tool_policy_v4_18["Secret_redactor<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_19["Hash_chain_writer<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_20["ENV_UOP_classifier<br/>REQUIRED_INTERNAL_AI_ACTION_PLANE"]:::semantic
+    ROW_uop_tool_policy_v4_21["DOCX_OpenXML<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_22["defusedxml<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_23["OpenXML_CSV_JSON_parser<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_24["openpyxl<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_25["pandas<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_26["python_calamine<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_27["pyarrow<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_28["PPTX_OpenXML<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_29["pypdf<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_30["pypdfium2<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_31["pdfplumber<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_32["RapidOCR_ONNX_Runtime<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_33["pytesseract_Tesseract<br/>REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_34["Pillow<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_35["Poppler_pdftotext_pdfinfo<br/>REQUIRED_HIDDEN_RUNTIME_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_36["Ghostscript<br/>OPTIONAL_EXTERNAL_LICENSE_GATED"]:::semantic
+    ROW_uop_tool_policy_v4_37["OpenCV<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_38["Custom_schema_compiler<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_39["SQLite_immutable_URI_reader<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_40["Safe_archive_intake<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_41["Citation_binder<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_42["Project_inventory<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_43["Git_detector<br/>OPTIONAL_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_44["Compatibility_mapper<br/>REQUIRED_INTERNAL"]:::semantic
+    ROW_uop_tool_policy_v4_45["MCP_Python_SDK<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_46["Pydantic<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_47["HTTPX<br/>REQUIRED_FOR_CONFIGURED_NETWORK_ADAPTERS"]:::semantic
+    ROW_uop_tool_policy_v4_48["Cryptography_PyJWT<br/>REQUIRED_PROTECTED_REMOTE_PROFILES"]:::semantic
+    ROW_uop_tool_policy_v4_49["PowerShell_Win32_APIs<br/>REQUIRED_WINDOWS_HOST"]:::semantic
+    ROW_uop_tool_policy_v4_50["ripgrep_15_2_0<br/>PACKAGED_PRE_INDEX_HELPER"]:::semantic
+    ROW_uop_tool_policy_v4_51["SevenZip_NSIS_extractor<br/>REQUIRED_HIDDEN_RUNTIME_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_52["jq<br/>REQUIRED_HIDDEN_RUNTIME_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_53["FFmpeg<br/>REQUIRED_HIDDEN_RUNTIME_BINARY_AND_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_54["PyMuPDF<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_55["Docling<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_56["lxml<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_57["BeautifulSoup4<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_58["markdownify<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_59["html2text<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_60["trafilatura<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_61["DuckDB<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_62["SQLAlchemy<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_63["Tableau_Hyper_API<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_64["LangChain<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_65["SentenceTransformers<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_66["FAISS_CPU<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_67["rank_bm25<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_68["FastAPI<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_69["Uvicorn<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_70["Pydantic_Settings<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_71["python_multipart<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_72["Requests<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_73["aiofiles<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_74["orjson<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_75["python_dotenv<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_76["Tenacity<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_77["DDGS<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_78["PyGithub<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_79["GitPython<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_80["tldextract<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_81["validators<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_82["readability_lxml<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_83["Polars<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_84["TreeSitter_LanguagePack<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_85["rustworkx<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_86["sqlite_vec<br/>CONDITIONAL_SQLITE_VECTOR_EXTENSION"]:::semantic
+    ROW_uop_tool_policy_v4_87["HuggingFace_Hub_ModelSnapshot<br/>REQUIRED_LOCAL_UPDATE_MODEL_ACQUISITION"]:::semantic
+    ROW_uop_tool_policy_v4_88["NextJS_React_ThreeJS_FramerMotion<br/>REPOSITORY_PUBLIC_ADAPTER_ONLY"]:::semantic
+    ROW_uop_tool_policy_v4_89["OpenAI_Agents_SDK<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_90["FastMCP<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_91["Pinecone<br/>CONFIGURED_EXTERNAL_SERVICE"]:::semantic
+    ROW_uop_tool_policy_v4_92["Weaviate<br/>CONFIGURED_EXTERNAL_SERVICE"]:::semantic
+    ROW_uop_tool_policy_v4_93["Milvus<br/>CONFIGURED_EXTERNAL_SERVICE"]:::semantic
+    ROW_uop_tool_policy_v4_94["OpenSearch<br/>CONFIGURED_EXTERNAL_SERVICE"]:::semantic
+    ROW_uop_tool_policy_v4_95["LangSmith<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_96["Langfuse<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_97["OpenTelemetry<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_98["Grafana<br/>CONFIGURED_EXTERNAL_SERVICE"]:::semantic
+    ROW_uop_tool_policy_v4_99["LibreOffice<br/>REQUIRED_NATIVE_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_100["PowerBI_TOM<br/>REQUIRED_NATIVE_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_101["PBIXRay<br/>REQUIRED_NATIVE_BINARY"]:::semantic
+    ROW_uop_tool_policy_v4_102["JSONSchema<br/>REQUIRED_DEPENDENCY"]:::semantic
+    ROW_uop_tool_policy_v4_103["ReportLab<br/>REQUIRED_DEPENDENCY"]:::semantic
   end
-  subgraph UOP15_GROUP_UOP15_SECTOR_GUIDANCE["UOP15 PROJECT SECTOR GUIDANCE WITHOUT OVERRIDE &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]
+  subgraph GROUP_uop_verification_policy_v4["uop verification policy"]
     direction TB
-    UOP15_U15CHAT["U15CHAT: chat_lineage automatic append &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15CLASS["U15CLASS: classify active lane and write scope &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15GRANT["U15GRANT: other sector requires explicit one-turn grant &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15NOOVERRIDE["U15NOOVERRIDE: CAN_OVERRIDE_PROJECT=false &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15RELOCK["U15RELOCK: human gate + immediate relock &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
-    UOP15_U15SECTOR["U15SECTOR: read 14-sector registry &#124; owner=UOP_POLICY_PERMISSION_BUDGET &#124; ACTIVE_ADAPTED"]:::semantic
+    TABLE_uop_verification_policy_v4["uop_verification_policy_v4"]:::semantic
+    ROW_uop_verification_policy_v4_1["CURRENT_INPUTS<br/>verify exact current source, task, tool and effect inputs"]:::semantic
+    ROW_uop_verification_policy_v4_2["NAMED_ACCEPTANCE<br/>every current named acceptance check passes"]:::semantic
+    ROW_uop_verification_policy_v4_3["STALE_RESULT_REJECTION<br/>reject results from another Plan revision, task contract or worker fence"]:::semantic
   end
-  INPUT --> SOURCE
-  SOURCE --> GATES
-  GATES --> OPERATOR
-  OPERATOR --> FALLBACK
-  FALLBACK --> OUTPUT
-  OPERATOR -->|"conditional: governed member"| OPERATORS_ACCELERATOR_BUDGET_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_DIRECT_PURGE_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_DISCLOSURE_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_ENTRY_SLIP_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_EXIT_SLIP_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_FALLBACK_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_LEARNING_HIL_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_PRIVACY_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_PROJECT_HIL_GATE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_SOURCE_PRECEDENCE
-  OPERATOR -->|"conditional: governed member"| OPERATORS_WORK_GATE
-  GATES -->|"conditional: governed member"| HIL_POLICIES_CODE_REPOSITORY
-  GATES -->|"conditional: governed member"| HIL_POLICIES_CUSTOM_PROJECT
-  GATES -->|"conditional: governed member"| HIL_POLICIES_DATA_PROJECT
-  GATES -->|"conditional: governed member"| HIL_POLICIES_DOCUMENT_PROJECT
-  GATES -->|"conditional: governed member"| HIL_POLICIES_MEDIA_PROJECT
-  GATES -->|"conditional: governed member"| HIL_POLICIES_MIXED_PROJECT
-  GATES -->|"conditional: governed member"| HIL_POLICIES_RESEARCH_STUDY
-  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_CLI
-  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_DESKTOP_BETA
-  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_DESKTOP_STABLE
-  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_VM_EPHEMERAL
-  INPUT -->|"conditional: governed member"| HOST_POLICIES_CODEX_VM_PERSISTENT
-  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_AMD_DIRECTML
-  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_AMD_ROCM
-  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_CPU
-  GATES -->|"conditional: governed member"| ACCELERATOR_POLICIES_NVIDIA_CUDA
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_CODE
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_DATA
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_DEPLOYMENT
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_DOCUMENT
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_EVALUATION
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_FORMULA
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_GOVERNANCE
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_GRAPH
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_MCP_TRANSPORT
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_OBSERVABILITY
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_OCR_MEDIA
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_RETRIEVAL
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_RUNTIME
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_SOURCE_ROUTING
-  FALLBACK -->|"conditional: governed member"| FALLBACKS_WEB_RESEARCH
-  INPUT -->|"conditional: adapted governance evidence"| UOP15_BEHAVIOR_ROOT
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_PROFILE
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_START
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151ACK
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151APPEND
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151EXACT
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151MISSING
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151NOAUTH
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151NOFAB
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151OBS
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U151PRIORITY
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15ASSUME
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15BASE
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15CLASS
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15HISTORY
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15LEG
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15RO
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15SECTOR
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_U15TOKEN
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14ADD
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14DETECT
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14DR
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14FLASH
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14PO
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_UOP14READ
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_NO
-  UOP15_BEHAVIOR_ROOT -->|"conditional: behavior district entry"| UOP15_YES
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOPSQL
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOPLAW
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOPLOCK
-  UOP15_UOPLOCK -->|"--&gt;"| UOP15_FU
-  UOP15_YES -->|"--&gt;"| UOP15_UOPMUTATE
-  UOP15_NO -->|"--&gt;"| UOP15_UOPRO
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_SPATIAL
-  UOP15_SPATIAL -->|"--&gt;"| UOP15_ROUTE
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_COMPRESS
-  UOP15_COMPRESS -->|"--&gt;"| UOP15_DBFORM
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_SRCSTATE
-  UOP15_SRCSTATE -->|"--&gt;"| UOP15_PRECEDENCE
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_DISC
-  UOP15_DISC -->|"--&gt;"| UOP15_BLOCK
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_MODE
-  UOP15_MODE -->|"--&gt;"| UOP15_LANE
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_DELTA
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_HUMAN
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_NOENV
-  UOP15_UOPSQL -->|"--&gt;"| UOP15_NOPROJ
-  UOP15_LANE -->|"--&gt;"| UOP15_RECEIPT
-  UOP15_UOP14DETECT -->|"--&gt;"| UOP15_UOP14LOCAL
-  UOP15_UOP14LOCAL -->|"--&gt;"| UOP15_UOP14PROCESS
-  UOP15_UOP14PROCESS -->|"--&gt;"| UOP15_UOP14RECEIPT
-  UOP15_UOP14DETECT -->|"--&gt;"| UOP15_UOP14NOEXCUSE
-  UOP15_UOP14READ -->|"--&gt;"| UOP15_UOP14NOPASS
-  UOP15_UOP14DR -->|"--&gt;"| UOP15_UOP14SIDE
-  UOP15_UOP14SIDE -->|"--&gt;"| UOP15_UOP14NOAUTH
-  UOP15_UOP14FLASH -->|"--&gt;"| UOP15_UOP14NOENV
-  UOP15_UOP14FLASH -->|"--&gt;"| UOP15_UOP14NOPROJ
-  UOP15_UOP14FLASH -->|"--&gt;"| UOP15_UOP14EMPTY
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP14_PROMPT_OVERRIDE
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP14_DEEPRESEARCH
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP14_FUTURE_LAYER
-  UOP15_UOP14RECEIPT -->|"--&gt;"| UOP15_RECEIPT
-  UOP15_U15RO -->|"--&gt;"| UOP15_U15FLASH
-  UOP15_U15RO -->|"--&gt;"| UOP15_U15NOPRIVATE
-  UOP15_U15NOPRIVATE -->|"--&gt;"| UOP15_U15BOUND
-  UOP15_U15CLASS -->|"--&gt;"| UOP15_U15CHAT
-  UOP15_U15CLASS -->|"--&gt;"| UOP15_U15GRANT
-  UOP15_U15GRANT -->|"--&gt;"| UOP15_U15RELOCK
-  UOP15_U15CLASS -->|"--&gt;"| UOP15_U15NOOVERRIDE
-  UOP15_U15ASSUME -->|"--&gt;"| UOP15_U15RQ
-  UOP15_U15RQ -->|"--&gt;"| UOP15_U15VISIBLE
-  UOP15_U15VISIBLE -->|"--&gt;"| UOP15_U15NOHIDDEN
-  UOP15_U15HISTORY -->|"conditional: --&gt;"| UOP15_U15NOTENV
-  UOP15_U15HISTORY -->|"conditional: --&gt;"| UOP15_U15NOTUOP
-  UOP15_U15HISTORY -->|"conditional: --&gt;"| UOP15_U15LINEAGE
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP15_PUBLIC_LOCK
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP15_SECTOR_GUIDANCE
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP15_RESEARCH
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP15_LEGACY
-  UOP15_U15VISIBLE -->|"--&gt;"| UOP15_RECEIPT
-  UOP15_U151ACK -->|"--&gt;"| UOP15_U151PASS
-  UOP15_U151ACK -->|"--&gt;"| UOP15_U151PENDING
-  UOP15_PROFILE -->|"--&gt;"| UOP15_UOP151_EXIT_GOVERNANCE
-  UOP15_U151PASS -->|"--&gt;"| UOP15_RECEIPT
+  subgraph GROUP_uop_work_classification_policy_v4["uop work classification policy"]
+    direction TB
+    TABLE_uop_work_classification_policy_v4["uop_work_classification_policy_v4"]:::semantic
+    ROW_uop_work_classification_policy_v4_1["D<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_2["AL<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_3["PL<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_4["CD<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_5["OP<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_6["VAL<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_7["RS<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_8["JD<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_9["XL<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_10["PPT<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_11["DOC<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_12["PB<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_13["ENG<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_14["CE<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_15["RCV<br/>ACTIVE"]:::semantic
+    ROW_uop_work_classification_policy_v4_16["X<br/>ACTIVE"]:::semantic
+  end
+  subgraph GROUP_uop_workflow_gate_v4["uop workflow gate"]
+    direction TB
+    TABLE_uop_workflow_gate_v4["uop_workflow_gate_v4"]:::semantic
+    ROW_uop_workflow_gate_v4_1["PROMPT_ENTRY<br/>intent"]:::semantic
+    ROW_uop_workflow_gate_v4_2["BOOT_OR_RESUME<br/>session"]:::semantic
+    ROW_uop_workflow_gate_v4_3["PLAN_MUTATION<br/>plan"]:::semantic
+    ROW_uop_workflow_gate_v4_4["STEER_ENTRY<br/>plan"]:::semantic
+    ROW_uop_workflow_gate_v4_5["DELTA_ENTRY<br/>work"]:::semantic
+    ROW_uop_workflow_gate_v4_6["DELTA_EXIT<br/>work"]:::semantic
+    ROW_uop_workflow_gate_v4_7["MID_DELTA_QUERY<br/>query"]:::semantic
+    ROW_uop_workflow_gate_v4_8["HOST_PLAN_PROJECTION<br/>plan"]:::semantic
+    ROW_uop_workflow_gate_v4_9["WORK_HANDOFF_BOUNDARY<br/>handoff"]:::semantic
+    ROW_uop_workflow_gate_v4_10["GOAL_COMPLETION_BOUNDARY<br/>goal"]:::semantic
+    ROW_uop_workflow_gate_v4_11["RECOVERY<br/>recovery"]:::semantic
+    ROW_uop_workflow_gate_v4_12["EXIT_BOOT<br/>session"]:::semantic
+  end
+  subgraph CURRENT_OPERATION_GATES["Current operation admission gates"]
+    direction TB
+    GATE_CONNECTION_SCOPE["CONNECTION_SCOPE<br/>use the authenticated current engine client"]:::semantic
+    GATE_DISCLOSURE["DISCLOSURE<br/>emit only permitted attributed data and no raw secrets"]:::semantic
+    GATE_EFFECT_RECONCILIATION["EFFECT_RECONCILIATION<br/>reconcile uncertain external effects before retry"]:::semantic
+    GATE_HOST_PLAN_PROJECTION["HOST_PLAN_PROJECTION<br/>commit Plan database first, then atomically update the exact bound PLAN.md"]:::semantic
+    GATE_PERMISSION["PERMISSION<br/>require the exact action permission"]:::semantic
+    GATE_PLAN_TASK["PLAN_TASK<br/>bind execution to the current Plan revision and task"]:::semantic
+    GATE_PROJECT_BINDING["PROJECT_BINDING<br/>use the explicitly selected project and current grant"]:::semantic
+    GATE_SAME_CONTRACT_FALLBACK["SAME_CONTRACT_FALLBACK<br/>use only declared pre-invocation same-contract fallbacks"]:::semantic
+    GATE_SOURCE_CURRENTNESS["SOURCE_CURRENTNESS<br/>verify selected source bytes and route before effect"]:::semantic
+    GATE_TOOL_READINESS["TOOL_READINESS<br/>measure every required tool before invocation"]:::semantic
+    GATE_USER_AUTHORITY["USER_AUTHORITY<br/>current user instructions and explicit decisions retain precedence"]:::semantic
+    GATE_VERIFICATION["VERIFICATION<br/>require current named acceptance checks and evidence"]:::semantic
+  end
+  ROOT -->|"owns policy rows"| TABLE_uop_accelerator_policy_v4
+  TABLE_uop_accelerator_policy_v4 -->|"declares"| ROW_uop_accelerator_policy_v4_1
+  TABLE_uop_accelerator_policy_v4 -->|"declares"| ROW_uop_accelerator_policy_v4_2
+  TABLE_uop_accelerator_policy_v4 -->|"declares"| ROW_uop_accelerator_policy_v4_3
+  TABLE_uop_accelerator_policy_v4 -->|"declares"| ROW_uop_accelerator_policy_v4_4
+  ROOT -->|"owns policy rows"| TABLE_uop_action_policy_v4
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_1
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_2
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_3
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_4
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_5
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_6
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_7
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_8
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_9
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_10
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_11
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_12
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_13
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_14
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_15
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_16
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_17
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_18
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_19
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_20
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_21
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_22
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_23
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_24
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_25
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_26
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_27
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_28
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_29
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_30
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_31
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_32
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_33
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_34
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_35
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_36
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_37
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_38
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_39
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_40
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_41
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_42
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_43
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_44
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_45
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_46
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_47
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_48
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_49
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_50
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_51
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_52
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_53
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_54
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_55
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_56
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_57
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_58
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_59
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_60
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_61
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_62
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_63
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_64
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_65
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_66
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_67
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_68
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_69
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_70
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_71
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_72
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_73
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_74
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_75
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_76
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_77
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_78
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_79
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_80
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_81
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_82
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_83
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_84
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_85
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_86
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_87
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_88
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_89
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_90
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_91
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_92
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_93
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_94
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_95
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_96
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_97
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_98
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_99
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_100
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_101
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_102
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_103
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_104
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_105
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_106
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_107
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_108
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_109
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_110
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_111
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_112
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_113
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_114
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_115
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_116
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_117
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_118
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_119
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_120
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_121
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_122
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_123
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_124
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_125
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_126
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_127
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_128
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_129
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_130
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_131
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_132
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_133
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_134
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_135
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_136
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_137
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_138
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_139
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_140
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_141
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_142
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_143
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_144
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_145
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_146
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_147
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_148
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_149
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_150
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_151
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_152
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_153
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_154
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_155
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_156
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_157
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_158
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_159
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_160
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_161
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_162
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_163
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_164
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_165
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_166
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_167
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_168
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_169
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_170
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_171
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_172
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_173
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_174
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_175
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_176
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_177
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_178
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_179
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_180
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_181
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_182
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_183
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_184
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_185
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_186
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_187
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_188
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_189
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_190
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_191
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_192
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_193
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_194
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_195
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_196
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_197
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_198
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_199
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_200
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_201
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_202
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_203
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_204
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_205
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_206
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_207
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_208
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_209
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_210
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_211
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_212
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_213
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_214
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_215
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_216
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_217
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_218
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_219
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_220
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_221
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_222
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_223
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_224
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_225
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_226
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_227
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_228
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_229
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_230
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_231
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_232
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_233
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_234
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_235
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_236
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_237
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_238
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_239
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_240
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_241
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_242
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_243
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_244
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_245
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_246
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_247
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_248
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_249
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_250
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_251
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_252
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_253
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_254
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_255
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_256
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_257
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_258
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_259
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_260
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_261
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_262
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_263
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_264
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_265
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_266
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_267
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_268
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_269
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_270
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_271
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_272
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_273
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_274
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_275
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_276
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_277
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_278
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_279
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_280
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_281
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_282
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_283
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_284
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_285
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_286
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_287
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_288
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_289
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_290
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_291
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_292
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_293
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_294
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_295
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_296
+  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_297
+  ROOT -->|"owns policy rows"| TABLE_uop_disclosure_policy_v4
+  TABLE_uop_disclosure_policy_v4 -->|"declares"| ROW_uop_disclosure_policy_v4_1
+  ROOT -->|"owns policy rows"| TABLE_uop_fallback_policy_v4
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_1
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_2
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_3
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_4
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_5
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_6
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_7
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_8
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_9
+  TABLE_uop_fallback_policy_v4 -->|"declares"| ROW_uop_fallback_policy_v4_10
+  ROOT -->|"owns policy rows"| TABLE_uop_host_policy_v4
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_1
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_2
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_3
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_4
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_5
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_6
+  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_7
+  ROOT -->|"owns policy rows"| TABLE_uop_permission_policy_v4
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_1
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_2
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_3
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_4
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_5
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_6
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_7
+  TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_8
+  ROOT -->|"owns policy rows"| TABLE_uop_plan_projection_policy_v4
+  TABLE_uop_plan_projection_policy_v4 -->|"declares"| ROW_uop_plan_projection_policy_v4_1
+  ROOT -->|"owns policy rows"| TABLE_uop_project_class_validation_policy_v4
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_1
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_2
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_3
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_4
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_5
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_6
+  TABLE_uop_project_class_validation_policy_v4 -->|"declares"| ROW_uop_project_class_validation_policy_v4_7
+  ROOT -->|"owns policy rows"| TABLE_uop_required_gate_v4
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_1
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_2
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_3
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_4
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_5
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_6
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_7
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_8
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_9
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_10
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_11
+  TABLE_uop_required_gate_v4 -->|"declares"| ROW_uop_required_gate_v4_12
+  ROOT -->|"owns policy rows"| TABLE_uop_source_policy_v4
+  TABLE_uop_source_policy_v4 -->|"declares"| ROW_uop_source_policy_v4_1
+  ROOT -->|"owns policy rows"| TABLE_uop_task_state_policy_v4
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_1
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_2
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_3
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_4
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_5
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_6
+  TABLE_uop_task_state_policy_v4 -->|"declares"| ROW_uop_task_state_policy_v4_7
+  ROOT -->|"owns policy rows"| TABLE_uop_tool_policy_v4
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_1
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_2
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_3
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_4
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_5
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_6
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_7
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_8
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_9
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_10
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_11
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_12
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_13
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_14
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_15
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_16
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_17
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_18
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_19
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_20
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_21
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_22
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_23
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_24
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_25
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_26
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_27
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_28
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_29
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_30
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_31
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_32
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_33
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_34
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_35
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_36
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_37
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_38
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_39
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_40
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_41
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_42
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_43
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_44
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_45
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_46
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_47
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_48
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_49
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_50
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_51
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_52
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_53
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_54
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_55
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_56
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_57
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_58
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_59
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_60
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_61
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_62
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_63
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_64
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_65
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_66
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_67
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_68
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_69
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_70
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_71
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_72
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_73
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_74
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_75
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_76
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_77
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_78
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_79
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_80
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_81
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_82
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_83
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_84
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_85
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_86
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_87
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_88
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_89
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_90
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_91
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_92
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_93
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_94
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_95
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_96
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_97
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_98
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_99
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_100
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_101
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_102
+  TABLE_uop_tool_policy_v4 -->|"declares"| ROW_uop_tool_policy_v4_103
+  ROOT -->|"owns policy rows"| TABLE_uop_verification_policy_v4
+  TABLE_uop_verification_policy_v4 -->|"declares"| ROW_uop_verification_policy_v4_1
+  TABLE_uop_verification_policy_v4 -->|"declares"| ROW_uop_verification_policy_v4_2
+  TABLE_uop_verification_policy_v4 -->|"declares"| ROW_uop_verification_policy_v4_3
+  ROOT -->|"owns policy rows"| TABLE_uop_work_classification_policy_v4
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_1
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_2
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_3
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_4
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_5
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_6
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_7
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_8
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_9
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_10
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_11
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_12
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_13
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_14
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_15
+  TABLE_uop_work_classification_policy_v4 -->|"declares"| ROW_uop_work_classification_policy_v4_16
+  ROOT -->|"owns policy rows"| TABLE_uop_workflow_gate_v4
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_1
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_2
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_3
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_4
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_5
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_6
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_7
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_8
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_9
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_10
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_11
+  TABLE_uop_workflow_gate_v4 -->|"declares"| ROW_uop_workflow_gate_v4_12
+  ROOT -->|"requires"| GATE_CONNECTION_SCOPE
+  ROOT -->|"requires"| GATE_DISCLOSURE
+  ROOT -->|"requires"| GATE_EFFECT_RECONCILIATION
+  ROOT -->|"requires"| GATE_HOST_PLAN_PROJECTION
+  ROOT -->|"requires"| GATE_PERMISSION
+  ROOT -->|"requires"| GATE_PLAN_TASK
+  ROOT -->|"requires"| GATE_PROJECT_BINDING
+  ROOT -->|"requires"| GATE_SAME_CONTRACT_FALLBACK
+  ROOT -->|"requires"| GATE_SOURCE_CURRENTNESS
+  ROOT -->|"requires"| GATE_TOOL_READINESS
+  ROOT -->|"requires"| GATE_USER_AUTHORITY
+  ROOT -->|"requires"| GATE_VERIFICATION
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  HOST_POLICIES_CODEX_CLI ~~~ HOST_POLICIES_CODEX_DESKTOP_BETA
-  HOST_POLICIES_CODEX_DESKTOP_BETA ~~~ HOST_POLICIES_CODEX_DESKTOP_STABLE
-  HOST_POLICIES_CODEX_DESKTOP_STABLE ~~~ HOST_POLICIES_CODEX_VM_EPHEMERAL
-  HIL_POLICIES_CODE_REPOSITORY ~~~ HIL_POLICIES_CUSTOM_PROJECT
-  HIL_POLICIES_CUSTOM_PROJECT ~~~ HIL_POLICIES_DATA_PROJECT
-  HIL_POLICIES_DOCUMENT_PROJECT ~~~ HIL_POLICIES_MEDIA_PROJECT
-  HIL_POLICIES_MEDIA_PROJECT ~~~ HIL_POLICIES_MIXED_PROJECT
-  OPERATORS_ACCELERATOR_BUDGET_GATE ~~~ OPERATORS_DIRECT_PURGE_GATE
-  OPERATORS_DIRECT_PURGE_GATE ~~~ OPERATORS_DISCLOSURE_GATE
-  OPERATORS_DISCLOSURE_GATE ~~~ OPERATORS_ENTRY_SLIP_GATE
-  OPERATORS_ENTRY_SLIP_GATE ~~~ OPERATORS_EXIT_SLIP_GATE
-  OPERATORS_EXIT_SLIP_GATE ~~~ OPERATORS_FALLBACK_GATE
-  OPERATORS_LEARNING_HIL_GATE ~~~ OPERATORS_PRIVACY_GATE
-  OPERATORS_PRIVACY_GATE ~~~ OPERATORS_PROJECT_HIL_GATE
-  OPERATORS_PROJECT_HIL_GATE ~~~ OPERATORS_SOURCE_PRECEDENCE
-  OPERATORS_SOURCE_PRECEDENCE ~~~ OPERATORS_WORK_GATE
-  FALLBACKS_CODE ~~~ FALLBACKS_DATA
-  FALLBACKS_DATA ~~~ FALLBACKS_DEPLOYMENT
-  FALLBACKS_DEPLOYMENT ~~~ FALLBACKS_DOCUMENT
-  FALLBACKS_DOCUMENT ~~~ FALLBACKS_EVALUATION
-  FALLBACKS_EVALUATION ~~~ FALLBACKS_FORMULA
-  FALLBACKS_GOVERNANCE ~~~ FALLBACKS_GRAPH
-  FALLBACKS_GRAPH ~~~ FALLBACKS_MCP_TRANSPORT
-  FALLBACKS_MCP_TRANSPORT ~~~ FALLBACKS_OBSERVABILITY
-  FALLBACKS_OBSERVABILITY ~~~ FALLBACKS_OCR_MEDIA
-  FALLBACKS_OCR_MEDIA ~~~ FALLBACKS_RETRIEVAL
-  FALLBACKS_RUNTIME ~~~ FALLBACKS_SOURCE_ROUTING
-  FALLBACKS_SOURCE_ROUTING ~~~ FALLBACKS_WEB_RESEARCH
-  UOP15_U151ACK ~~~ UOP15_U151APPEND
-  UOP15_U151APPEND ~~~ UOP15_U151EXACT
-  UOP15_U151EXACT ~~~ UOP15_U151MISSING
-  UOP15_U151MISSING ~~~ UOP15_U151NOAUTH
-  UOP15_U151NOFAB ~~~ UOP15_U151OBS
-  UOP15_U151OBS ~~~ UOP15_U151PRIORITY
-  UOP15_UOPSQL ~~~ UOP15_UOPLAW
-  UOP15_UOPLAW ~~~ UOP15_UOPLOCK
-  UOP15_UOPLOCK ~~~ UOP15_UOP14_PROMPT_OVERRIDE
-  UOP15_UOP14_PROMPT_OVERRIDE ~~~ UOP15_UOP14_DEEPRESEARCH
-  UOP15_UOP14_FUTURE_LAYER ~~~ UOP15_UOP15_PUBLIC_LOCK
-  UOP15_UOP15_PUBLIC_LOCK ~~~ UOP15_UOP15_SECTOR_GUIDANCE
-  UOP15_UOP15_SECTOR_GUIDANCE ~~~ UOP15_UOP15_RESEARCH
-  UOP15_UOP15_RESEARCH ~~~ UOP15_UOP15_LEGACY
-  UOP15_SPATIAL ~~~ UOP15_COMPRESS
-  UOP15_COMPRESS ~~~ UOP15_SRCSTATE
-  UOP15_SRCSTATE ~~~ UOP15_DISC
-  UOP15_DISC ~~~ UOP15_MODE
-  UOP15_DELTA ~~~ UOP15_HUMAN
-  UOP15_HUMAN ~~~ UOP15_NOENV
-  UOP15_NOENV ~~~ UOP15_NOPROJ
+  GATE_CONNECTION_SCOPE ~~~ GATE_DISCLOSURE
+  ROW_uop_action_policy_v4_42 ~~~ ROW_uop_action_policy_v4_43
+  ROW_uop_action_policy_v4_93 ~~~ ROW_uop_action_policy_v4_94
+  ROW_uop_action_policy_v4_145 ~~~ ROW_uop_action_policy_v4_146
+  ROW_uop_action_policy_v4_195 ~~~ ROW_uop_action_policy_v4_196
+  ROW_uop_action_policy_v4_246 ~~~ ROW_uop_action_policy_v4_247
+  ROW_uop_fallback_policy_v4_2 ~~~ ROW_uop_fallback_policy_v4_3
+  ROW_uop_tool_policy_v4_18 ~~~ ROW_uop_tool_policy_v4_19
+  ROW_uop_tool_policy_v4_71 ~~~ ROW_uop_tool_policy_v4_72
+  ROW_uop_workflow_gate_v4_11 ~~~ ROW_uop_workflow_gate_v4_12
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

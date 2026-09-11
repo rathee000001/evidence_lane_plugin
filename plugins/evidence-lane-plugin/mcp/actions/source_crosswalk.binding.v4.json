@@ -1,0 +1,259 @@
+{
+  "action": "source_crosswalk",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/source_crosswalk.action.v4.json",
+  "sdk_binding_sha256": "cdfe6e7dd250f35731d03d942310ab6e843986c878ad044c307a23423dab378d",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Register a granted crosswalk file with its content identity.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "batch_id": {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:-]+$",
+              "title": "Batch Id",
+              "type": "string"
+            },
+            "crosswalk_path": {
+              "maxLength": 4096,
+              "minLength": 1,
+              "title": "Crosswalk Path",
+              "type": "string"
+            }
+          },
+          "required": [
+            "batch_id",
+            "crosswalk_path"
+          ],
+          "title": "SourceCrosswalkRequest",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "source_crosswalk",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

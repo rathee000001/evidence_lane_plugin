@@ -1,148 +1,83 @@
--- Generated from the canonical authority SQLite builder.
--- FTS5 shadow tables are intentionally omitted; SQLite creates them.
+-- Projection: runtime applies the real ordered migrations under its project writer.
 
-CREATE TABLE authority_index_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_bytes BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
+CREATE TABLE receipts (
+    receipt_id TEXT PRIMARY KEY, kind TEXT NOT NULL,
+    body_json TEXT NOT NULL CHECK(json_valid(body_json)), created_at TEXT NOT NULL);
+CREATE INDEX receipts_kind_time ON receipts(kind,created_at);
 
-CREATE VIRTUAL TABLE authority_index_fts USING fts5(
-            node_id UNINDEXED,
-            authority_id UNINDEXED,
-            source_table UNINDEXED,
-            source_identity UNINDEXED,
-            text_content,
-            content='',
-            contentless_delete=1,
-            tokenize='unicode61'
-        );
-
-CREATE TABLE authority_index_node(
-            node_id TEXT PRIMARY KEY,
-            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)
-                ON DELETE CASCADE,
-            ordinal INTEGER NOT NULL,
-            char_start INTEGER NOT NULL,
-            char_end INTEGER NOT NULL,
-            text_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            UNIQUE(source_id, ordinal)
-        ) STRICT;
-
-CREATE TABLE authority_index_refresh_receipt(
-            sequence INTEGER PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_count INTEGER NOT NULL,
-            node_count INTEGER NOT NULL,
-            indexed_table_count INTEGER NOT NULL,
-            llama_index_core_version TEXT NOT NULL,
-            chunk_size_tokens INTEGER NOT NULL,
-            chunk_overlap_tokens INTEGER NOT NULL,
-            prior_receipt_sha256 TEXT,
-            recorded_at TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE authority_index_source(
-            source_id TEXT PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_table TEXT NOT NULL,
-            source_identity TEXT NOT NULL,
-            source_text_sha256 TEXT NOT NULL,
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            recorded_at TEXT NOT NULL,
-            UNIQUE(authority_id, source_table, source_identity)
-        ) STRICT;
-
-CREATE TABLE receipt_content_cas(
-                receipt_sha256 TEXT PRIMARY KEY,
-                byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-                compression TEXT NOT NULL,
-                compressed_bytes BLOB NOT NULL,
-                first_recorded_at TEXT NOT NULL
-            ) STRICT;
-
-CREATE VIRTUAL TABLE receipt_fts USING fts5(
-                receipt_sha256 UNINDEXED,
-                logical_path,
-                receipt_kind,
-                schema_id,
-                payload_text,
-                content='',
-                contentless_delete=1,
-                tokenize='unicode61'
-            );
-
-CREATE TABLE receipt_link(
-                link_id INTEGER PRIMARY KEY,
-                source_receipt_sha256 TEXT NOT NULL
-                    REFERENCES receipt_record(receipt_sha256),
-                relation TEXT NOT NULL,
-                target_receipt_sha256 TEXT NOT NULL,
-                metadata_json TEXT NOT NULL,
-                UNIQUE(source_receipt_sha256, relation, target_receipt_sha256)
-            ) STRICT;
-
-CREATE TABLE receipt_migration_batch(
-                batch_id TEXT PRIMARY KEY,
-                source_root TEXT NOT NULL,
-                source_file_count INTEGER NOT NULL,
-                source_bytes INTEGER NOT NULL,
-                ingested_count INTEGER NOT NULL,
-                duplicate_count INTEGER NOT NULL,
-                removed_count INTEGER NOT NULL,
-                source_removal_authorized INTEGER NOT NULL
-                    CHECK(source_removal_authorized IN (0,1)),
-                receipt_sha256 TEXT NOT NULL UNIQUE,
-                receipt_json TEXT NOT NULL,
-                recorded_at TEXT NOT NULL
-            ) STRICT;
-
-CREATE TABLE receipt_record(
-                sequence INTEGER PRIMARY KEY,
-                receipt_sha256 TEXT NOT NULL UNIQUE
-                    REFERENCES receipt_content_cas(receipt_sha256),
-                logical_path TEXT NOT NULL UNIQUE,
-                receipt_kind TEXT NOT NULL,
-                schema_id TEXT,
-                project_id TEXT,
-                session_id TEXT,
-                host_task_id TEXT,
-                media_type TEXT NOT NULL,
-                byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-                payload_json TEXT,
-                prior_receipt_sha256 TEXT,
-                supersedes_receipt_sha256 TEXT,
-                recorded_at TEXT NOT NULL,
-                source_file_removed INTEGER NOT NULL DEFAULT 0
-                    CHECK(source_file_removed IN (0,1))
-            ) STRICT;
-
-CREATE INDEX authority_index_node_source_idx
-        ON authority_index_node(source_id, ordinal);
-
-CREATE INDEX authority_index_source_table_idx
-        ON authority_index_source(authority_id, source_table, source_identity);
-
-CREATE INDEX receipt_record_kind_idx
-            ON receipt_record(receipt_kind, sequence);
-
-CREATE INDEX receipt_record_project_session_idx
-            ON receipt_record(project_id, session_id, sequence);
-
-CREATE TRIGGER receipt_record_no_delete
-            BEFORE DELETE ON receipt_record BEGIN
-              SELECT RAISE(ABORT, 'receipt ledger is append-only');
-            END;
-
-CREATE TRIGGER receipt_record_no_update
-            BEFORE UPDATE ON receipt_record BEGIN
-              SELECT RAISE(ABORT, 'receipt ledger is append-only');
-            END;
+-- access v1, digest 3b13d260a0ddf92fd0975facd96d9a8a77f8fe2ee46564a3dc4dc7108b9cc931
+CREATE TABLE access_grants (
+        grant_id TEXT PRIMARY KEY, principal_id TEXT NOT NULL,
+        permissions_json TEXT NOT NULL CHECK(json_valid(permissions_json)),
+        roots_json TEXT NOT NULL CHECK(json_valid(roots_json)),
+        expires_at TEXT, revoked_at TEXT, created_at TEXT NOT NULL);
+CREATE INDEX access_principal ON access_grants(principal_id,revoked_at);
+-- access v2, digest 577ea803dfc2ad489971466697e398d1e80f319a86e46863a2243144cb515a20
+ALTER TABLE access_grants ADD COLUMN parent_grant_id TEXT REFERENCES access_grants(grant_id);
+CREATE INDEX access_parent ON access_grants(parent_grant_id);
+-- extensions v1, digest 102ea20426b23b0e9a8d8ac28804ee6a02deed19f438b52041252ceb7464e4c6
+CREATE TABLE extensions_registration (
+            plugin_id TEXT PRIMARY KEY, current_version INTEGER NOT NULL,
+            revoked_at TEXT);
+CREATE TABLE extensions_versions (
+            plugin_id TEXT NOT NULL REFERENCES extensions_registration(plugin_id),
+            version INTEGER NOT NULL, registration_json TEXT NOT NULL CHECK(json_valid(registration_json)),
+            digest TEXT NOT NULL, configured_at TEXT NOT NULL, actor_id TEXT NOT NULL,
+            PRIMARY KEY(plugin_id,version));
+CREATE TABLE extensions_events (
+            sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,
+            plugin_id TEXT NOT NULL REFERENCES extensions_registration(plugin_id),
+            event_type TEXT NOT NULL, actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL,
+            details_json TEXT NOT NULL CHECK(json_valid(details_json)),
+            prior_digest TEXT, digest TEXT NOT NULL);
+-- accelerator v1, digest fe67ae66b30a4f7af57871de306fb5ab461c86ef3083630a8f8612fcb9ee9eed
+CREATE TABLE accelerator_settings (
+            revision INTEGER PRIMARY KEY, config_json TEXT NOT NULL CHECK(json_valid(config_json)),
+            digest TEXT NOT NULL, actor_id TEXT NOT NULL, configured_at TEXT NOT NULL);
+-- remote v1, digest b9c373cfd117a3bab3e8601df3d716a8d42373569bde00caa1a16655ca7e5658
+CREATE TABLE remote_probe (
+        principal_id TEXT PRIMARY KEY, policy_digest TEXT NOT NULL,
+        nonce_digest TEXT NOT NULL, object_digest TEXT NOT NULL,
+        engine_id TEXT NOT NULL, created_at TEXT NOT NULL);
+-- recovery v1, digest 6ef8c33aa2e21276d3cc7bee8dc6f25532996a96e0018079c787fbdb7124e596
+CREATE TABLE recovery_backups (request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL,
+       input_digest TEXT NOT NULL, result_json TEXT NOT NULL CHECK(json_valid(result_json)));
+CREATE TABLE recovery_history (sequence INTEGER PRIMARY KEY, digest TEXT NOT NULL UNIQUE,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)));
+CREATE TABLE recovery_control (singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+       recovery_digest TEXT NOT NULL, required_after_revision INTEGER NOT NULL, cleared_by_revision INTEGER);
+-- sessions v1, digest f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb
+CREATE TABLE sessions_records (session_id TEXT PRIMARY KEY,
+       state TEXT NOT NULL CHECK(state IN ('active','closed')), generation INTEGER NOT NULL CHECK(generation>=1),
+       owner_client_id TEXT NOT NULL, owner_engine_id TEXT NOT NULL, reported_session_id TEXT NOT NULL,
+       flash_digest TEXT NOT NULL, runtime_package_digest TEXT NOT NULL, event_digest TEXT NOT NULL,
+       created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE UNIQUE INDEX sessions_one_active ON sessions_records(state) WHERE state='active';
+CREATE TABLE sessions_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+       session_id TEXT NOT NULL REFERENCES sessions_records(session_id));
+CREATE TABLE sessions_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
+       session_id TEXT NOT NULL REFERENCES sessions_records(session_id) DEFERRABLE INITIALLY DEFERRED,
+       generation INTEGER NOT NULL, action TEXT NOT NULL, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE,
+       created_at TEXT NOT NULL, UNIQUE(session_id,generation));
+-- gitpush v1, digest 64c9cf8ea51ac372041060d68f94f0745d06c76ca1bd14eeef873eac24554705
+CREATE TABLE gitpush_events (action_id TEXT NOT NULL, sequence INTEGER NOT NULL,
+       digest TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       PRIMARY KEY(action_id,sequence));
+CREATE TABLE gitpush_current (action_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL,
+       digest TEXT NOT NULL, FOREIGN KEY(action_id,sequence) REFERENCES gitpush_events(action_id,sequence));
+-- capture v1, digest ce16fd00779be73e5122cd75948b11269fc92eca33ca2e7896e99d46d5530860
+CREATE TABLE capture_decisions (
+       sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,
+       previous_digest TEXT,digest TEXT NOT NULL UNIQUE,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)));
+-- hostmemory v1, digest 30bede0b4dd3f7634a29b2ccb890c33ec0dc509b0a6978e2ff10248d83ee1aa3
+CREATE TABLE hostmemory_imports (
+       request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,
+       receipt_id TEXT NOT NULL UNIQUE REFERENCES receipts(receipt_id), receipt_digest TEXT NOT NULL,
+       result_json TEXT NOT NULL CHECK(json_valid(result_json)), result_digest TEXT NOT NULL);
+-- storage v1, digest a47bb0877ae5f3d44866e04ee05766eca59af045fb07c7618917470bd197135b
+CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,
+       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,
+       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL);

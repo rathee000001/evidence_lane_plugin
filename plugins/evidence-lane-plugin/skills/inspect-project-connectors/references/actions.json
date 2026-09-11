@@ -1,0 +1,24 @@
+{
+  "action_set_digest": "93b7e4d835fa1546d0b421db8cd348acb24422f3862623d2bd08c3feb24eb6f9",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+      "input_schema_digest": "0611fb5e579041d742ef79cbc64f2a9fde7a0098b995b96402c7847b25bd1460",
+      "mutates": false,
+      "name": "connector_read",
+      "output_schema_digest": "885d43d5fd566a98862efd63c03da9c801cd3201266f28123f8a6859ab1a25bb",
+      "permission": "read",
+      "profile": "extensions",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": true
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "plugin"
+}

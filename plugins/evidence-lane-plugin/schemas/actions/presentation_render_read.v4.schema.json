@@ -1,0 +1,118 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read and verify one immutable presentation-render manifest and its artifacts.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "render_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Render Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "render_id"
+    ],
+    "title": "PresentationRenderRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "presentation_render_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PresentationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "presentation",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "5e4598879ea87c00fe752e5c59cdcdfbc179e0a94bf1dce203b74070b4a42a91",
+      "owner": "ppt",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "30cd1a694dbc512bbc830e6bf7a9724f6c8a616a632410697883657bb36102e9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "presentation_render_read",
+    "profile": "presentation",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.presentation_rendering:register_render_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "presentation_render_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

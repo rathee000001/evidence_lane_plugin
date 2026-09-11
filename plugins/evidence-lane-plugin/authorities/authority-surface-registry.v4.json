@@ -1,0 +1,97 @@
+{
+  "schema": "evidence-lane.authority-surface-registry.v4",
+  "authorities": [
+    {
+      "authority_id": "plan",
+      "runtime_module": "evidence_lane_plugin.plan_runtime",
+      "path": "authorities/plan",
+      "manifest": {
+        "path": "authorities/plan/manifest.v4.json",
+        "sha256": "82a76f0d6840f7c6d9b869983cef95198c1e0acee68fd1d95b17f74e489e2294"
+      }
+    },
+    {
+      "authority_id": "chat_lineage",
+      "runtime_module": "evidence_lane_plugin.lineage",
+      "path": "authorities/chat_lineage",
+      "manifest": {
+        "path": "authorities/chat_lineage/manifest.v4.json",
+        "sha256": "a2ccbed1286fc25677bb6178094e065c24ccf9228eea8611a96f20d82537bf68"
+      }
+    },
+    {
+      "authority_id": "canon",
+      "runtime_module": "evidence_lane_plugin.canon_task_graph",
+      "path": "authorities/canon_input",
+      "manifest": {
+        "path": "authorities/canon_input/manifest.v4.json",
+        "sha256": "4cac9aeda3ec1206bf9fbb8b61c9b7654bce2ce8131defa68685eb69c7fcbf67"
+      }
+    },
+    {
+      "authority_id": "memory",
+      "runtime_module": "evidence_lane_plugin.project_memory",
+      "path": "authorities/project_memory",
+      "manifest": {
+        "path": "authorities/project_memory/manifest.v4.json",
+        "sha256": "3ad4708cc52977a4bc5b49c44c1d3decddf597f5ae671a7bf2d79cb6fa7b0d83"
+      }
+    },
+    {
+      "authority_id": "learning",
+      "runtime_module": "evidence_lane_plugin.agent_learning",
+      "path": "authorities/agent_learning",
+      "manifest": {
+        "path": "authorities/agent_learning/manifest.v4.json",
+        "sha256": "0e475114edbe63aceaafc271a146bf599e462c50424a0f6e2d77a8097699eafb"
+      }
+    },
+    {
+      "authority_id": "sources",
+      "runtime_module": "evidence_lane_plugin.source_authority",
+      "path": "authorities/source_authority",
+      "manifest": {
+        "path": "authorities/source_authority/manifest.v4.json",
+        "sha256": "a71ac4e53b815b768b0a8809ffe19fa44a50aee167821cafc7628d7930d8ce8a"
+      }
+    },
+    {
+      "authority_id": "receipts",
+      "runtime_module": "evidence_lane_plugin.projects",
+      "path": "authorities/receipt_ledger",
+      "manifest": {
+        "path": "authorities/receipt_ledger/manifest.v4.json",
+        "sha256": "82e7a47d181e9cd0a946a74677f1236d7418a73b3ddc2bdbbcef07c4bce840cc"
+      }
+    },
+    {
+      "authority_id": "universe",
+      "runtime_module": "evidence_lane_plugin.project_universe",
+      "path": "authorities/project_universe",
+      "manifest": {
+        "path": "authorities/project_universe/manifest.v4.json",
+        "sha256": "f74b0d12b20d8ef26ff74f9d267a95bf2f4bd7b8ab2a6606cd723437d98d6620"
+      }
+    }
+  ],
+  "source": "evidence_lane_plugin.authority_support.AUTHORITY_SUPPORT_PROFILES",
+  "authority_count": 8,
+  "project_databases_packaged": false,
+  "workflow_owners": [
+    {
+      "owner_id": "session_authority",
+      "manifest": {
+        "path": "authorities/session_authority/manifest.v4.json",
+        "sha256": "dff6a652f8d19bcf44daa69966721ba80aa42a6c28ea5fcbfbef47d503c91a34"
+      }
+    },
+    {
+      "owner_id": "instructions",
+      "manifest": {
+        "path": "authorities/instructions/manifest.v4.json",
+        "sha256": "dd4b05e7d5815e3a6cd671faf7927812ce24a188c82ba22f5dd446fa0e8bd7f3"
+      }
+    }
+  ],
+  "root_pv": "authorities/project_authority/manifest.v4.json"
+}

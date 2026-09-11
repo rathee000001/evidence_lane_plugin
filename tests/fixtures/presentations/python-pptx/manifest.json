@@ -1,0 +1,85 @@
+{
+  "schema": "evidence-lane.presentation-reference.v4",
+  "repository": "https://github.com/scanny/python-pptx",
+  "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "usage": "Independent upstream binary test data; no upstream generator is executed.",
+  "files": [
+    {
+      "filename": "LICENSE",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/LICENSE",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "bytes": 1104
+    },
+    {
+      "filename": "prs-notes.pptx",
+      "path": "features/steps/test_files/prs-notes.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/prs-notes.pptx",
+      "sha256": "664dc13965c7ea24688256d1ecd869936ca51a2e94d2aefe0f614bb8554976ea",
+      "bytes": 86792
+    },
+    {
+      "filename": "shp-groupshape.pptx",
+      "path": "features/steps/test_files/shp-groupshape.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/shp-groupshape.pptx",
+      "sha256": "37c9a0bd919f9fc4e89600939cbaf798e79c6aaf96406aee5bba2828cea3e3a6",
+      "bytes": 23786
+    },
+    {
+      "filename": "tbl-cell.pptx",
+      "path": "features/steps/test_files/tbl-cell.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/tbl-cell.pptx",
+      "sha256": "02df45aad4927c4c471d76d4f638e82e14c42d4db773103cf8f950f73b0ae976",
+      "bytes": 28247
+    },
+    {
+      "filename": "shp-picture.pptx",
+      "path": "features/steps/test_files/shp-picture.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/shp-picture.pptx",
+      "sha256": "20b6295563e217804af81f8b5fee5e5cef9e766ac401d825d536ffe6d674edd0",
+      "bytes": 91730
+    },
+    {
+      "filename": "cht-charts.pptx",
+      "path": "features/steps/test_files/cht-charts.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/cht-charts.pptx",
+      "sha256": "fce05dd2945e8566865a62b48e122e4d2be51f7ca55b124f9bd6821a50819218",
+      "bytes": 77751
+    },
+    {
+      "filename": "sld-slides.pptx",
+      "path": "features/steps/test_files/sld-slides.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/sld-slides.pptx",
+      "sha256": "7742ae6663ec5a12b85e0f987ae05b47cf0cb72b7ab303d0c05770aef1276004",
+      "bytes": 18478
+    },
+    {
+      "filename": "ph-populated-placeholders.pptx",
+      "path": "features/steps/test_files/ph-populated-placeholders.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/ph-populated-placeholders.pptx",
+      "sha256": "b08599276b4d708757951f2d45ac74cb4e81e94463d575e4d857690d0d231a60",
+      "bytes": 172254
+    },
+    {
+      "filename": "font-color.pptx",
+      "path": "features/steps/test_files/font-color.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/font-color.pptx",
+      "sha256": "2394d35832c69576e808f8f5196c263a6488eb55d10b7b864f11840843123b69",
+      "bytes": 25061
+    },
+    {
+      "filename": "act-props.pptm",
+      "path": "features/steps/test_files/act-props.pptm",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/act-props.pptm",
+      "sha256": "14af8bc6fa9ed94fbc895d8744993c682d29b028d232d2a25c29ddfe668682f5",
+      "bytes": 982098
+    },
+    {
+      "filename": "shp-access-ole-object.pptx",
+      "path": "features/steps/test_files/shp-access-ole-object.pptx",
+      "url": "https://raw.githubusercontent.com/scanny/python-pptx/278b47b1dedd5b46ee84c286e77cdfb0bf4594be/features/steps/test_files/shp-access-ole-object.pptx",
+      "sha256": "a448dc27c4d1212ad23f680c040f8a918ef7cbb6c41c9ad57f33d1d59a8f9bb4",
+      "bytes": 119022
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect an exact local Git commit and fresh workspace restoration.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "branch": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Branch",
+        "type": "string"
+      },
+      "commit": {
+        "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+        "title": "Commit",
+        "type": "string"
+      },
+      "destination_root": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Destination Root",
+        "type": "string"
+      }
+    },
+    "required": [
+      "branch",
+      "commit",
+      "destination_root"
+    ],
+    "title": "GitRestoreSelection",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "git_restore_preview",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "destination_root": {
+        "title": "Destination Root",
+        "type": "string"
+      },
+      "external_filters_enabled": {
+        "default": false,
+        "title": "External Filters Enabled",
+        "type": "boolean"
+      },
+      "generation": {
+        "title": "Generation",
+        "type": "integer"
+      },
+      "lfs_objects_downloaded": {
+        "default": false,
+        "title": "Lfs Objects Downloaded",
+        "type": "boolean"
+      },
+      "plan_boundary": {
+        "additionalProperties": true,
+        "title": "Plan Boundary",
+        "type": "object"
+      },
+      "preview_digest": {
+        "title": "Preview Digest",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "selection": {
+        "additionalProperties": true,
+        "title": "Selection",
+        "type": "object"
+      },
+      "source_code_reindexed": {
+        "default": false,
+        "title": "Source Code Reindexed",
+        "type": "boolean"
+      },
+      "source_identity": {
+        "additionalProperties": true,
+        "title": "Source Identity",
+        "type": "object"
+      },
+      "source_root": {
+        "title": "Source Root",
+        "type": "string"
+      },
+      "source_workspace_reset": {
+        "default": false,
+        "title": "Source Workspace Reset",
+        "type": "boolean"
+      },
+      "submodules_initialized": {
+        "default": false,
+        "title": "Submodules Initialized",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "preview_digest",
+      "source_root",
+      "destination_root",
+      "source_identity",
+      "selection",
+      "plan_boundary",
+      "generation"
+    ],
+    "title": "GitRestorePreview",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Git"
+  ],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "7c8fea57b896a37905677cc5d426628edad721724541a4055bc4ecb65a3e9f63",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "git_restore_preview",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.store:register_restoration_actions.<locals>.preview",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "git_restore_preview.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

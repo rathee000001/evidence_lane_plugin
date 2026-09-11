@@ -1,17 +1,10 @@
-"""Lane-specific binding to the canonical shared lane bundle builder."""
+"""ppt: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import build_sector_source
 
-from evidence_lane_plugin.lane_engine import build_lane_bundle
+LANE_ID = 'ppt'
+ACTION_LANES = {'presentation_convert': 'ppt', 'presentation_edit': 'ppt', 'presentation_enrich': 'ppt', 'presentation_export': 'ppt', 'presentation_generate': 'ppt', 'presentation_index': 'ppt', 'presentation_refresh': 'ppt', 'presentation_render': 'ppt', 'source_snapshot_retire': 'ppt'}
 
-LANE_ID = "ppt"
-
-def build_lane_sources(*, source_paths, source_overrides=None, **kwargs):
-    paths = tuple(dict.fromkeys(str(path) for path in source_paths))
-    overrides = dict(source_overrides or {})
-    overrides.update({path: LANE_ID for path in paths})
-    return build_lane_bundle(
-        source_paths_override=paths,
-        source_overrides=overrides,
-        **kwargs,
-    )
+def build_lane_sources(client, **arguments):
+    return build_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
 __all__ = ["LANE_ID", "build_lane_sources"]

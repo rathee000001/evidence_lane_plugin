@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 48,
   "tool": "Pydantic",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "A36FC0970B17A967F6FC5184A220C79B460F8B7BEB65C228630BC9940E39E9F0"
+  "historical_ordinal": 48,
+  "catalog_ordinal": 47,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "d5809ab38196a2990515e5e7673a6db8e548d20b5434927d8aac7f609a621f9a"
 }

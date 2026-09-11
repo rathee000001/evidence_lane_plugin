@@ -1,0 +1,66 @@
+{
+  "action_set_digest": "2c052bf2617f992ee43816da0da9eff57899cef260c86787f71e7ef02159da29",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+      "input_schema_digest": "1c8973b43bcdb4e8dd6408fc74666806c7f782bc18c40a19e25145b211d38bd3",
+      "mutates": true,
+      "name": "project_register",
+      "output_schema_digest": "dbad735885bbcd32f2d878f85e9bc583f206d317dcd8d6a1e2e46d6c49b0c266",
+      "permission": "project_admin",
+      "profile": "core",
+      "project_required": false,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
+      "input_schema_digest": "db53c9a3611025536a6301090bc2b91a0dc5a19fb28274609059846bbbadbccd",
+      "mutates": false,
+      "name": "storage_connector_inspect",
+      "output_schema_digest": "5cad9598397366bbd4f280e952b581b9196e3c97d287ba32b4deb310b531758a",
+      "permission": "read",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": true
+    },
+    {
+      "cross_project_read": false,
+      "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
+      "input_schema_digest": "04a2bb1d96b189b687f593d38832def999419874eb8fc51eaec9503d553b6776",
+      "mutates": true,
+      "name": "storage_connector_select",
+      "output_schema_digest": "5cad9598397366bbd4f280e952b581b9196e3c97d287ba32b4deb310b531758a",
+      "permission": "admin",
+      "profile": "receipts",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "requires_delta": false,
+      "studio_read": false
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
+      "input_schema_digest": "8ebe8a86d34d557faa8a3c6a403356792a18cfbf6f2a27cae2f20c535e869086",
+      "mutates": false,
+      "name": "storage_status",
+      "output_schema_digest": "eb90a3ebb254bccb69233fdc7c07c85dc3e4c08125061ee61aadd3a706027b84",
+      "permission": "read",
+      "profile": "core",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "requires_delta": false,
+      "studio_read": true
+    }
+  ],
+  "authority": "engine_typed_action_registry",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.skill-actions.v4",
+  "scope": "primary_workflow_routes; shared context reads are available through the live catalog",
+  "workflow": "storage"
+}

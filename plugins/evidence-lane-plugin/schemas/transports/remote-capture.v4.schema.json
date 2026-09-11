@@ -1,0 +1,57 @@
+{
+  "$defs": {
+    "HookEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Event",
+          "type": "object"
+        },
+        "event_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Event Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event"
+      ],
+      "title": "HookEnvelope",
+      "type": "object"
+    },
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capture": {
+      "$ref": "#/$defs/HookEnvelope"
+    },
+    "connection_token": {
+      "pattern": "^[A-Za-z0-9_-]{43,128}$",
+      "title": "Connection Token",
+      "type": "string"
+    },
+    "instance_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "policy_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Digest",
+      "type": "string"
+    }
+  },
+  "required": [
+    "instance_id",
+    "policy_digest",
+    "connection_token",
+    "capture"
+  ],
+  "title": "RemoteCapture",
+  "type": "object"
+}

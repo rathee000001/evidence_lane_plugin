@@ -129,7 +129,9 @@ def compact_token_count(value: int, *, decimal_places: int = 1) -> str:
     rounded = (Decimal(value) / Decimal(divisor)).quantize(
         quantum, rounding=ROUND_HALF_UP
     )
-    rendered = format(rounded, "f").rstrip("0").rstrip(".")
+    rendered = format(rounded, "f")
+    if "." in rendered:
+        rendered = rendered.rstrip("0").rstrip(".")
     return f"{rendered}{suffix}"
 
 
@@ -1049,6 +1051,8 @@ def build_rich_goal_completion_metrics_receipt(
         },
         "completion_state": {
             "goal_already_complete": goal_already_complete,
+            "goal_completion_status_basis": "CALLER_SUPPLIED_METADATA",
+            "native_goal_state_verified": False,
             "persisted_receipt_reused": False,
             "completion_call_performed": False,
             "display_route_has_completion_authority": False,
@@ -1087,13 +1091,13 @@ def build_goal_completion_authorization(
     actor_kind: str,
     current_task_id: str,
 ) -> dict[str, Any]:
-    """Validate the sole human-owned Goal completion boundary.
+    """Validate a caller-supplied completion request without executing it.
 
-    HIL, candidate, Plan, test, automation, and lifecycle state may pause or
-    stall a Goal, but none can complete it.  State Travel is one explicit
-    human disposition: it closes the current task's Goal boundary while
-    preserving unfinished governed work for an exact successor task.  It does
-    not turn Goal completion into HIL or pointer authority.
+    The retained Python name does not make this helper an authorizer. Strings
+    supplied by a caller establish neither human consent nor the current task
+    identity. Only the supported native Goal operation and its attributed
+    result can establish completion. Requested State Travel and full closure
+    remain requests here; neither changes a Goal, HIL or project pointer.
     """
 
     command = str(visible_command or "").strip()
@@ -1109,20 +1113,27 @@ def build_goal_completion_authorization(
     if not task_id or len(task_id) > 256:
         raise ValueError("Goal completion requires one exact current task identity")
     return {
-        "schema": "evidence-lane.goal-completion-authorization.v1",
-        "status": "AUTHORIZED_BY_EXACT_HUMAN_COMMAND",
+        "schema": "evidence-lane.goal-completion-request.v4",
+        "status": "CALLER_REQUEST_VALIDATED",
+        "input_provenance": "CALLER_SUPPLIED",
+        "human_authorization_verified": False,
+        "current_task_identity_verified": False,
+        "native_goal_state_verified": False,
+        "completion_call_performed": False,
+        "completion_requested": True,
         "visible_command": GOAL_COMPLETION_COMMAND,
         "actor_kind": "HUMAN",
         "current_task_id": task_id,
         "disposition": exact_disposition,
-        "current_task_goal_completed": True,
+        "current_task_goal_completed": None,
         "state_travel_requested": (
             exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
         ),
         "successor_goal_required": (
             exact_disposition == "COMPLETE_THIS_TASK_AND_STATE_TRAVEL"
         ),
-        "full_goal_closed": exact_disposition == "COMPLETE_FULLY",
+        "full_goal_completion_requested": exact_disposition == "COMPLETE_FULLY",
+        "full_goal_closed": None,
         "hil_can_complete_goal": False,
         "candidate_can_complete_goal": False,
         "automation_can_complete_goal": False,

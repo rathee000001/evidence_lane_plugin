@@ -1,39 +1,403 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "session_authority bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "authority_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_env_uop_inspect": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "env_uop_inspect",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/OperatingPolicyInspect"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_env_uop_inspect",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "session_authority"
+    "AuthorityRequest_session_context": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_context",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_context",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_session_exit_boundary": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_exit_boundary",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionBoundaryRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_exit_boundary",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "fts5",
-        "bm25",
-        "hybrid"
-      ]
+    "AuthorityRequest_session_flash_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_flash_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_flash_status",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "AuthorityRequest_session_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_status",
+      "type": "object"
+    },
+    "OperatingPolicyInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "default": "env",
+          "enum": [
+            "env",
+            "uop"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "query": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "OperatingPolicyInspect",
+      "type": "object"
+    },
+    "SessionBoundaryRead": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "ordinary_turn",
+            "delta_append",
+            "session_exit",
+            "state_travel",
+            "goal_completion"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "source_event_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Event Id"
+        },
+        "source_cursor": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Cursor"
+        },
+        "continuation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuation Id"
+        },
+        "continuation_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuation Digest"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "SessionBoundaryRead",
+      "type": "object"
+    },
+    "SessionStatusRequest": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "SessionStatusRequest",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "171821817AF2F02540AC48D33710348084F332BC88C56E3DB6EA988E9BAFF7B9"
+  "discriminator": {
+    "mapping": {
+      "env_uop_inspect": "#/$defs/AuthorityRequest_env_uop_inspect",
+      "session_context": "#/$defs/AuthorityRequest_session_context",
+      "session_exit_boundary": "#/$defs/AuthorityRequest_session_exit_boundary",
+      "session_flash_status": "#/$defs/AuthorityRequest_session_flash_status",
+      "session_status": "#/$defs/AuthorityRequest_session_status"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_env_uop_inspect"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_context"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_exit_boundary"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_flash_status"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_status"
+    }
+  ],
+  "title": "session_authority typed SDK requests"
 }

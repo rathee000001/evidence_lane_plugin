@@ -1,23 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "receipt_ledger runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "receipt_ledger"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.receipt_ledger"
-    },
-    "source_sha256": {
-      "const": "5A3A6AEFCA1ABB95FEA3C5FBD6A05A75434E63EC867D147D50F45C7A7A8B7F4C"
-    }
+  "const": {
+    "owner_id": "receipts",
+    "modules": [
+      "evidence_lane_plugin.projects",
+      "evidence_lane_plugin.connector_governance",
+      "evidence_lane_plugin.accelerators",
+      "evidence_lane_plugin.remote_api",
+      "evidence_lane_plugin.database_recovery",
+      "evidence_lane_plugin.session_authority",
+      "evidence_lane_plugin.remote_git",
+      "evidence_lane_plugin.capture_routing",
+      "evidence_lane_plugin.agent_learning",
+      "evidence_lane_plugin.storage_selection"
+    ],
+    "storage": "authorities/receipts/receipts_authority_v001.sqlite with files and schema history in authorities/receipts",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "944F5159E9A125262834FE9210DAB7A6F035E393A01F38FFA53F7858B07F149C"
+  "title": "receipts canonical runtime binding"
 }

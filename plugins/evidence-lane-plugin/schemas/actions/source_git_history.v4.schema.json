@@ -1,0 +1,197 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Index explicitly authorized Git history within the selected source budgets.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "batch_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:-]+$",
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "max_changed_lines": {
+        "default": 50000,
+        "maximum": 5000000,
+        "minimum": 1,
+        "title": "Max Changed Lines",
+        "type": "integer"
+      },
+      "max_commits": {
+        "default": 1000,
+        "maximum": 100000,
+        "minimum": 1,
+        "title": "Max Commits",
+        "type": "integer"
+      },
+      "max_file_changes": {
+        "default": 20000,
+        "maximum": 2000000,
+        "minimum": 1,
+        "title": "Max File Changes",
+        "type": "integer"
+      },
+      "max_hunks": {
+        "default": 20000,
+        "maximum": 2000000,
+        "minimum": 1,
+        "title": "Max Hunks",
+        "type": "integer"
+      },
+      "max_objects": {
+        "default": 20000,
+        "maximum": 2000000,
+        "minimum": 1,
+        "title": "Max Objects",
+        "type": "integer"
+      },
+      "max_patch_bytes": {
+        "default": 33554432,
+        "maximum": 2147483648,
+        "minimum": 1,
+        "title": "Max Patch Bytes",
+        "type": "integer"
+      },
+      "max_refs": {
+        "default": 1000,
+        "maximum": 20000,
+        "minimum": 1,
+        "title": "Max Refs",
+        "type": "integer"
+      },
+      "max_single_object_bytes": {
+        "default": 8388608,
+        "maximum": 1073741824,
+        "minimum": 1,
+        "title": "Max Single Object Bytes",
+        "type": "integer"
+      },
+      "max_total_object_bytes": {
+        "default": 67108864,
+        "maximum": 8589934592,
+        "minimum": 1,
+        "title": "Max Total Object Bytes",
+        "type": "integer"
+      },
+      "max_tree_entries": {
+        "default": 50000,
+        "maximum": 5000000,
+        "minimum": 1,
+        "title": "Max Tree Entries",
+        "type": "integer"
+      },
+      "occurrence_ordinal": {
+        "maximum": 256,
+        "minimum": 1,
+        "title": "Occurrence Ordinal",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "batch_id",
+      "occurrence_ordinal"
+    ],
+    "title": "SourceGitRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "source_git_history",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "ea0ecb8444b21f6c1e5f3187e15309cef434f528ee93be7dfba58838cafb4ab5",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "source_git_history",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_git_history.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

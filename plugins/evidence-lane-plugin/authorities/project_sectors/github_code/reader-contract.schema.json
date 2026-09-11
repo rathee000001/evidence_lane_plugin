@@ -1,40 +1,1038 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "GitHub Code bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "lane_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "SectorArgs_code_current_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id"
+      ],
+      "title": "SectorArgs_code_current_github_code",
+      "type": "object"
     },
-    "lane_id": {
-      "const": "github_code"
+    "SectorArgs_code_impact_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        },
+        "direction": {
+          "default": "dependents",
+          "enum": [
+            "dependents",
+            "dependencies"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "max_depth": {
+          "default": 2,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 100,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_edges": {
+          "default": 200,
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Max Edges",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "paths"
+      ],
+      "title": "SectorArgs_code_impact_github_code",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "SectorArgs_code_query_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "collection": {
+          "default": "text",
+          "enum": [
+            "text",
+            "files",
+            "symbols",
+            "imports",
+            "calls",
+            "routes",
+            "dependencies",
+            "receipts",
+            "diagnostics",
+            "changes"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "path_prefix": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Prefix"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_code_query_github_code",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "SectorArgs_code_read_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "start_line": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Start Line",
+          "type": "integer"
+        },
+        "line_count": {
+          "default": 80,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Line Count",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "filename"
+      ],
+      "title": "SectorArgs_code_read_github_code",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "SectorArgs_code_semantic_query_faiss_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "embedding_run_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Embedding Run Id",
+          "type": "string"
+        },
+        "query": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "embedding_run_id",
+        "query"
+      ],
+      "title": "SectorArgs_code_semantic_query_faiss_github_code",
+      "type": "object"
+    },
+    "SectorArgs_code_semantic_query_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "embedding_run_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Embedding Run Id",
+          "type": "string"
+        },
+        "query": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "embedding_run_id",
+        "query"
+      ],
+      "title": "SectorArgs_code_semantic_query_github_code",
+      "type": "object"
+    },
+    "SectorArgs_code_semantic_query_vec_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "embedding_run_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Embedding Run Id",
+          "type": "string"
+        },
+        "query": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "embedding_run_id",
+        "query"
+      ],
+      "title": "SectorArgs_code_semantic_query_vec_github_code",
+      "type": "object"
+    },
+    "SectorArgs_fetch_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "ref_id": {
+          "maxLength": 1100,
+          "minLength": 6,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 256000,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "max_lines": {
+          "default": 400,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "byte_offset": {
+          "default": 0,
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Byte Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "ref_id"
+      ],
+      "title": "SectorArgs_fetch_github_code",
+      "type": "object"
+    },
+    "SectorArgs_pv_summary_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "default": 67108864,
+          "maximum": 134217728,
+          "minimum": 1024,
+          "title": "Max Read Bytes",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_pv_summary_github_code",
+      "type": "object"
+    },
+    "SectorArgs_source_snapshot_state_github_code": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_github_code",
+      "type": "object"
+    },
+    "SectorRequest_code_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_current_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_current",
+      "type": "object"
+    },
+    "SectorRequest_code_impact": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_impact",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_impact_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_impact",
+      "type": "object"
+    },
+    "SectorRequest_code_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_query_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_query",
+      "type": "object"
+    },
+    "SectorRequest_code_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_read_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_read",
+      "type": "object"
+    },
+    "SectorRequest_code_semantic_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_semantic_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_semantic_query_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_semantic_query",
+      "type": "object"
+    },
+    "SectorRequest_code_semantic_query_faiss": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_semantic_query_faiss",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_semantic_query_faiss_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_semantic_query_faiss",
+      "type": "object"
+    },
+    "SectorRequest_code_semantic_query_vec": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "code_semantic_query_vec",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_code_semantic_query_vec_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_code_semantic_query_vec",
+      "type": "object"
+    },
+    "SectorRequest_fetch": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "fetch",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_fetch_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_fetch",
+      "type": "object"
+    },
+    "SectorRequest_pv_summary": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "pv_summary",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_pv_summary_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_pv_summary",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_github_code"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "1F855250BEBBC528CF8B1322DD465AB1401FAA83FD28E3C11E1F0BB19C7ABFEB"
+  "discriminator": {
+    "mapping": {
+      "code_current": "#/$defs/SectorRequest_code_current",
+      "code_impact": "#/$defs/SectorRequest_code_impact",
+      "code_query": "#/$defs/SectorRequest_code_query",
+      "code_read": "#/$defs/SectorRequest_code_read",
+      "code_semantic_query": "#/$defs/SectorRequest_code_semantic_query",
+      "code_semantic_query_faiss": "#/$defs/SectorRequest_code_semantic_query_faiss",
+      "code_semantic_query_vec": "#/$defs/SectorRequest_code_semantic_query_vec",
+      "fetch": "#/$defs/SectorRequest_fetch",
+      "pv_summary": "#/$defs/SectorRequest_pv_summary",
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_code_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_impact"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_semantic_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_semantic_query_faiss"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_code_semantic_query_vec"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_fetch"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_pv_summary"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    }
+  ],
+  "title": "GitHub Code typed reader requests"
 }

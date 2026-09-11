@@ -1,0 +1,117 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Revoke the exact reviewed project extension version while preserving its history.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Digest",
+        "type": "string"
+      },
+      "expected_version": {
+        "minimum": 1,
+        "title": "Expected Version",
+        "type": "integer"
+      },
+      "plugin_id": {
+        "pattern": "^[a-z][a-z0-9-]{2,63}$",
+        "title": "Plugin Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "plugin_id",
+      "expected_version",
+      "expected_digest"
+    ],
+    "title": "ConnectorRevoke",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "connector_revoke",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "changed": {
+        "title": "Changed",
+        "type": "boolean"
+      },
+      "digest": {
+        "title": "Digest",
+        "type": "string"
+      },
+      "plugin_id": {
+        "title": "Plugin Id",
+        "type": "string"
+      },
+      "revoked": {
+        "const": true,
+        "default": true,
+        "title": "Revoked",
+        "type": "boolean"
+      },
+      "version": {
+        "title": "Version",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "plugin_id",
+      "version",
+      "digest",
+      "changed"
+    ],
+    "title": "ConnectorRevoked",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "extensions",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7d5800defde0a63b2c5c4723d52d6fe19e59bd54f44df2bdb4588f4506b363f9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "connector_revoke",
+    "profile": "extensions",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.connector_governance:register_connector_actions.<locals>.revoke",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "connector_revoke.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "drop-additional-plugin"
+}

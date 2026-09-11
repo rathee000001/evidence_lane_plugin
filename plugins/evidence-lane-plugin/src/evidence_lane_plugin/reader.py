@@ -1,695 +1,417 @@
-"""Bounded read tools over the live project-root authority."""
+"""Bounded source reads and published lane comparisons in the original owner.
 
+Code snapshots own exact source bytes. Root PV coordinates recorded lane heads;
+its journal is not a historical content database. All operations are read-only.
+"""
 from __future__ import annotations
 
 import base64
 import json
+import mimetypes
 import re
-import sqlite3
-from pathlib import Path
-from typing import Any
-from urllib.parse import quote
+import time
+from collections import Counter, defaultdict
+from pathlib import PurePosixPath
+from typing import Literal
 
-from .compact_storage import decompress_exact_bytes, read_source_record
-from .errors import EvidenceLaneError, require
-from .freshness import evaluate_working_lane_freshness, result_status
-from .git_adapter import inspect_repository
-from .hashing import canonical_json_bytes, sha256_bytes
-from .lanes import LANE_REGISTRY
-from .store import ProjectStore
+from pydantic import Field, JsonValue, model_validator
+
+from .code_parsers import _decode
+from .code_profile import DIGEST, CodeSnapshot, _relative, _snapshot, code_lane, sha256_bytes
+from .code_profile_schema import code_migrations
+from .errors import LaneError
+from .hashing import canonical_json_bytes
+from .registry import ActionSpec, Contract, FetchRoute
+from .storage import STORAGE_LAYOUT, bounded_project_read, json_text
+from .universe_snapshot import digest, root_reference
+
+UUID = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+MIME_TYPES = mimetypes.MimeTypes(filenames=())
+
+
+class Fetch(CodeSnapshot):
+    ref_id: str = Field(min_length=6, max_length=1100)
+    max_bytes: int = Field(default=256000, ge=1, le=1000000)
+    start_line: int | None = Field(default=None, ge=1)
+    end_line: int | None = Field(default=None, ge=1)
+    max_lines: int = Field(default=400, ge=1, le=1000)
+    byte_offset: int = Field(default=0, ge=0, le=1048576)
+
+    @model_validator(mode='after')
+    def range_order(self):
+        if self.end_line is not None and self.end_line < (self.start_line or 1):
+            raise ValueError('The line range must be ordered')
+        if not (self.ref_id.startswith('file:') or re.fullmatch('chunk:[0-9a-f]{64}', self.ref_id)):
+            raise ValueError('Use file:<relative path> or chunk:<current chunk digest>')
+        return self
+
+
+class Summary(CodeSnapshot):
+    max_read_bytes: int = Field(default=67108864, ge=1024, le=134217728)
+    timeout_ms: int = Field(default=10000, ge=100, le=30000)
+
+
+class RootReference(Contract):
+    singleton: Literal[1] = 1
+    revision: int = Field(ge=0)
+    head_digest: str = Field(pattern=r'^(?:[0-9a-f]{64})?$')
+    commit_id: str | None = Field(pattern=UUID)
+
+    @model_validator(mode='after')
+    def consistent(self):
+        if (self.revision == 0) != (self.head_digest == '' and self.commit_id is None):
+            raise ValueError('An initial reference has no digest or commit')
+        if self.revision > 0 and (not self.head_digest or self.commit_id is None):
+            raise ValueError('A published reference requires both digest and commit')
+        return self
+
+
+class History(Contract):
+    max_commits: int = Field(default=128, ge=1, le=2048)
+    max_bytes: int = Field(default=1048576, ge=4096, le=2097152)
+    timeout_ms: int = Field(default=10000, ge=100, le=30000)
+
+
+class Diff(History):
+    left_root: RootReference
+    right_root: RootReference
+
+
+class ReadResult(Contract):
+    project_id: str
+    operation: str
+    result: dict[str, JsonValue]
+    mutation_performed: Literal[False] = False
+    refresh_performed: Literal[False] = False
+
+
+class ReadBudget:
+    def __init__(self, maximum, deadline):
+        self.remaining, self.deadline = maximum, deadline
+
+    def tick(self):
+        if time.monotonic() >= self.deadline:
+            raise LaneError('READER_TIMEOUT', 'Reduce the selected read or raise its time budget.')
+
+    def object(self, lane, object_id):
+        self.tick()
+        path = lane.object_path(object_id)
+        try:
+            size = path.stat().st_size
+        except FileNotFoundError:
+            raise LaneError('OBJECT_MISSING', 'The addressed content is missing.') from None
+        if size > self.remaining:
+            raise LaneError('READER_BYTE_BUDGET', 'The selected snapshot exceeds its read budget.')
+        raw = lane.read_object(object_id)
+        self.remaining -= len(raw)
+        if self.remaining < 0:
+            raise LaneError('READER_BYTE_BUDGET', 'The selected snapshot exceeds its read budget.')
+        self.tick()
+        return raw
+
+
+def source_context(request, manifest):
+    return {'lane_id': request.lane_id, 'snapshot_id': request.snapshot_id,
+        'source': 'immutable_lane_bytes', 'source_currentness': 'not_checked',
+        'scope_id': manifest['scope_id'], 'generation': manifest['generation'],
+        'git_reference': manifest['git_reference'], 'byte_source': manifest['byte_source']}
+
+
+def checked_source(lane, row, budget):
+    raw = budget.object(lane, row['sha256'])
+    if len(raw) != row['size_bytes']:
+        raise LaneError('READER_SOURCE_INTEGRITY', 'Stored source size differs from the exact snapshot.')
+    return raw
+
+
+def truncate_text(text, maximum):
+    encoded = text.encode('utf-8')
+    # Never introduce a replacement character when a byte budget splits UTF-8.
+    return encoded[:maximum].decode('utf-8', errors='ignore'), len(encoded) > maximum
+
+
+def checked_heads(rows):
+    if not isinstance(rows, list) or len(rows) > 512:
+        raise ValueError('Bounded lane head list required')
+    result = {}
+    for row in rows:
+        if (set(row) != {'lane_id', 'revision', 'head_digest', 'commit_id'}
+                or not re.fullmatch(r'[a-z][a-z0-9_]{0,95}', row['lane_id'])
+                or type(row['revision']) is not int or row['revision'] < 1
+                or not re.fullmatch(DIGEST, row['head_digest'])
+                or not re.fullmatch(UUID, row['commit_id']) or row['lane_id'] in result):
+            raise ValueError('Invalid lane head')
+        result[row['lane_id']] = row
+    if list(result) != sorted(result):
+        raise ValueError('Noncanonical lane heads')
+    return result
+
+
+def checked_publication(connection, project_id, current, expected_heads=None):
+    row = connection.execute('SELECT phase,body_json FROM root_transaction_journal WHERE commit_id=?',
+        (current['commit_id'],)).fetchone()
+    try:
+        if not row or row['phase'] != 'published' or len(row['body_json'].encode()) > 1048576:
+            raise ValueError('Missing bounded publication')
+        body = json.loads(row['body_json'])
+        if body['project_id'] != project_id or body['layout'] != STORAGE_LAYOUT:
+            raise ValueError('Wrong project or storage layout')
+        before = RootReference.model_validate(body['before_root']).model_dump()
+        prior = checked_heads(body['before_heads'])
+        after = checked_heads(body['published_heads'])
+        if (before['revision'] + 1 != current['revision']
+                or (before['revision'] == 0 and prior)
+                or (expected_heads is not None and body['published_heads'] != expected_heads)
+                or digest({'project_id': project_id, 'revision': current['revision'],
+                    'previous_digest': before['head_digest'], 'lanes': body['published_heads']}) != current['head_digest']):
+            raise ValueError('Broken publication ancestry')
+        records = body['lanes']
+        if not isinstance(records, list) or not 1 <= len(records) <= 512:
+            raise ValueError('Bounded changed lane list required')
+        expected, seen = dict(prior), set()
+        for record in records:
+            lane_id = record['lane_id']
+            if lane_id in seen or lane_id not in after:
+                raise ValueError('Duplicate or missing changed lane')
+            seen.add(lane_id)
+            for key in ('before_sha256', 'after_sha256'):
+                if not re.fullmatch(DIGEST, record[key]):
+                    raise ValueError('Invalid database hash')
+            old = prior.get(lane_id)
+            if old and digest({'lane_id': lane_id, 'database_sha256': record['before_sha256']}) != old['head_digest']:
+                raise ValueError('Before database hash differs from prior lane head')
+            expected[lane_id] = {'lane_id': lane_id, 'revision': old['revision'] + 1 if old else 1,
+                'head_digest': digest({'lane_id': lane_id, 'database_sha256': record['after_sha256']}),
+                'commit_id': current['commit_id']}
+        if expected != after:
+            raise ValueError('Unexplained lane transition')
+        return before, body['before_heads'], body['published_heads']
+    except (KeyError, TypeError, ValueError, AttributeError) as error:
+        raise LaneError('READER_HISTORY_INTEGRITY', 'The published Root PV history is inconsistent.') from error
 
 
 class PVReader:
-    """Compatibility class whose ordinary reads are live-root only."""
+    """Original owner adapted to the selected v4 project and exact references."""
 
-    def __init__(self, store: ProjectStore) -> None:
+    def __init__(self, store):
         self.store = store
 
-    def _live_local_code_authority(
-        self, project_id: str, pv_ref: str | None = None
-    ) -> tuple[Path, dict[str, Any]]:
-        root = self.store.project_root(project_id)
-        pointer = self.store.pointer(project_id)
-        exact_ref = str(pv_ref or "").strip()
-        require(
-            not exact_ref or exact_ref == "LIVE_ROOT",
-            "PV_ARCHIVE_QUERY_OBSOLETE",
-            "Ordinary reads query the live project root; accepted ZIPs and candidates are HIL-only.",
-            status="BLOCKED",
-            requested_ref=exact_ref or None,
-        )
-        sectors_root = root / "sectors"
-        manifest_path = sectors_root / "manifest.json"
-        require(
-            manifest_path.is_file(),
-            "LIVE_ROOT_SECTORS_REQUIRED",
-            "The live project root has no materialized sector authority.",
-            status="MISMATCH",
-        )
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        lane = LANE_REGISTRY["local_code"]
-        database_path = sectors_root / "local_code" / lane.sqlite_filename
-        require(
-            database_path.is_file(),
-            "LIVE_ROOT_LOCAL_CODE_DATABASE_MISMATCH",
-            "Live-root Local Code requires its one canonical SQLite authority.",
-            status="MISMATCH",
-        )
-        repository = inspect_repository(self.store.config(project_id).repository_path)
-        freshness = evaluate_working_lane_freshness(
-            self.store,
-            project_id,
-            sectors_root,
-            bounded_dirty_read=True,
-        )
-        context = {
-            "authority_state": "LIVE_PROJECT_ROOT",
-            "accepted_truth": False,
-            "live_working_truth": True,
-            "current_accepted": False,
-            "pv_ref": "LIVE_ROOT",
-            "accepted_pv": pointer.accepted_pv,
-            "accepted_manifest_sha256": pointer.accepted_manifest_sha256,
-            "accepted_pointer_generation": pointer.generation,
-            "source_commit": repository.commit_sha,
-            "source_tree": repository.tree_sha,
-            "repository_url": repository.repository_url,
-            "freshness": freshness,
-            "live_truth_status": freshness["state"],
-            "retrieval_authority": "LIVE_ROOT_SECTORS_LOCAL_CODE",
-            "live_source_used": True,
-            "accepted_archive_opened": False,
-            "accepted_archive_queried": False,
-            "accepted_pointer_used_as_baseline_only": True,
-            "browser_history_used": False,
-            "scrollback_used": False,
-            "transcript_used": False,
-            "sector_bundle_sha256": manifest.get("bundle_sha256"),
-        }
-        return database_path, context
-
-    @staticmethod
-    def _live_connect(path: Path) -> sqlite3.Connection:
-        connection = sqlite3.connect(
-            f"file:{path.resolve().as_posix()}?mode=ro&immutable=1",
-            uri=True,
-        )
-        connection.row_factory = sqlite3.Row
-        return connection
-
-    @staticmethod
-    def _blob_url(
-        context: dict[str, Any],
-        path: str,
-        start_line: int | None = None,
-        end_line: int | None = None,
-    ) -> str:
-        repository_url = str(context["repository_url"]).removesuffix(".git")
-        if not repository_url.startswith(("https://", "http://")):
-            return ""
-        url = (
-            f"{repository_url}/blob/{context['source_commit']}/"
-            f"{quote(path, safe='/')}"
-        )
-        if start_line is not None:
-            url += f"#L{start_line}"
-            if end_line is not None and end_line != start_line:
-                url += f"-L{end_line}"
-        return url
-
-    @staticmethod
-    def _fts_query(query: str) -> str:
-        terms = [
-            term
-            for term in re.findall(r"[\w.$/@:-]+", query, flags=re.UNICODE)
-            if term
-        ]
-        require(
-            bool(terms),
-            "SEARCH_QUERY_EMPTY",
-            "Search requires at least one alphanumeric term.",
-            status="EMPTY",
-        )
-        return " OR ".join(
-            f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms[:12]
-        )
-
-    def search(
-        self,
-        project_id: str,
-        query: str,
-        *,
-        pv_ref: str | None = None,
-        limit: int = 20,
-        candidate_overlay_ref: str | None = None,
-        candidate_overlay_authorization: str | None = None,
-    ) -> dict[str, Any]:
-        require(
-            candidate_overlay_ref is None and candidate_overlay_authorization is None,
-            "CANDIDATE_QUERY_REQUIRES_HIL_SURFACE",
-            "Candidate overlays are presented only by the governed HIL renderer.",
-            status="BLOCKED",
-        )
-        require(
-            1 <= limit <= 100,
-            "SEARCH_LIMIT_INVALID",
-            "Search limit must be between 1 and 100.",
-            status="BLOCKED",
-        )
-        database_path, context = self._live_local_code_authority(project_id, pv_ref)
-        lane = LANE_REGISTRY["local_code"]
-        with self._live_connect(database_path) as connection:
-            rows = connection.execute(
-                (
-                    "SELECT s.path,c.chunk_id,c.locator,"
-                    f"bm25({lane.fts_table}) AS rank,c.sha256 AS chunk_sha256,"
-                    "s.sha256 AS file_sha256,cas.size_bytes AS chunk_size_bytes,"
-                    "cas.compression AS chunk_compression,"
-                    "cas.compressed_text AS chunk_compressed_text "
-                    f"FROM {lane.fts_table} AS f "
-                    "JOIN chunk_index AS c ON c.chunk_id="
-                    "COALESCE(CAST(f.chunk_id AS INTEGER),f.rowid) "
-                    "JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256 "
-                    "JOIN source_registry AS s ON s.source_id=c.source_id "
-                    f"WHERE {lane.fts_table} MATCH ? "
-                    "ORDER BY rank,s.path,c.locator LIMIT ?"
-                ),
-                (self._fts_query(query), limit),
-            ).fetchall()
-        results = []
-        for raw in rows:
-            row = dict(raw)
-            full_text = decompress_exact_bytes(
-                compression=str(row.pop("chunk_compression")),
-                payload=bytes(row.pop("chunk_compressed_text")),
-                expected_size=int(row.pop("chunk_size_bytes")),
-                expected_sha256=str(row["chunk_sha256"]),
-            ).decode("utf-8")
-            results.append({
-                "id": f"chunk:{row['chunk_id']}",
-                "ref_id": f"chunk:{row['chunk_id']}",
-                "title": f"{row['path']} {row['locator']}",
-                "url": self._blob_url(context, str(row["path"])),
-                "path": row["path"],
-                "locator": row["locator"],
-                "snippet": full_text[:1000],
-                "rank": row["rank"],
-                "metadata": {
-                    "kind": "chunk",
-                    "chunk_sha256": row["chunk_sha256"],
-                    "file_sha256": row["file_sha256"],
-                    "source_commit": context["source_commit"],
-                },
-                "provenance": {
-                    "authority": "LIVE_ROOT_LOCAL_CODE",
-                    "source_locator": (
-                        f"sector://local_code/{row['path']}#{row['locator']}"
-                    ),
-                    "source_commit": context["source_commit"],
-                    "accepted_archive_opened": False,
-                },
-            })
-        return {
-            "status": result_status("PASS", context["freshness"]),
-            "result_state": "HITS" if results else "EMPTY",
-            "project_id": project_id,
-            **context,
-            "query": query,
-            "results": results,
-            "result_count": len(results),
-            "bounded_result_limit": limit,
-            "candidate_overlay_used": False,
-            "no_hit_is_valid": not results,
-            "private_reasoning_stored": False,
-            "warnings": [],
-        }
-
-    def fetch(
-        self,
-        project_id: str,
-        ref_id: str,
-        *,
-        pv_ref: str | None = None,
-        max_bytes: int = 256_000,
-        start_line: int | None = None,
-        end_line: int | None = None,
-        max_lines: int = 400,
-    ) -> dict[str, Any]:
-        require(
-            1 <= max_bytes <= 1_000_000,
-            "FETCH_LIMIT_INVALID",
-            "Fetch max_bytes must be between 1 and 1,000,000.",
-            status="BLOCKED",
-        )
-        require(
-            1 <= max_lines <= 1_000,
-            "FETCH_LINE_LIMIT_INVALID",
-            "Fetch max_lines must be between 1 and 1,000.",
-            status="BLOCKED",
-        )
-        database_path, context = self._live_local_code_authority(project_id, pv_ref)
-        with self._live_connect(database_path) as connection:
-            if ref_id.startswith("chunk:"):
-                raw_id = ref_id.removeprefix("chunk:")
-                require(
-                    raw_id.isdigit(),
-                    "REF_ID_INVALID",
-                    "Chunk references must contain a numeric ID.",
-                    status="BLOCKED",
-                )
-                row = connection.execute(
-                    """
-                    SELECT s.path,s.sha256 AS file_sha256,c.chunk_id,c.locator,
-                           c.sha256 AS chunk_sha256,cas.size_bytes,
-                           cas.compression,cas.compressed_text
-                    FROM chunk_index AS c
-                    JOIN chunk_content_cas AS cas ON cas.sha256=c.sha256
-                    JOIN source_registry AS s ON s.source_id=c.source_id
-                    WHERE c.chunk_id=?
-                    """,
-                    (int(raw_id),),
-                ).fetchone()
-                require(
-                    row is not None,
-                    "CHUNK_NOT_FOUND",
-                    "The requested live-root chunk does not exist.",
-                    status="EMPTY",
-                )
-                encoded = decompress_exact_bytes(
-                    compression=str(row["compression"]),
-                    payload=bytes(row["compressed_text"]),
-                    expected_size=int(row["size_bytes"]),
-                    expected_sha256=str(row["chunk_sha256"]),
-                )
-                content = encoded[:max_bytes].decode("utf-8", errors="replace")
-                return {
-                    "status": result_status("PASS", context["freshness"]),
-                    **context,
-                    "id": ref_id,
-                    "ref_id": ref_id,
-                    "title": f"{row['path']} {row['locator']}",
-                    "url": self._blob_url(context, str(row["path"])),
-                    "path": row["path"],
-                    "locator": row["locator"],
-                    "text": content,
-                    "content": content,
-                    "truncated": len(encoded) > max_bytes,
-                    "sha256": row["chunk_sha256"],
-                    "metadata": {
-                        "kind": "chunk",
-                        "chunk_sha256": row["chunk_sha256"],
-                        "file_sha256": row["file_sha256"],
-                        "source_commit": context["source_commit"],
-                    },
-                }
-            if ref_id.startswith("file:"):
-                path = ref_id.removeprefix("file:").replace("\\", "/")
-                require(
-                    bool(path)
-                    and not path.startswith(("/", "../"))
-                    and "/../" not in f"/{path}/",
-                    "FILE_REF_INVALID",
-                    "File references must be repository-relative paths.",
-                    status="BLOCKED",
-                )
-                row, data = read_source_record(connection, path=path)
-                if row is None or data is None:
-                    raise EvidenceLaneError(
-                        code="FILE_NOT_FOUND",
-                        message=(
-                            "The requested source file does not exist in live-root "
-                            "Local Code."
-                        ),
-                        status="EMPTY",
-                    )
-                encoding = row["encoding"]
-                if encoding:
-                    decoded = data.decode(str(encoding), errors="replace")
-                    lines = decoded.splitlines(keepends=True)
-                    exact_start_line = start_line or 1
-                    requested_end = end_line or max(len(lines), 1)
-                    require(
-                        exact_start_line >= 1 and requested_end >= exact_start_line,
-                        "FETCH_LINE_RANGE_INVALID",
-                        "The requested line range is invalid.",
-                        status="BLOCKED",
-                    )
-                    exact_end_line = min(
-                        requested_end,
-                        max(len(lines), 1),
-                        exact_start_line + max_lines - 1,
-                    )
-                    selected = "".join(lines[exact_start_line - 1 : exact_end_line])
-                    encoded_selection = selected.encode(str(encoding), errors="replace")
-                    content = encoded_selection[:max_bytes].decode(
-                        str(encoding), errors="replace"
-                    )
-                    representation = "text"
-                    truncated = (
-                        exact_start_line > 1
-                        or exact_end_line < max(len(lines), 1)
-                        or len(encoded_selection) > max_bytes
-                    )
-                else:
-                    require(
-                        start_line is None and end_line is None,
-                        "BINARY_LINE_RANGE_UNSUPPORTED",
-                        "Line ranges are unavailable for binary files.",
-                        status="BLOCKED",
-                    )
-                    content = base64.b64encode(data[:max_bytes]).decode("ascii")
-                    representation = "base64"
-                    exact_start_line = None
-                    exact_end_line = None
-                    truncated = len(data) > max_bytes
-                return {
-                    "status": result_status("PASS", context["freshness"]),
-                    **context,
-                    "id": ref_id,
-                    "ref_id": ref_id,
-                    "title": row["path"],
-                    "url": self._blob_url(
-                        context,
-                        str(row["path"]),
-                        exact_start_line,
-                        exact_end_line,
-                    ),
-                    "path": row["path"],
-                    "size_bytes": row["size_bytes"],
-                    "sha256": row["sha256"],
-                    "encoding": encoding,
-                    "mime_type": row["mime_type"],
-                    "extension": row["extension"],
-                    "parser_state": row["parser_state"],
-                    "representation": representation,
-                    "text": content,
-                    "content": content,
-                    "start_line": exact_start_line,
-                    "end_line": exact_end_line,
-                    "truncated": truncated,
-                    "metadata": {
-                        "kind": "file",
-                        "file_sha256": row["sha256"],
-                        "source_commit": context["source_commit"],
-                    },
-                }
-        raise EvidenceLaneError(
-            "REF_ID_UNSUPPORTED",
-            "Live-root references must begin with file: or chunk:.",
-            status="BLOCKED",
-        )
-
-    def project_summary(
-        self, project_id: str, *, pv_ref: str | None = None
-    ) -> dict[str, Any]:
-        database_path, context = self._live_local_code_authority(project_id, pv_ref)
-        with self._live_connect(database_path) as connection:
-            count_tables = (
-                "source_registry",
-                "chunk_index",
-                "code_symbol",
-                "code_import",
-                "code_dependency",
-                "code_route",
-            )
-            counts = {
-                table: int(
-                    connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-                )
-                for table in count_tables
-            }
-            families = [
-                dict(row)
-                for row in connection.execute(
-                    """
-                    SELECT COALESCE(NULLIF(extension,''),'[none]') AS code_family,
-                           COUNT(*) AS files,SUM(size_bytes) AS bytes
-                    FROM source_registry GROUP BY code_family
-                    ORDER BY files DESC,code_family
-                    """
-                ).fetchall()
-            ]
-            largest_files = [
-                dict(row)
-                for row in connection.execute(
-                    """
-                    SELECT path,size_bytes,mime_type,extension,parser_state
-                    FROM source_registry ORDER BY size_bytes DESC,path LIMIT 10
-                    """
-                ).fetchall()
-            ]
-        return {
-            "status": result_status("PASS", context["freshness"]),
-            "project_id": project_id,
-            **context,
-            "repository": {
-                "repository_url": context["repository_url"],
-                "commit_sha": context["source_commit"],
-                "tree_sha": context["source_tree"],
-            },
-            "counts": counts,
-            "families": families,
-            "largest_files": largest_files,
-        }
-
-    def query(
-        self,
-        project_id: str,
-        query_kind: str,
-        *,
-        pv_ref: str | None = None,
-        value: str | None = None,
-        limit: int = 50,
-    ) -> dict[str, Any]:
-        database_path, context = self._live_local_code_authority(project_id, pv_ref)
-        require(
-            1 <= limit <= 500,
-            "QUERY_LIMIT_INVALID",
-            "Query limit must be between 1 and 500.",
-            status="BLOCKED",
-        )
-        queries = {
-            "files": (
-                "SELECT path,size_bytes,sha256,encoding,mime_type,extension,parser_state,registered_at FROM source_registry ORDER BY path LIMIT ?",
-                (limit,),
-            ),
-            "symbols": (
-                "SELECT s.path,r.locator,r.payload_json FROM code_symbol r JOIN source_registry s ON s.source_id=r.source_id WHERE (? IS NULL OR r.payload_json LIKE '%' || ? || '%') ORDER BY s.path,r.locator LIMIT ?",
-                (value, value, limit),
-            ),
-            "dependencies": (
-                "SELECT s.path,r.locator,r.payload_json FROM code_dependency r JOIN source_registry s ON s.source_id=r.source_id WHERE (? IS NULL OR r.payload_json LIKE '%' || ? || '%') ORDER BY s.path,r.locator LIMIT ?",
-                (value, value, limit),
-            ),
-            "routes": (
-                "SELECT s.path,r.locator,r.payload_json FROM code_route r JOIN source_registry s ON s.source_id=r.source_id WHERE (? IS NULL OR r.payload_json LIKE '%' || ? || '%') ORDER BY s.path,r.locator LIMIT ?",
-                (value, value, limit),
-            ),
-            "imports": (
-                "SELECT s.path,r.locator,r.payload_json FROM code_import r JOIN source_registry s ON s.source_id=r.source_id WHERE (? IS NULL OR r.payload_json LIKE '%' || ? || '%') ORDER BY s.path,r.locator LIMIT ?",
-                (value, value, limit),
-            ),
-            "receipts": (
-                "SELECT receipt_id,build_mode,parent_pv,proposed_pv,unchanged_reuse,changed_rebuild,new_register,removed_purge,blocked_unsupported,length(details_json) AS details_size_bytes,recorded_at FROM refresh_receipt ORDER BY recorded_at DESC LIMIT ?",
-                (limit,),
-            ),
-        }
-        require(
-            query_kind in queries,
-            "QUERY_KIND_UNSUPPORTED",
-            "Use one focused allowlisted live-root query kind.",
-            status="BLOCKED",
-            supported=sorted(queries),
-        )
-        sql, parameters = queries[query_kind]
-        with self._live_connect(database_path) as connection:
-            rows = [dict(row) for row in connection.execute(sql, parameters).fetchall()]
-        for row in rows:
-            if isinstance(row.get("payload_json"), str):
-                row["payload"] = json.loads(row.pop("payload_json"))
-        return {
-            "status": result_status("PASS", context["freshness"]),
-            "result_state": "HITS" if rows else "EMPTY",
-            "project_id": project_id,
-            **context,
-            "query_kind": query_kind,
-            "rows": rows,
-            "result_count": len(rows),
-            "bounded_result_limit": limit,
-        }
-
-    def diff(self, project_id: str, left_pv: str, right_pv: str) -> dict[str, Any]:
-        root = self.store.project_root(project_id)
-        overlay_path = root / "project_overlay" / "project_overlay.sqlite"
-        require(
-            overlay_path.is_file(),
-            "PROJECT_OVERLAY_REQUIRED",
-            "PV change comparison requires the live root Project Overlay authority.",
-            status="EMPTY",
-        )
-        with self._live_connect(overlay_path) as connection:
-            metadata = {
-                str(row["key"]): str(row["value"])
-                for row in connection.execute(
-                    "SELECT key,value FROM overlay_meta ORDER BY key"
-                ).fetchall()
-            }
-            progressive = bool(
-                connection.execute(
-                    """
-                    SELECT 1 FROM sqlite_master
-                    WHERE type='table' AND name='pv_hil_transition'
-                    """
-                ).fetchone()
-            )
-            if progressive:
-                baseline = connection.execute(
-                    "SELECT * FROM overlay_history_baseline WHERE baseline_id=1"
-                ).fetchone()
-
-                def snapshot_for(pv_id: str) -> tuple[str, dict[str, dict[str, Any]]]:
-                    if baseline is not None and str(baseline["baseline_pv"]) == pv_id:
-                        rows = connection.execute(
-                            """
-                            SELECT sector_id,lane_database_sha256,source_count,
-                                   chunk_count,fact_count
-                            FROM sector_hil_baseline_snapshot ORDER BY sector_id
-                            """
-                        ).fetchall()
-                        source = "LIVE_ROOT_MIGRATION_BASELINE"
-                    else:
-                        transition = connection.execute(
-                            """
-                            SELECT transition_id FROM pv_hil_transition
-                            WHERE proposed_pv=? ORDER BY sequence DESC LIMIT 1
-                            """,
-                            (pv_id,),
-                        ).fetchone()
-                        require(
-                            transition is not None,
-                            "PROJECT_OVERLAY_PV_NOT_IN_LIVE_HISTORY",
-                            "The requested PV is not present in the live-root Project Overlay ledger.",
-                            status="EMPTY",
-                            requested_pv=pv_id,
-                            accepted_archive_opened=False,
-                            accepted_archive_queried=False,
-                        )
-                        rows = connection.execute(
-                            """
-                            SELECT sector_id,lane_database_sha256,source_count,
-                                   chunk_count,fact_count
-                            FROM sector_hil_snapshot
-                            WHERE transition_id=? ORDER BY ordinal
-                            """,
-                            (str(transition["transition_id"]),),
-                        ).fetchall()
-                        source = str(transition["transition_id"])
-                    return source, {
-                        str(row["sector_id"]): {
-                            "lane_database_sha256": row["lane_database_sha256"],
-                            "source_count": int(row["source_count"]),
-                            "chunk_count": int(row["chunk_count"]),
-                            "fact_count": int(row["fact_count"]),
-                        }
-                        for row in rows
-                    }
-
-                left_source, left_snapshot = snapshot_for(left_pv)
-                right_source, right_snapshot = snapshot_for(right_pv)
-                overlay_delta_value: dict[str, Any] = {
-                    "schema": "evidence-lane.project-overlay-delta.v1",
-                    "added": [
-                        {"sector_id": sector_id, "after": right_snapshot[sector_id]}
-                        for sector_id in sorted(
-                            right_snapshot.keys() - left_snapshot.keys()
-                        )
-                    ],
-                    "modified": [
-                        {
-                            "sector_id": sector_id,
-                            "before": left_snapshot[sector_id],
-                            "after": right_snapshot[sector_id],
-                        }
-                        for sector_id in sorted(
-                            left_snapshot.keys() & right_snapshot.keys()
-                        )
-                        if left_snapshot[sector_id] != right_snapshot[sector_id]
-                    ],
-                    "removed": [
-                        {"sector_id": sector_id, "before": left_snapshot[sector_id]}
-                        for sector_id in sorted(
-                            left_snapshot.keys() - right_snapshot.keys()
-                        )
-                    ],
-                    "unchanged": sorted(
-                        sector_id
-                        for sector_id in left_snapshot.keys() & right_snapshot.keys()
-                        if left_snapshot[sector_id] == right_snapshot[sector_id]
-                    ),
-                }
-                overlay_delta_value["delta_sha256"] = sha256_bytes(
-                    canonical_json_bytes(overlay_delta_value)
-                )
-                overlay_delta: dict[str, Any] | None = overlay_delta_value
-                sector_snapshots = [
-                    {"sector_id": sector_id, **right_snapshot[sector_id]}
-                    for sector_id in sorted(right_snapshot)
-                ]
-                fusion_receipts = [
-                    dict(row)
-                    for row in connection.execute(
-                        """
-                        SELECT * FROM hil_transition_receipt
-                        ORDER BY rowid
-                        """
-                    ).fetchall()
-                ]
-                transition_rows = [
-                    dict(row)
-                    for row in connection.execute(
-                        """
-                        SELECT transition_id,sequence,parent_pv,proposed_pv,
-                               pointer_generation,created_at,truth_state,
-                               prior_transition_sha256,transition_sha256
-                        FROM pv_hil_transition ORDER BY sequence
-                        """
-                    ).fetchall()
-                ]
+    def fetch(self, request):
+        with bounded_project_read(self.store.root, time.monotonic() + 10):
+            lane = code_lane(self.store, request.lane_id)
+            snapshot, manifest = _snapshot(lane, request.snapshot_id)
+            budget = ReadBudget(4194304, time.monotonic() + 10)
+            chunk = None
+            if request.ref_id.startswith('chunk:'):
+                if request.start_line is not None or request.end_line is not None or request.byte_offset:
+                    raise LaneError('CHUNK_RANGE_UNSUPPORTED', 'Chunk references already select an exact line range.')
+                chunk_id = request.ref_id.removeprefix('chunk:')
+                with lane.connection(read_only=True) as connection:
+                    rows = connection.execute('SELECT sf.path,c.* FROM code_chunk c JOIN code_snapshot_file sf USING(version_id) '
+                        'WHERE sf.snapshot_id=? AND c.chunk_id=? LIMIT 2', (request.snapshot_id, chunk_id)).fetchall()
+                if len(rows) != 1:
+                    raise LaneError('CHUNK_NOT_FOUND', 'Select an exact chunk in this Code snapshot.')
+                chunk, path = dict(rows[0]), rows[0]['path']
             else:
-                left_source = metadata.get("proposed_pv") or "LEGACY_SNAPSHOT"
-                right_source = left_source
-                sector_snapshots = [
-                    dict(row)
-                    for row in connection.execute(
-                        "SELECT * FROM sector_candidate_snapshot ORDER BY sector_id"
-                    ).fetchall()
-                ]
-                fusion_receipts = [
-                    dict(row)
-                    for row in connection.execute(
-                        "SELECT * FROM fusion_receipt ORDER BY receipt_id"
-                    ).fetchall()
-                ]
-                overlay_delta = None
-                transition_rows = []
-        pointer = self.store.pointer(project_id)
-        return {
-            "status": "PASS",
-            "project_id": project_id,
-            "left_pv": left_pv,
-            "right_pv": right_pv,
-            "comparison_authority": "LIVE_ROOT_PROJECT_OVERLAY",
-            "overlay_metadata": metadata,
-            "progressive_history": progressive,
-            "left_snapshot_authority": left_source,
-            "right_snapshot_authority": right_source,
-            "sector_snapshots": sector_snapshots,
-            "project_overlay_delta": overlay_delta,
-            "pv_hil_transitions": transition_rows,
-            "fusion_receipts": fusion_receipts,
-            "accepted_pointer_baseline": pointer.as_dict(),
-            "accepted_archive_opened": False,
-            "accepted_archive_queried": False,
-            "pointer_moved": False,
-            "candidate_created": False,
-        }
+                path = _relative(request.ref_id.removeprefix('file:'))
+            source = next((item for item in manifest['files'] if item['path'] == path), None)
+            if source is None:
+                raise LaneError('CODE_FILE_MISSING', 'Select a file in the exact Code snapshot.')
+            raw = checked_source(lane, source, budget)
+            text, encoding = _decode(raw)
+            first = last = total_lines = None
+            next_offset = None
+            if chunk is not None:
+                lines = (text or '').splitlines(keepends=True)
+                version = sha256_bytes(canonical_json_bytes([
+                    sha256_bytes(canonical_json_bytes([snapshot['repo_id'], path])),
+                    source['sha256'], snapshot['parser_contract']]))
+                ordinal = chunk['ordinal']
+                first, last = ordinal * 72 + 1, min(len(lines), ordinal * 72 + 80)
+                full = ''.join(lines[first - 1:last])
+                content_bytes = budget.object(lane, chunk['content_object'])
+                if (text is None or ordinal < 0 or first > last or chunk['version_id'] != version
+                        or (chunk['start_line'], chunk['end_line']) != (first, last)
+                        or chunk['chunk_id'] != sha256_bytes(canonical_json_bytes([version, ordinal]))
+                        or content_bytes != full.encode('utf-8')):
+                    raise LaneError('READER_CHUNK_INTEGRITY', 'The chunk differs from its exact source lines.')
+                content, truncated = truncate_text(full, request.max_bytes)
+                representation, total_lines = 'text', len(lines)
+            elif text is None:
+                if request.start_line is not None or request.end_line is not None:
+                    raise LaneError('BINARY_LINE_RANGE_UNSUPPORTED', 'Use byte offsets for binary files.')
+                if request.byte_offset > len(raw):
+                    raise LaneError('FETCH_OFFSET_INVALID', 'The byte offset exceeds the selected file.')
+                selected = raw[request.byte_offset:request.byte_offset + request.max_bytes]
+                content, representation = base64.b64encode(selected).decode('ascii'), 'base64'
+                end = request.byte_offset + len(selected)
+                next_offset = end if end < len(raw) else None
+                truncated = request.byte_offset > 0 or end < len(raw)
+            else:
+                if request.byte_offset:
+                    raise LaneError('TEXT_BYTE_OFFSET_UNSUPPORTED', 'Use line windows for text files.')
+                lines = text.splitlines(keepends=True)
+                total_lines, first = len(lines), request.start_line or 1
+                if first > max(total_lines, 1):
+                    raise LaneError('FETCH_LINE_RANGE_INVALID', 'The line window starts beyond this file.')
+                last = min(request.end_line or max(total_lines, 1), first + request.max_lines - 1, total_lines)
+                selected = ''.join(lines[first - 1:last])
+                content, byte_truncated = truncate_text(selected, request.max_bytes)
+                truncated = byte_truncated or first > 1 or last < total_lines
+                representation = 'text'
+                if not total_lines:
+                    first = last = None
+            return {**source_context(request, manifest), 'ref_id': request.ref_id, 'path': path,
+                'file_sha256': source['sha256'], 'size_bytes': source['size_bytes'],
+                'parser_state': source['parser_state'], 'extension': PurePosixPath(path).suffix.lower(),
+                'mime_type': MIME_TYPES.guess_type(path)[0] or 'application/octet-stream',
+                'mime_type_basis': 'filename_guess',
+                'encoding': encoding, 'representation': representation, 'content': content,
+                'content_utf8_bytes': len(content.encode('utf-8')), 'content_sha256': sha256_bytes(
+                    base64.b64decode(content) if representation == 'base64' else content.encode('utf-8')),
+                'chunk_sha256': chunk['content_object'] if chunk else None,
+                'start_line': first, 'end_line': last, 'total_lines': total_lines,
+                'byte_offset': request.byte_offset if representation == 'base64' else None,
+                'next_byte_offset': next_offset, 'truncated': truncated}
+
+    def project_summary(self, request):
+        deadline = time.monotonic() + request.timeout_ms / 1000
+        with bounded_project_read(self.store.root, deadline):
+            lane = code_lane(self.store, request.lane_id)
+            _, manifest = _snapshot(lane, request.snapshot_id)
+            budget = ReadBudget(request.max_read_bytes, deadline)
+            if len(manifest['files']) > 512:
+                raise LaneError('READER_FILE_BUDGET', 'Select a Code snapshot with at most 512 files.')
+            counts = Counter(files=len(manifest['files']), bytes=0, chunks=0, symbols=0,
+                imports=0, calls=0, routes=0, dependencies=0, receipts=0, diagnostics=0)
+            families = defaultdict(lambda: {'files': 0, 'bytes': 0})
+            states, largest = Counter(), []
+            names = {'symbol': 'symbols', 'import': 'imports', 'call': 'calls', 'route': 'routes',
+                'dependency': 'dependencies', 'parser_receipt': 'receipts', 'parser_diagnostic': 'diagnostics'}
+            for source in manifest['files']:
+                raw = checked_source(lane, source, budget)
+                text, _ = _decode(raw)
+                facts = json.loads(budget.object(lane, source['facts_digest']))
+                for name, target in names.items():
+                    counts[target] += len(facts[name])
+                lines = len((text or '').splitlines(keepends=True))
+                counts['chunks'] += 1 + (max(lines - 80, 0) + 71) // 72 if lines else 0
+                counts['bytes'] += len(raw)
+                family = PurePosixPath(source['path']).suffix.lower() or '[none]'
+                families[family]['files'] += 1
+                families[family]['bytes'] += len(raw)
+                states[source['parser_state']] += 1
+                largest.append({**{key: source[key] for key in ('path', 'size_bytes', 'parser_state')},
+                    'extension': PurePosixPath(source['path']).suffix.lower(),
+                    'mime_type': MIME_TYPES.guess_type(source['path'])[0] or 'application/octet-stream',
+                    'mime_type_basis': 'filename_guess'})
+            before = {}
+            if manifest['previous_snapshot']:
+                _, prior = _snapshot(lane, manifest['previous_snapshot'])
+                before = {row['path']: row['sha256'] for row in prior['files']}
+            after = {row['path']: row['sha256'] for row in manifest['files']}
+            changes = Counter(added=0, modified=0, deleted=0, unchanged=0)
+            for path in before.keys() | after.keys():
+                kind = ('added' if path not in before else 'deleted' if path not in after
+                    else 'unchanged' if before[path] == after[path] else 'modified')
+                changes[kind] += 1
+            budget.tick()
+            return {**source_context(request, manifest), 'counts': dict(counts),
+                'families': [{'extension': key, **value} for key, value in sorted(
+                    families.items(), key=lambda pair: (-pair[1]['files'], pair[0]))],
+                'largest_files': sorted(largest, key=lambda row: (-row['size_bytes'], row['path']))[:10],
+                'parser_states': dict(sorted(states.items())), 'changes': dict(changes),
+                'previous_snapshot': manifest['previous_snapshot'], 'created_at': manifest['created_at'],
+                'read_bytes': request.max_read_bytes - budget.remaining}
+
+    def _history(self, request, minimum=None):
+        deadline = time.monotonic() + request.timeout_ms / 1000
+        with bounded_project_read(self.store.root, deadline):
+            current = RootReference.model_validate(root_reference(self.store)).model_dump()
+            head, expected, rows, used = current, None, [], 1024
+            with self.store.connection(read_only=True) as connection:
+                for _ in range(request.max_commits):
+                    if time.monotonic() >= deadline:
+                        raise LaneError('READER_TIMEOUT', 'Reduce the Root PV history range.')
+                    if current['revision'] == 0:
+                        if expected not in (None, []):
+                            raise LaneError('READER_HISTORY_INTEGRITY', 'Initial Root PV has published lane heads.')
+                        rows.append({'root': current, 'heads': []})
+                        return head, rows, False
+                    parent, prior_heads, heads = checked_publication(connection, self.store.project_id, current, expected)
+                    value = {'root': current, 'heads': heads}
+                    used += len(json_text(value).encode())
+                    if used > request.max_bytes:
+                        if minimum is not None or not rows:
+                            raise LaneError('READER_HISTORY_BYTE_BUDGET', 'The selected history exceeds max_bytes.')
+                        return head, rows, True
+                    rows.append(value)
+                    if minimum is not None and current['revision'] <= minimum:
+                        return head, rows, True
+                    current, expected = parent, prior_heads
+                if current['revision'] == 0:
+                    if expected:
+                        raise LaneError('READER_HISTORY_INTEGRITY', 'Initial Root PV has published lane heads.')
+                    rows.append({'root': current, 'heads': []})
+                    return head, rows, False
+                if minimum is not None:
+                    raise LaneError('READER_HISTORY_BUDGET', 'The selected comparison exceeds max_commits from the current head.')
+                return head, rows, True
+
+    def history(self, request):
+        head, rows, truncated = self._history(request)
+        return {'current_root': head, 'publications': rows, 'truncated': truncated,
+            'comparison_authority': 'published_root_journal', 'historical_contents_available': False}
+
+    def diff(self, request):
+        head, rows, _ = self._history(request, min(request.left_root.revision, request.right_root.revision))
+        by_revision = {row['root']['revision']: row for row in rows}
+        selected = []
+        for reference in (request.left_root, request.right_root):
+            row = by_revision.get(reference.revision)
+            if row is None or row['root'] != reference.model_dump():
+                raise LaneError('READER_ROOT_REFERENCE_MISMATCH', 'Both exact references must belong to the current published ancestry.')
+            selected.append({item['lane_id']: item for item in row['heads']})
+        left, right = selected
+        delta = {'added': [], 'modified': [], 'removed': [], 'unchanged': [], 'republished': []}
+        for lane_id in sorted(left.keys() | right.keys()):
+            before, after = left.get(lane_id), right.get(lane_id)
+            if before is None:
+                delta['added'].append({'lane_id': lane_id, 'after': after})
+            elif after is None:
+                delta['removed'].append({'lane_id': lane_id, 'before': before})
+            elif before['head_digest'] != after['head_digest']:
+                delta['modified'].append({'lane_id': lane_id, 'before': before, 'after': after})
+            else:
+                delta['unchanged'].append(lane_id)
+                if before != after:
+                    delta['republished'].append({'lane_id': lane_id, 'before': before, 'after': after})
+        body = {'current_root': head, 'left_root': request.left_root.model_dump(),
+            'right_root': request.right_root.model_dump(), 'lane_delta': delta,
+            'comparison_authority': 'published_root_journal', 'historical_contents_available': False,
+            'comparison_scope': 'recorded_lane_database_heads', 'verified_publications': len(rows)}
+        return {**body, 'comparison_sha256': digest(body)}
+
+
+def register_reader_actions(engine):
+    def handler(method, operation):
+        def read(context, request):
+            store = engine.directory.open(context.project_id)
+            result = getattr(PVReader(store), method)(request)
+            output = ReadResult(project_id=store.project_id, operation=operation, result=result)
+            if len(json_text(output.model_dump()).encode()) > 2097152:
+                raise LaneError('READER_OUTPUT_BUDGET', 'Reduce the selected page or read budget.')
+            return output
+        return read
+
+    for name, model, method, description, profile, workflow in (
+        ('fetch', Fetch, 'fetch', 'Fetch exact stored Code file or chunk bytes with bounded text or base64 output.', 'code', 'source-intake'),
+        ('pv_summary', Summary, 'project_summary', 'Summarize verified bytes and facts of one exact Code snapshot.', 'code', 'source-intake'),
+        ('pv_history', History, 'history', 'Read bounded, verified published Root PV references from current ancestry.', 'projects', 'evi'),
+        ('pv_diff', Diff, 'diff', 'Compare exact published Root PV lane database heads without reading historical content.', 'projects', 'evi')):
+        engine.registry.register(ActionSpec(name, description, model, ReadResult, handler(method, name),
+            profile=profile, workflow=workflow, queryable_in_delta=True, cross_project_read=True, studio_read=True,
+            read_migrations=(*code_migrations('local_code'), *code_migrations('github_code')) if profile == 'code' else (),
+            fetch=FetchRoute(('local_code', 'github_code'), path_argument='ref_id', path_prefix='file:',
+                offset_argument='byte_offset', path_result='path', digest_result='file_sha256',
+                size_result='size_bytes') if name == 'fetch' else None))

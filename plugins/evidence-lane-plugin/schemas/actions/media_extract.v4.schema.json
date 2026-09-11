@@ -1,0 +1,209 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Create a separate hash-bound OCR or frame/audio derivative from exact media.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "channels": {
+        "default": 1,
+        "enum": [
+          1,
+          2
+        ],
+        "title": "Channels",
+        "type": "integer"
+      },
+      "duration_seconds": {
+        "default": 5,
+        "exclusiveMinimum": 0,
+        "maximum": 120,
+        "title": "Duration Seconds",
+        "type": "number"
+      },
+      "kind": {
+        "enum": [
+          "video_frame",
+          "audio_segment"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_height": {
+        "default": 1080,
+        "maximum": 4096,
+        "minimum": 1,
+        "title": "Max Height",
+        "type": "integer"
+      },
+      "max_width": {
+        "default": 1920,
+        "maximum": 4096,
+        "minimum": 1,
+        "title": "Max Width",
+        "type": "integer"
+      },
+      "sample_rate": {
+        "default": 16000,
+        "enum": [
+          8000,
+          16000,
+          22050,
+          44100,
+          48000
+        ],
+        "title": "Sample Rate",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "start_seconds": {
+        "default": 0,
+        "maximum": 86400,
+        "minimum": 0,
+        "title": "Start Seconds",
+        "type": "number"
+      },
+      "stream": {
+        "default": 0,
+        "maximum": 31,
+        "minimum": 0,
+        "title": "Stream",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "kind"
+    ],
+    "title": "MediaExtract",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "media_extract",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "MediaResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "images_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "278cccfdb5471d00cd48e8e35def504275a2b5233b2897ef78a76e584e20e7d4",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "media_extract",
+    "profile": "images_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.media_derivatives:extract",
+        "argument_suffixes": {},
+        "argument_values": {
+          "kind": [
+            "video_frame"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_extract.ffmpeg_frame",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow",
+          "FFmpeg"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_derivatives:extract",
+        "argument_suffixes": {},
+        "argument_values": {
+          "kind": [
+            "audio_segment"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_extract.ffmpeg_audio",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "FFmpeg"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "media_extract"
+    ]
+  },
+  "verification_checks": [
+    "media_derivative_integrity"
+  ],
+  "worker_operations": [
+    "media_extract"
+  ],
+  "workflow": "source-intake"
+}

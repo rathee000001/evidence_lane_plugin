@@ -1,0 +1,73 @@
+{
+  "schema": "evidence-lane.canon-consequence-package.v4",
+  "owner": "canon",
+  "database": "authorities/canon/canon_authority_v001.sqlite",
+  "separate_graph_database": false,
+  "runtime": [
+    "evidence_lane_plugin.canon_consequence_graph",
+    "evidence_lane_plugin.canon_task_graph"
+  ],
+  "installed_execution_claimed": false,
+  "members": [
+    {
+      "path": "authorities/canon_input/consequence_graph/README.md",
+      "sha256": "0015ffad1ad0174e9e7f4e1f161393d1e38916590f2dcc755b96d1808348130b"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/build-refresh-contract.schema.json",
+      "sha256": "868d8e3ab10dce2716bfd25f8a8e7cc7a6264f2b2db76ac1651b3a81919fe8e0"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/builder.py",
+      "sha256": "0a2cca033d003e376274cf257ddf73d99770c1ecc20df5b5b409c68d39cd32f8"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/manifest.schema.json",
+      "sha256": "8ab87fab3e2ecaa9dc5e8fd8209e546e176dbe03ca950be6865b2d5c91c7f7ad"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/reader-contract.schema.json",
+      "sha256": "48d3b55db5ab607c6fe781a1b2219e80314287165770b4af4f6429042ed68ccf"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/reader.py",
+      "sha256": "1fd81c92b4f03e22436abc33c714de16a19b29519e96f922b374ba2b220f83e2"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/refresh-receipt.schema.json",
+      "sha256": "64fe3eef0dbb0317755d0a7d94ee1e8417c2abe289e6648b897f6cf41dac4111"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/runtime-binding.schema.json",
+      "sha256": "4cd3de4264071901df6134011ffddbb070048bbbb2b154d6af6a23a8ab042cb2"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/runtime-binding.v4.json",
+      "sha256": "c6b2100670adfc9173f8b8a0789d2c4de4330436c960b536093d381cf291047c"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/runtime.py",
+      "sha256": "23cae2c5ff326c5a36180df672f416f2315cebfc48acc812192ee471d4ece17f"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/tools.json",
+      "sha256": "06b89c8336ec6aaf7ef20c5750c121bd7b335b39b3d8d1cac44abc5a98e7abba"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/tools.schema.json",
+      "sha256": "1f70af840d5be78f7e7915b8ee03aabe7fb1487db6b38967020931cdbf0bac45"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/workflow.dot",
+      "sha256": "effc39024a728fe31e9549cb57bbfb91bc2ecf21b8417719db84fab6cf745f75"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/workflow.mmd",
+      "sha256": "83999cb4ddd5f0f405c30e507822eee3c869a11c35ef83e539dac4b452fa6481"
+    },
+    {
+      "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
+      "sha256": "2ff730209993ce1e34c110c8a9e0877ef262cc4c7a0fbf7a0a259c76d51f3213"
+    }
+  ]
+}

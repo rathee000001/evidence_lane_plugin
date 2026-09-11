@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/PostCompact/handler.py",
+  "event": "PostCompact",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/PostCompact/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/PostCompact/handler.py",
+      "sha256": "2648b56ea61e1840d5d6534d9bc47408037e23730a8983b1095f9c34c956de3c"
+    },
+    {
+      "path": "hooks/events/PostCompact/event.schema.json",
+      "sha256": "3c3ffa019b10443f727e0ba9c22f06b50756a1861bff68dba8425612025b4a71"
+    },
+    {
+      "path": "hooks/events/PostCompact/pipeline.v4.json",
+      "sha256": "08f13ff4e094f4de889e1cbae8f0c8854d88d93fb5fcfd2fe493cffc2469d2cc"
+    },
+    {
+      "path": "hooks/events/PostCompact/README.md",
+      "sha256": "faf3353d4b8622b81c5078d94f8483e89697abf82635401525ccd536facf61bc"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 8,
+  "pipeline": "hooks/events/PostCompact/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

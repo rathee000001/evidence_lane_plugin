@@ -1,45 +1,74 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "data_excel DOT_TRAVERSAL_MAP artifact receipt",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "data_excel"
-    },
-    "artifact_path": {
-      "const": "data_excel.dot"
-    },
-    "artifact_role": {
-      "const": "DOT_TRAVERSAL_MAP"
-    },
-    "syntax": {
-      "const": "GRAPHVIZ_DOT"
-    },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "topology_reconciliation.validate_dot"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "$defs": {
+    "JsonValue": {}
   },
   "additionalProperties": false,
-  "receipt_sha256": "93D71E947950873C7DF7B4AC18FA967BB303F9F341772E89D6DAE1B0ACC394F2"
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "Excel selected DOT publication",
+  "type": "object",
+  "x-format": "dot",
+  "x-lane-id": "data_excel",
+  "x-selection-policy": "Only explicitly selected lane formats; natural artifacts remain separate."
 }

@@ -1,45 +1,43 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "images_ocr SQLITE_AUTHORITY artifact receipt",
   "type": "object",
   "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
+    "schema",
+    "lane_id",
+    "database_role",
+    "business_rows",
+    "project_identity_rows",
+    "sqlite_sha256",
+    "tables",
+    "relations"
   ],
   "properties": {
-    "authority_id": {
+    "schema": {
+      "const": "evidence-lane.empty-sector-schema.v4"
+    },
+    "lane_id": {
       "const": "images_ocr"
     },
-    "artifact_path": {
-      "const": "images_ocr_sector_v001.sqlite"
+    "database_role": {
+      "const": "unbound_schema_template"
     },
-    "artifact_role": {
-      "const": "SQLITE_AUTHORITY"
+    "business_rows": {
+      "const": 0
     },
-    "syntax": {
-      "const": "SQLITE3_FTS5"
+    "project_identity_rows": {
+      "const": 0
     },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
+    "sqlite_sha256": {
       "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
+      "pattern": "^[a-f0-9]{64}$"
     },
-    "validator": {
-      "const": "lane_engine.lane_schema_builder_projection"
+    "tables": {
+      "type": "array"
     },
-    "status": {
-      "const": "PASS"
+    "relations": {
+      "type": "array"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "2E6F111D7783228767A55DF551F3D40651591A4B06B456361852035E53B799BB"
+  "additionalProperties": true,
+  "title": "Images / OCR empty schema template inspection"
 }

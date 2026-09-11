@@ -1,0 +1,226 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Preview a bounded lane graph and exact source binding without writing files.",
+  "inputSchema": {
+    "$defs": {
+      "ViewScope": {
+        "additionalProperties": false,
+        "properties": {
+          "edge_limit": {
+            "default": 200,
+            "maximum": 500,
+            "minimum": 0,
+            "title": "Edge Limit",
+            "type": "integer"
+          },
+          "include_history": {
+            "default": false,
+            "title": "Include History",
+            "type": "boolean"
+          },
+          "node_limit": {
+            "default": 100,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Node Limit",
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          }
+        },
+        "title": "ViewScope",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "scope": {
+        "$ref": "#/$defs/ViewScope"
+      },
+      "view_id": {
+        "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+        "title": "View Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "view_id"
+    ],
+    "title": "ViewPreview",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "lane_view_preview",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {},
+      "ViewScope": {
+        "additionalProperties": false,
+        "properties": {
+          "edge_limit": {
+            "default": 200,
+            "maximum": 500,
+            "minimum": 0,
+            "title": "Edge Limit",
+            "type": "integer"
+          },
+          "include_history": {
+            "default": false,
+            "title": "Include History",
+            "type": "boolean"
+          },
+          "node_limit": {
+            "default": 100,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Node Limit",
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          }
+        },
+        "title": "ViewScope",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "contract_digest": {
+        "title": "Contract Digest",
+        "type": "string"
+      },
+      "files": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Files",
+        "type": "object"
+      },
+      "files_written": {
+        "const": false,
+        "default": false,
+        "title": "Files Written",
+        "type": "boolean"
+      },
+      "generation": {
+        "title": "Generation",
+        "type": "integer"
+      },
+      "graph": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Graph",
+        "type": "object"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "scope": {
+        "$ref": "#/$defs/ViewScope"
+      },
+      "source_digest": {
+        "title": "Source Digest",
+        "type": "string"
+      },
+      "source_head": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Source Head",
+        "type": "object"
+      },
+      "view_id": {
+        "title": "View Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "view_id",
+      "contract_digest",
+      "source_digest",
+      "source_head",
+      "generation",
+      "scope",
+      "graph",
+      "files"
+    ],
+    "title": "ViewPreviewResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "artifacts",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9fab7ff19ee7141e836a8d6a1a50bd76697bb29e8adbeae6461d99f310fb4f8d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lane_view_preview",
+    "profile": "artifacts",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lane_view_preview.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

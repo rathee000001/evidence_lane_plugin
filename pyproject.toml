@@ -1,49 +1,24 @@
-# Evidence Lane source version: 3.0.0
 [build-system]
 requires = ["setuptools==83.0.0", "wheel==0.46.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "3.0.0"
-description = "Private six-control Evidence Lane plugin with secret-safe intake, reconciled SQLite topology, candidate overlays, and exact-APPROVE HIL."
+version = "4.0.0"
+description = "Local project state and verified sequential work for Codex."
 readme = "README.md"
-requires-python = ">=3.11"
-license = "LicenseRef-Proprietary"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
 license-files = ["LICENSE.md"]
-authors = [{ name = "Praveen Rathee" }]
-dependencies = [
-  "cryptography==50.0.0",
-  "defusedxml==0.7.1",
-  "httpx==0.28.1",
-  "llama-index-core==0.14.23",
-  "mcp==1.28.1",
-  "numpy==2.4.6",
-  "pydantic==2.13.4",
-  "onnxruntime==1.28.0",
-  "openpyxl==3.1.5",
-  "pandas==3.0.5",
-  "pdfplumber==0.11.10",
-  "Pillow==12.3.0",
-  "pyarrow==25.0.0",
-  "PyJWT[crypto]==2.13.0",
-  "pypdf==6.15.0",
-  "pypdfium2==5.12.1",
-  "pytesseract==0.3.13",
-  "pywin32==312; sys_platform == 'win32'",
-  "python-calamine==0.8.2",
-  "rapidocr==3.9.2",
-]
+dependencies = ["pydantic==2.13.4", "mcp==1.28.1", "httpx==0.28.1", "defusedxml==0.7.1", "uvicorn==0.52.4", "langgraph==1.2.11", "langchain-core==1.6.1", "graphviz==0.21", "jsonschema==4.26.0"]
 
 [project.optional-dependencies]
-dev = [
-  "mypy==2.3.1",
-  "pip-tools==7.6.1",
-  "pytest==9.1.1",
-  "ruff==0.16.4",
-]
+dev = ["pytest==9.1.1", "ruff==0.16.4", "PyYAML==6.0.3", "llama-index-core==0.14.23", "rank-bm25==0.2.2", "python-docx==1.2.0", "python-pptx==1.0.2", "openpyxl==3.1.5", "python-calamine==0.8.2", "pyarrow==25.0.0", "pandas==3.0.5", "polars==1.44.1", "duckdb==1.5.5", "tableauhyperapi==0.0.26359", "rustworkx==0.18.1", "ddgs==9.16.0", "trafilatura==2.2.0", "readability-lxml==0.8.4.1", "beautifulsoup4==4.15.0", "markdownify==1.2.3", "html2text==2025.4.15", "validators==0.35.0", "tldextract==5.3.2", "mypy==2.3.1"]
+
 [project.scripts]
-evidence-lane-plugin = "evidence_lane_plugin.cli:main"
+evidence-lane = "evidence_lane_plugin.cli:main"
+evidence-lane-engine = "evidence_lane_plugin.service:main"
+evidence-lane-recovery = "evidence_lane_plugin.database_recovery:recovery_main"
 
 [tool.setuptools]
 package-dir = {"" = "plugins/evidence-lane-plugin/src"}
@@ -52,22 +27,97 @@ package-dir = {"" = "plugins/evidence-lane-plugin/src"}
 where = ["plugins/evidence-lane-plugin/src"]
 
 [tool.setuptools.package-data]
-evidence_lane_plugin = [
-  "runtime-public-catalog.v1.json",
-  "schema.sql",
-]
+evidence_lane_plugin = ["migrations/*.sql", "studio/*", "studio/assets/*", "contracts/*.json", "contracts/powerbi-schemas/*.json", "contracts/powerbi-schemas/LICENSE.txt"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 pythonpath = ["plugins/evidence-lane-plugin/src"]
-testpaths = ["tests"]
+testpaths = [
+  "tests/test_maintainer_ci_v4.py",
+  "tests/test_registry.py",
+  "tests/test_engine.py",
+  "tests/test_workers.py",
+  "tests/test_jobs.py",
+  "tests/test_quiescence.py",
+  "tests/test_host_routing.py",
+  "tests/test_connections.py",
+  "tests/test_runtime_health.py",
+  "tests/test_opencv_contract_v4.py",
+  "tests/test_plan_authority.py",
+  "tests/test_plan_operation_v4.py",
+  "tests/test_plan_replacement.py",
+  "tests/test_delta_entry.py",
+  "tests/test_delta_exit.py",
+  "tests/test_delta_validation_v4.py",
+  "tests/test_validation_policy_v4.py",
+  "tests/test_git_process_ownership_v4.py",
+  "tests/test_storage.py",
+  "tests/test_migrations.py",
+  "tests/test_lane_transactions.py",
+  "tests/test_separate_lane_storage.py",
+  "tests/test_separate_recovery_v4.py",
+  "tests/test_separate_plan_foundation.py",
+  "tests/test_database_recovery_v4.py",
+  "tests/test_sdk.py",
+  "tests/test_local_transport.py",
+  "tests/test_native_workflow_bindings.py",
+  "tests/test_first_class_entry_v4.py",
+  "tests/test_remote_api.py",
+  "tests/test_remote_sessions_v4.py",
+  "tests/test_endpoint_credentials_v4.py",
+  "tests/test_build.py",
+  "tests/test_first_class_skills.py",
+  "tests/test_skill_procedure_parity_v4.py",
+  "tests/test_lane_contract_generator_v4.py",
+  "tests/test_env_uop_framework_v4.py",
+  "tests/test_office_scope_v4.py",
+  "tests/test_final_workspace_purge_v4.py",
+  "tests/test_document_profile_v4.py",
+  "tests/test_document_verification_v4.py",
+  "tests/test_document_resource_boundaries_v4.py",
+  "tests/test_presentation_profile_v4.py",
+  "tests/test_presentation_fidelity_v4.py",
+  "tests/test_presentation_boundaries_v4.py",
+  "tests/test_presentation_show_boolean_v4.py",
+  "tests/test_presentation_package_v4.py",
+  "tests/test_tabular_profile_v4.py",
+  "tests/test_tabular_parsers_v4.py",
+  "tests/test_tabular_fidelity_v4.py",
+  "tests/test_tabular_generation_v4.py",
+  "tests/test_tabular_inspection_v4.py",
+  "tests/test_tabular_persistence_v4.py",
+  "tests/test_tabular_protocol_v4.py",
+  "tests/test_tabular_export_refresh_v4.py",
+  "tests/test_tabular_source_refresh_v4.py",
+  "tests/test_tableau_parsers_v4.py",
+  "tests/test_tableau_profile_v4.py",
+  "tests/test_tableau_hyper_v4.py",
+  "tests/test_tableau_package_v4.py",
+  "tests/test_tableau_runtime_bootstrap_v4.py",
+  "tests/test_code_profile_v4.py",
+  "tests/test_code_verification_v4.py",
+  "tests/test_code_incremental_refresh_v4.py",
+  "tests/test_code_edit_refresh_v4.py",
+  "tests/test_evidence_sectors_v4.py",
+  "tests/test_evidence_views_v4.py",
+  "tests/test_artifact_intake_v4.py",
+  "tests/test_artifact_protocol_v4.py",
+  "tests/test_research_web_v4.py",
+  "tests/test_research_discovery_v4.py",
+  "tests/test_research_attribution_v4.py",
+  "tests/test_research_protocol_v4.py",
+  "tests/test_custom_source_schema_v4.py",
+  "tests/test_custom_instances_v4.py",
+  "tests/test_custom_protocol_v4.py",
+]
 
 [tool.ruff]
-target-version = "py311"
-exclude = ["evidence"]
+target-version = "py314"
+line-length = 100
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 ignore_missing_imports = true
 no_site_packages = true
+cache_dir = ".work/mypy"
 files = ["plugins/evidence-lane-plugin/src/evidence_lane_plugin"]

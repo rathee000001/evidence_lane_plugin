@@ -1,0 +1,87 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=AECEA794A0F3D29B6F8F11D5682E44DA3B0ED757C67E7CF91CAB25C0F0A14872
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  lane["data owning database and immutable files"]:::default
+  delta["Exact current Plan and normal Delta admission"]:::default
+  verify["Owning acceptance checks and verified Delta exit"]:::default
+  read["Scoped authenticated SDK read"]:::default
+  action_data_current["data_current"]:::default
+  action_data_export["data_export"]:::default
+  action_data_generate["data_generate"]:::default
+  action_data_index["data_index"]:::default
+  action_data_index_arrow["data_index_arrow"]:::default
+  action_data_inspect_duckdb["data_inspect_duckdb"]:::default
+  action_data_inspect_pandas["data_inspect_pandas"]:::default
+  action_data_inspect_polars["data_inspect_polars"]:::default
+  action_data_inspection_read["data_inspection_read"]:::default
+  action_data_query["data_query"]:::default
+  action_data_read["data_read"]:::default
+  action_data_refresh["data_refresh"]:::default
+  action_data_refresh_arrow["data_refresh_arrow"]:::default
+  action_data_transform["data_transform"]:::default
+  action_source_snapshot_retire["source_snapshot_retire"]:::default
+  action_source_snapshot_state["source_snapshot_state"]:::default
+  read -->|"read"| action_data_current
+  lane -->|"bounded recorded evidence"| action_data_current
+  delta -->|"data"| action_data_export
+  action_data_export -->|"owned publication"| lane
+  action_data_export -->|"tabular_export_hash_verified"| verify
+  delta -->|"data"| action_data_generate
+  action_data_generate -->|"owned publication"| lane
+  action_data_generate -->|"tabular_snapshot_integrity"| verify
+  delta -->|"data"| action_data_index
+  action_data_index -->|"owned publication"| lane
+  action_data_index -->|"tabular_snapshot_integrity, tabular_source_hash_unchanged"| verify
+  delta -->|"data"| action_data_index_arrow
+  action_data_index_arrow -->|"owned publication"| lane
+  action_data_index_arrow -->|"tabular_snapshot_integrity, tabular_source_hash_unchanged"| verify
+  delta -->|"data"| action_data_inspect_duckdb
+  action_data_inspect_duckdb -->|"owned publication"| lane
+  action_data_inspect_duckdb -->|"tabular_inspection_reconciled"| verify
+  delta -->|"data"| action_data_inspect_pandas
+  action_data_inspect_pandas -->|"owned publication"| lane
+  action_data_inspect_pandas -->|"tabular_inspection_reconciled"| verify
+  delta -->|"data"| action_data_inspect_polars
+  action_data_inspect_polars -->|"owned publication"| lane
+  action_data_inspect_polars -->|"tabular_inspection_reconciled"| verify
+  read -->|"read"| action_data_inspection_read
+  lane -->|"bounded recorded evidence"| action_data_inspection_read
+  read -->|"read"| action_data_query
+  lane -->|"bounded recorded evidence"| action_data_query
+  read -->|"read"| action_data_read
+  lane -->|"bounded recorded evidence"| action_data_read
+  delta -->|"data"| action_data_refresh
+  action_data_refresh -->|"owned publication"| lane
+  action_data_refresh -->|"tabular_snapshot_integrity, tabular_source_hash_unchanged"| verify
+  delta -->|"data"| action_data_refresh_arrow
+  action_data_refresh_arrow -->|"owned publication"| lane
+  action_data_refresh_arrow -->|"tabular_snapshot_integrity, tabular_source_hash_unchanged"| verify
+  delta -->|"data"| action_data_transform
+  action_data_transform -->|"owned publication"| lane
+  action_data_transform -->|"tabular_snapshot_integrity"| verify
+  delta -->|"sources"| action_source_snapshot_retire
+  action_source_snapshot_retire -->|"owned publication"| lane
+  action_source_snapshot_retire -->|"source_selector_retirement_verified"| verify
+  read -->|"read"| action_source_snapshot_state
+  lane -->|"bounded recorded evidence"| action_source_snapshot_state
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_data_current ~~~ action_data_inspection_read
+  action_data_read ~~~ action_source_snapshot_state
+  action_data_index ~~~ action_data_index_arrow
+  action_data_inspect_pandas ~~~ action_data_inspect_polars
+  action_data_transform ~~~ action_source_snapshot_retire
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

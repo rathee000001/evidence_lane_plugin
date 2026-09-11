@@ -1,0 +1,186 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish a new native Hyper extract or an exact selected XML edit as immutable lane-owned bytes.",
+  "inputSchema": {
+    "$defs": {
+      "TableauXmlEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "attribute": {
+            "enum": [
+              "caption",
+              "formula"
+            ],
+            "title": "Attribute",
+            "type": "string"
+          },
+          "expected_value": {
+            "anyOf": [
+              {
+                "maxLength": 32768,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Value"
+          },
+          "item_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "part": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Part",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 32768,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "part",
+          "item_id",
+          "attribute",
+          "value"
+        ],
+        "title": "TableauXmlEdit",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "tableau",
+        "default": "tableau",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "replacements": {
+        "items": {
+          "$ref": "#/$defs/TableauXmlEdit"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "title": "Replacements",
+        "type": "array"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256",
+      "replacements"
+    ],
+    "title": "TableauEdit",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "tableau_edit",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "tableau",
+        "default": "tableau",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "TableauResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "tableau",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "071a9e1a78dff9a8ba9daa594c148568f8dda116c871c42b03e6a8ec73782b0e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "tableau_edit",
+    "profile": "tableau",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tableau_profile:edit_tableau",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "tableau_edit.native",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "lxml",
+          "Tableau_Hyper_API"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "tableau_edit"
+    ]
+  },
+  "verification_checks": [
+    "tableau_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "tableau_edit"
+  ],
+  "workflow": "build"
+}

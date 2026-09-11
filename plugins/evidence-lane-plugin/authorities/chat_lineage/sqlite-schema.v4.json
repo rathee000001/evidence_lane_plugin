@@ -1,0 +1,720 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "chat_lineage",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "5287013022f01a7dc0150d8bc92d8ea785b4db163ff9529bc2e568fad90790a4",
+  "tables": [
+    {
+      "name": "continuation_bindings",
+      "type": "table",
+      "sql": "CREATE TABLE continuation_bindings (binding_digest TEXT PRIMARY KEY,\n       participant_id TEXT NOT NULL, generation INTEGER NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), UNIQUE(participant_id,generation))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "binding_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "participant_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "generation",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "continuation_events",
+      "type": "table",
+      "sql": "CREATE TABLE continuation_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n       kind TEXT NOT NULL, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       result_json TEXT NOT NULL CHECK(json_valid(result_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "input_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "continuation_offers",
+      "type": "table",
+      "sql": "CREATE TABLE continuation_offers (sequence INTEGER PRIMARY KEY, continuation_id TEXT NOT NULL UNIQUE,\n       participant_id TEXT NOT NULL, source_client_id TEXT NOT NULL,\n       destination_client_id TEXT NOT NULL, continuation_digest TEXT NOT NULL UNIQUE,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), state TEXT NOT NULL CHECK(state IN ('offered','accepted','cancelled')),\n       result_json TEXT CHECK(json_valid(result_json)), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "continuation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "participant_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination_client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "continuation_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "continuation_retired_clients",
+      "type": "table",
+      "sql": "CREATE TABLE continuation_retired_clients (client_id TEXT PRIMARY KEY, continuation_id TEXT NOT NULL REFERENCES continuation_offers(continuation_id),\n       destination_client_id TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "continuation_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination_client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lineage_chunks",
+      "type": "table",
+      "sql": "CREATE TABLE lineage_chunks (\n        chunk_id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES lineage_events(event_id),\n        ordinal INTEGER NOT NULL, text_digest TEXT NOT NULL, text TEXT NOT NULL, UNIQUE(event_id,ordinal))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "chunk_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "text",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lineage_events",
+      "type": "table",
+      "sql": "CREATE TABLE lineage_events (\n        sequence INTEGER PRIMARY KEY, event_id TEXT NOT NULL UNIQUE,\n        kind TEXT NOT NULL, client_id TEXT NOT NULL, provenance TEXT NOT NULL,\n        reported_session_id TEXT, reported_turn_id TEXT, tool_use_id TEXT,\n        parent_event_id TEXT REFERENCES lineage_events(event_id),\n        payload_digest TEXT NOT NULL REFERENCES objects(digest),\n        identity_digest TEXT NOT NULL, previous_cursor TEXT, cursor TEXT NOT NULL UNIQUE,\n        received_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "provenance",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reported_session_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "reported_turn_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "tool_use_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_event_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "payload_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "identity_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_cursor",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "cursor",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "received_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lineage_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE lineage_fts USING fts5(chunk_id UNINDEXED,event_id UNINDEXED,text,tokenize='unicode61')",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "chunk_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "event_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "prompt_classifications",
+      "type": "table",
+      "sql": "CREATE TABLE prompt_classifications (\n       classification_id TEXT PRIMARY KEY,source_event_id TEXT NOT NULL REFERENCES prompt_entries(source_event_id),\n       ordinal INTEGER NOT NULL,actor_id TEXT NOT NULL,previous_digest TEXT,\n       classification_json TEXT NOT NULL CHECK(json_valid(classification_json)),\n       classification_digest TEXT NOT NULL UNIQUE,UNIQUE(source_event_id,ordinal))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "classification_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "ordinal",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "classification_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "classification_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "prompt_entries",
+      "type": "table",
+      "sql": "CREATE TABLE prompt_entries (\n       source_event_id TEXT PRIMARY KEY REFERENCES lineage_events(event_id),client_id TEXT NOT NULL,\n       reported_session_id TEXT NOT NULL,prompt_index INTEGER NOT NULL,source_cursor TEXT NOT NULL,\n       entry_json TEXT NOT NULL CHECK(json_valid(entry_json)),previous_entry_digest TEXT,\n       entry_digest TEXT NOT NULL UNIQUE,UNIQUE(client_id,reported_session_id,prompt_index))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "source_event_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reported_session_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "prompt_index",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_cursor",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "entry_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_entry_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "entry_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "turn_events",
+      "type": "table",
+      "sql": "CREATE TABLE turn_events (\n       sequence INTEGER PRIMARY KEY, source_event_id TEXT NOT NULL UNIQUE REFERENCES lineage_events(event_id),\n       client_id TEXT NOT NULL, reported_session_id TEXT NOT NULL, reported_turn_id TEXT,\n       session_digest TEXT, event_name TEXT NOT NULL, body_digest TEXT NOT NULL REFERENCES objects(digest),\n       previous_digest TEXT, digest TEXT NOT NULL UNIQUE)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_event_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reported_session_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reported_turn_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "session_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "event_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "continuation_retired_clients",
+      "target": "continuation_offers",
+      "column": "continuation_id",
+      "target_column": "continuation_id"
+    },
+    {
+      "source": "lineage_chunks",
+      "target": "lineage_events",
+      "column": "event_id",
+      "target_column": "event_id"
+    },
+    {
+      "source": "lineage_events",
+      "target": "objects",
+      "column": "payload_digest",
+      "target_column": "digest"
+    },
+    {
+      "source": "lineage_events",
+      "target": "lineage_events",
+      "column": "parent_event_id",
+      "target_column": "event_id"
+    },
+    {
+      "source": "prompt_classifications",
+      "target": "prompt_entries",
+      "column": "source_event_id",
+      "target_column": "source_event_id"
+    },
+    {
+      "source": "prompt_entries",
+      "target": "lineage_events",
+      "column": "source_event_id",
+      "target_column": "event_id"
+    },
+    {
+      "source": "turn_events",
+      "target": "objects",
+      "column": "body_digest",
+      "target_column": "digest"
+    },
+    {
+      "source": "turn_events",
+      "target": "lineage_events",
+      "column": "source_event_id",
+      "target_column": "event_id"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

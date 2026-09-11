@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 35,
   "tool": "pytesseract_Tesseract",
@@ -7,9 +7,9 @@
   "classification": "NATIVE_RUNTIME_ASSET",
   "install_mode": "portable_nsis_extract",
   "license_expression_or_terms": "Apache-2.0",
-  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
   "evidence_paths": [
-    "toolchains/native-tools.v1.json"
+    "toolchains/native-tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -25,5 +25,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "5A916281DEC670626C600A20E2ADFE84673D468DAEA644F374A0D844844B6A48"
+  "historical_ordinal": 35,
+  "catalog_ordinal": 34,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "4bba39f9b2518047118138feaeffbc84d9481a4c2893e9848709060a1d7f9638"
 }

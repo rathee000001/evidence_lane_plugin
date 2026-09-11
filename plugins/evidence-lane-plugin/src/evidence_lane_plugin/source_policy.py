@@ -35,6 +35,7 @@ _EXCLUDED_PARTS = frozenset(
         ".next",
         ".turbo",
         ".cache",
+        ".work",
     }
 )
 

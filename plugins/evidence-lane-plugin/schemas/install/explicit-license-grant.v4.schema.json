@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidencelane.org/schemas/install/explicit-license-grant.v4.schema.json",
+  "title": "Evidence Lane explicit release-bound license grant v4",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "tool_id",
+    "license_expression",
+    "release_binding_sha256",
+    "accepted_by",
+    "accepted_at",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "evidence-lane.explicit-license-grant.v4"
+    },
+    "status": {
+      "const": "ACCEPTED"
+    },
+    "tool_id": {
+      "const": "ghostscript"
+    },
+    "license_expression": {
+      "const": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial"
+    },
+    "release_binding_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "accepted_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}

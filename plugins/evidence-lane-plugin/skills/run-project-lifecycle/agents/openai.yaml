@@ -1,0 +1,9 @@
+interface:
+  display_name: "Run project lifecycle"
+  short_description: "Coordinate the complete project work lifecycle"
+  default_prompt: "Use $run-project-lifecycle to continue my project through its current workflow."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"

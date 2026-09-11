@@ -1,13 +1,19 @@
-"""Binding to the canonical executable ENV/UOP action plane."""
+"""Bind SDK inspection to the direct current Codex ENV/UOP runtime."""
 
 from evidence_lane_plugin.mode_governance import (
-    classify_mode_governance,
-    compile_env_uop_formula,
-    route_env_uop_operator,
+    bind_env_uop_action_policy,
+    env_uop_authority_boundary,
+    govern_mode_selection,
+    load_env_uop_runtime_authority,
+    route_env_uop_operation,
+    validate_mode_governance_selection,
 )
 
 __all__ = [
-    "classify_mode_governance",
-    "compile_env_uop_formula",
-    "route_env_uop_operator",
+    "bind_env_uop_action_policy",
+    "env_uop_authority_boundary",
+    "govern_mode_selection",
+    "load_env_uop_runtime_authority",
+    "route_env_uop_operation",
+    "validate_mode_governance_selection",
 ]

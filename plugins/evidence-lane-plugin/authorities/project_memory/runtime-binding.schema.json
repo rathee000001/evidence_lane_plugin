@@ -1,23 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_memory runtime binding",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "module",
-    "source_sha256"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "project_memory"
-    },
-    "module": {
-      "const": "evidence_lane_plugin.project_memory"
-    },
-    "source_sha256": {
-      "const": "72FE29489C48A1B5CBA282C5D3C0B18203F1619049ED17A8BD08A84F5E08F14C"
-    }
+  "const": {
+    "owner_id": "memory",
+    "modules": [
+      "evidence_lane_plugin.project_memory"
+    ],
+    "storage": "authorities/memory/memory_authority_v001.sqlite with files and schema history in authorities/memory",
+    "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+    "alternate_writer": false
   },
-  "additionalProperties": false,
-  "receipt_sha256": "CBD7760631FCD658CE53681B9985B0CAE4D4DA03CD99A7E65AF9255065579AA1"
+  "title": "memory canonical runtime binding"
 }

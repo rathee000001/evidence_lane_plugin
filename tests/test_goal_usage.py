@@ -39,17 +39,18 @@ def test_compact_single_epoch_goal_usage_route_is_purged() -> None:
     assert not hasattr(goal_usage, "build_goal_usage_receipt")
 
 
-def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
+def test_goal_completion_requests_do_not_attest_human_or_native_completion() -> None:
     continued = build_goal_completion_authorization(
         visible_command=GOAL_COMPLETION_COMMAND,
         disposition="COMPLETE_THIS_TASK_AND_STATE_TRAVEL",
         actor_kind="HUMAN",
         current_task_id="task-current",
     )
-    assert continued["current_task_goal_completed"] is True
+    assert continued["current_task_goal_completed"] is None
     assert continued["state_travel_requested"] is True
     assert continued["successor_goal_required"] is True
-    assert continued["full_goal_closed"] is False
+    assert continued["full_goal_closed"] is None
+    assert continued["full_goal_completion_requested"] is False
 
     final = build_goal_completion_authorization(
         visible_command=GOAL_COMPLETION_COMMAND,
@@ -57,7 +58,8 @@ def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
         actor_kind="HUMAN",
         current_task_id="task-current",
     )
-    assert final["full_goal_closed"] is True
+    assert final["full_goal_closed"] is None
+    assert final["full_goal_completion_requested"] is True
     assert final["state_travel_requested"] is False
     assert final["hil_can_complete_goal"] is False
     assert final["candidate_can_complete_goal"] is False
@@ -66,6 +68,29 @@ def test_goal_completion_is_exact_human_only_and_has_two_dispositions() -> None:
     assert final["pause_or_stall_can_complete_goal"] is False
     assert final["goal_completion_implies_hil_approval"] is False
     assert final["goal_completion_implies_pointer_move"] is False
+    for request in (continued, final):
+        assert request["schema"] == "evidence-lane.goal-completion-request.v4"
+        assert request["status"] == "CALLER_REQUEST_VALIDATED"
+        assert request["input_provenance"] == "CALLER_SUPPLIED"
+        assert request["completion_requested"] is True
+        assert request["human_authorization_verified"] is False
+        assert request["current_task_identity_verified"] is False
+        assert request["native_goal_state_verified"] is False
+        assert request["completion_call_performed"] is False
+        assert request["current_task_goal_completed"] is None
+
+
+@pytest.mark.parametrize(("value", "places", "expected"), [
+    (10_000, 0, "10K"), (100_000, 0, "100K"),
+    (10_000_000, 0, "10M"), (100_000_000, 0, "100M"),
+    (10_000_000_000, 0, "10B"), (100_000_000_000, 0, "100B"),
+    (10_000, 1, "10K"), (10_500, 0, "11K"), (10_500, 2, "10.5K"),
+])
+def test_compact_display_preserves_integer_zeros_and_rounding(value, places, expected):
+    receipt = compact_token_count_receipt(value, decimal_places=places)
+    assert receipt["display"] == expected
+    assert receipt["raw"] == value
+    assert receipt["rounding_rule"] == "ROUND_HALF_UP"
 
 
 @pytest.mark.parametrize(
@@ -224,6 +249,8 @@ def test_rich_goal_completion_metrics_are_exact_separate_and_subset_safe() -> No
     assert receipt["subagent_lifecycle_counts"]["interacted"]["raw"] == 4
     assert receipt["missing_fields"] == []
     assert receipt["completion_state"]["completion_call_performed"] is False
+    assert receipt["completion_state"]["native_goal_state_verified"] is False
+    assert receipt["completion_state"]["goal_completion_status_basis"] == "CALLER_SUPPLIED_METADATA"
     assert "legacy_route" not in receipt
 
 

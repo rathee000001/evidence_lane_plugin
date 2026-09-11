@@ -1,0 +1,339 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish an immutable PDF derivative and verify canonical field values and page widgets.",
+  "inputSchema": {
+    "$defs": {
+      "PdfElement": {
+        "additionalProperties": false,
+        "properties": {
+          "background": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Background"
+          },
+          "checked": {
+            "default": false,
+            "title": "Checked",
+            "type": "boolean"
+          },
+          "color": {
+            "default": "#17202A",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "field_name": {
+            "anyOf": [
+              {
+                "maxLength": 180,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Field Name"
+          },
+          "font_size": {
+            "default": 11,
+            "maximum": 144,
+            "minimum": 4,
+            "title": "Font Size",
+            "type": "number"
+          },
+          "height": {
+            "exclusiveMinimum": 0,
+            "maximum": 2000,
+            "title": "Height",
+            "type": "number"
+          },
+          "image_base64": {
+            "anyOf": [
+              {
+                "maxLength": 11184812,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Image Base64"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "paragraph",
+              "table",
+              "image",
+              "rectangle",
+              "form_text",
+              "form_checkbox",
+              "form_choice"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Options",
+            "type": "array"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rows"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 100000,
+            "title": "Text",
+            "type": "string"
+          },
+          "width": {
+            "exclusiveMinimum": 0,
+            "maximum": 2000,
+            "title": "Width",
+            "type": "number"
+          },
+          "x": {
+            "maximum": 2000,
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "maximum": 2000,
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height",
+          "kind"
+        ],
+        "title": "PdfElement",
+        "type": "object"
+      },
+      "PdfPage": {
+        "additionalProperties": false,
+        "properties": {
+          "elements": {
+            "items": {
+              "$ref": "#/$defs/PdfElement"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Elements",
+            "type": "array"
+          },
+          "height": {
+            "default": 841.89,
+            "maximum": 2000,
+            "minimum": 72,
+            "title": "Height",
+            "type": "number"
+          },
+          "width": {
+            "default": 595.276,
+            "maximum": 2000,
+            "minimum": 72,
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "elements"
+        ],
+        "title": "PdfPage",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "author": {
+        "default": "",
+        "maxLength": 1000,
+        "title": "Author",
+        "type": "string"
+      },
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "logical_name": {
+        "maxLength": 180,
+        "pattern": "^[^/\\\\:]+\\.pdf$",
+        "title": "Logical Name",
+        "type": "string"
+      },
+      "pages": {
+        "items": {
+          "$ref": "#/$defs/PdfPage"
+        },
+        "maxItems": 50,
+        "minItems": 1,
+        "title": "Pages",
+        "type": "array"
+      },
+      "title": {
+        "default": "",
+        "maxLength": 1000,
+        "title": "Title",
+        "type": "string"
+      }
+    },
+    "required": [
+      "logical_name",
+      "pages"
+    ],
+    "title": "PdfGenerate",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "pdf_generate",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PdfResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "pdf_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "2a2c0e5111887379b653956903077e7616d19f456b6d02128e5cb4fd8a1f7da2",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "pdf_generate",
+    "profile": "pdf_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:generate_pdf",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pdf_generate.native_pdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "ReportLab",
+          "pypdf",
+          "PyMuPDF",
+          "pdfplumber",
+          "Pillow"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "pdf_generate"
+    ]
+  },
+  "verification_checks": [
+    "pdf_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "pdf_generate"
+  ],
+  "workflow": "build"
+}

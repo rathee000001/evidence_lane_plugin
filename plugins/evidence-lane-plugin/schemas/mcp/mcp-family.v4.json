@@ -1,0 +1,25 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "mcp",
+  "members": [
+    {
+      "path": ".mcp.json",
+      "sha256": "8bf7ed7621111dd5cafb62495270d9fbffeff4289ab45ded8f209720a7b1bee0"
+    },
+    {
+      "path": "mcp/mcp-manifest.v4.json",
+      "sha256": "33942a738adc28e747c8e597d9dfeb1f9efe15370703a9868578210464e160dd"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_adapter.py",
+      "sha256": "17564247ae0a34209c2b63960a7ad7c3fff537a25a055715cc48f9e3d449a531"
+    },
+    {
+      "path": "src/evidence_lane_plugin/mcp_server.py",
+      "sha256": "7f8e10787f5c2897ea867770e23fe646df25ebccca982d6c91f3e18e1f4107e6"
+    }
+  ],
+  "purpose": "Thin native MCP adapter over the complete generated action bindings",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "pdf_ocr",
+  "source_package_folder": "authorities/project_sectors/pdf_ocr",
+  "project_state_folder": "sectors/pdf_ocr",
+  "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+  "files": "sectors/pdf_ocr/files",
+  "schema_history": "sectors/pdf_ocr/schema-history",
+  "migrations": [
+    {
+      "owner": "pdfocr",
+      "version": 1,
+      "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77"
+    },
+    {
+      "owner": "pdfocr",
+      "version": 2,
+      "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70"
+    },
+    {
+      "owner": "pdfocrselector",
+      "version": 1,
+      "digest": "fa53f5afc27010968828059b13307e9846b4c0e778a9230690cfd923ea22556f"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "pdf_ocr",
+    "folder": "sectors/pdf_ocr",
+    "files_root": "sectors/pdf_ocr/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "pdf_ocr_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".pdf",
+        ".txt",
+        ".png"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "pages_forms_annotations_and_extraction_provenance"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "pdf_ocr.mmd",
+      "dot": "pdf_ocr.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact PDF snapshot, page and native item locators; raster/OCR/Docling derivatives keep independent source bindings."
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "3DA21A7786678DB2791F4A00881015D2618BDA872002315E5B7E2906FDC78856"
+  },
+  "actions": [
+    "pdf_current",
+    "pdf_edit",
+    "pdf_enrich",
+    "pdf_enrichment_read",
+    "pdf_export",
+    "pdf_generate",
+    "pdf_index",
+    "pdf_ocr",
+    "pdf_ocr_read",
+    "pdf_query",
+    "pdf_read",
+    "pdf_refresh",
+    "pdf_render",
+    "pdf_render_read",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

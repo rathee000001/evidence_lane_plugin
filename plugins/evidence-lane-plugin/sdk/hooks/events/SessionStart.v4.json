@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/SessionStart/handler.py",
+  "event": "SessionStart",
+  "event_contract": "hooks/events/SessionStart/event.v4.json",
+  "event_contract_sha256": "190db617b0e9914cd0d217e09db31370c8f8814fc08d659a0db9e69b3f23e7b0",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/SessionStart.v4.schema.json",
+  "input_schema_sha256": "543596dc2b3dad5a2fdc929da107c8dcb26f22670ef8667dbf7e786bf7104747",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

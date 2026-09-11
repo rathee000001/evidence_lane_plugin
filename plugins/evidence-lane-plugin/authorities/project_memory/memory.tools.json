@@ -1,330 +1,794 @@
 {
-  "schema": "evidence-lane.installed-authority-tools.v1",
-  "status": "PASS",
-  "authority_id": "project_memory",
-  "database": "memory.sqlite",
-  "query_order": [
-    "memory.mmd",
-    "memory.dot",
-    "memory.sqlite"
-  ],
-  "sqlite_query_mode": "READ_ONLY_IMMUTABLE_BOUNDED_FTS5_BM25",
-  "json_role": "BUILD_REFRESH_SCHEMA_AND_POINTER_TOOLING",
-  "runtime_binding": "runtime.py",
-  "builder_binding": "builder.py:refresh",
-  "reader_binding": "reader.py:validate",
-  "linked_public_actions": [
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "memory",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
     {
-      "name": "project_memory_query",
-      "schema_sha256": "F213CB98BBD6D89D9AE2A231940D2488129053280E90945F1455A90627D851F7",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-memory",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "project_memory_query"
-        },
-        "internal_sdk": {
-          "module_id": "project_memory",
-          "operation": "query",
-          "read_only": true
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
+      "name": "context_index_query",
+      "permission": "tools",
+      "mutates": false,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "context_index_query",
+        "profile": "memory",
+        "routes": [
           {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 4
+            "route_id": "context_index.pinecone",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Pinecone"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "pinecone.data-plane-rest",
+              "backend_version": "2025-10",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Pinecone"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.weaviate",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Weaviate"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "weaviate.rest-graphql",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Weaviate"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.milvus",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Milvus"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "milvus.rest",
+              "backend_version": "v2",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Milvus"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.opensearch",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.query",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenSearch"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "opensearch.rest",
+              "backend_version": "v2",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "OpenSearch"
+              ]
+            },
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "77b0f39c01fe31b909f525d80ffb0a1f09367df0ba6874c1a7a4188b55f7b3a9"
+      },
+      "verification_checks": [
+        "context_index_result_binding"
+      ]
+    },
+    {
+      "name": "context_index_sync",
+      "permission": "publish",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "context_index_sync",
+        "profile": "memory",
+        "routes": [
+          {
+            "route_id": "context_index.pinecone",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Pinecone"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "pinecone.data-plane-rest",
+              "backend_version": "2025-10",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Pinecone"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.weaviate",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Weaviate"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "weaviate.rest-graphql",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Weaviate"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.milvus",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Milvus"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "milvus.rest",
+              "backend_version": "v2",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Milvus"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "context_index.opensearch",
+            "adapter": "evidence_lane_plugin.context_index_routing:_register_remote_context_index_actions.<locals>.sync",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenSearch"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "opensearch.rest",
+              "backend_version": "v2",
+              "backend_runtime": "python",
+              "capability": "context_index",
+              "lane": "selected_by_action",
+              "role": "context_index_result",
+              "role_schema": {
+                "tool_id": "text",
+                "operation": "text",
+                "result": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "OpenSearch"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7e4f066ca005d1d48e5467a83caad9d5a068b7f606265f3801ddd4ef9cf8ae56"
+      },
+      "verification_checks": [
+        "context_index_result_binding"
+      ]
+    },
+    {
+      "name": "memory_checkpoint",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "memory_checkpoint",
+        "profile": "memory",
+        "routes": [
+          {
+            "route_id": "memory_checkpoint.engine",
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.checkpoint",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "c404f1300b32501bbfe6beb558efe4541c9d9a6a67ae5d56810fb5ca72878e98"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "memory_ingest",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "memory_ingest",
+        "profile": "memory",
+        "routes": [
+          {
+            "route_id": "memory_ingest.engine",
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.ingest",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7ca3a34e16f65051a08d8da7cdbd67fa85cc4b03efb80a6aa69bab0b17fd31c8"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "memory_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "memory_read",
+        "profile": "memory",
+        "routes": [
+          {
+            "route_id": "memory_read.engine",
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "482b2df25bd30134a6cb7080c2c3f1a106dda1f170d5d89f56f551f4a4f757f5"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "memory_rehydrate",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "memory_rehydrate",
+        "profile": "memory",
+        "routes": [
+          {
+            "route_id": "memory_rehydrate.engine",
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7db5a17a2a6091444bbf8450ac67a9be479e86779cadbbe38b12d4cf6ce51bb2"
+      },
+      "verification_checks": []
     },
     {
       "name": "project_memory_record_link",
-      "schema_sha256": "C5BF34EDAC337E5ED2F75D17CEEAFFE38EAC4CE30227B282172BCEDB621D6348",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi-memory",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "project_memory_record_link"
-        },
-        "internal_sdk": {
-          "module_id": "project_memory",
-          "operation": "record_link",
-          "read_only": false
-        },
-        "service_dispatch": "INTERNAL_SDK_REGISTRY",
-        "skill_workflows": [
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "memory",
+      "workflow": "memory",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_memory_record_link",
+        "profile": "memory",
+        "routes": [
           {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-link",
-            "order": 5
+            "route_id": "project_memory_record_link.engine",
+            "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.record_link",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
           }
         ],
-        "executable": true
-      }
-    },
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "13da279160386b197c81d191d49c4360a73a2c716f6331f4b1172fd3689143e6"
+      },
+      "verification_checks": []
+    }
+  ],
+  "views": [
     {
-      "name": "pv_query",
-      "schema_sha256": "FA9031968F1314AB9B1B42337E07B9A4624535CC73AE42A194120CB8A89EF7B2",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_query"
+      "view_id": "memory.links",
+      "lane_id": "memory",
+      "folder": "authorities/memory",
+      "version": 1,
+      "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
+      "consumer": "artifact_export",
+      "implementation_digest": "1250f7109a81e8947bda728648bdcfff537b3f251a6eac0f44d547b17146e422",
+      "files": {
+        "mmd": "memory.mmd",
+        "dot": "memory.dot",
+        "pointer": "memory-pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "memory",
+        "plan",
+        "learning",
+        "canon"
+      ],
+      "node_kinds": [
+        "memory_locator"
+      ],
+      "edge_kinds": [
+        "DERIVED_FROM",
+        "EVIDENCES",
+        "LEARNED_FROM",
+        "MAPS_TO",
+        "RELATED_TO",
+        "REVOKES",
+        "SUPERSEDES",
+        "SUPPRESSES"
+      ],
+      "schemas": [
+        {
+          "owner": "memory",
+          "version": 1,
+          "digest": "0d277f8548d70efecf566af4644273de352f812d261f815bc069d2d6007185e9"
         },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-current-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 8
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 3
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-current-authority-read",
-            "order": 3
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_status",
-      "schema_sha256": "2AE5D9FFC48C507272106A9FDC0AAF8EC55E91F6E729502A765C17204F7199EA",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_status"
+        {
+          "owner": "plan",
+          "version": 1,
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c"
         },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 6
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 1
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 1
-          }
-        ],
-        "executable": true
-      }
-    },
-    {
-      "name": "pv_task_backlog",
-      "schema_sha256": "C2746023576A61362CEE3340EF2BC090F6779067BEB16749F9AFDA15185AA6A9",
-      "route_contract": {
-        "status": "CURRENT_ROUTE",
-        "owner_skill": "evi",
-        "mcp": {
-          "server_identity": "evidence-lane",
-          "tool_name": "pv_task_backlog"
+        {
+          "owner": "plan",
+          "version": 2,
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543"
         },
-        "internal_sdk": null,
-        "service_dispatch": "PACKAGE_LOCAL_MCP_HANDLER",
-        "skill_workflows": [
-          {
-            "owner_skill": "evi",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-canon",
-            "workflow": "canon-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-instructions",
-            "workflow": "agents-and-host-memory-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-learning",
-            "workflow": "learning-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-memory",
-            "workflow": "project-memory-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-plan",
-            "workflow": "live-plan-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evi-state-travel",
-            "workflow": "post-entry-plan-authority-read",
-            "order": 7
-          },
-          {
-            "owner_skill": "evi-universe",
-            "workflow": "project-universe-authority-read",
-            "order": 2
-          },
-          {
-            "owner_skill": "evidence-lane-code-lifecycle",
-            "workflow": "live-root-authority-read",
-            "order": 2
-          }
-        ],
-        "executable": true
+        {
+          "owner": "plan",
+          "version": 3,
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79"
+        },
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        },
+        {
+          "owner": "canon",
+          "version": 1,
+          "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7"
+        },
+        {
+          "owner": "canon",
+          "version": 2,
+          "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb"
+        },
+        {
+          "owner": "canon",
+          "version": 3,
+          "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11"
+        },
+        {
+          "owner": "canon",
+          "version": 4,
+          "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da"
+        },
+        {
+          "owner": "canon",
+          "version": 5,
+          "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393"
+        },
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
       }
     }
   ],
-  "linked_skills": {
-    "skills/evi-memory/SKILL.md": "6617AD64BDA4ABF6E4FA5EB62EAA614D5C609DF1332101420F32233181E7DC09"
-  },
-  "canonical_source_hashes": {
-    "src/evidence_lane_plugin/project_memory.py": "72FE29489C48A1B5CBA282C5D3C0B18203F1619049ED17A8BD08A84F5E08F14C",
-    "src/evidence_lane_plugin/conversation_memory.py": "875D1CF54192647A75124A4AD43090AA37F52CA2CF68A124B9DD36316216B886",
-    "src/evidence_lane_plugin/authority_support.py": "4C831286A4A83AA97B497209424E9DCD699C9261B599C9B767FC38F1621BA06B"
-  },
-  "linked_subauthorities": [],
-  "llama_index_refresh_receipt": {
-    "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
-    "status": "PASS",
-    "sequence": 1,
-    "authority_id": "project_memory",
-    "source_count": 1,
-    "node_count": 1,
-    "indexed_table_count": 1,
-    "indexed_tables": [
-      "memory_schema_metadata"
-    ],
-    "llama_index_core_version": "0.14.23",
-    "node_parser": "SentenceSplitter(480,64)",
-    "sqlite_backend": "FTS5_BM25",
-    "sqlite_remains_authority": true,
-    "mmd_dot_remain_traversal_maps": true,
-    "prior_receipt_sha256": null,
-    "recorded_at": "2000-01-01T00:00:00Z",
-    "receipt_sha256": "26B734536048DEAC274CE7A372C282AF900BF0FD2ED1D56AF1465627CE994E80"
-  },
-  "graph_pipeline_receipt": {
-    "schema": "evidence-lane.semantic-graph-pipeline.v1",
-    "status": "PASS",
-    "graph": "project_memory_authority",
-    "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 150,
-    "edge_count": 158,
-    "group_count": 1,
-    "semantic_topology_sha256": "7CB1BFF3A46A9ACE517D2F3894CA02EAF6633952CC45E2533D54AA2E61CEF464",
-    "mmd_sha256": "A1BDC76FC029B157127768EE784599FD49A4329C12016AB5405776911FF8296A",
-    "dot_sha256": "B510506E1E5B74E91F3244BE44FA3EC8C3D094B9ABD7674BDD21ABCCC790CF72",
-    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
-    "langgraph_version": "1.2.11",
-    "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "9DDC5BD6217D50D522BEA8F2C80672214F3AA1623A433EC3CF3D6B9C87C32913",
-    "dot_exporter": "PYTHON_GRAPHVIZ",
-    "python_graphviz_version": "0.21",
-    "native_graphviz_dot_available": false,
-    "native_graphviz_hidden_runtime_available": false,
-    "native_graphviz_validation": null,
-    "graph_analysis": {
-      "status": "UNAVAILABLE",
-      "engine": "rustworkx",
-      "authority_replaced": false
-    },
-    "graph_analysis_sha256": "3D636A60ACC2AD485FA5CAD7A7E30356405343E4B9A7332418942C463586A676",
-    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
-    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 90,
-    "balanced_two_dimensional_projection": true,
-    "layout_constraints_change_semantic_topology": false,
-    "mmd_and_dot_are_sqlite_traversal_maps": true,
-    "sqlite_authority_replaced": false,
-    "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "04A96FE416A41BC52D2E652BD5E371E752871D920FDD2E1A26A989721BC55622"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/project_memory/workflow.v1.json",
-    "mmd": "authorities/project_memory/workflow.mmd",
-    "dot": "authorities/project_memory/workflow.dot",
-    "json_sha256": "B2F7AA90E2FF0CBAADD5E82ADADB04C79EA4541378117A0719664DC6DF938DBE",
-    "mmd_sha256": "28C35C674BA7EA363BC1EC2EDE8DC8FF58F698B38B1C700789217C27F5D930C3",
-    "dot_sha256": "D8C1495905CE8BA462CFF2FD7E0143BDD2D89A36C5549CD0DF5ED5B6490D15B1"
-  },
-  "receipt_sha256": "B7493BC6EB253C492A6CC0182AD591C16B17F7AC151DDF98C200C37F661BD169"
+  "dependency_installation_inferred": false,
+  "planned_actions": [
+    "context_index_query",
+    "context_index_sync"
+  ],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
 }

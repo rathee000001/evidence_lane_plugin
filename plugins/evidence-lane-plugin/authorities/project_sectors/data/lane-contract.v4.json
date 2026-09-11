@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "data",
+  "source_package_folder": "authorities/project_sectors/data",
+  "project_state_folder": "sectors/data",
+  "database": "sectors/data/data_sector_v001.sqlite",
+  "files": "sectors/data/files",
+  "schema_history": "sectors/data/schema-history",
+  "migrations": [
+    {
+      "owner": "data",
+      "version": 1,
+      "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239"
+    },
+    {
+      "owner": "dataselector",
+      "version": 1,
+      "digest": "c996a6d7c1a1c11e5f0d52e14adb4761f6a2130c206564a8c9ac349cdc9b1cf8"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "data",
+    "folder": "sectors/data",
+    "files_root": "sectors/data/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "data_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".csv",
+        ".tsv",
+        ".json",
+        ".jsonl",
+        ".parquet",
+        ".arrow",
+        ".feather"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "source_schema_columns_samples_and_transform_lineage"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "data.mmd",
+      "dot": "data.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "BE989BAD500F5A17D6888A08A3FE6E5AE8BED0A7B0AD5B6C6973C330B78A9FF2"
+  },
+  "actions": [
+    "data_current",
+    "data_export",
+    "data_generate",
+    "data_index",
+    "data_index_arrow",
+    "data_inspect_duckdb",
+    "data_inspect_pandas",
+    "data_inspect_polars",
+    "data_inspection_read",
+    "data_query",
+    "data_read",
+    "data_refresh",
+    "data_refresh_arrow",
+    "data_transform",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

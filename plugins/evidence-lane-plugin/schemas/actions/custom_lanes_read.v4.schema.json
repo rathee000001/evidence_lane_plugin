@@ -1,0 +1,163 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read current or exact historical Custom instance adapter contracts from Sources.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "contract_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Contract Sha256"
+      },
+      "lane_id": {
+        "anyOf": [
+          {
+            "pattern": "^custom__[a-z][a-z0-9_]{0,39}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Lane Id"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 65536,
+        "maximum": 262144,
+        "minimum": 2048,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      }
+    },
+    "title": "ReadRegistrations",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "custom_lanes_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "a21f91b1baa7d04bfa079afbe492f80d6f18184290dd3eb9341b98b07b3c7d3c",
+      "owner": "customlanes",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "5ffc46c76d14ec0abe71e99f73f7011e7191e3fcdae63163ae7edeb8db81031d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "custom_lanes_read",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.custom_lanes:register_custom_lane_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "custom_lanes_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

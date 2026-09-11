@@ -1,0 +1,86 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "github_code",
+  "source_package_folder": "authorities/project_sectors/github_code",
+  "project_state_folder": "sectors/github_code",
+  "database": "sectors/github_code/github_code_sector_v001.sqlite",
+  "files": "sectors/github_code/files",
+  "schema_history": "sectors/github_code/schema-history",
+  "migrations": [
+    {
+      "owner": "githubcode",
+      "version": 1,
+      "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc"
+    },
+    {
+      "owner": "githubcode",
+      "version": 2,
+      "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353"
+    },
+    {
+      "owner": "githubcode",
+      "version": 3,
+      "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8"
+    },
+    {
+      "owner": "githubcodeselector",
+      "version": 1,
+      "digest": "911142a7887acd4e0ab47c364f2984b6db9a7795ca985a0f189c90d8d118c2cc"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "github_code",
+    "folder": "sectors/github_code",
+    "files_root": "sectors/github_code/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "github_code_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "repository_commit_file_symbol_route_dependency_artifact"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "github_code.mmd",
+      "dot": "github_code.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact indexed repository and commit selection"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "775887863E941C5E595A76816FCFE5D24515B9DA5BCB8BCA1586A671FBB78630"
+  },
+  "actions": [
+    "code_current",
+    "code_impact",
+    "code_index_git",
+    "code_query",
+    "code_read",
+    "code_refresh_git",
+    "code_semantic_index",
+    "code_semantic_query",
+    "code_semantic_query_faiss",
+    "code_semantic_query_vec",
+    "fetch",
+    "pv_summary",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

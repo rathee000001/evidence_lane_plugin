@@ -54,6 +54,11 @@ def normalize_git_arm_mode(value: str | None) -> str:
     return mode
 
 
+def _exact_worktree_root(executable: str, root: Path) -> bool:
+    top = _run_git(executable, root, 'rev-parse', '--show-toplevel')
+    return top.returncode == 0 and bool(top.stdout.strip()) and Path(top.stdout.strip()).resolve() == root.resolve()
+
+
 def probe_git_arm(
     repository_root: str | Path,
     *,
@@ -108,6 +113,17 @@ def probe_git_arm(
 
     completed = _run_git(executable, root, "rev-parse", "--is-inside-work-tree")
     inside = completed.returncode == 0 and completed.stdout.strip() == "true"
+    # Git searches parent directories automatically. A selected content folder
+    # must not inherit its parent's repository identity or worktree status.
+    exact_root = _exact_worktree_root(executable, root) if inside else False
+    if inside and not exact_root:
+        if mode == 'REQUIRED':
+            raise EvidenceLaneError('GIT_ARM_EXACT_ROOT_REQUIRED',
+                'Git history requires the exact selected worktree root, not a content folder inside another repository.',
+                status='BLOCKED')
+        return {**base, 'status': 'PASS', 'state': 'PARENT_GIT_WORKTREE_NOT_ADMITTED',
+            'history_index_enabled': False, 'git_executable_available': True, 'repository_is_git': False,
+            'reason': 'The selected folder uses content indexing; its parent Git worktree was not selected.'}
     if not inside:
         if mode == "REQUIRED":
             raise EvidenceLaneError(

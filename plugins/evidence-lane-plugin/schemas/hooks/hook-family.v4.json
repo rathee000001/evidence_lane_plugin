@@ -1,0 +1,68 @@
+{
+  "admission_owner": "evidence_lane_plugin.hook_contract.prepare_hook",
+  "event_count": 12,
+  "events": [
+    {
+      "event": "SessionStart",
+      "path": "schemas/hooks/SessionStart.v4.schema.json",
+      "sha256": "543596dc2b3dad5a2fdc929da107c8dcb26f22670ef8667dbf7e786bf7104747"
+    },
+    {
+      "event": "SubagentStart",
+      "path": "schemas/hooks/SubagentStart.v4.schema.json",
+      "sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "path": "schemas/hooks/UserPromptSubmit.v4.schema.json",
+      "sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f"
+    },
+    {
+      "event": "PreToolUse",
+      "path": "schemas/hooks/PreToolUse.v4.schema.json",
+      "sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312"
+    },
+    {
+      "event": "PermissionRequest",
+      "path": "schemas/hooks/PermissionRequest.v4.schema.json",
+      "sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98"
+    },
+    {
+      "event": "PostToolUse",
+      "path": "schemas/hooks/PostToolUse.v4.schema.json",
+      "sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4"
+    },
+    {
+      "event": "PreCompact",
+      "path": "schemas/hooks/PreCompact.v4.schema.json",
+      "sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a"
+    },
+    {
+      "event": "PostCompact",
+      "path": "schemas/hooks/PostCompact.v4.schema.json",
+      "sha256": "3c3ffa019b10443f727e0ba9c22f06b50756a1861bff68dba8425612025b4a71"
+    },
+    {
+      "event": "Stop",
+      "path": "schemas/hooks/Stop.v4.schema.json",
+      "sha256": "e23b500827978d6d7786e61a94f60fa0d3b98b3eba607d6449dc73acf5d49b0c"
+    },
+    {
+      "event": "SubagentStop",
+      "path": "schemas/hooks/SubagentStop.v4.schema.json",
+      "sha256": "68084e83ffbd997c8ec31e41203aa281dae20696ca99f5bae41f2c0a2d9ea889"
+    },
+    {
+      "event": "Interrupt",
+      "path": "schemas/hooks/Interrupt.v4.schema.json",
+      "sha256": "c7c50752061c12ba877a6c63bb95b7af3f54df08d3f3d81025b3f83916a7dec8"
+    },
+    {
+      "event": "SessionEnd",
+      "path": "schemas/hooks/SessionEnd.v4.schema.json",
+      "sha256": "6983feb7225d2113f3981e38f3cdc6efbef1027d88c79562bcedfdc951dfd643"
+    }
+  ],
+  "native_installation_verified": false,
+  "schema": "evidence-lane.hook-schema-family.v4"
+}

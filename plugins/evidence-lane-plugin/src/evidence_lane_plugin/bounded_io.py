@@ -7,6 +7,7 @@ import os
 import stat
 import subprocess  # nosec B404 - argv-only bounded launcher below
 import threading
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -201,7 +202,7 @@ def run_bounded_process(
     *,
     cwd: str | Path,
     env: Mapping[str, str] | None = None,
-    timeout_seconds: int = 120,
+    timeout_seconds: float = 120,
     max_stdout_bytes: int = DEFAULT_MAX_STDOUT_BYTES,
     max_stderr_bytes: int = DEFAULT_MAX_STDERR_BYTES,
 ) -> BoundedProcessResult:
@@ -277,12 +278,115 @@ def run_bounded_process(
     )
 
 
+def run_owned_bounded_process(command, *, cwd, env=None, timeout_seconds=120,
+                              max_stdout_bytes=DEFAULT_MAX_STDOUT_BYTES,
+                              max_stderr_bytes=DEFAULT_MAX_STDERR_BYTES, check=None):
+    """Bound one tool and descendants; release argv only after Windows ownership.
+
+    Trusted adapters supply argv after their own authority checks. Git uses
+    fixed transport/provider contracts; CI uses an exact task-bound policy.
+    """
+    import ctypes
+    import json
+    import signal
+
+    from .errors import LaneError
+    from .process_ownership import (
+        ChildProcessGroup,
+        ExtendedLimits,
+        codec_python_executable,
+        kernel,
+    )
+    require(bool(command) and Path(command[0]).is_absolute() and timeout_seconds > 0
+        and max_stdout_bytes > 0 and max_stderr_bytes > 0 and (check is None or callable(check)),
+        'BOUNDED_PROCESS_CONTRACT_INVALID', 'Use an absolute tool and positive process bounds.')
+    if check is not None:
+        check()
+    body = json.dumps(list(command), ensure_ascii=True).encode()
+    require(len(body) <= 65536, 'BOUNDED_PROCESS_CONTRACT_INVALID', 'The bounded argv exceeds 64 KiB.')
+    group, process = ChildProcessGroup(), None
+    output, overflow, threads = {'stdout': bytearray(), 'stderr': bytearray()}, [], []
+    environment = {key: value for key, value in (env if env is not None else os.environ).items()
+                   if not key.upper().startswith('PYTHON')}
+    group.start()
+    try:
+        if os.name == 'nt':
+            limits = ExtendedLimits()
+            limits.basic.flags = 0x2000 | 0x8 | 0x200
+            limits.basic.active_process_limit = 32
+            limits.job_memory = 4 * 1024 * 1024 * 1024
+            if not kernel().SetInformationJobObject(group.handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
+                raise LaneError('PROCESS_GROUP_UNAVAILABLE', 'The tool process limits could not be applied.')
+        # A venv redirector can spawn the real interpreter before assignment.
+        # Launch the base interpreter directly so the pipe-waiting bootstrap
+        # itself owns the Job membership before any command can be released.
+        process = subprocess.Popen([str(codec_python_executable()), '-I', '-S', '-B',
+            str(Path(__file__).with_name('_bounded_process_child.py'))],
+            cwd=str(Path(cwd).resolve()), env=environment, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, close_fds=True,
+            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), start_new_session=os.name != 'nt')
+        if os.name == 'nt' and not kernel().AssignProcessToJobObject(group.handle, int(process._handle)):
+            raise LaneError('PROCESS_GROUP_UNAVAILABLE', 'The tool bootstrap could not join its lifetime group.')
+        def drain(name, limit):
+            stream = getattr(process, name)
+            try:
+                while block := stream.read(65536):
+                    if len(output[name]) + len(block) > limit:
+                        overflow.append(name)
+                        process.kill()
+                        return
+                    output[name].extend(block)
+            finally:
+                stream.close()
+        threads = [threading.Thread(target=drain, args=(name, limit), daemon=True)
+            for name, limit in [('stdout', max_stdout_bytes), ('stderr', max_stderr_bytes)]]
+        for thread in threads:
+            thread.start()
+        process.stdin.write(body)
+        process.stdin.close()
+        deadline = time.monotonic() + timeout_seconds
+        while True:
+            if check is not None:
+                check()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise LaneError('BOUNDED_PROCESS_TIMEOUT', 'The tool and its descendants exceeded the duration budget.')
+            try:
+                code = process.wait(timeout=remaining if check is None else min(remaining, 0.25))
+                break
+            except subprocess.TimeoutExpired:
+                if check is None:
+                    raise LaneError('BOUNDED_PROCESS_TIMEOUT', 'The tool and its descendants exceeded the duration budget.') from None
+        if check is not None:
+            check()
+    finally:
+        # Kill descendants before joining readers; a grandchild may hold a pipe.
+        group.close()
+        if process is not None:
+            if os.name != 'nt':
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+            for thread in threads:
+                thread.join(timeout=5)
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream and not stream.closed:
+                    stream.close()
+    if overflow or any(thread.is_alive() for thread in threads):
+        raise LaneError('BOUNDED_PROCESS_OUTPUT_EXCEEDED', 'The tool exceeded its output bounds.')
+    return BoundedProcessResult(code, bytes(output['stdout']), bytes(output['stderr']))
+
+
 def run_bounded_process_digest(
     command: Sequence[str],
     *,
     cwd: str | Path,
     env: Mapping[str, str] | None = None,
-    timeout_seconds: int = 120,
+    timeout_seconds: float = 120,
     max_stdout_bytes: int = DEFAULT_MAX_AGGREGATE_BYTES,
     max_stderr_bytes: int = DEFAULT_MAX_STDERR_BYTES,
 ) -> BoundedProcessDigestResult:

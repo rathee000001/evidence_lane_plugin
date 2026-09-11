@@ -1,0 +1,80 @@
+{
+  "$defs": {
+    "ClientHello": {
+      "additionalProperties": false,
+      "properties": {
+        "configured_profile": {
+          "default": "unknown",
+          "title": "Configured Profile",
+          "type": "string"
+        },
+        "peer_capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Peer Capabilities",
+          "type": "array"
+        },
+        "peer_name": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Name"
+        },
+        "peer_version": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Version"
+        },
+        "protocol": {
+          "default": "local_api",
+          "enum": [
+            "local_api",
+            "mcp_stdio"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "protocol_version": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Protocol Version"
+        }
+      },
+      "title": "ClientHello",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "hello": {
+      "$ref": "#/$defs/ClientHello"
+    }
+  },
+  "title": "DiscoverRequest",
+  "type": "object"
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "evidence-lane.flash-authority.v4",
+  "authority_id": "env",
+  "database": "env/env_sqlite.sqlite",
+  "runtime_access": "verified_exact_bytes_read_only",
+  "policy_source": "env/codex-environment-policy.v4.json",
+  "project_payloads_packaged": false
+}

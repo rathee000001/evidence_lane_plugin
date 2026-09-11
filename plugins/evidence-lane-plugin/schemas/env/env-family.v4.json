@@ -1,0 +1,29 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "env",
+  "members": [
+    {
+      "path": "env/SESSION_FLASH_MANIFEST.json",
+      "sha256": "b069ed5521808e90c711f93d5e716be60c91e79e953fe060ce28af6adc4d39de"
+    },
+    {
+      "path": "env/SOURCE_PACKET_AUDIT.json",
+      "sha256": "f66faecae73d6b6a9238e6d226b34f3e4173e82ef242f9cee46c9d057465e72e"
+    },
+    {
+      "path": "env/codex-environment-policy.v4.json",
+      "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+    },
+    {
+      "path": "src/evidence_lane_plugin/codex_action_plane.py",
+      "sha256": "ebffb1179b94a782fba8e6d9b275b13dd13f7bc4e94a8ddc2a07affec4c176a8"
+    },
+    {
+      "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
+      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+    }
+  ],
+  "purpose": "Locked environment policy and current executable bindings",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

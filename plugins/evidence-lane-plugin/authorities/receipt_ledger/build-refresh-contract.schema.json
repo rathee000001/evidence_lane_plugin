@@ -1,25 +1,970 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "receipt_ledger support refresh request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "project_root",
-    "authority_id"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AcceleratorConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "requested_profile": {
+          "default": "cpu",
+          "enum": [
+            "cpu",
+            "auto",
+            "nvidia",
+            "amd"
+          ],
+          "title": "Requested Profile",
+          "type": "string"
+        },
+        "enabled_vendor_plugins": {
+          "items": {
+            "enum": [
+              "nvidia",
+              "amd"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Enabled Vendor Plugins",
+          "type": "array"
+        },
+        "purpose": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "action_classes": {
+          "items": {
+            "enum": [
+              "RETRIEVAL",
+              "OCR_MEDIA",
+              "EVALUATION"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Action Classes",
+          "type": "array"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device Id"
+        },
+        "memory_budget_percent": {
+          "default": 80,
+          "maximum": 95,
+          "minimum": 1,
+          "title": "Memory Budget Percent",
+          "type": "integer"
+        },
+        "temperature_limit_c": {
+          "default": 83,
+          "maximum": 110,
+          "minimum": 30,
+          "title": "Temperature Limit C",
+          "type": "integer"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "purpose",
+        "action_classes",
+        "expires_at"
+      ],
+      "title": "AcceleratorConfig",
+      "type": "object"
     },
-    "project_root": {
-      "type": "string",
-      "minLength": 1
+    "AcceleratorConfigure": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/$defs/AcceleratorConfig"
+        },
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "config",
+        "expected_revision"
+      ],
+      "title": "AcceleratorConfigure",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "receipt_ledger"
+    "AuthorityRequest_accelerator_configure": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "accelerator_configure",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/AcceleratorConfigure"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_accelerator_configure",
+      "type": "object"
+    },
+    "AuthorityRequest_capture_bind": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "capture_bind",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CaptureBind"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_capture_bind",
+      "type": "object"
+    },
+    "AuthorityRequest_connector_configure": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "connector_configure",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ConnectorConfigure"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_connector_configure",
+      "type": "object"
+    },
+    "AuthorityRequest_connector_revoke": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "connector_revoke",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ConnectorRevoke"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_connector_revoke",
+      "type": "object"
+    },
+    "AuthorityRequest_session_boot": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_boot",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionBoot"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_boot",
+      "type": "object"
+    },
+    "AuthorityRequest_session_exit": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_exit",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionExit"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_exit",
+      "type": "object"
+    },
+    "AuthorityRequest_session_resume": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "session_resume",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionResume"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_session_resume",
+      "type": "object"
+    },
+    "AuthorityRequest_storage_connector_select": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "storage_connector_select",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/StorageSelect"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_storage_connector_select",
+      "type": "object"
+    },
+    "CaptureBind": {
+      "additionalProperties": false,
+      "properties": {
+        "reported_session_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "title": "Reported Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reported_session_id"
+      ],
+      "title": "CaptureBind",
+      "type": "object"
+    },
+    "ConnectorConfigure": {
+      "additionalProperties": false,
+      "properties": {
+        "registration": {
+          "$ref": "#/$defs/PluginRegistration"
+        },
+        "expected_version": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Version"
+        }
+      },
+      "required": [
+        "registration"
+      ],
+      "title": "ConnectorConfigure",
+      "type": "object"
+    },
+    "ConnectorRevoke": {
+      "additionalProperties": false,
+      "properties": {
+        "plugin_id": {
+          "pattern": "^[a-z][a-z0-9-]{2,63}$",
+          "title": "Plugin Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "expected_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plugin_id",
+        "expected_version",
+        "expected_digest"
+      ],
+      "title": "ConnectorRevoke",
+      "type": "object"
+    },
+    "PluginRegistration": {
+      "additionalProperties": false,
+      "properties": {
+        "plugin_id": {
+          "pattern": "^[a-z][a-z0-9-]{2,63}$",
+          "title": "Plugin Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "plugin_kind": {
+          "enum": [
+            "connector",
+            "toolchain"
+          ],
+          "title": "Plugin Kind",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "purpose": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "config_env_keys": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Config Env Keys",
+          "type": "array"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "allowed_lanes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Allowed Lanes",
+          "type": "array"
+        },
+        "allowed_actions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Allowed Actions",
+          "type": "array"
+        },
+        "write_roots": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Write Roots",
+          "type": "array"
+        },
+        "read_roots": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Read Roots",
+          "type": "array"
+        },
+        "resource_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Resource Ids",
+          "type": "array"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "string"
+        },
+        "role": {
+          "pattern": "^[a-z][a-z0-9_-]{2,63}$",
+          "title": "Role",
+          "type": "string"
+        },
+        "role_schema": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Role Schema",
+          "type": "object"
+        },
+        "host_profiles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Host Profiles",
+          "type": "array"
+        },
+        "backend_runtime": {
+          "enum": [
+            "python",
+            "java",
+            "kotlin",
+            "go",
+            "rust",
+            "cpp",
+            "external_mcp"
+          ],
+          "title": "Backend Runtime",
+          "type": "string"
+        },
+        "backend_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_.-]{2,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Backend Id"
+        },
+        "backend_version": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Backend Version"
+        }
+      },
+      "required": [
+        "plugin_id",
+        "name",
+        "plugin_kind",
+        "description",
+        "purpose",
+        "capabilities",
+        "allowed_lanes",
+        "allowed_actions",
+        "expires_at",
+        "role",
+        "role_schema",
+        "host_profiles",
+        "backend_runtime"
+      ],
+      "title": "PluginRegistration",
+      "type": "object"
+    },
+    "SessionBoot": {
+      "additionalProperties": false,
+      "properties": {
+        "reported_session_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "title": "Reported Session Id",
+          "type": "string"
+        },
+        "expected_root_pv_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Root Pv Digest",
+          "type": "string"
+        },
+        "require_native_attestation": {
+          "default": false,
+          "title": "Require Native Attestation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "reported_session_id",
+        "expected_root_pv_digest"
+      ],
+      "title": "SessionBoot",
+      "type": "object"
+    },
+    "SessionExit": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "expected_generation": {
+          "minimum": 1,
+          "title": "Expected Generation",
+          "type": "integer"
+        },
+        "expected_event_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Event Digest",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "expected_generation",
+        "expected_event_digest",
+        "reason"
+      ],
+      "title": "SessionExit",
+      "type": "object"
+    },
+    "SessionResume": {
+      "additionalProperties": false,
+      "properties": {
+        "reported_session_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "title": "Reported Session Id",
+          "type": "string"
+        },
+        "expected_root_pv_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Root Pv Digest",
+          "type": "string"
+        },
+        "require_native_attestation": {
+          "default": false,
+          "title": "Require Native Attestation",
+          "type": "boolean"
+        },
+        "session_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "expected_generation": {
+          "minimum": 1,
+          "title": "Expected Generation",
+          "type": "integer"
+        },
+        "expected_event_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Event Digest",
+          "type": "string"
+        },
+        "continuation_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuation Id"
+        }
+      },
+      "required": [
+        "reported_session_id",
+        "expected_root_pv_digest",
+        "session_id",
+        "expected_generation",
+        "expected_event_digest"
+      ],
+      "title": "SessionResume",
+      "type": "object"
+    },
+    "StorageSelect": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "AUTO",
+            "LOCAL_SQLITE",
+            "CONFIGURED_DURABLE_CONNECTOR"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "connector_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connector Id"
+        },
+        "expected_event_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Event Digest"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "confirmation": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Confirmation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "reason",
+        "confirmation"
+      ],
+      "title": "StorageSelect",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "34A54B7E8D14227BF9429A6B9C46AFC37B42F254E88096FBFCAE0011E6B696DB"
+  "discriminator": {
+    "mapping": {
+      "accelerator_configure": "#/$defs/AuthorityRequest_accelerator_configure",
+      "capture_bind": "#/$defs/AuthorityRequest_capture_bind",
+      "connector_configure": "#/$defs/AuthorityRequest_connector_configure",
+      "connector_revoke": "#/$defs/AuthorityRequest_connector_revoke",
+      "session_boot": "#/$defs/AuthorityRequest_session_boot",
+      "session_exit": "#/$defs/AuthorityRequest_session_exit",
+      "session_resume": "#/$defs/AuthorityRequest_session_resume",
+      "storage_connector_select": "#/$defs/AuthorityRequest_storage_connector_select"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_accelerator_configure"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_capture_bind"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_connector_configure"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_connector_revoke"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_boot"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_exit"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_session_resume"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_storage_connector_select"
+    }
+  ],
+  "title": "receipts typed SDK requests"
 }

@@ -1,45 +1,26 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "session_authority installed authority manifest",
   "type": "object",
   "required": [
     "schema",
-    "status",
-    "authority_id",
-    "database",
-    "database_sha256",
-    "members",
-    "live_project_bytes_in_template",
-    "authority_merged_with_sector_or_peer"
+    "owner_id",
+    "source_package_folder",
+    "modules",
+    "storage",
+    "separate_database",
+    "installed_execution_claimed",
+    "members"
   ],
   "properties": {
-    "schema": {
-      "const": "evidence-lane.installed-authority-surface.v1"
-    },
-    "status": {
-      "const": "PASS"
-    },
-    "authority_id": {
+    "owner_id": {
       "const": "session_authority"
     },
-    "database": {
-      "const": "session-authority.sqlite"
-    },
-    "database_sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "members": {
-      "type": "array",
-      "minItems": 1
-    },
-    "live_project_bytes_in_template": {
+    "separate_database": {
       "const": false
     },
-    "authority_merged_with_sector_or_peer": {
+    "installed_execution_claimed": {
       "const": false
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "2083AAACCEDAC63D055B9A1E968E7934FBE2093E2BADBA6714CF0BB38A8406AE"
+  "title": "session_authority current workflow package"
 }

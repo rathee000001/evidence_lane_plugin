@@ -1,0 +1,178 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Queue an exact visible change or stop; checkpoint an unstarted selected task, while admitted jobs keep their owning checkpoint route.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "affected_task_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 2000,
+        "title": "Affected Task Ids",
+        "type": "array"
+      },
+      "expected_revision": {
+        "minimum": 1,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "intent": {
+        "enum": [
+          "informational",
+          "semantic",
+          "stop"
+        ],
+        "title": "Intent",
+        "type": "string"
+      },
+      "rationale": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Rationale",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source_cursor": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Cursor",
+        "type": "string"
+      },
+      "source_event_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Source Event Id",
+        "type": "string"
+      },
+      "source_text": {
+        "anyOf": [
+          {
+            "maxLength": 65536,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Text"
+      }
+    },
+    "required": [
+      "source_event_id",
+      "source_cursor",
+      "expected_revision",
+      "intent",
+      "rationale"
+    ],
+    "title": "SteerIntent",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "steer_submit",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "checkpoint_object": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Checkpoint Object"
+      },
+      "duplicate": {
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "expected_revision": {
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "plan_changed": {
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      },
+      "plan_revision_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Revision Changed",
+        "type": "boolean"
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string"
+      },
+      "state": {
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "request_id",
+      "state",
+      "expected_revision",
+      "duplicate"
+    ],
+    "title": "SteerQueued",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "plan",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9f6058ef5c89e9242aa32d9ca36ab09c511abe31b858940530131f30387a4d1e",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "steer_submit",
+    "profile": "plan",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.steering:register_steer_actions.<locals>.submit",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "steer_submit.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "plan"
+}

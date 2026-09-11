@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/PermissionRequest/handler.py",
+  "event": "PermissionRequest",
+  "event_contract": "hooks/events/PermissionRequest/event.v4.json",
+  "event_contract_sha256": "9082079808661835939394c28c23360c39f6c92443612d9938bd1da3e73974ed",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/PermissionRequest.v4.schema.json",
+  "input_schema_sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

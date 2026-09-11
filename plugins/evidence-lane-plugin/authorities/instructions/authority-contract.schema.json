@@ -1,19 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "instructions authority contract",
-  "type": "object",
-  "required": [
-    "schema",
-    "status"
-  ],
-  "properties": {
-    "schema": {
-      "const": "evidence-lane.installed-instruction-arms-contract.v1"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "const": {
+    "schema": "evidence-lane.instruction-arms-contract.v4",
+    "agents_md_role": "scoped_instruction_authority",
+    "workspace_and_host_memory_role": "separate_non_authoritative_recall",
+    "project_memory_database_role": "separate_authority",
+    "automatic_host_memory_import": false,
+    "raw_chat_history_loaded": false,
+    "sqlite_authority_owned": false
   },
-  "additionalProperties": true,
-  "receipt_sha256": "0CC29E81480D48953850E5901B77D75446FD329FFC0F2B97CA7601700AC28D44"
+  "title": "Separate instruction and recall arms"
 }

@@ -1,0 +1,132 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Retrieve bounded current ENV/UOP policy from its own locked SQLite/FTS index.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "default": 8,
+        "maximum": 20,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "query": {
+        "maxLength": 240,
+        "minLength": 1,
+        "title": "Query",
+        "type": "string"
+      },
+      "role": {
+        "default": "env",
+        "enum": [
+          "env",
+          "uop"
+        ],
+        "title": "Role",
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "OperatingPolicyInspect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "env_uop_inspect",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "manifest_digest": {
+        "title": "Manifest Digest",
+        "type": "string"
+      },
+      "matches": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Matches",
+        "type": "array"
+      },
+      "project_payload_accessed": {
+        "const": false,
+        "default": false,
+        "title": "Project Payload Accessed",
+        "type": "boolean"
+      },
+      "query_mode": {
+        "const": "owning_sqlite_fts5_bm25",
+        "default": "owning_sqlite_fts5_bm25",
+        "title": "Query Mode",
+        "type": "string"
+      },
+      "role": {
+        "title": "Role",
+        "type": "string"
+      }
+    },
+    "required": [
+      "role",
+      "manifest_digest",
+      "matches"
+    ],
+    "title": "OperatingPolicyResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "SQLite_FTS5_BM25",
+    "rank_bm25"
+  ],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "169b156eb6ecf0d31262a547510d70a220a3becd6c5efce4269562c71a429eb9",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "env_uop_inspect",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.mode_governance:register_mode_actions.<locals>.inspect",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "env_uop_inspect.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "rank_bm25"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

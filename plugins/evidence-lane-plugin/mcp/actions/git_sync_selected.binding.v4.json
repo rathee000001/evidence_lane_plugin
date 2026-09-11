@@ -1,0 +1,320 @@
+{
+  "action": "git_sync_selected",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/git_sync_selected.action.v4.json",
+  "sdk_binding_sha256": "6c499223a804b86bd0b9f6c5dbd8a0290c64c2214ca9704a00b2b67accaa1392",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Select exact local branch authority without source changes, or fetch and apply one scoped clean fast-forward.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "authentication": {
+              "default": "none",
+              "enum": [
+                "none",
+                "host_git_credential_manager",
+                "host_openssh_agent"
+              ],
+              "title": "Authentication",
+              "type": "string"
+            },
+            "branch": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Branch",
+              "type": "string"
+            },
+            "expected_authority_digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Authority Digest"
+            },
+            "expected_before_commit": {
+              "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+              "title": "Expected Before Commit",
+              "type": "string"
+            },
+            "expected_commit": {
+              "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+              "title": "Expected Commit",
+              "type": "string"
+            },
+            "expected_remote_url": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Expected Remote Url",
+              "type": "string"
+            },
+            "mode": {
+              "enum": [
+                "select_local_authority",
+                "fast_forward"
+              ],
+              "title": "Mode",
+              "type": "string"
+            },
+            "remote": {
+              "default": "origin",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+              "title": "Remote",
+              "type": "string"
+            },
+            "replace_branch_authority": {
+              "default": false,
+              "title": "Replace Branch Authority",
+              "type": "boolean"
+            },
+            "source": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "branch",
+            "expected_before_commit",
+            "expected_commit",
+            "expected_remote_url",
+            "mode",
+            "expected_authority_digest"
+          ],
+          "title": "GitSyncSelection",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "git_sync_selected",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

@@ -11,7 +11,7 @@ from typing import Any
 from .errors import EvidenceLaneError, require
 from .git_adapter import run_git
 from .hashing import canonical_json_bytes, sha256_bytes
-from .store import ProjectStore
+from .storage import ProjectStore
 
 WEBSITE_PLAN_PROJECTION_SCHEMA = "evidence-lane.website-plan-projection.v1"
 WEBSITE_PLAN_PROJECTION_PATH = (
@@ -26,6 +26,38 @@ WEBSITE_PUBLIC_METADATA_PATH = (
     "evidence-lane-plugin.json"
 )
 PERSISTENT_UNTIL = "NEXT_GOVERNED_HIL_PRESENTED"
+
+
+def require_current_website_plan_for_push(store, commit, *, tick=None):
+    """Apply this repository's existing website marker to the v4 Plan definition.
+
+    Other projects do not acquire Evidence Lane's own website publication rules.
+    Mutable execution status is not pinned: prepare/execute necessarily advances
+    it. The immutable current Plan document and its revision are pinned instead.
+    """
+    from .errors import LaneError
+    from .git_adapter import workflow_git
+    from .plan_runtime import PlanStore, content_digest
+    marker = workflow_git(store.source_root,
+        ['cat-file', '-e', f'{commit}:{WEBSITE_DELTA_LEDGER_PATH}'], check=False, tick=tick)
+    if marker.returncode:
+        return {'status': 'not_applicable', 'reason': 'no_committed_evidence_lane_website_ledger'}
+    result = workflow_git(store.source_root,
+        ['show', f'{commit}:{WEBSITE_PLAN_PROJECTION_PATH}'], check=False, tick=tick)
+    with store.lane('plan').connection(read_only=True) as db:
+        head = PlanStore._head(db)
+        row = db.execute('SELECT document_digest FROM plan_revisions WHERE revision=?', (head['revision'],)).fetchone()
+        body = {'schema': 'evidence-lane.website-plan-binding.v4', 'project_id': store.project_id,
+                'plan_revision': head['revision'], 'document_digest': row['document_digest']}
+    expected = {**body, 'digest': content_digest(body)}
+    try:
+        observed = json.loads(result.stdout) if not result.returncode else None
+    except (ValueError, UnicodeError):
+        observed = None
+    if observed != expected:
+        raise LaneError('REMOTE_WEBSITE_PLAN_PROJECTION_STALE',
+            'The committed website Plan binding must match this project current Plan definition and revision.')
+    return {'status': 'verified', 'binding': expected}
 
 _PUBLIC_STATUS_BY_GOAL_STATUS = {
     "completed": "COMPLETED",
@@ -398,61 +430,6 @@ def require_website_plan_projection_for_push(
     repository: str | Path,
     commit: str,
 ) -> dict[str, Any]:
-    """Bind an Evidence Lane feature push to the current native Plan snapshot."""
-
-    marker = run_git(
-        repository,
-        ["cat-file", "-e", f"{commit}:{WEBSITE_DELTA_LEDGER_PATH}"],
-        check=False,
-    )
-    if marker.returncode != 0:
-        return {
-            "schema": "evidence-lane.remote-website-plan-gate.v1",
-            "status": "NOT_APPLICABLE",
-            "reason": "REPOSITORY_HAS_NO_EVIDENCE_LANE_WEBSITE_LEDGER",
-        }
-    committed = _git_show_json(
-        repository,
-        commit=commit,
-        path=WEBSITE_PLAN_PROJECTION_PATH,
-    )
-    require(
-        committed is not None,
-        "REMOTE_WEBSITE_PLAN_SNAPSHOT_MISSING",
-        "The exact commit has a Delta ledger but no sealed Plan snapshot.",
-        status="BLOCKED",
-        commit=commit,
-        required_path=WEBSITE_PLAN_PROJECTION_PATH,
-    )
-    assert committed is not None
-    validated = validate_website_plan_projection(committed)
-    live = build_website_plan_projection(store.backlog_status(project_id))
-    require(
-        validated == live,
-        "REMOTE_WEBSITE_PLAN_PROJECTION_STALE",
-        "The exact commit website Delta ledger does not match the current PLAN_LANE.",
-        status="STALE",
-        commit=commit,
-        committed_snapshot_sha256=validated["snapshot_sha256"],
-        live_snapshot_sha256=live["snapshot_sha256"],
-        committed_executable_projection_sha256=validated[
-            "executable_projection_sha256"
-        ],
-        live_executable_projection_sha256=live[
-            "executable_projection_sha256"
-        ],
-    )
-    return {
-        "schema": "evidence-lane.remote-website-plan-gate.v1",
-        "status": "PASS",
-        "canonical_authority": "PLAN_LANE",
-        "snapshot_path": WEBSITE_PLAN_PROJECTION_PATH,
-        "snapshot_sha256": live["snapshot_sha256"],
-        "executable_projection_sha256": live["executable_projection_sha256"],
-        "task_count": live["task_count"],
-        "row_start": live["row_start"],
-        "row_end": live["row_end"],
-        "active_row": live["active_row"],
-        "physically_final_hil_row": live["physically_final_hil_row"],
-        "persistent_until": live["persistent_until"],
-    }
+    """Reject the superseded backlog/HIL gate before accessing external state."""
+    raise EvidenceLaneError('LEGACY_WEBSITE_PLAN_GATE_RETIRED',
+        'Use the current project Plan binding through the registered remote Git operation.', status='BLOCKED')

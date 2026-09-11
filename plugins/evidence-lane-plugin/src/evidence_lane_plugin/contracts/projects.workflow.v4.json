@@ -1,0 +1,5188 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Create an explicitly selected federation in a separate coordinator project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "FederationCreate",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "bigger_universe_create",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "dc25084e7d5cd401ce9460e094456f5ef387a08c56d206cc79f9a9bef3352e59",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_create",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.create",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_create.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Issue an explicit expiring grant for one relation between two authorized member references.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lifetime_seconds": {
+            "default": 3600,
+            "maximum": 86400,
+            "minimum": 1,
+            "title": "Lifetime Seconds",
+            "type": "integer"
+          },
+          "relation": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Relation",
+            "type": "string"
+          },
+          "source_mini_brain_id": {
+            "pattern": "^mini_[0-9a-f]{64}$",
+            "title": "Source Mini Brain Id",
+            "type": "string"
+          },
+          "target_mini_brain_id": {
+            "pattern": "^mini_[0-9a-f]{64}$",
+            "title": "Target Mini Brain Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_mini_brain_id",
+          "target_mini_brain_id",
+          "relation"
+        ],
+        "title": "FederationGrant",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "bigger_universe_grant",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "4836cff1dbce73d2117e1a7fac5b71f5d53e0709fdd0a8decaefdf321fa8b76b",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_grant",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.grant",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_grant.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Append a hash-only cross-project edge under its exact active grant and current member read access.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 16,
+            "minProperties": 1,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "grant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Grant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant_id",
+          "evidence"
+        ],
+        "title": "FederationLink",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "bigger_universe_link",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "9295ae1f5411a7f42560d7b5597ebb5f8b188bdb519f4971fec92e588e5313b2",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_link",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.link",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_link.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read bounded historical federation hash references without opening member data.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "after_id": {
+            "default": "",
+            "maxLength": 80,
+            "pattern": "^[a-zA-Z0-9_-]*$",
+            "title": "After Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "target_project_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Project Id"
+          },
+          "view": {
+            "default": "members",
+            "enum": [
+              "members",
+              "mini_brains",
+              "links",
+              "grants"
+            ],
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "title": "FederationRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "bigger_universe_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "7f0264daf61dfa75f80ae9e34aecba97a2761f31f2c492795889eebae2807554",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_read",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Capture verified member lane hashes, reuse unchanged content and preserve historical heads.",
+      "inputSchema": {
+        "$defs": {
+          "UniverseInspect": {
+            "additionalProperties": false,
+            "properties": {
+              "max_bytes": {
+                "default": 67108864,
+                "maximum": 268435456,
+                "minimum": 1024,
+                "title": "Max Bytes",
+                "type": "integer"
+              },
+              "max_files": {
+                "default": 4096,
+                "maximum": 20000,
+                "minimum": 1,
+                "title": "Max Files",
+                "type": "integer"
+              },
+              "timeout_ms": {
+                "default": 10000,
+                "maximum": 30000,
+                "minimum": 100,
+                "title": "Timeout Ms",
+                "type": "integer"
+              },
+              "verify_files": {
+                "default": true,
+                "title": "Verify Files",
+                "type": "boolean"
+              }
+            },
+            "title": "UniverseInspect",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Snapshot Sha256",
+            "type": "string"
+          },
+          "expected_version": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "inspection": {
+            "$ref": "#/$defs/UniverseInspect"
+          },
+          "target_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Target Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_project_id",
+          "expected_snapshot_sha256"
+        ],
+        "title": "FederationRegister",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "bigger_universe_register",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b790c9fad6414c7260586b355d286f5b8fa151f71a85447d7a1aafb4e43a8c92",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_register",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.register",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_register.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Revoke a federation edge grant while retaining its grant and link history.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "grant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Grant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant_id"
+        ],
+        "title": "FederationRevoke",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "bigger_universe_revoke",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "8b6c33fc344cb3137ce2a5a9a064a4b957c2759e80c90495cb82c9d67c573ddf",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_revoke",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.revoke",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_revoke.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Verify bounded federation identities, historical heads and explicit grant links.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_records": {
+            "default": 1000,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Max Records",
+            "type": "integer"
+          }
+        },
+        "title": "FederationVerify",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "bigger_universe_verify",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "federation_id": {
+            "title": "Federation Id",
+            "type": "string"
+          },
+          "member_projects_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Member Projects Mutated",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_truth_merged": {
+            "const": false,
+            "default": false,
+            "title": "Project Truth Merged",
+            "type": "boolean"
+          },
+          "raw_cross_project_payload_copied": {
+            "const": false,
+            "default": false,
+            "title": "Raw Cross Project Payload Copied",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "writes_performed": {
+            "title": "Writes Performed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "federation_id",
+          "state",
+          "result",
+          "writes_performed"
+        ],
+        "title": "FederationResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "d93324ab0cd5c0357111632741974e0f9b5fcfada1a5dd695757ccb49b31373e",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "bigger_universe_verify",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "bigger_universe_verify.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "bigger-universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read explicit authorized projects in place with bounded attributed owner views.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {},
+          "OwnerQuery": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Action",
+                "type": "string"
+              },
+              "arguments": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Arguments",
+                "type": "object"
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "title": "OwnerQuery",
+            "type": "object"
+          },
+          "ProjectQuery": {
+            "additionalProperties": false,
+            "properties": {
+              "expected_plan_revision": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Expected Plan Revision"
+              },
+              "project_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Project Id",
+                "type": "string"
+              },
+              "queries": {
+                "items": {
+                  "$ref": "#/$defs/OwnerQuery"
+                },
+                "maxItems": 4,
+                "minItems": 1,
+                "title": "Queries",
+                "type": "array"
+              }
+            },
+            "required": [
+              "project_id",
+              "queries"
+            ],
+            "title": "ProjectQuery",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "projects": {
+            "items": {
+              "$ref": "#/$defs/ProjectQuery"
+            },
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Projects",
+            "type": "array"
+          },
+          "require_links": {
+            "default": false,
+            "title": "Require Links",
+            "type": "boolean"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "projects"
+        ],
+        "title": "CrossProjectQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "cross_project_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "databases_merged": {
+            "const": false,
+            "default": false,
+            "title": "Databases Merged",
+            "type": "boolean"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "projects": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Projects",
+            "type": "array"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "snapshot_scope": {
+            "const": "independent_project_reads_with_unchanged_plan_and_schema",
+            "default": "independent_project_reads_with_unchanged_plan_and_schema",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "source_client_id",
+          "projects",
+          "observed_at",
+          "elapsed_ms"
+        ],
+        "title": "CrossProjectPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "163da55d048e3d52a0495603be565b812855b18ab1f706c4c9053155d0e7294a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "cross_project_query",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search_cross_project",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "cross_project_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Discover canonical authority/sector definitions and their registered search, fetch and view contracts.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "include_schema": {
+            "default": false,
+            "title": "Include Schema",
+            "type": "boolean"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "authority",
+                  "sector"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Kind"
+          },
+          "lane_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Lane Ids",
+            "type": "array"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 1048576,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "title": "LaneCatalogRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_catalog",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "availability_basis": {
+            "const": "registered_contracts_only",
+            "default": "registered_contracts_only",
+            "title": "Availability Basis",
+            "type": "string"
+          },
+          "installed_readiness_verified": {
+            "const": false,
+            "default": false,
+            "title": "Installed Readiness Verified",
+            "type": "boolean"
+          },
+          "lane_count": {
+            "title": "Lane Count",
+            "type": "integer"
+          },
+          "lanes": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Lanes",
+            "type": "array"
+          },
+          "registry_digest": {
+            "title": "Registry Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lanes",
+          "lane_count",
+          "registry_digest"
+        ],
+        "title": "LaneCatalogPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": false,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "3e91b67cf47dd02470892857875e62e40b6f650da31e33add50df4744b96eab0",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_catalog",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.lane_catalog",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_catalog.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Fetch bounded immutable source bytes through the owning lane using an exact snapshot and path.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_offset": {
+            "default": 0,
+            "maximum": 33554432,
+            "minimum": 0,
+            "title": "Byte Offset",
+            "type": "integer"
+          },
+          "end_line": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Line"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_lines": {
+            "default": 400,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Max Lines",
+            "type": "integer"
+          },
+          "max_output_bytes": {
+            "default": 262144,
+            "maximum": 262144,
+            "minimum": 4096,
+            "title": "Max Output Bytes",
+            "type": "integer"
+          },
+          "path": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          },
+          "representation": {
+            "default": "primary",
+            "enum": [
+              "primary",
+              "original_source"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "start_line": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Line"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id",
+          "path"
+        ],
+        "title": "LaneFetchRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_fetch",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "enum": [
+              "lane_status",
+              "lane_fetch"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "source_currentness": {
+            "const": "not_rechecked",
+            "default": "not_rechecked",
+            "title": "Source Currentness",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "root_pv",
+          "result"
+        ],
+        "title": "LaneReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "44651834f71b0f15c61dd2aadac694ca31a332d9b5918b12a3cf752daedf8789",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_fetch",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.fetch_source",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_fetch.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Search one separate lane through its current registered owner and disclose snapshot coverage.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Candidate Limit",
+            "type": "integer"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "retrieval": {
+            "default": "fts5",
+            "enum": [
+              "fts5",
+              "bm25",
+              "tfidf",
+              "hybrid",
+              "rank_bm25"
+            ],
+            "title": "Retrieval",
+            "type": "string"
+          },
+          "snapshot_limit": {
+            "default": 4,
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Snapshot Limit",
+            "type": "integer"
+          },
+          "snapshot_offset": {
+            "default": 0,
+            "maximum": 127,
+            "minimum": 0,
+            "title": "Snapshot Offset",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query",
+          "lane_id"
+        ],
+        "title": "LaneSearchRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_search",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "arms": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Arms",
+            "type": "array"
+          },
+          "complete_within_selected_scope": {
+            "title": "Complete Within Selected Scope",
+            "type": "boolean"
+          },
+          "databases_merged": {
+            "const": false,
+            "default": false,
+            "title": "Databases Merged",
+            "type": "boolean"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "owner_calls": {
+            "title": "Owner Calls",
+            "type": "integer"
+          },
+          "plan_boundary": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Plan Boundary",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "ranking_scope": {
+            "const": "within_each_owner_snapshot_only",
+            "default": "within_each_owner_snapshot_only",
+            "title": "Ranking Scope",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "registered_lanes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Registered Lanes",
+            "type": "array"
+          },
+          "retrieval": {
+            "title": "Retrieval",
+            "type": "string"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "snapshot_scope": {
+            "const": "one_published_root_and_independent_owner_reads",
+            "default": "one_published_root_and_independent_owner_reads",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "source_currentness": {
+            "const": "not_rechecked",
+            "default": "not_rechecked",
+            "title": "Source Currentness",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "root_pv",
+          "plan_boundary",
+          "query",
+          "retrieval",
+          "arms",
+          "registered_lanes",
+          "complete_within_selected_scope",
+          "owner_calls",
+          "elapsed_ms",
+          "observed_at"
+        ],
+        "title": "SearchPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "db2ae67fc4d212183f69f0e8f58f5894473caa81bbec58637677dba045f85087",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "lane_search",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search",
+            "argument_suffixes": {},
+            "argument_values": {
+              "retrieval": [
+                "fts5",
+                "bm25",
+                "tfidf",
+                "hybrid"
+              ]
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_search.sqlite_lexical",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.search",
+            "argument_suffixes": {},
+            "argument_values": {
+              "retrieval": [
+                "rank_bm25"
+              ]
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_search.rank_bm25",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "rank_bm25"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Inspect one physical lane, its published database head, schema history and stored view freshness without refresh.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "include_views": {
+            "default": true,
+            "title": "Include Views",
+            "type": "boolean"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_views": {
+            "default": 8,
+            "maximum": 16,
+            "minimum": 1,
+            "title": "Max Views",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id"
+        ],
+        "title": "LaneStatusRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "lane_status",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "enum": [
+              "lane_status",
+              "lane_fetch"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "source_currentness": {
+            "const": "not_rechecked",
+            "default": "not_rechecked",
+            "title": "Source Currentness",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "root_pv",
+          "result"
+        ],
+        "title": "LaneReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "e4bdca94382aac4196141b12c8bb3004c2617c8b36fa022a79ae90a42d12d7e9",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "lane_status",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.lane_reader:LaneReader.lane_status",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "lane_status.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read this project's attributed links without opening or authorizing their targets.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "after_project_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After Project Id"
+          },
+          "include_unlinked": {
+            "default": false,
+            "title": "Include Unlinked",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "LinkedProjectsRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "linked_projects_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "last_project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Project Id"
+          },
+          "links": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "target_access_checked": {
+            "const": false,
+            "default": false,
+            "title": "Target Access Checked",
+            "type": "boolean"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "links",
+          "last_project_id",
+          "truncated"
+        ],
+        "title": "LinkedProjectsPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "9b0b11b319fb7a782e3756d962f9a4d5c359acc2177070eb151082c3ace027fd",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "linked_projects_read",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "linked_projects_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Link an explicitly selected project without granting access or copying its data.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "target_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Target Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_project_id",
+          "label"
+        ],
+        "title": "ProjectLink",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "project_link",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "access_granted": {
+            "const": false,
+            "default": false,
+            "title": "Access Granted",
+            "type": "boolean"
+          },
+          "binding_digest": {
+            "title": "Binding Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "linked",
+              "unlinked"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "target_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Target Mutated",
+            "type": "boolean"
+          },
+          "target_project_id": {
+            "title": "Target Project Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "target_project_id",
+          "version",
+          "state",
+          "binding_digest"
+        ],
+        "title": "ProjectLinkResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "da0f3dac342768e48f580f6767f3109a9e792ba0d518cd632fe6bb6e0457f6f2",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_link",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.link",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_link.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Remove the current project link while retaining its recorded history.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "target_project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Target Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_project_id",
+          "expected_version"
+        ],
+        "title": "ProjectUnlink",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "project_unlink",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "access_granted": {
+            "const": false,
+            "default": false,
+            "title": "Access Granted",
+            "type": "boolean"
+          },
+          "binding_digest": {
+            "title": "Binding Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "linked",
+              "unlinked"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "target_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Target Mutated",
+            "type": "boolean"
+          },
+          "target_project_id": {
+            "title": "Target Project Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "target_project_id",
+          "version",
+          "state",
+          "binding_digest"
+        ],
+        "title": "ProjectLinkResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d007d56a1c12268f06fc55566aaf9bc36ce1c02d0b33c34a99531ba2d225a68d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "project_unlink",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.unlink",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "project_unlink.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Compare exact published Root PV lane database heads without reading historical content.",
+      "inputSchema": {
+        "$defs": {
+          "RootReference": {
+            "additionalProperties": false,
+            "properties": {
+              "commit_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Commit Id"
+              },
+              "head_digest": {
+                "pattern": "^(?:[0-9a-f]{64})?$",
+                "title": "Head Digest",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 0,
+                "title": "Revision",
+                "type": "integer"
+              },
+              "singleton": {
+                "const": 1,
+                "default": 1,
+                "title": "Singleton",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "revision",
+              "head_digest",
+              "commit_id"
+            ],
+            "title": "RootReference",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "left_root": {
+            "$ref": "#/$defs/RootReference"
+          },
+          "max_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_commits": {
+            "default": 128,
+            "maximum": 2048,
+            "minimum": 1,
+            "title": "Max Commits",
+            "type": "integer"
+          },
+          "right_root": {
+            "$ref": "#/$defs/RootReference"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "left_root",
+          "right_root"
+        ],
+        "title": "Diff",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "pv_diff",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "66db82899224e22c85b343304cc738915d54ad6a3dae715cb009afc1462cb545",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "pv_diff",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "pv_diff.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read bounded, verified published Root PV references from current ancestry.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 1048576,
+            "maximum": 2097152,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_commits": {
+            "default": 128,
+            "maximum": 2048,
+            "minimum": 1,
+            "title": "Max Commits",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "title": "History",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "pv_history",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "03d3b1f1359f1337dd9c04a05399238f45ac1f2bfa7d154896646627d590e66d",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "pv_history",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "pv_history.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Search current registered lane owners with separate authority results, exact snapshots and explicit missing coverage.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Candidate Limit",
+            "type": "integer"
+          },
+          "lane_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Lane Ids",
+            "type": "array"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 4096,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "retrieval": {
+            "default": "fts5",
+            "enum": [
+              "fts5",
+              "bm25",
+              "tfidf",
+              "hybrid",
+              "rank_bm25"
+            ],
+            "title": "Retrieval",
+            "type": "string"
+          },
+          "snapshot_limit": {
+            "default": 4,
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Snapshot Limit",
+            "type": "integer"
+          },
+          "snapshot_offset": {
+            "default": 0,
+            "maximum": 127,
+            "minimum": 0,
+            "title": "Snapshot Offset",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "ProjectSearchRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "search",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "arms": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Arms",
+            "type": "array"
+          },
+          "complete_within_selected_scope": {
+            "title": "Complete Within Selected Scope",
+            "type": "boolean"
+          },
+          "databases_merged": {
+            "const": false,
+            "default": false,
+            "title": "Databases Merged",
+            "type": "boolean"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "owner_calls": {
+            "title": "Owner Calls",
+            "type": "integer"
+          },
+          "plan_boundary": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Plan Boundary",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "ranking_scope": {
+            "const": "within_each_owner_snapshot_only",
+            "default": "within_each_owner_snapshot_only",
+            "title": "Ranking Scope",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "registered_lanes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Registered Lanes",
+            "type": "array"
+          },
+          "retrieval": {
+            "title": "Retrieval",
+            "type": "string"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "snapshot_scope": {
+            "const": "one_published_root_and_independent_owner_reads",
+            "default": "one_published_root_and_independent_owner_reads",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "source_currentness": {
+            "const": "not_rechecked",
+            "default": "not_rechecked",
+            "title": "Source Currentness",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "root_pv",
+          "plan_boundary",
+          "query",
+          "retrieval",
+          "arms",
+          "registered_lanes",
+          "complete_within_selected_scope",
+          "owner_calls",
+          "elapsed_ms",
+          "observed_at"
+        ],
+        "title": "SearchPage",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "projects",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "a92f2dc7e3af73b1519485f7ad6092248ca80feb67f4e084706f11e4317085d4",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "search",
+        "profile": "projects",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.search",
+            "argument_suffixes": {},
+            "argument_values": {
+              "retrieval": [
+                "fts5",
+                "bm25",
+                "tfidf",
+                "hybrid"
+              ]
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "search.sqlite_lexical",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.search",
+            "argument_suffixes": {},
+            "argument_values": {
+              "retrieval": [
+                "rank_bm25"
+              ]
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "search.rank_bm25",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "rank_bm25"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "evi"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Verify coherent Root PV, initialized lane heads and bounded registered-file identities without refresh.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bytes": {
+            "default": 67108864,
+            "maximum": 268435456,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 4096,
+            "maximum": 20000,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          },
+          "verify_files": {
+            "default": true,
+            "title": "Verify Files",
+            "type": "boolean"
+          }
+        },
+        "title": "UniverseInspect",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "universe_inspect",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "files_verified": {
+            "title": "Files Verified",
+            "type": "boolean"
+          },
+          "lanes": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Lanes",
+            "type": "array"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_root_identity_sha256": {
+            "title": "Project Root Identity Sha256",
+            "type": "string"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "snapshot_scope": {
+            "const": "coherent_published_project",
+            "default": "coherent_published_project",
+            "title": "Snapshot Scope",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "project_root_identity_sha256",
+          "root_pv",
+          "lanes",
+          "snapshot_sha256",
+          "files_verified"
+        ],
+        "title": "UniverseSnapshot",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "f45a8c631289873c079be2c8ed187a4bd9ea18a10b0e7a7e398177fd51d9eee5",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "universe_inspect",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "universe_inspect.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Verify bounded project link history and current bindings without opening member projects.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_events": {
+            "default": 1000,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Max Events",
+            "type": "integer"
+          }
+        },
+        "title": "ProjectLinksVerify",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "universe_links_verify",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "event_head": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Head"
+          },
+          "events_verified": {
+            "title": "Events Verified",
+            "type": "integer"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "target_current_state_verified": {
+            "const": false,
+            "default": false,
+            "title": "Target Current State Verified",
+            "type": "boolean"
+          },
+          "targets_verified": {
+            "title": "Targets Verified",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "events_verified",
+          "targets_verified",
+          "event_head"
+        ],
+        "title": "ProjectLinksVerified",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "160c4945841d2ec447b59837fe9d6de0ae98a19297cf12851b4880c46f0fe48c",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "universe_links_verify",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.project_universe:register_project_link_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "universe_links_verify.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Read or literally filter bounded Root PV, lane, Plan, Source and project-link nodes; follow category cursors.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "edge_limit": {
+            "default": 200,
+            "maximum": 500,
+            "minimum": 0,
+            "title": "Edge Limit",
+            "type": "integer"
+          },
+          "include_links": {
+            "default": true,
+            "title": "Include Links",
+            "type": "boolean"
+          },
+          "include_sources": {
+            "default": true,
+            "title": "Include Sources",
+            "type": "boolean"
+          },
+          "include_tasks": {
+            "default": true,
+            "title": "Include Tasks",
+            "type": "boolean"
+          },
+          "linked_project_after": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Linked Project After"
+          },
+          "node_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "project",
+                  "root_pv",
+                  "lane",
+                  "plan_task",
+                  "source_reference",
+                  "linked_project"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Kind"
+          },
+          "node_limit": {
+            "default": 100,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Node Limit",
+            "type": "integer"
+          },
+          "query": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Query",
+            "type": "string"
+          },
+          "source_offset": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Source Offset",
+            "type": "integer"
+          },
+          "task_offset": {
+            "default": 0,
+            "maximum": 2000,
+            "minimum": 0,
+            "title": "Task Offset",
+            "type": "integer"
+          },
+          "topology_offset": {
+            "default": 0,
+            "maximum": 64,
+            "minimum": 0,
+            "title": "Topology Offset",
+            "type": "integer"
+          }
+        },
+        "title": "UniverseQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "universe_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "graph": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Graph",
+            "type": "object"
+          },
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "node_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Kind"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "query_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query Sha256"
+          },
+          "root_pv": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Root Pv",
+            "type": "object"
+          },
+          "source_offsets": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Source Offsets",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "root_pv",
+          "graph",
+          "source_offsets"
+        ],
+        "title": "UniverseGraph",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "universe",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "a9e43624555d8a6508ea0ebbae7ed9699aabc02d78a510f878919ce82848b516",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "universe_query",
+        "profile": "universe",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.universe_snapshot:register_universe_snapshot_actions.<locals>.<lambda>",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "universe_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "universe"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "contracts": {
+    "CrossProjectPage": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "databases_merged": {
+          "const": false,
+          "default": false,
+          "title": "Databases Merged",
+          "type": "boolean"
+        },
+        "elapsed_ms": {
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "projects": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Projects",
+          "type": "array"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "snapshot_scope": {
+          "const": "independent_project_reads_with_unchanged_plan_and_schema",
+          "default": "independent_project_reads_with_unchanged_plan_and_schema",
+          "title": "Snapshot Scope",
+          "type": "string"
+        },
+        "source_client_id": {
+          "title": "Source Client Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "source_client_id",
+        "projects",
+        "observed_at",
+        "elapsed_ms"
+      ],
+      "title": "CrossProjectPage",
+      "type": "object"
+    },
+    "CrossProjectQuery": {
+      "$defs": {
+        "JsonValue": {},
+        "OwnerQuery": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Action",
+              "type": "string"
+            },
+            "arguments": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Arguments",
+              "type": "object"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "title": "OwnerQuery",
+          "type": "object"
+        },
+        "ProjectQuery": {
+          "additionalProperties": false,
+          "properties": {
+            "expected_plan_revision": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Plan Revision"
+            },
+            "project_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Project Id",
+              "type": "string"
+            },
+            "queries": {
+              "items": {
+                "$ref": "#/$defs/OwnerQuery"
+              },
+              "maxItems": 4,
+              "minItems": 1,
+              "title": "Queries",
+              "type": "array"
+            }
+          },
+          "required": [
+            "project_id",
+            "queries"
+          ],
+          "title": "ProjectQuery",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "projects": {
+          "items": {
+            "$ref": "#/$defs/ProjectQuery"
+          },
+          "maxItems": 4,
+          "minItems": 2,
+          "title": "Projects",
+          "type": "array"
+        },
+        "require_links": {
+          "default": false,
+          "title": "Require Links",
+          "type": "boolean"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "projects"
+      ],
+      "title": "CrossProjectQuery",
+      "type": "object"
+    },
+    "Diff": {
+      "$defs": {
+        "RootReference": {
+          "additionalProperties": false,
+          "properties": {
+            "commit_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Commit Id"
+            },
+            "head_digest": {
+              "pattern": "^(?:[0-9a-f]{64})?$",
+              "title": "Head Digest",
+              "type": "string"
+            },
+            "revision": {
+              "minimum": 0,
+              "title": "Revision",
+              "type": "integer"
+            },
+            "singleton": {
+              "const": 1,
+              "default": 1,
+              "title": "Singleton",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "revision",
+            "head_digest",
+            "commit_id"
+          ],
+          "title": "RootReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "left_root": {
+          "$ref": "#/$defs/RootReference"
+        },
+        "max_bytes": {
+          "default": 1048576,
+          "maximum": 2097152,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_commits": {
+          "default": 128,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Commits",
+          "type": "integer"
+        },
+        "right_root": {
+          "$ref": "#/$defs/RootReference"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "left_root",
+        "right_root"
+      ],
+      "title": "Diff",
+      "type": "object"
+    },
+    "FederationCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "FederationCreate",
+      "type": "object"
+    },
+    "FederationGrant": {
+      "additionalProperties": false,
+      "properties": {
+        "lifetime_seconds": {
+          "default": 3600,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Lifetime Seconds",
+          "type": "integer"
+        },
+        "relation": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Relation",
+          "type": "string"
+        },
+        "source_mini_brain_id": {
+          "pattern": "^mini_[0-9a-f]{64}$",
+          "title": "Source Mini Brain Id",
+          "type": "string"
+        },
+        "target_mini_brain_id": {
+          "pattern": "^mini_[0-9a-f]{64}$",
+          "title": "Target Mini Brain Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_mini_brain_id",
+        "target_mini_brain_id",
+        "relation"
+      ],
+      "title": "FederationGrant",
+      "type": "object"
+    },
+    "FederationLink": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 16,
+          "minProperties": 1,
+          "title": "Evidence",
+          "type": "object"
+        },
+        "grant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Grant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grant_id",
+        "evidence"
+      ],
+      "title": "FederationLink",
+      "type": "object"
+    },
+    "FederationRead": {
+      "additionalProperties": false,
+      "properties": {
+        "after_id": {
+          "default": "",
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_-]*$",
+          "title": "After Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "target_project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Project Id"
+        },
+        "view": {
+          "default": "members",
+          "enum": [
+            "members",
+            "mini_brains",
+            "links",
+            "grants"
+          ],
+          "title": "View",
+          "type": "string"
+        }
+      },
+      "title": "FederationRead",
+      "type": "object"
+    },
+    "FederationRegister": {
+      "$defs": {
+        "UniverseInspect": {
+          "additionalProperties": false,
+          "properties": {
+            "max_bytes": {
+              "default": 67108864,
+              "maximum": 268435456,
+              "minimum": 1024,
+              "title": "Max Bytes",
+              "type": "integer"
+            },
+            "max_files": {
+              "default": 4096,
+              "maximum": 20000,
+              "minimum": 1,
+              "title": "Max Files",
+              "type": "integer"
+            },
+            "timeout_ms": {
+              "default": 10000,
+              "maximum": 30000,
+              "minimum": 100,
+              "title": "Timeout Ms",
+              "type": "integer"
+            },
+            "verify_files": {
+              "default": true,
+              "title": "Verify Files",
+              "type": "boolean"
+            }
+          },
+          "title": "UniverseInspect",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Snapshot Sha256",
+          "type": "string"
+        },
+        "expected_version": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "inspection": {
+          "$ref": "#/$defs/UniverseInspect"
+        },
+        "target_project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Target Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_project_id",
+        "expected_snapshot_sha256"
+      ],
+      "title": "FederationRegister",
+      "type": "object"
+    },
+    "FederationResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "member_projects_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Member Projects Mutated",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_truth_merged": {
+          "const": false,
+          "default": false,
+          "title": "Project Truth Merged",
+          "type": "boolean"
+        },
+        "raw_cross_project_payload_copied": {
+          "const": false,
+          "default": false,
+          "title": "Raw Cross Project Payload Copied",
+          "type": "boolean"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "writes_performed": {
+          "title": "Writes Performed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "federation_id",
+        "state",
+        "result",
+        "writes_performed"
+      ],
+      "title": "FederationResult",
+      "type": "object"
+    },
+    "FederationRevoke": {
+      "additionalProperties": false,
+      "properties": {
+        "grant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Grant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grant_id"
+      ],
+      "title": "FederationRevoke",
+      "type": "object"
+    },
+    "FederationVerify": {
+      "additionalProperties": false,
+      "properties": {
+        "max_records": {
+          "default": 1000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Records",
+          "type": "integer"
+        }
+      },
+      "title": "FederationVerify",
+      "type": "object"
+    },
+    "History": {
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "default": 1048576,
+          "maximum": 2097152,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_commits": {
+          "default": 128,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Commits",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "title": "History",
+      "type": "object"
+    },
+    "LaneCatalogPage": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "availability_basis": {
+          "const": "registered_contracts_only",
+          "default": "registered_contracts_only",
+          "title": "Availability Basis",
+          "type": "string"
+        },
+        "installed_readiness_verified": {
+          "const": false,
+          "default": false,
+          "title": "Installed Readiness Verified",
+          "type": "boolean"
+        },
+        "lane_count": {
+          "title": "Lane Count",
+          "type": "integer"
+        },
+        "lanes": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Lanes",
+          "type": "array"
+        },
+        "registry_digest": {
+          "title": "Registry Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lanes",
+        "lane_count",
+        "registry_digest"
+      ],
+      "title": "LaneCatalogPage",
+      "type": "object"
+    },
+    "LaneCatalogRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "include_schema": {
+          "default": false,
+          "title": "Include Schema",
+          "type": "boolean"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "authority",
+                "sector"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "lane_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Lane Ids",
+          "type": "array"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 1048576,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "LaneCatalogRequest",
+      "type": "object"
+    },
+    "LaneFetchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_offset": {
+          "default": 0,
+          "maximum": 33554432,
+          "minimum": 0,
+          "title": "Byte Offset",
+          "type": "integer"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_lines": {
+          "default": 400,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "default": 262144,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "representation": {
+          "default": "primary",
+          "enum": [
+            "primary",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id",
+        "path"
+      ],
+      "title": "LaneFetchRequest",
+      "type": "object"
+    },
+    "LaneReadResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "operation": {
+          "enum": [
+            "lane_status",
+            "lane_fetch"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        },
+        "root_pv": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "source_currentness": {
+          "const": "not_rechecked",
+          "default": "not_rechecked",
+          "title": "Source Currentness",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "lane_id",
+        "operation",
+        "root_pv",
+        "result"
+      ],
+      "title": "LaneReadResult",
+      "type": "object"
+    },
+    "LaneSearchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Candidate Limit",
+          "type": "integer"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "retrieval": {
+          "default": "fts5",
+          "enum": [
+            "fts5",
+            "bm25",
+            "tfidf",
+            "hybrid",
+            "rank_bm25"
+          ],
+          "title": "Retrieval",
+          "type": "string"
+        },
+        "snapshot_limit": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Snapshot Limit",
+          "type": "integer"
+        },
+        "snapshot_offset": {
+          "default": 0,
+          "maximum": 127,
+          "minimum": 0,
+          "title": "Snapshot Offset",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query",
+        "lane_id"
+      ],
+      "title": "LaneSearchRequest",
+      "type": "object"
+    },
+    "LaneStatusRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "include_views": {
+          "default": true,
+          "title": "Include Views",
+          "type": "boolean"
+        },
+        "lane_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_views": {
+          "default": 8,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Views",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "lane_id"
+      ],
+      "title": "LaneStatusRequest",
+      "type": "object"
+    },
+    "LinkedProjectsPage": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "last_project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Project Id"
+        },
+        "links": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "target_access_checked": {
+          "const": false,
+          "default": false,
+          "title": "Target Access Checked",
+          "type": "boolean"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "project_id",
+        "links",
+        "last_project_id",
+        "truncated"
+      ],
+      "title": "LinkedProjectsPage",
+      "type": "object"
+    },
+    "LinkedProjectsRead": {
+      "additionalProperties": false,
+      "properties": {
+        "after_project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After Project Id"
+        },
+        "include_unlinked": {
+          "default": false,
+          "title": "Include Unlinked",
+          "type": "boolean"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "LinkedProjectsRead",
+      "type": "object"
+    },
+    "ProjectLink": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "label": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Target Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_project_id",
+        "label"
+      ],
+      "title": "ProjectLink",
+      "type": "object"
+    },
+    "ProjectLinkResult": {
+      "additionalProperties": false,
+      "properties": {
+        "access_granted": {
+          "const": false,
+          "default": false,
+          "title": "Access Granted",
+          "type": "boolean"
+        },
+        "binding_digest": {
+          "title": "Binding Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "linked",
+            "unlinked"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "target_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Target Mutated",
+          "type": "boolean"
+        },
+        "target_project_id": {
+          "title": "Target Project Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "target_project_id",
+        "version",
+        "state",
+        "binding_digest"
+      ],
+      "title": "ProjectLinkResult",
+      "type": "object"
+    },
+    "ProjectLinksVerified": {
+      "additionalProperties": false,
+      "properties": {
+        "event_head": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Event Head"
+        },
+        "events_verified": {
+          "title": "Events Verified",
+          "type": "integer"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "target_current_state_verified": {
+          "const": false,
+          "default": false,
+          "title": "Target Current State Verified",
+          "type": "boolean"
+        },
+        "targets_verified": {
+          "title": "Targets Verified",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "events_verified",
+        "targets_verified",
+        "event_head"
+      ],
+      "title": "ProjectLinksVerified",
+      "type": "object"
+    },
+    "ProjectLinksVerify": {
+      "additionalProperties": false,
+      "properties": {
+        "max_events": {
+          "default": 1000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Events",
+          "type": "integer"
+        }
+      },
+      "title": "ProjectLinksVerify",
+      "type": "object"
+    },
+    "ProjectSearchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Candidate Limit",
+          "type": "integer"
+        },
+        "lane_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Lane Ids",
+          "type": "array"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 4096,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "retrieval": {
+          "default": "fts5",
+          "enum": [
+            "fts5",
+            "bm25",
+            "tfidf",
+            "hybrid",
+            "rank_bm25"
+          ],
+          "title": "Retrieval",
+          "type": "string"
+        },
+        "snapshot_limit": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Snapshot Limit",
+          "type": "integer"
+        },
+        "snapshot_offset": {
+          "default": 0,
+          "maximum": 127,
+          "minimum": 0,
+          "title": "Snapshot Offset",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "ProjectSearchRequest",
+      "type": "object"
+    },
+    "ProjectUnlink": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Target Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_project_id",
+        "expected_version"
+      ],
+      "title": "ProjectUnlink",
+      "type": "object"
+    },
+    "ReadResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "operation",
+        "result"
+      ],
+      "title": "ReadResult",
+      "type": "object"
+    },
+    "SearchPage": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arms": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Arms",
+          "type": "array"
+        },
+        "complete_within_selected_scope": {
+          "title": "Complete Within Selected Scope",
+          "type": "boolean"
+        },
+        "databases_merged": {
+          "const": false,
+          "default": false,
+          "title": "Databases Merged",
+          "type": "boolean"
+        },
+        "elapsed_ms": {
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "string"
+        },
+        "owner_calls": {
+          "title": "Owner Calls",
+          "type": "integer"
+        },
+        "plan_boundary": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Plan Boundary",
+          "type": "object"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "ranking_scope": {
+          "const": "within_each_owner_snapshot_only",
+          "default": "within_each_owner_snapshot_only",
+          "title": "Ranking Scope",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "registered_lanes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Registered Lanes",
+          "type": "array"
+        },
+        "retrieval": {
+          "title": "Retrieval",
+          "type": "string"
+        },
+        "root_pv": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "snapshot_scope": {
+          "const": "one_published_root_and_independent_owner_reads",
+          "default": "one_published_root_and_independent_owner_reads",
+          "title": "Snapshot Scope",
+          "type": "string"
+        },
+        "source_currentness": {
+          "const": "not_rechecked",
+          "default": "not_rechecked",
+          "title": "Source Currentness",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "root_pv",
+        "plan_boundary",
+        "query",
+        "retrieval",
+        "arms",
+        "registered_lanes",
+        "complete_within_selected_scope",
+        "owner_calls",
+        "elapsed_ms",
+        "observed_at"
+      ],
+      "title": "SearchPage",
+      "type": "object"
+    },
+    "UniverseGraph": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "graph": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Graph",
+          "type": "object"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "node_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node Kind"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "query_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Sha256"
+        },
+        "root_pv": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "source_offsets": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Source Offsets",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "root_pv",
+        "graph",
+        "source_offsets"
+      ],
+      "title": "UniverseGraph",
+      "type": "object"
+    },
+    "UniverseInspect": {
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "default": 67108864,
+          "maximum": 268435456,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 4096,
+          "maximum": 20000,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "verify_files": {
+          "default": true,
+          "title": "Verify Files",
+          "type": "boolean"
+        }
+      },
+      "title": "UniverseInspect",
+      "type": "object"
+    },
+    "UniverseQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "edge_limit": {
+          "default": 200,
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Edge Limit",
+          "type": "integer"
+        },
+        "include_links": {
+          "default": true,
+          "title": "Include Links",
+          "type": "boolean"
+        },
+        "include_sources": {
+          "default": true,
+          "title": "Include Sources",
+          "type": "boolean"
+        },
+        "include_tasks": {
+          "default": true,
+          "title": "Include Tasks",
+          "type": "boolean"
+        },
+        "linked_project_after": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Linked Project After"
+        },
+        "node_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "project",
+                "root_pv",
+                "lane",
+                "plan_task",
+                "source_reference",
+                "linked_project"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node Kind"
+        },
+        "node_limit": {
+          "default": 100,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Node Limit",
+          "type": "integer"
+        },
+        "query": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Query",
+          "type": "string"
+        },
+        "source_offset": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Source Offset",
+          "type": "integer"
+        },
+        "task_offset": {
+          "default": 0,
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Task Offset",
+          "type": "integer"
+        },
+        "topology_offset": {
+          "default": 0,
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Topology Offset",
+          "type": "integer"
+        }
+      },
+      "title": "UniverseQuery",
+      "type": "object"
+    },
+    "UniverseSnapshot": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "files_verified": {
+          "title": "Files Verified",
+          "type": "boolean"
+        },
+        "lanes": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Lanes",
+          "type": "array"
+        },
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_root_identity_sha256": {
+          "title": "Project Root Identity Sha256",
+          "type": "string"
+        },
+        "root_pv": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Root Pv",
+          "type": "object"
+        },
+        "snapshot_scope": {
+          "const": "coherent_published_project",
+          "default": "coherent_published_project",
+          "title": "Snapshot Scope",
+          "type": "string"
+        },
+        "snapshot_sha256": {
+          "title": "Snapshot Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "project_root_identity_sha256",
+        "root_pv",
+        "lanes",
+        "snapshot_sha256",
+        "files_verified"
+      ],
+      "title": "UniverseSnapshot",
+      "type": "object"
+    }
+  },
+  "eligible_owner_reads": [
+    "artifacts_current",
+    "artifacts_query",
+    "artifacts_read",
+    "canon_graph",
+    "canon_inbox",
+    "canon_inspect",
+    "canon_read",
+    "code_current",
+    "code_impact",
+    "code_query",
+    "code_read",
+    "custom_current",
+    "custom_lanes_read",
+    "custom_query",
+    "custom_read",
+    "data_current",
+    "data_inspection_read",
+    "data_query",
+    "data_read",
+    "document_current",
+    "document_enrichment_read",
+    "document_query",
+    "document_read",
+    "document_render_read",
+    "fetch",
+    "lane_fetch",
+    "lane_status",
+    "learning_read",
+    "lineage_read",
+    "media_current",
+    "media_extraction_read",
+    "media_ocr_read",
+    "media_query",
+    "media_read",
+    "memory_read",
+    "pdf_current",
+    "pdf_enrichment_read",
+    "pdf_ocr_read",
+    "pdf_query",
+    "pdf_read",
+    "pdf_render_read",
+    "plan_read",
+    "powerbi_current",
+    "powerbi_query",
+    "powerbi_read",
+    "powerbi_schema",
+    "presentation_current",
+    "presentation_enrichment_read",
+    "presentation_query",
+    "presentation_read",
+    "presentation_render_read",
+    "project_status",
+    "pv_diff",
+    "pv_history",
+    "pv_summary",
+    "research_current",
+    "research_query",
+    "research_read",
+    "source_materialization_read",
+    "source_preparation_read",
+    "source_read",
+    "source_routes_read",
+    "source_snapshot_state",
+    "spreadsheet_current",
+    "spreadsheet_inspection_read",
+    "spreadsheet_query",
+    "spreadsheet_read",
+    "spreadsheet_render_read",
+    "tableau_current",
+    "tableau_query",
+    "tableau_read",
+    "validation_policy_read"
+  ],
+  "format_version": 4,
+  "generated_from": "typed Python registry contracts",
+  "installed_execution_claimed": false,
+  "owner": "projects"
+}

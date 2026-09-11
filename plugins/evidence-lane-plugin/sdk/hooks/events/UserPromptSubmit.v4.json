@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
+  "event": "UserPromptSubmit",
+  "event_contract": "hooks/events/UserPromptSubmit/event.v4.json",
+  "event_contract_sha256": "035297bc314c5b371bca316a35a978f4391536b283761c24bcd5753c6d88b86f",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/UserPromptSubmit.v4.schema.json",
+  "input_schema_sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

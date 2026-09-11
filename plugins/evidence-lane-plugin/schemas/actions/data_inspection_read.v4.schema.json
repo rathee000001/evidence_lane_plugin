@@ -1,0 +1,121 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read an exact library inspection and its source binding.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "derivative_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Derivative Id",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "data",
+        "default": "data",
+        "title": "Lane Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "derivative_id"
+    ],
+    "title": "DataInspectionRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "data_inspection_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "data_excel",
+          "data"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "TabularResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "data",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "d936679fb794e612c2d4f9923c37a91750d9eb494c2c6f6c7acefc5f4846f239",
+      "owner": "data",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "3a328cf9c63c4907e7ac8dbab931501c7623fbcb65ace459de510cf9bf3b2fbe",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "data_inspection_read",
+    "profile": "data",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tabular_inspection:register_inspections.<locals>.reader",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "data_inspection_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

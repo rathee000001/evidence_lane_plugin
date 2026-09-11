@@ -1,0 +1,110 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read verified prompt entry indices and separate classifications for this exact client/project.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "after_index": {
+        "default": 0,
+        "minimum": 0,
+        "title": "After Index",
+        "type": "integer"
+      },
+      "limit": {
+        "default": 20,
+        "maximum": 50,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "reported_session_id": {
+        "anyOf": [
+          {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reported Session Id"
+      }
+    },
+    "title": "PromptRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "prompt_index_status",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "index": {
+        "additionalProperties": true,
+        "title": "Index",
+        "type": "object"
+      },
+      "plan_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "index"
+    ],
+    "title": "PromptStatus",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "chat_lineage",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "fcfb3642fdd4ab461aa72e1453c306bd8f94ea0747c3d37f8b8efe2eed958da6",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "prompt_index_status",
+    "profile": "chat_lineage",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "prompt_index_status.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

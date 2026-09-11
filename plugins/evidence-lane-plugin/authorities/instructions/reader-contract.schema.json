@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "InstructionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "cwd_relative": {
+          "default": ".",
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Cwd Relative",
+          "type": "string"
+        },
+        "include_global": {
+          "default": false,
+          "title": "Include Global",
+          "type": "boolean"
+        },
+        "include_workspace_recall": {
+          "default": true,
+          "title": "Include Workspace Recall",
+          "type": "boolean"
+        },
+        "include_host_recall": {
+          "default": false,
+          "title": "Include Host Recall",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "default": 32768,
+          "maximum": 262144,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "InstructionRequest",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "const": 4,
+      "default": 4,
+      "title": "Protocol Version",
+      "type": "integer"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "action": {
+      "const": "instructions_inspect",
+      "title": "Action",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    },
+    "arguments": {
+      "$ref": "#/$defs/InstructionRequest"
+    }
+  },
+  "required": [
+    "action",
+    "project_id",
+    "arguments"
+  ],
+  "title": "instructions typed SDK requests",
+  "type": "object"
+}

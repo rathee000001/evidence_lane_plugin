@@ -1,0 +1,225 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Administratively offer exact participant reassignment after client-session loss; destination acceptance is still required.",
+  "inputSchema": {
+    "$defs": {
+      "ContinuationOffer": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "destination_participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Destination Participant Id",
+            "type": "string"
+          },
+          "expires_in_seconds": {
+            "default": 3600,
+            "maximum": 86400,
+            "minimum": 30,
+            "title": "Expires In Seconds",
+            "type": "integer"
+          },
+          "memory_checkpoint": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Checkpoint"
+          },
+          "participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "require_native_attestation": {
+            "default": false,
+            "title": "Require Native Attestation",
+            "type": "boolean"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "destination_participant_id",
+          "plan_revision",
+          "task_id",
+          "contract_digest"
+        ],
+        "title": "ContinuationOffer",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_destination_participant_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Destination Participant Digest",
+        "type": "string"
+      },
+      "expected_source_participant_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Source Participant Digest",
+        "type": "string"
+      },
+      "offer": {
+        "$ref": "#/$defs/ContinuationOffer"
+      },
+      "reason": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "offer",
+      "expected_source_participant_digest",
+      "expected_destination_participant_digest",
+      "reason"
+    ],
+    "title": "ContinuationRecoveryOffer",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "continuation_recovery_offer",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "canon_checkpoint_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Canon Checkpoint Digest"
+      },
+      "continuation_digest": {
+        "title": "Continuation Digest",
+        "type": "string"
+      },
+      "continuation_id": {
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "destination_client_id": {
+        "title": "Destination Client Id",
+        "type": "string"
+      },
+      "expires_at": {
+        "title": "Expires At",
+        "type": "string"
+      },
+      "host_task_created": {
+        "default": false,
+        "title": "Host Task Created",
+        "type": "boolean"
+      },
+      "identity_scope": {
+        "default": "authenticated_engine_clients",
+        "title": "Identity Scope",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "source_client_id": {
+        "title": "Source Client Id",
+        "type": "string"
+      },
+      "state": {
+        "default": "offered",
+        "title": "State",
+        "type": "string"
+      }
+    },
+    "required": [
+      "continuation_id",
+      "continuation_digest",
+      "source_client_id",
+      "destination_client_id",
+      "expires_at"
+    ],
+    "title": "ContinuationOffered",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "4d0d6f17f9eb17ff130b10bd1c80abe13241a19f88a424c302fa47c7392368ab",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "continuation_recovery_offer",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.recover",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "continuation_recovery_offer.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

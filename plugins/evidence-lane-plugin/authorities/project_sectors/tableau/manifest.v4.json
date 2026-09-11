@@ -1,0 +1,2014 @@
+{
+  "schema": "evidence-lane.sector-package.v4",
+  "lane_id": "tableau",
+  "folder": "sectors/tableau",
+  "source_package_folder": "authorities/project_sectors/tableau",
+  "folder_role": "external_project_state",
+  "database": "sectors/tableau/tableau_sector_v001.sqlite",
+  "files": "sectors/tableau/files",
+  "schema_history": "sectors/tableau/schema-history",
+  "runtime_module": "evidence_lane_plugin.tableau_profile",
+  "parser_modules": [
+    "evidence_lane_plugin.tableau_parsers",
+    "evidence_lane_plugin.tableau_workers",
+    "evidence_lane_plugin.tableau_hyper",
+    "evidence_lane_plugin.tableau_hyper_child",
+    "evidence_lane_plugin.tableau_authoring"
+  ],
+  "retrieval_module": "evidence_lane_plugin.tableau_profile",
+  "migrations": [
+    {
+      "owner": "tableau",
+      "version": 1,
+      "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+    },
+    {
+      "owner": "tableauselector",
+      "version": 1,
+      "digest": "a338dad665e8d48856eeda08c03b06c5c648071723f3f3ce74fa97fa0a6cc40f"
+    }
+  ],
+  "actions": [
+    {
+      "name": "source_snapshot_retire",
+      "description": "Retire an exact active local-source selector after verifying every file is absent or has an explicit current replacement; preserve historical bytes.",
+      "inputSchema": {
+        "$defs": {
+          "SnapshotSelection": {
+            "additionalProperties": false,
+            "properties": {
+              "lane_id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "snapshot_id": {
+                "pattern": "^[a-f0-9]{64}$",
+                "title": "Snapshot Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "lane_id",
+              "snapshot_id"
+            ],
+            "title": "SnapshotSelection",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/SnapshotSelection"
+            },
+            "maxItems": 128,
+            "title": "Replacements",
+            "type": "array"
+          },
+          "replacement_tasks": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Replacement Tasks",
+            "type": "array"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "max_files": {
+            "default": 512,
+            "maximum": 4096,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 33554432,
+            "maximum": 536870912,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotRetire",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "worker_operations": [
+        "code_git_checkpoint"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "description": "Inspect an owning local-source snapshot, retained lineage head and retirement without refreshing source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lane_id",
+          "snapshot_id"
+        ],
+        "title": "SnapshotSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "sources",
+            "default": "sources",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          },
+          "source_bytes_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Mutated",
+            "type": "boolean"
+          },
+          "metadata_provenance": {
+            "const": "source_measurements_and_attributed_assertions",
+            "default": "source_measurements_and_attributed_assertions",
+            "title": "Metadata Provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "SourceOperationResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "sources",
+      "workflow": "refresh",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_current",
+      "description": "Read current Tableau identities without refreshing sources.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "TableauSelection",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "tableau",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_current",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_current.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "c9222d546a67960284644518ed69f5af12655d1fd3020ded5a4d32036c4953b6"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ]
+    },
+    {
+      "name": "tableau_edit",
+      "description": "Publish a new native Hyper extract or an exact selected XML edit as immutable lane-owned bytes.",
+      "inputSchema": {
+        "$defs": {
+          "TableauXmlEdit": {
+            "additionalProperties": false,
+            "properties": {
+              "part": {
+                "maxLength": 1000,
+                "minLength": 1,
+                "title": "Part",
+                "type": "string"
+              },
+              "item_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Item Id",
+                "type": "string"
+              },
+              "attribute": {
+                "enum": [
+                  "caption",
+                  "formula"
+                ],
+                "title": "Attribute",
+                "type": "string"
+              },
+              "expected_value": {
+                "anyOf": [
+                  {
+                    "maxLength": 32768,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Expected Value"
+              },
+              "value": {
+                "maxLength": 32768,
+                "title": "Value",
+                "type": "string"
+              }
+            },
+            "required": [
+              "part",
+              "item_id",
+              "attribute",
+              "value"
+            ],
+            "title": "TableauXmlEdit",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "replacements": {
+            "items": {
+              "$ref": "#/$defs/TableauXmlEdit"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Replacements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "expected_sha256",
+          "replacements"
+        ],
+        "title": "TableauEdit",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "tableau",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_edit",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_edit.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:edit_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_edit"
+        ],
+        "installation_implied": false,
+        "contract_digest": "071a9e1a78dff9a8ba9daa594c148568f8dda116c871c42b03e6a8ec73782b0e"
+      },
+      "worker_operations": [
+        "tableau_edit"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tableau_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_export",
+      "description": "Export an exact Tableau version with a journaled effect and destination hash binding.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Sha256"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "TableauExport",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "tableau",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_export",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_export.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:export_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tableau_parse_content"
+            ],
+            "view_refresh": {
+              "view_id": "tableau.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          },
+          {
+            "route_id": "tableau_export.view",
+            "adapter": "evidence_lane_plugin.tableau_profile:export_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.export_route.<locals>.applicable",
+            "worker_operations": [
+              "tableau_parse_content",
+              "render_lane_view"
+            ],
+            "view_refresh": {
+              "view_id": "tableau.structure",
+              "selection": "existing_consumer_exact_snapshot",
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "native_dot": {
+                "tool_ids": [
+                  "Graphviz_dot"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ]
+              }
+            }
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "tableau_parse_content",
+          "render_lane_view"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bf90c8b363e4bf8856ed94b3e7ad63def2a7cd87aeb6638cfa98ef87c4173d37"
+      },
+      "worker_operations": [
+        "tableau_parse_content",
+        "render_lane_view"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tableau_export_hash_verified"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_generate",
+      "description": "Publish a new native Hyper extract or an exact selected XML edit as immutable lane-owned bytes.",
+      "inputSchema": {
+        "$defs": {
+          "HyperColumn": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Name",
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "text",
+                  "big_int",
+                  "double",
+                  "bool",
+                  "date",
+                  "timestamp",
+                  "numeric"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "nullable": {
+                "default": true,
+                "title": "Nullable",
+                "type": "boolean"
+              },
+              "precision": {
+                "default": 18,
+                "maximum": 38,
+                "minimum": 1,
+                "title": "Precision",
+                "type": "integer"
+              },
+              "scale": {
+                "default": 4,
+                "maximum": 38,
+                "minimum": 0,
+                "title": "Scale",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "title": "HyperColumn",
+            "type": "object"
+          },
+          "HyperTable": {
+            "additionalProperties": false,
+            "properties": {
+              "schema_name": {
+                "default": "Extract",
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Schema Name",
+                "type": "string"
+              },
+              "name": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Name",
+                "type": "string"
+              },
+              "columns": {
+                "items": {
+                  "$ref": "#/$defs/HyperColumn"
+                },
+                "maxItems": 128,
+                "minItems": 1,
+                "title": "Columns",
+                "type": "array"
+              },
+              "rows": {
+                "items": {
+                  "items": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "array"
+                },
+                "maxItems": 1000,
+                "title": "Rows",
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "columns"
+            ],
+            "title": "HyperTable",
+            "type": "object"
+          },
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "logical_name": {
+            "maxLength": 180,
+            "pattern": "^[^/\\\\:]+\\.hyper$",
+            "title": "Logical Name",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/$defs/HyperTable"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Tables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "logical_name",
+          "tables"
+        ],
+        "title": "TableauGenerate",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "tableau",
+      "workflow": "build",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_generate",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_generate.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:generate_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_generate"
+        ],
+        "installation_implied": false,
+        "contract_digest": "c467a1a23caf7c3901f8d3fb6e5d07b95b4334e5de0e627b03f50d0d88ff8ea3"
+      },
+      "worker_operations": [
+        "tableau_generate"
+      ],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tableau_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "tableau_index",
+      "description": "Snapshot Tableau XML, package members and bounded native Hyper samples in the separate Tableau lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 8388608,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "inspect_extracts": {
+            "default": true,
+            "title": "Inspect Extracts",
+            "type": "boolean"
+          },
+          "max_rows_per_table": {
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Max Rows Per Table",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "TableauIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "tableau",
+      "workflow": "source-intake",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_index",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_index.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:index_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "f6104788cef0b618ed1a9d765e8005abdc2b32eab057518274faa5a9aee3f582"
+      },
+      "worker_operations": [
+        "tableau_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tableau_snapshot_integrity",
+        "tableau_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "tableau"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      },
+      "source_materialization": {
+        "path_argument": "filename",
+        "group_limit": 1,
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "preparation_is_execution": false
+      }
+    },
+    {
+      "name": "tableau_query",
+      "description": "Read bounded typed metadata, stored Hyper samples or literal FTS5/BM25 matches.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "collection": {
+            "default": "text",
+            "enum": [
+              "metadata",
+              "text",
+              "workbook",
+              "datasource",
+              "sheet",
+              "dashboard",
+              "story",
+              "column",
+              "calculation",
+              "relationship",
+              "connection",
+              "filter",
+              "parameter",
+              "mark",
+              "layout",
+              "package_member",
+              "hyper_schema",
+              "hyper_table",
+              "hyper_column",
+              "hyper_row",
+              "opaque"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "TableauQuery",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "tableau",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_query",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_query.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "be493a7383da0278cd995d002e3c0c2a1612d10747b1a7884a7ecf3fa781255e"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "tableau"
+        ],
+        "items": "rows",
+        "current_action": "tableau_current",
+        "current_items": "tableaus",
+        "collection": "text",
+        "match_mode": "any",
+        "basis": "sqlite_fts5_bm25",
+        "rerank_text": "text"
+      }
+    },
+    {
+      "name": "tableau_read",
+      "description": "Read an exact immutable Tableau file or package member by byte range.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "representation": {
+            "default": "tableau",
+            "enum": [
+              "tableau",
+              "original_source",
+              "member"
+            ],
+            "title": "Representation",
+            "type": "string"
+          },
+          "member": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Member"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 33554432,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 131072,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "TableauRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "tableau",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_read",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_read.engine",
+            "adapter": "evidence_lane_plugin.tableau_profile:register_tableau_actions.<locals>.query_handler.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "bd5b287b5059869789fc2660b5718c3b5f70cc0603d21009c05b9ef97a7fae14"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": true,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "tableau",
+          "version": 1,
+          "digest": "c7bef9d7c5a1c72426cdb64ca79cd84914aa671d6cc16ca12e946aa029a1ab87"
+        }
+      ],
+      "lane_fetch": {
+        "lanes": [
+          "tableau"
+        ],
+        "primary_representation": "tableau",
+        "path_argument": null,
+        "path_prefix": "",
+        "offset_argument": "offset",
+        "path_result": "logical_name",
+        "digest_result": "sha256",
+        "size_result": "total_bytes"
+      }
+    },
+    {
+      "name": "tableau_refresh",
+      "description": "Snapshot Tableau XML, package members and bounded native Hyper samples in the separate Tableau lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "max_file_bytes": {
+            "default": 8388608,
+            "maximum": 8388608,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "inspect_extracts": {
+            "default": true,
+            "title": "Inspect Extracts",
+            "type": "boolean"
+          },
+          "max_rows_per_table": {
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Max Rows Per Table",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "TableauIndex",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "tableau",
+            "default": "tableau",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "TableauResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "tableau",
+      "workflow": "refresh",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "tableau_refresh",
+        "profile": "tableau",
+        "routes": [
+          {
+            "route_id": "tableau_refresh.native",
+            "adapter": "evidence_lane_plugin.tableau_profile:index_tableau",
+            "tool_ids": [
+              "Python",
+              "lxml",
+              "Tableau_Hyper_API"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "tableau_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7642b54d97e021423a3548ed868e76c79c181e429446ae5b1016ca0b1c771f0c"
+      },
+      "worker_operations": [
+        "tableau_parse_file"
+      ],
+      "path_fields": [
+        "filename"
+      ],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "tableau_snapshot_integrity",
+        "tableau_source_hash_unchanged"
+      ],
+      "cross_project_read": false,
+      "read_schemas": [],
+      "source_routes": {
+        "lanes": [
+          "tableau"
+        ],
+        "path_fields": [
+          "filename"
+        ],
+        "selection": "delta_enter.source_route",
+        "implicit_global_default": false
+      }
+    }
+  ],
+  "source_selector": {
+    "lane_id": "tableau",
+    "current_table": "tableau_current",
+    "key_field": "tableau_id",
+    "retirement_table": "selector_retirement",
+    "scope": "owning_local_source_snapshots",
+    "history_deleted": false
+  },
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "tableau",
+    "folder": "sectors/tableau",
+    "files_root": "sectors/tableau/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "tableau_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".twb",
+        ".twbx",
+        ".tds",
+        ".tdsx",
+        ".hyper",
+        ".tde"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "workbooks_sources_sheets_calculations_and_model_links"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "tableau.mmd",
+      "dot": "tableau.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": "Exact snapshot and XML locators or native Hyper schema/table identities; samples and layout metadata are labeled"
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "352BBD720CCABF81FD53241D00C0BDB511298811C939A54B90D656A0765C52C7"
+  },
+  "toolchain": "toolchains/operation-toolchains.v4.json",
+  "source_byte_store": "owning_lane_files",
+  "historical_git_owner": null,
+  "full_runtime_installation_verified": false,
+  "project_data_packaged": false,
+  "formats": {
+    "schema": "evidence-lane.tableau-formats.v4",
+    "lane_id": "tableau",
+    "native_intake": [
+      ".twb",
+      ".twbx",
+      ".tds",
+      ".tdsx",
+      ".hyper"
+    ],
+    "opaque_intake": [
+      ".tde"
+    ],
+    "native_generation": [
+      ".hyper"
+    ],
+    "native_editing": [
+      "TWB/TDS captions and calculation formula XML, including packaged documents"
+    ],
+    "native_export": "exact_whole_snapshot_bytes_with_destination_refresh",
+    "hyper_api_version": "0.0.26359",
+    "hyper_queries": "all schemas, quoted table metadata, exact row counts and bounded typed samples; no client SQL",
+    "native_operation_platforms": [
+      "Windows"
+    ],
+    "source_bytes_mutated_by_intake": false,
+    "live_connections_opened": false,
+    "external_files_loaded": false,
+    "tableau_layout_equivalence": false,
+    "tableau_semantic_validation": "requires separately configured vendor validation; not claimed by local XML parsing",
+    "budgets": {
+      "max_file_bytes": 8388608,
+      "max_package_bytes": 16777216,
+      "max_package_members": 256,
+      "max_hyper_files": 16,
+      "max_hyper_tables_per_file": 128,
+      "max_rows_per_table": 1000,
+      "max_native_cells_per_file": 50000,
+      "max_items": 50000,
+      "hyper_job_memory_bytes": 2147483648
+    },
+    "natural_files": [
+      "exact_Tableau_format"
+    ],
+    "graph_files": [
+      "tableau.mmd",
+      "tableau.dot",
+      "tableau.pointer.json"
+    ]
+  },
+  "render_module": null,
+  "members": [
+    {
+      "path": "authorities/project_sectors/tableau/schema.sql",
+      "sha256": "55e691b743794e0916d5f72fa7a605248a10738f29c10e73df9171dd4c80b936"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/migration-history.json",
+      "sha256": "108f8dbc7acfce87af62610d9280ce9a677c1ae8aeeb0021af240fffcb47c1aa"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/runtime.py",
+      "sha256": "9dca19f1fe92f7638eb154026b6d397648a260325d880d0f1bfa670cea58502d"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/builder.py",
+      "sha256": "dbdeca1346a8a059b5f813ce580a11eccee6e0f758b6fdcbe52fd2d14a833e58"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/reader.py",
+      "sha256": "33e1eb8b1e3d236fefc9f94d3bd11021b41e033d4241f22c84eedf9d86d1e520"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/builder-contract.schema.json",
+      "sha256": "819e9cc43947004a66ffaed14c0b4d868da464f7411c0a0f0fa1df1959023f51"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/reader-contract.schema.json",
+      "sha256": "8ed21c04ead69007ec3faf8f9c93c8da137c67a8f0f4d99e7122dd27c8c32acb"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/refresh-receipt.schema.json",
+      "sha256": "d73bb59e008a972f988a3b669e9bc3b032ae47f869b730a781fa269e19c51e29"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/lane-pointer.schema.json",
+      "sha256": "812206d2a8445c7f0149b29c066c74f55d6f7d3040117f8689fb90de42374ac2"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/mmd-artifact.schema.json",
+      "sha256": "e6d8cc6c05e292c66fbb6b7d9bbfd638fa93ca670d4dcac56829adef48d05987"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/dot-artifact.schema.json",
+      "sha256": "4158d7fb5b551bc105805dbd4ef4d5af29800ffa16e1647772bf224b95c0afc7"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tableau_sector_v001.sqlite",
+      "sha256": "2ff3e998b72669b71a378681e87853b0a3892159108870b7b1bf0ea3d16e77f9"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/schema-template.json",
+      "sha256": "bf3ba3e6b5630a46f3ddc807b756b0cf78eb35af522ff008e38725cf62a2ad4b"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/sqlite-artifact.schema.json",
+      "sha256": "39d3744ba62f3737834193ab7a208a248e5885c9df070ef0dce20bdf6cfbf70b"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tableau.mmd",
+      "sha256": "145e004da43db6f4c71f1a7e3ad978319d3b08ba43713e3534aa5f4db91ba6a0"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tableau.dot",
+      "sha256": "8aa5f4cc9e67d7c6c16bd2e6cfc70bb2a94885aa22a7f19c4ddaec34d8626f00"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/workflow.mmd",
+      "sha256": "d0e3c5f183adfeb64cdf98c1794c9afbae3277ce5562f9d4ed5d8602c8191bed"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/workflow.dot",
+      "sha256": "ed1d52bf0f4c982966e5b4bb071ef825b9749b8832a767e79e189dfe7cf92853"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/workflow.v4.json",
+      "sha256": "00b70c0c16d463446438f94aefe67aabb93c38389de506d26366068badabad91"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tools.json",
+      "sha256": "6eddaf67adca022997d2f4f34afd771275006cef012f7ba77e0113ca23b03ff3"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/tools.schema.json",
+      "sha256": "dd4be0c2f26fedfda93f6adde046aa3aed483823b6cb7fece6d5ee48f831eb81"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/README.md",
+      "sha256": "319f30b87f60c9b46a1e43e0e008dcabaf6d604cd95a08c39248e815679e79b5"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/lane-contract.v4.json",
+      "sha256": "05a1a076c0713568214732101d48a3593e24e879fe18d017e4bbe03975b34bb7"
+    },
+    {
+      "path": "authorities/project_sectors/tableau/manifest.schema.json",
+      "sha256": "6c326320ce921d1079889ec5ec154b33597d4d348802bbbae78a09680eb3b9dc"
+    }
+  ]
+}

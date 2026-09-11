@@ -1,0 +1,323 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Parse and replace one exact UTF-8 source file, then refresh Sources, every affected current Local Code scope and existing consumer exports.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "filename": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Filename",
+        "type": "string"
+      },
+      "lane_id": {
+        "const": "local_code",
+        "default": "local_code",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "replacement_utf8": {
+        "maxLength": 524288,
+        "title": "Replacement Utf8",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "filename",
+      "expected_sha256",
+      "replacement_utf8"
+    ],
+    "title": "CodeApply",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "code_apply",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "CodeResult",
+    "type": "object"
+  },
+  "path_fields": [
+    "filename"
+  ],
+  "permission": "write",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7994509f63924874c65b4f0750fa9ac9c7e8bcd8924f51500ebd633b13373442",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "code_apply",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.code_profile:apply_code",
+        "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_apply.structural",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Python_structural_parser"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "local_code.relationships"
+        },
+        "worker_operations": [
+          "code_parse_content"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.code_profile:apply_code",
+        "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_apply.structural_export",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Python_structural_parser",
+          "LangGraph_Mermaid_engine",
+          "Python_Graphviz_DOT_engine",
+          "rustworkx"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "local_code.relationships"
+        },
+        "worker_operations": [
+          "code_parse_content",
+          "render_lane_view"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.code_profile:apply_code",
+        "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_apply.syntax",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Python_structural_parser",
+          "TreeSitter_LanguagePack"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "local_code.relationships"
+        },
+        "worker_operations": [
+          "code_parse_content"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.code_profile:apply_code",
+        "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_apply.syntax_export",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Python_structural_parser",
+          "TreeSitter_LanguagePack",
+          "LangGraph_Mermaid_engine",
+          "Python_Graphviz_DOT_engine",
+          "rustworkx"
+        ],
+        "view_refresh": {
+          "native_dot": {
+            "client_families": [
+              "codex_desktop",
+              "codex_cli",
+              "codex_vm"
+            ],
+            "engine_systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Graphviz_dot"
+            ]
+          },
+          "preserve": [
+            "scope",
+            "formats",
+            "include_pointer",
+            "dot_validation"
+          ],
+          "selection": "existing_consumer_exact_snapshot",
+          "view_id": "local_code.relationships"
+        },
+        "worker_operations": [
+          "code_parse_content",
+          "render_lane_view"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "code_parse_content",
+      "render_lane_view"
+    ]
+  },
+  "verification_checks": [
+    "code_replacement_hash_verified"
+  ],
+  "worker_operations": [
+    "code_parse_content",
+    "render_lane_view"
+  ],
+  "workflow": "build"
+}

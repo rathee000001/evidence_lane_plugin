@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 53,
   "tool": "SevenZip_NSIS_extractor",
@@ -7,9 +7,9 @@
   "classification": "NATIVE_RUNTIME_ASSET",
   "install_mode": "package_local_support_bundle",
   "license_expression_or_terms": "LicenseRef-7-Zip",
-  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
   "evidence_paths": [
-    "toolchains/native-tools.v1.json"
+    "toolchains/native-tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": true,
@@ -26,5 +26,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "E1C6C5127FF3F08AB6FBC7EDF036A52C28D3C56FABBA7027E117DD05EC7360A7"
+  "historical_ordinal": 53,
+  "catalog_ordinal": 52,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "75f2fc96f5f2ca9b004e92efb24fb9b2cef1b21e44a88245cf5de760cc1dae28"
 }

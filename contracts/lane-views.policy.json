@@ -1,0 +1,136 @@
+{
+  "schema_version": 3,
+  "authority": "Each authority or sector owns its SQLite database and files; root PV selects exact verified lane heads.",
+  "lane_artifact_folders": {
+    "authority_lane_convention": "authorities/<lane_id>/",
+    "sector_lane_convention": "sectors/<lane_id>/",
+    "selection": "Each initialized lane owns its database, schema history and files. Generate only the MMD, DOT, pointer and natural outputs required by its declared consumers.",
+    "reuse": "Preserve useful existing filenames, schema meaning and behavior in each separate lane folder.",
+    "ownership": "One lane contract owns each database and file path; cross-lane references retain project, lane, revision and content hash.",
+    "separate_database_per_lane": true,
+    "named_custom_instances": "Sources owns immutable adapter registrations. Each custom__<name> instance has its own sectors/<lane_id>/ database, schema history, files and derived views; it inherits the retained Custom meanings without sharing business rows or mutating the global registry."
+  },
+  "lane_specific_logic": {
+    "contract_owns": [
+      "required_file_subset",
+      "filenames",
+      "MMD_projection_semantics",
+      "DOT_projection_semantics",
+      "pointer_meaning_and_schema",
+      "generation",
+      "invalidation",
+      "refresh",
+      "validation",
+      "consuming_workflow"
+    ],
+    "rule": "Adapt each earlier lane's useful logic independently. Do not replace different lane meanings with a universal MMD/DOT/pointer template.",
+    "shared_mechanisms": "Path isolation, revision checks, hashes, atomic publication and bounded shared tools may be common implementations without imposing one artifact shape."
+  },
+  "pointer_policy": {
+    "required_for_every_lane": false,
+    "default": "SQLite keeps lane identity, ownership and current revision. Preserve a lane-specific pointer file where its workflow needs one; there is no mandatory pointer for every lane.",
+    "materialize_when": "The lane contract has a consuming workflow for its pointer, including useful existing semantics for state, artifacts, snapshots or navigation",
+    "common_binding_evidence": [
+      "project_id",
+      "lane_id",
+      "contract_version",
+      "source_revision",
+      "content_digest"
+    ],
+    "binding_evidence_location": "SQLite artifact metadata or the lane's existing manifest/pointer shape; these common bindings do not mandate a new universal pointer file schema.",
+    "graph_scope_evidence": [
+      "format",
+      "source_revision",
+      "view_scope",
+      "query_digest",
+      "content_digest",
+      "node_count",
+      "edge_count",
+      "truncated"
+    ],
+    "missing_graph_policy": "No graph export is required without a declared consumer; do not manufacture empty graphs or per-lane placeholder files",
+    "publication": "Advance the current pointer only after the matching source revision and derived content are verified under project writer fencing"
+  },
+  "candidate_relationship_views": {
+    "code": [
+      "files",
+      "symbols",
+      "imports",
+      "calls",
+      "dependencies",
+      "change_impact"
+    ],
+    "chatlineage": [
+      "tasks",
+      "messages",
+      "ancestry",
+      "steers",
+      "handoffs",
+      "evidence_links"
+    ],
+    "plan": [
+      "tasks",
+      "dependencies",
+      "revisions",
+      "status_transitions"
+    ]
+  },
+  "conditional_graph_profiles": {
+    "office": [
+      "workbook_formula_dependencies",
+      "linked_assets",
+      "document_provenance"
+    ],
+    "data": [
+      "source_lineage",
+      "transform_dependencies",
+      "join_relationships"
+    ],
+    "other": [
+      "Only relationships explicitly defined by that profile's operation contract"
+    ]
+  },
+  "available_export_formats": [
+    "mermaid_mmd",
+    "graphviz_dot"
+  ],
+  "format_selection": "Use only the format an actual viewer, downstream tool or user request consumes. Do not generate both formats merely because the old route did.",
+  "semantic_equivalence": "Two formats of the same declared view must agree semantically. A lane may define different named MMD and DOT projections with distinct scopes; bind and validate each against its own contract.",
+  "tooling": "Tools and dependency installations are shared. A profile declares only the shared tool references required by its supported operations; no automatic per-lane tooling bundle.",
+  "admission_test": [
+    "Inspect the earlier lane's own files and logic",
+    "Name the consuming workflow",
+    "Identify the authoritative records and lane contract",
+    "Preserve the useful file subset in its separate lane folder",
+    "Remove only unnecessary artifacts and duplicated dependencies"
+  ],
+  "bounded_views": "Large graphs use a declared query scope and budgets; a limited view never claims complete lane coverage",
+  "refresh": "Invalidate affected views on contract/source changes and regenerate from authoritative records; never reconstruct authority by importing a stale graph",
+  "source_evidence": {
+    "graph_pipeline.py_sha256": "bb76a790578b062b7e2dc89bdaa0d30a598f26015c3b94cc126aefb3e476a582",
+    "lanes.py_sha256": "b63a8708b7c27eef09c7680ab97ca3410554f4afacf819d39e0be1e824193376",
+    "index_matches_admitted_original_source": true
+  },
+  "current_selection": "The owning lane database selects its immutable views; root PV coordinates the verified lane heads.",
+  "snapshot_layout": "<lane_folder>/<view_name>/<manifest_digest>/<lane_specific_filename>",
+  "pointer_snapshot_scope": "Optional lane-specific navigation files describe their immutable snapshot; there is no second mutable current-file selector.",
+  "implemented_authority_views": [
+    "plan.dependencies",
+    "chat_lineage.ancestry",
+    "memory.links",
+    "learning.provenance",
+    "canon.consequences",
+    "universe.topology",
+    "universe.federation"
+  ],
+  "implementation_status": "The five core authority views and two Universe views use their owning lane databases and real cross-lane source readers. V4-D125 qualifies that source integration and packaged MCP protocol separately from installation. Exact Root PV coordinates come from live Universe inspection; topology exports omit their own publication effects. Federation views belong to a separate coordinator project and preserve member hash references. V4-D126 backs up every recorded natural-view generation, current selector and schema history file with the coherent Root PV and exact separate lane database bytes; fresh-root recovery validates that complete inventory and preserves the original project.",
+  "graph_execution": {
+    "source_projection": "Deterministic LangGraph and Python Graphviz source exports; packaged projections omit runtime readiness and optional analysis observations.",
+    "runtime_analysis": "Selected lane graph exports run bounded Rustworkx in the owned graph worker; pointer-only exports do not start that worker.",
+    "native_dot": "Explicit dot_validation=native requires the DOT format, a hash-verified shared Graphviz binary and a supported configured client. Default dot_validation=source makes no native execution claim.",
+    "host_context": "Derive native profile from the authenticated connected client; environment profile strings do not authorize an export or attest a native task.",
+    "vm": "Persistent and ephemeral VM clients require the existing verified durable remote connection before native graph work.",
+    "fallback": "A failed requested native validation never downgrades to source-only export.",
+    "refresh": "Retain the existing selected format subset and DOT validation choice. Bind the exact selected snapshot during source-change admission and recheck it before invocation. Check the selected native client, tools and workers before source effects. An adopted source-change task must permit Graphviz_dot when preserving a native-validated view. Exact unchanged bindings, graphs and verified files reuse the current snapshot with original producer evidence; a request receipt records reuse without creating a new view generation."
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Verify this engine, current host observations and the locked Flash routing package.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "SessionStatusRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "runtime_doctor",
+  "outputSchema": {
+    "$defs": {
+      "FlashStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "action_set_digest": {
+            "title": "Action Set Digest",
+            "type": "string"
+          },
+          "authority_version": {
+            "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+            "title": "Authority Version",
+            "type": "string"
+          },
+          "context": {
+            "title": "Context",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "native_attachment_attested": {
+            "default": false,
+            "title": "Native Attachment Attested",
+            "type": "boolean"
+          },
+          "runtime_data_mutated": {
+            "default": false,
+            "title": "Runtime Data Mutated",
+            "type": "boolean"
+          },
+          "state": {
+            "default": "verified",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "manifest_digest",
+          "action_set_digest",
+          "member_count",
+          "members",
+          "context"
+        ],
+        "title": "FlashStatus",
+        "type": "object"
+      },
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "engine_instance_id": {
+        "title": "Engine Instance Id",
+        "type": "string"
+      },
+      "engine_phase": {
+        "title": "Engine Phase",
+        "type": "string"
+      },
+      "flash": {
+        "$ref": "#/$defs/FlashStatus"
+      },
+      "host": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Host",
+        "type": "object"
+      },
+      "managed_toolchain": {
+        "title": "Managed Toolchain",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "package_digest": {
+        "title": "Package Digest",
+        "type": "string"
+      },
+      "project_mutated": {
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "studio_supported": {
+        "title": "Studio Supported",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "engine_phase",
+      "engine_instance_id",
+      "package_digest",
+      "flash",
+      "host",
+      "studio_supported",
+      "managed_toolchain"
+    ],
+    "title": "RuntimeDoctor",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9aa4a4747cefd5b929c906c914f9b0bf38c4ee2fecceba415462f33a5698dff5",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "runtime_doctor",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.session:SessionManager.doctor",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "runtime_doctor.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

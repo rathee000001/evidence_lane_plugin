@@ -1,0 +1,215 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Preview an exact foreign source packet against the current receiving project without storing or admitting it.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "envelope_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Envelope Digest",
+        "type": "string"
+      },
+      "exchange_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Exchange Id",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source_project_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Source Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "source_project_id",
+      "exchange_id",
+      "envelope_digest"
+    ],
+    "title": "CanonReceive",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "canon_packet_classify",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "admission_performed": {
+        "const": false,
+        "default": false,
+        "title": "Admission Performed",
+        "type": "boolean"
+      },
+      "automatic_admission_permitted": {
+        "title": "Automatic Admission Permitted",
+        "type": "boolean"
+      },
+      "classification": {
+        "enum": [
+          "expected",
+          "undefined_or_incompatible"
+        ],
+        "title": "Classification",
+        "type": "string"
+      },
+      "envelope_digest": {
+        "title": "Envelope Digest",
+        "type": "string"
+      },
+      "exchange_id": {
+        "title": "Exchange Id",
+        "type": "string"
+      },
+      "expected_contract": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Expected Contract"
+      },
+      "message_digest": {
+        "title": "Message Digest",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "reasons": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Reasons",
+        "type": "array"
+      },
+      "receiver_decision_required": {
+        "title": "Receiver Decision Required",
+        "type": "boolean"
+      },
+      "source_project_id": {
+        "title": "Source Project Id",
+        "type": "string"
+      },
+      "source_write_granted": {
+        "const": false,
+        "default": false,
+        "title": "Source Write Granted",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "message_digest",
+      "classification",
+      "reasons",
+      "expected_contract",
+      "observed_at",
+      "automatic_admission_permitted",
+      "receiver_decision_required",
+      "source_project_id",
+      "exchange_id",
+      "envelope_digest"
+    ],
+    "title": "CanonPacketClassification",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "canon",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+      "owner": "canon",
+      "version": 1
+    },
+    {
+      "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+      "owner": "canon",
+      "version": 2
+    },
+    {
+      "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+      "owner": "canon",
+      "version": 3
+    },
+    {
+      "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+      "owner": "canon",
+      "version": 4
+    },
+    {
+      "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+      "owner": "canon",
+      "version": 5
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "2ae62f9a849f05fb312e13d04b2e748e672ac18b6cad55a6d0b672c0f2686e83",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "canon_packet_classify",
+    "profile": "canon",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.classify_packet",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "canon_packet_classify.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "canon"
+}

@@ -1,0 +1,138 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Append a hash-only cross-project edge under its exact active grant and current member read access.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "evidence": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "maxProperties": 16,
+        "minProperties": 1,
+        "title": "Evidence",
+        "type": "object"
+      },
+      "grant_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Grant Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "grant_id",
+      "evidence"
+    ],
+    "title": "FederationLink",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "bigger_universe_link",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "federation_id": {
+        "title": "Federation Id",
+        "type": "string"
+      },
+      "member_projects_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Member Projects Mutated",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_truth_merged": {
+        "const": false,
+        "default": false,
+        "title": "Project Truth Merged",
+        "type": "boolean"
+      },
+      "raw_cross_project_payload_copied": {
+        "const": false,
+        "default": false,
+        "title": "Raw Cross Project Payload Copied",
+        "type": "boolean"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "state": {
+        "title": "State",
+        "type": "string"
+      },
+      "writes_performed": {
+        "title": "Writes Performed",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "federation_id",
+      "state",
+      "result",
+      "writes_performed"
+    ],
+    "title": "FederationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "universe",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9295ae1f5411a7f42560d7b5597ebb5f8b188bdb519f4971fec92e588e5313b2",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "bigger_universe_link",
+    "profile": "universe",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.universe_federation:register_federation_actions.<locals>.link",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "bigger_universe_link.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "bigger-universe"
+}

@@ -1,10 +1,11 @@
-"""Bounded validation/traversal binding for this separate authority."""
+"""receipts: authenticated public SDK read binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import validate_authority_support
+OWNER_ID = 'receipts'
+ACTIONS = {'accelerator_read': True, 'connector_read': True, 'remote_git_action_read': True, 'session_context': True, 'session_exit_boundary': True, 'session_status': True, 'storage_connector_inspect': True}
 
-AUTHORITY_ID = "receipt_ledger"
 
-def validate(project_root):
-    return validate_authority_support(project_root, AUTHORITY_ID)
+def read_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "validate"]
+__all__ = ["OWNER_ID", "read_authority"]

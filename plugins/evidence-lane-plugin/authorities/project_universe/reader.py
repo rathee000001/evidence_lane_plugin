@@ -1,10 +1,11 @@
-"""Bounded validation/traversal binding for this separate authority."""
+"""universe: authenticated public SDK read binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import validate_authority_support
+OWNER_ID = 'universe'
+ACTIONS = {'bigger_universe_read': True, 'bigger_universe_verify': True, 'linked_projects_read': True, 'universe_inspect': True, 'universe_links_verify': True, 'universe_query': True}
 
-AUTHORITY_ID = "project_universe"
 
-def validate(project_root):
-    return validate_authority_support(project_root, AUTHORITY_ID)
+def read_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "validate"]
+__all__ = ["OWNER_ID", "read_authority"]

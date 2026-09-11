@@ -1,7 +1,12 @@
-# Evidence Lane source version: 3.0.0
 * text=auto eol=lf
 *.png binary
-*.svg text eol=lf
-*.sqlite binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.sqlite3 binary
 *.whl binary
-plugins/evidence-lane-plugin/env/SESSION_FLASH_MANIFEST.json whitespace=-blank-at-eof
+*.twb binary
+*.xls binary
+*.xlsb binary
+*.ods binary
+plugins/evidence-lane-plugin/src/evidence_lane_plugin/studio/index.html binary

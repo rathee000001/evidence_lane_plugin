@@ -1,0 +1,348 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Render the selected project registration, current Plan page, session and exact published lane references without changing work.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 10000,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      }
+    },
+    "title": "ProjectPanelRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "render_project_panel",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {},
+      "PanelFact": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "PanelFact",
+        "type": "object"
+      },
+      "PanelLane": {
+        "additionalProperties": false,
+        "properties": {
+          "head_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Head Digest"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "authority",
+              "sector"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Revision"
+          },
+          "state": {
+            "enum": [
+              "registered",
+              "published",
+              "initialized_without_publication"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "state"
+        ],
+        "title": "PanelLane",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "facts": {
+        "items": {
+          "$ref": "#/$defs/PanelFact"
+        },
+        "title": "Facts",
+        "type": "array"
+      },
+      "identity": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Identity",
+        "type": "object"
+      },
+      "lanes": {
+        "items": {
+          "$ref": "#/$defs/PanelLane"
+        },
+        "title": "Lanes",
+        "type": "array"
+      },
+      "links": {
+        "items": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "title": "Links",
+        "type": "array"
+      },
+      "mutation_performed": {
+        "const": false,
+        "default": false,
+        "title": "Mutation Performed",
+        "type": "boolean"
+      },
+      "native_goal_completed": {
+        "const": false,
+        "default": false,
+        "title": "Native Goal Completed",
+        "type": "boolean"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "panel": {
+        "enum": [
+          "runtime",
+          "project"
+        ],
+        "title": "Panel",
+        "type": "string"
+      },
+      "panel_schema": {
+        "const": "evidence-lane.mcp-app-panel.v4",
+        "default": "evidence-lane.mcp-app-panel.v4",
+        "title": "Panel Schema",
+        "type": "string"
+      },
+      "plan": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Plan"
+      },
+      "project_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Project Id"
+      },
+      "read_only": {
+        "const": true,
+        "default": true,
+        "title": "Read Only",
+        "type": "boolean"
+      },
+      "root_pv": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Root Pv"
+      },
+      "session": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Session"
+      },
+      "status": {
+        "const": "observed",
+        "default": "observed",
+        "title": "Status",
+        "type": "string"
+      },
+      "summary": {
+        "title": "Summary",
+        "type": "string"
+      },
+      "title": {
+        "title": "Title",
+        "type": "string"
+      }
+    },
+    "required": [
+      "panel",
+      "title",
+      "summary",
+      "observed_at",
+      "identity",
+      "facts",
+      "lanes",
+      "links"
+    ],
+    "title": "PanelSnapshot",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+      "owner": "plan",
+      "version": 1
+    },
+    {
+      "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+      "owner": "plan",
+      "version": 2
+    },
+    {
+      "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+      "owner": "plan",
+      "version": 3
+    },
+    {
+      "digest": "f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb",
+      "owner": "sessions",
+      "version": 1
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "97f186e4ab9f649db43e79a6a63be1bca9bcf533f649e660218146a5f9fa3070",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "render_project_panel",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.mcp_apps:register_panel_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "render_project_panel.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "ui": {
+    "resourceUri": "ui://evidence-lane/governed-console-v4-1.html",
+    "visibility": [
+      "model"
+    ]
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

@@ -1,0 +1,148 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "StorageStatusRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "storage_status",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lanes": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Lanes",
+        "type": "array"
+      },
+      "package_root": {
+        "title": "Package Root",
+        "type": "string"
+      },
+      "physical_durability_attested": {
+        "default": false,
+        "title": "Physical Durability Attested",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_migrated": {
+        "default": false,
+        "title": "Project Migrated",
+        "type": "boolean"
+      },
+      "registration": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Registration",
+        "type": "object"
+      },
+      "root_pv": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Root Pv",
+        "type": "object"
+      },
+      "runtime_root": {
+        "title": "Runtime Root",
+        "type": "string"
+      },
+      "source_root": {
+        "title": "Source Root",
+        "type": "string"
+      },
+      "state_root": {
+        "title": "State Root",
+        "type": "string"
+      },
+      "storage_layout": {
+        "default": "separate_lane_sqlite_and_files",
+        "title": "Storage Layout",
+        "type": "string"
+      },
+      "storage_selection": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Storage Selection",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "source_root",
+      "state_root",
+      "runtime_root",
+      "package_root",
+      "root_pv",
+      "lanes",
+      "registration",
+      "storage_selection"
+    ],
+    "title": "StorageStatus",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "95c2116058c3356dc27ff236891c2fa982177b091e89ba1415719ac56af42fee",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "storage_status",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_actions:register_project_actions.<locals>.storage",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "storage_status.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "storage"
+}

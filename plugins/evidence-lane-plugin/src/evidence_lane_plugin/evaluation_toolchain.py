@@ -4,30 +4,129 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import Any, Literal
+from uuid import UUID
+
+from pydantic import Field, model_validator
 
 from .hashing import canonical_json_bytes, sha256_bytes
+from .registry import Contract
 
 EVALUATION_TOOLCHAIN_SCHEMA = "evidence-lane.evaluation-toolchain.v1"
+EVALUATION_FEEDBACK_EXPORT = "evaluation_feedback_export"
 _SHA256 = re.compile(r"[A-F0-9]{64}")
 _TOOLS: dict[str, dict[str, Any]] = {
     "LangSmith": {
         "modes": ["dataset", "evaluator", "experiment", "trace"],
         "credential_names": ["LANGSMITH_API_KEY", "LANGSMITH_ENDPOINT"],
     },
-    "TruLens": {
-        "modes": ["feedback_function", "record", "evaluation"],
-        "credential_names": ["TRULENS_ENDPOINT", "TRULENS_API_KEY"],
-    },
-    "DeepEval": {
-        "modes": ["metric", "dataset", "test_run"],
-        "credential_names": ["DEEPEVAL_API_KEY"],
-    },
-    "Promptfoo": {
-        "modes": ["prompt_test", "assertion", "red_team"],
-        "credential_names": ["PROMPTFOO_CONFIG"],
-    },
 }
+
+
+class EvaluationFeedbackRequest(Contract):
+    """One pre-existing LangSmith run receives one bounded numeric feedback row."""
+
+    tool_id: Literal["LangSmith"]
+    lane_id: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
+    resource_id: str = Field(min_length=13, max_length=266)
+    plugin_id: str | None = Field(default=None, pattern=r"^[a-z][a-z0-9-]{2,63}$")
+    action_name: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
+    run_id: str = Field(min_length=36, max_length=36)
+    session_id: str = Field(min_length=36, max_length=36)
+    feedback_key: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,63}$")
+    score: float = Field(ge=0.0, le=1.0, allow_inf_nan=False)
+    observed_at_unix_nano: int = Field(ge=1, le=4_102_444_800_000_000_000)
+    action_schema_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    route_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    dataset_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    redaction_receipt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    timeout_seconds: float = Field(default=20, gt=0, le=60, allow_inf_nan=False)
+    max_request_bytes: int = Field(default=131_072, ge=4096, le=262_144)
+    max_response_bytes: int = Field(default=1_048_576, ge=1024, le=4_194_304)
+
+    @model_validator(mode="after")
+    def exact_feedback_scope(self):
+        from .external_evidence_delivery import resource_scope
+        from .lanes import CANONICAL_LANE_IDS
+
+        if (
+            self.lane_id not in CANONICAL_LANE_IDS
+            or resource_scope(self.tool_id, self.resource_id) is None
+            or str(UUID(self.run_id)) != self.run_id
+            or str(UUID(self.session_id)) != self.session_id
+        ):
+            raise ValueError("EVALUATION_FEEDBACK_SCOPE_INVALID")
+        return self
+
+
+def register_evaluation_actions(engine: Any) -> None:
+    from .extension_routes import ExtensionBinding
+    from .external_evidence_delivery import (
+        EXPORT_BACKENDS,
+        ExternalEvidenceResult,
+        execute,
+        readiness,
+        verify_external_evidence,
+    )
+    from .registry import ActionSpec
+    from .tool_routes import ToolRoute
+
+    backend = EXPORT_BACKENDS["LangSmith"]
+
+    def handler(context: Any, request: EvaluationFeedbackRequest) -> ExternalEvidenceResult:
+        return execute(
+            engine,
+            context,
+            request,
+            kind="evaluation",
+            action=EVALUATION_FEEDBACK_EXPORT,
+        )
+
+    role = (
+        ("tool_id", "text"),
+        ("kind", "text"),
+        ("delivery", "json"),
+        ("receipt_sha256", "blob_hash"),
+    )
+    binding = ExtensionBinding(
+        backend["backend_id"],
+        backend["version"],
+        "python",
+        "evaluation_feedback",
+        "selected_by_action",
+        "evaluation_feedback_receipt",
+        role,
+        readiness("LangSmith"),
+        resource_fields=("resource_id",),
+        plugin_id_field="plugin_id",
+        lane_field="lane_id",
+    )
+    engine.registry.register(
+        ActionSpec(
+            EVALUATION_FEEDBACK_EXPORT,
+            "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
+            EvaluationFeedbackRequest,
+            ExternalEvidenceResult,
+            handler,
+            permission="publish",
+            profile="core",
+            workflow="toolchain",
+            mutates=True,
+            requires_delta=True,
+            required_tools=("Python", "HTTPX"),
+            verifier=verify_external_evidence,
+            verification_checks=("external_evidence_receipt",),
+            tool_routes=(
+                ToolRoute(
+                    EVALUATION_FEEDBACK_EXPORT + ".langsmith",
+                    handler,
+                    ("Python", "HTTPX", "LangSmith"),
+                    argument_values=(("tool_id", ("LangSmith",)),),
+                    extension=binding,
+                ),
+            ),
+        )
+    )
 
 
 def _hash(value: str, field: str) -> str:
@@ -124,8 +223,11 @@ def evaluation_tool_catalog() -> dict[str, Any]:
 
 
 __all__ = [
+    "EVALUATION_FEEDBACK_EXPORT",
     "EVALUATION_TOOLCHAIN_SCHEMA",
+    "EvaluationFeedbackRequest",
     "build_evaluation_plan",
     "evaluation_tool_catalog",
+    "register_evaluation_actions",
     "seal_evaluation_result",
 ]

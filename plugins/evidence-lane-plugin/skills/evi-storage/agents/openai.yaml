@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Storage"
-  short_description: "Inspect project storage authority"
-  default_prompt: "Use $evi-storage to inspect the effective project storage authority and change it only with an exact token."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

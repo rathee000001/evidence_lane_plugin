@@ -3,26 +3,36 @@
 from __future__ import annotations
 
 import json
-import os
 import re
-import subprocess  # nosec B404 - argv-only bounded Git enumeration
 import time
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any, Literal
 from urllib.parse import urlparse
 
-from .bounded_io import IOBudget, bounded_existing_path, bounded_file_identity
-from .errors import EvidenceLaneError, require
+from pydantic import Field, JsonValue, model_validator
+
+from .bounded_io import IOBudget, bounded_existing_path, bounded_file_identity, run_bounded_process
+from .errors import EvidenceLaneError, LaneError, require
 from .git_optional import normalize_git_arm_mode, probe_git_arm
 from .hashing import canonical_json_bytes, sha256_bytes
-from .lanes import CANONICAL_LANE_IDS, LANE_REGISTRY, resolve_lane_id, route_source
+from .lanes import (
+    SECTOR_LANE_IDS,
+    LaneRegistryError,
+    get_lane,
+    lane_artifact_contract,
+    resolve_lane_id,
+    route_source,
+)
+from .registry import ActionSpec, Contract
 from .source_authority import (
     SourceAuthoritySpec,
+    _policy_reason,
     archive_safety_profile,
     register_source_batch,
 )
-from .source_policy import path_exclusion_reason
+from .source_policy import normalize_source_path, path_exclusion_reason
+from .storage import LaneStore, ProjectStore, project_snapshot
 
 _PROJECT_MARKERS = {
     "cargo.toml",
@@ -43,16 +53,6 @@ _REPOSITORY_ACCESS_CLASSES = {
     "PUBLIC_READ_ONLY_UNOWNED",
     "LOCAL_READ_ONLY_UNVERIFIED",
 }
-_LANE_STUDY_BRAIN_ARTIFACTS = [
-    "LANE_SQLITE_FTS5",
-    "LANE_MMD",
-    "LANE_DOT",
-    "TOOLS_JSON",
-    "LANE_POINTER_JSON",
-    "LANE_MANIFEST_JSON",
-    "STUDY_BRAIN_JSON",
-]
-
 _MANIFEST_BASENAMES = {
     "manifest.json",
     "project_brain_package_manifest.json",
@@ -103,6 +103,7 @@ _LOCAL_HISTORY_PREFIXES = ("evidence/",)
 _MAX_DIRECTORY_DEPTH = 64
 _MAX_DIRECTORY_SECONDS = 15.0
 _MAX_DIRECTORY_COUNT = 25_000
+_MAX_DIRECTORY_ENTRIES = 100_000
 
 
 def _is_authoritative_code_config_path(path: Path) -> bool:
@@ -114,15 +115,17 @@ def _is_authoritative_code_config_path(path: Path) -> bool:
 
 
 def _classification_exclusion_reason(relative: str) -> str | None:
-    normalized = relative.replace("\\", "/").lstrip("./")
+    normalized = normalize_source_path(relative)
     if normalized.casefold().startswith(_LOCAL_HISTORY_PREFIXES):
         return "LOCAL_HISTORY_PATH_EXCLUDED"
-    return path_exclusion_reason(normalized)
+    state, reason = _policy_reason(normalized, {})
+    return path_exclusion_reason(normalized) or (reason if state == 'EXCLUDED' else None)
 
 
-def _git_directory_candidates(path: Path) -> list[str] | None:
+def _git_directory_candidates(path: Path, *, member_scopes: list[Path] | None = None) -> list[str] | None:
     """Return tracked plus safe untracked names without traversing ignored trees."""
 
+    from .git_optional import _exact_worktree_root
     command = [
         "git",
         "-C",
@@ -133,25 +136,19 @@ def _git_directory_candidates(path: Path) -> list[str] | None:
         "--others",
         "--exclude-standard",
         "--",
-        ".",
+        *(['.'] if member_scopes is None else [':(literal)' + item.relative_to(path).as_posix() for item in member_scopes]),
     ]
     try:
-        completed = subprocess.run(  # nosec B603
-            command,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            check=False,
-            timeout=15,
-            creationflags=(
-                getattr(subprocess, "CREATE_NO_WINDOW", 0)
-                if os.name == "nt"
-                else 0
-            ),
-        )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+        if not _exact_worktree_root('git', path):
+            return None
+        completed = run_bounded_process(command, cwd=path, timeout_seconds=15,
+            max_stdout_bytes=8_388_608, max_stderr_bytes=65_536)
+    except FileNotFoundError:
         return None
     if completed.returncode != 0:
         return None
+    if completed.stdout.count(b'\0') > _MAX_DIRECTORY_ENTRIES:
+        raise LaneError('SOURCE_DIRECTORY_ENTRY_BUDGET', 'The selected Git member listing exceeds its entry bound.')
     return sorted(
         {
             raw.decode("utf-8", errors="surrogateescape").replace("\\", "/")
@@ -162,12 +159,18 @@ def _git_directory_candidates(path: Path) -> list[str] | None:
 
 
 def _bounded_directory_members(
-    path: Path,
+    path: Path, *, required_selection: str | None = None, capture=None, member_scopes: list[Path] | None = None,
 ) -> tuple[list[tuple[str, int]], dict[str, Any]]:
     budget = IOBudget()
     members: list[tuple[str, int]] = []
     excluded_counts: dict[str, int] = {}
-    git_candidates = _git_directory_candidates(path)
+    if member_scopes is not None and (not member_scopes or any(not item.is_relative_to(path) for item in member_scopes)):
+        raise LaneError('SOURCE_SELECTION_SCOPE', 'Select existing file or directory scopes inside this source root.')
+    git_candidates = (_git_directory_candidates(path) if member_scopes is None
+        else _git_directory_candidates(path, member_scopes=member_scopes))
+    selection = 'GIT_INDEX_AND_SAFE_UNTRACKED' if git_candidates is not None else 'BOUNDED_FILESYSTEM_FALLBACK'
+    if required_selection is not None and selection != required_selection:
+        raise LaneError('SOURCE_SELECTION_CHANGED', 'The registered directory selection method is unavailable or changed; register a new source observation.')
     if git_candidates is not None:
         candidates = [
             (relative, path / Path(relative)) for relative in git_candidates
@@ -176,10 +179,17 @@ def _bounded_directory_members(
     else:
         selection = "BOUNDED_FILESYSTEM_FALLBACK"
         started = time.monotonic()
-        pending: list[tuple[Path, int]] = [(path, 0)]
+        pending: list[tuple[Path, int]] = []
         enumerated: list[tuple[str, Path]] = []
-        directory_count = 0
+        for scope in member_scopes or [path]:
+            if scope.is_file():
+                enumerated.append((scope.relative_to(path).as_posix(), scope))
+            elif scope.is_dir():
+                pending.append((scope, 0))
+        directory_count, entry_count = 0, 0
         while pending:
+            if capture:
+                capture.boundary(path)
             require(
                 time.monotonic() - started <= _MAX_DIRECTORY_SECONDS,
                 "SOURCE_DIRECTORY_TIME_BUDGET_EXCEEDED",
@@ -197,6 +207,11 @@ def _bounded_directory_members(
                 max_directory_count=_MAX_DIRECTORY_COUNT,
             )
             for item in directory.iterdir():
+                entry_count += 1
+                if entry_count > _MAX_DIRECTORY_ENTRIES or time.monotonic() - started > _MAX_DIRECTORY_SECONDS:
+                    raise LaneError('SOURCE_DIRECTORY_ENTRY_BUDGET', 'The selected directory listing exceeds its entry or elapsed-time bound.')
+                if capture:
+                    capture.entry(item)
                 relative = item.relative_to(path).as_posix()
                 reason = _classification_exclusion_reason(relative)
                 if reason is not None:
@@ -220,9 +235,11 @@ def _bounded_directory_members(
                     pending.append((item, depth + 1))
                 elif item.is_file():
                     enumerated.append((relative, item))
-        candidates = sorted(enumerated)
+        candidates = sorted(set(enumerated))
 
     for relative, item in candidates:
+        if capture:
+            capture.entry(item)
         reason = _classification_exclusion_reason(relative)
         if reason is not None:
             excluded_counts[reason] = excluded_counts.get(reason, 0) + 1
@@ -452,14 +469,14 @@ def _archive_profile(path: Path) -> dict[str, Any]:
     }
 
 
-def _archive_lane(profile: dict[str, Any]) -> tuple[str, str]:
+def _archive_lane(profile: dict[str, Any], code_mode: str) -> tuple[str, str]:
     if profile["status"] != "PASS":
         return "custom", "zip_unreadable_or_generic"
     sqlite_members = profile.get("sqlite_members", [])
     if profile.get("project_marker_matches"):
-        return "project_engulf", "archive_project_markers"
+        return code_mode, "archive_project_markers"
     if sqlite_members:
-        return "brain_loader", "archive_sqlite_brain_members"
+        return "custom", "archive_selected_sqlite_members"
     return "custom", "archive_generic"
 
 
@@ -516,9 +533,9 @@ def _apply_code_source_roles(
         if role == "PRIMARY_PROJECT_CODE":
             require(
                 registered,
-                "SOURCE_INTAKE_PRIMARY_CODE_CHANGE_REQUIRES_NEW_PROJECT_PV",
+                "SOURCE_INTAKE_PRIMARY_CODE_CHANGE_REQUIRES_NEW_PROJECT",
                 "Changing the central code project requires a separately registered "
-                "project/PV root; Source Intake cannot replace it in place.",
+                "project root; Source Intake cannot replace it in place.",
                 status="BLOCKED",
                 source_identity_sha256=sha256_bytes(source.encode()),
             )
@@ -538,7 +555,13 @@ def _apply_code_source_roles(
         elif parsed.scheme in {"http", "https", "git", "ssh"}:
             access = "PUBLIC_READ_ONLY_UNOWNED"
         else:
-            access = "OWNED_OR_EXPLICITLY_AUTHORIZED"
+            access = "LOCAL_READ_ONLY_UNVERIFIED"
+        require(
+            access != "REGISTERED_PROJECT_AUTHORITY" or registered,
+            "SOURCE_INTAKE_REGISTERED_AUTHORITY_MISMATCH",
+            "A source assertion cannot make another path the registered project.",
+            status="BLOCKED",
+        )
         access_allows_history = access in {
             "REGISTERED_PROJECT_AUTHORITY",
             "OWNED_OR_EXPLICITLY_AUTHORIZED",
@@ -577,7 +600,7 @@ def _apply_code_source_roles(
         )
         receipt["git_optional_arm"] = git_arm
         receipt["code_source_routing"] = {
-            "schema": "evidence-lane.code-source-routing.v1",
+            "schema": "evidence-lane.code-source-routing.v4",
             "role": role,
             "repository_access": access,
             "git_history_authorized": history_authorized,
@@ -586,9 +609,9 @@ def _apply_code_source_roles(
                 and assertion.get("governed_git_checkpoint") is True
             ),
             "lane_scoped_study_brain": role == "LANE_SCOPED_STUDY_BRAIN",
-            "lane_owned_artifacts": list(_LANE_STUDY_BRAIN_ARTIFACTS),
+            "lane_artifact_contract": lane_artifact_contract(lane_id),
             "central_project_replacement_allowed": False,
-            "new_project_pv_required_for_central_change": True,
+            "new_project_required_for_central_change": True,
         }
         code_rows.append(
             {
@@ -604,7 +627,7 @@ def _apply_code_source_roles(
         status="BLOCKED",
     )
     contract = {
-        "schema": "evidence-lane.code-source-routing-batch.v1",
+        "schema": "evidence-lane.code-source-routing-batch.v4",
         "status": "PASS",
         "central_code_project_count": primary_count,
         "code_source_count": len(code_rows),
@@ -615,12 +638,10 @@ def _apply_code_source_roles(
         "local_code_refresh_source": "CURRENT_DELTA_DIRTY_BYTES",
         "github_code_refresh_source": "EXACT_GOVERNED_GIT_CHECKPOINT_ONLY",
         "unowned_public_repository_history_allowed": False,
-        "central_project_change_requires_new_project_pv": True,
+        "central_project_change_requires_new_project": True,
         "source_intake_materializes_lanes": False,
-        "initial_build_materializes_lane_artifacts": True,
-        "delta_refresh_updates_changed_lane_artifacts": True,
-        "hil_refresh_adds_project_overlay": True,
-        "ordinary_delta_refresh_adds_project_overlay": False,
+        "lane_materialization": "separate_registered_lane_operations",
+        "artifact_selection": "owning_lane_consumer_contract",
         "code_sources": code_rows,
     }
     return receipts, effective_assertions, contract
@@ -634,7 +655,13 @@ def _classify_one(
     git_arm_receipt: dict[str, Any] | None = None
     archive_profile: dict[str, Any] | None = None
     if override:
-        lane_id = resolve_lane_id(override, code_mode=code_mode)
+        try:
+            lane_id = resolve_lane_id(override, code_mode=code_mode)
+        except LaneRegistryError as exc:
+            raise EvidenceLaneError("SOURCE_INTAKE_SECTOR_REQUIRED",
+                "Select a retained sector lane for a source override.", status="BLOCKED") from exc
+        require(get_lane(lane_id).kind == "sector", "SOURCE_INTAKE_SECTOR_REQUIRED",
+                "Source overrides select sectors; authorities have separate workflows.", status="BLOCKED")
         reason = "explicit_override"
     else:
         parsed = urlparse(exact)
@@ -658,7 +685,7 @@ def _classify_one(
                 code_mode
                 if git_arm_receipt["repository_is_git"]
                 or _is_code_project_directory(path)
-                else "project_engulf"
+                else "custom"
             )
             reason = (
                 "local_git_directory" if lane_id == code_mode else "project_directory"
@@ -668,7 +695,7 @@ def _classify_one(
             reason = "authoritative_code_config_path_context"
         elif path.exists() and path.is_file() and path.suffix.lower() == ".zip":
             archive_profile = _archive_profile(path)
-            lane_id, reason = _archive_lane(archive_profile)
+            lane_id, reason = _archive_lane(archive_profile, code_mode)
         else:
             lane_id = route_source(exact, code_mode=code_mode)
             reason = "canonical_path_and_content_type_router"
@@ -740,7 +767,7 @@ def _classify_one(
         "source": exact,
         "source_identity": identity,
         "canonical_lane_id": lane_id,
-        "display_label": LANE_REGISTRY[lane_id].display_label,
+        "display_label": get_lane(lane_id).display_label,
         "classification_reason": reason,
         "explicit_override": bool(override),
         "git_optional_arm": git_arm_receipt,
@@ -757,9 +784,10 @@ def classify_source_intake(
     overrides: dict[str, str] | None = None,
     git_mode: str = "AUTO",
     authority_mode: str = "CLASSIFICATION_ONLY",
-    authority_registry_path: str | Path | None = None,
+    authority_registry_path: ProjectStore | LaneStore | None = None,
     source_assertions: dict[str, dict[str, Any]] | None = None,
     registered_repository_path: str | Path | None = None,
+    writer=None,
 ) -> dict[str, Any]:
     """Classify ordered inputs and optionally register read-only byte authority."""
 
@@ -802,6 +830,8 @@ def classify_source_intake(
             status="MISMATCH",
             details={"unknown_source_count": len(unknown_overrides)},
         )
+    require(len(exact_sources) <= 256 and len(set(exact_sources)) == len(exact_sources),
+            "SOURCE_INTAKE_SOURCE_BUDGET", "Select at most 256 distinct ordered sources.", status="BLOCKED")
     receipts = [
         _classify_one(
             source,
@@ -843,9 +873,13 @@ def classify_source_intake(
                     ordinal=index,
                     lane_id=str(receipt["canonical_lane_id"]),
                     assertions=assertions.get(str(receipt["source"]), {}),
+                    directory_selection=receipt['source_identity'].get('bounded_io', {}).get('source_selection'),
+                    expected_directory_path_size_sha256=(receipt['source_identity'].get('member_path_size_sha256')
+                        if receipt['source_identity']['kind'] == 'directory' else None),
                 )
                 for index, receipt in enumerate(receipts, start=1)
             ],
+            writer=writer,
         )
     else:
         authority = {
@@ -853,20 +887,20 @@ def classify_source_intake(
             "authority_mode": "CLASSIFICATION_ONLY",
             "registry_mutated": False,
         }
-    ordered_lanes = ["chat_lineage"]
+    ordered_lanes = []
     for receipt in receipts:
         lane_id = str(receipt["canonical_lane_id"])
         if lane_id not in ordered_lanes:
             ordered_lanes.append(lane_id)
     return {
         "status": "PASS",
-        "schema": "evidence-lane.source-intake-classification.v2",
+        "schema": "evidence-lane.source-intake-classification.v4",
         "sources": receipts,
         "source_count": len(receipts),
         "ordered_canonical_lanes": ordered_lanes,
-        "chat_lineage_included": True,
-        "all_canonical_lanes_supported": list(CANONICAL_LANE_IDS),
-        "project_engulf_supported": True,
+        "chat_lineage_included": False,
+        "chat_lineage_capture": "separate_host_event_workflow",
+        "all_canonical_lanes_supported": list(SECTOR_LANE_IDS),
         "auto_detection": True,
         "explicit_overrides": bool(exact_overrides),
         "git_optional_arm": {
@@ -885,3 +919,334 @@ def classify_source_intake(
         "candidate_created": False,
         "pointer_moved": False,
     }
+
+
+SourceText = Annotated[str, Field(min_length=1, max_length=4096)]
+SourceKey = Annotated[str, Field(min_length=1, max_length=160, pattern=r"^[A-Za-z0-9_.:-]+$")]
+
+
+class SourceRequest(Contract):
+    @model_validator(mode="after")
+    def bounded_request(self):
+        if len(canonical_json_bytes(self.model_dump(mode="json"))) > 131_072:
+            raise ValueError("Source action arguments exceed 128 KiB")
+        return self
+
+
+class SourceIntakeRequest(SourceRequest):
+    sources: list[SourceText] = Field(min_length=1, max_length=256)
+    code_mode: Literal["local_code", "github_code"] = "local_code"
+    overrides: dict[str, str] = Field(default_factory=dict, max_length=256)
+    git_mode: Literal["AUTO", "REQUIRED", "DISABLED"] = "AUTO"
+    source_assertions: dict[str, dict[str, JsonValue]] = Field(default_factory=dict, max_length=256)
+    parent_route_id: str | None = Field(default=None, pattern=r'^[0-9a-f]{64}$')
+
+
+class SourceRouteConfigure(SourceIntakeRequest):
+    overrides: dict[str, str] = Field(min_length=1, max_length=100)
+
+
+class SourceBatchRequest(SourceRequest):
+    batch_id: SourceKey
+
+
+class SourceSQLiteRequest(SourceBatchRequest):
+    max_embedded_member_bytes: int = Field(default=64 * 1024 * 1024, ge=1, le=768 * 1024 * 1024)
+    exact_count_max_database_bytes: int = Field(default=8 * 1024 * 1024, ge=1, le=32 * 1024 * 1024)
+    max_assets: int = Field(default=512, ge=1, le=512, strict=True)
+    max_total_input_bytes: int = Field(default=256 * 1024 * 1024, ge=1, le=4 * 1024**3, strict=True)
+    max_metadata_bytes: int = Field(default=8 * 1024 * 1024, ge=1024, le=32 * 1024 * 1024, strict=True)
+    max_batch_vm_steps: int = Field(default=40_000_000, ge=1000, le=200_000_000, strict=True)
+    timeout_seconds: float = Field(default=15, gt=0, le=60, allow_inf_nan=False, strict=True)
+
+
+class SourceIdentityRequest(SourceBatchRequest):
+    entities: list[dict[str, JsonValue]] = Field(max_length=256)
+    profiles: list[dict[str, JsonValue]] = Field(max_length=256)
+    relations: list[dict[str, JsonValue]] = Field(max_length=1024)
+
+
+class SourceCrosswalkRequest(SourceBatchRequest):
+    crosswalk_path: SourceText
+
+
+class SourceGraphRequest(SourceBatchRequest):
+    occurrence_ordinals: list[Annotated[int, Field(ge=1, le=256)]] | None = Field(default=None, max_length=256)
+    member_path_prefixes: list[SourceText] | None = Field(default=None, max_length=256)
+    max_files: int = Field(default=2000, ge=1, le=25_000)
+    max_total_bytes: int = Field(default=64 * 1024 * 1024, ge=1, le=1024 * 1024 * 1024)
+    max_file_bytes: int = Field(default=4 * 1024 * 1024, ge=1, le=8 * 1024 * 1024)
+    max_nodes: int = Field(default=20_000, ge=1, le=500_000)
+    max_edges: int = Field(default=40_000, ge=1, le=1_000_000)
+
+
+class SourceGraphDiffRequest(SourceRequest):
+    from_graph_id: SourceKey
+    to_graph_id: SourceKey
+    sample_limit: int = Field(default=100, ge=1, le=1000)
+
+
+class SourceGraphImpactRequest(SourceRequest):
+    graph_id: SourceKey
+    seed_node_ids: list[SourceKey] = Field(min_length=1, max_length=256)
+    relations: list[SourceKey] | None = Field(default=None, max_length=64)
+    direction: Literal["UPSTREAM", "DOWNSTREAM", "BOTH"] = "UPSTREAM"
+    max_depth: int = Field(default=3, ge=1, le=10)
+    max_nodes: int = Field(default=1000, ge=1, le=10_000)
+
+
+class SourceGitRequest(SourceBatchRequest):
+    occurrence_ordinal: int = Field(ge=1, le=256)
+    max_refs: int = Field(default=1000, ge=1, le=20_000)
+    max_commits: int = Field(default=1000, ge=1, le=100_000)
+    max_objects: int = Field(default=20_000, ge=1, le=2_000_000)
+    max_tree_entries: int = Field(default=50_000, ge=1, le=5_000_000)
+    max_file_changes: int = Field(default=20_000, ge=1, le=2_000_000)
+    max_hunks: int = Field(default=20_000, ge=1, le=2_000_000)
+    max_changed_lines: int = Field(default=50_000, ge=1, le=5_000_000)
+    max_patch_bytes: int = Field(default=32 * 1024 * 1024, ge=1, le=2 * 1024 * 1024 * 1024)
+    max_single_object_bytes: int = Field(default=8 * 1024 * 1024, ge=1, le=1024 * 1024 * 1024)
+    max_total_object_bytes: int = Field(default=64 * 1024 * 1024, ge=1, le=8 * 1024 * 1024 * 1024)
+
+
+class SourceGitImpactRequest(SourceRequest):
+    snapshot_id: SourceKey
+    graph_id: SourceKey
+    commit_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    parent_ordinal: int = Field(default=0, ge=0, le=64)
+    relations: list[SourceKey] | None = Field(default=None, max_length=64)
+    direction: Literal["UPSTREAM", "DOWNSTREAM", "BOTH"] = "UPSTREAM"
+    max_depth: int = Field(default=3, ge=1, le=10)
+    max_nodes: int = Field(default=1000, ge=1, le=10_000)
+
+
+class SourceSchemaRequest(SourceBatchRequest):
+    definition: dict[str, JsonValue]
+
+
+class SourceSchemaConfigureRequest(SourceSchemaRequest):
+    operation: Literal["ADD", "MODIFY"]
+    pill_name: str = Field(min_length=1, max_length=80)
+    expected_previous_schema_sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{64}$")
+
+
+class SourceReadRequest(SourceRequest):
+    collection: Literal["batches", "occurrences", "relations", "provenance", "graphs", "schemas", "identities",
+        "sqlite_assets", "sqlite_receipts", "sqlite_schema", "sqlite_tables", "sqlite_foreign_keys"] = "batches"
+    batch_id: SourceKey | None = None
+    inspection_id: SourceKey | None = None
+    offset: int = Field(default=0, ge=0, le=1_000_000)
+    limit: int = Field(default=20, ge=1, le=200)
+    max_bytes: int = Field(default=65_536, ge=1024, le=262_144)
+
+
+class SourceOperationResult(Contract):
+    project_id: str
+    lane_id: Literal["sources"] = "sources"
+    operation: str
+    result: dict[str, JsonValue]
+    source_bytes_mutated: Literal[False] = False
+    metadata_provenance: Literal["source_measurements_and_attributed_assertions"] = "source_measurements_and_attributed_assertions"
+
+
+def _source_action_result(store, action, result):
+    value = SourceOperationResult(project_id=store.project_id, operation=action, result=result)
+    if len(canonical_json_bytes(value.model_dump(mode="json"))) > 2 * 1024 * 1024:
+        raise LaneError("SOURCE_RESULT_BUDGET", "Select a smaller source batch or analysis budget.")
+    return value
+
+
+def _authorize_source_paths(store, context, values):
+    from .projects import ProjectAccess
+    for value in values:
+        parsed = urlparse(value)
+        if parsed.scheme.lower() in {"http", "https", "ssh", "git"}:
+            if parsed.username or parsed.password or parsed.query or parsed.fragment:
+                raise LaneError("SOURCE_CREDENTIAL_FREE_POINTER_REQUIRED", "Use a source URL without credentials, query tokens or fragments.")
+            continue  # Pointer metadata only; these operations never fetch a URL.
+        path = Path(value).expanduser()
+        if not path.is_absolute() or ".." in path.parts:
+            raise LaneError("SOURCE_ABSOLUTE_PATH_REQUIRED", "Select an absolute source path in a current read grant.")
+        ProjectAccess(store).authorize(context.client_id, "read", path=path)
+
+
+def _source_batch_paths(store, batch_id):
+    with store.lane("sources").connection(read_only=True) as connection:
+        if connection.execute("SELECT 1 FROM sqlite_schema WHERE name='intake_batch'").fetchone() is None:
+            raise LaneError("SOURCE_AUTHORITY_BATCH_MISSING", "Register the selected source batch first.")
+        rows = connection.execute("SELECT supplied_pointer FROM source_occurrence WHERE batch_id=? ORDER BY ordinal LIMIT 257", (batch_id,)).fetchall()
+        if not rows:
+            raise LaneError("SOURCE_AUTHORITY_BATCH_MISSING", "Select a registered source batch.")
+        if len(rows) > 256:
+            raise LaneError("SOURCE_INTAKE_SOURCE_BUDGET", "The batch exceeds the supported native source-count budget.")
+        return [row[0] for row in rows]
+
+
+def read_source_records(store, request):
+    # These are explicit SQL projections, never a caller-supplied table/column.
+    sqlite_collections = {
+        'sqlite_assets': ('source_sqlite_asset', 'canonical_asset_id'),
+        'sqlite_receipts': ('source_sqlite_receipt', 'canonical_asset_id'),
+        'sqlite_schema': ('source_sqlite_schema_object', 'inspection_id'),
+        'sqlite_tables': ('source_sqlite_table_stat', 'inspection_id'),
+        'sqlite_foreign_keys': ('source_sqlite_foreign_key', 'canonical_asset_id'),
+    }
+    collections = {
+        "batches": ("intake_batch", True),
+        "occurrences": ("source_occurrence", True),
+        "relations": ("source_relation", True),
+        "provenance": ("source_provenance", True),
+        "graphs": ("source_graph_snapshot", True),
+        "schemas": ("source_custom_schema", False),
+        "identities": ("source_identity_entity", False),
+        **{name: (table, False) for name, (table, _) in sqlite_collections.items()},
+    }
+    table, has_batch = collections[request.collection]
+    if request.batch_id and not has_batch:
+        raise LaneError("SOURCE_COLLECTION_SCOPE", "This collection is project-scoped; omit batch_id.")
+    if request.inspection_id and request.collection not in sqlite_collections:
+        raise LaneError('SOURCE_COLLECTION_SCOPE', 'An inspection id applies only to SQLite history collections.')
+    with store.lane("sources").connection(read_only=True) as connection:
+        if connection.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?", (table,)).fetchone() is None:
+            return {"collection": request.collection, "rows": [], "next_offset": None, "initialized": False}
+        deadline = time.monotonic() + 5
+        connection.set_progress_handler(lambda: int(time.monotonic() > deadline), 10_000)
+        try:
+            clause, parameters = (" WHERE batch_id=?", [request.batch_id]) if request.batch_id else ("", [])
+            if request.inspection_id:
+                column = sqlite_collections[request.collection][1]
+                clause, parameters = ' WHERE ' + column + '=?', [request.inspection_id]
+            cursor = connection.execute("SELECT * FROM " + table + clause + " ORDER BY rowid LIMIT ? OFFSET ?",
+                                        [*parameters, request.limit + 1, request.offset])
+            selected, size, truncated = [], 0, False
+            for row in cursor:
+                record = dict(row)
+                size += len(canonical_json_bytes(record))
+                if len(selected) >= request.limit or size > request.max_bytes:
+                    if not selected:
+                        raise LaneError("SOURCE_ROW_BUDGET", "Increase max_bytes to read this source record.")
+                    truncated = True
+                    break
+                selected.append(record)
+            return {"collection": request.collection, "rows": selected, "initialized": True,
+                    "next_offset": request.offset + len(selected) if truncated else None}
+        finally:
+            connection.set_progress_handler(None, 0)
+
+
+def register_source_actions(engine):
+    from .custom_source_schema import (
+        compile_and_map_custom_source_schema,
+        configure_source_intake_schema_pill,
+    )
+    from .source_authority import (
+        SOURCES_MIGRATIONS,
+        reconcile_archive_counterparts,
+        register_source_crosswalk,
+        verify_source_batch_unchanged,
+    )
+    from .source_git_history import build_registered_git_history, build_source_git_commit_impact
+    from .source_graph import build_registered_source_graph, diff_source_graphs, source_graph_impact
+    from .source_identity import register_source_identity_matrix
+    from .source_routing import (
+        ROUTE_MIGRATIONS,
+        SourceRoutesRead,
+        inherited_routes,
+        load_route,
+        publish_routes,
+        replay_registration,
+    )
+    from .source_sqlite import inspect_registered_sqlite_assets
+
+    def intake(context, request, *, write, action=None):
+        action = action or ('source_register' if write else 'source_classify')
+        store = engine.directory.open(context.project_id, write=write)
+        values = request.model_dump(mode="json")
+        _authorize_source_paths(store, context, request.sources)
+        def classify_arguments():
+            effective, inheritance = inherited_routes(store, request.sources, request.overrides, request.parent_route_id)
+            return {key: value for key, value in values.items() if key != 'parent_route_id'} | {'overrides': effective}, inheritance
+        if not write:
+            arguments, inheritance = classify_arguments()
+            result = classify_source_intake(**arguments, registered_repository_path=store.source_root)
+            result['route_inheritance'] = inheritance
+            return _source_action_result(store, "source_classify", result)
+        with engine.project_work.mutation(store) as lease:
+            _authorize_source_paths(store, context, request.sources)
+            replay = replay_registration(store, context, action, values)
+            if replay is not None:
+                return _source_action_result(store, action, replay)
+            arguments, inheritance = classify_arguments()
+            with lease.coordinated_transaction(['sources']):
+                _authorize_source_paths(store, context, request.sources)
+                context.authorize('write')
+                result = classify_source_intake(**arguments, registered_repository_path=store.source_root,
+                    authority_mode="GOVERNED_CONTENT_REGISTRY", authority_registry_path=store, writer=lease)
+                result = publish_routes(store, context, action, values, result, inheritance, lease)
+                return _source_action_result(store, action, result)
+
+    engine.registry.register(ActionSpec("source_classify", "Classify ordered granted sources into retained sectors without registering or copying bytes.",
+        SourceIntakeRequest, SourceOperationResult, lambda c, r: intake(c, r, write=False),
+        profile="sources", workflow="source-intake", read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))
+    engine.registry.register(ActionSpec("source_register", "Freeze and register ordered source identities and assertions in the Sources authority.",
+        SourceIntakeRequest, SourceOperationResult, lambda c, r: intake(c, r, write=True),
+        permission="write", mutates=True, profile="sources", workflow="source-intake"))
+    engine.registry.register(ActionSpec('lane_configure_routes',
+        'Consume exact source-to-sector overrides in one attributed registration, optionally inheriting a prior route receipt.',
+        SourceRouteConfigure, SourceOperationResult,
+        lambda c, r: intake(c, r, write=True, action='lane_configure_routes'),
+        permission='write', mutates=True, profile='sources', workflow='source-intake'))
+    engine.registry.register(ActionSpec('source_routes_read', 'Inspect an exact immutable source-routing receipt and its source identities.',
+        SourceRoutesRead, SourceOperationResult,
+        lambda c, r: _source_action_result(engine.directory.open(c.project_id), 'source_routes_read',
+            load_route(engine.directory.open(c.project_id), r.route_id)),
+        profile='sources', workflow='source-intake', queryable_in_delta=True, cross_project_read=True,
+        studio_read=True, read_migrations=(*SOURCES_MIGRATIONS, *ROUTE_MIGRATIONS)))
+    engine.registry.register(ActionSpec("source_read", "Read a bounded page of registered source records without reading source payloads.",
+        SourceReadRequest, SourceOperationResult,
+        lambda c, r: _source_action_result(engine.directory.open(c.project_id), "source_read", read_source_records(engine.directory.open(c.project_id), r)),
+        profile="sources", workflow="source-intake", queryable_in_delta=True, cross_project_read=True,
+        studio_read=True, read_migrations=SOURCES_MIGRATIONS))
+
+    def bind(action, function, *, write, reads_source=False):
+        def handler(context, request):
+            store = engine.directory.open(context.project_id, write=write)
+            values = request.model_dump(mode="json")
+            def authorize():
+                if reads_source:
+                    _authorize_source_paths(store, context, _source_batch_paths(store, request.batch_id))
+                if isinstance(request, SourceCrosswalkRequest):
+                    _authorize_source_paths(store, context, [request.crosswalk_path])
+            if not write:
+                with project_snapshot(store.root):
+                    authorize()
+                    return _source_action_result(store, action, function(store, **values))
+            authorize()
+            with engine.project_work.mutation(store) as lease, lease.coordinated_transaction(["sources"]):
+                authorize()
+                result = function(store, **values, writer=lease)
+                value = _source_action_result(store, action, result)
+                store.append_receipt("source_sdk_action", {"action": action, "client_id": context.client_id,
+                    "request_id": context.request_id, "request_digest": sha256_bytes(canonical_json_bytes(values))})
+                return value
+        return handler
+
+    operations = (
+        ("source_verify", SourceBatchRequest, verify_source_batch_unchanged, False, True, "Verify the selected registered source bytes remain unchanged."),
+        ("source_reconcile_archives", SourceBatchRequest, reconcile_archive_counterparts, True, False, "Append exact archive and extracted-counterpart relationships."),
+        ("source_crosswalk", SourceCrosswalkRequest, register_source_crosswalk, True, False, "Register a granted crosswalk file with its content identity."),
+        ("source_inspect_sqlite", SourceSQLiteRequest, inspect_registered_sqlite_assets, True, True, "Inspect registered selected SQLite assets read-only and append measured schema receipts."),
+        ("source_identity", SourceIdentityRequest, register_source_identity_matrix, True, False, "Register typed identity entities, attributed assertions and evidence relationships."),
+        ("source_graph", SourceGraphRequest, build_registered_source_graph, True, True, "Build a bounded source graph only when an analysis consumer requests it."),
+        ("source_graph_diff", SourceGraphDiffRequest, diff_source_graphs, True, False, "Append a bounded comparison of two exact registered source graphs."),
+        ("source_graph_impact", SourceGraphImpactRequest, source_graph_impact, True, False, "Append bounded impact evidence from selected source graph nodes."),
+        ("source_git_history", SourceGitRequest, build_registered_git_history, True, True, "Index explicitly authorized Git history within the selected source budgets."),
+        ("source_git_impact", SourceGitImpactRequest, build_source_git_commit_impact, True, False, "Append commit impact tied to exact source history and graph identities."),
+        ("source_schema_map", SourceSchemaRequest, compile_and_map_custom_source_schema, True, False, "Compile a declarative custom schema and append its source mappings."),
+        ("source_schema_configure", SourceSchemaConfigureRequest, configure_source_intake_schema_pill, True, False, "Add or version a source schema contract with exact predecessor checks."),
+    )
+    for action, model, function, write, reads_source, description in operations:
+        engine.registry.register(ActionSpec(action, description, model, SourceOperationResult,
+            bind(action, function, write=write, reads_source=reads_source), profile="sources", workflow="source-intake",
+            permission="write" if write else "read", mutates=write,
+            read_migrations=() if write else SOURCES_MIGRATIONS))

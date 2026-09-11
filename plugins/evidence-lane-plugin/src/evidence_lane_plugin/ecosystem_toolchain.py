@@ -10,7 +10,6 @@ or tunnel/task identity.
 from __future__ import annotations
 
 import importlib.util
-import inspect
 import json
 import shutil
 from collections.abc import Iterable
@@ -19,7 +18,7 @@ from typing import Any
 
 from .hashing import canonical_json_bytes, sha256_bytes
 
-ECOSYSTEM_TOOLCHAIN_SCHEMA = "evidence-lane.ecosystem-toolchain.v1"
+ECOSYSTEM_TOOLCHAIN_SCHEMA = "evidence-lane.ecosystem-toolchain.v4"
 
 EXCLUDED_AGENT_OWNERS: tuple[str, ...] = (
     "Claude",
@@ -97,61 +96,14 @@ _ADAPTERS: tuple[AdapterContract, ...] = (
         python_modules=("fastmcp",),
         project_grant_required=False,
     ),
-    AdapterContract(
-        "GitHub_MCP_Server",
-        "mcp_connector",
-        "mcp_stdio_or_streamable_http",
-        ("repository_read", "repository_write", "checks", "pull_requests"),
-        ("CODE",),
-        ("EVIDENCE_LANE_GITHUB_APP_ID", "EVIDENCE_LANE_GITHUB_APP_PRIVATE_KEY_PATH"),
-        commands=("github-mcp-server",),
-    ),
-    AdapterContract(
-        "Filesystem_MCP_Server",
-        "mcp_connector",
-        "mcp_stdio",
-        ("bounded_read", "bounded_write", "search", "metadata"),
-        ("CODE", "DOCUMENT", "DATA"),
-        commands=("mcp-server-filesystem",),
-        root_scope_required=True,
-    ),
-    AdapterContract(
-        "PostgreSQL_MCP_Server",
-        "mcp_connector",
-        "mcp_stdio_or_streamable_http",
-        ("schema_inspect", "bounded_query", "migration_evidence"),
-        ("DATA", "RETRIEVAL"),
-        ("EVIDENCE_LANE_POSTGRES_DSN",),
-        commands=("postgres-mcp",),
-    ),
-    AdapterContract(
-        "Slack_MCP_Server",
-        "mcp_connector",
-        "mcp_stdio_or_streamable_http",
-        ("channel_read", "message_draft", "approved_send"),
-        ("RUNTIME_API",),
-        ("EVIDENCE_LANE_SLACK_TOKEN",),
-        commands=("slack-mcp-server",),
-    ),
     AdapterContract("Pinecone", "context_index", "https_api", ("vector_upsert", "vector_query", "delete_by_identity"), ("RETRIEVAL",), ("PINECONE_API_KEY", "PINECONE_HOST")),
     AdapterContract("Weaviate", "context_index", "https_api", ("schema_inspect", "vector_upsert", "hybrid_query"), ("RETRIEVAL",), ("WEAVIATE_URL", "WEAVIATE_API_KEY")),
     AdapterContract("Milvus", "context_index", "https_or_grpc_adapter", ("collection_inspect", "vector_upsert", "vector_query"), ("RETRIEVAL",), ("MILVUS_URI", "MILVUS_TOKEN")),
     AdapterContract("OpenSearch", "context_index", "https_api", ("index_inspect", "lexical_query", "vector_query"), ("RETRIEVAL",), ("OPENSEARCH_URL", "OPENSEARCH_USERNAME", "OPENSEARCH_PASSWORD")),
-    AdapterContract("LangSmith", "evaluation", "python_sdk", ("trace", "dataset", "evaluator", "experiment"), ("EVALUATION", "OBSERVABILITY"), ("LANGSMITH_API_KEY", "LANGSMITH_ENDPOINT"), ("langsmith",)),
-    AdapterContract("TruLens", "evaluation", "python_or_http_adapter", ("feedback_function", "record", "evaluation"), ("EVALUATION",), ("TRULENS_ENDPOINT", "TRULENS_API_KEY")),
-    AdapterContract("DeepEval", "evaluation", "python_or_command_adapter", ("metric", "dataset", "test_run"), ("EVALUATION",), ("DEEPEVAL_API_KEY",), commands=("deepeval",)),
-    AdapterContract("Promptfoo", "evaluation", "command_adapter", ("prompt_test", "red_team", "assertion"), ("EVALUATION",), ("PROMPTFOO_CONFIG",), commands=("promptfoo",)),
-    AdapterContract("Langfuse", "observability", "python_sdk", ("trace", "span", "generation", "score"), ("OBSERVABILITY",), ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"), ("langfuse",)),
-    AdapterContract("Helicone", "observability", "https_proxy", ("request_observation", "cost", "latency"), ("OBSERVABILITY",), ("HELICONE_API_KEY", "HELICONE_BASE_URL")),
-    AdapterContract("OpenTelemetry", "observability", "python_sdk", ("trace", "metric", "log", "otlp_export"), ("OBSERVABILITY",), ("OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_EXPORTER_OTLP_HEADERS"), ("opentelemetry.sdk", "opentelemetry.exporter.otlp.proto.http.trace_exporter"), project_grant_required=False),
+    AdapterContract("LangSmith", "evaluation", "https_api", ("feedback_create",), ("EVALUATION",), ("LANGSMITH_API_KEY", "LANGSMITH_ENDPOINT", "LANGSMITH_WORKSPACE_ID")),
+    AdapterContract("Langfuse", "observability", "otlp_http_json", ("span", "generation", "event", "tool", "evaluator"), ("OBSERVABILITY",), ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL")),
+    AdapterContract("OpenTelemetry", "observability", "otlp_http_json", ("trace", "metric", "log"), ("OBSERVABILITY",), ("OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_EXPORTER_OTLP_HEADERS")),
     AdapterContract("Grafana", "observability", "https_api", ("dashboard_evidence", "alert_evidence", "trace_link"), ("OBSERVABILITY",), ("GRAFANA_URL", "GRAFANA_SERVICE_ACCOUNT_TOKEN")),
-    AdapterContract("Docker", "runtime_deployment", "host_command", ("image_build", "container_run", "artifact_inspect"), ("DEPLOYMENT",), commands=("docker",)),
-    AdapterContract("Kubernetes", "runtime_deployment", "host_command", ("manifest_validate", "apply_after_approval", "rollout_evidence"), ("DEPLOYMENT",), ("KUBECONFIG",), commands=("kubectl",)),
-    AdapterContract("AWS_Lambda", "runtime_deployment", "cloud_api", ("package_validate", "deploy_after_approval", "invoke_evidence"), ("DEPLOYMENT",), ("AWS_PROFILE", "AWS_REGION")),
-    AdapterContract("Google_Cloud_Run", "runtime_deployment", "cloud_api", ("container_validate", "deploy_after_approval", "revision_evidence"), ("DEPLOYMENT",), ("GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT")),
-    AdapterContract("AWS", "cloud_provider", "cloud_api_or_cli", ("identity", "artifact", "deployment_evidence"), ("DEPLOYMENT",), ("AWS_PROFILE", "AWS_REGION"), commands=("aws",)),
-    AdapterContract("Azure", "cloud_provider", "cloud_api_or_cli", ("identity", "artifact", "deployment_evidence"), ("DEPLOYMENT",), ("AZURE_TENANT_ID", "AZURE_CLIENT_ID"), commands=("az",)),
-    AdapterContract("Google_Cloud", "cloud_provider", "cloud_api_or_cli", ("identity", "artifact", "deployment_evidence"), ("DEPLOYMENT",), ("GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT"), commands=("gcloud",)),
 )
 
 ECOSYSTEM_ADAPTERS: dict[str, AdapterContract] = {
@@ -159,88 +111,135 @@ ECOSYSTEM_ADAPTERS: dict[str, AdapterContract] = {
 }
 
 
-def build_openai_agents_function_tool(
-    *,
-    action: dict[str, Any],
-    dispatcher: Any,
-) -> Any:
-    """Pair one governed action with the Agents SDK without creating an Agent.
+def build_openai_agents_function_tool(*, action: dict[str, Any], client: Any) -> Any:
+    """Compose a current authenticated SDK action without creating an Agent.
 
-    The returned FunctionTool delegates to the existing Evidence Lane SDK
-    dispatcher.  This module never instantiates ``Agent`` or ``Runner`` and
-    therefore cannot become an independent reasoning or lifecycle owner.
+    The current native MCP request envelope is also the FunctionTool contract.
+    The engine keeps permission, Delta, lane and output-validation ownership;
+    this adapter adds no authority and never retries an uncertain invocation.
     """
+    import asyncio
+    import copy
 
     from agents import FunctionTool
+    from jsonschema import Draft202012Validator
+    from jsonschema.exceptions import ValidationError as SchemaValidationError
 
-    name = str(action["name"])
-    description = str(action["description"])
-    input_schema = dict(action["input_schema"])
-    output_schema = dict(action["output_schema"])
+    from .errors import LaneError
+    from .local_transport import MAX_ACTION_MESSAGE_BYTES
+    from .mcp_adapter import tool_from_action
+    from .sdk import ActionRequest, ActionResponse, EvidenceLaneClient
 
-    async def invoke(_context: Any, raw_arguments: str) -> Any:
-        arguments = json.loads(raw_arguments)
-        if not isinstance(arguments, dict):
-            raise TypeError("Evidence Lane action arguments must be an object.")
-        result = dispatcher(name, arguments)
-        if inspect.isawaitable(result):
-            result = await result
+    if not isinstance(client, EvidenceLaneClient) or not isinstance(action, dict):
+        raise LaneError('ECOSYSTEM_BOUND_SDK_REQUIRED', 'Select an authenticated Evidence Lane SDK client and current action.')
+    name = action.get('name')
+    if not isinstance(name, str) or not name or len(name) > 64:
+        raise LaneError('ECOSYSTEM_ACTION_REQUIRED', 'Select one exact current action.')
+    catalog_method = getattr(client.transport, 'catalog', None)
+    if not callable(catalog_method):
+        raise LaneError('ECOSYSTEM_CATALOG_REQUIRED', 'The selected SDK transport must expose its authenticated catalog.')
+
+    def current_action():
+        try:
+            catalog = catalog_method()
+        except RuntimeError:
+            raise LaneError('ECOSYSTEM_CATALOG_UNAVAILABLE', 'The selected SDK catalog is unavailable; reconnect explicitly before rebuilding this tool.') from None
+        if not isinstance(catalog, list) or not 1 <= len(catalog) <= 1024:
+            raise LaneError('ECOSYSTEM_CATALOG_INVALID', 'The authenticated action catalog exceeds this adapter contract.')
+        matches = [row for row in catalog if isinstance(row, dict) and row.get('name') == name]
+        if len(matches) != 1:
+            raise LaneError('ECOSYSTEM_ACTION_UNAVAILABLE', 'The selected action is not uniquely present in the current catalog.')
+        return matches[0]
+
+    selected = copy.deepcopy(current_action())
+    schema_digest = sha256_bytes(canonical_json_bytes(selected))
+    if sha256_bytes(canonical_json_bytes(action)) != schema_digest:
+        raise LaneError('ECOSYSTEM_ACTION_SCHEMA_CHANGED', 'The supplied action differs from the current authenticated catalog.')
+    native_tool = tool_from_action(selected)
+    input_validator = Draft202012Validator(copy.deepcopy(native_tool.inputSchema))
+    output_validator = Draft202012Validator(copy.deepcopy(selected['outputSchema']))
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('Duplicate field')
+            result[key] = value
         return result
 
-    tool = FunctionTool(
-        name=name,
-        description=description,
-        params_json_schema=input_schema,
-        output_json_schema=None,
-        on_invoke_tool=invoke,
-        strict_json_schema=False,
-        is_enabled=True,
-        needs_approval=False,
-        _is_agent_tool=False,
-        _is_codex_tool=True,
-    )
-    tool._evidence_lane_output_schema = output_schema  # type: ignore[attr-defined]
-    tool._evidence_lane_input_schema_sha256 = sha256_bytes(  # type: ignore[attr-defined]
-        canonical_json_bytes(input_schema)
-    )
-    tool._evidence_lane_output_schema_sha256 = sha256_bytes(  # type: ignore[attr-defined]
-        canonical_json_bytes(output_schema)
-    )
-    tool._evidence_lane_output_validation_owner = (  # type: ignore[attr-defined]
-        "EVIDENCE_LANE_INTERNAL_SDK"
-    )
-    tool._evidence_lane_input_validation_owner = (  # type: ignore[attr-defined]
-        "EVIDENCE_LANE_INTERNAL_SDK"
-    )
+    def invalid_constant(_value):
+        raise ValueError('Nonfinite number')
+
+    async def invoke(_context: Any, raw_arguments: str) -> str:
+        try:
+            if not isinstance(raw_arguments, str) or len(raw_arguments.encode()) > MAX_ACTION_MESSAGE_BYTES:
+                raise ValueError('Input budget')
+            values = json.loads(raw_arguments, object_pairs_hook=unique_object, parse_constant=invalid_constant)
+            input_validator.validate(values)
+            ActionRequest(action=name, **values)
+        except (ValueError, TypeError, RecursionError, SchemaValidationError):
+            raise LaneError('ECOSYSTEM_INPUT_INVALID', 'The invocation must match the bounded current SDK envelope.') from None
+        fresh = await asyncio.to_thread(current_action)
+        if sha256_bytes(canonical_json_bytes(fresh)) != schema_digest:
+            raise LaneError('ECOSYSTEM_ACTION_SCHEMA_CHANGED', 'Rebuild the tool from the changed authenticated catalog.')
+        try:
+            response = await asyncio.to_thread(client.call, name, project_id=values.get('project_id'),
+                expected_revision=values.get('expected_revision'), arguments=values['arguments'])
+            response = ActionResponse.model_validate(response)
+            if response.action != name:
+                raise ValueError('Action binding')
+            if response.status in {'ok', 'queued'}:
+                output_validator.validate(response.result)
+            return response.model_dump_json()
+        except (ValueError, TypeError, RecursionError, SchemaValidationError):
+            raise LaneError('ECOSYSTEM_RESPONSE_INVALID', 'The SDK response does not match the current action contract.') from None
+        except RuntimeError:
+            raise LaneError('ECOSYSTEM_DELIVERY_UNCONFIRMED', 'SDK delivery was not confirmed. Reconcile before retrying; no automatic retry was performed.') from None
+
+    tool: Any = FunctionTool(name=name, description=selected['description'],
+        params_json_schema=copy.deepcopy(native_tool.inputSchema), on_invoke_tool=invoke,
+        strict_json_schema=False, is_enabled=True, needs_approval=False)
+    # Strict conversion would rewrite optional/default fields. The registered
+    # envelope and action result are validated above without changing schemas.
+    tool._evidence_lane_contract = {
+        'schema': 'evidence-lane.agents-sdk-action.v4', 'status': 'BOUND_TOOL_CONSTRUCTED',
+        'action_schema_sha256': schema_digest, 'input_schema_sha256': sha256_bytes(canonical_json_bytes(native_tool.inputSchema)),
+        'output_schema_sha256': sha256_bytes(canonical_json_bytes(selected['outputSchema'])),
+        'input_validation_owner': 'current_mcp_envelope_and_authenticated_sdk',
+        'output_validation_owner': 'current_action_schema_and_authenticated_sdk',
+        'invocation_revalidates_catalog': True, 'automatic_retry': False,
+        'agent_created': False, 'runner_created': False, 'native_host_provenance_verified': False,
+        'construction_authorizes_execution': False,
+    }
     return tool
 
 
-def build_fastmcp_gateway(native_server: Any) -> Any:
-    """Compose the pinned FastMCP 3 gateway over the governed native server."""
+def build_fastmcp_gateway(native_transport: Any) -> Any:
+    """Compose a supplied current MCP transport without claiming it is live.
 
+    The backend must be the current native adapter with its own explicit client
+    and project grants. A legacy low-level Server object is not a transport.
+    Construction never installs, starts or authorizes an Evidence Lane engine.
+    """
+    from importlib.metadata import version
+
+    from fastmcp import Client
     from fastmcp.server import create_proxy
 
-    gateway = create_proxy(
-        native_server,
-        name="Evidence Lane FastMCP Gateway",
-        instructions=(
-            "Transport-only proxy for the governed Evidence Lane native action "
-            "catalog. Codex, SDK, ENV/UOP, authority, HIL, and receipt ownership "
-            "remain in the backend server."
-        ),
-        version="3.0.0",
-        mask_error_details=False,
-    )
-    gateway._evidence_lane_contract = {  # type: ignore[attr-defined]
-        "schema": "evidence-lane.fastmcp-gateway.v1",
-        "status": "ACTIVE_TRANSPORT_ONLY",
-        "fastmcp_version": "3.4.7",
-        "native_action_names_unchanged": True,
-        "native_action_schemas_unchanged": True,
-        "agent_authority": False,
-        "lifecycle_authority": False,
-        "project_authority": False,
-        "scheduler_authority": False,
+    from . import __version__
+    from .errors import LaneError
+
+    if isinstance(native_transport, Client) and native_transport.is_connected():
+        raise LaneError('ECOSYSTEM_SHARED_CLIENT_UNSUPPORTED', 'Use a transport or disconnected client to preserve separate backend sessions.')
+    gateway: Any = create_proxy(native_transport, name='Evidence Lane FastMCP Gateway',
+        instructions='Transport-only proxy. Current action schemas, project permissions, Plan and lane ownership remain in the authenticated Evidence Lane backend.',
+        version=__version__, mask_error_details=True, provider_error_strategy='raise', dereference_schemas=False)
+    gateway._evidence_lane_contract = {
+        'schema': 'evidence-lane.fastmcp-gateway.v4', 'status': 'COMPOSED_NOT_CONTACTED',
+        'fastmcp_version': version('fastmcp'), 'native_action_names_unchanged': None,
+        'native_action_schemas_unchanged': None, 'backend_protocol_verified': False,
+        'agent_authority': False, 'lifecycle_authority': False, 'project_authority': False,
+        'scheduler_authority': False, 'construction_authorizes_execution': False,
     }
     return gateway
 
@@ -290,20 +289,24 @@ def validate_ecosystem_adapter_catalog(
 
 def inspect_ecosystem_adapter_runtime(tool_id: str) -> dict[str, Any]:
     adapter = ECOSYSTEM_ADAPTERS[tool_id]
-    modules = {
-        name: importlib.util.find_spec(name) is not None
-        for name in adapter.python_modules
-    }
+    modules = {}
+    for name in adapter.python_modules:
+        try:
+            modules[name] = importlib.util.find_spec(name) is not None
+        except (ImportError, ModuleNotFoundError, ValueError):
+            modules[name] = False
     commands = {name: shutil.which(name) for name in adapter.commands}
     if adapter.python_modules:
-        state = "ACTIVE" if all(modules.values()) else "UNAVAILABLE"
+        state = "MODULES_FOUND" if all(modules.values()) else "MODULES_MISSING"
     elif adapter.commands:
-        state = "AVAILABLE" if any(commands.values()) else "CONFIGURATION_REQUIRED"
+        state = "COMMANDS_FOUND" if any(commands.values()) else "COMMANDS_MISSING"
     else:
         state = "CONFIGURATION_REQUIRED"
     body = {
-        "schema": "evidence-lane.ecosystem-adapter-runtime.v1",
-        "status": "PASS",
+        "schema": "evidence-lane.ecosystem-adapter-runtime.v4",
+        "status": "DISCOVERY_COMPLETE",
+        "runtime_activated": False,
+        "service_readiness_verified": False,
         "tool_id": tool_id,
         "state": state,
         "modules": modules,
@@ -349,8 +352,12 @@ def resolve_ecosystem_adapters(
         and (not row.project_grant_required or row.tool_id in granted)
     ]
     body = {
-        "schema": "evidence-lane.ecosystem-adapter-resolution.v1",
-        "status": "PASS" if selected else "BLOCKED_NO_GRANTED_AVAILABLE_ADAPTER",
+        "schema": "evidence-lane.ecosystem-adapter-resolution.v4",
+        "status": "CANDIDATE_SELECTED" if selected else "NO_CANDIDATE",
+        "input_provenance": "CALLER_SUPPLIED_CAPABILITY_LISTS",
+        "permissions_verified": False,
+        "runtime_readiness_verified": False,
+        "execution_authorized": False,
         "capability": exact_capability,
         "action_class": exact_class,
         "lane_id": exact_lane,

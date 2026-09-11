@@ -1,41 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Canon consequence graph installed manifest",
   "type": "object",
   "required": [
     "schema",
-    "status",
-    "authority_id",
-    "parent_authority_id",
+    "owner",
     "database",
-    "database_sha256",
+    "separate_graph_database",
+    "runtime",
     "members"
   ],
   "properties": {
-    "schema": {
-      "const": "evidence-lane.installed-canon-consequence-surface.v1"
+    "owner": {
+      "const": "canon"
     },
-    "status": {
-      "const": "PASS"
-    },
-    "authority_id": {
-      "const": "canon_consequence_graph"
-    },
-    "parent_authority_id": {
-      "const": "canon_input"
-    },
-    "database": {
-      "const": "canon-consequence-graph.sqlite"
-    },
-    "database_sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "members": {
-      "type": "array",
-      "minItems": 1
+    "separate_graph_database": {
+      "const": false
     }
   },
-  "additionalProperties": true,
-  "receipt_sha256": "8D7BD2AF9A3E0D10F0AF88E54AF034D14A94BCFEB0D2638F396EFB50EE9CA229"
+  "title": "Canon consequence graph binding to its parent authority"
 }

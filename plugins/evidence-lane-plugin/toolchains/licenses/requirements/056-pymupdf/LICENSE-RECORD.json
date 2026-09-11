@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 56,
   "tool": "PyMuPDF",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "5E563FCFF17D78D8919D20D99BC9A10A0BB7DF7A9CDE8087FF4810FBDFAB1C6E"
+  "historical_ordinal": 56,
+  "catalog_ordinal": 55,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "cd6659cb1631cddd6c2be93cef8903473fd3035d00d324cd5259efb82f887343"
 }

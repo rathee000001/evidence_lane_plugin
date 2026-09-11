@@ -1,0 +1,85 @@
+{
+  "schema": "evidence-lane.tableau-fixture-provenance.v4",
+  "repository": "tableau/document-api-python",
+  "commit": "447357fc1ad21945b31c0ed20d69593c13cc7921",
+  "license": "MIT",
+  "files": [
+    {
+      "path": "LICENSE.tableau-document-api.txt",
+      "source_path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/LICENSE",
+      "sha256": "3ce1b54ba7ead82a42d71fe19941e6aec5973401660a75cdf8d2698d020c88ef",
+      "bytes": 1074
+    },
+    {
+      "path": "TABLEAU_10_TDS.tds",
+      "source_path": "test/assets/TABLEAU_10_TDS.tds",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/TABLEAU_10_TDS.tds",
+      "sha256": "7196377adb42b90793c1c390fc19623545d8686dd49ab5a98c62f7ed39967ebc",
+      "bytes": 746
+    },
+    {
+      "path": "TABLEAU_10_TDSX.tdsx",
+      "source_path": "test/assets/TABLEAU_10_TDSX.tdsx",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/TABLEAU_10_TDSX.tdsx",
+      "sha256": "83e53c6b0557df8686b831169b74bea53dbc451a9fa09e452af2e8e2043a6cd0",
+      "bytes": 1866
+    },
+    {
+      "path": "TABLEAU_10_TWB.twb",
+      "source_path": "test/assets/TABLEAU_10_TWB.twb",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/TABLEAU_10_TWB.twb",
+      "sha256": "22e5cd153ec0333d2e631b9e10d213bed60c7f8e923f9a028e6312391164b7b0",
+      "bytes": 1337
+    },
+    {
+      "path": "TABLEAU_10_TWBX.twbx",
+      "source_path": "test/assets/TABLEAU_10_TWBX.twbx",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/TABLEAU_10_TWBX.twbx",
+      "sha256": "360da6ca0dce48b98e55fd0272a396c393bd8e09b1860a2ecbdd4d9e65d3a40a",
+      "bytes": 12146
+    },
+    {
+      "path": "datasource_test.tds",
+      "source_path": "test/assets/datasource_test.tds",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/datasource_test.tds",
+      "sha256": "187324866904fb15581f7029cb7b5d59c8912da20186614171f4a133ecda8089",
+      "bytes": 5083
+    },
+    {
+      "path": "datasource_test.twb",
+      "source_path": "test/assets/datasource_test.twb",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/datasource_test.twb",
+      "sha256": "0a72ceeda6e945bb6c09ba0093de899935fa4ba6afca8bd3752cf07d7f3bb080",
+      "bytes": 7104
+    },
+    {
+      "path": "filtering.twb",
+      "source_path": "test/assets/filtering.twb",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/filtering.twb",
+      "sha256": "788baf87944a96038d9b7a3bcf275fa126cb2811b1022e548dbe6fc8cae7dfd3",
+      "bytes": 114728
+    },
+    {
+      "path": "multiple_connections.twb",
+      "source_path": "test/assets/multiple_connections.twb",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/multiple_connections.twb",
+      "sha256": "1c985c5024dd17ce68e48d682a28ae15b71a3947adf51deccffbc84864151a9f",
+      "bytes": 2030
+    },
+    {
+      "path": "unicode.tds",
+      "source_path": "test/assets/unicode.tds",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/unicode.tds",
+      "sha256": "e1f5b879b03760d41802e02c89139b3d4af5d8e291e1b6f4abf92b8d4fa9fefa",
+      "bytes": 4493
+    },
+    {
+      "path": "shapes_test.twb",
+      "source_path": "test/assets/shapes_test.twb",
+      "url": "https://raw.githubusercontent.com/tableau/document-api-python/447357fc1ad21945b31c0ed20d69593c13cc7921/test/assets/shapes_test.twb",
+      "sha256": "065df0b6852cbe5c7459b9a15693f52c10b301e49e4e196b71e5773ccb49888d",
+      "bytes": 232422
+    }
+  ]
+}

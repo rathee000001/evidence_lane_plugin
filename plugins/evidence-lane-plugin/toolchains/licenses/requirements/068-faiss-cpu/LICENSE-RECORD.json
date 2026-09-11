@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 68,
   "tool": "FAISS_CPU",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "6F3D95BCE8E17BD83E24332C4458A30BDD3BCF4B8431495A3F6FC216AE9422D8"
+  "historical_ordinal": 68,
+  "catalog_ordinal": 67,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "a52ec3037d5c18bc8d4246abe8f961abce554e82440a3dd704a04c2d7ced63f1"
 }

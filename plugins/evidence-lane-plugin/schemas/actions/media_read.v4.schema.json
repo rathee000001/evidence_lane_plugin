@@ -1,0 +1,158 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read bounded exact media or original-source bytes.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 262144,
+        "maximum": 524288,
+        "minimum": 1,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 16777216,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      },
+      "representation": {
+        "default": "media",
+        "enum": [
+          "media",
+          "original_source"
+        ],
+        "title": "Representation",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "MediaRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "lane_fetch": {
+    "digest_result": "sha256",
+    "lanes": [
+      "images_ocr"
+    ],
+    "offset_argument": "offset",
+    "path_argument": null,
+    "path_prefix": "",
+    "path_result": "logical_name",
+    "primary_representation": "media",
+    "size_result": "total_bytes"
+  },
+  "mutates": false,
+  "name": "media_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "MediaResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "images_ocr",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "6118a44cd7fd776b8553dae51c188751a324e3edb733efac42337879c5a43215",
+      "owner": "media",
+      "version": 1
+    },
+    {
+      "digest": "e6b275e15b5028be6c3b20556d64814ef016cf9ea72836e02994af3824a0a074",
+      "owner": "media",
+      "version": 2
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "4a70bd7e25667932d7c53d397658dcd162395bb912a38a1ea1e4cba024342ff3",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "media_read",
+    "profile": "images_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.media_profile:register_media_actions.<locals>.reader.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

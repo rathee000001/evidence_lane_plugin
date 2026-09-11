@@ -1,0 +1,808 @@
+{
+  "schema": "evidence-lane.authority-tooling.v4",
+  "owner_id": "plan",
+  "runtime": "runtime.py",
+  "builder": "builder.py:build_authority",
+  "reader": "reader.py:read_authority",
+  "actions": [
+    {
+      "name": "delta_enter",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "delta",
+      "workflow": "build",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "delta_enter",
+        "profile": "delta",
+        "routes": [
+          {
+            "route_id": "delta_enter.engine",
+            "adapter": "evidence_lane_plugin.adaptive_delta_entry:DeltaService.enter",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "21797030d8e73aff533d0a89103c3f876ba5d1026ac711f28e25105264132484"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "delta_enter_planned",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "delta",
+      "workflow": "build",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "delta_enter_planned",
+        "profile": "delta",
+        "routes": [
+          {
+            "route_id": "delta_enter_planned.engine",
+            "adapter": "evidence_lane_plugin.adaptive_delta_entry:DeltaService.enter_planned",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "3d34bf240ec531dfa354470d80a801ffda1c0b4f687a326d75f354c94ddd895a"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "delta_query",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "delta",
+      "workflow": "evi",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "delta_query",
+        "profile": "delta",
+        "routes": [
+          {
+            "route_id": "delta_query.engine",
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.query",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7b4af4491728a097f75a8de2f0b2b20a81b7b9b6432727fd926cd780ca87c92e"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "delta_status",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "delta",
+      "workflow": "build",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "delta_status",
+        "profile": "delta",
+        "routes": [
+          {
+            "route_id": "delta_status.engine",
+            "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.status",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "80bba594b18782a173c1fc13a727e4990194839f21c35ddb4622cd78781bac02"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "job_reconcile_effect",
+      "permission": "admin",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "recover",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "job_reconcile_effect",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "job_reconcile_effect.local_or_recorded",
+            "adapter": "evidence_lane_plugin.job_recovery:register_job_recovery_actions.<locals>.reconcile",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "observation_route": [
+                "local_or_recorded"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "job_reconcile_effect.git_readback",
+            "adapter": "evidence_lane_plugin.job_recovery:register_job_recovery_actions.<locals>.reconcile",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "observation_route": [
+                "git_readback"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "dfab46da8328fd41b64cae92b51e8ae6d90fff58719be6151edde78b4a6098a3"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "job_recovery_inspect",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "recover",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "job_recovery_inspect",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "job_recovery_inspect.engine",
+            "adapter": "evidence_lane_plugin.job_recovery:register_job_recovery_actions.<locals>.inspect",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2610a2ee442aae628401b2073c776a5e33dc554923ff66cdea8c3c5e674e1689"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_create",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_create",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_create.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.create",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "1cb69f6d1a52e15369229763f3585401f728894c25ecaf2e8098a7d6908da387"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_host_bind",
+      "permission": "admin",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_host_bind",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_host_bind.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.bind_host",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "02afd901f97c99bb4fcf0740610e881999ae6fd4d1299fd69444d7457cd9b8fb"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_host_status",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_host_status",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_host_status.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "a3a05a2c5be56b354a993340c358220dd1daa46e9b9a17a12d947054a0dbbe41"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_host_sync",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_host_sync",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_host_sync.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.sync_host",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b0597200f30bb3b64a2a81cfe9e94d80de981f79e7061a5a61fb455de8990868"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_read",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_read.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "14735effb96f3269fc2f4c3fa6fd44321c82d12bbe553d9e6ae5a72032c19788"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "plan_refresh",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "plan_refresh",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "plan_refresh.engine",
+            "adapter": "evidence_lane_plugin.plan_runtime:register_plan_actions.<locals>.replace",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2be6568c9d6a7246bbc38d61217a79eeccb189fb3ddb34ba68ecbea7082f6b2f"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "steer_preview",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "steer_preview",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "steer_preview.engine",
+            "adapter": "evidence_lane_plugin.steering:register_steer_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "7af3547407300d8f3b90f0a48d4ae7049bc8262971dd66b9283522eff0704e78"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "steer_submit",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "steer_submit",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "steer_submit.engine",
+            "adapter": "evidence_lane_plugin.steering:register_steer_actions.<locals>.submit",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9f6058ef5c89e9242aa32d9ca36ab09c511abe31b858940530131f30387a4d1e"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "validation_policy_read",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "validation_policy_read",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "validation_policy_read.engine",
+            "adapter": "evidence_lane_plugin.acceptance:register_validation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "60d35c8b6e00d8f2744a12ee7499f7a454e0a836948b2a6d7f1cae516d2e9127"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "validation_policy_set",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "plan",
+      "workflow": "plan",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "validation_policy_set",
+        "profile": "plan",
+        "routes": [
+          {
+            "route_id": "validation_policy_set.engine",
+            "adapter": "evidence_lane_plugin.acceptance:register_validation_actions.<locals>.configure",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4be17112bddba522b7655ab69add1370ef1610fa2df0c8b478b67a446262f169"
+      },
+      "verification_checks": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "plan.dependencies",
+      "lane_id": "plan",
+      "folder": "authorities/plan",
+      "version": 1,
+      "meaning": "Current Plan tasks, states and declared dependencies.",
+      "consumer": "artifact_export",
+      "implementation_digest": "1554d49eb5fb3530d012d2abd0b25a0e43764cb547937cca635910339eb46c4a",
+      "files": {
+        "mmd": "plan.mmd",
+        "dot": "plan.dot",
+        "pointer": "plan-pointer.json"
+      },
+      "scope": {
+        "query": false,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "plan"
+      ],
+      "node_kinds": [
+        "plan_task"
+      ],
+      "edge_kinds": [
+        "DEPENDS_ON"
+      ],
+      "schemas": [
+        {
+          "owner": "plan",
+          "version": 1,
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c"
+        },
+        {
+          "owner": "plan",
+          "version": 2,
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543"
+        },
+        {
+          "owner": "plan",
+          "version": 3,
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "dependency_installation_inferred": false,
+  "planned_actions": [],
+  "planned_entrypoint": "delta_enter_planned through the owning sector builder",
+  "shared_toolchain": "Owning operation contracts and measured shared engine readiness"
+}

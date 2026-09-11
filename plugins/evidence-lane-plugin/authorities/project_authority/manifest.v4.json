@@ -1,0 +1,110 @@
+{
+  "schema": "evidence-lane.root-pv-package.v4",
+  "source_package_folder": "authorities/project_authority",
+  "database": "root-pv.sqlite3",
+  "runtime": "authorities/project_authority/runtime.py",
+  "business_records": false,
+  "roles": [
+    "project_identity",
+    "writer_fence",
+    "lane_catalog",
+    "published_lane_heads",
+    "coordinated_commit_recovery"
+  ],
+  "accepted_zip_hierarchy": false,
+  "installed_execution_claimed": false,
+  "members": [
+    {
+      "path": "authorities/project_authority/README.md",
+      "sha256": "8f871135fe80360b09c134b2509a024c25ebcf3ee9ac308bd23731890dc95af9"
+    },
+    {
+      "path": "authorities/project_authority/build-refresh-contract.schema.json",
+      "sha256": "6b9f6b7fe6b86a50fb5be424ffcec8cd26dc06ddb1146cd0829daa2cdfa13112"
+    },
+    {
+      "path": "authorities/project_authority/builder.py",
+      "sha256": "ecb6aa4da35055ca98d727b1f7880a72258a1c37d3d46fa836eb240641c52018"
+    },
+    {
+      "path": "authorities/project_authority/lane-metadata.sql",
+      "sha256": "fc08106780b42f2ebae9cdd059c866b980688a5b2f6ac9aa8616a1f2f8543ba2"
+    },
+    {
+      "path": "authorities/project_authority/live-root-layout.schema.json",
+      "sha256": "00d2a32be6dd019a3d4f3644da9e1eaec2909dd7edca06125c7f87bb32d03f27"
+    },
+    {
+      "path": "authorities/project_authority/live-root-layout.v4.json",
+      "sha256": "2049f15663c89a3b833dcf1e4618dce57af150161e6d3cfa81c2c0209a6435d4"
+    },
+    {
+      "path": "authorities/project_authority/manifest.schema.json",
+      "sha256": "e947fc001bbd012a6737ab1b4e700d6e3f8a37a92207afe1d788939b0a357bfc"
+    },
+    {
+      "path": "authorities/project_authority/project-authority.sqlite",
+      "sha256": "9c91096e366982d410bb420663ddbb7e44584a750604202815f8016e2b363a4c"
+    },
+    {
+      "path": "authorities/project_authority/project_authority.dot",
+      "sha256": "7bdebc23e19332bf6a98c222b8bc329027f9524e5302004ade809658e185b561"
+    },
+    {
+      "path": "authorities/project_authority/project_authority.mmd",
+      "sha256": "69345072a017c150e53540ca7fcecbbf82d5294ddcfe82164b232dd8c42ff032"
+    },
+    {
+      "path": "authorities/project_authority/project_authority.tools.json",
+      "sha256": "879429d13d40d3da0938f4b6f94a90150cacc2f3503d6bd9563d58ef744aec9a"
+    },
+    {
+      "path": "authorities/project_authority/reader-contract.schema.json",
+      "sha256": "4aab0b3c93bf9a148959faa2d8ae82329b89c148bfc79f90237a7ea74db0b2ea"
+    },
+    {
+      "path": "authorities/project_authority/reader.py",
+      "sha256": "38f922f722340cfb66b6e2680b1178cdd7233645674c2c4d0300194ec0b81f87"
+    },
+    {
+      "path": "authorities/project_authority/refresh-receipt.schema.json",
+      "sha256": "67deb3c5b2cd3b7fd875c818fd9d89817c1a251f454f50d2b905e0a692624523"
+    },
+    {
+      "path": "authorities/project_authority/runtime-binding.schema.json",
+      "sha256": "8b22efcf0632bbc7e3801fd98c1c7f7050fa5af7d72ba927ac9df0b1b44b79c2"
+    },
+    {
+      "path": "authorities/project_authority/runtime-binding.v4.json",
+      "sha256": "87bd0a38235e5843a734b7a8fe4fda2ef1e817acdfa2d9e40cbdd34640cf126e"
+    },
+    {
+      "path": "authorities/project_authority/runtime.py",
+      "sha256": "6569c571a3032a0cda61579b6242b65d9c6dd2aa7f92e6c3d2cd97554884c8fd"
+    },
+    {
+      "path": "authorities/project_authority/schema.sql",
+      "sha256": "0e22957988d25f703c0f40ef105245337eaab1929f1ae51dd19d5f946c177529"
+    },
+    {
+      "path": "authorities/project_authority/sqlite-schema.v4.json",
+      "sha256": "18c0e3283f05a1d46a4df76a196ce68d7099e8f65222026008be605c97408696"
+    },
+    {
+      "path": "authorities/project_authority/tools.schema.json",
+      "sha256": "2eabf0dcf320dc961ca8939f46538a2d05b3c8582836482050a3b7c27ac22ad2"
+    },
+    {
+      "path": "authorities/project_authority/workflow.dot",
+      "sha256": "dd61efd7c72f5d3844b19eb96bc5298b5208c559a885658ac744a412d4bf5df4"
+    },
+    {
+      "path": "authorities/project_authority/workflow.mmd",
+      "sha256": "47dd5dddc031f8e67889840835b9823a6e030fdafb95808e75c10883231bd156"
+    },
+    {
+      "path": "authorities/project_authority/workflow.v4.json",
+      "sha256": "9fca73b0fc95b9e837bf024cb97e559bb8167cc38f33213dc21eb441900c9fca"
+    }
+  ]
+}

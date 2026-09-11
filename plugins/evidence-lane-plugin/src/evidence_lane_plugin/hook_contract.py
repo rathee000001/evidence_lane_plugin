@@ -1,689 +1,277 @@
-"""Canonical Codex lifecycle-hook transport contract.
+"""Supported native hook entrypoints over the persistent v4 capture channel.
 
-The host emits lifecycle signals.  Hooks validate, redact, bound, and seal
-those signals; installed skills own PREPARE, native Evidence Lane reads,
-classification, Plan refresh, Goal behavior, and HIL sequencing.
+No hook starts lifecycle work, grants projects, requests a continuation, reads
+a transcript, changes the Goal or impersonates a Codex task.
 """
-
 from __future__ import annotations
 
 import json
-import re
-from collections.abc import Iterable, Mapping
-from dataclasses import asdict, dataclass
+import os
 from pathlib import Path
-from typing import Any
+from uuid import uuid4
 
-from .hashing import canonical_json_bytes, sha256_bytes
-from .package_root import resolve_plugin_root
-from .redaction import contains_secret, redact
+import httpx
+from pydantic import ValidationError
 
-HOOK_CONTRACT_SCHEMA = "evidence-lane.codex-hook-lifecycle-contract.v1"
-HOOK_TRANSPORT_SCHEMA = "evidence-lane.codex-hook-transport-envelope.v1"
-HOOK_CAPABILITY_SCHEMA = "evidence-lane.codex-hook-capability-receipt.v1"
-HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA = "evidence-lane.hook-logical-action-registry.v1"
-HOOK_LAUNCH_DIAGNOSTIC_SCHEMA = "evidence-lane.codex-hook-launch-diagnostic.v1"
-HOOK_CONTRACT_VERSION = 1
-MAX_HOOK_TRANSPORT_BYTES = 65_536
-MAX_VISIBLE_INPUT_CHARS = 32_768
+from .capture_routing import (
+    HOOK_EVENT_ORDER,
+    SUBAGENT_OBSERVER_EVENTS,
+    HookEnvelope,
+    normalize_hook,
+    seal_observer_identity,
+)
+from .errors import LaneError
+from .launcher import runtime_root, verify_engine_binding
+from .local_transport import LocalTransport, owner_endpoint
+from .redaction import redact
+from .storage import json_text
 
-
-class HookContractError(ValueError):
-    """Raised when a lifecycle hook signal violates the sealed contract."""
-
-
-@dataclass(frozen=True)
-class HookEventContract:
-    event_name: str
-    ordinal: int
-    hook_transport_phase: str
-    skill_action_owner: str
-    delivery: str
-    handler: str
-
-
-HOOK_EVENTS: tuple[HookEventContract, ...] = (
-    HookEventContract(
-        "SessionStart",
-        1,
-        "HOST_ENTRY_SIGNAL",
-        "SKILL_BOOT_RESUME_OR_PANEL_REENTRY",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "session_start.py",
-    ),
-    HookEventContract(
-        "SubagentStart",
-        2,
-        "SUBAGENT_ENTRY_SIGNAL",
-        "SKILL_BOUND_OBSERVATION_ONLY",
-        "OPTIONAL_WHEN_HOST_EMITS",
-        "subagent_start.py",
-    ),
-    HookEventContract(
-        "UserPromptSubmit",
-        3,
-        "VISIBLE_INPUT_SIGNAL",
-        "SKILL_PREPARE_THEN_NATIVE_READ_SEQUENCE",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "prompt_submit.py",
-    ),
-    HookEventContract(
-        "PreToolUse",
-        4,
-        "PROSPECTIVE_TOOL_SIGNAL",
-        "SKILL_BOUNDARY_AND_POLICY_OWNER",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "pre_tool_use.py",
-    ),
-    HookEventContract(
-        "PermissionRequest",
-        5,
-        "PERMISSION_OBSERVATION_SIGNAL",
-        "SKILL_BOUND_OBSERVATION_ONLY",
-        "OPTIONAL_WHEN_HOST_EMITS",
-        "permission_request.py",
-    ),
-    HookEventContract(
-        "PostToolUse",
-        6,
-        "VISIBLE_TOOL_RESULT_SIGNAL",
-        "SKILL_RECEIPT_AND_PLAN_REFRESH_OWNER",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "post_tool_use.py",
-    ),
-    HookEventContract(
-        "PreCompact",
-        7,
-        "COMPACTION_SEAL_SIGNAL",
-        "SKILL_CONTINUITY_SEAL_OWNER",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "lifecycle_boundary.py",
-    ),
-    HookEventContract(
-        "PostCompact",
-        8,
-        "COMPACTION_REENTRY_SIGNAL",
-        "SKILL_REBIND_AND_FULL_PLAN_REENTRY_OWNER",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "lifecycle_boundary.py",
-    ),
-    HookEventContract(
-        "SubagentStop",
-        9,
-        "SUBAGENT_EXIT_SIGNAL",
-        "SKILL_BOUND_OBSERVATION_ONLY",
-        "OPTIONAL_WHEN_HOST_EMITS",
-        "subagent_stop.py",
-    ),
-    HookEventContract(
-        "Stop",
-        10,
-        "VISIBLE_RESPONSE_STOP_SIGNAL",
-        "SKILL_IDEMPOTENT_COMMIT_OWNER",
-        "REQUIRED_WHEN_HOST_EMITS",
-        "stop_response.py",
-    ),
-    HookEventContract(
-        "SessionEnd",
-        11,
-        "SESSION_END_SIGNAL",
-        "SKILL_BEST_EFFORT_BOUNDARY_FLUSH_OWNER",
-        "BEST_EFFORT_HOST_CAPABILITY_GATED",
-        "lifecycle_boundary.py",
-    ),
+MAX_HOOK_INPUT_BYTES = 262_144
+HOOK_CONTRACT_SCHEMA = 'evidence-lane.native-hook-contract.v4'
+HOOK_EVENT_NAMES = HOOK_EVENT_ORDER
+HOOK_COMMON_FIELDS = frozenset({'hook_event_name', 'session_id', 'turn_id', 'model'})
+HOOK_EVENT_FIELDS = {
+    'SessionStart': {'source'},
+    'SubagentStart': {'agent_id', 'agent_type'},
+    'SubagentStop': {'agent_id', 'agent_type'},
+    'SessionEnd': {'reason'},
+    'UserPromptSubmit': {'prompt'},
+    'PreToolUse': {'tool_name', 'tool_use_id', 'tool_input'},
+    'PermissionRequest': {'tool_name', 'tool_input'},
+    'PostToolUse': {'tool_name', 'tool_use_id', 'tool_input', 'tool_response'},
+    'PreCompact': {'trigger'},
+    'PostCompact': {'trigger'},
+    'Stop': {'last_assistant_message', 'stop_hook_active'},
+    'Interrupt': set(),
+}
+HOOK_PIPELINE = (
+    {'id': 'read_bounded_input', 'owner': 'event_handler',
+     'implementation': 'hook_contract.main_for_event', 'max_bytes': MAX_HOOK_INPUT_BYTES},
+    {'id': 'validate_and_redact_visible_fields', 'owner': 'shared_hook_contract',
+     'implementation': 'hook_contract.prepare_hook'},
+    {'id': 'verify_bound_engine_build', 'owner': 'shared_hook_contract',
+     'implementation': 'hook_contract.submit_hook and launcher.verify_engine_binding'},
+    {'id': 'deliver_once_to_bound_project', 'owner': 'shared_hook_contract',
+     'implementation': 'hook_contract.submit_hook', 'automatic_retry': False},
+    {'id': 'verify_receipt_and_emit_bounded_output', 'owner': 'shared_hook_contract',
+     'implementation': 'hook_contract.context_hook_output'},
 )
 
-HOOK_EVENT_NAMES = tuple(row.event_name for row in HOOK_EVENTS)
-_HOOK_EVENT_BY_NAME = {row.event_name: row for row in HOOK_EVENTS}
-HOOK_EVENT_ACTION_HANDLERS = {
-    row.event_name: (
-        "subhook_validate.py",
-        "subhook_seal.py",
-        "subhook_transport.py",
-        "subhook_emit.py",
-    )
-    for row in HOOK_EVENTS
-}
-_COMMON_LOGICAL_ACTIONS = (
-    "VALIDATE_REDACT_AND_BOUND_VISIBLE_SIGNAL",
-    "DEDUPE_AND_SEAL_EVENT",
-)
-HOOK_EVENT_LOGICAL_ACTIONS = {
-    "SessionStart": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_SESSION_ENTRY_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "SubagentStart": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_SUBAGENT_START_OBSERVATION",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "UserPromptSubmit": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_VISIBLE_PROMPT_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "PreToolUse": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_PROSPECTIVE_TOOL_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "PermissionRequest": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_PERMISSION_OBSERVATION",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "PostToolUse": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_VISIBLE_TOOL_RESULT_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "PreCompact": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_PRECOMPACT_BOUNDARY_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "PostCompact": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_POSTCOMPACT_REENTRY_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "SubagentStop": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_SUBAGENT_STOP_OBSERVATION",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "Stop": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "TRANSPORT_VISIBLE_RESPONSE_STOP_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-    "SessionEnd": (
-        *_COMMON_LOGICAL_ACTIONS,
-        "BEST_EFFORT_TRANSPORT_SESSION_END_SIGNAL",
-        "VERIFY_AND_EMIT_EVENT_RESULT",
-    ),
-}
 
-# One source-owned semantic map binds each host event to its exact timing,
-# lifecycle consumer, and workflow scope.  Generated hook, SDK, architecture,
-# and documentation surfaces consume this map instead of asserting generic
-# ``paired=True`` flags that cannot prove the event is connected correctly.
-HOOK_EVENT_WORKFLOW_CONTRACTS: dict[str, dict[str, Any]] = {
-    "SessionStart": {
-        "host_timing": "SESSION_ENTRY_BEFORE_VISIBLE_INPUT",
-        "action_scope": "WORKFLOW_LIFECYCLE",
-        "skill_action": "SESSION_START_BIND_OR_REENTRY",
-        "skill_consumer": "consume_session_start_transport",
-        "workflow_phases": ["BOOT_OR_RESUME", "STATE_TRAVEL_REENTRY", "PANEL_REENTRY"],
-        "public_action_boundary": False,
-    },
-    "SubagentStart": {
-        "host_timing": "OPTIONAL_SUBAGENT_ENTRY_OBSERVATION",
-        "action_scope": "BOUND_OBSERVATION_ONLY",
-        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-        "skill_consumer": "consume_optional_observer_transport",
-        "workflow_phases": ["OPTIONAL_LINKED_TASK_OBSERVATION"],
-        "public_action_boundary": False,
-    },
-    "UserPromptSubmit": {
-        "host_timing": "BEFORE_MODEL_REASONING_AND_TOOL_SELECTION",
-        "action_scope": "WORKFLOW_ENTRY",
-        "skill_action": "PREPARE",
-        "skill_consumer": "consume_prompt_transport",
-        "workflow_phases": ["ENTRY_SLIP", "SOURCE_INTAKE", "ADAPTIVE_DELTA_ENTRY"],
-        "public_action_boundary": False,
-    },
-    "PreToolUse": {
-        "host_timing": "AFTER_ACTION_SELECTION_BEFORE_TOOL_EXECUTION",
-        "action_scope": "PUBLIC_ACTION_BOUNDARY",
-        "skill_action": "PROSPECTIVE_TOOL_BOUNDARY",
-        "skill_consumer": "consume_pre_tool_transport",
-        "workflow_phases": ["UOP_PRECONDITION", "ACTIVE_DELTA_EXECUTION"],
-        "public_action_boundary": True,
-    },
-    "PermissionRequest": {
-        "host_timing": "OPTIONAL_BETWEEN_PRETOOL_AND_TOOL_EXECUTION",
-        "action_scope": "BOUND_OBSERVATION_ONLY",
-        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-        "skill_consumer": "consume_optional_observer_transport",
-        "workflow_phases": ["HOST_PERMISSION_OBSERVATION"],
-        "public_action_boundary": True,
-    },
-    "PostToolUse": {
-        "host_timing": "AFTER_TOOL_RESULT_BEFORE_NEXT_ACTION",
-        "action_scope": "PUBLIC_ACTION_BOUNDARY",
-        "skill_action": "TOOL_RECEIPT_AND_CURRENT_CHANGE_PROJECTION",
-        "skill_consumer": "consume_post_tool_transport",
-        "workflow_phases": ["TOOL_RECEIPT", "CURRENT_PLAN_ROW_AND_CHANGE_DISPLAY"],
-        "public_action_boundary": True,
-    },
-    "PreCompact": {
-        "host_timing": "BEFORE_CONTEXT_COMPACTION",
-        "action_scope": "WORKFLOW_LIFECYCLE",
-        "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
-        "skill_consumer": "consume_boundary_transport",
-        "workflow_phases": ["CONTINUITY_SEAL"],
-        "public_action_boundary": False,
-    },
-    "PostCompact": {
-        "host_timing": "AFTER_CONTEXT_COMPACTION_BEFORE_NEXT_ACTION",
-        "action_scope": "WORKFLOW_LIFECYCLE",
-        "skill_action": "COMPACTION_OR_SESSION_BOUNDARY",
-        "skill_consumer": "consume_boundary_transport",
-        "workflow_phases": ["CONTINUITY_REENTRY", "HOST_STEP_LIST_RELOCK"],
-        "public_action_boundary": False,
-    },
-    "SubagentStop": {
-        "host_timing": "OPTIONAL_SUBAGENT_EXIT_OBSERVATION",
-        "action_scope": "BOUND_OBSERVATION_ONLY",
-        "skill_action": "BOUND_OPTIONAL_EVENT_OBSERVATION",
-        "skill_consumer": "consume_optional_observer_transport",
-        "workflow_phases": ["OPTIONAL_LINKED_TASK_OBSERVATION"],
-        "public_action_boundary": False,
-    },
-    "Stop": {
-        "host_timing": "AFTER_VISIBLE_RESPONSE_BEFORE_NEXT_TURN",
-        "action_scope": "WORKFLOW_EXIT",
-        "skill_action": "COMMIT",
-        "skill_consumer": "consume_stop_transport",
-        "workflow_phases": ["ORDINARY_TURN_COMMIT"],
-        "public_action_boundary": False,
-    },
-    "SessionEnd": {
-        "host_timing": "BEST_EFFORT_AFTER_SESSION_END",
-        "action_scope": "TRANSPORT_ONLY",
-        "skill_action": "BEST_EFFORT_SESSION_END_TRANSPORT",
-        "skill_consumer": None,
-        "workflow_phases": ["SESSION_END_BOUNDARY"],
-        "public_action_boundary": False,
-    },
-}
-
-if tuple(HOOK_EVENT_WORKFLOW_CONTRACTS) != HOOK_EVENT_NAMES:
-    raise RuntimeError("HOOK_EVENT_WORKFLOW_CONTRACT_ORDER_MISMATCH")
+def hook_event_handler_path(name: str) -> str:
+    if name not in HOOK_EVENT_NAMES:
+        raise LaneError('HOOK_EVENT_UNSUPPORTED', 'Select a documented packaged hook event.')
+    return f'hooks/events/{name}/handler.py'
 
 
-def load_hook_logical_action_registry(
-    plugin_root: Path | None = None,
-) -> dict[str, tuple[str, ...]]:
-    """Load the internal logical-action registry kept outside host hooks.json.
+def hook_event_input_schema(name: str) -> dict:
+    """Describe the documented input that the event-owned handler admits.
 
-    Codex owns the native hooks.json schema and currently accepts only the
-    description and hooks fields.  Evidence Lane's numbered SDK sub-actions
-    therefore live in a package-owned companion registry that the host never
-    parses as hook configuration.
+    Additional host fields are allowed because the executable selects only the
+    visible allowlist before redaction and persistence.
     """
-
-    root = plugin_root or resolve_plugin_root(__file__)
-    path = root / "hooks" / "logical-actions.json"
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_REQUIRED") from exc
-    if (
-        set(payload) != {"schema", "logicalActions"}
-        or payload.get("schema") != HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA
-    ):
-        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_SCHEMA_MISMATCH")
-    actions = payload.get("logicalActions")
-    if not isinstance(actions, Mapping):
-        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_REQUIRED")
-    normalized = {
-        str(name): tuple(str(action) for action in values)
-        for name, values in actions.items()
-        if isinstance(values, list)
+    if name not in HOOK_EVENT_NAMES:
+        raise LaneError('HOOK_EVENT_UNSUPPORTED', 'Select a documented packaged hook event.')
+    properties: dict[str, dict] = {
+        'hook_event_name': {'const': name},
+        'session_id': {'type': 'string', 'minLength': 1, 'maxLength': 128},
+        'turn_id': {'type': ['string', 'null'], 'maxLength': 128},
+        'model': {'type': ['string', 'null'], 'maxLength': 200},
     }
-    if tuple(normalized) != HOOK_EVENT_NAMES:
-        raise HookContractError("HOOK_LOGICAL_ACTION_EVENT_ORDER_MISMATCH")
-    if normalized != HOOK_EVENT_LOGICAL_ACTIONS:
-        raise HookContractError("HOOK_LOGICAL_ACTION_REGISTRY_MISMATCH")
-    return normalized
-
-
-_FORBIDDEN_PAYLOAD_KEYS = {
-    "chain_of_thought",
-    "credentials",
-    "delta_json",
-    "environment",
-    "full_plan",
-    "hidden_reasoning",
-    "plan_rows",
-    "private_reasoning",
-    "raw_credentials",
-}
-
-
-def lifecycle_hook_contract() -> dict[str, Any]:
-    """Return the immutable package contract for the current lifecycle registry."""
-
-    body: dict[str, Any] = {
-        "schema": HOOK_CONTRACT_SCHEMA,
-        "version": HOOK_CONTRACT_VERSION,
-        "events": [
-            {
-                **asdict(row),
-                "workflow_contract": dict(
-                    HOOK_EVENT_WORKFLOW_CONTRACTS[row.event_name]
-                ),
-                "logical_action_count": len(HOOK_EVENT_LOGICAL_ACTIONS[row.event_name]),
-                "logical_actions": [
-                    {
-                        "logical_action_number": f"{row.ordinal}.L{action_ordinal}",
-                        "event_logical_action_ordinal": action_ordinal,
-                        "action": action,
-                        "owner": "HOOK_TRANSPORT_ADAPTER",
-                        "project_plan_goal_hil_effect": "NONE",
-                    }
-                    for action_ordinal, action in enumerate(
-                        HOOK_EVENT_LOGICAL_ACTIONS[row.event_name], start=1
-                    )
-                ],
-            }
-            for row in HOOK_EVENTS
-        ],
-        "event_order": list(HOOK_EVENT_NAMES),
-        "registered_event_count": len(HOOK_EVENTS),
-        "event_numbering": "HOOK_1_THROUGH_HOOK_11",
-        "nested_action_numbering": "HOOK_EVENT_ORDINAL.ACTION_ORDINAL",
-        "handler_cardinality_per_event": "ONE_OR_MORE",
-        "hook_count_semantics": "REGISTERED_EVENT_TYPE_COUNT",
-        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
-        "logical_action_count": sum(
-            len(actions) for actions in HOOK_EVENT_LOGICAL_ACTIONS.values()
-        ),
-        "logical_action_count_semantics": (
-            "NUMBERED_SERIAL_TRANSPORT_STEPS_INSIDE_HANDLER_ACTIONS"
-        ),
-        "hook_owner": "VALIDATE_REDACT_BOUND_DEDUPLICATE_AND_TRANSPORT_ONLY",
-        "skill_owner": (
-            "ENTRY_PREPARE_TOOL_BOUNDARIES_COMPACTION_COMMIT_NATIVE_READS_"
-            "CLASSIFICATION_PLAN_REFRESH_GOAL_AND_HIL"
-        ),
-        "skill_runtime_consumer": ("evidence_lane_plugin.hook_skill_runtime"),
-        "windows_interpreter_resolution": "SEALED_DERIVED_RUNTIME_ONLY",
-        "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
-        "windows_command_launcher": "EvidenceLaneHookHost.exe",
-        "windows_child_create_no_window": True,
-        "windows_path_lookup_allowed": False,
-        "session_end_host_timeout_seconds": 3,
-        "permission_request_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
-        "subagent_events_in_scope": True,
-        "subagent_event_policy": "BOUND_OBSERVATION_ONLY_NEVER_CONTROL",
-        "max_transport_bytes": MAX_HOOK_TRANSPORT_BYTES,
-        "max_visible_input_chars": MAX_VISIBLE_INPUT_CHARS,
-        "full_plan_allowed_in_hook_payload": False,
-        "linked_delta_json_allowed_in_hook_payload": False,
-        "private_reasoning_allowed": False,
-    }
-    body["contract_sha256"] = sha256_bytes(canonical_json_bytes(body))
-    return body
-
-
-def validate_hook_configuration(configuration: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate exact event order and one-or-more numbered actions per event."""
-
-    if set(configuration) != {"description", "hooks"}:
-        raise HookContractError("HOOK_HOST_NATIVE_SCHEMA_MISMATCH")
-    hooks = configuration.get("hooks")
-    if not isinstance(hooks, Mapping):
-        raise HookContractError("HOOK_CONFIGURATION_MAP_REQUIRED")
-    event_names = tuple(str(name) for name in hooks)
-    if event_names != HOOK_EVENT_NAMES:
-        raise HookContractError("HOOK_EVENT_ORDER_OR_INVENTORY_MISMATCH")
-    load_hook_logical_action_registry()
-    handler_records: list[dict[str, Any]] = []
-    for contract in HOOK_EVENTS:
-        groups = hooks.get(contract.event_name)
-        if not isinstance(groups, list) or not groups:
-            raise HookContractError("ONE_OR_MORE_HOOK_GROUPS_PER_EVENT_REQUIRED")
-        event_handlers: list[str] = []
-        for group_ordinal, group in enumerate(groups, start=1):
-            handlers = group.get("hooks") if isinstance(group, Mapping) else None
-            if not isinstance(handlers, list) or not handlers:
-                raise HookContractError("ONE_OR_MORE_HANDLER_ACTIONS_REQUIRED")
-            for group_action_ordinal, handler in enumerate(handlers, start=1):
-                if not isinstance(handler, Mapping) or handler.get("type") != "command":
-                    raise HookContractError("COMMAND_HANDLER_REQUIRED")
-                command = str(handler.get("command") or "")
-                command_windows = str(handler.get("commandWindows") or "")
-                handler_match = re.search(
-                    r"--handler\s+([A-Za-z0-9_.-]+\.py)(?:\s|$)", command
-                )
-                handler_name = handler_match.group(1) if handler_match else ""
-                if not handler_name or handler_name not in command_windows:
-                    raise HookContractError("HOOK_HANDLER_IDENTITY_MISMATCH")
-                allowed_handlers = HOOK_EVENT_ACTION_HANDLERS[contract.event_name]
-                if not event_handlers and handler_name != allowed_handlers[0]:
-                    raise HookContractError("HOOK_PRIMARY_HANDLER_IDENTITY_MISMATCH")
-                if handler_name not in allowed_handlers:
-                    raise HookContractError("HOOK_HANDLER_NOT_IN_EVENT_ACTION_REGISTRY")
-                if (
-                    "hooks/invoke_hook.py" not in command
-                    or f"--event {contract.event_name}" not in command
-                    or "hooks\\EvidenceLaneHookHost.exe" not in command_windows
-                    or contract.event_name not in command_windows
-                    or not command_windows.startswith(
-                        '& "${PLUGIN_ROOT}\\hooks\\EvidenceLaneHookHost.exe" '
-                    )
-                    or "powershell.exe" in command_windows.casefold()
-                    or "invoke_hook.ps1" in command_windows.casefold()
-                    or "%SystemRoot%" in command_windows
-                    or "%PLUGIN_ROOT%" in command_windows
-                    or command_windows.casefold().startswith("python ")
-                ):
-                    raise HookContractError(
-                        "HOOK_DETERMINISTIC_HIDDEN_LAUNCHER_REQUIRED"
-                    )
-                expected_timeout = 3 if contract.event_name == "SessionEnd" else 10
-                if handler.get("timeout") != expected_timeout:
-                    raise HookContractError("HOOK_HOST_TIMEOUT_MISMATCH")
-                event_handlers.append(handler_name)
-                action_ordinal = len(event_handlers)
-                handler_records.append(
-                    {
-                        "hook_number": contract.ordinal,
-                        "action_number": f"{contract.ordinal}.{action_ordinal}",
-                        "event_name": contract.event_name,
-                        "event_action_ordinal": action_ordinal,
-                        "group_ordinal": group_ordinal,
-                        "group_action_ordinal": group_action_ordinal,
-                        "handler": handler_name,
-                        "timeout": expected_timeout,
-                        "windows_launcher": "EvidenceLaneHookHost.exe",
-                        "windows_process_window_mode": "HOST_MANAGED_NO_CHILD_WINDOW",
-                        "windows_child_create_no_window": True,
-                        "windows_interpreter_resolution": (
-                            "SEALED_DERIVED_RUNTIME_ONLY"
-                        ),
-                    }
-                )
-        if len(event_handlers) != len(set(event_handlers)):
-            raise HookContractError("HOOK_EVENT_HANDLER_ACTION_DUPLICATE")
-
-    lifecycle_contract = lifecycle_hook_contract()
+    required = ['hook_event_name', 'session_id']
+    for field in sorted(HOOK_EVENT_FIELDS[name]):
+        if field in {'tool_input', 'tool_response'}:
+            properties[field] = {}
+        elif field == 'stop_hook_active':
+            properties[field] = {'type': 'boolean'}
+        else:
+            properties[field] = {'type': ['string', 'null']}
+    for field in {
+        'UserPromptSubmit': {'prompt'},
+        'PreToolUse': {'tool_name', 'tool_use_id'},
+        'PermissionRequest': {'tool_name'},
+        'PostToolUse': {'tool_name', 'tool_use_id'},
+        'SubagentStart': {'agent_id', 'agent_type'},
+        'SubagentStop': {'agent_id', 'agent_type'},
+    }.get(name, set()):
+        required.append(field)
+        properties[field] = {'type': 'string', 'minLength': 1}
     return {
-        "status": "PASS",
-        "schema": HOOK_CONTRACT_SCHEMA,
-        "contract_sha256": lifecycle_contract["contract_sha256"],
-        "event_order": list(event_names),
-        "registered_event_count": len(event_names),
-        "handler_count": len(handler_records),
-        "handler_count_semantics": "TOTAL_NESTED_HANDLER_ACTION_COUNT",
-        "event_action_counts": {
-            event_name: sum(row["event_name"] == event_name for row in handler_records)
-            for event_name in event_names
-        },
-        "logical_action_count": lifecycle_contract["logical_action_count"],
-        "logical_action_count_semantics": lifecycle_contract[
-            "logical_action_count_semantics"
-        ],
-        "logical_action_inventory": [
-            {
-                "hook_number": row["ordinal"],
-                "event_name": row["event_name"],
-                "logical_action_count": row["logical_action_count"],
-                "logical_actions": row["logical_actions"],
-            }
-            for row in lifecycle_contract["events"]
-        ],
-        "handler_records": handler_records,
-        "configuration_sha256": sha256_bytes(canonical_json_bytes(dict(configuration))),
+        '$schema': 'https://json-schema.org/draft/2020-12/schema',
+        '$id': f'evidence-lane://hooks/{name}/input/v4',
+        'title': f'Evidence Lane {name} visible input',
+        'type': 'object',
+        'properties': properties,
+        'required': sorted(required),
+        'additionalProperties': True,
+        'x-evidence-lane-captured-fields': sorted(HOOK_COMMON_FIELDS | HOOK_EVENT_FIELDS[name]),
+        'x-native-task-attestation': 'not_provided',
     }
 
 
-def _bounded_visible_input(payload: Mapping[str, Any]) -> str | None:
-    for key in ("prompt", "visible_input", "user_prompt"):
-        if key not in payload:
-            continue
-        value = str(redact(str(payload.get(key) or "")))
-        if len(value) > MAX_VISIBLE_INPUT_CHARS:
-            raise HookContractError("HOOK_VISIBLE_INPUT_BOUND_EXCEEDED")
-        if contains_secret(value):
-            raise HookContractError("HOOK_VISIBLE_INPUT_REDACTION_FAILED")
-        return value
-    return None
+def hook_event_contract(name: str) -> dict:
+    if name not in HOOK_EVENT_NAMES:
+        raise LaneError('HOOK_EVENT_UNSUPPORTED', 'Select a documented packaged hook event.')
+    return {
+        'schema': 'evidence-lane.native-hook-event.v4',
+        'event': name,
+        'order': HOOK_EVENT_NAMES.index(name) + 1,
+        'entrypoint': hook_event_handler_path(name),
+        'input_schema': f'hooks/events/{name}/event.schema.json',
+        'pipeline': f'hooks/events/{name}/pipeline.v4.json',
+        'execution_owner': 'evidence_lane_plugin.hook_contract',
+        'route': '/v4/capture',
+        'remote_route': '/remote/v4/capture',
+        'requires_explicit_project_session_binding': True,
+        'automatic_retry': False,
+        'bounded_context_output': name in {'SessionStart', 'UserPromptSubmit'},
+        'host_control_output': False,
+        'subagent_control_output': False,
+        'native_installation_verified': False,
+    }
 
 
-def build_hook_transport_envelope(
-    event_name: str,
-    payload: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Build one deterministic, bounded, privacy-safe lifecycle envelope.
+def prepare_hook(raw: bytes, expected_event: str) -> HookEnvelope:
+    if len(raw) > MAX_HOOK_INPUT_BYTES:
+        raise LaneError('HOOK_INPUT_BUDGET', 'The native hook payload exceeds its capture budget.')
+    try:
+        value = json.loads(raw)
+        if not isinstance(value, dict) or value.get('hook_event_name') != expected_event:
+            raise ValueError()
+        allowed = HOOK_COMMON_FIELDS | HOOK_EVENT_FIELDS[expected_event]
+        selected = {key: value[key] for key in allowed if key in value}
+        if expected_event in SUBAGENT_OBSERVER_EVENTS:
+            selected = seal_observer_identity(selected)
+        event = redact(selected)
+        envelope = HookEnvelope(event_id=str(uuid4()), event=event)
+        normalize_hook(envelope)
+        return envelope
+    except (ValueError, KeyError, TypeError, ValidationError, RecursionError):
+        raise LaneError('HOOK_INPUT_INVALID', 'The native hook input does not match this event contract.') from None
 
-    The envelope intentionally contains no behavioral result.  It is the input
-    receipt consumed by the installed skill that owns the governed action.
+
+def submit_hook(envelope: HookEnvelope, selected_root: Path | None = None) -> dict:
+    """One attributed delivery attempt; an uncertain response is never replayed."""
+    remote_config = os.environ.get('EVIDENCE_LANE_REMOTE_CONFIG')
+    if remote_config:
+        from .remote_transport import RemoteClientConfig, submit_remote_hook
+        return submit_remote_hook(RemoteClientConfig.load(Path(remote_config)), envelope)
+    root = runtime_root(selected_root)
+    timeout = 0.75 if envelope.event['hook_event_name'] in {'Interrupt', 'SessionEnd'} else 3
+    # Native task identity remains unavailable. This verifies the selected
+    # executable source, while the engine checks its explicit capture binding.
+    with LocalTransport(root, timeout=timeout) as transport:
+        health = verify_engine_binding(transport)
+    record, credential = owner_endpoint(root)
+    if record['instance_id'] != health['instance_id']:
+        raise LaneError('ENGINE_INSTANCE_CHANGED', 'The engine changed before hook delivery.')
+    payload = {'instance_id': record['instance_id'], 'capture': envelope.model_dump(mode='json')}
+    try:
+        with (httpx.Client(timeout=timeout, trust_env=False, follow_redirects=False) as client,
+              client.stream('POST', f"http://127.0.0.1:{record['port']}/v4/capture",
+                  headers={'Authorization': 'Bearer ' + credential}, json=payload) as response):
+            raw = bytearray()
+            for chunk in response.iter_bytes():
+                raw.extend(chunk)
+                if len(raw) > 65_536:
+                    raise ValueError()
+            result = json.loads(raw)
+            if not isinstance(result, dict):
+                raise TypeError()
+            if response.status_code == 409 and result.get('error') == 'CAPTURE_BINDING_REQUIRED':
+                return {'captured': False, 'reason': 'project_session_not_bound'}
+            if response.status_code != 200 or result.get('event_id') != envelope.event_id:
+                raise ValueError()
+            return {'captured': True, 'result': result, 'engine_instance_id': record['instance_id']}
+    except (httpx.HTTPError, ValueError, TypeError, RecursionError):
+        raise LaneError('HOOK_DELIVERY_UNCONFIRMED', 'Native hook capture was not confirmed; no automatic retry was performed.') from None
+
+
+def hook_manifest() -> dict:
+    hooks = {}
+    for name in HOOK_EVENT_NAMES:
+        hooks[name] = [{'hooks': [{
+            'type': 'command',
+            'command': 'python3 -I -B "${PLUGIN_ROOT}/' + hook_event_handler_path(name) + '"',
+            'commandWindows': '& python -I -B "${PLUGIN_ROOT}\\' + hook_event_handler_path(name).replace('/', '\\') + '"',
+            'timeout': 3 if name in {'Interrupt', 'SessionEnd'} else 10,
+            'statusMessage': 'Record bound Evidence Lane ' + name + ' evidence',
+        }]}]
+        if name in {'SessionStart', 'UserPromptSubmit'}:
+            hooks[name][0]['hooks'][0]['additionalContextLimit'] = 3000
+    return {'description': 'Supported v4 visible-event capture through the plugin-owned engine; no lifecycle or host-control instructions.', 'hooks': hooks}
+
+
+def hook_registry() -> dict:
+    return {'schema': HOOK_CONTRACT_SCHEMA, 'source': 'capture_routing.HOOK_EVENT_ORDER',
+        'documentation': 'https://learn.chatgpt.com/docs/hooks',
+        'events': [{'name': name, 'order': index, 'input_fields': sorted(HOOK_COMMON_FIELDS | HOOK_EVENT_FIELDS[name]),
+            'handler': hook_event_handler_path(name), 'shared_implementation': 'src/evidence_lane_plugin/hook_contract.py',
+            'input_schema': f'hooks/events/{name}/event.schema.json',
+            'event_contract': f'hooks/events/{name}/event.v4.json',
+            'pipeline_contract': f'hooks/events/{name}/pipeline.v4.json',
+            'route': '/v4/capture', 'requires_explicit_project_session_binding': True,
+            'remote_route': '/remote/v4/capture', 'remote_config_env': 'EVIDENCE_LANE_REMOTE_CONFIG',
+            'host_control_output': False, 'bounded_context_output': name in {'SessionStart', 'UserPromptSubmit'},
+            'automatic_retry': False,
+            **({'observer_identity_transport': 'bounded_agent_id_sha256_and_reported_type',
+                'observer_payload_retention': 'metadata_only', 'subagent_control_output': False}
+               if name in SUBAGENT_OBSERVER_EVENTS else {})} for index, name in enumerate(HOOK_EVENT_NAMES, 1)],
+        'pipeline': [row['id'] for row in HOOK_PIPELINE],
+        'native_installation_verified': False}
+
+
+def context_hook_output(envelope: HookEnvelope, delivery: dict) -> dict:
+    """Only documented context-bearing events return reference data to Codex.
+
+    https://learn.chatgpt.com/docs/hooks#sessionstart and #userpromptsubmit.
+    Pre/PostCompact stdout cannot supply additional context. No control-flow
+    fields, original prompts, user-defined titles or source payloads are emitted.
     """
-
-    contract = _HOOK_EVENT_BY_NAME.get(str(event_name))
-    if contract is None:
-        raise HookContractError("HOOK_EVENT_UNSUPPORTED")
-    if not isinstance(payload, Mapping):
-        raise HookContractError("HOOK_PAYLOAD_MAP_REQUIRED")
-    if any(str(key).casefold() in _FORBIDDEN_PAYLOAD_KEYS for key in payload):
-        raise HookContractError("HOOK_FORBIDDEN_PAYLOAD_FIELD")
-
-    visible_input = _bounded_visible_input(payload)
-    occurrence_source = str(
-        payload.get("hook_event_id")
-        or payload.get("event_id")
-        or payload.get("turn_id")
-        or payload.get("tool_use_id")
-        or payload.get("source")
-        or contract.event_name
-    )
-    safe_payload: dict[str, Any] = {
-        "source": str(redact(str(payload.get("source") or ""))) or None,
-        "permission_mode": (
-            str(redact(str(payload.get("permission_mode") or ""))) or None
-        ),
-        "model": str(redact(str(payload.get("model") or ""))) or None,
-        "tool_name": str(redact(str(payload.get("tool_name") or ""))) or None,
-        "agent_type": str(redact(str(payload.get("agent_type") or ""))) or None,
-        "agent_id_sha256": sha256_bytes(
-            str(payload.get("agent_id") or "").encode("utf-8")
-        ),
-        "visible_input_after_redaction": visible_input,
-        "visible_input_sha256": (
-            sha256_bytes(visible_input.encode("utf-8"))
-            if visible_input is not None
-            else None
-        ),
-        "host_session_id_sha256": sha256_bytes(
-            str(payload.get("session_id") or "").encode("utf-8")
-        ),
-        "turn_id_sha256": sha256_bytes(
-            str(payload.get("turn_id") or "").encode("utf-8")
-        ),
-        "tool_use_id_sha256": sha256_bytes(
-            str(payload.get("tool_use_id") or "").encode("utf-8")
-        ),
-        "cwd_sha256": sha256_bytes(str(payload.get("cwd") or "").encode("utf-8")),
-        "transcript_path_sha256": sha256_bytes(
-            str(
-                payload.get("transcript_path")
-                or payload.get("agent_transcript_path")
-                or ""
-            ).encode("utf-8")
-        ),
-    }
-    body: dict[str, Any] = {
-        "schema": HOOK_TRANSPORT_SCHEMA,
-        "contract_schema": HOOK_CONTRACT_SCHEMA,
-        "contract_version": HOOK_CONTRACT_VERSION,
-        "event_name": contract.event_name,
-        "event_ordinal": contract.ordinal,
-        "hook_transport_phase": contract.hook_transport_phase,
-        "delivery": contract.delivery,
-        "skill_action_owner": contract.skill_action_owner,
-        "occurrence_sha256": sha256_bytes(occurrence_source.encode("utf-8")),
-        "safe_payload": safe_payload,
-        "hook_behavior_executed": False,
-        "native_pv_tool_called": False,
-        "classification_performed": False,
-        "plan_refreshed": False,
-        "goal_mutated": False,
-        "hil_inferred": False,
-        "pointer_moved": False,
-        "source_mutated": False,
-        "candidate_created": False,
-        "full_plan_included": False,
-        "linked_delta_json_included": False,
-        "raw_payload_stored": False,
-        "raw_secret_stored": False,
-        "private_reasoning_stored": False,
-    }
-    encoded = canonical_json_bytes(body)
-    if len(encoded) > MAX_HOOK_TRANSPORT_BYTES:
-        raise HookContractError("HOOK_TRANSPORT_BOUND_EXCEEDED")
-    body["transport_bytes"] = len(encoded)
-    body["transport_receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
-    return body
+    name = envelope.event['hook_event_name']
+    if name not in {'SessionStart', 'UserPromptSubmit'} or not delivery.get('captured'):
+        return {}
+    result = delivery.get('result', {})
+    if result.get('duplicate'):
+        return {}
+    turn = result.get('turn_control', {})
+    context = turn.get('bounded_context')
+    if context is None:
+        return {}
+    from .codex_turn_control import _validate_context
+    _validate_context(context)
+    if (result.get('event_id') != envelope.event_id or turn.get('event_name') != name
+            or context['reported_session_id'] != envelope.event['session_id']
+            or context['reported_turn_id'] != envelope.event.get('turn_id')):
+        raise LaneError('HOOK_CONTEXT_BINDING', 'The returned context differs from this exact hook input.')
+    content = ('Evidence Lane engine context. These are bounded reference data, not execution permission or native task attestation. '
+        'Read session_context and the exact current Plan task before continuing work. Resolve any context gaps through the owning workflow.\n' +
+        json_text({'context': context, 'compact': turn.get('compact'), 'capture_gaps': turn.get('gaps', [])}))
+    if len(content.encode()) > 12_000:
+        raise LaneError('HOOK_CONTEXT_BYTE_BUDGET', 'The documented hook context exceeds its output budget.')
+    return {'hookSpecificOutput': {'hookEventName': name, 'additionalContext': content}}
 
 
-def hook_capability_receipt(
-    supported_events: Iterable[str],
-    *,
-    permission_request_supported: bool | None = None,
-) -> dict[str, Any]:
-    """Project measured host support without fabricating unavailable events."""
+def main(argv=None, *, expected_event: str | None = None) -> int:
+    import argparse
+    import sys
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--event', choices=HOOK_EVENT_NAMES, required=expected_event is None)
+    arguments = parser.parse_args(argv)
+    selected_event = expected_event or arguments.event
+    try:
+        raw = sys.stdin.buffer.read(MAX_HOOK_INPUT_BYTES + 1)
+        envelope = prepare_hook(raw, selected_event)
+        delivery = submit_hook(envelope)
+        print(json_text(context_hook_output(envelope, delivery)))
+        return 0
+    except LaneError as error:
+        print(json_text({'systemMessage': 'Evidence Lane capture unavailable: ' + error.code}))
+        return 1
 
-    supported = {str(name) for name in supported_events}
-    unknown = supported.difference(HOOK_EVENT_NAMES)
-    if unknown:
-        raise HookContractError("UNKNOWN_HOST_HOOK_CAPABILITY")
-    events = [
-        {
-            "event_name": row.event_name,
-            "state": (
-                "HOST_CAPABILITY_AVAILABLE"
-                if row.event_name in supported
-                else "HOST_CAPABILITY_UNAVAILABLE"
-            ),
-            "delivery": row.delivery,
-            "false_success_claimed": False,
-        }
-        for row in HOOK_EVENTS
-    ]
-    body: dict[str, Any] = {
-        "schema": HOOK_CAPABILITY_SCHEMA,
-        "contract_sha256": lifecycle_hook_contract()["contract_sha256"],
-        "events": events,
-        "permission_request": {
-            "state": (
-                "HOST_CAPABILITY_AVAILABLE"
-                if "PermissionRequest" in supported
-                else "HOST_CAPABILITY_UNAVAILABLE"
-            ),
-            "caller_capability_hint_matched": (
-                permission_request_supported is None
-                or permission_request_supported == ("PermissionRequest" in supported)
-            ),
-            "control_policy": "OBSERVE_ONLY_NEVER_GRANT_OR_DENY",
-        },
-        "subagent_events_in_scope": True,
-        "unsupported_events_relabelled_as_success": False,
-    }
-    body["capability_receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
-    return body
+
+def main_for_event(expected_event: str) -> int:
+    """Entry used by one packaged event handler with no caller-selected event."""
+    if expected_event not in HOOK_EVENT_NAMES:
+        raise LaneError('HOOK_EVENT_UNSUPPORTED', 'Select a documented packaged hook event.')
+    return main(expected_event=expected_event)

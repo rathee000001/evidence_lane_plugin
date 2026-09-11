@@ -1,0 +1,55 @@
+{
+  "lane_id": "pdf_ocr",
+  "migrations": [
+    {
+      "owner": "pdfocr",
+      "version": 1,
+      "description": "Separate immutable pdf versions, native structure and retrieval",
+      "digest": "c51bdfb1426891f68db9bf4b66fb2b873183b17d4a6355e30d67e27c23f8fb77",
+      "statements": [
+        "CREATE TABLE pdf_file(pdf_id TEXT PRIMARY KEY, logical_name TEXT NOT NULL,\n       source_path TEXT, origin TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+        "CREATE TABLE pdf_version(snapshot_id TEXT PRIMARY KEY, pdf_id TEXT NOT NULL REFERENCES pdf_file(pdf_id),\n       generation INTEGER NOT NULL CHECK(generation>0), previous_snapshot TEXT REFERENCES pdf_version(snapshot_id),\n       manifest_object TEXT NOT NULL REFERENCES objects(digest), raw_object TEXT NOT NULL REFERENCES objects(digest),\n       facts_object TEXT NOT NULL REFERENCES objects(digest), parser_contract TEXT NOT NULL,\n       created_at TEXT NOT NULL, UNIQUE(pdf_id,generation)) STRICT",
+        "CREATE TABLE pdf_current(pdf_id TEXT PRIMARY KEY REFERENCES pdf_file(pdf_id),\n       snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id)) STRICT",
+        "CREATE TABLE pdf_structure(snapshot_id TEXT PRIMARY KEY REFERENCES pdf_version(snapshot_id),\n       facts_object TEXT NOT NULL REFERENCES objects(digest), fidelity_json TEXT NOT NULL CHECK(json_valid(fidelity_json))) STRICT",
+        "CREATE TABLE pdf_annotation(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_attachment(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_form_field(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_image(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_link(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_outline(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_page(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_table(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_text_block(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_text_line(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_widget(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,\n       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE pdf_chunk(snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       chunk_id TEXT NOT NULL, item_id TEXT NOT NULL, ordinal INTEGER NOT NULL,\n       text_object TEXT NOT NULL REFERENCES objects(digest), PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+        "CREATE VIRTUAL TABLE pdf_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+        "CREATE TABLE pdf_export(export_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n       destination TEXT NOT NULL, before_sha256 TEXT, after_sha256 TEXT NOT NULL,\n       effect_id TEXT NOT NULL, created_at TEXT NOT NULL) STRICT",
+        "CREATE INDEX pdf_versions_pdf ON pdf_version(pdf_id,generation)"
+      ]
+    },
+    {
+      "owner": "pdfocr",
+      "version": 2,
+      "description": "Separate PDF raster, OCR and Docling derivatives",
+      "digest": "0834e4d74a746776a7813d681ecea5222ddb206039a7d5268bac622e93e76a70",
+      "statements": [
+        "CREATE TABLE pdf_render(render_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT",
+        "CREATE TABLE pdf_ocr_run(ocr_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT",
+        "CREATE TABLE pdf_ocr_line(ocr_id TEXT NOT NULL REFERENCES pdf_ocr_run(ocr_id), line_id TEXT NOT NULL,\n           page INTEGER NOT NULL, ordinal INTEGER NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),\n           PRIMARY KEY(ocr_id,line_id)) STRICT",
+        "CREATE TABLE pdf_review_region(ocr_id TEXT NOT NULL, line_id TEXT NOT NULL,\n           PRIMARY KEY(ocr_id,line_id), FOREIGN KEY(ocr_id,line_id) REFERENCES pdf_ocr_line(ocr_id,line_id)) STRICT",
+        "CREATE INDEX pdf_ocr_run_snapshot ON pdf_ocr_run(snapshot_id)",
+        "CREATE TABLE docling_extraction(enrichment_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES pdf_version(snapshot_id),\n           manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT"
+      ]
+    },
+    {
+      "owner": "pdfocrselector",
+      "version": 1,
+      "description": "Retain source retirement proofs without deleting lineage heads",
+      "digest": "fa53f5afc27010968828059b13307e9846b4c0e778a9230690cfd923ea22556f",
+      "statements": [
+        "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT"
+      ]
+    }
+  ]
+}

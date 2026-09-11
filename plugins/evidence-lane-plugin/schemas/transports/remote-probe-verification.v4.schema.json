@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "nonce": {
+      "pattern": "^[A-Za-z0-9_-]{43,128}$",
+      "title": "Nonce",
+      "type": "string"
+    },
+    "object_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Object Digest",
+      "type": "string"
+    },
+    "policy_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Digest",
+      "type": "string"
+    },
+    "previous_engine_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Previous Engine Id",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Project Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "nonce",
+    "previous_engine_id",
+    "policy_digest",
+    "object_digest"
+  ],
+  "title": "ProbeVerification",
+  "type": "object"
+}

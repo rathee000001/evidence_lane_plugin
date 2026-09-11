@@ -1,0 +1,474 @@
+{
+  "action": "presentation_generate",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/presentation_generate.action.v4.json",
+  "sdk_binding_sha256": "904cd6f8e1eb21732d39547031365a7bb462755b1a5fc08e727ea4c590107d16",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Publish a new immutable lane-owned PPTX version with explicit structural and layout fidelity.",
+    "inputSchema": {
+      "$defs": {
+        "Slide": {
+          "additionalProperties": false,
+          "properties": {
+            "background": {
+              "default": "FFFFFF",
+              "pattern": "^[0-9A-Fa-f]{6}$",
+              "title": "Background",
+              "type": "string"
+            },
+            "name": {
+              "maxLength": 160,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "notes": {
+              "default": "",
+              "maxLength": 16384,
+              "title": "Notes",
+              "type": "string"
+            },
+            "objects": {
+              "items": {
+                "$ref": "#/$defs/SlideObject"
+              },
+              "maxItems": 100,
+              "minItems": 1,
+              "title": "Objects",
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "objects"
+          ],
+          "title": "Slide",
+          "type": "object"
+        },
+        "SlideObject": {
+          "additionalProperties": false,
+          "properties": {
+            "bold": {
+              "default": false,
+              "title": "Bold",
+              "type": "boolean"
+            },
+            "color": {
+              "default": "172333",
+              "pattern": "^[0-9A-Fa-f]{6}$",
+              "title": "Color",
+              "type": "string"
+            },
+            "description": {
+              "default": "",
+              "maxLength": 1000,
+              "title": "Description",
+              "type": "string"
+            },
+            "fill": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-Fa-f]{6}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Fill"
+            },
+            "font_points": {
+              "default": 24,
+              "maximum": 96,
+              "minimum": 8,
+              "title": "Font Points",
+              "type": "integer"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "title": "Height",
+              "type": "number"
+            },
+            "image_base64": {
+              "anyOf": [
+                {
+                  "maxLength": 1048576,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Image Base64"
+            },
+            "image_format": {
+              "default": "png",
+              "enum": [
+                "png",
+                "jpeg"
+              ],
+              "title": "Image Format",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "text",
+                "rectangle",
+                "ellipse",
+                "table",
+                "image"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "name": {
+              "maxLength": 160,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "rows": {
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "maxItems": 100,
+              "title": "Rows",
+              "type": "array"
+            },
+            "text": {
+              "default": "",
+              "maxLength": 16384,
+              "title": "Text",
+              "type": "string"
+            },
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "title": "Width",
+              "type": "number"
+            },
+            "x": {
+              "maximum": 100,
+              "minimum": 0,
+              "title": "X",
+              "type": "number"
+            },
+            "y": {
+              "maximum": 100,
+              "minimum": 0,
+              "title": "Y",
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "name",
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "title": "SlideObject",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "expected_snapshot": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Snapshot"
+            },
+            "height_inches": {
+              "default": 7.5,
+              "maximum": 56,
+              "minimum": 1,
+              "title": "Height Inches",
+              "type": "number"
+            },
+            "lane_id": {
+              "const": "ppt",
+              "default": "ppt",
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "logical_name": {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[^/\\\\:]+\\.pptx$",
+              "title": "Logical Name",
+              "type": "string"
+            },
+            "slides": {
+              "items": {
+                "$ref": "#/$defs/Slide"
+              },
+              "maxItems": 100,
+              "minItems": 1,
+              "title": "Slides",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "width_inches": {
+              "default": 13.333333,
+              "maximum": 56,
+              "minimum": 1,
+              "title": "Width Inches",
+              "type": "number"
+            }
+          },
+          "required": [
+            "logical_name",
+            "title",
+            "slides"
+          ],
+          "title": "PresentationGenerate",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "presentation_generate",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

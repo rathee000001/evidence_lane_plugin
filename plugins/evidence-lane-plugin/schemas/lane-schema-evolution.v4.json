@@ -1,0 +1,215 @@
+{
+  "lanes": [
+    {
+      "database": "authorities/plan/plan_authority_v001.sqlite",
+      "history": "authorities/plan/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "plan",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+      "history": "authorities/chat_lineage/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "chat_lineage",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/canon/canon_authority_v001.sqlite",
+      "history": "authorities/canon/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "canon",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/memory/memory_authority_v001.sqlite",
+      "history": "authorities/memory/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "memory",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/learning/learning_authority_v001.sqlite",
+      "history": "authorities/learning/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "learning",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/sources/sources_authority_v001.sqlite",
+      "history": "authorities/sources/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "sources",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/receipts/receipts_authority_v001.sqlite",
+      "history": "authorities/receipts/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "receipts",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "authorities/universe/universe_authority_v001.sqlite",
+      "history": "authorities/universe/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "universe",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/github_code/github_code_sector_v001.sqlite",
+      "history": "sectors/github_code/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "github_code",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/local_code/local_code_sector_v001.sqlite",
+      "history": "sectors/local_code/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "local_code",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/docs/docs_sector_v001.sqlite",
+      "history": "sectors/docs/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "docs",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
+      "history": "sectors/data_excel/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "data_excel",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/ppt/ppt_sector_v001.sqlite",
+      "history": "sectors/ppt/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "ppt",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "history": "sectors/pdf_ocr/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "pdf_ocr",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+      "history": "sectors/images_ocr/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "images_ocr",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
+      "history": "sectors/artifacts/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "artifacts",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/custom/custom_sector_v001.sqlite",
+      "history": "sectors/custom/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "custom",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/research/research_sector_v001.sqlite",
+      "history": "sectors/research/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "research",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/data/data_sector_v001.sqlite",
+      "history": "sectors/data/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "data",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/tableau/tableau_sector_v001.sqlite",
+      "history": "sectors/tableau/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "tableau",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
+      "history": "sectors/power_bi/schema-history",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "power_bi",
+      "publication": "Root PV selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    }
+  ],
+  "schema": "evidence-lane.lane-schema-evolution-policy.v4"
+}

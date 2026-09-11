@@ -1,0 +1,95 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read identity and storage counts for one selected project.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "Empty",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_status",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "format_version": {
+        "title": "Format Version",
+        "type": "integer"
+      },
+      "object_bytes": {
+        "title": "Object Bytes",
+        "type": "integer"
+      },
+      "object_count": {
+        "title": "Object Count",
+        "type": "integer"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "receipt_count": {
+        "title": "Receipt Count",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_id",
+      "format_version",
+      "object_count",
+      "object_bytes",
+      "receipt_count"
+    ],
+    "title": "ProjectStatus",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "983d711bd8cb122cefc2531382602466e66bdd0915064e5cbd5301093e0e86b4",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_status",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.engine:Engine.project_status",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_status.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

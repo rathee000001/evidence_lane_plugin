@@ -1,0 +1,41 @@
+{
+  "lane_id": "artifacts",
+  "migrations": [
+    {
+      "owner": "artifacts",
+      "version": 1,
+      "description": "Separate immutable evidence files, retained lane facts and literal retrieval",
+      "digest": "72b74fd585227fcb022c20d034d07a5a67fdef936d609f1628b848076ca78f53",
+      "statements": [
+        "CREATE TABLE artifact_file(source_id TEXT PRIMARY KEY,logical_name TEXT NOT NULL,\n            source_path TEXT NOT NULL,created_at TEXT NOT NULL) STRICT",
+        "CREATE TABLE artifact_version(snapshot_id TEXT PRIMARY KEY,\n            source_id TEXT NOT NULL REFERENCES artifact_file(source_id),\n            generation INTEGER NOT NULL CHECK(generation>0),\n            previous_snapshot TEXT REFERENCES artifact_version(snapshot_id),\n            manifest_object TEXT NOT NULL REFERENCES objects(digest),raw_object TEXT NOT NULL REFERENCES objects(digest),\n            facts_object TEXT NOT NULL REFERENCES objects(digest),parser_contract TEXT NOT NULL,\n            created_at TEXT NOT NULL,UNIQUE(source_id,generation)) STRICT",
+        "CREATE TABLE artifact_current(source_id TEXT PRIMARY KEY REFERENCES artifact_file(source_id),\n            snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id)) STRICT",
+        "CREATE TABLE artifact_archive_member(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_media_probe(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_metadata(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_native_fact(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_relation_edge(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_review_required(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_sqlite_receipt(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_sqlite_relationship(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_sqlite_row(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_sqlite_schema_object(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_sqlite_table(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_text_extract(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE project_artifact(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            item_id TEXT NOT NULL,kind TEXT NOT NULL,ordinal INTEGER NOT NULL,part TEXT NOT NULL,\n            payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),PRIMARY KEY(snapshot_id,item_id)) STRICT",
+        "CREATE TABLE artifact_chunk(snapshot_id TEXT NOT NULL REFERENCES artifact_version(snapshot_id),\n            chunk_id TEXT NOT NULL,item_id TEXT NOT NULL,ordinal INTEGER NOT NULL,\n            text_object TEXT NOT NULL REFERENCES objects(digest),PRIMARY KEY(snapshot_id,chunk_id)) STRICT",
+        "CREATE VIRTUAL TABLE artifact_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61)",
+        "CREATE INDEX artifact_versions_source ON artifact_version(source_id,generation)"
+      ]
+    },
+    {
+      "owner": "artifactsselector",
+      "version": 1,
+      "description": "Retain source retirement proofs without deleting lineage heads",
+      "digest": "1fe9c3069807f51dcf76a37fdf93d414e0c3feb5d76216f6d70003aded928ca6",
+      "statements": [
+        "CREATE TABLE selector_retirement(\n            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),\n            proof_object TEXT NOT NULL REFERENCES objects(digest),\n            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,\n            created_at TEXT NOT NULL) STRICT"
+      ]
+    }
+  ]
+}

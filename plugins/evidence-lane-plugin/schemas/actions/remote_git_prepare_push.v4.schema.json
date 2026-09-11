@@ -1,0 +1,157 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Prepare or execute one pinned, one-use development-branch Git push with remote readback.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authentication": {
+        "default": "none",
+        "enum": [
+          "none",
+          "host_git_credential_manager",
+          "host_openssh_agent"
+        ],
+        "title": "Authentication",
+        "type": "string"
+      },
+      "branch": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Branch",
+        "type": "string"
+      },
+      "expected_authority_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Authority Digest",
+        "type": "string"
+      },
+      "expected_commit": {
+        "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+        "title": "Expected Commit",
+        "type": "string"
+      },
+      "expected_remote_commit": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Expected Remote Commit"
+      },
+      "expected_remote_url": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Expected Remote Url",
+        "type": "string"
+      },
+      "remote": {
+        "default": "origin",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+        "title": "Remote",
+        "type": "string"
+      }
+    },
+    "required": [
+      "branch",
+      "expected_remote_url",
+      "expected_commit",
+      "expected_remote_commit",
+      "expected_authority_digest"
+    ],
+    "title": "PushPrepare",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "remote_git_prepare_push",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "additionalProperties": true,
+        "title": "Action",
+        "type": "object"
+      },
+      "action_id": {
+        "title": "Action Id",
+        "type": "string"
+      },
+      "digest": {
+        "title": "Digest",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "action_id",
+      "digest",
+      "action"
+    ],
+    "title": "PushResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "publish",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [
+    "Python",
+    "SQLite_FTS5_BM25",
+    "Git"
+  ],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "409308f57cedc426dd495593bf930b4ae8a6e148dfe21afd5f84da569cbd8c24",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "remote_git_prepare_push",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.remote_git:register_remote_git_actions.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "remote_git_prepare_push.exact_git",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "Git"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [
+    "git_push_preparation_integrity"
+  ],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

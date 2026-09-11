@@ -1,0 +1,93 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read implemented per-lane view semantics, selected file roles and shared tools.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "view_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "View Ids",
+        "type": "array"
+      }
+    },
+    "title": "ViewCatalogRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "lane_view_catalog",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "views": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Views",
+        "type": "array"
+      }
+    },
+    "required": [
+      "views"
+    ],
+    "title": "ViewCatalog",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "53db0f58fc6248e51c1e9f415e7043d9b81db730bf78b74dff3c7d84c58662be",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "lane_view_catalog",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.catalog",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "lane_view_catalog.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

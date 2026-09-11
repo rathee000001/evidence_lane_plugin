@@ -1,40 +1,564 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Docs bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "lane_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "SectorArgs_document_current_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "SectorArgs_document_current_docs",
+      "type": "object"
     },
-    "lane_id": {
-      "const": "docs"
+    "SectorArgs_document_enrichment_read_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "enrichment_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Enrichment Id",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 2097152,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_characters": {
+          "default": 32768,
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "include_structure": {
+          "default": false,
+          "title": "Include Structure",
+          "type": "boolean"
+        },
+        "max_structure_bytes": {
+          "default": 131072,
+          "maximum": 524288,
+          "minimum": 4096,
+          "title": "Max Structure Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "enrichment_id"
+      ],
+      "title": "SectorArgs_document_enrichment_read_docs",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "SectorArgs_document_query_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "collection": {
+          "default": "text",
+          "enum": [
+            "metadata",
+            "text",
+            "paragraph",
+            "heading",
+            "table",
+            "image",
+            "relationship",
+            "content_control",
+            "insertion",
+            "deletion",
+            "field",
+            "field_instruction",
+            "hyperlink",
+            "bookmark",
+            "embedded_object"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_document_query_docs",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "SectorArgs_document_read_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "representation": {
+          "default": "document",
+          "enum": [
+            "document",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 131072,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_document_read_docs",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "SectorArgs_document_render_read_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "default": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "render_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Render Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "render_id"
+      ],
+      "title": "SectorArgs_document_render_read_docs",
+      "type": "object"
+    },
+    "SectorArgs_source_snapshot_state_docs": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "docs",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_docs",
+      "type": "object"
+    },
+    "SectorRequest_document_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "document_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_document_current_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_document_current",
+      "type": "object"
+    },
+    "SectorRequest_document_enrichment_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "document_enrichment_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_document_enrichment_read_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_document_enrichment_read",
+      "type": "object"
+    },
+    "SectorRequest_document_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "document_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_document_query_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_document_query",
+      "type": "object"
+    },
+    "SectorRequest_document_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "document_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_document_read_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_document_read",
+      "type": "object"
+    },
+    "SectorRequest_document_render_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "document_render_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_document_render_read_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_document_render_read",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_docs"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "EFA13155D65D127AF133439D8D8D61EA91D35E6B5DBDC33F39B46BECFAAA2EF5"
+  "discriminator": {
+    "mapping": {
+      "document_current": "#/$defs/SectorRequest_document_current",
+      "document_enrichment_read": "#/$defs/SectorRequest_document_enrichment_read",
+      "document_query": "#/$defs/SectorRequest_document_query",
+      "document_read": "#/$defs/SectorRequest_document_read",
+      "document_render_read": "#/$defs/SectorRequest_document_render_read",
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_document_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_document_enrichment_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_document_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_document_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_document_render_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    }
+  ],
+  "title": "Docs typed reader requests"
 }

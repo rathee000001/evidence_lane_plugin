@@ -1,0 +1,677 @@
+{
+  "schema": "evidence-lane.authority-workflow.v4",
+  "owner_id": "learning",
+  "source_package_folder": "authorities/agent_learning",
+  "storage": "authorities/learning/learning_authority_v001.sqlite with files and schema history in authorities/learning",
+  "actions": [
+    {
+      "name": "learning_read",
+      "description": "Retrieve a bounded project-local slice of verified execution observations.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Action"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "include_history": {
+            "default": false,
+            "title": "Include History",
+            "type": "boolean"
+          }
+        },
+        "title": "LearningRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "lessons": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Lessons",
+            "type": "array"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "authority": {
+            "default": "project_learning",
+            "title": "Authority",
+            "type": "string"
+          },
+          "basis": {
+            "default": "verified_execution_observations_not_generalized_causal_claims",
+            "title": "Basis",
+            "type": "string"
+          },
+          "project_truth_mutated": {
+            "default": false,
+            "title": "Project Truth Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "lessons",
+          "truncated"
+        ],
+        "title": "LearningPage",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "learning",
+      "workflow": "learning",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_read",
+        "profile": "learning",
+        "routes": [
+          {
+            "route_id": "learning_read.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "learning"
+        ],
+        "items": "lessons",
+        "current_action": null,
+        "current_items": null,
+        "collection": null,
+        "match_mode": null,
+        "basis": "sqlite_fts5_bm25",
+        "rerank_text": null
+      }
+    },
+    {
+      "name": "learning_record_host_memory_import",
+      "description": "Record explicit host-memory provenance and its exact Plan-task link without reading host memory or creating Learning.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_kind": {
+            "enum": [
+              "CODEX_LOCAL_MEMORY",
+              "CHATGPT_SAVED_MEMORY",
+              "CHATGPT_CHAT_HISTORY_MEMORY"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "source_locator": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Source Locator",
+            "type": "string"
+          },
+          "source_record_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Record Sha256",
+            "type": "string"
+          },
+          "source_context_id_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Context Id Sha256",
+            "type": "string"
+          },
+          "observed_at": {
+            "maxLength": 40,
+            "minLength": 20,
+            "title": "Observed At",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "delta_job_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Delta Job Id"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_locator",
+          "source_record_sha256",
+          "source_context_id_sha256",
+          "observed_at",
+          "purpose",
+          "task_id",
+          "plan_revision",
+          "contract_digest"
+        ],
+        "title": "HostMemoryImport",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "receipt_id": {
+            "title": "Receipt Id",
+            "type": "string"
+          },
+          "receipt_digest": {
+            "title": "Receipt Digest",
+            "type": "string"
+          },
+          "source": {
+            "additionalProperties": true,
+            "title": "Source",
+            "type": "object"
+          },
+          "import_context": {
+            "additionalProperties": true,
+            "title": "Import Context",
+            "type": "object"
+          },
+          "memory_graph": {
+            "additionalProperties": true,
+            "title": "Memory Graph",
+            "type": "object"
+          },
+          "duplicate": {
+            "default": false,
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "imported_role": {
+            "const": "non_authoritative_evidence_reference",
+            "default": "non_authoritative_evidence_reference",
+            "title": "Imported Role",
+            "type": "string"
+          },
+          "source_identity_basis": {
+            "const": "caller_reported_hashes",
+            "default": "caller_reported_hashes",
+            "title": "Source Identity Basis",
+            "type": "string"
+          },
+          "memory_link_semantics": {
+            "const": "agent_report",
+            "default": "agent_report",
+            "title": "Memory Link Semantics",
+            "type": "string"
+          },
+          "raw_host_memory_stored": {
+            "const": false,
+            "default": false,
+            "title": "Raw Host Memory Stored",
+            "type": "boolean"
+          },
+          "source_bytes_read_or_verified": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Read Or Verified",
+            "type": "boolean"
+          },
+          "learning_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Learning Mutated",
+            "type": "boolean"
+          },
+          "plan_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "receipt_id",
+          "receipt_digest",
+          "source",
+          "import_context",
+          "memory_graph"
+        ],
+        "title": "HostMemoryImported",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "learning",
+      "workflow": "learning",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_record_host_memory_import",
+        "profile": "learning",
+        "routes": [
+          {
+            "route_id": "learning_record_host_memory_import.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.import_provenance",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b72a8be78377c67a0177ed641dfff56fb7e0babca24d02d717960cd4a82b1c50"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "learning_revoke",
+      "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "version_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Version Id",
+            "type": "string"
+          },
+          "expected_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Digest",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version_id",
+          "expected_digest",
+          "reason"
+        ],
+        "title": "LearningRevoke",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
+          },
+          "lesson_key": {
+            "title": "Lesson Key",
+            "type": "string"
+          },
+          "state": {
+            "default": "revoked",
+            "title": "State",
+            "type": "string"
+          },
+          "automatic_reactivation": {
+            "default": false,
+            "title": "Automatic Reactivation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version_id",
+          "lesson_key"
+        ],
+        "title": "LearningRevoked",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "learning",
+      "workflow": "learning",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "learning_revoke",
+        "profile": "learning",
+        "routes": [
+          {
+            "route_id": "learning_revoke.engine",
+            "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.revoke",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "learning.provenance",
+      "lane_id": "learning",
+      "folder": "authorities/learning",
+      "version": 1,
+      "meaning": "Verified observations, their exact source receipts and version relationships.",
+      "consumer": "artifact_export",
+      "implementation_digest": "328b2abed48bb0f6eb26aaf518cccc863d7c727de6a01da54b1c5572581c698b",
+      "files": {
+        "mmd": "agent-learning.mmd",
+        "dot": "agent-learning.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "learning"
+      ],
+      "node_kinds": [
+        "learning_version",
+        "verified_exit"
+      ],
+      "edge_kinds": [
+        "VERIFIED_SOURCE_OF",
+        "PREVIOUS_VERSION"
+      ],
+      "schemas": [
+        {
+          "owner": "learning",
+          "version": 1,
+          "digest": "ef20a7527722366f6784e2213f262f242256169a296a86a2af902adb4ef27e38"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "runtime_modules": [
+    "evidence_lane_plugin.agent_learning"
+  ],
+  "topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_learning",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 8,
+    "edge_count": 8,
+    "group_count": 0,
+    "semantic_topology_sha256": "87875E83CB6D593FD5265DC515F320C4E5AA24FD8F099CDD9CE9B8E48B6453B8",
+    "mmd_sha256": "205A63615273B41714C2E840609CB08ACF5175206BB85FE806C61778E69E54D9",
+    "dot_sha256": "7DDDB95FC0A68B4090D3D6BE658289E4888BA7231895CDD05C15B22D3694AE2E",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "A41E7F7F24F0E64D7F0105CD3EAFACDCD261B1C8945EB180905BE2B4C1F83854",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "98AAF80297CF2723A81CDF7CD10FC2D610E03A3D342221CF07B0ADDDB44B6AC9"
+  },
+  "graph_role": "source_package_executable_routes",
+  "installed_execution_claimed": false,
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_learning",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 9,
+    "edge_count": 3,
+    "group_count": 0,
+    "semantic_topology_sha256": "F2B2AA0E1CF9C63983D643048033C72771F937C472276A035A8E2E7FF4DE42B4",
+    "mmd_sha256": "CB2DD8B9B0F52E00EA22DEA2E3147B0683A0F4BB812D383F0F0C6DDCD504D476",
+    "dot_sha256": "E33B468DE05CB7B5D005E288BC39CFB241F034F2FFBAD9F5FB18C8CD4AF8653C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "062C95775C740BCED1236248CEC93672A10E630CD1630F368C767729ACC19369",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "0DA52521DEA7A38691D22526FFA5CF6B15F852BE27E83E031D0B1A039E821153"
+  }
+}

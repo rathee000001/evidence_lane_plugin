@@ -1,0 +1,380 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "memory",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "553f8022ed68c8f657d00f1d9eeb65e24b1e24172aa8ce6d1debbad5caaa6c5f",
+  "tables": [
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "memory_checkpoints",
+      "type": "table",
+      "sql": "CREATE TABLE memory_checkpoints (checkpoint_digest TEXT PRIMARY KEY,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "checkpoint_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "memory_edges",
+      "type": "table",
+      "sql": "CREATE TABLE memory_edges (edge_id TEXT PRIMARY KEY, source_id TEXT NOT NULL REFERENCES memory_locators(locator_id),\n       target_id TEXT NOT NULL REFERENCES memory_locators(locator_id), kind TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), row_digest TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "source_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "target_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "row_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "memory_events",
+      "type": "table",
+      "sql": "CREATE TABLE memory_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n       kind TEXT NOT NULL, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       result_json TEXT NOT NULL CHECK(json_valid(result_json)), previous_digest TEXT,\n       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "input_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "memory_fts",
+      "type": "virtual",
+      "sql": "CREATE VIRTUAL TABLE memory_fts USING fts5(locator_id UNINDEXED,label,text,tokenize='unicode61')",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "locator_id",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "label",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "text",
+          "type": "",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "memory_locators",
+      "type": "table",
+      "sql": "CREATE TABLE memory_locators (locator_id TEXT PRIMARY KEY, reference_kind TEXT NOT NULL,\n       reference_key TEXT NOT NULL, reference_digest TEXT NOT NULL, reference_revision INTEGER, profile TEXT,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), row_digest TEXT NOT NULL,\n       created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "locator_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "reference_kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reference_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reference_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "reference_revision",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "profile",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "row_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "memory_edges",
+      "target": "memory_locators",
+      "column": "target_id",
+      "target_column": "locator_id"
+    },
+    {
+      "source": "memory_edges",
+      "target": "memory_locators",
+      "column": "source_id",
+      "target_column": "locator_id"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

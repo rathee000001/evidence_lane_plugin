@@ -1,0 +1,9 @@
+{
+  "owner_id": "session_authority",
+  "modules": [
+    "evidence_lane_plugin.session_authority"
+  ],
+  "storage": "authorities/receipts/receipts_authority_v001.sqlite sessions schema owner",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

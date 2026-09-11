@@ -1,25 +1,423 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_memory support refresh request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "project_root",
-    "authority_id"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_memory_checkpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "memory_checkpoint",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MemoryCheckpoint"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_memory_checkpoint",
+      "type": "object"
     },
-    "project_root": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_memory_ingest": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "memory_ingest",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MemoryIngest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_memory_ingest",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "project_memory"
+    "AuthorityRequest_project_memory_record_link": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_memory_record_link",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/MemoryRecordLink"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_memory_record_link",
+      "type": "object"
+    },
+    "MemoryCheckpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "locator_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Locator Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "task_id",
+        "plan_revision",
+        "contract_digest",
+        "locator_ids"
+      ],
+      "title": "MemoryCheckpoint",
+      "type": "object"
+    },
+    "MemoryEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "target_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "DERIVED_FROM",
+            "EVIDENCES",
+            "LEARNED_FROM",
+            "MAPS_TO",
+            "RELATED_TO",
+            "REVOKES",
+            "SUPERSEDES",
+            "SUPPRESSES"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/MemoryReference"
+        }
+      },
+      "required": [
+        "source_id",
+        "target_id",
+        "kind",
+        "evidence"
+      ],
+      "title": "MemoryEdge",
+      "type": "object"
+    },
+    "MemoryIngest": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "locators": {
+          "items": {
+            "$ref": "#/$defs/MemoryLocator"
+          },
+          "maxItems": 100,
+          "title": "Locators",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/MemoryEdge"
+          },
+          "maxItems": 100,
+          "title": "Edges",
+          "type": "array"
+        }
+      },
+      "title": "MemoryIngest",
+      "type": "object"
+    },
+    "MemoryLocator": {
+      "additionalProperties": false,
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/MemoryReference"
+        },
+        "label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "search_terms": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 24,
+          "title": "Search Terms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reference",
+        "label"
+      ],
+      "title": "MemoryLocator",
+      "type": "object"
+    },
+    "MemoryRecordLink": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/MemoryLocator"
+        },
+        "target": {
+          "$ref": "#/$defs/MemoryLocator"
+        },
+        "edge_type": {
+          "enum": [
+            "DERIVED_FROM",
+            "EVIDENCES",
+            "LEARNED_FROM",
+            "MAPS_TO",
+            "RELATED_TO",
+            "REVOKES",
+            "SUPERSEDES",
+            "SUPPRESSES"
+          ],
+          "title": "Edge Type",
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/MemoryReference"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "edge_type",
+        "evidence"
+      ],
+      "title": "MemoryRecordLink",
+      "type": "object"
+    },
+    "MemoryReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "plan_task",
+            "lineage_event",
+            "learning_version",
+            "receipt",
+            "source_object",
+            "canon_exchange"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "lane_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lane Id"
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "digest"
+      ],
+      "title": "MemoryReference",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "43E2F50D8FB170657C7A19F765D1941EBB30563127DD6B27B2F5E8306AC5C0F9"
+  "discriminator": {
+    "mapping": {
+      "memory_checkpoint": "#/$defs/AuthorityRequest_memory_checkpoint",
+      "memory_ingest": "#/$defs/AuthorityRequest_memory_ingest",
+      "project_memory_record_link": "#/$defs/AuthorityRequest_project_memory_record_link"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_memory_checkpoint"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_memory_ingest"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_memory_record_link"
+    }
+  ],
+  "title": "memory typed SDK requests"
 }

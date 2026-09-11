@@ -1,0 +1,425 @@
+{
+  "action": "source_prepare_refresh",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/source_prepare_refresh.action.v4.json",
+  "sdk_binding_sha256": "2861ac2efb74afbcb8bd29374a0551fb4e6bd80e7f80efeeb169f2ab07af2260",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Prepare changed, new and deleted selected sources as exact owning parser and retirement Plan tasks; preserve unselected scopes and history.",
+    "inputSchema": {
+      "$defs": {
+        "JsonValue": {},
+        "SnapshotSelection": {
+          "additionalProperties": false,
+          "properties": {
+            "lane_id": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Lane Id",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "lane_id",
+            "snapshot_id"
+          ],
+          "title": "SnapshotSelection",
+          "type": "object"
+        },
+        "SourceRouteSelection": {
+          "additionalProperties": false,
+          "properties": {
+            "occurrence_ordinals": {
+              "items": {
+                "maximum": 256,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "title": "Occurrence Ordinals",
+              "type": "array"
+            },
+            "route_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Route Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "route_id",
+            "occurrence_ordinals"
+          ],
+          "title": "SourceRouteSelection",
+          "type": "object"
+        },
+        "TaskBudget": {
+          "additionalProperties": false,
+          "properties": {
+            "max_input_bytes": {
+              "default": 1048576,
+              "maximum": 67108864,
+              "minimum": 1,
+              "title": "Max Input Bytes",
+              "type": "integer"
+            },
+            "max_output_bytes": {
+              "default": 4194304,
+              "maximum": 67108864,
+              "minimum": 1,
+              "title": "Max Output Bytes",
+              "type": "integer"
+            },
+            "max_seconds": {
+              "default": 300,
+              "maximum": 3600,
+              "minimum": 1,
+              "title": "Max Seconds",
+              "type": "integer"
+            },
+            "max_tool_calls": {
+              "default": 64,
+              "maximum": 1024,
+              "minimum": 1,
+              "title": "Max Tool Calls",
+              "type": "integer"
+            }
+          },
+          "title": "TaskBudget",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "baseline_snapshots": {
+              "items": {
+                "$ref": "#/$defs/SnapshotSelection"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "title": "Baseline Snapshots",
+              "type": "array"
+            },
+            "budget": {
+              "$ref": "#/$defs/TaskBudget"
+            },
+            "code_mode": {
+              "default": "local_code",
+              "enum": [
+                "local_code",
+                "github_code"
+              ],
+              "title": "Code Mode",
+              "type": "string"
+            },
+            "git_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Git Snapshot Id"
+            },
+            "lane_options": {
+              "additionalProperties": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              "maxProperties": 64,
+              "title": "Lane Options",
+              "type": "object"
+            },
+            "max_file_bytes": {
+              "default": 8388608,
+              "maximum": 8388608,
+              "minimum": 1,
+              "title": "Max File Bytes",
+              "type": "integer"
+            },
+            "max_files": {
+              "default": 2000,
+              "maximum": 25000,
+              "minimum": 1,
+              "title": "Max Files",
+              "type": "integer"
+            },
+            "max_seconds": {
+              "default": 120,
+              "maximum": 300,
+              "minimum": 1,
+              "title": "Max Seconds",
+              "type": "integer"
+            },
+            "max_total_bytes": {
+              "default": 67108864,
+              "maximum": 1073741824,
+              "minimum": 1,
+              "title": "Max Total Bytes",
+              "type": "integer"
+            },
+            "overrides": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "maxProperties": 2000,
+              "title": "Overrides",
+              "type": "object"
+            },
+            "selection": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceRouteSelection"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "baseline_snapshots"
+          ],
+          "title": "SourceRefreshPrepare",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "source_prepare_refresh",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

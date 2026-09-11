@@ -1,12 +1,12 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 4,
   "tool": "SQLite_CAS",
   "requirement": "REQUIRED",
   "classification": "SYSTEM_CAPABILITY_WITH_PLUGIN_IMPLEMENTATION",
   "install_mode": "hidden_runtime_and_internal_code",
-  "license_expression_or_terms": "LicenseRef-SQLite-Public-Domain AND LicenseRef-Proprietary",
+  "license_expression_or_terms": "LicenseRef-SQLite-Public-Domain AND MIT",
   "license_evidence": "SQLite runtime identity plus LICENSE.md for Evidence Lane implementation",
   "evidence_paths": [
     "LICENSE.md",
@@ -16,13 +16,19 @@
     "requirements.torch-nvidia.lock.txt"
   ],
   "redistributed_by_source_package": false,
-  "source_package_copied_license_text_present": false,
-  "source_package_copied_license_texts": [],
+  "source_package_copied_license_text_present": true,
+  "source_package_copied_license_texts": [
+    "LICENSE.md"
+  ],
   "native_license_acquisition": null,
   "runtime_distribution_license_required": true,
   "runtime_distribution_license_manifest": "%RUNTIME_CONTROL_ROOT%/runtime/licenses/<runtime_key>/manifest.v1.json",
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "20FEA68E7C0D0FAE5657313C3A7A8A2BDC68DB0F83D209FC47417EF45A84E017"
+  "historical_ordinal": 4,
+  "catalog_ordinal": 4,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "0bb18c2be4a922af1164a98ea91b7c2786f1d20a3e325a8df326e81d0bd4e29d"
 }

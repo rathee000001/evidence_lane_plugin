@@ -1,0 +1,193 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "continuation_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Continuation Digest",
+        "type": "string"
+      },
+      "continuation_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "limit": {
+        "default": 4,
+        "maximum": 8,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "continuation_id",
+      "continuation_digest"
+    ],
+    "title": "ContinuationContextRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "continuation_context",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "canon": {
+        "additionalProperties": true,
+        "title": "Canon",
+        "type": "object"
+      },
+      "canon_continuity": {
+        "additionalProperties": true,
+        "title": "Canon Continuity",
+        "type": "object"
+      },
+      "continuation_id": {
+        "title": "Continuation Id",
+        "type": "string"
+      },
+      "current_owner": {
+        "additionalProperties": true,
+        "title": "Current Owner",
+        "type": "object"
+      },
+      "destination_client_id": {
+        "title": "Destination Client Id",
+        "type": "string"
+      },
+      "host_session_attached": {
+        "default": false,
+        "title": "Host Session Attached",
+        "type": "boolean"
+      },
+      "jobs_replayed": {
+        "default": false,
+        "title": "Jobs Replayed",
+        "type": "boolean"
+      },
+      "lineage_locators": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Lineage Locators",
+        "type": "array"
+      },
+      "memory": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Memory"
+      },
+      "native_task_attestation": {
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "plan_task": {
+        "additionalProperties": true,
+        "title": "Plan Task",
+        "type": "object"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "snapshot_scope": {
+        "default": "one_published_root_pv_with_separate_owner_views",
+        "title": "Snapshot Scope",
+        "type": "string"
+      },
+      "source_bytes_reverified": {
+        "default": false,
+        "title": "Source Bytes Reverified",
+        "type": "boolean"
+      },
+      "source_client_id": {
+        "title": "Source Client Id",
+        "type": "string"
+      },
+      "source_root": {
+        "title": "Source Root",
+        "type": "string"
+      },
+      "state_root": {
+        "title": "State Root",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "continuation_id",
+      "source_client_id",
+      "destination_client_id",
+      "current_owner",
+      "plan_task",
+      "lineage_locators",
+      "canon",
+      "canon_continuity",
+      "memory",
+      "source_root",
+      "state_root"
+    ],
+    "title": "ContinuationContext",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "continuity",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "1ca69edd5422374171f892c3aac5a0f19055bca7c4f7e95a029ac6bb81fb8f18",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "continuation_context",
+    "profile": "continuity",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_runtime_continuity:register_continuation_context.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "continuation_context.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "state-travel"
+}

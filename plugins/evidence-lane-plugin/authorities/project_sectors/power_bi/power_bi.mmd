@@ -1,0 +1,93 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=069635A837651C915EC1A19B0398856D9A30A0A71157D47C6EE67D6F4E860BAF
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_powerbi_annotation["powerbi_annotation<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_bookmark["powerbi_bookmark<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_chunk["powerbi_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
+  t_powerbi_chunk_fts["powerbi_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
+  t_powerbi_column["powerbi_column<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_culture["powerbi_culture<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_current["powerbi_current<br/>powerbi_id, snapshot_id"]:::table
+  t_powerbi_data_source["powerbi_data_source<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_export["powerbi_export<br/>export_id, snapshot_id, destination, before_sha256, after_sha256, effect_id, created_at"]:::table
+  t_powerbi_expression["powerbi_expression<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_file["powerbi_file<br/>powerbi_id, logical_name, source_path, origin, created_at"]:::table
+  t_powerbi_filter["powerbi_filter<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_hierarchy["powerbi_hierarchy<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_measure["powerbi_measure<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_model["powerbi_model<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_model_metadata["powerbi_model_metadata<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_model_row["powerbi_model_row<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_opaque["powerbi_opaque<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_package_member["powerbi_package_member<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_page["powerbi_page<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_partition["powerbi_partition<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_perspective["powerbi_perspective<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_project["powerbi_project<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_reference["powerbi_reference<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_relationship["powerbi_relationship<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_report["powerbi_report<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_role["powerbi_role<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_structure["powerbi_structure<br/>snapshot_id, facts_object, fidelity_json"]:::table
+  t_powerbi_table["powerbi_table<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_theme["powerbi_theme<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_powerbi_version["powerbi_version<br/>snapshot_id, powerbi_id, generation, previous_snapshot, manifest_object, raw_object, facts_object, parser_contract, created_at"]:::table
+  t_powerbi_visual["powerbi_visual<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  t_powerbi_annotation -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_bookmark -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_chunk -->|"text_object"| t_objects
+  t_powerbi_chunk -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_column -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_culture -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_current -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_current -->|"powerbi_id"| t_powerbi_file
+  t_powerbi_data_source -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_export -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_expression -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_filter -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_hierarchy -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_measure -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_model -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_model_metadata -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_model_row -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_opaque -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_package_member -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_page -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_partition -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_perspective -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_project -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_reference -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_relationship -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_report -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_role -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_structure -->|"facts_object"| t_objects
+  t_powerbi_structure -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_table -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_theme -->|"snapshot_id"| t_powerbi_version
+  t_powerbi_version -->|"facts_object"| t_objects
+  t_powerbi_version -->|"raw_object"| t_objects
+  t_powerbi_version -->|"manifest_object"| t_objects
+  t_powerbi_version -->|"previous_snapshot"| t_powerbi_version
+  t_powerbi_version -->|"powerbi_id"| t_powerbi_file
+  t_powerbi_visual -->|"snapshot_id"| t_powerbi_version
+  t_selector_retirement -->|"proof_object"| t_objects
+  t_selector_retirement -->|"snapshot_id"| t_objects

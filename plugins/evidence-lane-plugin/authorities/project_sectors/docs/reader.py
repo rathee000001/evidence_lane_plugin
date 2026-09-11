@@ -1,13 +1,10 @@
-"""Lane-specific binding to live pointer/MMD/DOT/SQLite traversal."""
+"""docs: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import read_sector_source
 
-from evidence_lane_plugin.lane_reader import LaneReader
+LANE_ID = 'docs'
+ACTION_LANES = {'document_current': 'docs', 'document_enrichment_read': 'docs', 'document_query': 'docs', 'document_read': 'docs', 'document_render_read': 'docs', 'source_snapshot_state': 'docs'}
 
-LANE_ID = "docs"
+def read_lane_source(client, **arguments):
+    return read_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
-def lane_status(reader: LaneReader, project_id: str):
-    return reader.lane_status(project_id, LANE_ID)
-
-def search(reader: LaneReader, project_id: str, query: str, **kwargs):
-    return reader.search(project_id, LANE_ID, query, **kwargs)
-
-__all__ = ["LANE_ID", "lane_status", "search"]
+__all__ = ["LANE_ID", "read_lane_source"]

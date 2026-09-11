@@ -1,40 +1,596 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Images / OCR bounded reader request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "lane_id",
-    "query",
-    "retrieval",
-    "limit"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "SectorArgs_media_current_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "default": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "SectorArgs_media_current_images_ocr",
+      "type": "object"
     },
-    "lane_id": {
-      "const": "images_ocr"
+    "SectorArgs_media_extraction_read_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "default": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "extraction_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Extraction Id",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 16777216,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 524288,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "extraction_id"
+      ],
+      "title": "SectorArgs_media_extraction_read_images_ocr",
+      "type": "object"
     },
-    "query": {
-      "type": "string",
-      "minLength": 1
+    "SectorArgs_media_ocr_read_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "default": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "ocr_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Ocr Id",
+          "type": "string"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 30,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 524288,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "ocr_id"
+      ],
+      "title": "SectorArgs_media_ocr_read_images_ocr",
+      "type": "object"
     },
-    "retrieval": {
-      "enum": [
-        "hybrid",
-        "fts5",
-        "bm25",
-        "tfidf"
-      ]
+    "SectorArgs_media_query_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "default": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "collection": {
+          "default": "metadata",
+          "enum": [
+            "metadata",
+            "text",
+            "frame",
+            "exif",
+            "svg_element",
+            "svg_text",
+            "stream",
+            "tag",
+            "ocr_run",
+            "ocr_line",
+            "review_region"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 30,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 524288,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_media_query_images_ocr",
+      "type": "object"
     },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
+    "SectorArgs_media_read_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "default": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "representation": {
+          "default": "media",
+          "enum": [
+            "media",
+            "original_source"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 16777216,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 262144,
+          "maximum": 524288,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_media_read_images_ocr",
+      "type": "object"
+    },
+    "SectorArgs_source_snapshot_state_images_ocr": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "const": "images_ocr",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lane_id",
+        "snapshot_id"
+      ],
+      "title": "SectorArgs_source_snapshot_state_images_ocr",
+      "type": "object"
+    },
+    "SectorRequest_media_current": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "media_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_media_current_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_media_current",
+      "type": "object"
+    },
+    "SectorRequest_media_extraction_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "media_extraction_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_media_extraction_read_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_media_extraction_read",
+      "type": "object"
+    },
+    "SectorRequest_media_ocr_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "media_ocr_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_media_ocr_read_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_media_ocr_read",
+      "type": "object"
+    },
+    "SectorRequest_media_query": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "media_query",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_media_query_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_media_query",
+      "type": "object"
+    },
+    "SectorRequest_media_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "media_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_media_read_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_media_read",
+      "type": "object"
+    },
+    "SectorRequest_source_snapshot_state": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "source_snapshot_state",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SectorArgs_source_snapshot_state_images_ocr"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "SectorRequest_source_snapshot_state",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "54BC38BF8E81E54129C4D44B3F5E9F2A0489F648D32A73D87664BC5334893C2A"
+  "discriminator": {
+    "mapping": {
+      "media_current": "#/$defs/SectorRequest_media_current",
+      "media_extraction_read": "#/$defs/SectorRequest_media_extraction_read",
+      "media_ocr_read": "#/$defs/SectorRequest_media_ocr_read",
+      "media_query": "#/$defs/SectorRequest_media_query",
+      "media_read": "#/$defs/SectorRequest_media_read",
+      "source_snapshot_state": "#/$defs/SectorRequest_source_snapshot_state"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SectorRequest_media_current"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_media_extraction_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_media_ocr_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_media_query"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_media_read"
+    },
+    {
+      "$ref": "#/$defs/SectorRequest_source_snapshot_state"
+    }
+  ],
+  "title": "Images / OCR typed reader requests"
 }

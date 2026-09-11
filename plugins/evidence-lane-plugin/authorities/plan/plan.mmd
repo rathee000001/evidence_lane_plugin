@@ -1,0 +1,60 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=90E98B8CFB944A7D82323A7F647791AA7B5F58F8D949B44EC48244C2D5DAD888
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  t_delta_exits["delta_exits<br/>job_id, verification_object, receipt_id, next_task_id, created_at"]:::table
+  t_delta_runs["delta_runs<br/>job_id, request_id, actor_id, task_id, plan_revision, contract_digest, binding_digest, entry_object, state, result_object, error_code, created_at, updated_at"]:::table
+  t_jobs_effects["jobs_effects<br/>effect_id, job_id, effect_key, state, description, evidence_object, created_at, updated_at"]:::table
+  t_jobs_jobs["jobs_jobs<br/>job_id, request_id, client_id, request_digest, request_json, action, plan_revision, state, owner_fence, execution_id, phase, checkpoint_object, resumable, cancellation_reason, result_json, error_code, created_at, updated_at"]:::table
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_plan_current["plan_current<br/>singleton, revision, event_head"]:::table
+  t_plan_dependencies["plan_dependencies<br/>revision, task_id, dependency_id"]:::table
+  t_plan_events["plan_events<br/>sequence, event_id, revision, task_id, kind, actor_id, payload_json, previous_digest, digest, created_at"]:::table
+  t_plan_host_bindings["plan_host_bindings<br/>binding_id, request_id, host_task_id, host_plan_id, plan_path, current_sha256, bound_by, binding_digest, active, created_at, updated_at"]:::table
+  t_plan_host_projections["plan_host_projections<br/>sequence, projection_id, binding_id, plan_revision, plan_event_head, document_digest, rows_json, rows_digest, markdown_text, markdown_sha256, state, previous_projection_id, prepared_by, prepared_at, attempts, last_error, file_before_sha2..."]:::table
+  t_plan_revisions["plan_revisions<br/>revision, plan_id, title, request_id, document_json, document_digest, parent_revision, actor_id, reason, created_at"]:::table
+  t_plan_tasks["plan_tasks<br/>revision, task_id, position, definition_json, contract_digest, state, last_event"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_steer_control["steer_control<br/>singleton, paused, source_event_id, source_cursor, actor_id, updated_at"]:::table
+  t_steer_interrupts["steer_interrupts<br/>event_id, source_cursor, actor_id, receipt_id, created_at"]:::table
+  t_steer_requests["steer_requests<br/>request_id, source_event_id, source_cursor, actor_id, expected_revision, intent, affected_json, rationale, identity_digest, state, checkpoint_object, applied_revision, created_at, updated_at"]:::table
+  t_validation_policy_current["validation_policy_current<br/>singleton, revision"]:::table
+  t_validation_policy_revisions["validation_policy_revisions<br/>revision, request_id, request_digest, policy_json, policy_digest, previous_digest, revision_digest, actor_id, receipt_id, created_at"]:::table
+  t_validationrun_summaries["validationrun_summaries<br/>job_id, task_id, plan_revision, contract_digest, summary_object, receipt_id"]:::table
+  t_delta_exits -->|"verification_object"| t_objects
+  t_delta_exits -->|"job_id"| t_delta_runs
+  t_delta_runs -->|"plan_revision"| t_plan_tasks
+  t_delta_runs -->|"task_id"| t_plan_tasks
+  t_delta_runs -->|"result_object"| t_objects
+  t_delta_runs -->|"entry_object"| t_objects
+  t_delta_runs -->|"job_id"| t_jobs_jobs
+  t_jobs_effects -->|"evidence_object"| t_objects
+  t_jobs_effects -->|"job_id"| t_jobs_jobs
+  t_jobs_jobs -->|"checkpoint_object"| t_objects
+  t_plan_current -->|"revision"| t_plan_revisions
+  t_plan_dependencies -->|"revision"| t_plan_tasks
+  t_plan_dependencies -->|"dependency_id"| t_plan_tasks
+  t_plan_dependencies -->|"revision"| t_plan_tasks
+  t_plan_dependencies -->|"task_id"| t_plan_tasks
+  t_plan_events -->|"revision"| t_plan_revisions
+  t_plan_host_projections -->|"plan_revision"| t_plan_revisions
+  t_plan_host_projections -->|"binding_id"| t_plan_host_bindings
+  t_plan_revisions -->|"parent_revision"| t_plan_revisions
+  t_plan_tasks -->|"revision"| t_plan_revisions
+  t_steer_requests -->|"checkpoint_object"| t_objects
+  t_validation_policy_current -->|"revision"| t_validation_policy_revisions

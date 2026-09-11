@@ -1,0 +1,9 @@
+"""Packaged SubagentStart hook entrypoint; generated from the v4 hook contract."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+
+if __name__ == "__main__":
+    from evidence_lane_plugin.hook_contract import main_for_event
+    raise SystemExit(main_for_event("SubagentStart"))

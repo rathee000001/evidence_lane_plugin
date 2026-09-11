@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "plugin_id": "evidence-lane-plugin",
+  "display_name": "Evidence Lane",
+  "package_version": "4.0.0",
+  "python_package": "evidence_lane_plugin",
+  "mcp_server_name": "evidence-lane",
+  "protocol_version": 4,
+  "project_database_filename": "project.sqlite3",
+  "content_directory": "objects",
+  "project_id_policy": "generated UUID bound to the selected state root",
+  "client_id_policy": "engine-issued connection UUID; not a claim of native task attestation",
+  "task_id_policy": "stable user-work identity within a project",
+  "plan_revision_policy": "monotonic integer; one current revision per project",
+  "delta_id_policy": "stable identity for revised work; new identity for replaced outcomes",
+  "release_identity_policy": "source commit plus package content digest; deployment metadata is separate",
+  "retired_public_aliases": "none registered; legacy names are absent from the v4 action registry"
+}

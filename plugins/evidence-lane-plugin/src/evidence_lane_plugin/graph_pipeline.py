@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import importlib.util
 import math
-import os
 import re
 from dataclasses import asdict, dataclass
 from html import unescape
@@ -20,14 +19,14 @@ from importlib.metadata import version
 from itertools import pairwise
 from typing import Any, Literal, TypedDict
 
-from graphviz import Digraph, Source
+from graphviz import Digraph, Source, nohtml
 from langchain_core.runnables.graph import Edge as LangChainEdge
 from langchain_core.runnables.graph import Graph as LangChainGraph
 from langchain_core.runnables.graph import Node as LangChainNode
 from langgraph.graph import END, START, StateGraph
 
 from .hashing import canonical_json_bytes, sha256_bytes
-from .native_toolchain import (
+from .shared_native_tools import (
     configured_runtime_root,
     try_resolve_native_tool,
     validate_dot_source,
@@ -59,6 +58,22 @@ _MMD_IMPORT_NODE = re.compile(
     r'(?P<shape>\(\[.*?\]\)|\[\(.*?\)\]|\{\{.*?\}\}|\{.*?\}|\[.*?\])?'
     r'(?P<class>:::[A-Za-z_][A-Za-z0-9_]*)?\s*$'
 )
+
+
+def _native_graphviz_timeout_seconds(
+    *,
+    node_count: int,
+    edge_count: int,
+    layout_constraint_count: int,
+) -> int:
+    """Return a bounded DOT validation budget derived from graph complexity."""
+
+    complexity = max(0, node_count) + max(0, edge_count) + max(
+        0, layout_constraint_count
+    )
+    return min(300, max(30, math.ceil(complexity / 16)))
+
+
 _KIND_STYLES: dict[str, dict[str, str]] = {
     "root": {
         "fillcolor": "#101828",
@@ -148,10 +163,10 @@ def _mmd_label(value: Any) -> str:
 
 
 def _dot_label(value: Any) -> str:
-    return "\\n".join(
-        _text(line).replace("\\", "/").replace('"', "'")
+    return nohtml("\\n".join(
+        _text(line).replace("\\", "\\\\")
         for line in str(value or "").splitlines()
-    )
+    ))
 
 
 def _workflow_node(state: _WorkflowState) -> _WorkflowState:
@@ -413,10 +428,18 @@ class SemanticGraph:
         *,
         direction: str = "TB",
         role: GraphRole = "AUTHORITY_TRAVERSAL",
+        analysis: Literal["omit", "optional", "required"] = "omit",
+        native_host_profile: str | None = None,
     ) -> None:
+        if analysis not in {"omit", "optional", "required"}:
+            raise ValueError("GRAPH_ANALYSIS_POLICY_INVALID")
+        if native_host_profile not in {None, "CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}:
+            raise ValueError("NATIVE_HOST_PROFILE_INVALID")
         self.name = _safe_id(name, role="graph")
         self.direction = direction if direction in {"TB", "TD", "BT", "LR", "RL"} else "TB"
         self.role = role
+        self.analysis = analysis
+        self.native_host_profile = native_host_profile
         self.groups: list[SemanticGroup] = []
         self.nodes: list[SemanticNode] = []
         self.edges: list[SemanticEdge] = []
@@ -531,6 +554,17 @@ class SemanticGraph:
                             continue
                         seen.add(pair)
                         constraints.append(pair)
+        maximum_constraints = max(
+            4,
+            math.ceil(math.log2(max(len(self.nodes), 2))),
+        )
+        if len(constraints) > maximum_constraints:
+            final_index = len(constraints) - 1
+            divisor = maximum_constraints - 1
+            constraints = [
+                constraints[(ordinal * final_index) // divisor]
+                for ordinal in range(maximum_constraints)
+            ]
         return constraints
 
     def _langchain_graph(self) -> LangChainGraph:
@@ -605,7 +639,7 @@ class SemanticGraph:
             and str(row.get("target")) not in {"__start__", "__end__"}
         }
         expected_edges = {(edge.source, edge.target) for edge in self.edges}
-        if not expected_edges.issubset(projected_edges):
+        if expected_edges != projected_edges:
             raise ValueError("LangGraph edge projection does not match semantic graph.")
         export_sha256 = sha256_bytes(exported.encode("utf-8"))
         lines = [
@@ -737,17 +771,20 @@ class SemanticGraph:
         )
         Source(source)
         native_validation: dict[str, Any] | None = None
-        runtime_root = configured_runtime_root()
-        host_profile = os.environ.get("EVIDENCE_LANE_HOST_PROFILE", "").strip().upper()
-        if (
-            runtime_root is not None
-            and host_profile in {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}
-            and try_resolve_native_tool("graphviz") is not None
-        ):
+        if self.native_host_profile is not None:
+            runtime_root = configured_runtime_root()
+            if runtime_root is None or try_resolve_native_tool("graphviz") is None:
+                raise ValueError("NATIVE_GRAPHVIZ_DOT_REQUIRED_RUNTIME_TOOL_MISSING")
+            native_timeout_seconds = _native_graphviz_timeout_seconds(
+                node_count=len(self.nodes),
+                edge_count=len(self.edges),
+                layout_constraint_count=len(layout_constraints),
+            )
             native_validation = validate_dot_source(
                 source,
                 runtime_root=runtime_root,
-                host_profile=host_profile,
+                host_profile=self.native_host_profile,
+                timeout_seconds=native_timeout_seconds,
             )
             if native_validation["status"] != "PASS":
                 raise ValueError("NATIVE_GRAPHVIZ_DOT_VALIDATION_FAILED")
@@ -767,6 +804,18 @@ class SemanticGraph:
         body = {
             **mmd_receipt,
             "dot_sha256": dot_receipt["dot_sha256"],
+            "dot_exporter": dot_receipt["dot_exporter"],
+            "python_graphviz_version": dot_receipt["python_graphviz_version"],
+            "native_graphviz_dot_available": dot_receipt[
+                "native_graphviz_dot_available"
+            ],
+            "native_graphviz_hidden_runtime_available": dot_receipt[
+                "native_graphviz_hidden_runtime_available"
+            ],
+            "native_graphviz_validation": dot_receipt[
+                "native_graphviz_validation"
+            ],
+            "native_graphviz_observation_basis": dot_receipt["native_graphviz_observation_basis"],
             "mmd_dot_same_semantic_topology": True,
         }
         body["receipt_sha256"] = sha256_bytes(canonical_json_bytes(body))
@@ -790,7 +839,10 @@ class SemanticGraph:
             "nodes": [asdict(node) for node in self.nodes],
             "edges": [asdict(edge) for edge in self.edges],
         }
-        graph_analysis = _rustworkx_analysis(self.nodes, self.edges)
+        graph_analysis = (_rustworkx_analysis(self.nodes, self.edges) if self.analysis != "omit" else
+            {"status": "NOT_REQUESTED", "engine": "rustworkx", "authority_replaced": False})
+        if self.analysis == "required" and graph_analysis["status"] != "PASS":
+            raise ValueError("RUSTWORKX_REQUIRED_RUNTIME_TOOL_MISSING")
         return {
             "schema": GRAPH_PIPELINE_SCHEMA,
             "status": "PASS",
@@ -810,12 +862,10 @@ class SemanticGraph:
             "langgraph_export_sha256": langgraph_export_sha256,
             "dot_exporter": "PYTHON_GRAPHVIZ",
             "python_graphviz_version": PYTHON_GRAPHVIZ_VERSION,
-            "native_graphviz_dot_available": (
-                try_resolve_native_tool("graphviz") is not None
-            ),
-            "native_graphviz_hidden_runtime_available": (
-                try_resolve_native_tool("graphviz") is not None
-            ),
+            "native_graphviz_dot_available": True if native_validation is not None else None,
+            "native_graphviz_hidden_runtime_available": True if native_validation is not None else None,
+            "native_graphviz_observation_basis": "invocation_receipt" if native_validation else "not_requested",
+            "analysis_policy": self.analysis,
             "native_graphviz_validation": native_validation,
             "graph_analysis": graph_analysis,
             "graph_analysis_sha256": sha256_bytes(

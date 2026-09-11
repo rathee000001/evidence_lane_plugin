@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/Interrupt/handler.py",
+  "event": "Interrupt",
+  "event_contract": "hooks/events/Interrupt/event.v4.json",
+  "event_contract_sha256": "ef70b0b2fcdd9e6e2523287ef8940e10354710e55e175e1e29f842b936f890e5",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/Interrupt.v4.schema.json",
+  "input_schema_sha256": "c7c50752061c12ba877a6c63bb95b7af3f54df08d3f3d81025b3f83916a7dec8",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

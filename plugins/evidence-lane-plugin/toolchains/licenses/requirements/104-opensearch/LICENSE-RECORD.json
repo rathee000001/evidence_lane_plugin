@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 104,
   "tool": "OpenSearch",
@@ -9,7 +9,7 @@
   "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
   "license_evidence": "validated at the repository/delivery gate; no binary redistributed",
   "evidence_paths": [
-    "toolchains/tool-requirement-matrix.v1.json"
+    "toolchains/tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -20,5 +20,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "9D4FF31ED1B72FD9788009AF58C77B798264FDEA1E8CEF38CF4A4E479E527B50"
+  "historical_ordinal": 104,
+  "catalog_ordinal": 95,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "45c2f67ffb8f359fcfe398de6596a5a8a62afe7d2896340339b7c6491dc81ecd"
 }

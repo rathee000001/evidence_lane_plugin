@@ -1,45 +1,250 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "project_universe MERMAID_TRAVERSAL_MAP artifact receipt",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "project_universe"
-    },
-    "artifact_path": {
-      "const": "project_universe.mmd"
-    },
-    "artifact_role": {
-      "const": "MERMAID_TRAVERSAL_MAP"
-    },
-    "syntax": {
-      "const": "MERMAID_FLOWCHART"
-    },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "authority_support.validate_authority_support"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "$defs": {
+    "JsonValue": {}
   },
   "additionalProperties": false,
-  "receipt_sha256": "E366749F86ACE785F9AA992A087725511D0234CA1C88C8248AD43DA3B2176150"
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "universe selected project graph publication",
+  "type": "object",
+  "x-format": "mmd",
+  "x-lane-id": "universe",
+  "x-view-contracts": [
+    {
+      "view_id": "universe.federation",
+      "lane_id": "universe",
+      "folder": "authorities/universe",
+      "version": 1,
+      "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
+      "consumer": "artifact_export",
+      "implementation_digest": "a11fb6be622a7174feb16a3e09299beeb3b98afaf1bdaa19fb14037a33258042",
+      "files": {
+        "mmd": "bigger_universe.mmd",
+        "dot": "bigger_universe.dot"
+      },
+      "scope": {
+        "query": false,
+        "include_history": true,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "federation"
+      ],
+      "node_kinds": [
+        "federation",
+        "federation_member",
+        "mini_brain",
+        "federation_edge"
+      ],
+      "edge_kinds": [
+        "REGISTERS_PROJECT",
+        "REFERENCES_LANE",
+        "HASH_SOURCE",
+        "HASH_TARGET"
+      ],
+      "schemas": [
+        {
+          "owner": "federation",
+          "version": 1,
+          "digest": "25bc500aed38d1cbdf7bbdaa841024564b81e9f9fe54b07fc926f7646092c53b"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "federation_view_head",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    },
+    {
+      "view_id": "universe.topology",
+      "lane_id": "universe",
+      "folder": "authorities/universe",
+      "version": 1,
+      "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact Root PV coordinates use universe_inspect.",
+      "consumer": "artifact_export",
+      "implementation_digest": "27102655df6ef2785429352b1bbd58850425a73abeb8349cbaa13e1241b5fd71",
+      "files": {
+        "mmd": "project_universe.mmd",
+        "dot": "project_universe.dot"
+      },
+      "scope": {
+        "query": false,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "plan",
+        "sources",
+        "universe"
+      ],
+      "node_kinds": [
+        "project",
+        "lane",
+        "plan_task",
+        "source_reference",
+        "linked_project"
+      ],
+      "edge_kinds": [
+        "CONTAINS_LANE",
+        "GOVERNS_TASK",
+        "DEPENDS_ON",
+        "REGISTERS_SOURCE",
+        "INDEXES_SOURCE",
+        "LINKS_PROJECT"
+      ],
+      "schemas": [
+        {
+          "owner": "plan",
+          "version": 1,
+          "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c"
+        },
+        {
+          "owner": "plan",
+          "version": 2,
+          "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543"
+        },
+        {
+          "owner": "plan",
+          "version": 3,
+          "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79"
+        },
+        {
+          "owner": "sources",
+          "version": 1,
+          "digest": "eb6c022b95032fd4878e9143c5c4a654e7a4ff764d5a8915ebdd2852548ba23a"
+        },
+        {
+          "owner": "sources",
+          "version": 2,
+          "digest": "c52b0c7790268be4c3846be088014a4377c9de49fdd6bfbf9f28278681a3cdc1"
+        },
+        {
+          "owner": "universe",
+          "version": 1,
+          "digest": "738098e3bde2ea457809e5735318c13863466e2433789f8c8da5390ea49e4617"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "universe_topology_head",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "x-automatic-refresh": false
 }

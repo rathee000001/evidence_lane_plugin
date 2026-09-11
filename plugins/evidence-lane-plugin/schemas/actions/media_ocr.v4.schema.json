@@ -1,0 +1,186 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Create a separate hash-bound OCR or frame/audio derivative from exact media.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "frames": {
+        "items": {
+          "type": "integer"
+        },
+        "maxItems": 25,
+        "minItems": 1,
+        "title": "Frames",
+        "type": "array"
+      },
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "language": {
+        "default": "eng",
+        "pattern": "^[a-z]{3}(\\+[a-z]{3}){0,3}$",
+        "title": "Language",
+        "type": "string"
+      },
+      "max_pixels_per_frame": {
+        "default": 12000000,
+        "maximum": 25000000,
+        "minimum": 1,
+        "title": "Max Pixels Per Frame",
+        "type": "integer"
+      },
+      "min_confidence": {
+        "default": 0.5,
+        "maximum": 1,
+        "minimum": 0,
+        "title": "Min Confidence",
+        "type": "number"
+      },
+      "snapshot_id": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "MediaOcr",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "media_ocr",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "images_ocr",
+        "default": "images_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "MediaResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "images_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "39eb176daa48cf528a1d71518c2b67fb23c936cceba1ccb294d534c9bd44263d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "media_ocr",
+    "profile": "images_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.media_derivatives:ocr",
+        "argument_suffixes": {},
+        "argument_values": {
+          "language": [
+            "eng"
+          ]
+        },
+        "compute": {
+          "action_class": "OCR_MEDIA",
+          "fallback_policy": "before_first_invocation_only",
+          "memory_basis": "adapter_conservative_reservation",
+          "providers": [
+            "CPU",
+            "DIRECTML"
+          ],
+          "required_vram_mib": 2048,
+          "runtime_operation": "rapidocr_lines",
+          "selection_is_execution": false,
+          "worker_operation": "media_ocr"
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_ocr.rapidocr",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow",
+          "OpenCV",
+          "RapidOCR_ONNX_Runtime"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.media_derivatives:ocr_tesseract",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "media_ocr.tesseract",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "Pillow",
+          "pytesseract_Tesseract"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "media_ocr"
+    ]
+  },
+  "verification_checks": [
+    "media_derivative_integrity"
+  ],
+  "worker_operations": [
+    "media_ocr"
+  ],
+  "workflow": "source-intake"
+}

@@ -1,0 +1,10 @@
+{
+  "owner_id": "canon_consequence_graph",
+  "modules": [
+    "evidence_lane_plugin.canon_consequence_graph",
+    "evidence_lane_plugin.canon_task_graph"
+  ],
+  "storage": "The parent Canon lane and its attributed events; no separate graph database",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

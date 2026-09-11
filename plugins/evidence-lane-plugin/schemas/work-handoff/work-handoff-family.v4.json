@@ -1,0 +1,17 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "work-handoff",
+  "members": [
+    {
+      "path": "src/evidence_lane_plugin/session_authority.py",
+      "sha256": "c893ad93e818cacc7abf8a0ce205bdfe93e51e140c4946be7a849548ccc1b6b9"
+    },
+    {
+      "path": "src/evidence_lane_plugin/task_binding_registry.py",
+      "sha256": "ca915051bce122694147158f6c84f9e7dd7018c71cb1ff887c7d0d0a74fac04c"
+    }
+  ],
+  "purpose": "Exact client continuation and recovery contracts",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

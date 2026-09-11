@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/PreToolUse/handler.py",
+  "event": "PreToolUse",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/PreToolUse/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/PreToolUse/handler.py",
+      "sha256": "c5293773714dff0c6fb6a39c8ebcd52453cfc3dba3d6651eed5fec777a76afd4"
+    },
+    {
+      "path": "hooks/events/PreToolUse/event.schema.json",
+      "sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312"
+    },
+    {
+      "path": "hooks/events/PreToolUse/pipeline.v4.json",
+      "sha256": "e0db9b79592756a45e350490abaed6d57ecee4350bd4a2347f41b5afcf8f9ca8"
+    },
+    {
+      "path": "hooks/events/PreToolUse/README.md",
+      "sha256": "cbbbaf05b8ea2830c292b5f746ac1693b104263d1a948473cf516325782715f2"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 4,
+  "pipeline": "hooks/events/PreToolUse/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

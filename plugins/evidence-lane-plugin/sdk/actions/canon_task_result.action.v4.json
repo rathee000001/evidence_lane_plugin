@@ -1,0 +1,13 @@
+{
+  "action": "canon_task_result",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "contract": "schemas/actions/canon_task_result.v4.schema.json",
+  "contract_sha256": "d5f1d8ef5d88c5d95a380ccccacd2d42922081cbb5c27b87ecb9ecfd000631c5",
+  "installed_execution_claimed": false,
+  "request_envelope": "schemas/action-request.v4.schema.json",
+  "response_envelope": "schemas/action-response.v4.schema.json",
+  "schema": "evidence-lane.sdk-action.v4"
+}

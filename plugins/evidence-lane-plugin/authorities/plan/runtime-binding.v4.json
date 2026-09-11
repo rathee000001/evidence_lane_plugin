@@ -1,0 +1,13 @@
+{
+  "owner_id": "plan",
+  "modules": [
+    "evidence_lane_plugin.plan_runtime",
+    "evidence_lane_plugin.steering",
+    "evidence_lane_plugin.acceptance",
+    "evidence_lane_plugin.jobs",
+    "evidence_lane_plugin.adaptive_delta_entry"
+  ],
+  "storage": "authorities/plan/plan_authority_v001.sqlite with files and schema history in authorities/plan",
+  "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "alternate_writer": false
+}

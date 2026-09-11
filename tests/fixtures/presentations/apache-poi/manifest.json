@@ -1,0 +1,43 @@
+{
+  "schema": "evidence-lane.presentation-reference.v4",
+  "repository": "https://github.com/apache/poi",
+  "commit": "5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc",
+  "usage": "Independent upstream binary test data; embedded content is never executed.",
+  "files": [
+    {
+      "filename": "LICENSE",
+      "path": "legal/LICENSE",
+      "url": "https://raw.githubusercontent.com/apache/poi/5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc/legal/LICENSE",
+      "sha256": "6e7c918e5a49f677c1b85a9eb2d035cd85c217fc42af6b4a336964a434001a9c",
+      "bytes": 14416
+    },
+    {
+      "filename": "NOTICE",
+      "path": "legal/NOTICE",
+      "url": "https://raw.githubusercontent.com/apache/poi/5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc/legal/NOTICE",
+      "sha256": "a89ff8b670bcacd3e98ebee64979e0569181c7942e9ad795f4222b25e5637a61",
+      "bytes": 1571
+    },
+    {
+      "filename": "basic_test_ppt_file.ppt",
+      "path": "test-data/slideshow/basic_test_ppt_file.ppt",
+      "url": "https://raw.githubusercontent.com/apache/poi/5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc/test-data/slideshow/basic_test_ppt_file.ppt",
+      "sha256": "e8fd4c38ad72ce3735acbca0b60dd5870fb60f819c169e3947d166f4f1bcc79d",
+      "bytes": 15360
+    },
+    {
+      "filename": "bug59273.potx",
+      "path": "test-data/slideshow/bug59273.potx",
+      "url": "https://raw.githubusercontent.com/apache/poi/5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc/test-data/slideshow/bug59273.potx",
+      "sha256": "a69207b33c69e171dd35fab165e498802a46759bca24f5eb614deb3503aa5ee6",
+      "bytes": 617839
+    },
+    {
+      "filename": "testPPT.ppsx",
+      "path": "test-data/slideshow/testPPT.ppsx",
+      "url": "https://raw.githubusercontent.com/apache/poi/5ce5bb1a2bfe8bfd11a0363712c34b1c7e3eeadc/test-data/slideshow/testPPT.ppsx",
+      "sha256": "82dcd905dfeb155d8ffea9d4f7e69d03a39895148407c32fa971a1addbea5656",
+      "bytes": 36521
+    }
+  ]
+}

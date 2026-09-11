@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=4DF85401C3656C98DC2629785AD06569487EACC5D30626136A419E9F162344B8
+%% LANGGRAPH_EXPORT_SHA256=67B55560BD7409E941840754B2B3C3EF130B4A04E248F97AC6CFF8D3D9D6A19F
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=10
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,213 +15,51 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
-  LANE_ROOT["PPT / Presentation<br/>0 sources &#124; 0 chunks &#124; 0 structured facts"]:::root
-  subgraph SOURCE_INTAKE["1. Source intake and exact-byte registry"]
-    direction TB
-    SOURCE_REG["source_registry<br/>rows=0 &#124; SHA-256 + parser state"]:::source
-    SOURCE_EMPTY["schema ready<br/>no routed source in this build"]:::warn
-  end
-  subgraph SEMANTIC_MODEL["2. Lane-specific semantic model from SQLite"]
-    direction TB
-    FACT_INDEX["structured_fact<br/>rows=0 &#124; kinds=0"]:::semantic
-    SEMANTIC_SCHEMA_HANDOFF["lane semantic schema<br/>entities=11 &#124; exact rows projected below"]:::semantic
-    FACT_EMPTY["no semantic rows yet<br/>lane schema remains explicit"]:::warn
-  end
-  subgraph SQLITE_PHYSICAL_SCHEMA["3. Additive SQLite physical schema contract"]
-    direction TB
-    PHYSICAL_SCHEMA_SECTOR["SQLite physical schema<br/>contract=30 &#124; tables=38 &#124; auxiliaries=8 &#124; relations=21<br/>projection_sha256=FD8382A94B4F142C51D3C9D1C16DB88D3C52D656CFBA492D3D9F0B4282D92F76"]:::root
-    PHYSICAL_GROUP_CORE["shared lane core<br/>tables=18 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_000["lane_meta<br/>rows=3 &#124; columns=2 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_001["lane_pointer<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_002["source_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_003["source_registry<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_004["chunk_index<br/>rows=0 &#124; columns=8 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_005["chunk_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_006["chunk_history<br/>rows=0 &#124; columns=9 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_007["structured_fact<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_008["parser_capability<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_009["tfidf_term<br/>rows=0 &#124; columns=4 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_010["tfidf_vector<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_011["refresh_receipt<br/>rows=0 &#124; columns=11 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_012["mutation_receipt<br/>rows=0 &#124; columns=6 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_013["authority_index_content_cas<br/>rows=0 &#124; columns=5 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_014["authority_index_source<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_015["authority_index_node<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_016["authority_index_fts<br/>rows=0 &#124; columns=7 &#124; role=core_contract"]:::semantic
-    PHYSICAL_TABLE_017["authority_index_refresh_receipt<br/>rows=0 &#124; columns=12 &#124; role=core_contract"]:::semantic
-    PHYSICAL_GROUP_LANE["lane semantic contract<br/>tables=12 &#124; ordered from SQLite"]:::semantic
-    PHYSICAL_TABLE_018["ppt_file<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_019["ppt_slide<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_020["ppt_shape<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_021["ppt_text_block<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_022["ppt_notes<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_023["ppt_table<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_024["ppt_image_reference<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_025["docling_extraction<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_026["ppt_slide_relationship<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_027["ppt_chunk<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_028["ppt_structure_signature<br/>rows=0 &#124; columns=4 &#124; role=lane_contract"]:::semantic
-    PHYSICAL_TABLE_029["ppt_fts<br/>rows=0 &#124; columns=6 &#124; role=lane_fts_contract"]:::semantic
-    PHYSICAL_GROUP_AUXILIARY["SQLite engine auxiliaries<br/>tables=8 &#124; ordered from SQLite"]:::retrieval
-    PHYSICAL_TABLE_030["authority_index_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_031["authority_index_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_032["authority_index_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_033["authority_index_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_034["ppt_fts_config<br/>rows=1 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_035["ppt_fts_data<br/>rows=2 &#124; columns=2 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_036["ppt_fts_docsize<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-    PHYSICAL_TABLE_037["ppt_fts_idx<br/>rows=0 &#124; columns=3 &#124; role=sqlite_engine_auxiliary"]:::retrieval
-  end
-  subgraph SCHEMA_DERIVED_TOPOLOGY["4. Lane-owned SQLite entities, relations, and samples"]
-    direction TB
-    SCHEMA_SECTOR["PPT / Presentation schema sector<br/>entities=11 &#124; relations=11 &#124; samples=0"]:::root
-    SCHEMA_ENTITY_0["ppt_file<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_1["ppt_slide<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_2["ppt_shape<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_3["ppt_text_block<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_4["ppt_notes<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_5["ppt_table<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_6["ppt_image_reference<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_7["docling_extraction<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_8["ppt_slide_relationship<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_9["ppt_chunk<br/>rows=0 &#124; columns=4"]:::semantic
-    SCHEMA_ENTITY_10["ppt_structure_signature<br/>rows=0 &#124; columns=4"]:::semantic
-  end
-  subgraph RETRIEVAL["5. Retrieval and changed-section reuse"]
-    direction TB
-    CHUNK_INDEX["chunk_index<br/>rows=0"]:::retrieval
-    CHUNK_CAS["chunk_content_cas<br/>rows=0"]:::retrieval
-    CHUNK_HISTORY["chunk_history<br/>rows=0"]:::retrieval
-    FTS["ppt_fts<br/>rows=0"]:::retrieval
-    TFIDF["tfidf_vector<br/>rows=0"]:::retrieval
-  end
-  subgraph LIFECYCLE["6. Refresh, pointer, and mutation evidence"]
-    direction TB
-    REFRESH["refresh classification<br/>unchanged_reuse=0 &#124; changed_rebuild=0 &#124; new_register=0 &#124; removed_purge=0 &#124; blocked_unsupported=0"]:::lifecycle
-    POINTER["lane pointer evidence<br/>entered_from=none &#124; generation=0<br/>proposed=unknown"]:::lifecycle
-    MUTATION["append-only change evidence<br/>direct_purges=0 &#124; mutation_receipts=0"]:::lifecycle
-  end
-  subgraph OUTPUTS["7. Inspectable lane package"]
-    direction TB
-    SQLITE_OUT["ppt_sector_v001.sqlite<br/>SQLite/FK/FTS authority"]:::output
-    MMD_OUT["ppt.mmd<br/>semantic Mermaid authority"]:::output
-    DOT_OUT["ppt.dot<br/>semantic DOT authority"]:::output
-    POINTER_OUT["lane_pointer.json<br/>candidate pointer evidence"]:::output
-    RECEIPT_OUT["refresh_receipt.json<br/>classification + validation"]:::output
-  end
-  LANE_ROOT --> SOURCE_REG
-  SOURCE_REG --> SOURCE_EMPTY
-  SOURCE_REG --> FACT_INDEX
-  FACT_INDEX -->|"materializes"| SEMANTIC_SCHEMA_HANDOFF
-  FACT_INDEX --> FACT_EMPTY
-  SEMANTIC_SCHEMA_HANDOFF -->|"derives exact SQLite schema"| PHYSICAL_SCHEMA_SECTOR
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_CORE
-  PHYSICAL_GROUP_CORE -->|"next physical table"| PHYSICAL_TABLE_000
-  PHYSICAL_TABLE_000 -->|"next physical table"| PHYSICAL_TABLE_001
-  PHYSICAL_TABLE_001 -->|"next physical table"| PHYSICAL_TABLE_002
-  PHYSICAL_TABLE_002 -->|"next physical table"| PHYSICAL_TABLE_003
-  PHYSICAL_TABLE_003 -->|"next physical table"| PHYSICAL_TABLE_004
-  PHYSICAL_TABLE_004 -->|"next physical table"| PHYSICAL_TABLE_005
-  PHYSICAL_TABLE_005 -->|"next physical table"| PHYSICAL_TABLE_006
-  PHYSICAL_TABLE_006 -->|"next physical table"| PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_007 -->|"next physical table"| PHYSICAL_TABLE_008
-  PHYSICAL_TABLE_008 -->|"next physical table"| PHYSICAL_TABLE_009
-  PHYSICAL_TABLE_009 -->|"next physical table"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_010 -->|"next physical table"| PHYSICAL_TABLE_011
-  PHYSICAL_TABLE_011 -->|"next physical table"| PHYSICAL_TABLE_012
-  PHYSICAL_TABLE_012 -->|"next physical table"| PHYSICAL_TABLE_013
-  PHYSICAL_TABLE_013 -->|"next physical table"| PHYSICAL_TABLE_014
-  PHYSICAL_TABLE_014 -->|"next physical table"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_015 -->|"next physical table"| PHYSICAL_TABLE_016
-  PHYSICAL_TABLE_016 -->|"next physical table"| PHYSICAL_TABLE_017
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_LANE
-  PHYSICAL_GROUP_LANE -->|"next physical table"| PHYSICAL_TABLE_018
-  PHYSICAL_TABLE_018 -->|"next physical table"| PHYSICAL_TABLE_019
-  PHYSICAL_TABLE_019 -->|"next physical table"| PHYSICAL_TABLE_020
-  PHYSICAL_TABLE_020 -->|"next physical table"| PHYSICAL_TABLE_021
-  PHYSICAL_TABLE_021 -->|"next physical table"| PHYSICAL_TABLE_022
-  PHYSICAL_TABLE_022 -->|"next physical table"| PHYSICAL_TABLE_023
-  PHYSICAL_TABLE_023 -->|"next physical table"| PHYSICAL_TABLE_024
-  PHYSICAL_TABLE_024 -->|"next physical table"| PHYSICAL_TABLE_025
-  PHYSICAL_TABLE_025 -->|"next physical table"| PHYSICAL_TABLE_026
-  PHYSICAL_TABLE_026 -->|"next physical table"| PHYSICAL_TABLE_027
-  PHYSICAL_TABLE_027 -->|"next physical table"| PHYSICAL_TABLE_028
-  PHYSICAL_TABLE_028 -->|"next physical table"| PHYSICAL_TABLE_029
-  PHYSICAL_SCHEMA_SECTOR -->|"ordered table group"| PHYSICAL_GROUP_AUXILIARY
-  PHYSICAL_GROUP_AUXILIARY -->|"next physical table"| PHYSICAL_TABLE_030
-  PHYSICAL_TABLE_030 -->|"next physical table"| PHYSICAL_TABLE_031
-  PHYSICAL_TABLE_031 -->|"next physical table"| PHYSICAL_TABLE_032
-  PHYSICAL_TABLE_032 -->|"next physical table"| PHYSICAL_TABLE_033
-  PHYSICAL_TABLE_033 -->|"next physical table"| PHYSICAL_TABLE_034
-  PHYSICAL_TABLE_034 -->|"next physical table"| PHYSICAL_TABLE_035
-  PHYSICAL_TABLE_035 -->|"next physical table"| PHYSICAL_TABLE_036
-  PHYSICAL_TABLE_036 -->|"next physical table"| PHYSICAL_TABLE_037
-  PHYSICAL_TABLE_002 -->|"sha256 -&gt; source_content_cas.sha256"| PHYSICAL_TABLE_003
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_004
-  PHYSICAL_TABLE_005 -->|"chunk_sha256 -&gt; chunk_content_cas.sha256"| PHYSICAL_TABLE_006
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_009 -->|"term -&gt; tfidf_term.term"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_004 -->|"chunk_id -&gt; chunk_index.chunk_id"| PHYSICAL_TABLE_010
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_014
-  PHYSICAL_TABLE_013 -->|"metadata_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_013 -->|"text_sha256 -&gt; authority_index_content_cas.sha256"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_014 -->|"source_id -&gt; authority_index_source.source_id"| PHYSICAL_TABLE_015
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_018
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_019
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_020
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_021
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_022
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_023
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_024
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_025
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_026
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_027
-  PHYSICAL_TABLE_003 -->|"source_id -&gt; source_registry.source_id"| PHYSICAL_TABLE_028
-  PHYSICAL_SCHEMA_SECTOR -->|"projects lane entities"| SCHEMA_SECTOR
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_0
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_1
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_2
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_3
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_4
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_5
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_6
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_7
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_8
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_9
-  SCHEMA_SECTOR -->|"entity"| SCHEMA_ENTITY_10
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_0
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_1
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_2
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_3
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_4
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_5
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_6
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_7
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_8
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_9
-  SOURCE_REG -->|"source_id -&gt; source_registry.source_id"| SCHEMA_ENTITY_10
-  SCHEMA_SECTOR --> CHUNK_INDEX
-  CHUNK_INDEX --> CHUNK_CAS
-  CHUNK_CAS --> CHUNK_HISTORY
-  CHUNK_HISTORY --> FTS
-  FTS --> TFIDF
-  TFIDF --> REFRESH
-  REFRESH --> POINTER
-  REFRESH --> MUTATION
-  POINTER --> SQLITE_OUT
-  SQLITE_OUT --> MMD_OUT
-  SQLITE_OUT --> DOT_OUT
-  SQLITE_OUT --> POINTER_OUT
-  SQLITE_OUT --> RECEIPT_OUT
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  SCHEMA_ENTITY_0 ~~~ SCHEMA_ENTITY_1
-  SCHEMA_ENTITY_1 ~~~ SCHEMA_ENTITY_2
-  SCHEMA_ENTITY_2 ~~~ SCHEMA_ENTITY_3
-  SCHEMA_ENTITY_4 ~~~ SCHEMA_ENTITY_5
-  SCHEMA_ENTITY_5 ~~~ SCHEMA_ENTITY_6
-  SCHEMA_ENTITY_6 ~~~ SCHEMA_ENTITY_7
-  SCHEMA_ENTITY_8 ~~~ SCHEMA_ENTITY_9
-  SCHEMA_ENTITY_9 ~~~ SCHEMA_ENTITY_10
-  PHYSICAL_TABLE_004 ~~~ PHYSICAL_TABLE_007
-  PHYSICAL_TABLE_007 ~~~ PHYSICAL_TABLE_018
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_ppt_chart["ppt_chart<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_chunk["ppt_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
+  t_ppt_chunk_fts["ppt_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
+  t_ppt_current["ppt_current<br/>presentation_id, snapshot_id"]:::table
+  t_ppt_enrichment["ppt_enrichment<br/>enrichment_id, snapshot_id, manifest_object, created_at"]:::table
+  t_ppt_export["ppt_export<br/>export_id, snapshot_id, destination, before_sha256, after_sha256, effect_id, created_at"]:::table
+  t_ppt_file["ppt_file<br/>presentation_id, logical_name, source_path, origin, created_at"]:::table
+  t_ppt_image_reference["ppt_image_reference<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_notes["ppt_notes<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_render["ppt_render<br/>render_id, snapshot_id, manifest_object, created_at"]:::table
+  t_ppt_shape["ppt_shape<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_slide["ppt_slide<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_slide_relationship["ppt_slide_relationship<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_structure["ppt_structure<br/>snapshot_id, facts_object, fidelity_json"]:::table
+  t_ppt_table["ppt_table<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_text_block["ppt_text_block<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_ppt_version["ppt_version<br/>snapshot_id, presentation_id, generation, previous_snapshot, manifest_object, raw_object, facts_object, parser_contract, created_at"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  t_ppt_chart -->|"snapshot_id"| t_ppt_version
+  t_ppt_chunk -->|"text_object"| t_objects
+  t_ppt_chunk -->|"snapshot_id"| t_ppt_version
+  t_ppt_current -->|"snapshot_id"| t_ppt_version
+  t_ppt_current -->|"presentation_id"| t_ppt_file
+  t_ppt_enrichment -->|"manifest_object"| t_objects
+  t_ppt_enrichment -->|"snapshot_id"| t_ppt_version
+  t_ppt_export -->|"snapshot_id"| t_ppt_version
+  t_ppt_image_reference -->|"snapshot_id"| t_ppt_version
+  t_ppt_notes -->|"snapshot_id"| t_ppt_version
+  t_ppt_render -->|"manifest_object"| t_objects
+  t_ppt_render -->|"snapshot_id"| t_ppt_version
+  t_ppt_shape -->|"snapshot_id"| t_ppt_version
+  t_ppt_slide -->|"snapshot_id"| t_ppt_version
+  t_ppt_slide_relationship -->|"snapshot_id"| t_ppt_version
+  t_ppt_structure -->|"facts_object"| t_objects
+  t_ppt_structure -->|"snapshot_id"| t_ppt_version
+  t_ppt_table -->|"snapshot_id"| t_ppt_version
+  t_ppt_text_block -->|"snapshot_id"| t_ppt_version
+  t_ppt_version -->|"facts_object"| t_objects
+  t_ppt_version -->|"raw_object"| t_objects
+  t_ppt_version -->|"manifest_object"| t_objects
+  t_ppt_version -->|"previous_snapshot"| t_ppt_version
+  t_ppt_version -->|"presentation_id"| t_ppt_file
+  t_selector_retirement -->|"proof_object"| t_objects
+  t_selector_retirement -->|"snapshot_id"| t_objects

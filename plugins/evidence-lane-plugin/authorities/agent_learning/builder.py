@@ -1,10 +1,11 @@
-"""Build/refresh binding for this separate authority support system."""
+"""learning: authenticated public SDK mutation binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import refresh_authority_support
+OWNER_ID = 'learning'
+ACTIONS = {'learning_record_host_memory_import': True, 'learning_revoke': True}
 
-AUTHORITY_ID = "agent_learning"
 
-def refresh(project_root):
-    return refresh_authority_support(project_root, AUTHORITY_ID)
+def build_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "refresh"]
+__all__ = ["OWNER_ID", "build_authority"]

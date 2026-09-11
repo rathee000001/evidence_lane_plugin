@@ -1,533 +1,1307 @@
 {
-  "schema": "evidence-lane.installed-lane-tooling.v1",
-  "status": "PASS",
+  "schema": "evidence-lane.installed-lane-tooling.v4",
   "lane_id": "research",
   "builder": "builder.py:build_lane_sources",
-  "reader": "reader.py:LaneReader",
-  "query_traversal": "pointer + manifest + MMD + DOT + tools + SQLite",
-  "retrieval_modes": [
-    "hybrid",
-    "fts5",
-    "bm25",
-    "tfidf"
-  ],
-  "json_build_refresh_tooling": [
-    "lane_pointer.json",
-    "refresh_receipt.json",
-    "lane_manifest.json"
-  ],
-  "canonical_shared_modules": {
-    "src/evidence_lane_plugin/lanes.py": "1FE3EF29F00CD144566BB72E74B8059B6DA51A0CC138AD97B6FCD609133A3FC3",
-    "src/evidence_lane_plugin/lane_engine.py": "3789EFE347EA0EADDA54520E67F42B2FC88218F94A345D98892A0D928701FD96",
-    "src/evidence_lane_plugin/lane_reader.py": "E131620487F19CC2E6B3188F0B53A3483D7179F9AC4BA7BE87249750097BE7E7",
-    "src/evidence_lane_plugin/lane_traversal.py": "7A7019D335ECB5D00C8FD600D842BA93E7B6304B36C1C5165CF345EE257A69FE",
-    "src/evidence_lane_plugin/source_intake.py": "0923C977C48A74E84B0DF0D00948A9AB87F88B0BFA2006FEA283CE2CB39EEA47"
-  },
-  "registry_linked_workflow": {
-    "schema": "evidence-lane.lane-registry-linked-workflow.v1",
-    "status": "PASS",
-    "lane_id": "research",
-    "eligible_tools": [
-      "hashlib_pathlib",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
-      "Secret_redactor",
-      "Citation_binder",
-      "BeautifulSoup4",
-      "markdownify",
-      "html2text",
-      "trafilatura",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "DDGS",
-      "tldextract",
-      "readability_lxml",
-      "rustworkx",
-      "sqlite_vec"
-    ],
-    "eligible_tool_count": 23,
-    "task_execution_tools": [
-      "hashlib_pathlib",
-      "SQLite_FTS5_BM25",
-      "APSW_SQLite_engine",
-      "deterministic_TFIDF",
-      "LangGraph_Mermaid_engine",
-      "Python_Graphviz_DOT_engine",
-      "LlamaIndex_SQLite_indexer",
-      "Mermaid_CLI_mmdc",
-      "Graphviz_dot",
-      "Secret_redactor",
-      "Citation_binder",
-      "BeautifulSoup4",
-      "markdownify",
-      "html2text",
-      "trafilatura",
-      "SentenceTransformers",
-      "FAISS_CPU",
-      "rank_bm25",
-      "DDGS",
-      "tldextract",
-      "readability_lxml",
-      "rustworkx",
-      "sqlite_vec"
-    ],
-    "transport_orchestration_adapters": [],
-    "external_services_or_stores": [
-      "Pinecone",
-      "Weaviate",
-      "Milvus",
-      "OpenSearch"
-    ],
-    "observability_evaluation_attachments": [
-      "LangSmith",
-      "Langfuse",
-      "OpenTelemetry"
-    ],
-    "tool_role_classes_are_mutually_exclusive": true,
-    "action_classes": [
-      "DATA",
-      "GRAPH",
-      "RETRIEVAL",
-      "SOURCE_ROUTING",
-      "WEB_RESEARCH"
-    ],
-    "eligible_public_actions": [
-      "adaptive_delta_exit",
-      "ai_toolchain_route",
-      "brain_scaling_select",
-      "canon_graph",
-      "canon_inbox",
-      "canon_inspect",
-      "connector_plugin_catalog",
-      "connector_plugin_settings",
-      "fetch",
-      "lane_catalog",
-      "lane_fetch",
-      "lane_search",
-      "lane_status",
-      "learning_inspect",
-      "learning_retrieve",
-      "lifecycle_transition_law",
-      "project_memory_query",
-      "project_recipe_compile",
-      "project_register",
-      "prompt_index_status",
-      "pv_build_initial",
-      "pv_diff",
-      "pv_enroll_project",
-      "pv_query",
-      "pv_status",
-      "pv_summary",
-      "pv_task_backlog",
-      "render_project_panel",
-      "render_runtime_panel",
-      "runtime_activation_status",
-      "runtime_doctor",
-      "search",
-      "session_flash_status",
-      "source_graph_build",
-      "source_graph_diff",
-      "source_graph_impact",
-      "source_intake_classify",
-      "source_intake_schema_configure",
-      "source_sqlite_inspect",
-      "storage_connector_inspect"
-    ],
-    "eligible_public_action_count": 40,
-    "eligible_skill_workflows": [
-      {
-        "skill": "evi",
-        "workflow": "exact-fuse"
-      },
-      {
-        "skill": "evi",
-        "workflow": "governance-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "lane-evidence-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "live-root-authority-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "live-root-current-authority-read"
-      },
-      {
-        "skill": "evi",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evi",
-        "workflow": "same-host-next-turn"
-      },
-      {
-        "skill": "evi-additional-plugin",
-        "workflow": "register-connector"
-      },
-      {
-        "skill": "evi-bigger-universe",
-        "workflow": "explicit-hash-only-cross-project-link"
-      },
-      {
-        "skill": "evi-bigger-universe",
-        "workflow": "register-changed-project-mini-brain-heads"
-      },
-      {
-        "skill": "evi-boot",
-        "workflow": "boot-or-resume"
-      },
-      {
-        "skill": "evi-boot",
-        "workflow": "project-enrollment"
-      },
-      {
-        "skill": "evi-brain-scaling",
-        "workflow": "deterministic-indexed-brain-slice-selection"
-      },
-      {
-        "skill": "evi-build",
-        "workflow": "physically-final-pv-hil-presentation-only"
-      },
-      {
-        "skill": "evi-build",
-        "workflow": "source-intake-backed-pv0-bootstrap"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-authority-read"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-backfire"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-contract"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-decision"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-envelope"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-result"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-state-travel-continuity"
-      },
-      {
-        "skill": "evi-canon",
-        "workflow": "canon-task-edge"
-      },
-      {
-        "skill": "evi-drop-additional-plugin",
-        "workflow": "drop-connector"
-      },
-      {
-        "skill": "evi-exit-boot",
-        "workflow": "close-session"
-      },
-      {
-        "skill": "evi-formula",
-        "workflow": "bounded-env-uop-formula-execution"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "dual-hil-intent-classification"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "dual-hil-non-promotion-decision"
-      },
-      {
-        "skill": "evi-fuse",
-        "workflow": "exact-learning-then-project-approval-promotion"
-      },
-      {
-        "skill": "evi-instructions",
-        "workflow": "agents-and-host-memory-read"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-authority-read"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-candidate"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-host-memory-import"
-      },
-      {
-        "skill": "evi-learning",
-        "workflow": "learning-revoke"
-      },
-      {
-        "skill": "evi-memory",
-        "workflow": "project-memory-authority-read"
-      },
-      {
-        "skill": "evi-memory",
-        "workflow": "project-memory-link"
-      },
-      {
-        "skill": "evi-mode",
-        "workflow": "classify-mode"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "classify-plan-mode"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "live-current-authority-read"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "live-plan-authority-read"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "persist-plan"
-      },
-      {
-        "skill": "evi-plan",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "change-connector-registration"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "inspect-connectors"
-      },
-      {
-        "skill": "evi-plugin",
-        "workflow": "route-connector"
-      },
-      {
-        "skill": "evi-project-recipe",
-        "workflow": "project-type-source-and-lane-recipe-compilation"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "adaptive-delta-exit-append-refresh"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "hil-live-root-project-overlay-proposal"
-      },
-      {
-        "skill": "evi-refresh",
-        "workflow": "steer-prompt-source-intake-refresh-working-sectors"
-      },
-      {
-        "skill": "evi-rollback",
-        "workflow": "pointer-rollback"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "bounded-source-retrieval"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "classify-source-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "custom-schema-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "git-read-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-graph-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-identity-intake"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "source-route-configuration"
-      },
-      {
-        "skill": "evi-source-intake",
-        "workflow": "sqlite-source-intake"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-activation-verification"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-existing-session-attachment"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-locked-flash"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-destination-runtime-doctor"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "direct-force-same-worktree-state-travel"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "post-entry-plan-authority-read"
-      },
-      {
-        "skill": "evi-state-travel",
-        "workflow": "state-travel-plan-steer"
-      },
-      {
-        "skill": "evi-storage",
-        "workflow": "inspect-storage"
-      },
-      {
-        "skill": "evi-storage",
-        "workflow": "select-storage"
-      },
-      {
-        "skill": "evi-toolchain",
-        "workflow": "conditional-codex-toolchain-routing"
-      },
-      {
-        "skill": "evi-universe",
-        "workflow": "project-universe-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "boot-or-resume"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "exact-fuse"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "governed-git-delivery"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "live-root-current-authority-read"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "plan-steer"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "record-task-activity"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "same-host-next-turn"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "task-execution"
-      },
-      {
-        "skill": "evidence-lane-code-lifecycle",
-        "workflow": "two-trigger-render-dispatch"
-      }
-    ],
-    "eligible_skill_workflow_count": 79,
-    "current_registry_counts": {
-      "tool_requirements": 119,
-      "mcp_actions": 91,
-      "governed_skills": 26,
-      "hook_events": 11
+  "reader": "reader.py:read_lane_source",
+  "runtime": "runtime.py",
+  "actions": [
+    {
+      "name": "research_current",
+      "profile": "research",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_current",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_current.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2be0d73d6c240e241e81fd28de60e92e2790f68e1e9c31d637f2dc1fdf974767"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "research",
+          "version": 1,
+          "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88"
+        },
+        {
+          "owner": "research",
+          "version": 2,
+          "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f"
+        },
+        {
+          "owner": "research",
+          "version": 3,
+          "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9"
+        }
+      ]
     },
-    "counts_are_current_snapshot_not_ceiling": true,
-    "all_required_linked_steps_run": true,
-    "unrelated_tools_run": false,
-    "env_selects_applicable_capabilities": true,
-    "uop_governs_operators_gates_and_fallbacks": true,
-    "internal_sdk_owns_execution": true,
-    "outer_sdk_selects_local_or_transport_route": true,
-    "mcp_action_inventory_is_not_tool_requirement_inventory": true,
-    "source_registries": {
-      "tool_requirements": {
-        "path": "toolchains/tool-requirement-matrix.v1.json",
-        "sha256": "5F8B1604A59BB8B758AF995AE43A1502D89068B327E99A7C32125EFF1C19B10A",
-        "direct_hash_embedded": true
+    {
+      "name": "research_index",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_index",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_index.sqlite_sqlalchemy",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "SQLAlchemy"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.native",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.calamine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.presentation",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.arrow",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.pdf_pymupdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.pdf_pypdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index.pdf_pdfplumber",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bcc7d4285aaaac0eca24191782d0085f7c626be04b2296b44776934fa5358ee3"
       },
-      "tool_routing": {
-        "path": "toolchains/tool-execution-routing.v1.json",
-        "sha256": "D1E0F90F78DCFA9C4463FBD3185A3B18AD9456FC60B66196E344A049C66E7182",
-        "direct_hash_embedded": true
-      },
-      "unified_pairing": {
-        "path": "toolchains/unified-tool-workflow-pairing.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      },
-      "public_actions": {
-        "path": "schemas/public-action-schemas.v001.json",
-        "sha256": "78BCC5C9797ECBCE3B5DAA5FCFC7B5E83E35315A912EDB5C34E7354CE4D68CED",
-        "direct_hash_embedded": true
-      },
-      "skills": {
-        "path": "skills/skill-surface-registry.v1.json",
-        "sha256": "25E9B40FF82732C2E9900D9E68A4D1A939CF5B13BF16A597AE8E927AF5AB6E09",
-        "direct_hash_embedded": true
-      },
-      "hooks": {
-        "path": "hooks/hook-event-registry.v1.json",
-        "sha256": "67DDC5EBD44F858D53C207F773C2893CC0C79D5AD64A87CE2F2A41B2B29E7549",
-        "direct_hash_embedded": true
-      },
-      "sdk": {
-        "path": "sdk/sdk-manifest.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      },
-      "mcp": {
-        "path": "mcp/mcp-manifest.v1.json",
-        "hash_authority": "manifests/executable-surface-registry.v1.json",
-        "direct_hash_embedded": false,
-        "reason": "DERIVED_REGISTRY_AVOIDS_SELF_REFERENTIAL_HASH_CYCLE"
-      }
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
     },
-    "receipt_sha256": "F2CDABAA2222F06C1CEF1845CBA6E268EDA8CD49EE78FFB3C2892616B2C1F659"
-  },
-  "dedicated_workflow": {
-    "json": "authorities/project_sectors/research/workflow.v1.json",
-    "mmd": "authorities/project_sectors/research/workflow.mmd",
-    "dot": "authorities/project_sectors/research/workflow.dot",
-    "json_sha256": "B9D5D9758D091A0D74A6165EB01BC86BA9A791A0CA4AB357E05D5E55AEBF672C",
-    "mmd_sha256": "D3670A2CC2488CC01339A68C4595BDC0262C485FF4BE02BB2A048726CD6F3D89",
-    "dot_sha256": "6782A8798FFD344A826B6DE3613A6E8542385BF1510CB80FC343653F31EB347E"
-  },
-  "receipt_sha256": "17E02018561D2079FED0BD7F68A7C722E5826A3CDAC454702B95173A15368120"
+    {
+      "name": "research_index_media",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_index_media",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_index_media.raster",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index_media.vector",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "defusedxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_index_media.media",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "FFmpeg"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "73b108f3aa344c749b91b1a338e3b7d78c4c40103a467cd4dcb185e7f72b606a"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "research_query",
+      "profile": "research",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_query",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_query.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "6285dc627fbd9ccd17b2d1d26f2246ab3484e571d8b7c7ddac607e830bd1cea2"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "research",
+          "version": 1,
+          "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88"
+        },
+        {
+          "owner": "research",
+          "version": 2,
+          "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f"
+        },
+        {
+          "owner": "research",
+          "version": 3,
+          "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9"
+        }
+      ]
+    },
+    {
+      "name": "research_read",
+      "profile": "research",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_read",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_read.engine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "963eb226fee9a95a80e878cb96f21407cdb5ee1fa3219265fc7b07139ed8b81d"
+      },
+      "verification_checks": [],
+      "read_schemas": [
+        {
+          "owner": "research",
+          "version": 1,
+          "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88"
+        },
+        {
+          "owner": "research",
+          "version": 2,
+          "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f"
+        },
+        {
+          "owner": "research",
+          "version": 3,
+          "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9"
+        }
+      ]
+    },
+    {
+      "name": "research_refresh",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_refresh",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_refresh.sqlite_sqlalchemy",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "SQLAlchemy"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.native",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index_native",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.calamine",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "python_calamine"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.presentation",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "PPTX_OpenXML"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.arrow",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pyarrow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.pdf_pymupdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "PyMuPDF"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.pdf_pypdf",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh.pdf_pdfplumber",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "pypdf",
+              "pdfplumber"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "82f93e4a8227440819fd6d1406a0e2bc39f7a726127cae548172c590d7d27906"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "research_refresh_media",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_refresh_media",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_refresh_media.raster",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "Pillow"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh_media.vector",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "defusedxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          },
+          {
+            "route_id": "research_refresh_media.media",
+            "adapter": "evidence_lane_plugin.sector_evidence_profile:index",
+            "tool_ids": [
+              "Python",
+              "FFmpeg"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.applies.<locals>.applicable"
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "sector_evidence_parse_file"
+        ],
+        "installation_implied": false,
+        "contract_digest": "f72b8bad04fae4c9e5f8fd6f1ade22d9a6ea9d3d0cec791b2125086b3b469c47"
+      },
+      "verification_checks": [
+        "sector_evidence_snapshot_integrity",
+        "sector_evidence_source_hash_unchanged"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "research_web_capture",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_web_capture",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_web_capture.httpx",
+            "adapter": "evidence_lane_plugin.research_web_profile:capture_httpx",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "validators",
+              "tldextract"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "transport": [
+                "auto",
+                "httpx"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_capture.requests",
+            "adapter": "evidence_lane_plugin.research_web_profile:capture_requests",
+            "tool_ids": [
+              "Python",
+              "Requests",
+              "validators",
+              "tldextract"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "transport": [
+                "auto",
+                "requests"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "research_web_capture_source"
+        ],
+        "installation_implied": false,
+        "contract_digest": "7ef62d3683ddb86c978b0b5255822107aad1ae409d256d65742ad1782e8ead19"
+      },
+      "verification_checks": [
+        "research_web_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "research_web_discover",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_web_discover",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_web_discover.ddgs",
+            "adapter": "evidence_lane_plugin.research_discovery_profile:discover",
+            "tool_ids": [
+              "Python",
+              "DDGS",
+              "HTTPX",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Pinned DDGS provider parsing and ranking over bounded HTTPX requests; targets remain unvisited.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [
+          "research_discover_sources"
+        ],
+        "installation_implied": false,
+        "contract_digest": "bcc60861685d90c2a157fed1c7aeba1db1c9bfb2e6852574b920e4bdb9fa5510"
+      },
+      "verification_checks": [
+        "research_discovery_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "research_web_extract",
+      "profile": "research",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "research_web_extract",
+        "profile": "research",
+        "routes": [
+          {
+            "route_id": "research_web_extract.trafilatura",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_trafilatura",
+            "tool_ids": [
+              "Python",
+              "trafilatura",
+              "BeautifulSoup4",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "trafilatura"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_extract.readability",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_readability",
+            "tool_ids": [
+              "Python",
+              "readability_lxml",
+              "BeautifulSoup4",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "readability"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_extract.beautifulsoup",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_beautifulsoup",
+            "tool_ids": [
+              "Python",
+              "BeautifulSoup4",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "beautifulsoup"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_extract.markdownify",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_markdownify",
+            "tool_ids": [
+              "Python",
+              "markdownify",
+              "BeautifulSoup4",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "markdownify"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_extract.html2text",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_html2text",
+            "tool_ids": [
+              "Python",
+              "html2text",
+              "BeautifulSoup4",
+              "lxml"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "html2text"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "research_web_extract.stdlib",
+            "adapter": "evidence_lane_plugin.research_web_profile:extract_stdlib",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "extractor": [
+                "auto",
+                "stdlib"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "research_web_extract_source"
+        ],
+        "installation_implied": false,
+        "contract_digest": "d643f58265100df773e6b1772cdbef6273b37021e5ec62109c09022e0f970901"
+      },
+      "verification_checks": [
+        "research_web_snapshot_integrity"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_retire",
+      "profile": "sources",
+      "permission": "write",
+      "mutates": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python"
+      ],
+      "toolchain": {
+        "operation": "source_snapshot_retire",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_selector.local_files",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {},
+            "applicable": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.<lambda>",
+            "worker_operations": []
+          },
+          {
+            "route_id": "source_selector.git_checkpoint",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.retire",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "lane_id": [
+                "github_code"
+              ]
+            },
+            "argument_suffixes": {},
+            "worker_operations": [
+              "code_git_checkpoint"
+            ]
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [
+          "code_git_checkpoint"
+        ],
+        "installation_implied": false,
+        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+      },
+      "verification_checks": [
+        "source_selector_retirement_verified"
+      ],
+      "read_schemas": []
+    },
+    {
+      "name": "source_snapshot_state",
+      "profile": "sources",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "source_snapshot_state",
+        "profile": "sources",
+        "routes": [
+          {
+            "route_id": "source_snapshot_state.engine",
+            "adapter": "evidence_lane_plugin.source_selectors:register_selector_actions.<locals>.read",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+      },
+      "verification_checks": [],
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "research.structure",
+      "lane_id": "research",
+      "folder": "sectors/research",
+      "version": 1,
+      "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
+      "consumer": "artifact_export",
+      "implementation_digest": "36865279760def7b6dc867effaaaae96b4c78d2580c99883cb70d3a734d408ce",
+      "files": {
+        "mmd": "research.mmd",
+        "dot": "research.dot",
+        "pointer": "lane_pointer.json"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "research"
+      ],
+      "node_kinds": [
+        "research_source",
+        "research_question",
+        "research_hypothesis",
+        "research_method",
+        "research_evidence",
+        "research_finding",
+        "research_limitation",
+        "research_citation",
+        "research_open_question",
+        "research_receipt",
+        "native_fact",
+        "archive_member",
+        "sqlite_schema_object",
+        "sqlite_table",
+        "sqlite_relationship",
+        "sqlite_row",
+        "sqlite_receipt",
+        "review_required",
+        "captured_page",
+        "discovery_query",
+        "saved_page_extraction",
+        "saved_response_reference",
+        "sqlite_table_reference"
+      ],
+      "edge_kinds": [
+        "CONTAINS",
+        "SELECTED_ROW",
+        "DECLARES_FOREIGN_KEY",
+        "REFERENCES_TABLE",
+        "REPORTS_CITATION",
+        "RECORDS_QUERY",
+        "REPORTS_SEARCH_RESULT",
+        "EXTRACTED_FROM_SAVED_RESPONSE"
+      ],
+      "schemas": [
+        {
+          "owner": "research",
+          "version": 1,
+          "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88"
+        },
+        {
+          "owner": "research",
+          "version": 2,
+          "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f"
+        },
+        {
+          "owner": "research",
+          "version": 3,
+          "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "<lambda>",
+      "pointer_scope": "immutable_snapshot_navigation",
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "workflow": "workflow.v4.json",
+  "workflow_mmd": "workflow.mmd",
+  "workflow_dot": "workflow.dot",
+  "dependency_installation_inferred": false,
+  "runtime_state_folder": "sectors/research",
+  "source_package_folder": "authorities/project_sectors/research"
 }

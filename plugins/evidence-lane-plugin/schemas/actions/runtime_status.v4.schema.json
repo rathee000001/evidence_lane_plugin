@@ -1,0 +1,136 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read measured tools/providers, worker state and selected-project job health.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "job_limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Job Limit",
+        "type": "integer"
+      }
+    },
+    "title": "RuntimeStatusInput",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "runtime_status",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "client": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Client"
+      },
+      "engine_phase": {
+        "title": "Engine Phase",
+        "type": "string"
+      },
+      "execution_claim": {
+        "default": "Only recorded operations and job outcomes establish execution.",
+        "title": "Execution Claim",
+        "type": "string"
+      },
+      "inventory": {
+        "additionalProperties": true,
+        "title": "Inventory",
+        "type": "object"
+      },
+      "native_task_attestation": {
+        "default": "unavailable",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "project": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Project"
+      },
+      "workers": {
+        "additionalProperties": true,
+        "title": "Workers",
+        "type": "object"
+      }
+    },
+    "required": [
+      "observed_at",
+      "engine_phase",
+      "inventory",
+      "workers"
+    ],
+    "title": "RuntimeStatus",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "11ab7cafbd2e7ee2eca989ed4a474f96216eb05ef3dbf1913d9268d9eb398dff",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "runtime_status",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.engine:Engine.__init__.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "runtime_status.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "toolchain"
+}

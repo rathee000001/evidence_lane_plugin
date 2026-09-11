@@ -1,0 +1,220 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Verify bounded Canon database, schema, object digests and event-chain state without modifying it.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "record_limit": {
+        "default": 50000,
+        "maximum": 50000,
+        "minimum": 1,
+        "title": "Record Limit",
+        "type": "integer"
+      }
+    },
+    "title": "CanonInspect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "canon_inspect",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "applied_migrations": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Applied Migrations",
+        "type": "array"
+      },
+      "counts": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "title": "Counts",
+        "type": "object"
+      },
+      "foreign_key_errors": {
+        "items": {
+          "items": {},
+          "type": "array"
+        },
+        "title": "Foreign Key Errors",
+        "type": "array"
+      },
+      "historical_supersession_links_unavailable": {
+        "title": "Historical Supersession Links Unavailable",
+        "type": "integer"
+      },
+      "history": {
+        "additionalProperties": true,
+        "title": "History",
+        "type": "object"
+      },
+      "initialized": {
+        "title": "Initialized",
+        "type": "boolean"
+      },
+      "integrity": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Integrity",
+        "type": "array"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "objects_verified": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "title": "Objects Verified",
+        "type": "object"
+      },
+      "packet_states": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "title": "Packet States",
+        "type": "object"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Project Mutated",
+        "type": "boolean"
+      },
+      "projection_digest": {
+        "title": "Projection Digest",
+        "type": "string"
+      },
+      "raw_payload_returned": {
+        "const": false,
+        "default": false,
+        "title": "Raw Payload Returned",
+        "type": "boolean"
+      },
+      "schema_contract": {
+        "additionalProperties": true,
+        "title": "Schema Contract",
+        "type": "object"
+      },
+      "unverified_scope": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Unverified Scope",
+        "type": "array"
+      },
+      "verified_scope": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Verified Scope",
+        "type": "array"
+      }
+    },
+    "required": [
+      "project_id",
+      "initialized",
+      "counts",
+      "packet_states",
+      "integrity",
+      "foreign_key_errors",
+      "history",
+      "applied_migrations",
+      "schema_contract",
+      "objects_verified",
+      "historical_supersession_links_unavailable",
+      "verified_scope",
+      "unverified_scope",
+      "projection_digest"
+    ],
+    "title": "CanonInspection",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "canon",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "f66a8c9d18d78e5739ca35f38cd57cf033963dd02a477f305729bfa2bbb9c5d7",
+      "owner": "canon",
+      "version": 1
+    },
+    {
+      "digest": "ff076666d6b1ed9d06e3d6275c8cf2fb83d2eb0c4853ffe30de323e101c888eb",
+      "owner": "canon",
+      "version": 2
+    },
+    {
+      "digest": "444854a0bb337d894fba3b1165949f4ae102581b82c2e5dac3dc3be7fcf2cc11",
+      "owner": "canon",
+      "version": 3
+    },
+    {
+      "digest": "c104ff36289b95b941907f67214632226617dc02eb0f000ff84fab54279db2da",
+      "owner": "canon",
+      "version": 4
+    },
+    {
+      "digest": "2e0390f81072ac3222bf57e628156b050a5c91551a57fc19b2613d88954ca393",
+      "owner": "canon",
+      "version": 5
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "d43d08549ef7e8485258cb6f36ba761e1c1feb5eacb346f948dc6c7086af5727",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "canon_inspect",
+    "profile": "canon",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.canon_task_graph:register_canon_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "canon_inspect.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "canon"
+}

@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 38,
   "tool": "Ghostscript",
@@ -7,9 +7,9 @@
   "classification": "NATIVE_RUNTIME_ASSET",
   "install_mode": "silent_installer",
   "license_expression_or_terms": "AGPL-3.0-or-later OR LicenseRef-Artifex-Commercial",
-  "license_evidence": "toolchains/native-tools.v1.json plus the installed native-tool license receipt",
+  "license_evidence": "toolchains/native-tool-definitions.v4.json plus the installed native-tool license receipt",
   "evidence_paths": [
-    "toolchains/native-tools.v1.json"
+    "toolchains/native-tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -25,5 +25,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "14457B2587E31364D7C4B393D89632E02FB1653312965F34B67A49CA1878231B"
+  "historical_ordinal": 38,
+  "catalog_ordinal": 37,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "caa878e080a26b0b8397a8cad6414910420f4e2ce72d39b32c8ed0f68ba809bb"
 }

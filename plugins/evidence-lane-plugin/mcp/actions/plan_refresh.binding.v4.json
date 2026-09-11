@@ -1,0 +1,682 @@
+{
+  "action": "plan_refresh",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "adapter_executes_project_operations": false,
+  "authority": "engine_typed_action_registry",
+  "execution_owner": "connected_engine_registry",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.mcp-binding.v4",
+  "sdk_binding": "sdk/actions/plan_refresh.action.v4.json",
+  "sdk_binding_sha256": "190a29d6f6789111671a72d83e75936ef9b034b8d5ec8c651249cb4f5850c858",
+  "tool": {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "description": "Atomically replace remaining Plan contracts after a captured steer and safe checkpoint.",
+    "inputSchema": {
+      "$defs": {
+        "JsonValue": {},
+        "SourceRouteSelection": {
+          "additionalProperties": false,
+          "properties": {
+            "occurrence_ordinals": {
+              "items": {
+                "maximum": 256,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "title": "Occurrence Ordinals",
+              "type": "array"
+            },
+            "route_id": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Route Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "route_id",
+            "occurrence_ordinals"
+          ],
+          "title": "SourceRouteSelection",
+          "type": "object"
+        },
+        "TaskBudget": {
+          "additionalProperties": false,
+          "properties": {
+            "max_input_bytes": {
+              "default": 1048576,
+              "maximum": 67108864,
+              "minimum": 1,
+              "title": "Max Input Bytes",
+              "type": "integer"
+            },
+            "max_output_bytes": {
+              "default": 4194304,
+              "maximum": 67108864,
+              "minimum": 1,
+              "title": "Max Output Bytes",
+              "type": "integer"
+            },
+            "max_seconds": {
+              "default": 300,
+              "maximum": 3600,
+              "minimum": 1,
+              "title": "Max Seconds",
+              "type": "integer"
+            },
+            "max_tool_calls": {
+              "default": 64,
+              "maximum": 1024,
+              "minimum": 1,
+              "title": "Max Tool Calls",
+              "type": "integer"
+            }
+          },
+          "title": "TaskBudget",
+          "type": "object"
+        },
+        "TaskDefinition": {
+          "additionalProperties": false,
+          "properties": {
+            "acceptance_checks": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "title": "Acceptance Checks",
+              "type": "array"
+            },
+            "allowed_actions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 128,
+              "title": "Allowed Actions",
+              "type": "array"
+            },
+            "budget": {
+              "$ref": "#/$defs/TaskBudget"
+            },
+            "commit_batch_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Commit Batch Id"
+            },
+            "dependencies": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 64,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Dependencies"
+            },
+            "mode_binding": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TaskModeBinding"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "operation": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TaskOperation"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "permitted_paths": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 128,
+              "title": "Permitted Paths",
+              "type": "array"
+            },
+            "permitted_tools": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 128,
+              "title": "Permitted Tools",
+              "type": "array"
+            },
+            "plan_group": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Plan Group"
+            },
+            "profile": {
+              "default": "core",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Profile",
+              "type": "string"
+            },
+            "requested_outcome": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "title": "Requested Outcome",
+              "type": "string"
+            },
+            "stop_condition": {
+              "default": "Stop on failed verification or unavailable required capability.",
+              "maxLength": 1000,
+              "title": "Stop Condition",
+              "type": "string"
+            },
+            "task_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Task Id",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "validation_policy": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TaskValidationBinding"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "task_id",
+            "title",
+            "requested_outcome"
+          ],
+          "title": "TaskDefinition",
+          "type": "object"
+        },
+        "TaskModeBinding": {
+          "additionalProperties": false,
+          "description": "Exact, project-owned classification reference; never ambient session state.",
+          "properties": {
+            "classification_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Classification Digest",
+              "type": "string"
+            },
+            "classification_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Classification Id",
+              "type": "string"
+            },
+            "manifest_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Manifest Digest",
+              "type": "string"
+            },
+            "selection_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Selection Sha256",
+              "type": "string"
+            },
+            "source_cursor": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Cursor",
+              "type": "string"
+            },
+            "source_event_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Source Event Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "classification_id",
+            "classification_digest",
+            "source_event_id",
+            "source_cursor",
+            "selection_sha256",
+            "manifest_digest"
+          ],
+          "title": "TaskModeBinding",
+          "type": "object"
+        },
+        "TaskOperation": {
+          "additionalProperties": false,
+          "description": "One exact operation owned by this Plan contract, not a second job queue.",
+          "properties": {
+            "action": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Action",
+              "type": "string"
+            },
+            "arguments": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Arguments",
+              "type": "object"
+            },
+            "source_route": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceRouteSelection"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "title": "TaskOperation",
+          "type": "object"
+        },
+        "TaskValidationBinding": {
+          "additionalProperties": false,
+          "description": "Explicit immutable policy and observation scope in one Plan task.",
+          "properties": {
+            "exclude_paths": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 64,
+              "title": "Exclude Paths",
+              "type": "array"
+            },
+            "input_paths": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "title": "Input Paths",
+              "type": "array"
+            },
+            "max_file_bytes": {
+              "default": 8388608,
+              "maximum": 67108864,
+              "minimum": 1,
+              "title": "Max File Bytes",
+              "type": "integer"
+            },
+            "max_files": {
+              "default": 2048,
+              "maximum": 8192,
+              "minimum": 1,
+              "title": "Max Files",
+              "type": "integer"
+            },
+            "max_total_bytes": {
+              "default": 67108864,
+              "maximum": 1073741824,
+              "minimum": 1,
+              "title": "Max Total Bytes",
+              "type": "integer"
+            },
+            "policy_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Policy Digest",
+              "type": "string"
+            },
+            "policy_revision": {
+              "minimum": 1,
+              "title": "Policy Revision",
+              "type": "integer"
+            },
+            "run_all_checks": {
+              "default": false,
+              "title": "Run All Checks",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "policy_revision",
+            "policy_digest",
+            "input_paths"
+          ],
+          "title": "TaskValidationBinding",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": false,
+          "properties": {
+            "database_recovery_digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Database Recovery Digest"
+            },
+            "expected_document_digest": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Expected Document Digest",
+              "type": "string"
+            },
+            "expected_revision": {
+              "minimum": 1,
+              "title": "Expected Revision",
+              "type": "integer"
+            },
+            "plan_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "title": "Plan Id",
+              "type": "string"
+            },
+            "request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Request Id",
+              "type": "string"
+            },
+            "resume_after_change": {
+              "default": false,
+              "title": "Resume After Change",
+              "type": "boolean"
+            },
+            "source_restore_digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Restore Digest"
+            },
+            "steer_request_id": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Steer Request Id",
+              "type": "string"
+            },
+            "tasks": {
+              "items": {
+                "$ref": "#/$defs/TaskDefinition"
+              },
+              "maxItems": 2000,
+              "minItems": 1,
+              "title": "Tasks",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "tasks",
+            "expected_revision",
+            "expected_document_digest",
+            "steer_request_id"
+          ],
+          "title": "PlanReplace",
+          "type": "object"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "type": "object"
+    },
+    "name": "plan_refresh",
+    "outputSchema": {
+      "$defs": {
+        "EvidenceReference": {
+          "additionalProperties": false,
+          "properties": {
+            "digest": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Digest"
+            },
+            "identifier": {
+              "title": "Identifier",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "receipt",
+                "object",
+                "source",
+                "test",
+                "commit",
+                "installation",
+                "user_decision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Project Id"
+            }
+          },
+          "required": [
+            "kind",
+            "identifier"
+          ],
+          "title": "EvidenceReference",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PublicError": {
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Details",
+              "type": "object"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "PublicError",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "plan_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Revision"
+        },
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error",
+            "queued",
+            "waiting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tool_execution": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Execution"
+        }
+      },
+      "required": [
+        "request_id",
+        "action",
+        "status"
+      ],
+      "title": "ActionResponse",
+      "type": "object"
+    }
+  }
+}

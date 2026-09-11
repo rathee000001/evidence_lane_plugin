@@ -1,25 +1,240 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "agent_learning support refresh request",
-  "type": "object",
-  "required": [
-    "project_id",
-    "project_root",
-    "authority_id"
-  ],
-  "properties": {
-    "project_id": {
-      "type": "string",
-      "minLength": 1
+  "$defs": {
+    "AuthorityRequest_learning_record_host_memory_import": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "learning_record_host_memory_import",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/HostMemoryImport"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_learning_record_host_memory_import",
+      "type": "object"
     },
-    "project_root": {
-      "type": "string",
-      "minLength": 1
+    "AuthorityRequest_learning_revoke": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "learning_revoke",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/LearningRevoke"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_learning_revoke",
+      "type": "object"
     },
-    "authority_id": {
-      "const": "agent_learning"
+    "HostMemoryImport": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "CODEX_LOCAL_MEMORY",
+            "CHATGPT_SAVED_MEMORY",
+            "CHATGPT_CHAT_HISTORY_MEMORY"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_locator": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Source Locator",
+          "type": "string"
+        },
+        "source_record_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Record Sha256",
+          "type": "string"
+        },
+        "source_context_id_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Context Id Sha256",
+          "type": "string"
+        },
+        "observed_at": {
+          "maxLength": 40,
+          "minLength": 20,
+          "title": "Observed At",
+          "type": "string"
+        },
+        "purpose": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "task_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "plan_revision": {
+          "minimum": 1,
+          "title": "Plan Revision",
+          "type": "integer"
+        },
+        "contract_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "delta_job_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta Job Id"
+        }
+      },
+      "required": [
+        "source_kind",
+        "source_locator",
+        "source_record_sha256",
+        "source_context_id_sha256",
+        "observed_at",
+        "purpose",
+        "task_id",
+        "plan_revision",
+        "contract_digest"
+      ],
+      "title": "HostMemoryImport",
+      "type": "object"
+    },
+    "LearningRevoke": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "version_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "expected_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Digest",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version_id",
+        "expected_digest",
+        "reason"
+      ],
+      "title": "LearningRevoke",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
-  "receipt_sha256": "F1F4A68EA0ACD68F4C745908884A28EE25F19F1CC70F5BFE832072F9998962A2"
+  "discriminator": {
+    "mapping": {
+      "learning_record_host_memory_import": "#/$defs/AuthorityRequest_learning_record_host_memory_import",
+      "learning_revoke": "#/$defs/AuthorityRequest_learning_revoke"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AuthorityRequest_learning_record_host_memory_import"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_learning_revoke"
+    }
+  ],
+  "title": "learning typed SDK requests"
 }

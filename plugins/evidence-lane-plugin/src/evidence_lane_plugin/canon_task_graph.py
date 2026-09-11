@@ -1,3704 +1,1985 @@
-"""Typed task-to-task Canon graph and receiver-owned Canon Input HIL.
+"""Attributed Canon exchanges and receiver-owned contracts in the Canon lane.
 
-Canon is a bounded coordination authority.  It can carry immutable evidence
-between independently governed task nodes, but it cannot promote Project
-Truth, accept Agent Learning, grant source-write authority, replay another
-task's HIL, or merge task ownership.  The receiving task owns admission.
+Retains immutable envelopes, expected-input matching, corrections and results
+from the base Canon owner. Engine project participants are not native host task
+attestations. Canon admission never grants tools, changes Plan or promotes work.
 """
-
 from __future__ import annotations
 
 import json
+import math
+import os
 import re
-import sqlite3
-from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any, Protocol, cast
-
-from .errors import require
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes
-from .package_root import resolve_plugin_root
-from .redaction import contains_secret
-
-CANON_ENVELOPE_SCHEMA = "evidence-lane.canon-envelope.v2"
-CANON_EXPECTED_CONTRACT_SCHEMA = "evidence-lane.canon-expected-contract.v1"
-CANON_EVENT_SCHEMA = "evidence-lane.canon-input-event.v1"
-CANON_DECISION_RECEIPT_SCHEMA = "evidence-lane.canon-decision-receipt.v1"
-CANON_EDGE_SCHEMA = "evidence-lane.canon-task-edge.v1"
-CANON_DISPATCH_RECEIPT_SCHEMA = "evidence-lane.canon-dispatch-receipt.v1"
-CANON_DISPATCH_RECEIPT_SCHEMA_V2 = "evidence-lane.canon-dispatch-receipt.v2"
-CODEX_HOST_CREATE_RECEIPT_SCHEMA = (
-    "evidence-lane.codex-host-task-create-receipt.v1"
-)
-CODEX_HOST_CREATE_CAPABILITY = "CODEX_HOST_CREATE_LINKED_TASK_IDEMPOTENT_V1"
-CANON_CONTINUITY_SCHEMA = "evidence-lane.canon-state-travel-continuity.v1"
-CANON_RESTORE_RECEIPT_SCHEMA = (
-    "evidence-lane.canon-state-travel-restore-receipt.v1"
-)
-CANON_SCHEMA_MANIFEST_SCHEMA = "evidence-lane.canon-schema-manifest.v1"
-CANON_LEDGER_SCHEMA = "evidence-lane.canon-ledger.v1"
-CANON_LEDGER_SCHEMA_VERSION = 1
-CANON_RECEIPT_REGISTRY_SCHEMA = "evidence-lane.canon-receipt-schema-registry.v1"
-
-_SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
-_PV_RE = re.compile(r"^PV[1-9][0-9]*$")
-_SECRET_KEY_RE = re.compile(
-    r"(?i)(?:^|[_-])(authorization|api[_-]?key|access[_-]?token|"
-    r"refresh[_-]?token|password|private[_-]?key|client[_-]?secret)(?:$|[_-])"
-)
-_DIRECTIONS = {"UPSTREAM", "DOWNSTREAM", "LATERAL"}
-_AUTHORITIES = {
-    "BOUNDED_INPUT",
-    "CORRECTION_PROPOSAL",
-    "EVIDENCE_RESPONSE",
-    "PLAN_STEER",
-    "TASK_RESULT",
-}
-_DECISIONS = {"ACCEPT", "REJECT", "MORE_RESEARCH"}
-_ADMITTED_STATES = {"EXPECTED_ADMITTED", "ACCEPTED_INPUT"}
-_TERMINAL_STATES = {"REJECTED", "SUPERSEDED"}
-_BACKFIRE_CLASSES = {
-    "EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION",
-    "MISSING_INFORMATION_FROM_SOURCE",
-    "NEW_REQUIREMENT_FROM_SOURCE",
-    "LINKED_TASK_INPUT_REQUIRED",
-}
-_TASK_MODES = {"TOP_LEVEL_TASK", "SUBAGENT"}
-_SCOPE_CLASSES = {"READ_ONLY", "GOVERNED_READ_WRITE"}
-_FORBIDDEN_CANON_ACTIONS = {
-    "SOURCE_WRITE",
-    "GIT_WRITE",
-    "CREATE_CANDIDATE",
-    "DECIDE_PROJECT_HIL",
-    "DECIDE_LEARNING_HIL",
-    "MOVE_POINTER",
-    "FUSE",
-    "MAIN_PROMOTE",
-    "INSTALL",
-    "DEPLOY",
-}
-_FORBIDDEN_SUBAGENT_TOOLS = {
-    "hil_decide",
-    "pv_fuse",
-    "pv_refresh",
-    "remote_git_push",
-    "state_travel_prepare",
-    "state_travel_resume",
-}
-_AUTHORITY_EFFECTS_NONE = {
-    "project_truth": "NONE",
-    "canon_input": "NONE",
-    "agent_learning": "NONE",
-    "chat_lineage": "NONE",
-    "host_entry_continuity": "NONE",
-}
-_CANON_SCHEMA_ROOT = resolve_plugin_root(__file__) / "schemas" / "canon"
-_CANON_RECEIPT_SCHEMAS = {
-    CANON_DECISION_RECEIPT_SCHEMA,
-    CANON_DISPATCH_RECEIPT_SCHEMA,
-    CANON_DISPATCH_RECEIPT_SCHEMA_V2,
-    CODEX_HOST_CREATE_RECEIPT_SCHEMA,
-    CANON_RESTORE_RECEIPT_SCHEMA,
-}
-
-
-class CanonTaskDispatcher(Protocol):
-    """Provider-neutral host seam for an explicitly authorized task launch."""
-
-    host_kind: str
-    capability: str
-
-    def create_linked_task(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
-        """Create one task and return its exact UUID/deep-link binding."""
-
-
-@dataclass(frozen=True)
-class CodexHostDispatcher:
-    """Exact injectable Codex host seam; unavailable without a host operation."""
-
-    create_operation: Callable[[Mapping[str, Any]], Mapping[str, Any]]
-    host_kind: str = field(default="CODEX", init=False)
-    capability: str = field(default=CODEX_HOST_CREATE_CAPABILITY, init=False)
-
-    def create_linked_task(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
-        require(
-            request.get("schema")
-            == "evidence-lane.codex-host-linked-task-create-request.v1"
-            and request.get("host_kind") == self.host_kind
-            and request.get("operation") == "CREATE_LINKED_TASK"
-            and request.get("capability") == self.capability,
-            "CANON_CODEX_HOST_REQUEST_INVALID",
-            "The Codex host adapter received an unsupported task-create request.",
-            status="MISMATCH",
-        )
-        response = self.create_operation(dict(request))
-        require(
-            isinstance(response, Mapping),
-            "CANON_CODEX_HOST_RECEIPT_REQUIRED",
-            "The Codex host operation did not return one receipt object.",
-            status="FAIL",
-        )
-        receipt = dict(response)
-        validate_canon_receipt(receipt)
-        require(
-            receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
-            and receipt.get("host_kind") == self.host_kind
-            and receipt.get("operation") == "CREATE_LINKED_TASK"
-            and receipt.get("capability") == self.capability
-            and receipt.get("idempotency_key") == request.get("idempotency_key")
-            and receipt.get("request_sha256") == request.get("request_sha256")
-            and receipt.get("created_once") is True
-            and isinstance(receipt.get("destination"), Mapping),
-            "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
-            "The Codex host receipt does not bind the exact idempotent request.",
-            status="MISMATCH",
-        )
-        destination = _endpoint(
-            cast(Mapping[str, Any], receipt["destination"]),
-            field="host_receipt.destination",
-        )
-        return {
-            **destination,
-            "created_once": True,
-            "host_creation_receipt": receipt,
-        }
-
-
-def _exact_text(value: Any, *, field: str) -> str:
-    exact = str(value or "").strip()
-    require(
-        bool(exact),
-        "CANON_FIELD_REQUIRED",
-        "A required Canon field is empty.",
-        status="BLOCKED",
-        field=field,
-    )
-    return exact
-
-
-def _sha256(value: Any, *, field: str) -> str:
-    exact = str(value or "").strip().upper()
-    require(
-        bool(_SHA256_RE.fullmatch(exact)),
-        "CANON_SHA256_INVALID",
-        "A Canon identity field is not one exact SHA-256.",
-        status="MISMATCH",
-        field=field,
-    )
-    return exact
-
-
-def _timestamp(value: Any, *, field: str, nullable: bool = False) -> str | None:
-    if value is None and nullable:
-        return None
-    exact = _exact_text(value, field=field)
-    try:
-        parsed = datetime.fromisoformat(exact)
-    except ValueError as exc:
-        require(
-            False,
-            "CANON_TIMESTAMP_INVALID",
-            "A Canon timestamp is not valid ISO-8601.",
-            status="MISMATCH",
-            field=field,
-        )
-        raise AssertionError("unreachable") from exc
-    require(
-        parsed.tzinfo is not None,
-        "CANON_TIMESTAMP_TIMEZONE_REQUIRED",
-        "A Canon timestamp requires an explicit timezone.",
-        status="MISMATCH",
-        field=field,
-    )
-    return parsed.astimezone(UTC).isoformat(timespec="microseconds").replace(
-        "+00:00", "Z"
-    )
-
-
-def _timestamp_value(value: str) -> datetime:
-    return datetime.fromisoformat(value).astimezone(UTC)
-
-
-def _project_root(project_root: str | Path, *, project_id: str) -> Path:
-    root = Path(project_root).resolve()
-    require(
-        root.name == project_id,
-        "CANON_CROSS_PROJECT_AUTHORITY_DENIED",
-        "The Canon authority root does not match the exact project identity.",
-        status="BLOCKED",
-        project_id=project_id,
-        root=str(root),
-    )
-    return root
-
-
-def _canon_root(root: Path) -> Path:
-    return root / "canon"
-
-
-def _ledger_path(root: Path) -> Path:
-    return _canon_root(root) / "canon-input.sqlite"
-
-
-def _load_canon_schema_contract() -> dict[str, Any]:
-    manifest_path = _CANON_SCHEMA_ROOT / "canon-schema-manifest.v1.json"
-    require(
-        manifest_path.is_file(),
-        "CANON_SCHEMA_MANIFEST_REQUIRED",
-        "The first-class Canon schema manifest is missing.",
-        status="MISMATCH",
-        path=str(manifest_path),
-    )
-    try:
-        manifest_bytes = manifest_path.read_bytes()
-        manifest = cast(dict[str, Any], json.loads(manifest_bytes))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        require(
-            False,
-            "CANON_SCHEMA_MANIFEST_INVALID",
-            "The first-class Canon schema manifest is unreadable.",
-            status="MISMATCH",
-            path=str(manifest_path),
-        )
-        raise AssertionError("unreachable") from exc
-    ledger = manifest.get("ledger")
-    receipts = manifest.get("receipts")
-    require(
-        manifest.get("schema") == CANON_SCHEMA_MANIFEST_SCHEMA
-        and manifest.get("schema_family") == "CANON"
-        and manifest.get("manifest_version") == 1
-        and isinstance(ledger, Mapping)
-        and isinstance(receipts, Mapping),
-        "CANON_SCHEMA_MANIFEST_INVALID",
-        "The Canon schema manifest identity or sections are invalid.",
-        status="MISMATCH",
-    )
-    ledger = cast(Mapping[str, Any], ledger)
-    receipts = cast(Mapping[str, Any], receipts)
-    ledger_asset_name = str(ledger.get("asset") or "")
-    receipt_asset_name = str(receipts.get("asset") or "")
-    ledger_path = (_CANON_SCHEMA_ROOT / ledger_asset_name).resolve()
-    receipt_path = (_CANON_SCHEMA_ROOT / receipt_asset_name).resolve()
-    require(
-        Path(ledger_asset_name).name == ledger_asset_name
-        and Path(receipt_asset_name).name == receipt_asset_name
-        and ledger_path.parent == _CANON_SCHEMA_ROOT.resolve()
-        and receipt_path.parent == _CANON_SCHEMA_ROOT.resolve()
-        and ledger_path.is_file()
-        and receipt_path.is_file(),
-        "CANON_SCHEMA_ASSET_REQUIRED",
-        "A Canon schema asset is absent or outside the schema authority root.",
-        status="MISMATCH",
-    )
-    ledger_bytes = ledger_path.read_bytes()
-    receipt_bytes = receipt_path.read_bytes()
-    ledger_sha256 = sha256_bytes(ledger_bytes)
-    receipt_sha256 = sha256_bytes(receipt_bytes)
-    require(
-        ledger.get("schema_id") == CANON_LEDGER_SCHEMA
-        and ledger.get("sqlite_user_version") == CANON_LEDGER_SCHEMA_VERSION
-        and ledger_sha256 == str(ledger.get("asset_sha256") or "").upper()
-        and receipts.get("schema_id") == CANON_RECEIPT_REGISTRY_SCHEMA
-        and receipts.get("registry_version") == 1
-        and receipt_sha256 == str(receipts.get("asset_sha256") or "").upper(),
-        "CANON_SCHEMA_ASSET_HASH_MISMATCH",
-        "Canon schema asset bytes do not match the sealed manifest.",
-        status="MISMATCH",
-    )
-    try:
-        ledger_sql = ledger_bytes.decode("utf-8")
-        receipt_schema = cast(dict[str, Any], json.loads(receipt_bytes))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        require(
-            False,
-            "CANON_SCHEMA_ASSET_INVALID",
-            "A Canon schema asset is not valid UTF-8 SQL or JSON.",
-            status="MISMATCH",
-        )
-        raise AssertionError("unreachable") from exc
-    definitions = receipt_schema.get("$defs")
-    require(
-        receipt_schema.get("$schema")
-        == "https://json-schema.org/draft/2020-12/schema"
-        and receipt_schema.get("x-evidence-lane-version") == 1
-        and receipt_schema.get("x-evidence-lane-hash-field") == "receipt_sha256"
-        and isinstance(definitions, Mapping),
-        "CANON_RECEIPT_SCHEMA_INVALID",
-        "The Canon receipt registry is not the supported schema contract.",
-        status="MISMATCH",
-    )
-    defined_receipt_schemas = {
-        str((definition.get("properties") or {}).get("schema", {}).get("const"))
-        for definition in cast(Mapping[str, Any], definitions).values()
-        if isinstance(definition, Mapping)
-        and isinstance(definition.get("properties"), Mapping)
-        and isinstance(
-            cast(Mapping[str, Any], definition.get("properties")).get("schema"),
-            Mapping,
-        )
-    }
-    supported_schema_ids = {
-        str(value) for value in receipts.get("supported_schema_ids") or []
-    }
-    migration_policy = ledger.get("migration_policy")
-    transitions = (
-        migration_policy.get("transitions")
-        if isinstance(migration_policy, Mapping)
-        else None
-    )
-    require(
-        defined_receipt_schemas == _CANON_RECEIPT_SCHEMAS
-        and supported_schema_ids == _CANON_RECEIPT_SCHEMAS
-        and isinstance(migration_policy, Mapping)
-        and migration_policy.get("accepted_from_versions") == [0, 1]
-        and transitions
-        == [
-            {
-                "from_version": 0,
-                "to_version": 1,
-                "mode": "ADDITIVE_IDEMPOTENT_CREATE_ONLY",
-                "data_rewrite": False,
-                "drop_or_rename": False,
-            }
-        ]
-        and migration_policy.get("newer_version")
-        == "FAIL_CLOSED_RUNTIME_TOO_OLD"
-        and migration_policy.get("rollback")
-        == "UNSUPPORTED_NO_DESTRUCTIVE_REWRITE",
-        "CANON_SCHEMA_MIGRATION_POLICY_INVALID",
-        "Canon schema versions or migration rules are incomplete or mutable.",
-        status="MISMATCH",
-    )
-    return {
-        "manifest": manifest,
-        "manifest_path": manifest_path,
-        "manifest_sha256": sha256_bytes(manifest_bytes),
-        "ledger_sql": ledger_sql,
-        "ledger_path": ledger_path,
-        "ledger_sha256": ledger_sha256,
-        "receipt_schema": receipt_schema,
-        "receipt_path": receipt_path,
-        "receipt_sha256": receipt_sha256,
-    }
-
-
-def _canon_sqlite_schema_signature(connection: sqlite3.Connection) -> str:
-    rows = [
-        dict(row)
-        for row in connection.execute(
-            """
-            SELECT type,name,tbl_name,sql
-            FROM sqlite_master
-            WHERE type IN ('table','index') AND name NOT LIKE 'sqlite_%'
-            ORDER BY type,name
-            """
-        ).fetchall()
-    ]
-    return sha256_bytes(canonical_json_bytes(rows))
-
-
-def _expected_canon_sqlite_schema_signature(ledger_sql: str) -> str:
-    expected = sqlite3.connect(":memory:")
-    expected.row_factory = sqlite3.Row
-    try:
-        expected.execute("PRAGMA foreign_keys=ON")
-        expected.executescript(ledger_sql)
-        return _canon_sqlite_schema_signature(expected)
-    finally:
-        expected.close()
-
-
-def _apply_canon_ledger_schema(
-    connection: sqlite3.Connection,
-    contract: Mapping[str, Any],
-) -> dict[str, Any]:
-    current_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-    require(
-        current_version in {0, CANON_LEDGER_SCHEMA_VERSION},
-        "CANON_LEDGER_VERSION_UNSUPPORTED",
-        "The Canon ledger requires one explicit supported migration path.",
-        status="MISMATCH",
-        current_version=current_version,
-        supported_versions=[0, CANON_LEDGER_SCHEMA_VERSION],
-    )
-    ledger_sql = str(contract["ledger_sql"])
-    expected_signature = _expected_canon_sqlite_schema_signature(ledger_sql)
-    migration_mode = "ADDITIVE_IDEMPOTENT_CREATE_ONLY"
-    if current_version == CANON_LEDGER_SCHEMA_VERSION:
-        actual_signature = _canon_sqlite_schema_signature(connection)
-        require(
-            actual_signature == expected_signature,
-            "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
-            "The live Canon ledger schema differs from the sealed DDL asset.",
-            status="MISMATCH",
-            expected_schema_signature_sha256=expected_signature,
-            actual_schema_signature_sha256=actual_signature,
-        )
-    else:
-        require(
-            not connection.in_transaction,
-            "CANON_LEDGER_MIGRATION_TRANSACTION_INVALID",
-            "The Canon ledger migration requires an unused transaction boundary.",
-            status="MISMATCH",
-        )
-        try:
-            connection.executescript("BEGIN IMMEDIATE;\n" + ledger_sql)
-            actual_signature = _canon_sqlite_schema_signature(connection)
-            require(
-                actual_signature == expected_signature,
-                "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
-                "The additive Canon migration did not produce the sealed schema.",
-                status="MISMATCH",
-                expected_schema_signature_sha256=expected_signature,
-                actual_schema_signature_sha256=actual_signature,
-            )
-            connection.execute(
-                """
-                INSERT OR IGNORE INTO canon_schema_migration(
-                    schema_name,from_version,to_version,asset_sha256,
-                    migration_mode,applied_at
-                ) VALUES(?,?,?,?,?,?)
-                """,
-                (
-                    CANON_LEDGER_SCHEMA,
-                    0,
-                    CANON_LEDGER_SCHEMA_VERSION,
-                    contract["ledger_sha256"],
-                    migration_mode,
-                    datetime.now(UTC)
-                    .isoformat(timespec="microseconds")
-                    .replace("+00:00", "Z"),
-                ),
-            )
-            connection.execute(f"PRAGMA user_version={CANON_LEDGER_SCHEMA_VERSION}")
-        except sqlite3.DatabaseError as exc:
-            if connection.in_transaction:
-                connection.rollback()
-            require(
-                False,
-                "CANON_LEDGER_BUILDER_SCHEMA_MISMATCH",
-                "The additive Canon migration could not produce the sealed schema.",
-                status="MISMATCH",
-                sqlite_error=type(exc).__name__,
-            )
-            raise AssertionError("unreachable") from exc
-        except Exception:
-            if connection.in_transaction:
-                connection.rollback()
-            raise
-
-    try:
-        migration = connection.execute(
-            """
-            SELECT from_version,to_version,asset_sha256,migration_mode
-            FROM canon_schema_migration
-            WHERE schema_name=? AND to_version=?
-            """,
-            (CANON_LEDGER_SCHEMA, CANON_LEDGER_SCHEMA_VERSION),
-        ).fetchone()
-        require(
-            migration is not None
-            and int(migration["from_version"]) == 0
-            and int(migration["to_version"]) == CANON_LEDGER_SCHEMA_VERSION
-            and str(migration["asset_sha256"]) == contract["ledger_sha256"]
-            and str(migration["migration_mode"]) == migration_mode,
-            "CANON_LEDGER_MIGRATION_RECEIPT_MISMATCH",
-            "The Canon ledger lacks its exact additive migration receipt.",
-            status="MISMATCH",
-        )
-        if current_version == 0:
-            connection.commit()
-    except Exception:
-        if current_version == 0 and connection.in_transaction:
-            connection.rollback()
-        raise
-    return {
-        "schema": CANON_LEDGER_SCHEMA,
-        "version_before": current_version,
-        "version_after": CANON_LEDGER_SCHEMA_VERSION,
-        "migration_mode": migration_mode,
-        "ledger_asset_sha256": contract["ledger_sha256"],
-        "schema_signature_sha256": actual_signature,
-    }
-
-
-def _connect(root: Path) -> sqlite3.Connection:
-    path = _ledger_path(root)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path, timeout=30)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA journal_mode=DELETE")
-    connection.execute("PRAGMA synchronous=FULL")
-    try:
-        _apply_canon_ledger_schema(connection, _load_canon_schema_contract())
-    except Exception:
-        connection.close()
-        raise
-    return connection
-
-
-def _json_schema_type_matches(value: Any, expected: str) -> bool:
-    return {
-        "array": isinstance(value, list),
-        "boolean": isinstance(value, bool),
-        "integer": isinstance(value, int) and not isinstance(value, bool),
-        "null": value is None,
-        "number": isinstance(value, (int, float)) and not isinstance(value, bool),
-        "object": isinstance(value, Mapping),
-        "string": isinstance(value, str),
-    }.get(expected, False)
-
-
-def _validate_canon_schema_value(
-    value: Any,
-    node: Mapping[str, Any],
-    root_schema: Mapping[str, Any],
-    *,
-    field: str,
-) -> None:
-    reference = node.get("$ref")
-    if reference is not None:
-        parts = str(reference).split("/")
-        require(
-            len(parts) == 3
-            and parts[:2] == ["#", "$defs"]
-            and isinstance(root_schema.get("$defs"), Mapping)
-            and isinstance(
-                cast(Mapping[str, Any], root_schema["$defs"]).get(parts[2]),
-                Mapping,
-            ),
-            "CANON_RECEIPT_SCHEMA_REFERENCE_INVALID",
-            "A Canon receipt schema reference is unsupported.",
-            status="MISMATCH",
-            field=field,
-            reference=reference,
-        )
-        _validate_canon_schema_value(
-            value,
-            cast(
-                Mapping[str, Any],
-                cast(Mapping[str, Any], root_schema["$defs"])[parts[2]],
-            ),
-            root_schema,
-            field=field,
-        )
-        return
-    declared_type = node.get("type")
-    if declared_type is not None:
-        allowed_types = (
-            [str(item) for item in declared_type]
-            if isinstance(declared_type, list)
-            else [str(declared_type)]
-        )
-        require(
-            any(_json_schema_type_matches(value, item) for item in allowed_types),
-            "CANON_RECEIPT_FIELD_TYPE_INVALID",
-            "A Canon receipt field violates its first-class schema type.",
-            status="MISMATCH",
-            field=field,
-            allowed_types=allowed_types,
-        )
-    if "const" in node:
-        require(
-            value == node["const"],
-            "CANON_RECEIPT_FIELD_CONST_INVALID",
-            "A Canon receipt field violates its immutable schema constant.",
-            status="MISMATCH",
-            field=field,
-        )
-    if "enum" in node:
-        require(
-            value in node["enum"],
-            "CANON_RECEIPT_FIELD_ENUM_INVALID",
-            "A Canon receipt field is outside its schema enumeration.",
-            status="MISMATCH",
-            field=field,
-        )
-    if isinstance(value, str):
-        require(
-            len(value) >= int(node.get("minLength") or 0),
-            "CANON_RECEIPT_FIELD_LENGTH_INVALID",
-            "A Canon receipt text field is shorter than its schema contract.",
-            status="MISMATCH",
-            field=field,
-        )
-        if node.get("pattern") is not None:
-            require(
-                re.fullmatch(str(node["pattern"]), value) is not None,
-                "CANON_RECEIPT_FIELD_PATTERN_INVALID",
-                "A Canon receipt field does not match its schema pattern.",
-                status="MISMATCH",
-                field=field,
-            )
-        if node.get("format") == "date-time":
-            try:
-                parsed = datetime.fromisoformat(value)
-            except ValueError as exc:
-                require(
-                    False,
-                    "CANON_RECEIPT_TIMESTAMP_INVALID",
-                    "A Canon receipt timestamp is not ISO-8601.",
-                    status="MISMATCH",
-                    field=field,
-                )
-                raise AssertionError("unreachable") from exc
-            require(
-                parsed.tzinfo is not None,
-                "CANON_RECEIPT_TIMESTAMP_TIMEZONE_REQUIRED",
-                "A Canon receipt timestamp requires an explicit timezone.",
-                status="MISMATCH",
-                field=field,
-            )
-    if (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-        and node.get("minimum") is not None
-    ):
-        require(
-            value >= node["minimum"],
-            "CANON_RECEIPT_FIELD_MINIMUM_INVALID",
-            "A Canon receipt number is below its schema minimum.",
-            status="MISMATCH",
-            field=field,
-        )
-    if isinstance(value, Mapping):
-        properties = node.get("properties")
-        required_fields = [str(item) for item in node.get("required") or []]
-        require(
-            all(item in value for item in required_fields),
-            "CANON_RECEIPT_REQUIRED_FIELD_MISSING",
-            "A Canon receipt is missing one schema-required field.",
-            status="MISMATCH",
-            field=field,
-            required_fields=required_fields,
-        )
-        if properties is None:
-            return
-        require(
-            isinstance(properties, Mapping),
-            "CANON_RECEIPT_SCHEMA_PROPERTIES_INVALID",
-            "A Canon receipt object schema has invalid properties.",
-            status="MISMATCH",
-            field=field,
-        )
-        property_map = cast(Mapping[str, Any], properties)
-        if node.get("additionalProperties") is False:
-            require(
-                set(value) <= set(property_map),
-                "CANON_RECEIPT_ADDITIONAL_FIELD_INVALID",
-                "A Canon receipt contains a field outside its immutable schema.",
-                status="MISMATCH",
-                field=field,
-                extra_fields=sorted(set(value) - set(property_map)),
-            )
-        for name, child in property_map.items():
-            if name in value and isinstance(child, Mapping):
-                _validate_canon_schema_value(
-                    value[name],
-                    cast(Mapping[str, Any], child),
-                    root_schema,
-                    field=f"{field}.{name}",
-                )
-
-
-def validate_canon_receipt(value: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate one exact self-sealed receipt against the schema asset."""
-
-    contract = _load_canon_schema_contract()
-    receipt_schema = cast(Mapping[str, Any], contract["receipt_schema"])
-    definitions = cast(Mapping[str, Any], receipt_schema["$defs"])
-    exact = dict(value)
-    schema_id = str(exact.get("schema") or "")
-    candidates = [
-        definition
-        for definition in definitions.values()
-        if isinstance(definition, Mapping)
-        and isinstance(definition.get("properties"), Mapping)
-        and isinstance(
-            cast(Mapping[str, Any], definition["properties"]).get("schema"),
-            Mapping,
-        )
-        and cast(
-            Mapping[str, Any],
-            cast(Mapping[str, Any], definition["properties"])["schema"],
-        ).get("const")
-        == schema_id
-    ]
-    require(
-        len(candidates) == 1 and schema_id in _CANON_RECEIPT_SCHEMAS,
-        "CANON_RECEIPT_SCHEMA_UNSUPPORTED",
-        "The Canon receipt schema is not in the first-class registry.",
-        status="MISMATCH",
-        schema_id=schema_id or None,
-    )
-    _validate_canon_schema_value(
-        exact,
-        cast(Mapping[str, Any], candidates[0]),
-        receipt_schema,
-        field="receipt",
-    )
-    if schema_id == CANON_DISPATCH_RECEIPT_SCHEMA_V2:
-        nested = exact.get("host_creation_receipt")
-        require(
-            isinstance(nested, Mapping),
-            "CANON_CODEX_HOST_RECEIPT_REQUIRED",
-            "A v2 Canon dispatch receipt requires its exact Codex host receipt.",
-            status="MISMATCH",
-        )
-        nested_receipt = cast(Mapping[str, Any], nested)
-        validate_canon_receipt(nested_receipt)
-        require(
-            exact.get("destination") == nested_receipt.get("destination")
-            and exact.get("request_sha256")
-            == nested_receipt.get("request_sha256")
-            and exact.get("dispatch_id")
-            == nested_receipt.get("idempotency_key"),
-            "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
-            "The Canon dispatch receipt and Codex host receipt bind different work.",
-            status="MISMATCH",
-        )
-    claimed_sha256 = _sha256(exact.get("receipt_sha256"), field="receipt_sha256")
-    body = dict(exact)
-    body.pop("receipt_sha256", None)
-    require(
-        claimed_sha256 == sha256_bytes(canonical_json_bytes(body)),
-        "CANON_RECEIPT_SELF_SEAL_MISMATCH",
-        "The Canon receipt does not match its self-sealed body bytes.",
-        status="MISMATCH",
-        schema_id=schema_id,
-    )
-    proof_body = {
-        "schema": "evidence-lane.canon-receipt-schema-validation.v1",
-        "status": "PASS",
-        "receipt_schema": schema_id,
-        "receipt_sha256": claimed_sha256,
-        "registry_asset_sha256": contract["receipt_sha256"],
-        "manifest_sha256": contract["manifest_sha256"],
-    }
-    return {
-        **proof_body,
-        "validation_receipt_sha256": sha256_bytes(canonical_json_bytes(proof_body)),
-    }
-
-
-def inspect_canon_schema_contract() -> dict[str, Any]:
-    """Return the bounded first-class ledger/receipt schema authority."""
-
-    contract = _load_canon_schema_contract()
-    manifest = cast(Mapping[str, Any], contract["manifest"])
-    ledger = cast(Mapping[str, Any], manifest["ledger"])
-    receipts = cast(Mapping[str, Any], manifest["receipts"])
-    body = {
-        "schema": "evidence-lane.canon-schema-contract-receipt.v1",
-        "status": "PASS",
-        "manifest_schema": manifest["schema"],
-        "manifest_sha256": contract["manifest_sha256"],
-        "ledger_schema": ledger["schema_id"],
-        "ledger_version": ledger["sqlite_user_version"],
-        "ledger_asset_sha256": contract["ledger_sha256"],
-        "ledger_schema_signature_sha256": (
-            _expected_canon_sqlite_schema_signature(str(contract["ledger_sql"]))
-        ),
-        "ledger_migration_policy": ledger["migration_policy"],
-        "receipt_registry_schema": receipts["schema_id"],
-        "receipt_registry_version": receipts["registry_version"],
-        "receipt_asset_sha256": contract["receipt_sha256"],
-        "supported_receipt_schemas": sorted(_CANON_RECEIPT_SCHEMAS),
-        "receipt_migration_policy": receipts["migration_policy"],
-        "builder_executes_exact_asset_bytes": True,
-        "unknown_version_behavior": "FAIL_CLOSED",
-    }
-    return {
-        **body,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(body)),
-    }
-
-
-def _immutable_json(path: Path, value: dict[str, Any]) -> str:
-    encoded = canonical_json_bytes(value)
-    if path.exists():
-        require(
-            path.read_bytes() == encoded,
-            "CANON_IMMUTABLE_ARTIFACT_CONFLICT",
-            "A Canon immutable locator already contains different bytes.",
-            status="MISMATCH",
-            path=str(path),
-        )
-        return "SEALED_IDEMPOTENT_REUSE"
-    atomic_write_json(path, value)
-    return "SEALED"
-
-
-def _load_json(path: Path, *, code: str) -> dict[str, Any]:
-    require(path.is_file(), code, "A required Canon artifact is missing.")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        require(
-            False,
-            code,
-            "A required Canon artifact is invalid JSON.",
-            status="MISMATCH",
-            path=str(path),
-            error_type=type(exc).__name__,
-        )
-        raise AssertionError("unreachable") from exc
-    require(isinstance(value, dict), code, "Canon JSON must be one object.")
-    return cast(dict[str, Any], value)
-
-
-def _preflight_immutable_json(path: Path, value: Mapping[str, Any]) -> None:
-    if not path.exists():
-        return
-    existing = _load_json(path, code="CANON_IMMUTABLE_ARTIFACT_INVALID")
-    require(
-        existing == dict(value),
-        "CANON_IMMUTABLE_ARTIFACT_CONFLICT",
-        "An immutable Canon artifact path already maps to other bytes.",
-        status="MISMATCH",
-        path=str(path),
-    )
-
-
-def _file_identity(path: Path) -> str:
-    return sha256_bytes(path.read_bytes()) if path.is_file() else "ABSENT"
-
-
-def _authority_snapshot(root: Path) -> dict[str, str]:
-    return {
-        "project_truth_pointer_sha256": _file_identity(root / "active_pointer.json"),
-        "learning_pointer_sha256": _file_identity(
-            root / "ai_learning" / "active_pointer.json"
-        ),
-    }
-
-
-def _require_authorities_unchanged(
-    root: Path, before: dict[str, str], *, operation: str
-) -> dict[str, str]:
-    after = _authority_snapshot(root)
-    require(
-        after == before,
-        "CANON_CROSS_AUTHORITY_MUTATION_BLOCKED",
-        "A Canon operation changed Project Truth or Agent Learning authority.",
-        status="FAIL",
-        operation=operation,
-        before=before,
-        after=after,
-    )
-    return after
-
-
-def _endpoint(value: Mapping[str, Any], *, field: str) -> dict[str, Any]:
-    endpoint = {
-        "project_id": _exact_text(value.get("project_id"), field=f"{field}.project_id"),
-        "task_uuid": _exact_text(value.get("task_uuid"), field=f"{field}.task_uuid"),
-        "task_deep_link": _exact_text(
-            value.get("task_deep_link"), field=f"{field}.task_deep_link"
-        ),
-        "lane_id": _exact_text(value.get("lane_id"), field=f"{field}.lane_id"),
-        "delta_id": _exact_text(value.get("delta_id"), field=f"{field}.delta_id"),
-        "session_id": str(value.get("session_id") or "").strip() or None,
-    }
-    return endpoint
-
-
-def _node_key(endpoint: Mapping[str, Any]) -> str:
-    return f"{endpoint['project_id']}:{endpoint['task_uuid']}"
-
-
-def _safe_actions(values: Any, *, field: str) -> list[str]:
-    require(
-        isinstance(values, list),
-        "CANON_ACTIONS_INVALID",
-        "Canon permitted actions must be one bounded list.",
-        status="BLOCKED",
-        field=field,
-    )
-    actions = sorted({_exact_text(item, field=field).upper() for item in values})
-    forbidden = sorted(set(actions) & _FORBIDDEN_CANON_ACTIONS)
-    require(
-        not forbidden,
-        "CANON_AUTHORITY_ESCALATION_BLOCKED",
-        "Canon cannot grant source-write, HIL, pointer, Fuse, install, or deploy authority.",
-        status="BLOCKED",
-        forbidden=forbidden,
-    )
-    return actions
-
-
-def _evidence_refs(values: Any) -> list[dict[str, str]]:
-    require(
-        isinstance(values, list) and bool(values),
-        "CANON_EVIDENCE_REQUIRED",
-        "A Canon envelope requires at least one exact evidence reference.",
-        status="BLOCKED",
-    )
-    result: list[dict[str, str]] = []
-    for index, value in enumerate(values):
-        require(
-            isinstance(value, Mapping),
-            "CANON_EVIDENCE_INVALID",
-            "Every Canon evidence reference must be one object.",
-            status="MISMATCH",
-            index=index,
-        )
-        result.append(
-            {
-                "ref": _exact_text(value.get("ref"), field=f"evidence[{index}].ref"),
-                "sha256": _sha256(
-                    value.get("sha256"), field=f"evidence[{index}].sha256"
-                ),
-            }
-        )
-    return result
-
-
-def _source_pointer(value: Mapping[str, Any]) -> dict[str, Any]:
-    project_id = _exact_text(value.get("project_id"), field="source_pointer.project_id")
-    pv_ref = _exact_text(value.get("pv_ref"), field="source_pointer.pv_ref")
-    require(
-        bool(_PV_RE.fullmatch(pv_ref)),
-        "CANON_SOURCE_PV_INVALID",
-        "The Canon source pointer is not one accepted PV reference.",
-        status="MISMATCH",
-    )
-    generation = int(value.get("generation") or 0)
-    require(
-        generation > 0,
-        "CANON_SOURCE_GENERATION_INVALID",
-        "The Canon source pointer generation must be positive.",
-        status="MISMATCH",
-    )
-    return {
-        "project_id": project_id,
-        "pv_ref": pv_ref,
-        "generation": generation,
-        "manifest_sha256": _sha256(
-            value.get("manifest_sha256"), field="source_pointer.manifest_sha256"
-        ),
-        "package_sha256": _sha256(
-            value.get("package_sha256"), field="source_pointer.package_sha256"
-        ),
-    }
-
-
-def _hash_without(value: Mapping[str, Any], field: str) -> str:
-    return sha256_bytes(
-        canonical_json_bytes({key: item for key, item in value.items() if key != field})
-    )
-
-
-def _contains_secret_material(value: Any) -> bool:
-    if contains_secret(value):
-        return True
-    if isinstance(value, Mapping):
-        return any(
-            bool(_SECRET_KEY_RE.search(str(key))) or _contains_secret_material(item)
-            for key, item in value.items()
-        )
-    if isinstance(value, (list, tuple)):
-        return any(_contains_secret_material(item) for item in value)
-    return False
-
-
-def _normalise_contract(value: Mapping[str, Any]) -> dict[str, Any]:
-    require(
-        value.get("schema") == CANON_EXPECTED_CONTRACT_SCHEMA,
-        "CANON_CONTRACT_SCHEMA_INVALID",
-        "The expected Canon contract schema is unsupported.",
-        status="MISMATCH",
-    )
-    exact = dict(value)
-    exact["contract_id"] = _exact_text(exact.get("contract_id"), field="contract_id")
-    version = int(exact.get("contract_version") or 0)
-    require(
-        version > 0,
-        "CANON_CONTRACT_VERSION_INVALID",
-        "An expected Canon contract version must be positive.",
-        status="MISMATCH",
-    )
-    exact["contract_version"] = version
-    require(
-        isinstance(exact.get("active"), bool),
-        "CANON_CONTRACT_ACTIVE_INVALID",
-        "An expected Canon contract requires one explicit active boolean.",
-        status="MISMATCH",
-    )
-    destination = _endpoint(
-        cast(Mapping[str, Any], exact.get("destination") or {}),
-        field="destination",
-    )
-    source_allowlist = exact.get("source_allowlist")
-    require(
-        isinstance(source_allowlist, list) and bool(source_allowlist),
-        "CANON_CONTRACT_SOURCE_ALLOWLIST_REQUIRED",
-        "An expected Canon contract requires at least one exact source binding.",
-        status="BLOCKED",
-    )
-    source_allowlist = cast(list[Any], source_allowlist)
-    allowed_sources = [
-        _endpoint(cast(Mapping[str, Any], item), field="source_allowlist")
-        for item in source_allowlist
-    ]
-    source_pointers = exact.get("accepted_source_pointers")
-    require(
-        isinstance(source_pointers, list) and bool(source_pointers),
-        "CANON_CONTRACT_SOURCE_POINTER_REQUIRED",
-        "An expected Canon contract requires accepted-source pointer boundaries.",
-        status="BLOCKED",
-    )
-    source_pointers = cast(list[Any], source_pointers)
-    exact["destination"] = destination
-    exact["source_allowlist"] = sorted(
-        allowed_sources, key=lambda item: canonical_json_bytes(item)
-    )
-    accepted_source_pointers = [
-        _source_pointer(cast(Mapping[str, Any], item)) for item in source_pointers
-    ]
-    exact["accepted_source_pointers"] = sorted(
-        accepted_source_pointers, key=lambda item: canonical_json_bytes(item)
-    )
-    exact["schema_sha256"] = _sha256(
-        exact.get("schema_sha256"), field="schema_sha256"
-    )
-    exact["schema_id"] = _exact_text(exact.get("schema_id"), field="schema_id")
-    exact["schema_version"] = _exact_text(
-        exact.get("schema_version"), field="schema_version"
-    )
-    canon_types = exact.get("canon_types")
-    require(
-        isinstance(canon_types, list) and bool(canon_types),
-        "CANON_CONTRACT_TYPES_REQUIRED",
-        "An expected Canon contract requires at least one Canon type.",
-        status="BLOCKED",
-    )
-    canon_types = cast(list[Any], canon_types)
-    exact["canon_types"] = sorted(
-        {_exact_text(item, field="canon_types").upper() for item in canon_types}
-    )
-    authorities = exact.get("authority_requested")
-    require(
-        isinstance(authorities, list) and bool(authorities),
-        "CANON_CONTRACT_AUTHORITIES_REQUIRED",
-        "An expected Canon contract requires at least one authority class.",
-        status="BLOCKED",
-    )
-    authorities = cast(list[Any], authorities)
-    exact_authorities = {
-        _exact_text(item, field="authority_requested").upper()
-        for item in authorities
-    }
-    require(
-        exact_authorities <= _AUTHORITIES,
-        "CANON_CONTRACT_AUTHORITY_INVALID",
-        "An expected Canon contract contains an unsupported authority class.",
-        status="BLOCKED",
-    )
-    exact["authority_requested"] = sorted(exact_authorities)
-    exact["permitted_actions"] = _safe_actions(
-        exact.get("permitted_actions") or [], field="permitted_actions"
-    )
-    payload_keys = exact.get("permitted_payload_keys")
-    require(
-        isinstance(payload_keys, list),
-        "CANON_CONTRACT_PAYLOAD_KEYS_INVALID",
-        "The expected Canon payload-key policy must be one list.",
-        status="MISMATCH",
-    )
-    payload_keys = cast(list[Any], payload_keys)
-    exact["permitted_payload_keys"] = sorted(
-        {_exact_text(item, field="permitted_payload_keys") for item in payload_keys}
-    )
-    exact["expires_at"] = _timestamp(
-        exact.get("expires_at"), field="expires_at", nullable=True
-    )
-    if exact.get("expected_return_contract_sha256") is not None:
-        exact["expected_return_contract_sha256"] = _sha256(
-            exact.get("expected_return_contract_sha256"),
-            field="expected_return_contract_sha256",
-        )
-    require(
-        _exact_text(
-            exact.get("independent_hil_owner_task_uuid"),
-            field="independent_hil_owner_task_uuid",
-        )
-        == destination["task_uuid"],
-        "CANON_HIL_OWNER_MUST_BE_RECEIVER",
-        "The receiving top-level task must own its Canon Input HIL.",
-        status="BLOCKED",
-    )
-    return exact
-
-
-def _validate_contract(value: Mapping[str, Any]) -> dict[str, Any]:
-    exact = _normalise_contract(value)
-    claimed = _sha256(exact.get("contract_sha256"), field="contract_sha256")
-    require(
-        claimed == _hash_without(exact, "contract_sha256"),
-        "CANON_CONTRACT_HASH_MISMATCH",
-        "The expected Canon contract failed its immutable hash check.",
-        status="MISMATCH",
-    )
-    return exact
-
-
-def register_expected_canon_contract(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    contract: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Register one immutable, versioned, receiver-owned expected contract."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    raw = dict(contract)
-    raw.setdefault("schema", CANON_EXPECTED_CONTRACT_SCHEMA)
-    raw.setdefault("active", True)
-    raw.pop("contract_sha256", None)
-    raw = _normalise_contract(raw)
-    raw["contract_sha256"] = sha256_bytes(canonical_json_bytes(raw))
-    exact = _validate_contract(raw)
-    require(
-        exact["destination"]["project_id"] == project_id,
-        "CANON_CONTRACT_DESTINATION_PROJECT_MISMATCH",
-        "An expected contract must be stored by its exact destination project.",
-        status="BLOCKED",
-    )
-    path = (
-        _canon_root(root)
-        / "contracts"
-        / f"{exact['contract_sha256'].lower()}.json"
-    )
-    _preflight_immutable_json(path, exact)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        version_row = connection.execute(
-            """
-            SELECT contract_json FROM canon_contract
-            WHERE contract_id=? AND contract_version=? AND destination_task_uuid=?
-            """,
-            (
-                exact["contract_id"],
-                int(exact["contract_version"]),
-                exact["destination"]["task_uuid"],
-            ),
-        ).fetchone()
-        require(
-            version_row is None
-            or json.loads(str(version_row["contract_json"])) == exact,
-            "CANON_CONTRACT_VERSION_IMMUTABILITY_CONFLICT",
-            "The expected Canon contract version already maps to other bytes.",
-            status="MISMATCH",
-        )
-        existing = connection.execute(
-            "SELECT contract_json FROM canon_contract WHERE contract_sha256=?",
-            (exact["contract_sha256"],),
-        ).fetchone()
-        if existing is not None:
-            require(
-                json.loads(str(existing["contract_json"])) == exact,
-                "CANON_CONTRACT_IMMUTABILITY_CONFLICT",
-                "The expected contract identity already maps to other bytes.",
-                status="MISMATCH",
-            )
-        else:
-            connection.execute(
-                """
-                INSERT INTO canon_contract(
-                    contract_sha256,contract_id,contract_version,
-                    destination_project_id,destination_task_uuid,active,contract_json
-                ) VALUES(?,?,?,?,?,?,?)
-                """,
-                (
-                    exact["contract_sha256"],
-                    exact["contract_id"],
-                    int(exact["contract_version"]),
-                    project_id,
-                    exact["destination"]["task_uuid"],
-                    1 if exact.get("active") else 0,
-                    canonical_json_bytes(exact).decode("utf-8"),
-                ),
-            )
-        connection.commit()
-    finally:
-        connection.close()
-    state = _immutable_json(path, exact)
-    after = _require_authorities_unchanged(root, before, operation="register_contract")
-    return {
-        "status": "PASS",
-        "state": state,
-        "contract": exact,
-        "contract_path": str(path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "CONTRACT_REGISTERED",
-        },
-    }
-
-
-def _validate_envelope(value: Mapping[str, Any]) -> dict[str, Any]:
-    require(
-        value.get("schema") == CANON_ENVELOPE_SCHEMA,
-        "CANON_ENVELOPE_SCHEMA_INVALID",
-        "The Canon envelope schema is unsupported.",
-        status="MISMATCH",
-    )
-    exact = dict(value)
-    claimed = _sha256(exact.get("canon_sha256"), field="canon_sha256")
-    require(
-        claimed == _hash_without(exact, "canon_sha256"),
-        "CANON_ENVELOPE_HASH_MISMATCH",
-        "The Canon envelope failed its immutable hash check.",
-        status="MISMATCH",
-    )
-    exact["source"] = _endpoint(
-        cast(Mapping[str, Any], exact.get("source") or {}), field="source"
-    )
-    exact["destination"] = _endpoint(
-        cast(Mapping[str, Any], exact.get("destination") or {}),
-        field="destination",
-    )
-    direction = _exact_text(exact.get("direction"), field="direction").upper()
-    require(
-        direction in _DIRECTIONS,
-        "CANON_DIRECTION_INVALID",
-        "A Canon route direction is unsupported.",
-        status="BLOCKED",
-    )
-    authority = _exact_text(
-        exact.get("authority_requested"), field="authority_requested"
-    ).upper()
-    require(
-        authority in _AUTHORITIES,
-        "CANON_AUTHORITY_REQUEST_INVALID",
-        "The requested Canon authority class is unsupported.",
-        status="BLOCKED",
-    )
-    exact["direction"] = direction
-    exact["authority_requested"] = authority
-    exact["source_pointer"] = _source_pointer(
-        cast(Mapping[str, Any], exact.get("source_pointer") or {})
-    )
-    require(
-        exact["source_pointer"]["project_id"] == exact["source"]["project_id"],
-        "CANON_SOURCE_POINTER_PROJECT_MISMATCH",
-        "The accepted-source pointer and source task project differ.",
-        status="MISMATCH",
-    )
-    exact["schema_sha256"] = _sha256(
-        exact.get("schema_sha256"), field="schema_sha256"
-    )
-    exact["destination_contract_sha256"] = _sha256(
-        exact.get("destination_contract_sha256"),
-        field="destination_contract_sha256",
-    )
-    if exact.get("expected_return_contract_sha256") is not None:
-        exact["expected_return_contract_sha256"] = _sha256(
-            exact.get("expected_return_contract_sha256"),
-            field="expected_return_contract_sha256",
-        )
-    exact["evidence_refs"] = _evidence_refs(exact.get("evidence_refs"))
-    payload = exact.get("payload")
-    require(
-        isinstance(payload, Mapping) and not _contains_secret_material(payload),
-        "CANON_PAYLOAD_INVALID_OR_SECRET",
-        "Canon payload must be one bounded secret-free object.",
-        status="BLOCKED",
-    )
-    payload = cast(Mapping[str, Any], payload)
-    exact["payload"] = dict(payload)
-    require(
-        _sha256(exact.get("payload_sha256"), field="payload_sha256")
-        == sha256_bytes(canonical_json_bytes(exact["payload"])),
-        "CANON_PAYLOAD_HASH_MISMATCH",
-        "The Canon payload does not match its exact hash.",
-        status="MISMATCH",
-    )
-    exact["permitted_actions"] = _safe_actions(
-        exact.get("permitted_actions") or [], field="permitted_actions"
-    )
-    revision = int(exact.get("revision") or 0)
-    require(
-        revision > 0,
-        "CANON_REVISION_INVALID",
-        "A Canon revision must be positive.",
-        status="MISMATCH",
-    )
-    exact["revision"] = revision
-    exact["created_at"] = _timestamp(exact.get("created_at"), field="created_at")
-    exact["expires_at"] = _timestamp(
-        exact.get("expires_at"), field="expires_at", nullable=True
-    )
-    if exact["expires_at"] is not None:
-        require(
-            _timestamp_value(exact["expires_at"])
-            > _timestamp_value(cast(str, exact["created_at"])),
-            "CANON_EXPIRY_INVALID",
-            "Canon expiry must be later than packet creation.",
-            status="BLOCKED",
-        )
-    require(
-        exact.get("input_state") == "PROPOSED",
-        "CANON_INITIAL_STATE_INVALID",
-        "An immutable outbound Canon envelope must begin at PROPOSED.",
-        status="MISMATCH",
-    )
-    require(
-        exact.get("source_write_authority_granted") is False
-        and exact.get("project_truth_pointer_moved") is False
-        and exact.get("learning_pointer_moved") is False
-        and exact.get("hil_replayed") is False,
-        "CANON_AUTHORITY_EFFECT_INVALID",
-        "A Canon envelope cannot carry promotion, write, pointer, or HIL effects.",
-        status="BLOCKED",
-    )
-    route_trace = exact.get("route_trace")
-    require(
-        isinstance(route_trace, list)
-        and bool(route_trace)
-        and all(isinstance(item, str) and item.strip() for item in route_trace),
-        "CANON_ROUTE_TRACE_INVALID",
-        "A Canon envelope requires one ordered task route trace.",
-        status="MISMATCH",
-    )
-    route_trace = cast(list[str], route_trace)
-    exact["route_trace"] = list(route_trace)
-    return exact
-
-
-def _insert_packet(
-    connection: sqlite3.Connection,
-    *,
-    project_id: str,
-    local_role: str,
-    envelope: dict[str, Any],
-) -> bool:
-    existing = connection.execute(
-        "SELECT * FROM canon_packet WHERE canon_id=?", (envelope["canon_id"],)
-    ).fetchone()
-    if existing is not None:
-        require(
-            str(existing["canon_sha256"]) == envelope["canon_sha256"]
-            and json.loads(str(existing["envelope_json"])) == envelope,
-            "CANON_PACKET_IMMUTABILITY_CONFLICT",
-            "The Canon packet identity already maps to different bytes.",
-            status="MISMATCH",
-        )
+from typing import Literal
+from uuid import UUID, uuid4, uuid5
+
+from pydantic import Field, model_validator
+
+from .errors import LaneError
+from .lanes import lane_schema_asset
+from .migrations import Migration, apply_migrations, verify_schema_history_files
+from .plan_runtime import content_digest
+from .project_memory import DIGEST, MemoryReference, ProjectMemory
+from .redaction import contains_secret, redact
+from .registry import ActionSpec, Contract
+from .sdk import UUID_PATTERN
+from .storage import LaneStore, json_text, now, reject_links
+
+CanonKind = Literal['requirements', 'evidence', 'correction', 'plan_proposal', 'result', 'clarification', 'backfire']
+CanonState = Literal['sealed', 'received', 'admitted', 'rejected', 'needs_clarification', 'superseded']
+ScalarKind = Literal['string', 'integer', 'number', 'boolean', 'null']
+Scalar = str | int | float | bool | None
+
+
+def safe_text(value):
+    if contains_secret(value) or redact(value) != value:
+        raise ValueError('Secret material cannot enter a Canon exchange')
+    if isinstance(value, dict) and any(key.lower() in {'chain_of_thought','private_reasoning','hidden_reasoning','internal_reasoning','reasoning_content'} for key in value):
+        raise ValueError('Only visible content can enter Canon')
+
+
+class CanonJoin(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    label: str = Field(min_length=1, max_length=200)
+    reported_host_task_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+
+    @model_validator(mode='after')
+    def visible(self):
+        safe_text(self.label)
+        return self
+
+
+class CanonParticipant(Contract):
+    project_id: str
+    participant_id: str
+    owner_client_id: str
+    label: str
+    reported_host_task_id: str | None
+    owner_generation: int = Field(default=1, ge=1)
+    identity_evidence: Literal['engine_client_ownership_with_optional_host_claim'] = 'engine_client_ownership_with_optional_host_claim'
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+    host_task_created: bool = False
+
+
+class CanonTaskEndpoint(Contract):
+    project_id: str = Field(pattern=UUID_PATTERN)
+    participant_id: str = Field(pattern=UUID_PATTERN)
+
+
+class CanonExpected(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    receiver_id: str = Field(pattern=UUID_PATTERN)
+    contract_key: str = Field(pattern=r'^[a-z][a-z0-9_]{0,63}$')
+    expected_version: int = Field(default=0, ge=0)
+    sender_ids: list[str] = Field(default_factory=list, max_length=32)
+    sender_endpoints: list[CanonTaskEndpoint] = Field(default_factory=list, max_length=32)
+    kinds: list[CanonKind] = Field(min_length=1, max_length=7)
+    fields: dict[str, ScalarKind] = Field(default_factory=dict, max_length=32)
+    required_reference_kinds: list[str] = Field(default_factory=list, max_length=6)
+    max_bytes: int = Field(default=32768, ge=1024, le=65536)
+    auto_admit: bool = False
+    active: bool = True
+
+    @model_validator(mode='after')
+    def bounded_schema(self):
+        endpoints = [(item.project_id, item.participant_id) for item in self.sender_endpoints]
+        if not 1 <= len(self.sender_ids) + len(endpoints) <= 32 or len(set(endpoints)) != len(endpoints):
+            raise ValueError('Select one to 32 distinct local participants or exact project endpoints')
+        if len(set(self.sender_ids)) != len(self.sender_ids) or any(not re.fullmatch(UUID_PATTERN,key) for key in self.sender_ids):
+            raise ValueError('Select distinct project participants')
+        if len(set(self.kinds)) != len(self.kinds) or any(not re.fullmatch(r'[a-z][a-z0-9_]{0,63}',key) for key in self.fields):
+            raise ValueError('Use bounded unique kinds and named scalar fields')
+        supported={'plan_task','lineage_event','learning_version','receipt','source_object','canon_exchange'}
+        if not set(self.required_reference_kinds) <= supported:
+            raise ValueError('Use supported evidence reference kinds')
+        return self
+
+
+class CanonContractResult(Contract):
+    contract_digest: str
+    version: int
+    contract: dict
+
+
+class CanonPayload(Contract):
+    summary: str = Field(min_length=1, max_length=4000)
+    fields: dict[str, Scalar] = Field(default_factory=dict, max_length=32)
+    references: list[MemoryReference] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode='after')
+    def bounded_visible_payload(self):
+        if (len(self.model_dump_json().encode()) > 65536
+                or any(not re.fullmatch(r'[a-z][a-z0-9_]{0,63}',key) for key in self.fields)
+                or any(isinstance(v,str) and len(v)>4000 or isinstance(v,float) and not math.isfinite(v) for v in self.fields.values())):
+            raise ValueError('Use bounded named scalar fields and source references')
+        safe_text(self.summary)
+        safe_text(self.fields)
+        return self
+
+
+BackfireClass = Literal['EXECUTION_FAILURE_REQUIRES_UPSTREAM_ACTION',
+    'MISSING_INFORMATION_FROM_SOURCE', 'NEW_REQUIREMENT_FROM_SOURCE', 'LINKED_TASK_INPUT_REQUIRED']
+
+
+class CanonBackfireDetails(Contract):
+    admitted_exchange_id: str = Field(pattern=UUID_PATTERN)
+    admitted_envelope_digest: str = Field(pattern=DIGEST)
+    failure_class: BackfireClass
+    requested_revision: int = Field(ge=2, le=1000000)
+    dependency_ids: list[str] = Field(default_factory=list, max_length=32)
+    return_route: CanonTaskEndpoint
+    trace: list[CanonTaskEndpoint] = Field(default_factory=list, max_length=32)
+    automatic_retry_allowed: Literal[False] = False
+
+    @model_validator(mode='after')
+    def bounded_routes(self):
+        if (len(set(self.dependency_ids)) != len(self.dependency_ids)
+                or any(not re.fullmatch(UUID_PATTERN, key) for key in self.dependency_ids)):
+            raise ValueError('Dependencies must name distinct bounded Canon exchanges or task edges')
+        nodes = [(item.project_id, item.participant_id) for item in self.trace]
+        if len(set(nodes)) != len(nodes):
+            raise ValueError('A correction trace cannot repeat a project participant')
+        return self
+
+
+class CanonSend(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    sender_id: str = Field(pattern=UUID_PATTERN)
+    receiver_id: str = Field(pattern=UUID_PATTERN)
+    destination_project_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+    kind: CanonKind
+    payload: CanonPayload
+    expected_contract: str | None = Field(default=None, pattern=DIGEST)
+    return_contract: str | None = Field(default=None, pattern=DIGEST)
+    reply_to: str | None = Field(default=None, pattern=UUID_PATTERN)
+    supersedes: str | None = Field(default=None, pattern=UUID_PATTERN)
+    expires_at: str | None = Field(default=None, max_length=40)
+    edge_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+    backfire: CanonBackfireDetails | None = None
+
+    @model_validator(mode='after')
+    def exact_route(self):
+        if self.sender_id == self.receiver_id and self.destination_project_id is None:
+            raise ValueError('Select another project participant')
+        if self.kind in {'result','clarification','backfire'} and not self.reply_to and not (self.kind == 'backfire' and self.backfire):
+            raise ValueError('A return requires an exact earlier exchange')
+        if self.backfire and (self.kind != 'backfire' or self.reply_to or self.supersedes or self.edge_id or not self.expected_contract):
+            raise ValueError('A typed backfire uses its source-owned admitted locator and exact requested contract')
+        if (self.kind == 'correction') != bool(self.supersedes):
+            raise ValueError('A correction requires the exact exchange it revises')
+        if self.expires_at:
+            stamp=datetime.fromisoformat(self.expires_at)
+            if stamp.tzinfo is None:
+                raise ValueError('Expiry must include a timezone')
+        return self
+
+
+class CanonSent(Contract):
+    exchange_id: str
+    envelope_digest: str
+    state: CanonState
+    duplicate: bool = False
+    local_role: Literal['outbox', 'inbox', 'both'] = 'both'
+    artifact_path: str | None = None
+    compatibility_reasons: list[str] = Field(default_factory=list)
+    receiver_decision_required: bool = False
+    authority: Literal['canon'] = 'canon'
+    source_write_granted: bool = False
+    plan_mutated: bool = False
+
+
+class CanonTaskResult(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    edge_id: str = Field(pattern=UUID_PATTERN)
+    reply_to: str = Field(pattern=UUID_PATTERN)
+    payload: CanonPayload
+    expires_at: str | None = Field(default=None, max_length=40)
+
+
+class CanonBackfire(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    admitted_exchange_id: str = Field(pattern=UUID_PATTERN)
+    admitted_envelope_digest: str = Field(pattern=DIGEST)
+    failure_class: BackfireClass
+    recipient: CanonTaskEndpoint
+    requested_contract: str = Field(pattern=DIGEST)
+    requested_revision: int = Field(ge=2, le=1000000)
+    payload: CanonPayload
+    dependency_ids: list[str] = Field(default_factory=list, max_length=32)
+    return_route: CanonTaskEndpoint
+    return_contract: str = Field(pattern=DIGEST)
+    trace: list[CanonTaskEndpoint] = Field(default_factory=list, max_length=30)
+    expires_at: str = Field(min_length=1, max_length=40)
+
+    @model_validator(mode='after')
+    def bounded_request(self):
+        CanonBackfireDetails.model_validate(self.model_dump(include={
+            'admitted_exchange_id','admitted_envelope_digest','failure_class','requested_revision',
+            'dependency_ids','return_route','trace'}))
+        if datetime.fromisoformat(self.expires_at).tzinfo is None:
+            raise ValueError('Backfire expiry must include a timezone')
+        return self
+
+
+class CanonOperationSent(CanonSent):
+    dedup_key: str = Field(pattern=DIGEST)
+    automatic_retry_allowed: Literal[False] = False
+
+
+class CanonReceive(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    source_project_id: str = Field(pattern=UUID_PATTERN)
+    exchange_id: str = Field(pattern=UUID_PATTERN)
+    envelope_digest: str = Field(pattern=DIGEST)
+
+
+class CanonClassification(Contract):
+    project_id: str
+    message_digest: str
+    classification: Literal['expected', 'undefined_or_incompatible']
+    reasons: list[str]
+    expected_contract: str | None
+    observed_at: str
+    automatic_admission_permitted: bool
+    receiver_decision_required: bool
+    admission_performed: Literal[False] = False
+    project_mutated: Literal[False] = False
+    source_write_granted: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+class CanonPacketClassification(CanonClassification):
+    source_project_id: str
+    exchange_id: str
+    envelope_digest: str
+
+
+class CanonDecide(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    exchange_id: str = Field(pattern=UUID_PATTERN)
+    envelope_digest: str = Field(pattern=DIGEST)
+    expected_version: int = Field(ge=1)
+    decision: Literal['admit','reject','clarify']
+    reason: str = Field(min_length=1, max_length=1000)
+    incompatible_input_decision: Literal['ACCEPT'] | None = None
+
+    @model_validator(mode='after')
+    def visible_reason(self):
+        safe_text(self.reason)
+        return self
+
+
+class CanonDecisionResult(Contract):
+    exchange_id: str
+    state: CanonState
+    version: int
+    receiver_id: str
+    reason: str | None = Field(default=None, max_length=1000)
+    incompatible_input_decision: Literal['ACCEPT'] | None = None
+    compatibility_reasons: list[str] = Field(default_factory=list)
+    plan_mutated: bool = False
+    source_write_granted: bool = False
+
+
+class CanonSupersede(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    exchange_id: str = Field(pattern=UUID_PATTERN)
+    envelope_digest: str = Field(pattern=DIGEST)
+    expected_version: int = Field(ge=1)
+    successor_id: str = Field(pattern=UUID_PATTERN)
+    successor_envelope_digest: str = Field(pattern=DIGEST)
+
+
+class CanonSuperseded(Contract):
+    exchange_id: str
+    envelope_digest: str
+    successor_id: str
+    successor_envelope_digest: str
+    receiver_id: str
+    version: int
+    decision_basis: Literal['receiver_explicit', 'receiver_expected_contract', 'receiver_correction_admission']
+    state: Literal['superseded'] = 'superseded'
+    duplicate: bool = False
+    plan_mutated: Literal[False] = False
+    source_write_granted: Literal[False] = False
+
+
+class CanonRead(Contract):
+    participant_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+    after_sequence: int = Field(default=0, ge=0)
+    limit: int = Field(default=20, ge=1, le=50)
+    include_payload: bool = False
+    max_bytes: int = Field(default=131072, ge=131072, le=262144)
+
+
+class CanonPage(Contract):
+    project_id: str
+    participants: list[dict]
+    contracts: list[dict]
+    exchanges: list[dict]
+    last_sequence: int
+    truncated: bool
+    participants_truncated: bool
+    contracts_truncated: bool
+    authority: Literal['canon'] = 'canon'
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+class CanonContinuationLocator(Contract):
+    sequence: int = Field(ge=1)
+    exchange_id: str = Field(pattern=UUID_PATTERN)
+    envelope_digest: str = Field(pattern=DIGEST)
+    source_project_id: str = Field(pattern=UUID_PATTERN)
+    destination_project_id: str = Field(pattern=UUID_PATTERN)
+    sender_id: str = Field(pattern=UUID_PATTERN)
+    receiver_id: str = Field(pattern=UUID_PATTERN)
+    state: Literal['sealed', 'received', 'needs_clarification']
+    version: int = Field(ge=1)
+    expected_contract: str | None = Field(pattern=DIGEST)
+
+
+class CanonContinuationCheckpoint(Contract):
+    schema_version: Literal[1] = 1
+    project_id: str = Field(pattern=UUID_PATTERN)
+    participant_ids: list[str] = Field(min_length=1, max_length=32)
+    event_sequence: int = Field(ge=0)
+    event_head: str | None = Field(pattern=DIGEST)
+    pending: list[CanonContinuationLocator] = Field(max_length=256)
+    decision_tokens_carried: Literal[False] = False
+    canon_state_mutated: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+    @model_validator(mode='after')
+    def bounded_identity(self):
+        if (self.participant_ids != sorted(set(self.participant_ids))
+                or any(not re.fullmatch(UUID_PATTERN, item) for item in self.participant_ids)
+                or len(self.model_dump_json().encode()) > 131072):
+            raise ValueError('Use an exact bounded participant set and Canon locator checkpoint')
+        return self
+
+
+class CanonInbox(Contract):
+    receiver_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+    states: list[CanonState] = Field(default_factory=list, max_length=6)
+    exchange_id: str | None = Field(default=None, pattern=UUID_PATTERN)
+    after_sequence: int = Field(default=0, ge=0)
+    after_event_sequence: int = Field(default=0, ge=0)
+    limit: int = Field(default=100, ge=1, le=500)
+    events_per_packet: int = Field(default=50, ge=1, le=500)
+    history_limit: int = Field(default=50000, ge=1, le=50000)
+    max_bytes: int = Field(default=131072, ge=16384, le=1048576)
+
+
+class CanonInboxPage(Contract):
+    project_id: str
+    receiver: CanonParticipant | None
+    packets: list[dict]
+    packet_count: int
+    last_sequence: int
+    truncated: bool
+    history: dict
+    projection_digest: str
+    raw_payload_returned: Literal[False] = False
+    project_mutated: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+class CanonInspect(Contract):
+    record_limit: int = Field(default=50000, ge=1, le=50000)
+
+
+class CanonInspection(Contract):
+    project_id: str
+    initialized: bool
+    counts: dict[str, int]
+    packet_states: dict[str, int]
+    integrity: list[str]
+    foreign_key_errors: list[list]
+    history: dict
+    applied_migrations: list[dict]
+    schema_contract: dict
+    objects_verified: dict[str, int]
+    historical_supersession_links_unavailable: int
+    verified_scope: list[str]
+    unverified_scope: list[str]
+    projection_digest: str
+    raw_payload_returned: Literal[False] = False
+    project_mutated: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+class CanonTaskEdgeRegister(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    edge_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    source_id: str = Field(pattern=UUID_PATTERN)
+    destination: CanonTaskEndpoint
+    direction: Literal['upstream', 'downstream', 'lateral'] = 'downstream'
+    contract_digest: str = Field(pattern=DIGEST)
+    schema_digest: str = Field(pattern=DIGEST)
+    expected_return_contract: str = Field(pattern=DIGEST)
+    edge_revision: int = Field(default=1, ge=1)
+    dependency_ids: list[str] = Field(default_factory=list, max_length=32)
+    task_mode: Literal['top_level_task', 'subagent'] = 'top_level_task'
+    scope_class: Literal['read_only', 'governed_read_write'] = 'read_only'
+    permitted_actions: list[str] = Field(default_factory=list, max_length=32)
+    permitted_paths: list[str] = Field(default_factory=list, max_length=32)
+    permitted_tools: list[str] = Field(default_factory=list, max_length=32)
+    expires_at: str | None = Field(default=None, max_length=40)
+
+    @model_validator(mode='after')
+    def bounded_edge(self):
+        for values in (self.dependency_ids, self.permitted_actions, self.permitted_paths, self.permitted_tools):
+            if len(set(values)) != len(values) or any(not value.strip() or len(value) > 512 for value in values):
+                raise ValueError('Use distinct bounded edge dependencies and scope entries')
+            safe_text(values)
+        if any(not re.fullmatch(UUID_PATTERN, value) for value in self.dependency_ids) or self.edge_id in self.dependency_ids:
+            raise ValueError('Select other exact edge IDs as dependencies')
+        if self.expires_at and datetime.fromisoformat(self.expires_at).tzinfo is None:
+            raise ValueError('Expiry must include a timezone')
+        return self
+
+
+class CanonTaskEdgeBind(Contract):
+    request_id: str = Field(default_factory=lambda: str(uuid4()), pattern=UUID_PATTERN)
+    source_project_id: str = Field(pattern=UUID_PATTERN)
+    edge_id: str = Field(pattern=UUID_PATTERN)
+    edge_digest: str = Field(pattern=DIGEST)
+
+
+class CanonTaskEdgeResult(Contract):
+    project_id: str
+    edge_id: str
+    edge_digest: str
+    edge: dict
+    artifact_path: str
+    local_role: Literal['source', 'destination', 'both']
+    destination_bound: bool
+    duplicate: bool = False
+    contract_hash_evidence: Literal['declared_scope_verified_when_used_by_exchange'] = 'declared_scope_verified_when_used_by_exchange'
+    source_write_granted: Literal[False] = False
+    plan_mutated: Literal[False] = False
+    host_task_created: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+class CanonTaskGraphRead(Contract):
+    record_limit: int = Field(default=5000, ge=1, le=50000)
+    max_bytes: int = Field(default=262144, ge=16384, le=1048576)
+
+
+class CanonTaskGraph(Contract):
+    project_id: str
+    nodes: list[str]
+    edges: list[dict]
+    missing_returns: list[dict]
+    history: dict
+    graph_digest: str
+    cycle_check_scope: Literal['all_edges_recorded_in_selected_project'] = 'all_edges_recorded_in_selected_project'
+    cross_project_graph_complete: Literal[False] = False
+    fan_in_supported: Literal[True] = True
+    fan_out_supported: Literal[True] = True
+    cycles_allowed: Literal[False] = False
+    project_mutated: Literal[False] = False
+    native_task_attestation: Literal['not_provided'] = 'not_provided'
+
+
+CANON_MIGRATIONS=(Migration('canon',1,'Client-owned participants, expected contracts and immutable exchange history',(
+    """CREATE TABLE canon_participants (participant_id TEXT PRIMARY KEY, owner_client_id TEXT NOT NULL,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL, created_at TEXT NOT NULL)""",
+    'CREATE INDEX canon_participant_owner ON canon_participants(owner_client_id)',
+    """CREATE TABLE canon_contracts (contract_digest TEXT PRIMARY KEY, receiver_id TEXT NOT NULL REFERENCES canon_participants(participant_id),
+       contract_key TEXT NOT NULL, version INTEGER NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       UNIQUE(receiver_id,contract_key,version))""",
+    """CREATE TABLE canon_contract_current (receiver_id TEXT NOT NULL REFERENCES canon_participants(participant_id),
+       contract_key TEXT NOT NULL, contract_digest TEXT NOT NULL REFERENCES canon_contracts(contract_digest),
+       PRIMARY KEY(receiver_id,contract_key))""",
+    """CREATE TABLE canon_exchanges (sequence INTEGER PRIMARY KEY, exchange_id TEXT NOT NULL UNIQUE,
+       sender_id TEXT NOT NULL REFERENCES canon_participants(participant_id), receiver_id TEXT NOT NULL REFERENCES canon_participants(participant_id),
+       kind TEXT NOT NULL, envelope_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       state TEXT NOT NULL CHECK(state IN ('received','admitted','rejected','needs_clarification','superseded')),
+       version INTEGER NOT NULL, state_digest TEXT NOT NULL, parent_id TEXT REFERENCES canon_exchanges(exchange_id), created_at TEXT NOT NULL)""",
+    'CREATE INDEX canon_inbox ON canon_exchanges(receiver_id,sequence)',
+    'CREATE INDEX canon_outbox ON canon_exchanges(sender_id,sequence)',
+    """CREATE TABLE canon_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE, kind TEXT NOT NULL,
+       actor_id TEXT NOT NULL, input_digest TEXT NOT NULL, result_json TEXT NOT NULL CHECK(json_valid(result_json)),
+       previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)""",
+)),Migration('canon',2,'Address supersession events independently of their JSON payload',(
+    """CREATE TABLE canon_supersessions (
+       exchange_id TEXT PRIMARY KEY REFERENCES canon_exchanges(exchange_id),
+       request_id TEXT NOT NULL UNIQUE REFERENCES canon_events(request_id))""",
+)),Migration('canon',3,'Immutable task edges, named lane files and receiver-owned destination bindings',(
+    """CREATE TABLE canon_task_edges (
+       sequence INTEGER PRIMARY KEY, edge_id TEXT NOT NULL UNIQUE, edge_digest TEXT NOT NULL UNIQUE,
+       source_node TEXT NOT NULL, destination_node TEXT NOT NULL,
+       body_json TEXT NOT NULL CHECK(json_valid(body_json)), artifact_path TEXT NOT NULL UNIQUE)""",
+    """CREATE TABLE canon_task_edge_bindings (
+       edge_id TEXT PRIMARY KEY REFERENCES canon_task_edges(edge_id),
+       request_id TEXT NOT NULL UNIQUE REFERENCES canon_events(request_id))""",
+)),Migration('canon',4,'Project-attributed outbox and inbox exchange roles without foreign participant replication',(
+    'CREATE TABLE canon_exchange_migration4 AS SELECT * FROM canon_exchanges',
+    'CREATE TABLE canon_supersession_migration4 AS SELECT * FROM canon_supersessions',
+    'DROP TABLE canon_supersessions',
+    'DROP TABLE canon_exchanges',
+    """CREATE TABLE canon_exchanges (sequence INTEGER PRIMARY KEY, exchange_id TEXT NOT NULL UNIQUE,
+       sender_id TEXT NOT NULL, receiver_id TEXT NOT NULL,
+       kind TEXT NOT NULL, envelope_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+       state TEXT NOT NULL CHECK(state IN ('sealed','received','admitted','rejected','needs_clarification','superseded')),
+       version INTEGER NOT NULL, state_digest TEXT NOT NULL, parent_id TEXT REFERENCES canon_exchanges(exchange_id), created_at TEXT NOT NULL,
+       source_project_id TEXT NOT NULL, destination_project_id TEXT NOT NULL,
+       local_role TEXT NOT NULL CHECK(local_role IN ('outbox','inbox','both')), artifact_path TEXT UNIQUE)""",
+    """INSERT INTO canon_exchanges SELECT *,json_extract(body_json,'$.project_id'),
+       json_extract(body_json,'$.project_id'),'both',NULL FROM canon_exchange_migration4 ORDER BY sequence""",
+    'CREATE INDEX canon_inbox ON canon_exchanges(destination_project_id,receiver_id,sequence)',
+    'CREATE INDEX canon_outbox ON canon_exchanges(source_project_id,sender_id,sequence)',
+    """CREATE TABLE canon_supersessions (
+       exchange_id TEXT PRIMARY KEY REFERENCES canon_exchanges(exchange_id),
+       request_id TEXT NOT NULL UNIQUE REFERENCES canon_events(request_id))""",
+    'INSERT INTO canon_supersessions SELECT * FROM canon_supersession_migration4',
+    'DROP TABLE canon_supersession_migration4',
+    'DROP TABLE canon_exchange_migration4',
+)),Migration('canon',5,'Content-derived task-result and backfire identities within the attributable event history',(
+    """CREATE UNIQUE INDEX canon_operation_dedup ON canon_events(kind,json_extract(result_json,'$.operation.dedup_key'))
+       WHERE kind IN ('task_result','backfire')""",
+)),)
+
+
+class CanonStore:
+    def __init__(self,store):
+        self.project = store.project if isinstance(store, LaneStore) else store
+        self.store = self.project.lane('canon')
+
+    @staticmethod
+    def _node_key(endpoint):
+        return endpoint['project_id'] + ':' + endpoint['participant_id']
+
+    @staticmethod
+    def _would_cycle(existing_edges, source_node, destination_node):
+        graph = {}
+        for source, destination in existing_edges:
+            graph.setdefault(source, set()).add(destination)
+        stack, seen = [destination_node], set()
+        while stack:
+            current = stack.pop()
+            if current == source_node:
+                return True
+            if current not in seen:
+                seen.add(current)
+                stack.extend(graph.get(current, ()))
         return False
-    replay = connection.execute(
-        """
-        SELECT canon_id,canon_sha256 FROM canon_packet
-        WHERE owner_project_id=? AND local_role=? AND idempotency_key=?
-        """,
-        (project_id, local_role, envelope["idempotency_key"]),
-    ).fetchone()
-    require(
-        replay is None,
-        "CANON_REPLAY_IDENTITY_CONFLICT",
-        "The Canon replay identity is already bound to another immutable packet.",
-        status="MISMATCH",
-        prior_canon_id=str(replay["canon_id"]) if replay else None,
-    )
-    connection.execute(
-        """
-        INSERT INTO canon_packet(
-            canon_id,canon_sha256,owner_project_id,local_role,
-            source_project_id,source_task_uuid,destination_project_id,
-            destination_task_uuid,destination_contract_sha256,canon_type,
-            revision,idempotency_key,current_state,envelope_json
-        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        """,
-        (
-            envelope["canon_id"],
-            envelope["canon_sha256"],
-            project_id,
-            local_role,
-            envelope["source"]["project_id"],
-            envelope["source"]["task_uuid"],
-            envelope["destination"]["project_id"],
-            envelope["destination"]["task_uuid"],
-            envelope["destination_contract_sha256"],
-            envelope["canon_type"],
-            envelope["revision"],
-            envelope["idempotency_key"],
-            "PROPOSED",
-            canonical_json_bytes(envelope).decode("utf-8"),
-        ),
-    )
-    return True
 
+    def _edge_path(self, edge_id, digest):
+        if not re.fullmatch(UUID_PATTERN, edge_id) or not re.fullmatch(DIGEST, digest):
+            raise LaneError('CANON_EDGE_INTEGRITY', 'The edge has an invalid bounded identity.')
+        path = self.store.files / 'graph' / digest / (edge_id + '.json')
+        reject_links(path, self.store.root)
+        return path
 
-def _last_event_sha256(connection: sqlite3.Connection) -> str | None:
-    row = connection.execute(
-        "SELECT event_sha256 FROM canon_event ORDER BY sequence DESC LIMIT 1"
-    ).fetchone()
-    return str(row["event_sha256"]) if row is not None else None
-
-
-def _append_event(
-    connection: sqlite3.Connection,
-    *,
-    canon_id: str,
-    event_type: str,
-    from_state: str | None,
-    to_state: str,
-    occurred_at: str,
-    details: Mapping[str, Any],
-    decision_key_sha256: str | None = None,
-) -> dict[str, Any]:
-    previous = _last_event_sha256(connection)
-    body = {
-        "schema": CANON_EVENT_SCHEMA,
-        "canon_id": canon_id,
-        "event_type": event_type,
-        "from_state": from_state,
-        "to_state": to_state,
-        "occurred_at": occurred_at,
-        "details": dict(details),
-        "decision_key_sha256": decision_key_sha256,
-        "previous_event_sha256": previous,
-    }
-    event_id = "cevt_" + sha256_bytes(canonical_json_bytes(body))[:28].lower()
-    event = {**body, "event_id": event_id}
-    event["event_sha256"] = sha256_bytes(canonical_json_bytes(event))
-    connection.execute(
-        """
-        INSERT INTO canon_event(
-            event_id,canon_id,event_type,from_state,to_state,occurred_at,
-            decision_key_sha256,previous_event_sha256,event_sha256,event_json
-        ) VALUES(?,?,?,?,?,?,?,?,?,?)
-        """,
-        (
-            event_id,
-            canon_id,
-            event_type,
-            from_state,
-            to_state,
-            occurred_at,
-            decision_key_sha256,
-            previous,
-            event["event_sha256"],
-            canonical_json_bytes(event).decode("utf-8"),
-        ),
-    )
-    connection.execute(
-        "UPDATE canon_packet SET current_state=? WHERE canon_id=?",
-        (to_state, canon_id),
-    )
-    return event
-
-
-def seal_canon_envelope(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    source: Mapping[str, Any],
-    destination: Mapping[str, Any],
-    direction: str,
-    canon_type: str,
-    authority_requested: str,
-    contract_id: str,
-    contract_version: int,
-    destination_contract_sha256: str,
-    schema_id: str,
-    schema_version: str,
-    schema_sha256: str,
-    source_pointer: Mapping[str, Any],
-    evidence_refs: list[Mapping[str, Any]],
-    payload: Mapping[str, Any],
-    permitted_actions: list[str],
-    dependency_ids: list[str],
-    expected_return_contract_sha256: str | None,
-    independent_hil_owner_task_uuid: str,
-    revision: int,
-    idempotency_key: str,
-    created_at: str,
-    expires_at: str | None,
-    supersedes: str | None = None,
-    edge_id: str | None = None,
-    route_trace: list[str] | None = None,
-) -> dict[str, Any]:
-    """Seal one immutable outbound packet without admitting it anywhere."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact_source = _endpoint(source, field="source")
-    exact_destination = _endpoint(destination, field="destination")
-    require(
-        exact_source["project_id"] == project_id,
-        "CANON_SOURCE_PROJECT_MISMATCH",
-        "An outbound Canon must be sealed by its exact source project.",
-        status="BLOCKED",
-    )
-    exact_payload = dict(payload)
-    require(
-        not _contains_secret_material(exact_payload),
-        "CANON_PAYLOAD_SECRET_BLOCKED",
-        "Secret-like values cannot enter a Canon envelope.",
-        status="BLOCKED",
-    )
-    exact_created = cast(str, _timestamp(created_at, field="created_at"))
-    exact_expiry = _timestamp(expires_at, field="expires_at", nullable=True)
-    exact_revision = int(revision)
-    require(
-        exact_revision > 0,
-        "CANON_REVISION_INVALID",
-        "A Canon revision must be positive.",
-        status="BLOCKED",
-    )
-    trace = route_trace or [_node_key(exact_source), _node_key(exact_destination)]
-    body = {
-        "schema": CANON_ENVELOPE_SCHEMA,
-        "canon_type": _exact_text(canon_type, field="canon_type").upper(),
-        "contract_id": _exact_text(contract_id, field="contract_id"),
-        "contract_version": int(contract_version),
-        "schema_id": _exact_text(schema_id, field="schema_id"),
-        "schema_version": _exact_text(schema_version, field="schema_version"),
-        "schema_sha256": _sha256(schema_sha256, field="schema_sha256"),
-        "source": exact_source,
-        "destination": exact_destination,
-        "direction": str(direction).strip().upper(),
-        "authority_requested": str(authority_requested).strip().upper(),
-        "source_pointer": _source_pointer(source_pointer),
-        "evidence_refs": _evidence_refs(evidence_refs),
-        "payload": exact_payload,
-        "payload_sha256": sha256_bytes(canonical_json_bytes(exact_payload)),
-        "permitted_actions": _safe_actions(
-            permitted_actions, field="permitted_actions"
-        ),
-        "dependency_ids": sorted(
-            {_exact_text(item, field="dependency_ids") for item in dependency_ids}
-        ),
-        "destination_contract_sha256": _sha256(
-            destination_contract_sha256, field="destination_contract_sha256"
-        ),
-        "expected_return_contract_sha256": (
-            _sha256(
-                expected_return_contract_sha256,
-                field="expected_return_contract_sha256",
-            )
-            if expected_return_contract_sha256 is not None
-            else None
-        ),
-        "independent_hil_owner_task_uuid": _exact_text(
-            independent_hil_owner_task_uuid,
-            field="independent_hil_owner_task_uuid",
-        ),
-        "edge_id": edge_id,
-        "revision": exact_revision,
-        "supersedes": supersedes,
-        "route_trace": trace,
-        "idempotency_key": _exact_text(
-            idempotency_key, field="idempotency_key"
-        ),
-        "created_at": exact_created,
-        "expires_at": exact_expiry,
-        "input_state": "PROPOSED",
-        "source_write_authority_granted": False,
-        "project_truth_pointer_moved": False,
-        "learning_pointer_moved": False,
-        "hil_replayed": False,
-        "private_reasoning_stored": False,
-    }
-    identity = {
-        "source": exact_source,
-        "destination": exact_destination,
-        "destination_contract_sha256": body["destination_contract_sha256"],
-        "payload_sha256": body["payload_sha256"],
-        "revision": exact_revision,
-        "idempotency_key": body["idempotency_key"],
-    }
-    body["canon_id"] = "canon_" + sha256_bytes(
-        canonical_json_bytes(identity)
-    )[:28].lower()
-    body["canon_sha256"] = sha256_bytes(canonical_json_bytes(body))
-    exact = _validate_envelope(body)
-    path = _canon_root(root) / "outbox" / f"{exact['canon_id']}.json"
-    _preflight_immutable_json(path, exact)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        inserted = _insert_packet(
-            connection,
-            project_id=project_id,
-            local_role="OUTBOX",
-            envelope=exact,
-        )
-        if inserted:
-            _append_event(
-                connection,
-                canon_id=exact["canon_id"],
-                event_type="PROPOSED",
-                from_state=None,
-                to_state="PROPOSED",
-                occurred_at=exact_created,
-                details={"outbound_only": True},
-            )
-        connection.commit()
-    finally:
-        connection.close()
-    state = _immutable_json(path, exact)
-    after = _require_authorities_unchanged(root, before, operation="seal_envelope")
-    return {
-        "status": "PASS",
-        "state": state if inserted else "SEALED_IDEMPOTENT_REUSE",
-        "envelope": exact,
-        "envelope_path": str(path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "OUTBOX_PROPOSED",
-        },
-    }
-
-
-def _contract_match(
-    envelope: Mapping[str, Any],
-    contract: Mapping[str, Any] | None,
-    *,
-    as_of: str,
-) -> tuple[bool, list[str]]:
-    if contract is None:
-        return False, ["EXPECTED_CONTRACT_UNDEFINED"]
-    reasons: list[str] = []
-    if not contract.get("active"):
-        reasons.append("EXPECTED_CONTRACT_INACTIVE")
-    contract_expiry = contract.get("expires_at")
-    if contract_expiry is not None and _timestamp_value(as_of) > _timestamp_value(
-        str(contract_expiry)
-    ):
-        reasons.append("EXPECTED_CONTRACT_EXPIRED")
-    if envelope["destination"] != contract["destination"]:
-        reasons.append("DESTINATION_BINDING_MISMATCH")
-    allowed_sources = contract.get("source_allowlist") or []
-    if envelope["source"] not in allowed_sources:
-        reasons.append("SOURCE_BINDING_MISMATCH")
-    if envelope["schema_id"] != contract.get("schema_id"):
-        reasons.append("SCHEMA_ID_MISMATCH")
-    if envelope["schema_version"] != contract.get("schema_version"):
-        reasons.append("SCHEMA_VERSION_MISMATCH")
-    if envelope["schema_sha256"] != contract.get("schema_sha256"):
-        reasons.append("SCHEMA_SHA256_MISMATCH")
-    if envelope["canon_type"] not in (contract.get("canon_types") or []):
-        reasons.append("CANON_TYPE_MISMATCH")
-    if envelope["authority_requested"] not in (
-        contract.get("authority_requested") or []
-    ):
-        reasons.append("AUTHORITY_REQUEST_MISMATCH")
-    if envelope["source_pointer"] not in (
-        contract.get("accepted_source_pointers") or []
-    ):
-        reasons.append("ACCEPTED_SOURCE_POINTER_MISMATCH")
-    payload_keys = set(envelope["payload"])
-    allowed_payload_keys = set(contract.get("permitted_payload_keys") or [])
-    if not payload_keys <= allowed_payload_keys:
-        reasons.append("PAYLOAD_KEY_SCOPE_MISMATCH")
-    if not set(envelope["permitted_actions"]) <= set(
-        contract.get("permitted_actions") or []
-    ):
-        reasons.append("ACTION_SCOPE_MISMATCH")
-    if envelope.get("expected_return_contract_sha256") != contract.get(
-        "expected_return_contract_sha256"
-    ):
-        reasons.append("RETURN_CONTRACT_MISMATCH")
-    if envelope["independent_hil_owner_task_uuid"] != contract.get(
-        "independent_hil_owner_task_uuid"
-    ):
-        reasons.append("HIL_OWNER_MISMATCH")
-    return not reasons, reasons
-
-
-def classify_canon_envelope(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    envelope: Mapping[str, Any],
-    as_of: str,
-) -> dict[str, Any]:
-    """Classify without storing; undefined/incompatible input requires local HIL."""
-
-    root = _project_root(project_root, project_id=project_id)
-    exact = _validate_envelope(envelope)
-    require(
-        exact["destination"]["project_id"] == project_id,
-        "CANON_DESTINATION_PROJECT_MISMATCH",
-        "The packet was delivered to a project other than its exact destination.",
-        status="BLOCKED",
-    )
-    exact_as_of = cast(str, _timestamp(as_of, field="as_of"))
-    if exact["expires_at"] is not None:
-        require(
-            _timestamp_value(exact_as_of) <= _timestamp_value(exact["expires_at"]),
-            "CANON_PACKET_EXPIRED",
-            "The Canon envelope expired before receipt.",
-            status="BLOCKED",
-        )
-    connection = _connect(root)
-    try:
-        row = connection.execute(
-            "SELECT contract_json FROM canon_contract WHERE contract_sha256=?",
-            (exact["destination_contract_sha256"],),
-        ).fetchone()
-    finally:
-        connection.close()
-    contract = (
-        _validate_contract(json.loads(str(row["contract_json"])))
-        if row is not None
-        else None
-    )
-    matched, reasons = _contract_match(exact, contract, as_of=exact_as_of)
-    return {
-        "status": "PASS",
-        "classification": "EXPECTED" if matched else "UNDEFINED_OR_INCOMPATIBLE",
-        "next_state": "EXPECTED_ADMITTED" if matched else "PENDING_HIL",
-        "reasons": reasons,
-        "receiver_owned_hil": not matched,
-        "hil_owner_task_uuid": exact["independent_hil_owner_task_uuid"],
-        "project_truth_effect": "NONE",
-        "learning_effect": "NONE",
-        "source_write_authority_granted": False,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-
-
-def _packet_row(connection: sqlite3.Connection, canon_id: str) -> sqlite3.Row:
-    row = connection.execute(
-        "SELECT * FROM canon_packet WHERE canon_id=?", (canon_id,)
-    ).fetchone()
-    require(
-        row is not None,
-        "CANON_PACKET_NOT_FOUND",
-        "The requested Canon packet is not in this project authority.",
-        status="BLOCKED",
-        canon_id=canon_id,
-    )
-    return cast(sqlite3.Row, row)
-
-
-def _events_for(
-    connection: sqlite3.Connection, canon_id: str
-) -> list[dict[str, Any]]:
-    rows = connection.execute(
-        "SELECT event_json FROM canon_event WHERE canon_id=? ORDER BY sequence",
-        (canon_id,),
-    ).fetchall()
-    return [cast(dict[str, Any], json.loads(str(row["event_json"]))) for row in rows]
-
-
-def receive_canon_envelope(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    envelope: Mapping[str, Any],
-    received_at: str,
-) -> dict[str, Any]:
-    """Receive, validate, and either auto-admit or stop at Canon Input HIL."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact = _validate_envelope(envelope)
-    classification = classify_canon_envelope(
-        root,
-        project_id=project_id,
-        envelope=exact,
-        as_of=received_at,
-    )
-    exact_received = cast(str, _timestamp(received_at, field="received_at"))
-    inbox_path = _canon_root(root) / "inbox" / f"{exact['canon_id']}.json"
-    _preflight_immutable_json(inbox_path, exact)
-    connection = _connect(root)
-    events: list[dict[str, Any]] = []
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        inserted = _insert_packet(
-            connection,
-            project_id=project_id,
-            local_role="INBOX",
-            envelope=exact,
-        )
-        if not inserted:
-            row = _packet_row(connection, exact["canon_id"])
-            events = _events_for(connection, exact["canon_id"])
-            connection.commit()
-            artifact_state = _immutable_json(inbox_path, exact)
-            after = _require_authorities_unchanged(
-                root, before, operation="receive_envelope_replay"
-            )
-            return {
-                "status": "PASS",
-                "state": str(row["current_state"]),
-                "idempotent_reuse": True,
-                "envelope": exact,
-                "events": events,
-                "classification": classification,
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-        from_state = "PROPOSED"
-        if int(exact["revision"]) > 1:
-            supersedes = str(exact.get("supersedes") or "")
-            require(
-                bool(supersedes),
-                "CANON_REVISION_PREDECESSOR_REQUIRED",
-                "A Canon revision after v1 must bind the exact prior packet.",
-                status="BLOCKED",
-            )
-            prior = _packet_row(connection, supersedes)
-            require(
-                str(prior["current_state"]) == "MORE_RESEARCH"
-                and int(prior["revision"]) + 1 == int(exact["revision"])
-                and str(prior["source_project_id"])
-                == exact["source"]["project_id"]
-                and str(prior["source_task_uuid"]) == exact["source"]["task_uuid"]
-                and str(prior["destination_project_id"])
-                == exact["destination"]["project_id"]
-                and str(prior["destination_task_uuid"])
-                == exact["destination"]["task_uuid"],
-                "CANON_REVISION_LINEAGE_INVALID",
-                "The revised packet does not continue one exact MORE_RESEARCH lineage.",
-                status="BLOCKED",
-            )
-            events.append(
-                _append_event(
-                    connection,
-                    canon_id=exact["canon_id"],
-                    event_type="REVISED",
-                    from_state="PROPOSED",
-                    to_state="REVISED",
-                    occurred_at=exact_received,
-                    details={"supersedes": supersedes},
-                )
-            )
-            _append_event(
-                connection,
-                canon_id=supersedes,
-                event_type="SUPERSEDED_BY_REVISION",
-                from_state="MORE_RESEARCH",
-                to_state="SUPERSEDED",
-                occurred_at=exact_received,
-                details={"superseded_by": exact["canon_id"]},
-            )
-            from_state = "REVISED"
-        events.append(
-            _append_event(
-                connection,
-                canon_id=exact["canon_id"],
-                event_type="RECEIVED",
-                from_state=from_state,
-                to_state="RECEIVED",
-                occurred_at=exact_received,
-                details={"destination_verified": True},
-            )
-        )
-        events.append(
-            _append_event(
-                connection,
-                canon_id=exact["canon_id"],
-                event_type="VALIDATED",
-                from_state="RECEIVED",
-                to_state="VALIDATED",
-                occurred_at=exact_received,
-                details={
-                    "classification": classification["classification"],
-                    "reasons": classification["reasons"],
-                },
-            )
-        )
-        next_state = str(classification["next_state"])
-        events.append(
-            _append_event(
-                connection,
-                canon_id=exact["canon_id"],
-                event_type=next_state,
-                from_state="VALIDATED",
-                to_state=next_state,
-                occurred_at=exact_received,
-                details={
-                    "receiver_owned_hil": next_state == "PENDING_HIL",
-                    "hil_owner_task_uuid": exact[
-                        "independent_hil_owner_task_uuid"
-                    ],
-                },
-            )
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    artifact_state = _immutable_json(inbox_path, exact)
-    after = _require_authorities_unchanged(root, before, operation="receive_envelope")
-    return {
-        "status": "PASS",
-        "state": classification["next_state"],
-        "idempotent_reuse": False,
-        "artifact_state": artifact_state,
-        "envelope": exact,
-        "events": events,
-        "classification": classification,
-        "canon_input_hil_required": classification["next_state"] == "PENDING_HIL",
-        "project_hil_invoked": False,
-        "learning_hil_invoked": False,
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": str(classification["next_state"]),
-        },
-    }
-
-
-def decide_canon_input(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    canon_id: str,
-    expected_canon_sha256: str,
-    decision_token: str,
-    actor_task_uuid: str,
-    actor_id: str,
-    decided_at: str,
-    reason: str | None = None,
-    research_request: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Apply exactly one receiver-owned ACCEPT/REJECT/MORE_RESEARCH decision."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    token = str(decision_token or "")
-    require(
-        token in _DECISIONS,
-        "CANON_DECISION_TOKEN_INVALID",
-        "Canon Input HIL accepts only exact ACCEPT, REJECT, or MORE_RESEARCH.",
-        status="BLOCKED",
-    )
-    exact_at = cast(str, _timestamp(decided_at, field="decided_at"))
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        row = _packet_row(connection, canon_id)
-        envelope = cast(dict[str, Any], json.loads(str(row["envelope_json"])))
-        require(
-            str(row["canon_sha256"])
-            == _sha256(expected_canon_sha256, field="expected_canon_sha256"),
-            "CANON_DECISION_PACKET_HASH_MISMATCH",
-            "The Canon decision does not bind the exact pending packet bytes.",
-            status="MISMATCH",
-        )
-        exact_actor_task_uuid = _exact_text(
-            actor_task_uuid, field="actor_task_uuid"
-        )
-        exact_actor_id = _exact_text(actor_id, field="actor_id")
-        require(
-            exact_actor_task_uuid
-            == envelope["independent_hil_owner_task_uuid"]
-            == envelope["destination"]["task_uuid"],
-            "CANON_DECISION_OWNER_MISMATCH",
-            "Only the exact receiving top-level task owns this Canon Input HIL.",
-            status="BLOCKED",
-        )
-        exact_reason = str(reason or "").strip() or None
-        if token in {"REJECT", "MORE_RESEARCH"}:
-            require(
-                exact_reason is not None,
-                "CANON_DECISION_REASON_REQUIRED",
-                "REJECT and MORE_RESEARCH require one visible bounded reason.",
-                status="BLOCKED",
-            )
-        request = dict(research_request or {})
-        if token == "MORE_RESEARCH":
-            require(
-                bool(request)
-                and isinstance(request.get("requested_fields"), list)
-                and bool(request.get("requested_fields")),
-                "CANON_RESEARCH_REQUEST_REQUIRED",
-                "MORE_RESEARCH requires one bounded requested-field contract.",
-                status="BLOCKED",
-            )
-        if token != "MORE_RESEARCH":
-            require(
-                not request,
-                "CANON_RESEARCH_REQUEST_UNEXPECTED",
-                "Only MORE_RESEARCH may carry a bounded research request.",
-                status="BLOCKED",
-            )
-        decision_key = sha256_bytes(
-            canonical_json_bytes(
-                {
-                    "canon_id": canon_id,
-                    "canon_sha256": row["canon_sha256"],
-                    "revision": row["revision"],
-                    "decision": token,
-                    "actor_task_uuid": exact_actor_task_uuid,
-                    "actor_id": exact_actor_id,
-                    "reason": exact_reason,
-                    "research_request": request if token == "MORE_RESEARCH" else None,
-                    "decided_at": exact_at,
-                }
-            )
-        )
-        prior = connection.execute(
-            "SELECT event_json FROM canon_event WHERE decision_key_sha256=?",
-            (decision_key,),
-        ).fetchone()
-        if prior is not None:
-            event = cast(dict[str, Any], json.loads(str(prior["event_json"])))
-            receipt_row = connection.execute(
-                """
-                SELECT receipt_json FROM canon_receipt
-                WHERE canon_id=? AND receipt_type='CANON_INPUT_DECISION'
-                """,
-                (canon_id,),
-            ).fetchone()
-            receipt = (
-                cast(dict[str, Any], json.loads(str(receipt_row["receipt_json"])))
-                if receipt_row is not None
-                else {}
-            )
-            validate_canon_receipt(receipt)
-            connection.commit()
-            after = _require_authorities_unchanged(
-                root, before, operation="decide_input_replay"
-            )
-            return {
-                "status": "PASS",
-                "idempotent_reuse": True,
-                "event": event,
-                "receipt": receipt,
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-        require(
-            str(row["current_state"]) == "PENDING_HIL",
-            "CANON_DECISION_STATE_INVALID",
-            "A Canon decision is valid only for one pending receiver-owned input HIL.",
-            status="BLOCKED",
-            current_state=str(row["current_state"]),
-        )
-        next_state = {
-            "ACCEPT": "ACCEPTED_INPUT",
-            "REJECT": "REJECTED",
-            "MORE_RESEARCH": "MORE_RESEARCH",
-        }[token]
-        details = {
-            "decision": token,
-            "actor_task_uuid": exact_actor_task_uuid,
-            "actor_id": exact_actor_id,
-            "reason": exact_reason,
-            "research_request": request if token == "MORE_RESEARCH" else None,
-            "next_required_revision": (
-                int(row["revision"]) + 1 if token == "MORE_RESEARCH" else None
-            ),
-        }
-        event = _append_event(
-            connection,
-            canon_id=canon_id,
-            event_type=f"CANON_INPUT_{token}",
-            from_state="PENDING_HIL",
-            to_state=next_state,
-            occurred_at=exact_at,
-            details=details,
-            decision_key_sha256=decision_key,
-        )
-        receipt_body = {
-            "schema": CANON_DECISION_RECEIPT_SCHEMA,
-            "project_id": project_id,
-            "canon_id": canon_id,
-            "canon_sha256": row["canon_sha256"],
-            "revision": int(row["revision"]),
-            "decision": token,
-            "state_before": "PENDING_HIL",
-            "state_after": next_state,
-            "actor_task_uuid": exact_actor_task_uuid,
-            "actor_id": exact_actor_id,
-            "reason": exact_reason,
-            "research_request": request if token == "MORE_RESEARCH" else None,
-            "next_required_revision": details["next_required_revision"],
-            "source_notification_required": token in {"REJECT", "MORE_RESEARCH"},
-            "project_truth_pointer_moved": False,
-            "learning_pointer_moved": False,
-            "project_hil_invoked": False,
-            "learning_hil_invoked": False,
-            "other_task_hil_decided": False,
-            "source_write_authority_granted": False,
-            "decided_at": exact_at,
-            "event_sha256": event["event_sha256"],
-        }
-        receipt = {
-            **receipt_body,
-            "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-        }
-        validate_canon_receipt(receipt)
-        connection.execute(
-            """
-            INSERT INTO canon_receipt(
-                receipt_sha256,canon_id,receipt_type,receipt_json
-            ) VALUES(?,?,?,?)
-            """,
-            (
-                receipt["receipt_sha256"],
-                canon_id,
-                "CANON_INPUT_DECISION",
-                canonical_json_bytes(receipt).decode("utf-8"),
-            ),
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    receipt_path = (
-        _canon_root(root)
-        / "receipts"
-        / f"{receipt['receipt_sha256'].lower()}.json"
-    )
-    _immutable_json(receipt_path, receipt)
-    after = _require_authorities_unchanged(root, before, operation="decide_input")
-    return {
-        "status": "PASS",
-        "idempotent_reuse": False,
-        "event": event,
-        "receipt": receipt,
-        "receipt_path": str(receipt_path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": next_state,
-        },
-    }
-
-
-def supersede_canon_input(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    canon_id: str,
-    superseded_by: str,
-    occurred_at: str,
-) -> dict[str, Any]:
-    """Append immutable supersession without deleting the prior revision."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact_at = cast(str, _timestamp(occurred_at, field="occurred_at"))
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        row = _packet_row(connection, canon_id)
-        successor = _packet_row(connection, superseded_by)
-        require(
-            str(successor["source_project_id"]) == str(row["source_project_id"])
-            and str(successor["source_task_uuid"]) == str(row["source_task_uuid"])
-            and str(successor["destination_project_id"])
-            == str(row["destination_project_id"])
-            and str(successor["destination_task_uuid"])
-            == str(row["destination_task_uuid"])
-            and int(successor["revision"]) > int(row["revision"]),
-            "CANON_SUPERSESSION_LINEAGE_INVALID",
-            "Canon supersession requires one newer packet in the same exact route.",
-            status="BLOCKED",
-        )
-        current = str(row["current_state"])
-        require(
-            current in _ADMITTED_STATES | _TERMINAL_STATES | {"MORE_RESEARCH"},
-            "CANON_SUPERSESSION_STATE_INVALID",
-            "Only a decided or admitted Canon revision can be superseded.",
-            status="BLOCKED",
-            current_state=current,
-        )
-        if current == "SUPERSEDED":
-            events = _events_for(connection, canon_id)
-            supersession_events = [
-                event
-                for event in events
-                if event.get("to_state") == "SUPERSEDED"
-                and event.get("event_type")
-                in {"SUPERSEDED", "SUPERSEDED_BY_REVISION"}
-            ]
-            require(
-                bool(supersession_events)
-                and supersession_events[-1].get("details", {}).get("superseded_by")
-                == superseded_by,
-                "CANON_SUPERSESSION_REPLAY_CONFLICT",
-                "The Canon packet was already superseded by another revision.",
-                status="MISMATCH",
-            )
-            connection.commit()
-            after = _require_authorities_unchanged(
-                root, before, operation="supersede_replay"
-            )
-            return {
-                "status": "PASS",
-                "idempotent_reuse": True,
-                "events": events,
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-        event = _append_event(
-            connection,
-            canon_id=canon_id,
-            event_type="SUPERSEDED",
-            from_state=current,
-            to_state="SUPERSEDED",
-            occurred_at=exact_at,
-            details={"superseded_by": superseded_by},
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    after = _require_authorities_unchanged(root, before, operation="supersede")
-    return {
-        "status": "PASS",
-        "idempotent_reuse": False,
-        "event": event,
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "SUPERSEDED",
-        },
-    }
-
-
-def _normalise_edge(value: Mapping[str, Any]) -> dict[str, Any]:
-    require(
-        value.get("schema") == CANON_EDGE_SCHEMA,
-        "CANON_EDGE_SCHEMA_INVALID",
-        "The Canon task-edge schema is unsupported.",
-        status="MISMATCH",
-    )
-    exact = dict(value)
-    exact["edge_id"] = _exact_text(exact.get("edge_id"), field="edge_id")
-    exact["source"] = _endpoint(
-        cast(Mapping[str, Any], exact.get("source") or {}), field="source"
-    )
-    exact["destination"] = _endpoint(
-        cast(Mapping[str, Any], exact.get("destination") or {}),
-        field="destination",
-    )
-    direction = _exact_text(exact.get("direction"), field="direction").upper()
-    require(
-        direction in _DIRECTIONS,
-        "CANON_EDGE_DIRECTION_INVALID",
-        "A Canon task edge has an unsupported direction.",
-        status="BLOCKED",
-    )
-    exact["direction"] = direction
-    exact["contract_sha256"] = _sha256(
-        exact.get("contract_sha256"), field="contract_sha256"
-    )
-    exact["schema_sha256"] = _sha256(
-        exact.get("schema_sha256"), field="schema_sha256"
-    )
-    exact["expected_return_contract_sha256"] = _sha256(
-        exact.get("expected_return_contract_sha256"),
-        field="expected_return_contract_sha256",
-    )
-    exact["permitted_actions"] = _safe_actions(
-        exact.get("permitted_actions") or [], field="permitted_actions"
-    )
-    edge_revision = int(exact.get("edge_revision") or 0)
-    require(
-        edge_revision > 0,
-        "CANON_EDGE_REVISION_INVALID",
-        "A Canon task edge revision must be positive.",
-        status="MISMATCH",
-    )
-    exact["edge_revision"] = edge_revision
-    dependency_ids = exact.get("dependency_ids")
-    require(
-        isinstance(dependency_ids, list),
-        "CANON_EDGE_DEPENDENCIES_INVALID",
-        "Canon edge dependency IDs must be one list.",
-        status="MISMATCH",
-    )
-    dependency_ids = cast(list[Any], dependency_ids)
-    exact["dependency_ids"] = sorted(
-        {
-            _exact_text(item, field="dependency_ids")
-            for item in dependency_ids
-        }
-    )
-    mode = _exact_text(exact.get("task_mode"), field="task_mode").upper()
-    scope = _exact_text(exact.get("scope_class"), field="scope_class").upper()
-    require(
-        mode in _TASK_MODES and scope in _SCOPE_CLASSES,
-        "CANON_EDGE_EXECUTION_CLASS_INVALID",
-        "Canon task mode or execution scope is unsupported.",
-        status="BLOCKED",
-    )
-    exact["task_mode"] = mode
-    exact["scope_class"] = scope
-    permitted_paths = exact.get("permitted_paths")
-    permitted_tools = exact.get("permitted_tools")
-    require(
-        isinstance(permitted_paths, list) and isinstance(permitted_tools, list),
-        "CANON_EDGE_SCOPE_LIST_INVALID",
-        "Canon edge paths and tools must be bounded lists.",
-        status="MISMATCH",
-    )
-    permitted_paths = cast(list[Any], permitted_paths)
-    permitted_tools = cast(list[Any], permitted_tools)
-    exact["permitted_paths"] = sorted(
-        {
-            _exact_text(item, field="permitted_paths")
-            for item in permitted_paths
-        }
-    )
-    exact["permitted_tools"] = sorted(
-        {
-            _exact_text(item, field="permitted_tools")
-            for item in permitted_tools
-        }
-    )
-    require(
-        exact.get("one_writer") is True
-        and exact.get("subagent_hil_allowed") is False
-        and exact.get("approval_propagation_allowed") is False
-        and exact.get("pointer_propagation_allowed") is False
-        and exact.get("source_write_authority_granted") is False,
-        "CANON_EDGE_AUTHORITY_BOUNDARY_INVALID",
-        "A Canon edge must preserve one writer and forbid authority propagation.",
-        status="BLOCKED",
-    )
-    owner = _exact_text(
-        exact.get("independent_hil_owner_task_uuid"),
-        field="independent_hil_owner_task_uuid",
-    )
-    if mode == "TOP_LEVEL_TASK":
-        require(
-            owner == exact["destination"]["task_uuid"],
-            "CANON_TOP_LEVEL_HIL_OWNER_INVALID",
-            "A linked top-level task owns only its own independent HIL.",
-            status="BLOCKED",
-        )
-    else:
-        require(
-            owner == exact["source"]["task_uuid"]
-            and exact.get("subagent_hil_allowed") is False,
-            "CANON_SUBAGENT_HIL_FORBIDDEN",
-            "A subagent cannot own HIL; results return to its top-level task.",
-            status="BLOCKED",
-        )
-    exact["created_at"] = _timestamp(exact.get("created_at"), field="created_at")
-    exact["expires_at"] = _timestamp(
-        exact.get("expires_at"), field="expires_at", nullable=True
-    )
-    if exact["expires_at"] is not None:
-        require(
-            _timestamp_value(exact["expires_at"])
-            > _timestamp_value(cast(str, exact["created_at"])),
-            "CANON_EDGE_EXPIRY_INVALID",
-            "A Canon task edge must expire after it is created.",
-            status="BLOCKED",
-        )
-    if exact.get("host_write_authorization_sha256") is not None:
-        exact["host_write_authorization_sha256"] = _sha256(
-            exact.get("host_write_authorization_sha256"),
-            field="host_write_authorization_sha256",
-        )
-    return exact
-
-
-def _validate_edge(value: Mapping[str, Any]) -> dict[str, Any]:
-    exact = _normalise_edge(value)
-    claimed = _sha256(exact.get("edge_sha256"), field="edge_sha256")
-    require(
-        claimed == _hash_without(exact, "edge_sha256"),
-        "CANON_EDGE_HASH_MISMATCH",
-        "The Canon task edge failed its immutable hash check.",
-        status="MISMATCH",
-    )
-    return exact
-
-
-def _would_cycle(
-    existing_edges: list[tuple[str, str]], source_node: str, destination_node: str
-) -> bool:
-    graph: dict[str, set[str]] = {}
-    for source, destination in existing_edges:
-        graph.setdefault(source, set()).add(destination)
-    graph.setdefault(source_node, set()).add(destination_node)
-    stack = [destination_node]
-    seen: set[str] = set()
-    while stack:
-        current = stack.pop()
-        if current == source_node:
-            return True
-        if current in seen:
-            continue
-        seen.add(current)
-        stack.extend(graph.get(current, ()))
-    return False
-
-
-def register_canon_task_edge(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    edge: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Register one immutable acyclic task edge; fan-out and fan-in remain valid."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    raw = dict(edge)
-    raw.setdefault("schema", CANON_EDGE_SCHEMA)
-    raw.pop("edge_sha256", None)
-    raw = _normalise_edge(raw)
-    raw["edge_sha256"] = sha256_bytes(canonical_json_bytes(raw))
-    exact = _validate_edge(raw)
-    require(
-        exact["source"]["project_id"] == project_id,
-        "CANON_EDGE_SOURCE_PROJECT_MISMATCH",
-        "The task graph edge must be registered by its exact source project.",
-        status="BLOCKED",
-    )
-    source_node = _node_key(exact["source"])
-    destination_node = _node_key(exact["destination"])
-    require(
-        source_node != destination_node,
-        "CANON_TASK_GRAPH_SELF_CYCLE_BLOCKED",
-        "A Canon task cannot route an edge to itself.",
-        status="BLOCKED",
-    )
-    path = _canon_root(root) / "graph" / f"{exact['edge_id']}.json"
-    _preflight_immutable_json(path, exact)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        existing = connection.execute(
-            "SELECT edge_json FROM canon_edge WHERE edge_id=?",
-            (exact["edge_id"],),
-        ).fetchone()
-        if existing is not None:
-            require(
-                json.loads(str(existing["edge_json"])) == exact,
-                "CANON_EDGE_IMMUTABILITY_CONFLICT",
-                "The Canon edge identity already maps to other bytes.",
-                status="MISMATCH",
-            )
-            connection.commit()
+    def _edge(self, connection, edge_id):
+        if not self._table(connection, 'canon_task_edges'):
+            raise LaneError('CANON_EDGE_NOT_FOUND', 'Select an edge recorded in this project.')
+        row = connection.execute('SELECT * FROM canon_task_edges WHERE edge_id=?', (edge_id,)).fetchone()
+        if row is None:
+            raise LaneError('CANON_EDGE_NOT_FOUND', 'Select an edge recorded in this project.')
+        body = json.loads(row['body_json'])
+        definition = body.get('definition', {})
+        source, destination = body.get('source', {}), definition.get('destination', {})
+        if (content_digest(body) != row['edge_digest'] or definition.get('edge_id') != edge_id
+                or body.get('schema') != 'evidence-lane.canon-task-edge.v4'
+                or self._node_key(source) != row['source_node'] or self._node_key(destination) != row['destination_node']
+                or self.store.project_id not in {source['project_id'], destination['project_id']}):
+            raise LaneError('CANON_EDGE_INTEGRITY', 'The edge differs from its immutable endpoint and scope identity.')
+        CanonTaskEdgeRegister.model_validate({**definition, 'source_id':source['participant_id']})
+        path = self._edge_path(edge_id, row['edge_digest'])
+        if row['artifact_path'] != path.relative_to(self.store.root).as_posix():
+            raise LaneError('CANON_EDGE_FILE_INTEGRITY', 'The graph file reference differs from its lane-owned location.')
+        expected = json_text(body).encode()
+        try:
+            if path.stat().st_size != len(expected) or path.read_bytes() != expected:
+                raise LaneError('CANON_EDGE_FILE_INTEGRITY', 'The named graph file differs from its registered bytes.')
+        except OSError:
+            raise LaneError('CANON_EDGE_FILE_INTEGRITY', 'The registered graph file is unavailable.') from None
+        # Endpoint ownership at sealing is historical evidence. A later
+        # continuation may legitimately change the current participant owner.
+        binding = connection.execute('SELECT e.* FROM canon_task_edge_bindings b JOIN canon_events e USING(request_id) WHERE b.edge_id=?', (edge_id,)).fetchone()
+        if binding:
+            event = dict(binding)
+            digest = event.pop('digest')
+            result = json.loads(binding['result_json'])
+            if (content_digest(event) != digest or binding['kind'] != 'task_edge_bind'
+                    or result.get('edge_id') != edge_id or result.get('edge_digest') != row['edge_digest']
+                    or result.get('destination_bound') is not True):
+                raise LaneError('CANON_EDGE_BINDING_INTEGRITY', 'The destination binding differs from its attributed event.')
+        if source['project_id'] == self.store.project_id:
+            role = 'both' if binding else 'source'
         else:
-            pairs = [
-                (str(row["source_node"]), str(row["destination_node"]))
-                for row in connection.execute(
-                    "SELECT source_node,destination_node FROM canon_edge"
-                ).fetchall()
-            ]
-            require(
-                not _would_cycle(pairs, source_node, destination_node),
-                "CANON_TASK_GRAPH_CYCLE_BLOCKED",
-                "The proposed Canon edge would create a task-routing cycle.",
-                status="BLOCKED",
-                source_node=source_node,
-                destination_node=destination_node,
-            )
-            connection.execute(
-                """
-                INSERT INTO canon_edge(
-                    edge_id,edge_sha256,source_node,destination_node,
-                    expected_return_contract_sha256,edge_json
-                ) VALUES(?,?,?,?,?,?)
-                """,
-                (
-                    exact["edge_id"],
-                    exact["edge_sha256"],
-                    source_node,
-                    destination_node,
-                    exact["expected_return_contract_sha256"],
-                    canonical_json_bytes(exact).decode("utf-8"),
-                ),
-            )
-            connection.commit()
-    finally:
-        connection.close()
-    state = _immutable_json(path, exact)
-    after = _require_authorities_unchanged(root, before, operation="register_edge")
-    return {
-        "status": "PASS",
-        "state": state,
-        "edge": exact,
-        "edge_path": str(path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "TASK_EDGE_REGISTERED",
-        },
-    }
+            if binding is None:
+                raise LaneError('CANON_EDGE_BINDING_INTEGRITY', 'An imported edge lacks its destination binding.')
+            role = 'destination'
+        return CanonTaskEdgeResult(project_id=self.store.project_id, edge_id=edge_id,
+            edge_digest=row['edge_digest'], edge=body, artifact_path=row['artifact_path'],
+            local_role=role, destination_bound=binding is not None)
 
-
-def bind_received_canon_task_edge(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    edge: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Bind one exact source-sealed edge in its destination project authority."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact = _validate_edge(edge)
-    require(
-        exact["destination"]["project_id"] == project_id,
-        "CANON_EDGE_DESTINATION_PROJECT_MISMATCH",
-        "A received task edge must be bound by its exact destination project.",
-        status="BLOCKED",
-    )
-    source_node = _node_key(exact["source"])
-    destination_node = _node_key(exact["destination"])
-    path = _canon_root(root) / "graph" / f"{exact['edge_id']}.json"
-    _preflight_immutable_json(path, exact)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        existing = connection.execute(
-            "SELECT edge_json FROM canon_edge WHERE edge_id=?",
-            (exact["edge_id"],),
-        ).fetchone()
-        if existing is not None:
-            require(
-                json.loads(str(existing["edge_json"])) == exact,
-                "CANON_EDGE_IMMUTABILITY_CONFLICT",
-                "The received Canon edge identity already maps to other bytes.",
-                status="MISMATCH",
-            )
-        else:
-            pairs = [
-                (str(row["source_node"]), str(row["destination_node"]))
-                for row in connection.execute(
-                    "SELECT source_node,destination_node FROM canon_edge"
-                ).fetchall()
-            ]
-            require(
-                not _would_cycle(pairs, source_node, destination_node),
-                "CANON_TASK_GRAPH_CYCLE_BLOCKED",
-                "The received Canon edge would create a task-routing cycle.",
-                status="BLOCKED",
-                source_node=source_node,
-                destination_node=destination_node,
-            )
-            connection.execute(
-                """
-                INSERT INTO canon_edge(
-                    edge_id,edge_sha256,source_node,destination_node,
-                    expected_return_contract_sha256,edge_json
-                ) VALUES(?,?,?,?,?,?)
-                """,
-                (
-                    exact["edge_id"],
-                    exact["edge_sha256"],
-                    source_node,
-                    destination_node,
-                    exact["expected_return_contract_sha256"],
-                    canonical_json_bytes(exact).decode("utf-8"),
-                ),
-            )
-        connection.commit()
-    finally:
-        connection.close()
-    state = _immutable_json(path, exact)
-    after = _require_authorities_unchanged(root, before, operation="bind_edge")
-    return {
-        "status": "PASS",
-        "state": state,
-        "edge": exact,
-        "edge_path": str(path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "TASK_EDGE_BOUND",
-        },
-    }
-
-
-def dispatch_linked_canon_task(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    source: Mapping[str, Any],
-    dispatcher: CanonTaskDispatcher | None,
-    task_title: str,
-    task_mode: str,
-    scope_class: str,
-    permitted_paths: list[str],
-    permitted_tools: list[str],
-    user_subagent_authorized: bool,
-    host_write_authorization_sha256: str | None,
-    direction: str,
-    contract_sha256: str,
-    schema_sha256: str,
-    edge_revision: int,
-    permitted_actions: list[str],
-    dependency_ids: list[str],
-    expected_return_contract_sha256: str,
-    expires_at: str | None,
-    requested_at: str,
-    host_creation_receipt: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Use an injected host seam or a caller-mediated native two-phase launch."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact_source = _endpoint(source, field="source")
-    require(
-        exact_source["project_id"] == project_id,
-        "CANON_DISPATCH_SOURCE_PROJECT_MISMATCH",
-        "A linked-task dispatch must originate in its exact project.",
-        status="BLOCKED",
-    )
-    mode = str(task_mode).strip().upper()
-    scope = str(scope_class).strip().upper()
-    require(
-        mode in _TASK_MODES and scope in _SCOPE_CLASSES,
-        "CANON_DISPATCH_CLASS_INVALID",
-        "The requested linked-task execution class is unsupported.",
-        status="BLOCKED",
-    )
-    exact_tools = sorted({_exact_text(item, field="permitted_tools") for item in permitted_tools})
-    forbidden_tools = sorted(
-        {item.lower() for item in exact_tools} & _FORBIDDEN_SUBAGENT_TOOLS
-    )
-    exact_write_receipt = (
-        _sha256(
-            host_write_authorization_sha256,
-            field="host_write_authorization_sha256",
-        )
-        if host_write_authorization_sha256 is not None
-        else None
-    )
-    if scope == "GOVERNED_READ_WRITE":
-        require(
-            exact_write_receipt is not None and bool(permitted_paths),
-            "CANON_LINKED_TASK_WRITE_AUTHORITY_REQUIRED",
-            "Governed read-write linked tasks require separate host authority and paths.",
-            status="BLOCKED",
-        )
-    if mode == "SUBAGENT":
-        require(
-            user_subagent_authorized,
-            "CANON_SUBAGENT_USER_AUTHORITY_REQUIRED",
-            "Canon cannot launch a subagent while current user policy forbids it.",
-            status="BLOCKED",
-        )
-        require(
-            not forbidden_tools,
-            "CANON_SUBAGENT_HIL_OR_LIFECYCLE_TOOL_FORBIDDEN",
-            "A Canon subagent cannot own HIL, Fuse, pointer, Git, or State Travel tools.",
-            status="BLOCKED",
-            forbidden_tools=forbidden_tools,
-        )
-    request_body = {
-        "schema": "evidence-lane.canon-linked-task-dispatch-request.v1",
-        "project_id": project_id,
-        "source": exact_source,
-        "task_title": _exact_text(task_title, field="task_title"),
-        "task_mode": mode,
-        "scope_class": scope,
-        "permitted_paths": sorted(
-            {_exact_text(item, field="permitted_paths") for item in permitted_paths}
-        ),
-        "permitted_tools": exact_tools,
-        "one_writer": True,
-        "user_subagent_authorized": bool(user_subagent_authorized),
-        "host_write_authorization_sha256": exact_write_receipt,
-        "canon_grants_source_write": False,
-        "canon_grants_hil": False,
-        "expected_return_contract_sha256": _sha256(
-            expected_return_contract_sha256,
-            field="expected_return_contract_sha256",
-        ),
-        "requested_at": cast(str, _timestamp(requested_at, field="requested_at")),
-    }
-    request_sha256 = sha256_bytes(canonical_json_bytes(request_body))
-    dispatch_id = "cdispatch_" + request_sha256[:26].lower()
-    connection = _connect(root)
-    try:
-        existing = connection.execute(
-            "SELECT request_sha256,receipt_json FROM canon_dispatch WHERE dispatch_id=?",
-            (dispatch_id,),
-        ).fetchone()
-        if existing is not None:
-            require(
-                str(existing["request_sha256"]) == request_sha256,
-                "CANON_DISPATCH_REPLAY_CONFLICT",
-                "The Canon dispatch identity is already bound to another request.",
-                status="MISMATCH",
-            )
-            receipt = cast(dict[str, Any], json.loads(str(existing["receipt_json"])))
-            validate_canon_receipt(receipt)
-            after = _require_authorities_unchanged(
-                root, before, operation="dispatch_replay"
-            )
-            return {
-                "status": "PASS",
-                "idempotent_reuse": True,
-                "receipt": receipt,
-                "edge": receipt["edge"],
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-    finally:
-        connection.close()
-    host_request = {
-        "schema": "evidence-lane.codex-host-linked-task-create-request.v1",
-        "host_kind": "CODEX",
-        "operation": "CREATE_LINKED_TASK",
-        "capability": CODEX_HOST_CREATE_CAPABILITY,
-        "idempotency_key": dispatch_id,
-        "request_sha256": request_sha256,
-        "required_receipt_schema": CODEX_HOST_CREATE_RECEIPT_SCHEMA,
-        "canon_request": request_body,
-    }
-    dispatcher_available = (
-        dispatcher is not None
-        and callable(getattr(dispatcher, "create_linked_task", None))
-        and getattr(dispatcher, "host_kind", None) == "CODEX"
-        and getattr(dispatcher, "capability", None)
-        == CODEX_HOST_CREATE_CAPABILITY
-    )
-    if host_creation_receipt is None and not dispatcher_available:
-        after = _require_authorities_unchanged(
-            root, before, operation="dispatch_host_action_required"
-        )
-        return {
-            "status": "HOST_ACTION_REQUIRED",
-            "state": "WAITING_FOR_CALLER_MEDIATED_NATIVE_TASK_CREATE",
-            "dispatch_id": dispatch_id,
-            "request_sha256": request_sha256,
-            "host_request": host_request,
-            "allowed_native_host_routes": [
-                "CODEX_NATIVE_CREATE_THREAD",
-                "CODEX_NATIVE_SPAWN_SUBAGENT",
-            ],
-            "required_followup": (
-                "RECALL_CANON_DISPATCH_LINKED_TASK_WITH_EXACT_HOST_CREATION_RECEIPT"
-            ),
-            "created_or_bound": False,
-            "automatic_retry_allowed": False,
-            "authority_before": before,
-            "authority_after": after,
-            "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-        }
-    if host_creation_receipt is not None:
-        supplied_receipt = dict(host_creation_receipt)
-        validate_canon_receipt(supplied_receipt)
-        destination_value = supplied_receipt.get("destination")
-        require(
-            isinstance(destination_value, Mapping),
-            "CANON_CODEX_HOST_RECEIPT_DESTINATION_REQUIRED",
-            "The caller-mediated host receipt does not contain one exact destination.",
-            status="MISMATCH",
-        )
-        response: Mapping[str, Any] = {
-            **dict(cast(Mapping[str, Any], destination_value)),
-            "created_once": True,
-            "host_creation_receipt": supplied_receipt,
-        }
-    else:
-        exact_dispatcher = cast(CanonTaskDispatcher, dispatcher)
-        response = exact_dispatcher.create_linked_task(host_request)
-    require(
-        isinstance(response, Mapping),
-        "CANON_DISPATCH_RESPONSE_INVALID",
-        "The host linked-task response must be one exact binding object.",
-        status="FAIL",
-    )
-    destination = _endpoint(response, field="destination")
-    exact_host_creation_receipt = response.get("host_creation_receipt")
-    require(
-        response.get("created_once") is True
-        and isinstance(exact_host_creation_receipt, Mapping),
-        "CANON_DISPATCH_EXACT_ONCE_UNPROVEN",
-        "The host did not return one exact idempotent destination receipt.",
-        status="FAIL",
-    )
-    exact_host_creation_receipt = cast(Mapping[str, Any], exact_host_creation_receipt)
-    validate_canon_receipt(exact_host_creation_receipt)
-    require(
-        exact_host_creation_receipt.get("schema") == CODEX_HOST_CREATE_RECEIPT_SCHEMA
-        and exact_host_creation_receipt.get("idempotency_key") == dispatch_id
-        and exact_host_creation_receipt.get("request_sha256") == request_sha256
-        and exact_host_creation_receipt.get("destination") == destination,
-        "CANON_CODEX_HOST_RECEIPT_BINDING_MISMATCH",
-        "The Codex host receipt does not bind the exact destination and request.",
-        status="MISMATCH",
-    )
-    owner = (
-        destination["task_uuid"] if mode == "TOP_LEVEL_TASK" else exact_source["task_uuid"]
-    )
-    edge_body = {
-        "schema": CANON_EDGE_SCHEMA,
-        "edge_id": "cedge_"
-        + sha256_bytes(
-            canonical_json_bytes(
-                {
-                    "source": exact_source,
-                    "destination": destination,
-                    "contract_sha256": contract_sha256,
-                    "edge_revision": edge_revision,
-                }
-            )
-        )[:26].lower(),
-        "source": exact_source,
-        "destination": destination,
-        "direction": str(direction).strip().upper(),
-        "contract_sha256": _sha256(contract_sha256, field="contract_sha256"),
-        "schema_sha256": _sha256(schema_sha256, field="schema_sha256"),
-        "edge_revision": int(edge_revision),
-        "permitted_actions": _safe_actions(
-            permitted_actions, field="permitted_actions"
-        ),
-        "dependency_ids": sorted(
-            {_exact_text(item, field="dependency_ids") for item in dependency_ids}
-        ),
-        "expected_return_contract_sha256": request_body[
-            "expected_return_contract_sha256"
-        ],
-        "independent_hil_owner_task_uuid": owner,
-        "task_mode": mode,
-        "scope_class": scope,
-        "permitted_paths": request_body["permitted_paths"],
-        "permitted_tools": exact_tools,
-        "one_writer": True,
-        "subagent_hil_allowed": False,
-        "approval_propagation_allowed": False,
-        "pointer_propagation_allowed": False,
-        "source_write_authority_granted": False,
-        "source_write_authority_source": (
-            "HOST_TASK_CONTRACT" if scope == "GOVERNED_READ_WRITE" else "NONE"
-        ),
-        "host_write_authorization_sha256": exact_write_receipt,
-        "expires_at": expires_at,
-        "created_at": request_body["requested_at"],
-    }
-    registered = register_canon_task_edge(
-        root,
-        project_id=project_id,
-        edge=edge_body,
-    )
-    receipt_body = {
-        "schema": CANON_DISPATCH_RECEIPT_SCHEMA_V2,
-        "dispatch_id": dispatch_id,
-        "request_sha256": request_sha256,
-        "source": exact_source,
-        "destination": destination,
-        "task_mode": mode,
-        "scope_class": scope,
-        "created_once": True,
-        "host_creation_receipt": dict(exact_host_creation_receipt),
-        "edge": registered["edge"],
-        "approval_propagated": False,
-        "pointer_propagated": False,
-        "source_write_authority_granted_by_canon": False,
-        "subagent_hil_allowed": False,
-    }
-    receipt = {
-        **receipt_body,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-    }
-    validate_canon_receipt(receipt)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            """
-            INSERT INTO canon_dispatch(
-                dispatch_id,request_sha256,receipt_sha256,receipt_json
-            ) VALUES(?,?,?,?)
-            """,
-            (
-                dispatch_id,
-                request_sha256,
-                receipt["receipt_sha256"],
-                canonical_json_bytes(receipt).decode("utf-8"),
-            ),
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    after = _require_authorities_unchanged(root, before, operation="dispatch")
-    return {
-        "status": "PASS",
-        "idempotent_reuse": False,
-        "receipt": receipt,
-        "edge": registered["edge"],
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "LINKED_TASK_BOUND",
-        },
-    }
-
-
-def raise_canon_backfire(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    admitted_canon_id: str,
-    failure_class: str,
-    recipient: Mapping[str, Any],
-    requested_contract_id: str,
-    requested_contract_version: int,
-    requested_contract_sha256: str,
-    requested_schema_id: str,
-    requested_schema_version: str,
-    requested_schema_sha256: str,
-    requested_revision: int,
-    evidence_refs: list[Mapping[str, Any]],
-    dependency_ids: list[str],
-    return_route: Mapping[str, Any],
-    source_pointer: Mapping[str, Any],
-    expected_return_contract_sha256: str,
-    expires_at: str,
-    raised_at: str,
-    backfire_trace: list[str] | None = None,
-) -> dict[str, Any]:
-    """Raise a conditional exact-recipient correction packet, never a retry loop."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    failure = str(failure_class).strip().upper()
-    require(
-        failure in _BACKFIRE_CLASSES,
-        "CANON_BACKFIRE_CLASS_INVALID",
-        "Canon backfire is allowed only for a bounded upstream input need.",
-        status="BLOCKED",
-    )
-    exact_recipient = _endpoint(recipient, field="recipient")
-    exact_return = _endpoint(return_route, field="return_route")
-    connection = _connect(root)
-    try:
-        admitted_row = _packet_row(connection, admitted_canon_id)
-        admitted = cast(
-            dict[str, Any], json.loads(str(admitted_row["envelope_json"]))
-        )
-        require(
-            str(admitted_row["current_state"]) in _ADMITTED_STATES,
-            "CANON_BACKFIRE_REQUIRES_ADMITTED_INPUT",
-            "A backfire can originate only from an admitted Canon input.",
-            status="BLOCKED",
-            current_state=str(admitted_row["current_state"]),
-        )
-        require(
-            admitted["destination"]["project_id"] == project_id,
-            "CANON_BACKFIRE_SOURCE_PROJECT_MISMATCH",
-            "The current project is not the admitted packet's receiving owner.",
-            status="BLOCKED",
-        )
-    finally:
-        connection.close()
-    source = admitted["destination"]
-    trace = list(backfire_trace or [])
-    source_node = _node_key(source)
-    recipient_node = _node_key(exact_recipient)
-    require(
-        recipient_node not in trace and source_node not in trace,
-        "CANON_BACKFIRE_ROUTE_CYCLE_BLOCKED",
-        "The backfire route repeats a task already present in its correction trace.",
-        status="BLOCKED",
-        backfire_trace=trace,
-    )
-    trace.extend([source_node, recipient_node])
-    exact_requested_revision = int(requested_revision)
-    require(
-        exact_requested_revision > int(admitted["revision"]),
-        "CANON_BACKFIRE_STALE_REVISION_BLOCKED",
-        "A backfire must request a revision newer than the admitted packet.",
-        status="BLOCKED",
-    )
-    dedup_key = sha256_bytes(
-        canonical_json_bytes(
-            {
-                "recipient": exact_recipient,
-                "requested_contract_sha256": _sha256(
-                    requested_contract_sha256,
-                    field="requested_contract_sha256",
-                ),
-                "requested_revision": exact_requested_revision,
-            }
-        )
-    )
-    request_identity = {
-        "admitted_canon_id": admitted_canon_id,
-        "failure_class": failure,
-        "recipient": exact_recipient,
-        "requested_contract_id": requested_contract_id,
-        "requested_contract_version": requested_contract_version,
-        "requested_contract_sha256": requested_contract_sha256,
-        "requested_revision": exact_requested_revision,
-        "evidence_refs": _evidence_refs(evidence_refs),
-        "dependency_ids": sorted(dependency_ids),
-        "return_route": exact_return,
-        "backfire_trace": trace,
-    }
-    request_sha256 = sha256_bytes(canonical_json_bytes(request_identity))
-    connection = _connect(root)
-    try:
-        prior = connection.execute(
-            """
-            SELECT request_sha256,canon_id,canon_sha256
-            FROM canon_backfire_dedup WHERE dedup_key_sha256=?
-            """,
-            (dedup_key,),
-        ).fetchone()
-        if prior is not None:
-            require(
-                str(prior["request_sha256"]) == request_sha256,
-                "CANON_BACKFIRE_DEDUP_CONFLICT",
-                "The same recipient, contract, and revision carry different backfire bytes.",
-                status="MISMATCH",
-            )
-            packet = _packet_row(connection, str(prior["canon_id"]))
-            envelope = cast(
-                dict[str, Any], json.loads(str(packet["envelope_json"]))
-            )
-            after = _require_authorities_unchanged(
-                root, before, operation="backfire_replay"
-            )
-            return {
-                "status": "PASS",
-                "idempotent_reuse": True,
-                "dedup_key_sha256": dedup_key,
-                "envelope": envelope,
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-    finally:
-        connection.close()
-    payload = {
-        "conflict_code": "CANON_APPLICATION_CONFLICT",
-        "admitted_canon_id": admitted_canon_id,
-        "admitted_canon_sha256": admitted["canon_sha256"],
-        "failure_class": failure,
-        "exact_recipient": exact_recipient,
-        "requested_contract_sha256": _sha256(
-            requested_contract_sha256, field="requested_contract_sha256"
-        ),
-        "requested_revision": exact_requested_revision,
-        "dependency_ids": sorted(
-            {_exact_text(item, field="dependency_ids") for item in dependency_ids}
-        ),
-        "return_route": exact_return,
-        "backfire_trace": trace,
-        "automatic_retry_allowed": False,
-    }
-    sealed = seal_canon_envelope(
-        root,
-        project_id=project_id,
-        source=source,
-        destination=exact_recipient,
-        direction="UPSTREAM",
-        canon_type="CANON_BACKFIRE",
-        authority_requested="CORRECTION_PROPOSAL",
-        contract_id=requested_contract_id,
-        contract_version=int(requested_contract_version),
-        destination_contract_sha256=requested_contract_sha256,
-        schema_id=requested_schema_id,
-        schema_version=requested_schema_version,
-        schema_sha256=requested_schema_sha256,
-        source_pointer=source_pointer,
-        evidence_refs=evidence_refs,
-        payload=payload,
-        permitted_actions=["REPORT_RESULT"],
-        dependency_ids=dependency_ids,
-        expected_return_contract_sha256=expected_return_contract_sha256,
-        independent_hil_owner_task_uuid=exact_recipient["task_uuid"],
-        revision=1,
-        idempotency_key=dedup_key,
-        created_at=raised_at,
-        expires_at=expires_at,
-        route_trace=trace,
-    )
-    envelope = sealed["envelope"]
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            """
-            INSERT INTO canon_backfire_dedup(
-                dedup_key_sha256,request_sha256,canon_id,canon_sha256
-            ) VALUES(?,?,?,?)
-            """,
-            (
-                dedup_key,
-                request_sha256,
-                envelope["canon_id"],
-                envelope["canon_sha256"],
-            ),
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    after = _require_authorities_unchanged(root, before, operation="backfire")
-    return {
-        "status": "PASS",
-        "idempotent_reuse": False,
-        "dedup_key_sha256": dedup_key,
-        "envelope": envelope,
-        "automatic_retry_allowed": False,
-        "receiver_owns_any_required_hil": True,
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": {
-            **_AUTHORITY_EFFECTS_NONE,
-            "canon_input": "BACKFIRE_OUTBOX_PROPOSED",
-        },
-    }
-
-
-def inspect_canon_inbox(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    task_uuid: str | None = None,
-    states: list[str] | None = None,
-    limit: int = 100,
-) -> dict[str, Any]:
-    """Return a bounded secret-free inbox and event projection."""
-
-    root = _project_root(project_root, project_id=project_id)
-    require(
-        isinstance(limit, int) and 1 <= limit <= 500,
-        "CANON_QUERY_LIMIT_INVALID",
-        "Canon inbox queries are bounded to 1..500 packets.",
-        status="BLOCKED",
-    )
-    clauses = ["local_role='INBOX'"]
-    parameters: list[Any] = []
-    if task_uuid is not None:
-        clauses.append("destination_task_uuid=?")
-        parameters.append(_exact_text(task_uuid, field="task_uuid"))
-    exact_states = sorted({str(item).strip().upper() for item in states or []})
-    if exact_states:
-        placeholders = ",".join("?" for _ in exact_states)
-        clauses.append(f"current_state IN ({placeholders})")
-        parameters.extend(exact_states)
-    parameters.append(limit)
-    connection = _connect(root)
-    try:
-        rows = connection.execute(
-            f"""
-            SELECT * FROM canon_packet WHERE {' AND '.join(clauses)}
-            ORDER BY rowid LIMIT ?
-            """,
-            parameters,
-        ).fetchall()
-        packets = []
+    def _graph_edges(self, connection, *, limit=5000):
+        if not self._table(connection, 'canon_task_edges'):
+            return []
+        rows = connection.execute('SELECT edge_id FROM canon_task_edges ORDER BY sequence LIMIT ?', (limit + 1,)).fetchall()
+        if len(rows) > limit:
+            raise LaneError('CANON_GRAPH_BUDGET', 'The full recorded graph exceeds the selected verification budget.')
+        edges, pairs = [], []
         for row in rows:
-            envelope = cast(
-                dict[str, Any], json.loads(str(row["envelope_json"]))
-            )
-            packets.append(
-                {
-                    "canon_id": row["canon_id"],
-                    "canon_sha256": row["canon_sha256"],
-                    "canon_type": row["canon_type"],
-                    "revision": row["revision"],
-                    "state": row["current_state"],
-                    "source": envelope["source"],
-                    "destination": envelope["destination"],
-                    "destination_contract_sha256": row[
-                        "destination_contract_sha256"
-                    ],
-                    "payload_sha256": envelope["payload_sha256"],
-                    "evidence_refs": envelope["evidence_refs"],
-                    "events": _events_for(connection, str(row["canon_id"])),
-                    "raw_payload_returned": False,
-                }
-            )
-        event_head = _last_event_sha256(connection)
-    finally:
-        connection.close()
-    body = {
-        "status": "PASS",
-        "project_id": project_id,
-        "result": "HIT" if packets else "NO_HIT",
-        "packet_count": len(packets),
-        "packets": packets,
-        "event_head_sha256": event_head,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-    return {**body, "projection_sha256": sha256_bytes(canonical_json_bytes(body))}
+            edge = self._edge(connection, row['edge_id'])
+            source = self._node_key(edge.edge['source'])
+            destination = self._node_key(edge.edge['definition']['destination'])
+            if self._would_cycle(pairs, source, destination):
+                raise LaneError('CANON_TASK_GRAPH_CYCLE_BLOCKED', 'The recorded task graph contains a cycle.')
+            pairs.append((source, destination))
+            edges.append(edge)
+        return edges
+
+    def _write_edge(self, connection, body, lease, *, require_local_dependencies=True):
+        edge_id = body['definition']['edge_id']
+        digest = content_digest(body)
+        existing = connection.execute('SELECT edge_digest FROM canon_task_edges WHERE edge_id=?', (edge_id,)).fetchone()
+        if existing:
+            if existing[0] != digest:
+                raise LaneError('CANON_EDGE_IMMUTABILITY_CONFLICT', 'This edge ID already belongs to another immutable definition.')
+            return
+        edges = self._graph_edges(connection)
+        pairs = [(self._node_key(edge.edge['source']), self._node_key(edge.edge['definition']['destination'])) for edge in edges]
+        source, destination = self._node_key(body['source']), self._node_key(body['definition']['destination'])
+        if self._would_cycle(pairs, source, destination):
+            raise LaneError('CANON_TASK_GRAPH_CYCLE_BLOCKED', 'The proposed edge would create a task-routing cycle.')
+        if require_local_dependencies and not set(body['definition']['dependency_ids']) <= {edge.edge_id for edge in edges}:
+            raise LaneError('CANON_EDGE_DEPENDENCY_NOT_FOUND', 'Record the exact dependency edges in this project before linking them.')
+        path = self._edge_path(edge_id, digest)
+        content = json_text(body).encode()
+        lease.check()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        reject_links(path, self.store.root)
+        try:
+            descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            if path.stat().st_size != len(content) or path.read_bytes() != content:
+                raise LaneError('CANON_EDGE_FILE_INTEGRITY', 'Preserve the existing graph file; its bytes differ from this edge.') from None
+        else:
+            with os.fdopen(descriptor, 'wb') as stream:
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+        if path.stat().st_size != len(content) or path.read_bytes() != content:
+            raise LaneError('CANON_EDGE_FILE_INTEGRITY', 'The named graph file failed write verification.')
+        # Only committed rows expose a graph file. Aborted writes can leave
+        # unregistered immutable files, excluded from reads and recovery sets.
+        connection.execute('INSERT INTO canon_task_edges(edge_id,edge_digest,source_node,destination_node,body_json,artifact_path) VALUES(?,?,?,?,?,?)',
+            (edge_id, digest, source, destination, json_text(body), path.relative_to(self.store.root).as_posix()))
+
+    def register_task_edge(self, request, lease, *, actor_id, destination_participant=None):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key = content_digest(request.model_dump())
+            self.participant(connection, request.source_id, owner=actor_id)
+            prior = self._replay(connection, request.request_id, 'task_edge_register', actor_id, key)
+            if prior:
+                return self._edge(connection, request.edge_id).model_copy(update={'duplicate':True})
+            self._expiry(request.model_dump())
+            source = self.participant(connection, request.source_id, owner=actor_id)
+            destination = (self.participant(connection, request.destination.participant_id)
+                if request.destination.project_id == self.store.project_id else destination_participant)
+            if destination is None or (destination['project_id'], destination['participant_id']) != (request.destination.project_id, request.destination.participant_id):
+                raise LaneError('CANON_EDGE_DESTINATION_UNVERIFIED', 'Read the exact destination participant through its authorized project selection.')
+            body = {'schema':'evidence-lane.canon-task-edge.v4', 'source':{'project_id':self.store.project_id,'participant_id':request.source_id},
+                'definition':request.model_dump(exclude={'request_id','source_id'}), 'source_at_seal':source,
+                'destination_at_seal':destination, 'created_at':now(), 'one_writer':True,
+                'approval_propagation_allowed':False, 'pointer_propagation_allowed':False,
+                'source_write_granted':False, 'native_task_attestation':'not_provided'}
+            self._write_edge(connection, body, lease)
+            result = self._edge(connection, request.edge_id)
+            self._event(connection, request.request_id, 'task_edge_register', actor_id, key, result.model_dump())
+            self.store.append_receipt('canon_task_edge_registered', result.model_dump(), connection=connection)
+            return result
+
+    def bind_task_edge(self, request, lease, *, actor_id, source_edge=None):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            source = self._edge(connection, request.edge_id) if request.source_project_id == self.store.project_id else source_edge
+            if (source is None or source.edge_digest != request.edge_digest or source.edge_id != request.edge_id
+                    or source.edge['source']['project_id'] != request.source_project_id):
+                raise LaneError('CANON_EDGE_SOURCE_MISMATCH', 'The selected source project does not contain this exact immutable edge.')
+            destination = source.edge['definition']['destination']
+            if destination['project_id'] != self.store.project_id:
+                raise LaneError('CANON_EDGE_DESTINATION_PROJECT_MISMATCH', 'Only the exact destination project may bind this edge.')
+            self.participant(connection, destination['participant_id'], owner=actor_id)
+            key = content_digest(request.model_dump())
+            prior = self._replay(connection, request.request_id, 'task_edge_bind', actor_id, key)
+            if prior:
+                return self._edge(connection, request.edge_id).model_copy(update={'duplicate':True})
+            self._expiry(source.edge['definition'])
+            existing = connection.execute('SELECT request_id FROM canon_task_edge_bindings WHERE edge_id=?', (request.edge_id,)).fetchone()
+            if existing:
+                return self._edge(connection, request.edge_id).model_copy(update={'duplicate':True})
+            # The source verified its own dependency locators when sealing.
+            # A destination does not acquire those other projects' edges.
+            self._write_edge(connection, source.edge, lease, require_local_dependencies=False)
+            path = self._edge_path(request.edge_id, request.edge_digest)
+            result = CanonTaskEdgeResult(project_id=self.store.project_id, edge_id=request.edge_id, edge_digest=request.edge_digest,
+                edge=source.edge, artifact_path=path.relative_to(self.store.root).as_posix(),
+                local_role='both' if request.source_project_id == self.store.project_id else 'destination', destination_bound=True)
+            self._event(connection, request.request_id, 'task_edge_bind', actor_id, key, result.model_dump())
+            connection.execute('INSERT INTO canon_task_edge_bindings VALUES(?,?)', (request.edge_id, request.request_id))
+            self.store.append_receipt('canon_task_edge_bound', result.model_dump(), connection=connection)
+            return self._edge(connection, request.edge_id)
+
+    def task_graph(self, request):
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            history = self._verify_history(connection, limit=request.record_limit)
+            edges = self._graph_edges(connection, limit=request.record_limit)
+            returns = {}
+            if self._table(connection, 'canon_exchanges'):
+                rows = connection.execute("SELECT exchange_id FROM canon_exchanges WHERE kind='result' AND state='admitted' ORDER BY sequence LIMIT ?", (request.record_limit + 1,)).fetchall()
+                if len(rows) > request.record_limit:
+                    raise LaneError('CANON_GRAPH_BUDGET', 'The recorded returns exceed the selected verification budget.')
+                for row in rows:
+                    result, body = self.exchange(connection, row['exchange_id'])
+                    message = body['message']
+                    if message.get('edge_id'):
+                        self._validate_edge_message(connection, CanonSend.model_validate(message), historical=True, source_project_id=body['project_id'])
+                        returns.setdefault(message['edge_id'], []).append({'exchange_id':result['exchange_id'], 'envelope_digest':result['envelope_digest']})
+            nodes, values, missing = set(), [], []
+            edge_ids = {item.edge_id for item in edges}
+            for edge in edges:
+                definition = edge.edge['definition']
+                nodes.update((self._node_key(edge.edge['source']), self._node_key(definition['destination'])))
+                observed = returns.get(edge.edge_id, [])
+                value = {**edge.model_dump(), 'local_admitted_returns':observed,
+                    'return_observation_scope':'selected_project_exchange_history',
+                    'dependencies_not_recorded_locally':[identity for identity in definition['dependency_ids']
+                        if identity not in edge_ids]}
+                values.append(value)
+                if not observed:
+                    missing.append({'edge_id':edge.edge_id, 'destination':definition['destination'],
+                        'expected_return_contract':definition['expected_return_contract'],
+                        'state':'missing_local_admitted_return' if edge.edge['source']['project_id'] == self.store.project_id else 'source_return_state_not_read'})
+            result = CanonTaskGraph(project_id=self.store.project_id, nodes=sorted(nodes), edges=values,
+                missing_returns=missing, history=history, graph_digest='')
+            result = result.model_copy(update={'graph_digest':content_digest(result.model_dump(exclude={'graph_digest'}))})
+            if len(result.model_dump_json().encode()) > request.max_bytes:
+                raise LaneError('CANON_GRAPH_OUTPUT_BUDGET', 'The verified graph exceeds the selected response byte budget.')
+            return result
+
+    def _validate_edge_message(self, connection, request, *, historical=False, source_project_id=None):
+        if not request.edge_id:
+            return
+        edge = self._edge(connection, request.edge_id)
+        definition = edge.edge['definition']
+        source, destination = edge.edge['source'], definition['destination']
+        # The receiver owns the binding. A source-only copy cannot invent its
+        # peer's current binding state; admission and returns check it there.
+        if destination['project_id'] == self.store.project_id and not edge.destination_bound:
+            raise LaneError('CANON_EDGE_NOT_BOUND', 'The destination participant must bind this edge before admitting input or returning results.')
+        if not historical:
+            self._expiry(definition)
+        if definition['schema_digest'] != content_digest(CanonPayload.model_json_schema()):
+            raise LaneError('CANON_EDGE_SCHEMA_MISMATCH', 'The edge does not select the current typed Canon payload schema.')
+        returning = request.kind in {'result', 'clarification', 'backfire'}
+        route = (destination, source) if returning else (source, destination)
+        sender_project = source_project_id or self.store.project_id
+        actual = ({'project_id':sender_project, 'participant_id':request.sender_id},
+            {'project_id':request.destination_project_id or sender_project, 'participant_id':request.receiver_id})
+        contract = definition['expected_return_contract'] if returning else definition['contract_digest']
+        if actual != route or request.expected_contract != contract:
+            raise LaneError('CANON_EDGE_CONTRACT_MISMATCH', 'The packet must use this exact edge route and pinned input or return contract.')
+        if returning:
+            _, parent = self.exchange(connection, request.reply_to)
+            if (parent['message'].get('edge_id') != request.edge_id or parent['message'].get('return_contract') != contract
+                    or self._route(parent) != (source['project_id'], destination['project_id'])
+                    or (parent['message']['sender_id'], parent['message']['receiver_id']) != (source['participant_id'], destination['participant_id'])):
+                raise LaneError('CANON_EDGE_RETURN_MISMATCH', 'The return must address input from this exact edge and its pinned return contract.')
+        elif request.return_contract != definition['expected_return_contract']:
+            raise LaneError('CANON_EDGE_RETURN_MISMATCH', 'The edge input must pin its exact expected return contract.')
+
+    def initialize(self,lease):
+        if lease.store.root!=self.store.root or lease.store.project_id!=self.store.project_id:
+            raise LaneError('WRITER_PROJECT_MISMATCH','The Canon writer belongs to another project.')
+        lease.check()
+        apply_migrations(self.store,CANON_MIGRATIONS,writer=lease)
+
+    @staticmethod
+    def _table(connection,name):
+        return connection.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?",(name,)).fetchone() is not None
+
+    @staticmethod
+    def _event(connection,request_id,kind,actor_id,input_digest,result):
+        previous=connection.execute('SELECT sequence,digest FROM canon_events ORDER BY sequence DESC LIMIT 1').fetchone()
+        body={'sequence':previous['sequence']+1 if previous else 1,'request_id':request_id,'kind':kind,'actor_id':actor_id,
+              'input_digest':input_digest,'result_json':json_text(result),'previous_digest':previous['digest'] if previous else None,'created_at':now()}
+        digest=content_digest(body)
+        connection.execute('INSERT INTO canon_events VALUES(?,?,?,?,?,?,?,?,?)',(body['sequence'],request_id,kind,actor_id,input_digest,body['result_json'],body['previous_digest'],digest,body['created_at']))
+        return digest
+
+    @staticmethod
+    def _replay(connection,request_id,kind,actor_id,input_digest):
+        row=connection.execute('SELECT * FROM canon_events WHERE request_id=?',(request_id,)).fetchone()
+        if row:
+            if (row['kind'],row['actor_id'],row['input_digest'])!=(kind,actor_id,input_digest):
+                raise LaneError('CANON_REQUEST_CONFLICT','This request ID belongs to different content or ownership.')
+            value=dict(row)
+            digest=value.pop('digest')
+            if content_digest(value)!=digest:
+                raise LaneError('CANON_HISTORY_INTEGRITY','The Canon event differs from its identity.')
+            return json.loads(row['result_json'])
+        return None
+
+    def participant(self,connection,participant_id,*,owner=None):
+        if not self._table(connection,'canon_participants'):
+            raise LaneError('CANON_PARTICIPANT_NOT_FOUND','Select an existing participant in this project.')
+        row=connection.execute('SELECT * FROM canon_participants WHERE participant_id=?',(participant_id,)).fetchone()
+        if not row:
+            raise LaneError('CANON_PARTICIPANT_NOT_FOUND','Select an existing participant in this project.')
+        body=json.loads(row['body_json'])
+        if (content_digest(body)!=row['digest'] or body.get('project_id')!=self.store.project_id
+            or body.get('participant_id')!=participant_id or body.get('owner_client_id')!=row['owner_client_id']):
+            raise LaneError('CANON_PARTICIPANT_INTEGRITY','The participant ownership record is inconsistent.')
+        if owner is not None and row['owner_client_id']!=owner:
+            raise LaneError('CANON_OWNER_MISMATCH','Only the owning engine client can act for this participant.')
+        return body
+
+    def join(self,request,lease,*,actor_id):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key=content_digest(request.model_dump())
+            prior=self._replay(connection,request.request_id,'join',actor_id,key)
+            if prior:return CanonParticipant(**prior)
+            result=CanonParticipant(project_id=self.store.project_id,participant_id=str(uuid4()),owner_client_id=actor_id,
+                                    label=request.label,reported_host_task_id=request.reported_host_task_id)
+            body=result.model_dump()
+            connection.execute('INSERT INTO canon_participants VALUES(?,?,?,?,?)',(result.participant_id,actor_id,json_text(body),content_digest(body),now()))
+            self._event(connection,request.request_id,'join',actor_id,key,body)
+            return result
+
+    def expect(self,request,lease,*,actor_id,foreign_participants=()):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key=content_digest(request.model_dump())
+            prior=self._replay(connection,request.request_id,'expect',actor_id,key)
+            if prior:return CanonContractResult(**prior)
+            self.participant(connection,request.receiver_id,owner=actor_id)
+            for sender in request.sender_ids:self.participant(connection,sender)
+            foreign = {(p['project_id'], p['participant_id']): p for p in foreign_participants}
+            for endpoint in request.sender_endpoints:
+                if endpoint.project_id == self.store.project_id:
+                    self.participant(connection, endpoint.participant_id)
+                    if endpoint.participant_id in request.sender_ids:
+                        raise LaneError('CANON_DUPLICATE_ENDPOINT', 'Declare each source endpoint once.')
+                elif (endpoint.project_id, endpoint.participant_id) not in foreign:
+                    raise LaneError('CANON_FOREIGN_SOURCE_NOT_VERIFIED', 'Verify the exact permitted foreign participant through an authorized project read.')
+            current=connection.execute('SELECT v.* FROM canon_contract_current c JOIN canon_contracts v USING(contract_digest) WHERE c.receiver_id=? AND c.contract_key=?',
+                                       (request.receiver_id,request.contract_key)).fetchone()
+            version=current['version'] if current else 0
+            if version!=request.expected_version:
+                raise LaneError('CANON_CONTRACT_VERSION_CONFLICT','Refresh the exact current receiver contract before replacing it.')
+            body={'project_id':self.store.project_id,'contract':request.model_dump(exclude={'request_id','expected_version'}),
+                  'version':version+1,'source_client_id':actor_id,'payload_schema_digest':content_digest(CanonPayload.model_json_schema()),'created_at':now()}
+            digest=content_digest(body)
+            connection.execute('INSERT INTO canon_contracts VALUES(?,?,?,?,?)',(digest,request.receiver_id,request.contract_key,version+1,json_text(body)))
+            connection.execute('INSERT INTO canon_contract_current VALUES(?,?,?) ON CONFLICT(receiver_id,contract_key) DO UPDATE SET contract_digest=excluded.contract_digest',
+                               (request.receiver_id,request.contract_key,digest))
+            result=CanonContractResult(contract_digest=digest,version=version+1,contract=body)
+            self._event(connection,request.request_id,'expect',actor_id,key,result.model_dump())
+            return result
+
+    def _contract(self,connection,digest):
+        if not self._table(connection,'canon_contracts'):
+            raise LaneError('CANON_CONTRACT_NOT_FOUND','Select an expected-input contract from this project.')
+        row=connection.execute('SELECT * FROM canon_contracts WHERE contract_digest=?',(digest,)).fetchone()
+        if not row:raise LaneError('CANON_CONTRACT_NOT_FOUND','Select an expected-input contract from this project.')
+        body=json.loads(row['body_json'])
+        if (content_digest(body)!=digest or body.get('project_id')!=self.store.project_id or body['version']!=row['version']
+            or body['contract']['receiver_id']!=row['receiver_id'] or body['contract']['contract_key']!=row['contract_key']):
+            raise LaneError('CANON_CONTRACT_INTEGRITY','The expected-input contract differs from its identity.')
+        return body
+
+    def _sender_allowed(self, contract, participant_id, project_id):
+        return (project_id == self.store.project_id and participant_id in contract['sender_ids']
+            or {'project_id':project_id, 'participant_id':participant_id} in contract.get('sender_endpoints', []))
+
+    def _compatibility(self, connection, request, *, source_project_id=None):
+        if not request.expected_contract:
+            return False, ['CANON_EXPECTED_CONTRACT_UNDEFINED']
+        try:
+            return self._match(connection, request, source_project_id=source_project_id), []
+        except LaneError as error:
+            if error.code not in {'CANON_CONTRACT_NOT_FOUND', 'CANON_CONTRACT_MISMATCH', 'CANON_PAYLOAD_TYPE_MISMATCH'}:
+                raise
+            return False, [error.code]
+
+    def _match(self,connection,request,*,source_project_id=None):
+        if not request.expected_contract:return False
+        body=self._contract(connection,request.expected_contract)
+        contract=body['contract']
+        current=connection.execute('SELECT contract_digest FROM canon_contract_current WHERE receiver_id=? AND contract_key=?',
+                                   (request.receiver_id,contract['contract_key'])).fetchone()
+        if (not current or current[0]!=request.expected_contract or not contract['active'] or contract['receiver_id']!=request.receiver_id
+                or body['payload_schema_digest']!=content_digest(CanonPayload.model_json_schema())
+                or not self._sender_allowed(contract, request.sender_id, source_project_id or self.store.project_id) or request.kind not in contract['kinds']
+                or len(request.payload.model_dump_json().encode())>contract['max_bytes']
+                or not set(contract['required_reference_kinds'])<={ref.kind for ref in request.payload.references}):
+            raise LaneError('CANON_CONTRACT_MISMATCH','The message does not match the exact current receiver contract.')
+        types={'string':lambda x:isinstance(x,str),'integer':lambda x:type(x) is int,'number':lambda x:type(x) in {int,float},
+               'boolean':lambda x:type(x) is bool,'null':lambda x:x is None}
+        if (set(request.payload.fields)!=set(contract['fields'])
+                or any(not types[kind](request.payload.fields[name]) for name,kind in contract['fields'].items())):
+            raise LaneError('CANON_PAYLOAD_TYPE_MISMATCH','The named payload fields differ from the receiver schema.')
+        return contract['auto_admit']
+
+    def _route(self, body):
+        source = body['project_id']
+        destination = body['message'].get('destination_project_id') or source
+        return source, destination
+
+    def _role(self, source, destination):
+        if source == destination == self.store.project_id:
+            return 'both'
+        if source == self.store.project_id:
+            return 'outbox'
+        if destination == self.store.project_id:
+            return 'inbox'
+        raise LaneError('CANON_PROJECT_ROUTE_MISMATCH', 'This project is not an endpoint of the exact packet.')
+
+    def _packet_path(self, body, digest, role):
+        if (not re.fullmatch(UUID_PATTERN, body.get('exchange_id','')) or not re.fullmatch(DIGEST, digest)
+                or role not in {'outbox','inbox','both'}):
+            raise LaneError('CANON_PACKET_FILE_INTEGRITY', 'Packet files require exact bounded UUID and digest locators.')
+        folder = 'outbox' if role == 'outbox' else 'inbox'
+        return f"authorities/canon/files/{folder}/{digest}/{body['exchange_id']}.json"
+
+    def _packet_file(self, body, digest, role, *, write=False):
+        relative = self._packet_path(body, digest, role)
+        path = self.project.root / relative
+        reject_links(path, self.project.root)
+        content = json_text(body).encode()
+        if write:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            reject_links(path, self.project.root)
+            try:
+                descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            except FileExistsError:
+                pass
+            else:
+                with os.fdopen(descriptor, 'wb') as stream:
+                    stream.write(content)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+        if not path.is_file() or path.stat().st_size != len(content) or path.read_bytes() != content:
+            raise LaneError('CANON_PACKET_FILE_INTEGRITY', 'The registered immutable packet file is missing or changed.')
+        return relative
+
+    def exchange(self,connection,identity):
+        if not self._table(connection,'canon_exchanges'):
+            raise LaneError('CANON_EXCHANGE_NOT_FOUND','The exchange is not recorded in this project.')
+        row=connection.execute('SELECT * FROM canon_exchanges WHERE exchange_id=?',(identity,)).fetchone()
+        if row is None:raise LaneError('CANON_EXCHANGE_NOT_FOUND','The exchange is not recorded in this project.')
+        body=json.loads(row['body_json'])
+        source, destination = self._route(body)
+        role = self._role(source, destination)
+        if (content_digest(body)!=row['envelope_digest']
+            or body.get('exchange_id')!=identity or (body['message']['sender_id'],body['message']['receiver_id'],body['message']['kind'])
+               !=(row['sender_id'],row['receiver_id'],row['kind'])
+            or (row['source_project_id'], row['destination_project_id'], row['local_role']) != (source, destination, role)):
+            raise LaneError('CANON_ENVELOPE_INTEGRITY','The exchange differs from its immutable envelope and project endpoints.')
+        if row['state_digest']!=self._state_digest(identity,row['envelope_digest'],row['state'],row['version']):
+            raise LaneError('CANON_STATE_INTEGRITY','The exchange state differs from its recorded version.')
+        if (role == 'outbox') != (row['state'] == 'sealed'):
+            raise LaneError('CANON_STATE_INTEGRITY', 'An outbound seal cannot claim a receiver decision.')
+        if source == self.store.project_id:
+            self.participant(connection, row['sender_id'])
+        if destination == self.store.project_id:
+            self.participant(connection, row['receiver_id'])
+        if body.get('schema') == 'evidence-lane.canon-envelope.v4':
+            CanonSend.model_validate(body['message'])
+            if row['artifact_path'] != self._packet_file(body, row['envelope_digest'], role):
+                raise LaneError('CANON_PACKET_FILE_INTEGRITY', 'The packet locator differs from its exact lane file.')
+        elif role != 'both' or row['artifact_path'] is not None:
+            raise LaneError('CANON_ENVELOPE_INTEGRITY', 'Historical envelopes only describe their original local exchange.')
+        return row,body
+
+    def _insert_exchange(self, connection, body, state):
+        source, destination = self._route(body)
+        role = self._role(source, destination)
+        identity, message = body['exchange_id'], body['message']
+        digest = content_digest(body)
+        relative = self._packet_file(body, digest, role, write=True)
+        connection.execute("""INSERT INTO canon_exchanges(exchange_id,sender_id,receiver_id,kind,envelope_digest,body_json,state,version,
+            state_digest,parent_id,created_at,source_project_id,destination_project_id,local_role,artifact_path)
+            VALUES(?,?,?,?,?,?,?,1,?,?,?,?,?,?,?)""", (identity,message['sender_id'],message['receiver_id'],message['kind'],digest,
+                json_text(body),state,self._state_digest(identity,digest,state,1),
+                message['reply_to'] if message['reply_to'] and connection.execute(
+                    'SELECT 1 FROM canon_exchanges WHERE exchange_id=?',(message['reply_to'],)).fetchone() else None,
+                body['created_at'],source,destination,role,relative))
+        return CanonSent(exchange_id=identity,envelope_digest=digest,state=state,local_role=role,artifact_path=relative)
+
+    def _admission_evidence(self, connection, identity):
+        event = connection.execute("SELECT * FROM canon_events WHERE kind IN ('send','receive') "
+            "AND json_extract(result_json,'$.exchange_id')=? ORDER BY sequence LIMIT 1",(identity,)).fetchone()
+        if event:
+            fields = dict(event)
+            digest = fields.pop('digest')
+            if content_digest(fields) != digest:
+                raise LaneError('CANON_HISTORY_INTEGRITY', 'The initial admission evidence differs from its immutable event.')
+        value = json.loads(event['result_json']) if event else {}
+        return {key:value[key] for key in ('compatibility_reasons','receiver_decision_required') if key in value}
+
+    def _delivery_result(self, connection, row, *, duplicate=False):
+        evidence = self._admission_evidence(connection, row['exchange_id'])
+        return CanonSent(exchange_id=row['exchange_id'],envelope_digest=row['envelope_digest'],state=row['state'],
+            local_role=row['local_role'],artifact_path=row['artifact_path'],duplicate=duplicate,
+            compatibility_reasons=evidence.get('compatibility_reasons',[]),receiver_decision_required=row['state'] in {'received','needs_clarification'})
+
+    def source_snapshot(self, connection, request, *, preview=False):
+        row, body = self.exchange(connection, request.exchange_id)
+        if row['envelope_digest'] != request.envelope_digest or row['local_role'] != 'outbox':
+            raise LaneError('CANON_SOURCE_ENVELOPE_MISMATCH', 'Read the exact immutable outbox packet from its source project.')
+        event = connection.execute("SELECT * FROM canon_events WHERE kind='send' "
+            "AND json_extract(result_json,'$.exchange_id')=? ORDER BY sequence LIMIT 1",(request.exchange_id,)).fetchone()
+        if event is None:
+            raise LaneError('CANON_SOURCE_SEAL_INTEGRITY', 'The source envelope lacks its exact attributable sealing event.')
+        fields = dict(event)
+        event_digest = fields.pop('digest')
+        sealed = json.loads(event['result_json'])
+        if (content_digest(fields) != event_digest or sealed.get('envelope_digest') != row['envelope_digest']
+                or sealed.get('state') != 'sealed' or sealed.get('local_role') != 'outbox'
+                or event['actor_id'] != body['source_client_id']
+                or event['input_digest'] != content_digest({**body['message'],'request_id':event['request_id']})):
+            raise LaneError('CANON_SOURCE_SEAL_INTEGRITY', 'The source envelope, actor and input must match their original sealing event.')
+        source_seal = {key:event[key] for key in ('request_id','actor_id','input_digest','digest')}
+        message = CanonSend.model_validate(body['message'])
+        if message.backfire:
+            operation = connection.execute("SELECT * FROM canon_events WHERE kind='backfire' "
+                "AND json_extract(result_json,'$.exchange_id')=?",(request.exchange_id,)).fetchone()
+            if operation is None:
+                raise LaneError('CANON_OPERATION_INTEGRITY', 'A typed backfire requires its source-owned conditional operation record.')
+            self._operation_record(connection, operation)
+        source_reasons = []
+        backfire_observation = None
+        try:
+            self._expiry(body['message'])
+            for ref in message.payload.references:
+                ProjectMemory(self.store)._reference(connection, ref)
+            if message.backfire:
+                backfire_observation = self._validate_backfire_source(connection, message)
+        except LaneError as error:
+            if not preview or error.code not in {'CANON_EXCHANGE_EXPIRED','MEMORY_SOURCE_MISMATCH',
+                    'CANON_BACKFIRE_REQUIRES_ADMITTED_INPUT','CANON_BACKFIRE_STALE_REVISION_BLOCKED'}:
+                raise
+            source_reasons.append(error.code)
+        parent_observation = None
+        parent_envelope = None
+        if message.reply_to:
+            parent, parent_envelope = self.exchange(connection, message.reply_to)
+            parent_observation = {key:parent[key] for key in ('exchange_id','envelope_digest','state','version')}
+        return {'envelope':body, 'envelope_digest':row['envelope_digest'], 'parent_observation':parent_observation,
+            'parent_envelope':parent_envelope,'backfire_observation':backfire_observation,
+            'source_project_id':self.store.project_id, 'source_history':self._verify_history(connection), 'source_reasons':source_reasons, 'source_seal':source_seal}
+
+    @staticmethod
+    def _state_digest(identity,envelope_digest,state,version):
+        return content_digest({'exchange_id':identity,'envelope_digest':envelope_digest,'state':state,'version':version})
+
+    @staticmethod
+    def _expiry(message):
+        expires=message.get('expires_at')
+        if expires and datetime.fromisoformat(expires)<=datetime.now(UTC):
+            raise LaneError('CANON_EXCHANGE_EXPIRED','This exchange has expired; request a current replacement.')
+
+    def _supersession(self, connection, row):
+        event = connection.execute('SELECT e.* FROM canon_supersessions s JOIN canon_events e USING(request_id) '
+            'WHERE s.exchange_id=?',
+            (row['exchange_id'],)).fetchone()
+        if event is None:
+            return None  # Do not invent a missing link for historical prototype rows.
+        value = dict(event)
+        digest = value.pop('digest')
+        if content_digest(value) != digest or event['kind'] != 'supersede':
+            raise LaneError('CANON_HISTORY_INTEGRITY', 'The recorded supersession event differs from its identity.')
+        result = CanonSuperseded.model_validate_json(event['result_json'])
+        successor, _ = self.exchange(connection, result.successor_id)
+        if (result.exchange_id != row['exchange_id'] or row['state'] != 'superseded' or result.envelope_digest != row['envelope_digest']
+                or result.version != row['version'] or result.receiver_id != row['receiver_id']
+                or successor['envelope_digest'] != result.successor_envelope_digest
+                or successor['sequence'] <= row['sequence']
+                or (successor['sender_id'], successor['receiver_id'], successor['source_project_id'], successor['destination_project_id'])
+                   != (row['sender_id'], row['receiver_id'], row['source_project_id'], row['destination_project_id'])):
+            raise LaneError('CANON_SUPERSESSION_INTEGRITY', 'The immutable successor link differs from its exchange route or state.')
+        return result
+
+    def _supersede(self, connection, original_id, successor_id, *, actor_id, basis, request_id=None, input_digest=None):
+        row, _ = self.exchange(connection, original_id)
+        successor, successor_body = self.exchange(connection, successor_id)
+        if ((row['sender_id'], row['receiver_id'], row['source_project_id'], row['destination_project_id'])
+                != (successor['sender_id'], successor['receiver_id'], successor['source_project_id'], successor['destination_project_id'])
+                or successor['sequence'] <= row['sequence']):
+            raise LaneError('CANON_SUPERSESSION_LINEAGE_INVALID', 'Supersession requires a newer exchange on the exact same route.')
+        if row['state'] == 'superseded':
+            previous = self._supersession(connection, row)
+            if previous is None:
+                raise LaneError('CANON_SUPERSESSION_RECORD_UNAVAILABLE', 'This historical superseded exchange has no recorded successor link.')
+            if previous.successor_id != successor_id:
+                raise LaneError('CANON_SUPERSESSION_REPLAY_CONFLICT', 'The exchange was already superseded by a different successor.')
+            return previous.model_copy(update={'duplicate': True})
+        if row['state'] not in {'admitted', 'rejected', 'needs_clarification'}:
+            raise LaneError('CANON_SUPERSESSION_STATE_INVALID', 'Decide the original input before superseding its revision.')
+        if successor['state'] != 'admitted':
+            raise LaneError('CANON_SUPERSESSION_SUCCESSOR_NOT_ADMITTED', 'The receiver must admit the successor before it replaces existing input.')
+        self._expiry(successor_body['message'])
+        result = CanonSuperseded(exchange_id=original_id, envelope_digest=row['envelope_digest'],
+            successor_id=successor_id, successor_envelope_digest=successor['envelope_digest'],
+            receiver_id=row['receiver_id'], version=row['version'] + 1, decision_basis=basis)
+        connection.execute("UPDATE canon_exchanges SET state='superseded',version=?,state_digest=? WHERE exchange_id=?",
+            (result.version, self._state_digest(original_id, row['envelope_digest'], 'superseded', result.version), original_id))
+        event_id = request_id or str(uuid4())
+        self._event(connection, event_id, 'supersede', actor_id,
+            input_digest or content_digest(result.model_dump()), result.model_dump())
+        connection.execute('INSERT INTO canon_supersessions VALUES(?,?)', (original_id, event_id))
+        self.store.append_receipt('canon_superseded', result.model_dump(), connection=connection)
+        return result
+
+    def supersede(self, request, lease, *, actor_id):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key = content_digest(request.model_dump())
+            prior = self._replay(connection, request.request_id, 'supersede', actor_id, key)
+            if prior:
+                row, _ = self.exchange(connection, request.exchange_id)
+                self.participant(connection, row['receiver_id'], owner=actor_id)
+                current = self._supersession(connection, row)
+                if current is None or current.model_dump() != prior:
+                    raise LaneError('CANON_SUPERSESSION_INTEGRITY', 'The replay differs from the recorded successor link.')
+                return current.model_copy(update={'duplicate': True})
+            row, _ = self.exchange(connection, request.exchange_id)
+            successor, _ = self.exchange(connection, request.successor_id)
+            self.participant(connection, row['receiver_id'], owner=actor_id)
+            if (row['envelope_digest'] != request.envelope_digest or row['version'] != request.expected_version
+                    or successor['envelope_digest'] != request.successor_envelope_digest):
+                raise LaneError('CANON_SUPERSESSION_VERSION_CONFLICT', 'Select both exact envelopes and the current original state version.')
+            return self._supersede(connection, request.exchange_id, request.successor_id,
+                actor_id=actor_id, basis='receiver_explicit', request_id=request.request_id, input_digest=key)
+
+    def _validate_return(self, connection, request, *, source_project_id, destination_project_id, source_observation=None):
+        depth = 0
+        if request.reply_to:
+            observation = (source_observation or {}).get('parent_observation') or {}
+            try:
+                parent, body = self.exchange(connection, request.reply_to)
+            except LaneError as error:
+                body = (source_observation or {}).get('parent_envelope') or {}
+                if (error.code != 'CANON_EXCHANGE_NOT_FOUND' or not body.get('message',{}).get('backfire')
+                        or body.get('exchange_id') != request.reply_to or content_digest(body) != observation.get('envelope_digest')
+                        or observation.get('exchange_id') != request.reply_to):
+                    raise
+                parent = {**observation,'local_role':'source_observation'}
+            parent_message = CanonSend.model_validate(body['message'])
+            self._expiry(body['message'])
+            if body['message'].get('return_contract') and request.expected_contract != body['message']['return_contract']:
+                raise LaneError('CANON_RETURN_CONTRACT_MISMATCH', 'This return must use the contract pinned by its source exchange.')
+            parent_source, parent_destination = self._route(body)
+            return_route = parent_message.backfire.return_route if parent_message.backfire else CanonTaskEndpoint(
+                project_id=parent_source, participant_id=parent_message.sender_id)
+            if ((parent_destination,parent_message.receiver_id) != (source_project_id,request.sender_id)
+                    or (return_route.project_id,return_route.participant_id) != (destination_project_id,request.receiver_id)):
+                raise LaneError('CANON_RETURN_ROUTE_MISMATCH', 'A return must follow the exact earlier project and participant return route.')
+            if parent['local_role'] == 'outbox':
+                if (observation.get('exchange_id') != parent['exchange_id'] or observation.get('envelope_digest') != parent['envelope_digest']
+                        or observation.get('state') not in {'admitted','needs_clarification'}):
+                    raise LaneError('CANON_RETURN_REQUIRES_INPUT', 'Verify the returning project admitted or requested clarification on this exact input.')
+            elif parent['state'] not in {'admitted','needs_clarification'}:
+                raise LaneError('CANON_RETURN_REQUIRES_INPUT', 'Admit or request clarification on the earlier input first.')
+            depth = body.get('return_depth', 0) + 1
+            if depth > 8:
+                raise LaneError('CANON_RETURN_DEPTH', 'Stop this exchange chain and review its unresolved input.')
+        if request.supersedes:
+            old, body = self.exchange(connection, request.supersedes)
+            if ((old['sender_id'], old['receiver_id']) != (request.sender_id, request.receiver_id)
+                    or self._route(body) != (source_project_id, destination_project_id) or old['state'] == 'superseded'):
+                raise LaneError('CANON_CORRECTION_MISMATCH', 'A correction must name the current exchange on this exact project route.')
+        return depth
+
+    def _return_contract_snapshot(self, connection, digest):
+        body = self._contract(connection, digest)
+        expected = body['contract']
+        current = connection.execute('SELECT contract_digest FROM canon_contract_current WHERE receiver_id=? AND contract_key=?',
+            (expected['receiver_id'],expected['contract_key'])).fetchone()
+        return {'body':body,'current_digest':current[0] if current else None}
+
+    def _validate_backfire_source(self, connection, message):
+        details = message.backfire
+        row, body = self.exchange(connection, details.admitted_exchange_id)
+        if row['envelope_digest'] != details.admitted_envelope_digest:
+            raise LaneError('CANON_BACKFIRE_INPUT_MISMATCH', 'Select the exact immutable admitted Canon input.')
+        if (row['destination_project_id'] != self.store.project_id or row['receiver_id'] != message.sender_id
+                or row['state'] != 'admitted' or row['local_role'] == 'outbox'):
+            raise LaneError('CANON_BACKFIRE_REQUIRES_ADMITTED_INPUT', 'Only the receiving owner of a currently admitted input can raise its backfire.')
+        self._expiry(body['message'])
+        if details.requested_revision <= body.get('revision',1):
+            raise LaneError('CANON_BACKFIRE_STALE_REVISION_BLOCKED', 'Request a newer revision than the admitted immutable packet.')
+        source = CanonTaskEndpoint(project_id=self.store.project_id, participant_id=message.sender_id)
+        recipient = CanonTaskEndpoint(project_id=message.destination_project_id or self.store.project_id, participant_id=message.receiver_id)
+        trace = details.trace
+        inherited = (body['message'].get('backfire') or {}).get('trace',[])
+        if (len(trace) < 2 or trace[-2:] != [source,recipient]
+                or [item.model_dump() for item in trace[:len(inherited)]] != inherited):
+            raise LaneError('CANON_BACKFIRE_ROUTE_CYCLE_BLOCKED', 'Preserve the inherited correction trace and append these exact endpoints once.')
+        for identity in details.dependency_ids:
+            if connection.execute('SELECT 1 FROM canon_exchanges WHERE exchange_id=?',(identity,)).fetchone():
+                self.exchange(connection, identity)
+            else:
+                self._edge(connection, identity)
+        return {**{key:row[key] for key in ('exchange_id','envelope_digest','state','version')},
+            'revision':body.get('revision',1),'destination':source.model_dump(),'trace':inherited}
+
+    def _validate_message(self, connection, request, *, destination_participant=None, check_contract=True, return_contract_snapshot=None):
+        """Validate locally owned source facts; only the receiver admits input."""
+        destination_id = request.destination_project_id or self.store.project_id
+        self.participant(connection, request.sender_id)
+        if destination_id == self.store.project_id:
+            self.participant(connection, request.receiver_id)
+            if request.sender_id == request.receiver_id:
+                raise LaneError('CANON_SELF_ROUTE', 'Select another project participant.')
+        elif (not destination_participant or destination_participant['project_id'] != destination_id
+                or destination_participant['participant_id'] != request.receiver_id):
+            raise LaneError('CANON_REMOTE_RECEIVER_REQUIRED', 'Verify the destination participant through an authorized project read.')
+        self._expiry(request.model_dump())
+        self._validate_edge_message(connection, request)
+        auto_admit = self._match(connection, request) if check_contract and destination_id == self.store.project_id else False
+        if request.return_contract:
+            route = request.backfire.return_route if request.backfire else CanonTaskEndpoint(
+                project_id=self.store.project_id, participant_id=request.sender_id)
+            snapshot = self._return_contract_snapshot(connection, request.return_contract) if route.project_id == self.store.project_id else return_contract_snapshot
+            if not snapshot:
+                raise LaneError('CANON_RETURN_CONTRACT_MISMATCH', 'Verify the exact declared return receiver contract through an authorized project read.')
+            expected = snapshot['body']['contract']
+            permitted = (destination_id == route.project_id and request.receiver_id in expected['sender_ids']
+                or {'project_id':destination_id,'participant_id':request.receiver_id} in expected.get('sender_endpoints',[]))
+            if (snapshot['body']['project_id'] != route.project_id or expected['receiver_id'] != route.participant_id
+                    or not permitted or not expected['active'] or snapshot['current_digest'] != request.return_contract):
+                raise LaneError('CANON_RETURN_CONTRACT_MISMATCH', 'The requested return contract must belong to the exact declared receiver and permit this recipient.')
+        if request.backfire:
+            self._validate_backfire_source(connection, request)
+        for ref in request.payload.references:
+            ProjectMemory(self.store)._reference(connection, ref)
+        depth = self._validate_return(connection, request, source_project_id=self.store.project_id, destination_project_id=destination_id)
+        return auto_admit, depth
+
+    def classify(self, request):
+        """Restore original pre-storage classification without inferring admission."""
+        request = CanonSend.model_validate(request.model_dump())
+        expected, automatic, reasons = False, False, []
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            if not self._table(connection, 'canon_participants'):
+                reasons = ['CANON_PARTICIPANT_NOT_FOUND']
+            else:
+                try:
+                    if request.kind == 'backfire':
+                        raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use canon_backfire to validate the conditional request before sealing.')
+                    automatic, _ = self._validate_message(connection, request)
+                    expected = request.expected_contract is not None
+                    if not expected:
+                        reasons = ['CANON_EXPECTED_CONTRACT_UNDEFINED']
+                except LaneError as error:
+                    # Storage or source corruption remains a failure, not a
+                    # normal mismatch that a receiver could choose to admit.
+                    if error.code not in {
+                        'CANON_PARTICIPANT_NOT_FOUND', 'CANON_CONTRACT_NOT_FOUND',
+                        'CANON_CONTRACT_MISMATCH', 'CANON_PAYLOAD_TYPE_MISMATCH',
+                        'CANON_EXCHANGE_EXPIRED', 'CANON_RETURN_CONTRACT_MISMATCH',
+                        'CANON_RETURN_ROUTE_MISMATCH', 'CANON_RETURN_REQUIRES_INPUT',
+                        'CANON_RETURN_DEPTH', 'CANON_EXCHANGE_NOT_FOUND',
+                        'CANON_CORRECTION_MISMATCH', 'MEMORY_SOURCE_MISMATCH',
+                        'CANON_EDGE_NOT_FOUND', 'CANON_REMOTE_RECEIVER_REQUIRED',
+                        'CANON_EDGE_NOT_BOUND', 'CANON_EDGE_SCHEMA_MISMATCH',
+                        'CANON_EDGE_CONTRACT_MISMATCH', 'CANON_EDGE_RETURN_MISMATCH', 'CANON_TYPED_BACKFIRE_REQUIRED',
+                    }:
+                        raise
+                    reasons = [error.code]
+        return CanonClassification(project_id=self.store.project_id,
+            message_digest=content_digest(request.model_dump(exclude={'request_id'})),
+            classification='expected' if expected else 'undefined_or_incompatible',
+            reasons=reasons, expected_contract=request.expected_contract, observed_at=now(),
+            automatic_admission_permitted=expected and automatic,
+            receiver_decision_required=not (expected and automatic))
+
+    def send(self,request,lease,*,actor_id,destination_participant=None,return_contract_snapshot=None,_typed_backfire=False):
+        request=CanonSend.model_validate(request.model_dump())
+        if request.kind == 'backfire' and not _typed_backfire:
+            raise LaneError('CANON_TYPED_BACKFIRE_REQUIRED', 'Use canon_backfire for a conditional admitted-input request with an exact recipient and correction trace.')
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key=content_digest(request.model_dump())
+            self.participant(connection,request.sender_id,owner=actor_id)
+            prior=self._replay(connection,request.request_id,'send',actor_id,key)
+            if prior:return CanonSent(**{**prior,'duplicate':True})
+            _, depth = self._validate_message(connection, request, destination_participant=destination_participant,
+                check_contract=False,return_contract_snapshot=return_contract_snapshot)
+            destination = request.destination_project_id or self.store.project_id
+            automatic, reasons = self._compatibility(connection, request) if destination == self.store.project_id else (False, [])
+            revision = self.exchange(connection, request.supersedes)[1].get('revision',1)+1 if request.supersedes else 1
+            body={'schema':'evidence-lane.canon-envelope.v4', 'project_id':self.store.project_id, 'exchange_id':str(uuid4()),'revision':revision,
+                'source_client_id':actor_id, 'message':request.model_dump(exclude={'request_id'}), 'return_depth':depth,'created_at':now(),
+                'payload_provenance':'agent_report','native_task_attestation':'not_provided','source_write_granted':False,'plan_mutated':False}
+            state = 'sealed' if destination != self.store.project_id else ('admitted' if automatic else 'received')
+            result = self._insert_exchange(connection, body, state).model_copy(update={'compatibility_reasons':reasons,
+                'receiver_decision_required':state == 'received'})
+            if automatic and request.supersedes:
+                self._supersede(connection, request.supersedes, result.exchange_id, actor_id=actor_id, basis='receiver_expected_contract')
+            self._event(connection,request.request_id,'send',actor_id,key,result.model_dump())
+            self.store.append_receipt('canon_outbox_sealed' if state == 'sealed' else 'canon_exchange_received',
+                {**result.model_dump(),'source_client_id':actor_id,'compatibility_reasons':reasons,
+                    'admission_basis':'not_received' if state == 'sealed' else ('receiver_expected_contract' if automatic else 'pending_receiver')},connection=connection)
+            return result
+
+    def _validate_incoming(self, connection, request, snapshot):
+        body = snapshot['envelope']
+        source, destination = self._route(body)
+        if (source != request.source_project_id or source == destination or destination != self.store.project_id
+                or content_digest(body) != request.envelope_digest or body['exchange_id'] != request.exchange_id
+                or snapshot['source_project_id'] != source or snapshot['envelope_digest'] != request.envelope_digest):
+            raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Receive the exact source-owned envelope in its declared destination project.')
+        message = CanonSend.model_validate(body['message'])
+        self.participant(connection, message.receiver_id)
+        self._expiry(body['message'])
+        if snapshot.get('source_reasons'):
+            raise LaneError(snapshot['source_reasons'][0], 'The source evidence is not currently eligible for reception.')
+        if message.backfire:
+            observed = snapshot.get('backfire_observation') or {}
+            expected_source = {'project_id':source,'participant_id':message.sender_id}
+            if (observed.get('exchange_id') != message.backfire.admitted_exchange_id
+                    or observed.get('envelope_digest') != message.backfire.admitted_envelope_digest
+                    or observed.get('state') != 'admitted' or observed.get('destination') != expected_source
+                    or observed.get('revision',1000000) >= message.backfire.requested_revision):
+                raise LaneError('CANON_BACKFIRE_SOURCE_INTEGRITY', 'Verify the exact current source-owned admitted-input observation.')
+        self._validate_edge_message(connection, message, source_project_id=source)
+        depth = self._validate_return(connection, message, source_project_id=source, destination_project_id=destination,
+            source_observation=snapshot)
+        if depth != body['return_depth']:
+            raise LaneError('CANON_RETURN_DEPTH', 'The immutable return depth differs from the exact local parent.')
+        return self._compatibility(connection, message, source_project_id=source)
+
+    def classify_packet(self, request, source_snapshot):
+        body = source_snapshot['envelope']
+        automatic, reasons = False, []
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            try:
+                automatic, reasons = self._validate_incoming(connection, request, source_snapshot)
+            except LaneError as error:
+                if error.code not in {'CANON_RECEIVE_ROUTE_MISMATCH','CANON_PARTICIPANT_NOT_FOUND',
+                        'CANON_EXCHANGE_EXPIRED','MEMORY_SOURCE_MISMATCH','CANON_EXCHANGE_NOT_FOUND',
+                        'CANON_EDGE_NOT_FOUND','CANON_EDGE_NOT_BOUND','CANON_EDGE_SCHEMA_MISMATCH',
+                        'CANON_EDGE_CONTRACT_MISMATCH','CANON_EDGE_RETURN_MISMATCH','CANON_RETURN_CONTRACT_MISMATCH',
+                        'CANON_RETURN_ROUTE_MISMATCH','CANON_RETURN_REQUIRES_INPUT','CANON_RETURN_DEPTH','CANON_CORRECTION_MISMATCH',
+                        'CANON_BACKFIRE_REQUIRES_ADMITTED_INPUT','CANON_BACKFIRE_STALE_REVISION_BLOCKED'}:
+                    raise
+                reasons = [error.code]
+        expected = not reasons
+        return CanonPacketClassification(project_id=self.store.project_id, source_project_id=request.source_project_id,
+            exchange_id=request.exchange_id,envelope_digest=request.envelope_digest,message_digest=content_digest(body['message']),
+            classification='expected' if expected else 'undefined_or_incompatible',reasons=reasons,
+            expected_contract=body['message']['expected_contract'],observed_at=now(),automatic_admission_permitted=expected and automatic,
+            receiver_decision_required=not(expected and automatic))
+
+    def _task_result_message(self, connection, request):
+        edge = self._edge(connection, request.edge_id)
+        definition, source = edge.edge['definition'], edge.edge['source']
+        if definition['destination']['project_id'] != self.store.project_id:
+            raise LaneError('CANON_TASK_RESULT_OWNER_MISMATCH', 'Only the edge destination project can seal its typed task result.')
+        return CanonSend(request_id=str(uuid5(UUID(request.request_id),'canon:task_result:seal')), sender_id=definition['destination']['participant_id'],
+            receiver_id=source['participant_id'], destination_project_id=source['project_id'], kind='result',
+            payload=request.payload, expected_contract=definition['expected_return_contract'], reply_to=request.reply_to,
+            edge_id=request.edge_id, expires_at=request.expires_at)
+
+    def task_result(self, request, lease, *, actor_id, destination_participant=None):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            message = self._task_result_message(connection, request)
+            return self._seal_operation(connection, request, message, 'task_result', lease,
+                actor_id=actor_id,destination_participant=destination_participant)
+
+    def _backfire_message(self, connection, request):
+        row, body = self.exchange(connection, request.admitted_exchange_id)
+        source = CanonTaskEndpoint(project_id=self.store.project_id, participant_id=row['receiver_id'])
+        inherited = (body['message'].get('backfire') or {}).get('trace',[])
+        trace = request.trace or [CanonTaskEndpoint.model_validate(item) for item in inherited]
+        if (source in trace or request.recipient in trace or source == request.recipient
+                or len(trace) > 30 or [item.model_dump() for item in trace[:len(inherited)]] != inherited):
+            raise LaneError('CANON_BACKFIRE_ROUTE_CYCLE_BLOCKED', 'Preserve prior correction endpoints and do not revisit a source or recipient.')
+        details = CanonBackfireDetails(admitted_exchange_id=request.admitted_exchange_id,
+            admitted_envelope_digest=request.admitted_envelope_digest,failure_class=request.failure_class,
+            requested_revision=request.requested_revision,dependency_ids=sorted(request.dependency_ids),
+            return_route=request.return_route,trace=[*trace,source,request.recipient])
+        return CanonSend(request_id=str(uuid5(UUID(request.request_id),'canon:backfire:seal')),
+            sender_id=source.participant_id,receiver_id=request.recipient.participant_id,
+            destination_project_id=request.recipient.project_id,kind='backfire',payload=request.payload,
+            expected_contract=request.requested_contract,return_contract=request.return_contract,
+            expires_at=request.expires_at,backfire=details)
+
+    @staticmethod
+    def _operation_key(request, kind):
+        identity = ({'recipient':request.recipient.model_dump(),'requested_contract':request.requested_contract,
+            'requested_revision':request.requested_revision} if kind == 'backfire'
+            else {'edge_id':request.edge_id,'result_payload_digest':content_digest(request.payload.model_dump())})
+        return content_digest(identity)
+
+    def _operation_record(self, connection, event):
+        fields = dict(event)
+        digest = fields.pop('digest')
+        if content_digest(fields) != digest or event['kind'] not in {'backfire','task_result'}:
+            raise LaneError('CANON_OPERATION_INTEGRITY', 'The conditional Canon operation differs from its attributable event.')
+        record = json.loads(event['result_json'])
+        operation = record['operation']
+        kind = event['kind']
+        request = (CanonBackfire if kind == 'backfire' else CanonTaskResult).model_validate(operation['request'])
+        message = getattr(self, f'_{kind}_message')(connection, request)
+        identity = content_digest(message.model_dump(exclude={'request_id','expires_at'}))
+        delivery = CanonOperationSent.model_validate(record['delivery'])
+        row, body = self.exchange(connection, delivery.exchange_id)
+        seal = self._replay(connection, message.request_id, 'send', event['actor_id'],content_digest(message.model_dump()))
+        if (event['request_id'] != request.request_id or event['input_digest'] != content_digest(request.model_dump())
+                or operation['dedup_key'] != self._operation_key(request,kind) or operation['identity_digest'] != identity
+                or delivery.dedup_key != operation['dedup_key'] or record['exchange_id'] != delivery.exchange_id
+                or body['message'] != message.model_dump(exclude={'request_id'}) or body['source_client_id'] != event['actor_id']
+                or row['envelope_digest'] != delivery.envelope_digest or not seal
+                or seal['exchange_id'] != delivery.exchange_id or seal['envelope_digest'] != delivery.envelope_digest
+                or seal['state'] != delivery.state or seal['local_role'] != delivery.local_role):
+            raise LaneError('CANON_OPERATION_INTEGRITY', 'The deduplication key, request and immutable source seal must name the same operation.')
+        return operation, row
+
+    def _seal_operation(self, connection, request, message, kind, lease, *, actor_id,
+            destination_participant=None,return_contract_snapshot=None):
+        self.participant(connection, message.sender_id, owner=actor_id)
+        key = self._operation_key(request,kind)
+        identity = content_digest(message.model_dump(exclude={'request_id','expires_at'}))
+        request_digest = content_digest(request.model_dump())
+        event = connection.execute('SELECT * FROM canon_events WHERE request_id=?',(request.request_id,)).fetchone()
+        canonical = None
+        if event:
+            if event['kind'] not in {kind,kind+'_replay'}:
+                raise LaneError('CANON_REQUEST_CONFLICT', 'This request ID names another operation.')
+            recorded = self._replay(connection, request.request_id, event['kind'], actor_id, request_digest)
+            canonical = event if event['kind'] == kind else connection.execute(
+                'SELECT * FROM canon_events WHERE request_id=?',(recorded['canonical_request_id'],)).fetchone()
+            if canonical is None or canonical['kind'] != kind:
+                raise LaneError('CANON_OPERATION_INTEGRITY', 'A replay must point to its existing canonical operation.')
+        if canonical is None:
+            canonical = connection.execute("SELECT * FROM canon_events WHERE kind=? "
+                "AND json_extract(result_json,'$.operation.dedup_key')=?",(kind,key)).fetchone()
+        if canonical:
+            operation, row = self._operation_record(connection, canonical)
+            if operation['dedup_key'] != key or operation['identity_digest'] != identity:
+                code = 'CANON_BACKFIRE_DEDUP_CONFLICT' if kind == 'backfire' else 'CANON_TASK_RESULT_DEDUP_CONFLICT'
+                raise LaneError(code, 'The same semantic key already names different exact Canon request content.')
+            if event is None:
+                self._event(connection,request.request_id,kind+'_replay',actor_id,request_digest,
+                    {'exchange_id':row['exchange_id'],'canonical_request_id':canonical['request_id'],'dedup_key':key})
+            return CanonOperationSent(**self._delivery_result(connection,row,duplicate=True).model_dump(),dedup_key=key)
+        result = self.send(message,lease,actor_id=actor_id,destination_participant=destination_participant,
+            return_contract_snapshot=return_contract_snapshot,_typed_backfire=kind == 'backfire')
+        delivery = CanonOperationSent(**result.model_dump(),dedup_key=key)
+        self._event(connection,request.request_id,kind,actor_id,request_digest,
+            {'exchange_id':delivery.exchange_id,'delivery':delivery.model_dump(),
+                'operation':{'dedup_key':key,'identity_digest':identity,'request':request.model_dump()}})
+        self.store.append_receipt('canon_backfire_proposed' if kind == 'backfire' else 'canon_task_result_sealed',
+            delivery.model_dump(),connection=connection)
+        return delivery
+
+    def backfire(self, request, lease, *, actor_id,destination_participant=None,return_contract_snapshot=None):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            message = self._backfire_message(connection,request)
+            self.participant(connection,message.sender_id,owner=actor_id)
+            self._validate_backfire_source(connection,message)
+            return self._seal_operation(connection,request,message,'backfire',lease,actor_id=actor_id,
+                destination_participant=destination_participant,return_contract_snapshot=return_contract_snapshot)
+
+    def receive(self, request, lease, *, actor_id, source_snapshot):
+        self.initialize(lease)
+        body = source_snapshot['envelope']
+        source, destination = self._route(body)
+        if (source != request.source_project_id or source == destination or destination != self.store.project_id
+                or content_digest(body) != request.envelope_digest or body['exchange_id'] != request.exchange_id
+                or source_snapshot['source_project_id'] != source or source_snapshot['envelope_digest'] != request.envelope_digest):
+            raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Receive the exact source-owned envelope in its declared destination project.')
+        message = CanonSend.model_validate(body['message'])
+        with lease.transaction('canon') as connection:
+            self.participant(connection, message.receiver_id, owner=actor_id)
+            key=content_digest(request.model_dump())
+            prior=self._replay(connection,request.request_id,'receive',actor_id,key)
+            if prior:
+                row, _ = self.exchange(connection, request.exchange_id)
+                return self._delivery_result(connection, row, duplicate=True)
+            existing = connection.execute('SELECT exchange_id FROM canon_exchanges WHERE exchange_id=?',(request.exchange_id,)).fetchone()
+            if existing:
+                row, original = self.exchange(connection, request.exchange_id)
+                if row['envelope_digest'] != request.envelope_digest or original != body:
+                    raise LaneError('CANON_ENVELOPE_IMMUTABILITY_CONFLICT', 'The exchange ID already names other immutable bytes.')
+                return self._delivery_result(connection, row, duplicate=True)
+            automatic, reasons = self._validate_incoming(connection, request, source_snapshot)
+            result = self._insert_exchange(connection, body, 'admitted' if automatic else 'received').model_copy(
+                update={'compatibility_reasons':reasons,'receiver_decision_required':not automatic})
+            if automatic and message.supersedes:
+                self._supersede(connection, message.supersedes, result.exchange_id, actor_id=actor_id, basis='receiver_expected_contract')
+            observation={key:source_snapshot[key] for key in ('source_project_id','envelope_digest','parent_observation',
+                'backfire_observation','source_history','source_seal')}
+            self._event(connection,request.request_id,'receive',actor_id,key,result.model_dump())
+            self.store.append_receipt('canon_exchange_received',{**result.model_dump(),'source_observation':observation,
+                'compatibility_reasons':reasons,'admission_basis':'receiver_expected_contract' if automatic else 'pending_receiver'},connection=connection)
+            return result
+
+    def decide(self,request,lease,*,actor_id,source_snapshot=None):
+        self.initialize(lease)
+        with lease.transaction('canon') as connection:
+            key=content_digest(request.model_dump())
+            row,body=self.exchange(connection,request.exchange_id)
+            if row['local_role'] == 'outbox':
+                raise LaneError('CANON_RECEIVER_PROJECT_REQUIRED', 'Only the receiving project can decide an input.')
+            self.participant(connection,row['receiver_id'],owner=actor_id)
+            prior=self._replay(connection,request.request_id,'decide',actor_id,key)
+            if prior:return CanonDecisionResult(**prior)
+            if row['envelope_digest']!=request.envelope_digest or row['version']!=request.expected_version:
+                raise LaneError('CANON_DECISION_VERSION_CONFLICT','Select the exact exchange digest and current state version.')
+            if row['state'] not in {'received','needs_clarification'}:
+                raise LaneError('CANON_DECISION_STATE','Only pending or clarification-requested input can be decided.')
+            message=CanonSend.model_validate(body['message'])
+            source, destination = self._route(body)
+            _, reasons = self._compatibility(connection, message, source_project_id=source)
+            if request.decision=='admit':
+                self._expiry(body['message'])
+                self._validate_edge_message(connection, message, source_project_id=source)
+                if reasons and request.incompatible_input_decision != 'ACCEPT':
+                    raise LaneError('CANON_INPUT_ACCEPT_REQUIRED', 'This undefined or incompatible input requires the receiver-owned explicit ACCEPT decision.')
+                if source == self.store.project_id:
+                    for ref in message.payload.references:ProjectMemory(self.store)._reference(connection,ref)
+                elif (not source_snapshot or source_snapshot['envelope'] != body
+                        or source_snapshot['envelope_digest'] != row['envelope_digest'] or source_snapshot['source_project_id'] != source):
+                    raise LaneError('CANON_SOURCE_ENVELOPE_MISMATCH', 'Reverify the exact source packet before admitting its foreign evidence.')
+                self._validate_return(connection, message, source_project_id=source, destination_project_id=destination,
+                    source_observation=source_snapshot)
+            elif request.incompatible_input_decision is not None:
+                raise LaneError('CANON_INPUT_DECISION_MISMATCH', 'ACCEPT only accompanies the admit decision.')
+            state={'admit':'admitted','reject':'rejected','clarify':'needs_clarification'}[request.decision]
+            connection.execute('UPDATE canon_exchanges SET state=?,version=version+1,state_digest=? WHERE exchange_id=?',
+                (state,self._state_digest(request.exchange_id,row['envelope_digest'],state,row['version']+1),request.exchange_id))
+            if request.decision == 'admit' and message.supersedes:
+                self._supersede(connection, message.supersedes, request.exchange_id,
+                    actor_id=actor_id, basis='receiver_correction_admission')
+            result=CanonDecisionResult(exchange_id=request.exchange_id,state=state,version=row['version']+1,
+                receiver_id=row['receiver_id'],reason=request.reason,incompatible_input_decision=request.incompatible_input_decision,
+                compatibility_reasons=reasons)
+            self._event(connection,request.request_id,'decide',actor_id,key,result.model_dump())
+            self.store.append_receipt('canon_receiver_decision',{**result.model_dump(),'source_client_id':actor_id},connection=connection)
+            return result
+
+    def read(self,request=None):
+        request=request or CanonRead()
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            if not self._table(connection,'canon_exchanges'):
+                return CanonPage(project_id=self.store.project_id,participants=[],contracts=[],exchanges=[],last_sequence=request.after_sequence,truncated=False,participants_truncated=False,contracts_truncated=False)
+            participants=connection.execute('SELECT participant_id FROM canon_participants ORDER BY created_at,participant_id LIMIT 51').fetchall()
+            ids=[]
+            used=0
+            for row in participants[:50]:
+                item=self.participant(connection,row[0])
+                size=len(json_text(item).encode())
+                if used+size>request.max_bytes//8:break
+                ids.append(item)
+                used+=size
+            contracts=connection.execute('SELECT contract_digest FROM canon_contract_current ORDER BY receiver_id,contract_key LIMIT 21').fetchall()
+            values=[]
+            for row in contracts[:20]:
+                item={'contract_digest':row[0],**self._contract(connection,row[0])}
+                size=len(json_text(item).encode())
+                if used+size>request.max_bytes//3:break
+                values.append(item)
+                used+=size
+            where,parameters='sequence>?',[request.after_sequence]
+            if request.participant_id:
+                where+=' AND ((source_project_id=? AND sender_id=?) OR (destination_project_id=? AND receiver_id=?))'
+                parameters.extend([self.store.project_id,request.participant_id,self.store.project_id,request.participant_id])
+            rows=connection.execute('SELECT exchange_id FROM canon_exchanges WHERE '+where+' ORDER BY sequence LIMIT ?',[*parameters,request.limit+1]).fetchall()
+            items=[]
+            used+=1024  # response envelope and collection framing
+            for entry in rows[:request.limit]:
+                row,body=self.exchange(connection,entry[0])
+                item={key:row[key] for key in ['sequence','exchange_id','sender_id','receiver_id','kind','envelope_digest','state','version','parent_id','created_at','source_project_id','destination_project_id','local_role','artifact_path']}
+                item.update({'source_client_id':body['source_client_id'],'summary':body['message']['payload']['summary'],
+                             'expires_at':body['message']['expires_at'],'native_task_attestation':'not_provided'})
+                if row['state'] == 'superseded':
+                    supersession = self._supersession(connection, row)
+                    item['supersession'] = supersession.model_dump() if supersession else None
+                    item['supersession_evidence'] = 'recorded_event' if supersession else 'historical_link_unavailable'
+                if request.include_payload:item['envelope']=body
+                size=len(json_text(item).encode())
+                if used+size>request.max_bytes:break
+                used+=size
+                items.append(item)
+            return CanonPage(project_id=self.store.project_id,participants=ids,contracts=values,exchanges=items,
+                last_sequence=items[-1]['sequence'] if items else request.after_sequence,truncated=len(items)<len(rows),
+                participants_truncated=len(ids)<len(participants),contracts_truncated=len(values)<len(contracts))
+
+    def _verify_history(self,connection,*,limit=50000):
+        if not 1<=limit<=50000:raise LaneError('CANON_HISTORY_BUDGET','Use a bounded history verification limit.')
+        rows=connection.execute('SELECT * FROM canon_events ORDER BY sequence LIMIT ?',(limit+1,)).fetchall() if self._table(connection,'canon_events') else []
+        if len(rows)>limit:raise LaneError('CANON_HISTORY_BUDGET','History exceeds the selected budget.')
+        previous=None
+        for sequence,row in enumerate(rows,1):
+            body=dict(row)
+            digest=body.pop('digest')
+            if row['sequence']!=sequence or row['previous_digest']!=previous or content_digest(body)!=digest:
+                raise LaneError('CANON_HISTORY_INTEGRITY','The Canon event chain is inconsistent.')
+            previous=digest
+        return {'events_verified':len(rows),'head':previous}
+
+    def verify_history(self,*,limit=50000):
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            return self._verify_history(connection,limit=limit)
+
+    def continuation_checkpoint(self, participant_ids, *, limit=256):
+        """Read a complete bounded pending set; the continuation owner seals it.
+
+        The caller holds the project mutation lock or a coherent snapshot.
+        Packet content and receiver decisions stay with the Canon owner.
+        """
+        ids = sorted(set(participant_ids))
+        if (not 1 <= len(ids) <= 32 or len(ids) != len(participant_ids)
+                or any(not re.fullmatch(UUID_PATTERN, item) for item in ids)
+                or not 1 <= limit <= 256):
+            raise LaneError('CANON_CONTINUITY_BUDGET', 'Select one to 32 exact participants and at most 256 pending exchanges.')
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            for identity in ids:
+                self.participant(connection, identity)
+            history = self._verify_history(connection)
+            placeholders = ','.join('?' for _ in ids)
+            rows = connection.execute("SELECT exchange_id FROM canon_exchanges WHERE "
+                "state IN ('sealed','received','needs_clarification') AND "
+                f"((source_project_id=? AND sender_id IN ({placeholders})) OR "
+                f"(destination_project_id=? AND receiver_id IN ({placeholders}))) ORDER BY sequence LIMIT ?",
+                [self.store.project_id, *ids, self.store.project_id, *ids, limit + 1]).fetchall()
+            if len(rows) > limit:
+                raise LaneError('CANON_CONTINUITY_BUDGET', 'Resolve pending exchanges before offering a complete bounded continuation.')
+            pending = []
+            for entry in rows:
+                row, body = self.exchange(connection, entry['exchange_id'])
+                pending.append(CanonContinuationLocator(**{key: row[key] for key in [
+                    'sequence', 'exchange_id', 'envelope_digest', 'source_project_id', 'destination_project_id',
+                    'sender_id', 'receiver_id', 'state', 'version']}, expected_contract=body['message']['expected_contract']))
+            return CanonContinuationCheckpoint(project_id=self.store.project_id, participant_ids=ids,
+                event_sequence=history['events_verified'], event_head=history['head'], pending=pending)
+
+    def inbox(self,request):
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            initialized=self._table(connection,'canon_participants')
+            if request.receiver_id and not initialized:
+                raise LaneError('CANON_PARTICIPANT_NOT_FOUND','Select an existing receiver participant in this project.')
+            receiver=self.participant(connection,request.receiver_id) if request.receiver_id else None
+            # Verify the chain before using result JSON to select packet events.
+            # A damaged exchange_id key must not silently hide decision history.
+            history=self._verify_history(connection,limit=request.history_limit)
+            clauses=['sequence>?', 'destination_project_id=?']
+            parameters=[request.after_sequence, self.store.project_id]
+            if request.receiver_id:
+                clauses.append('receiver_id=?')
+                parameters.append(request.receiver_id)
+            if request.exchange_id:
+                if not initialized:
+                    raise LaneError('CANON_EXCHANGE_NOT_FOUND','The exchange is not recorded in this project.')
+                row,_=self.exchange(connection,request.exchange_id)
+                if row['local_role']=='outbox' or request.receiver_id and row['receiver_id']!=request.receiver_id:
+                    raise LaneError('CANON_INBOX_ROUTE_MISMATCH','The selected exchange belongs to another receiver inbox.')
+                clauses.append('exchange_id=?')
+                parameters.append(request.exchange_id)
+            if request.states:
+                clauses.append('state IN ('+','.join('?' for _ in request.states)+')')
+                parameters.extend(request.states)
+            rows=connection.execute('SELECT exchange_id FROM canon_exchanges WHERE '+' AND '.join(clauses)
+                +' ORDER BY sequence LIMIT ?',[*parameters,request.limit+1]).fetchall() if initialized else []
+            packets=[]
+            used=4096+len(json_text(receiver).encode())
+            for entry in rows[:request.limit]:
+                row,body=self.exchange(connection,entry[0])
+                message=body['message']
+                events=connection.execute("SELECT * FROM canon_events WHERE json_extract(result_json,'$.exchange_id')=? "
+                    'AND sequence>? ORDER BY sequence LIMIT ?',
+                    (row['exchange_id'],request.after_event_sequence,request.events_per_packet+1)).fetchall()
+                timeline=[]
+                for event in events[:request.events_per_packet]:
+                    result=json.loads(event['result_json'])
+                    item={key:event[key] for key in ('sequence','request_id','kind','actor_id','input_digest','previous_digest','digest','created_at')}
+                    if event['kind'] in {'backfire','task_result'}:
+                        item['stored_result_digest'] = content_digest(result)
+                        operation_request = result['operation'].pop('request')
+                        result['operation']['request_digest'] = content_digest(operation_request)
+                        item['result_projection'] = 'operation_metadata_without_request_payload'
+                    item['result']=result
+                    if event['kind']=='decide':
+                        item['reason_evidence']='recorded_event' if result.get('reason') else 'reason_not_in_event'
+                    timeline.append(item)
+                packet={key:row[key] for key in ('sequence','exchange_id','sender_id','receiver_id','kind','envelope_digest','state','version','created_at','source_project_id','destination_project_id','local_role','artifact_path')}
+                packet.update({'source_client_id':body['source_client_id'],'expected_contract':message['expected_contract'],
+                    'return_contract':message['return_contract'],'reply_to':message['reply_to'],'supersedes':message['supersedes'],
+                    'edge_id':message.get('edge_id'),'revision':body.get('revision',1),'backfire':message.get('backfire'),
+                    'payload_digest':content_digest(message['payload']),'evidence_refs':message['payload']['references'],
+                    'expires_at':message['expires_at'],'events':timeline,'events_truncated':len(timeline)<len(events),
+                    'last_event_sequence':timeline[-1]['sequence'] if timeline else request.after_event_sequence,
+                    'raw_payload_returned':False,'admission_at_receipt':self._admission_evidence(connection,row['exchange_id'])})
+                if row['state']=='superseded':
+                    link=self._supersession(connection,row)
+                    packet['supersession']=link.model_dump() if link else None
+                    packet['supersession_evidence']='recorded_event' if link else 'historical_link_unavailable'
+                size=len(json_text(packet).encode())
+                if used+size>request.max_bytes:
+                    if not packets:
+                        raise LaneError('CANON_INBOX_ITEM_BUDGET','Select fewer events per packet or a larger response byte budget.')
+                    break
+                packets.append(packet)
+                used+=size
+            result={'project_id':self.store.project_id,'receiver':receiver,'packets':packets,'packet_count':len(packets),
+                'last_sequence':packets[-1]['sequence'] if packets else request.after_sequence,
+                'truncated':len(packets)<len(rows),'history':history,'raw_payload_returned':False,'project_mutated':False,
+                'native_task_attestation':'not_provided'}
+            return CanonInboxPage(**result,projection_digest=content_digest(result))
+
+    def inspect(self,request):
+        tables=('canon_participants','canon_contracts','canon_contract_current','canon_exchanges','canon_events','canon_supersessions',
+            'canon_task_edges','canon_task_edge_bindings')
+        with self.store.connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            counts={table:connection.execute('SELECT COUNT(*) FROM '+table).fetchone()[0]
+                if self._table(connection,table) else 0 for table in tables}
+            if sum(counts.values())>request.record_limit:
+                raise LaneError('CANON_INSPECTION_BUDGET','Canon inspection exceeds the selected total record budget.')
+            integrity=[row[0] for row in connection.execute('PRAGMA quick_check')]
+            foreign_keys=[list(row) for row in connection.execute('PRAGMA foreign_key_check')]
+            if integrity!=['ok'] or foreign_keys:
+                raise LaneError('CANON_DATABASE_INTEGRITY','Canon database or foreign-key checks failed.')
+            history=self._verify_history(connection,limit=request.record_limit)
+            initialized=self._table(connection,'canon_participants')
+            migrations=[]
+            states={}
+            verified={'participants':0,'contracts':0,'current_contracts':0,'exchanges':0,'supersession_links':0,'conditional_operations':0,
+                'task_edges':0,'task_edge_bindings':0}
+            missing=0
+            if initialized:
+                migrations=[dict(row) for row in connection.execute('SELECT owner,version,digest FROM schema_migrations WHERE owner=? ORDER BY version',('canon',))]
+                expected=[{'owner':m.owner,'version':m.version,'digest':m.digest} for m in CANON_MIGRATIONS]
+                if migrations!=expected:
+                    raise LaneError('CANON_SCHEMA_INTEGRITY','Canon migration identities differ from the executable owner.')
+                verify_schema_history_files(self.store,connection)
+                for row in connection.execute('SELECT participant_id FROM canon_participants'):
+                    self.participant(connection,row[0])
+                    verified['participants']+=1
+                for row in connection.execute('SELECT contract_digest FROM canon_contracts'):
+                    self._contract(connection,row[0])
+                    verified['contracts']+=1
+                for row in connection.execute('SELECT * FROM canon_contract_current'):
+                    contract=self._contract(connection,row['contract_digest'])['contract']
+                    if (row['receiver_id'],row['contract_key'])!=(contract['receiver_id'],contract['contract_key']):
+                        raise LaneError('CANON_CONTRACT_INTEGRITY','A current contract pointer differs from its exact receiver and key.')
+                    verified['current_contracts']+=1
+                for entry in connection.execute('SELECT exchange_id FROM canon_exchanges ORDER BY sequence'):
+                    row,_=self.exchange(connection,entry[0])
+                    verified['exchanges']+=1
+                    states[row['state']]=states.get(row['state'],0)+1
+                    if row['state']=='superseded':
+                        if self._supersession(connection,row):
+                            verified['supersession_links']+=1
+                        else:
+                            missing+=1
+                # Include links whose target state was damaged, not only the
+                # links reached by selecting currently superseded exchanges.
+                for entry in connection.execute('SELECT exchange_id FROM canon_supersessions'):
+                    row,_=self.exchange(connection,entry[0])
+                    self._supersession(connection,row)
+                edges=self._graph_edges(connection,limit=request.record_limit)
+                verified['task_edges']=len(edges)
+                verified['task_edge_bindings']=sum(edge.destination_bound for edge in edges)
+                for event in connection.execute("SELECT * FROM canon_events WHERE kind IN ('task_result','backfire') ORDER BY sequence"):
+                    self._operation_record(connection,event)
+                    verified['conditional_operations'] += 1
+            scope=['sqlite_quick_check','foreign_keys','event_chain']
+            if initialized:
+                scope+=['owner_migrations_and_history_files','participant_and_contract_digests',
+                    'current_contract_pointers','envelope_and_state_digests','recorded_supersession_links',
+                    'recorded_task_edge_dag','task_edge_files_and_destination_bindings','packet_project_roles_and_registered_files',
+                    'conditional_operation_keys_requests_and_source_seals']
+            result={'project_id':self.store.project_id,'initialized':initialized,'counts':counts,'packet_states':states,
+                'integrity':integrity,'foreign_key_errors':foreign_keys,'history':history,'applied_migrations':migrations,
+                'schema_contract':lane_schema_asset('canon'),'objects_verified':verified,
+                'historical_supersession_links_unavailable':missing,'verified_scope':scope,
+                'unverified_scope':['native_task_attestation','cross_project_graph_completeness','cross_project_dispatch','receipt_lane_integrity'],
+                'raw_payload_returned':False,'project_mutated':False,'native_task_attestation':'not_provided'}
+            return CanonInspection(**result,projection_digest=content_digest(result))
 
 
-def inspect_canon_task_graph(
-    project_root: str | Path,
-    *,
-    project_id: str,
-) -> dict[str, Any]:
-    """Return the acyclic edge graph and any outstanding typed return contracts."""
+def register_canon_actions(engine):
+    def remote_context(context, project_id, action='canon_graph'):
+        from .lane_reader import LaneReader
+        target = LaneReader(engine)._context(context, project_id)
+        engine.registry.validate(action, {}, target)
+        return target
 
-    root = _project_root(project_root, project_id=project_id)
-    connection = _connect(root)
-    try:
-        edge_rows = connection.execute(
-            "SELECT edge_json FROM canon_edge ORDER BY rowid"
-        ).fetchall()
-        edges = [
-            _validate_edge(json.loads(str(row["edge_json"]))) for row in edge_rows
-        ]
-        result_rows = connection.execute(
-            """
-            SELECT envelope_json FROM canon_packet
-            WHERE local_role='INBOX' AND canon_type='TASK_RESULT'
-              AND current_state IN ('EXPECTED_ADMITTED','ACCEPTED_INPUT')
-            """
-        ).fetchall()
-        result_envelopes = [
-            cast(dict[str, Any], json.loads(str(row["envelope_json"])))
-            for row in result_rows
-        ]
-    finally:
-        connection.close()
-    returned_edge_ids = {
-        str(envelope.get("edge_id"))
-        for envelope in result_envelopes
-        if envelope.get("edge_id")
-    }
-    missing = [
-        {
-            "edge_id": edge["edge_id"],
-            "destination": edge["destination"],
-            "expected_return_contract_sha256": edge[
-                "expected_return_contract_sha256"
-            ],
-            "state": "MISSING_RETURN",
-        }
-        for edge in edges
-        if edge["edge_id"] not in returned_edge_ids
-    ]
-    nodes = sorted(
-        {
-            _node_key(endpoint)
-            for edge in edges
-            for endpoint in (edge["source"], edge["destination"])
-        }
-    )
-    body = {
-        "status": "PASS",
-        "project_id": project_id,
-        "nodes": nodes,
-        "edges": edges,
-        "missing_returns": missing,
-        "fan_out_supported": True,
-        "fan_in_supported": True,
-        "cycles_allowed": False,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-    return {**body, "graph_sha256": sha256_bytes(canonical_json_bytes(body))}
+    def remote_read(context, project_id, read, action='canon_graph'):
+        import time
 
+        from .storage import bounded_project_read
+        remote_context(context, project_id, action)
+        project = engine.directory.open(project_id)
+        with bounded_project_read(project.root, time.monotonic() + 10), project.lane('canon').connection(read_only=True) as connection:
+            if not connection.in_transaction:
+                connection.execute('BEGIN')
+            canon = CanonStore(project)
+            canon._verify_history(connection, limit=50000)
+            value = read(canon, connection)
+        remote_context(context, project_id, action)
+        project.assert_current_binding()
+        return value
 
-def seal_canon_task_result(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    edge_id: str,
-    source_pointer: Mapping[str, Any],
-    evidence_refs: list[Mapping[str, Any]],
-    result_payload: Mapping[str, Any],
-    schema_id: str,
-    schema_version: str,
-    schema_sha256: str,
-    created_at: str,
-    expires_at: str,
-) -> dict[str, Any]:
-    """Seal a typed result back to the source without propagating local approval."""
+    def task_edge_register(context, request):
+        destination = None
+        remote_id = request.destination.project_id
+        if remote_id != context.project_id:
+            destination = remote_read(context, remote_id,
+                lambda canon, connection:canon.participant(connection, request.destination.participant_id))
+        store = engine.directory.open(context.project_id, write=True)
+        with engine.project_work.mutation(store, kind='capture') as lease:
+            if remote_id != context.project_id:
+                remote_context(context, remote_id)
+            with lease.coordinated_transaction(['canon', 'receipts']):
+                return CanonStore(store).register_task_edge(request, lease, actor_id=context.client_id,
+                    destination_participant=destination)
 
-    root = _project_root(project_root, project_id=project_id)
-    connection = _connect(root)
-    try:
-        row = connection.execute(
-            "SELECT edge_json FROM canon_edge WHERE edge_id=?",
-            (_exact_text(edge_id, field="edge_id"),),
-        ).fetchone()
-        require(
-            row is not None,
-            "CANON_RESULT_EDGE_NOT_FOUND",
-            "A task result requires one exact registered Canon edge.",
-            status="BLOCKED",
-        )
-        edge = _validate_edge(json.loads(str(row["edge_json"])))
-    finally:
-        connection.close()
-    require(
-        edge["destination"]["project_id"] == project_id,
-        "CANON_RESULT_SOURCE_PROJECT_MISMATCH",
-        "Only the linked destination task can seal its result envelope.",
-        status="BLOCKED",
-    )
-    payload = dict(result_payload)
-    payload.update(
-        {
-            "edge_id": edge_id,
-            "local_project_hil_decision_propagated": False,
-            "local_learning_hil_decision_propagated": False,
-            "local_pointer_state_propagated": False,
-            "source_write_authority_propagated": False,
-        }
-    )
-    return seal_canon_envelope(
-        root,
-        project_id=project_id,
-        source=edge["destination"],
-        destination=edge["source"],
-        direction="UPSTREAM",
-        canon_type="TASK_RESULT",
-        authority_requested="TASK_RESULT",
-        contract_id=f"return:{edge_id}",
-        contract_version=int(edge["edge_revision"]),
-        destination_contract_sha256=edge["expected_return_contract_sha256"],
-        schema_id=schema_id,
-        schema_version=schema_version,
-        schema_sha256=schema_sha256,
-        source_pointer=source_pointer,
-        evidence_refs=evidence_refs,
-        payload=payload,
-        permitted_actions=["REPORT_RESULT"],
-        dependency_ids=[edge_id],
-        expected_return_contract_sha256=None,
-        independent_hil_owner_task_uuid=edge["source"]["task_uuid"],
-        revision=1,
-        idempotency_key=sha256_bytes(
-            canonical_json_bytes(
-                {
-                    "edge_id": edge_id,
-                    "result_payload_sha256": sha256_bytes(
-                        canonical_json_bytes(payload)
-                    ),
-                }
-            )
-        ),
-        created_at=created_at,
-        expires_at=expires_at,
-        edge_id=edge_id,
-    )
+    def task_edge_bind(context, request):
+        source = None
+        if request.source_project_id != context.project_id:
+            source = remote_read(context, request.source_project_id,
+                lambda canon, connection:canon._edge(connection, request.edge_id))
+        store = engine.directory.open(context.project_id, write=True)
+        with engine.project_work.mutation(store, kind='capture') as lease:
+            if request.source_project_id != context.project_id:
+                remote_context(context, request.source_project_id)
+            with lease.coordinated_transaction(['canon', 'receipts']):
+                return CanonStore(store).bind_task_edge(request, lease, actor_id=context.client_id, source_edge=source)
 
+    for name, description, input_model, handler in [
+        ('canon_task_edge_register', 'Seal an owned acyclic task edge and declared contract scope; never create a host task or grant execution.',
+            CanonTaskEdgeRegister, task_edge_register),
+        ('canon_task_edge_bind', 'Bind the exact source-recorded task edge as its destination participant, using authorized source-project reads.',
+            CanonTaskEdgeBind, task_edge_bind)]:
+        engine.registry.register(ActionSpec(name, description, input_model, CanonTaskEdgeResult, handler,
+            permission='write', profile='canon', mutates=True, workflow='canon'))
+    def packet_mutation(method):
+        def run(context, request):
+            foreign, destination, snapshot, remote_ids = [], None, None, set()
+            return_snapshot = None
+            message = request
+            if method in {'task_result','backfire'}:
+                project = engine.directory.open(context.project_id)
+                with project.lane('canon').connection(read_only=True) as connection:
+                    message = getattr(CanonStore(project),f'_{method}_message')(connection, request)
+            if method == 'backfire' and request.return_route.project_id != context.project_id:
+                return_snapshot = remote_read(context, request.return_route.project_id,
+                    lambda canon, connection:canon._return_contract_snapshot(connection,request.return_contract),'canon_read')
+                remote_ids.add(request.return_route.project_id)
+            if method == 'expect':
+                for endpoint in request.sender_endpoints:
+                    if endpoint.project_id != context.project_id:
+                        foreign.append(remote_read(context, endpoint.project_id,
+                            lambda canon, connection, endpoint=endpoint:canon.participant(connection, endpoint.participant_id), 'canon_read'))
+                        remote_ids.add(endpoint.project_id)
+            elif method in {'send','task_result','backfire'} and message.destination_project_id and message.destination_project_id != context.project_id:
+                destination = remote_read(context, message.destination_project_id,
+                    lambda canon, connection:canon.participant(connection, message.receiver_id), 'canon_read')
+                remote_ids.add(message.destination_project_id)
+            elif method == 'receive':
+                if request.source_project_id == context.project_id:
+                    raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Local sends already record their receiver input in this project.')
+                snapshot = remote_read(context, request.source_project_id,
+                    lambda canon, connection:canon.source_snapshot(connection, request), 'canon_read')
+                remote_ids.add(request.source_project_id)
+            elif method == 'decide' and request.decision == 'admit':
+                project = engine.directory.open(context.project_id)
+                with project.lane('canon').connection(read_only=True) as connection:
+                    row, _ = CanonStore(project).exchange(connection, request.exchange_id)
+                    source_id, digest = row['source_project_id'], row['envelope_digest']
+                if source_id != context.project_id:
+                    locator = CanonReceive(source_project_id=source_id, exchange_id=request.exchange_id, envelope_digest=digest)
+                    snapshot = remote_read(context, source_id, lambda canon, connection:canon.source_snapshot(connection, locator), 'canon_read')
+                    remote_ids.add(source_id)
+            store = engine.directory.open(context.project_id, write=True)
+            with engine.project_work.mutation(store, kind='capture') as lease:
+                for project_id in remote_ids:
+                    remote_context(context, project_id, 'canon_read')
+                with lease.coordinated_transaction(['canon','receipts']):
+                    options = {'expect':{'foreign_participants':foreign}, 'send':{'destination_participant':destination},
+                        'receive':{'source_snapshot':snapshot}, 'decide':{'source_snapshot':snapshot}, 'task_result':{'destination_participant':destination},
+                        'backfire':{'destination_participant':destination,'return_contract_snapshot':return_snapshot}}[method]
+                    return getattr(CanonStore(store), method)(request, lease, actor_id=context.client_id, **options)
+        return run
 
-def seal_canon_state_travel_continuity(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    source_task_uuid: str,
-    source_task_deep_link: str,
-    handoff_id: str,
-    accepted_pv: str,
-    pointer_generation: int,
-    created_at: str,
-) -> dict[str, Any]:
-    """Seal pending Canon locators as context; never carry a HIL decision token."""
+    def mutation(method):
+        def run(context,request):
+            store=engine.directory.open(context.project_id,write=True)
+            with engine.project_work.mutation(store,kind='capture') as lease:  # noqa: SIM117 - initialize and writes share this dependent transaction
+                with lease.coordinated_transaction(['canon', 'receipts']):
+                    return getattr(CanonStore(store),method)(request,lease,actor_id=context.client_id)
+        return run
+    for name,description,input_model,output_model,method in [
+        ('canon_join','Register a project participant owned by this engine client; does not create a host task.',CanonJoin,CanonParticipant,'join'),
+        ('canon_expect','Version the receiver-owned typed expected-input contract.',CanonExpected,CanonContractResult,'expect'),
+        ('canon_send','Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.',CanonSend,CanonSent,'send'),
+        ('canon_receive','Receive an exact source-sealed packet as its destination participant; never mutate the source project.',CanonReceive,CanonSent,'receive'),
+        ('canon_task_result','Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.',CanonTaskResult,CanonOperationSent,'task_result'),
+        ('canon_backfire','Propose a deduplicated conditional input request from an admitted packet to an exact recipient; never retry automatically.',CanonBackfire,CanonOperationSent,'backfire'),
+        ('canon_decide','Admit, reject or request clarification on the exact receiver-owned input.',CanonDecide,CanonDecisionResult,'decide'),
+        ('canon_supersede','Supersede a decided input with an exact newer admitted exchange on the same receiver-owned route.',CanonSupersede,CanonSuperseded,'supersede')]:
+        engine.registry.register(ActionSpec(name,description,input_model,output_model,packet_mutation(method) if method in {'expect','send','receive','decide','task_result','backfire'} else mutation(method),permission='write',profile='canon',mutates=True, workflow='canon'))
+    engine.registry.register(ActionSpec('canon_read','Inspect bounded project participants, expected inputs and exchange history.',CanonRead,CanonPage,
+        lambda context,request:CanonStore(engine.directory.open(context.project_id)).read(request),profile='canon',queryable_in_delta=True,
+        cross_project_read=True,read_migrations=CANON_MIGRATIONS, workflow='canon'))
+    def classify_packet(context, request):
+        if request.source_project_id == context.project_id:
+            raise LaneError('CANON_RECEIVE_ROUTE_MISMATCH', 'Use canon_classify for an unsealed local message.')
+        snapshot = remote_read(context, request.source_project_id,
+            lambda canon, connection:canon.source_snapshot(connection, request, preview=True), 'canon_read')
+        return CanonStore(engine.directory.open(context.project_id)).classify_packet(request, snapshot)
 
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    pointer = _load_json(
-        root / "active_pointer.json", code="CANON_PROJECT_POINTER_REQUIRED"
-    )
-    require(
-        pointer.get("project_id") == project_id
-        and pointer.get("accepted_pv") == accepted_pv
-        and int(pointer.get("generation") or 0) == int(pointer_generation),
-        "CANON_CONTINUITY_POINTER_MISMATCH",
-        "Canon continuity must bind the exact accepted Project Truth pointer.",
-        status="MISMATCH",
-    )
-    exact_task = _exact_text(source_task_uuid, field="source_task_uuid")
-    connection = _connect(root)
-    try:
-        rows = connection.execute(
-            """
-            SELECT canon_id,canon_sha256,current_state,source_task_uuid,
-                   destination_task_uuid,destination_contract_sha256,revision
-            FROM canon_packet
-            WHERE current_state IN ('PENDING_HIL','MORE_RESEARCH')
-              AND (source_task_uuid=? OR destination_task_uuid=?)
-            ORDER BY rowid
-            """,
-            (exact_task, exact_task),
-        ).fetchall()
-        pending = [dict(row) for row in rows]
-        event_head = _last_event_sha256(connection)
-    finally:
-        connection.close()
-    body = {
-        "schema": CANON_CONTINUITY_SCHEMA,
-        "project_id": project_id,
-        "source_task_uuid": exact_task,
-        "source_task_deep_link": _exact_text(
-            source_task_deep_link, field="source_task_deep_link"
-        ),
-        "handoff_id": _exact_text(handoff_id, field="handoff_id"),
-        "accepted_pv": accepted_pv,
-        "pointer_generation": int(pointer_generation),
-        "accepted_manifest_sha256": _sha256(
-            pointer.get("accepted_manifest_sha256"),
-            field="accepted_manifest_sha256",
-        ),
-        "pending_packets": pending,
-        "pending_packets_sha256": sha256_bytes(canonical_json_bytes(pending)),
-        "canon_event_head_sha256": event_head,
-        "decision_tokens_carried": False,
-        "canon_state_mutated": False,
-        "project_pointer_moved": False,
-        "created_at": cast(str, _timestamp(created_at, field="created_at")),
-    }
-    snapshot = {
-        **body,
-        "snapshot_sha256": sha256_bytes(canonical_json_bytes(body)),
-    }
-    path = (
-        _canon_root(root)
-        / "state-travel"
-        / f"{cast(str, snapshot['snapshot_sha256']).lower()}.json"
-    )
-    state = _immutable_json(path, snapshot)
-    after = _require_authorities_unchanged(root, before, operation="seal_continuity")
-    return {
-        "status": "PASS",
-        "state": state,
-        "snapshot": snapshot,
-        "snapshot_path": str(path),
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-
-
-def restore_canon_state_travel_continuity(
-    project_root: str | Path,
-    *,
-    project_id: str,
-    snapshot: Mapping[str, Any],
-    destination_task_uuid: str,
-    destination_task_deep_link: str,
-    destination_host_session_id: str,
-    restored_at: str,
-) -> dict[str, Any]:
-    """Verify a continuity snapshot once; leave every Canon decision untouched."""
-
-    root = _project_root(project_root, project_id=project_id)
-    before = _authority_snapshot(root)
-    exact = dict(snapshot)
-    require(
-        exact.get("schema") == CANON_CONTINUITY_SCHEMA
-        and exact.get("project_id") == project_id,
-        "CANON_CONTINUITY_SCHEMA_OR_PROJECT_MISMATCH",
-        "The Canon continuity snapshot belongs to another schema or project.",
-        status="MISMATCH",
-    )
-    claimed = _sha256(exact.get("snapshot_sha256"), field="snapshot_sha256")
-    require(
-        claimed == _hash_without(exact, "snapshot_sha256")
-        and exact.get("decision_tokens_carried") is False
-        and exact.get("canon_state_mutated") is False
-        and exact.get("project_pointer_moved") is False,
-        "CANON_CONTINUITY_HASH_OR_AUTHORITY_INVALID",
-        "The Canon continuity snapshot failed its no-decision authority seal.",
-        status="MISMATCH",
-    )
-    pointer = _load_json(
-        root / "active_pointer.json", code="CANON_PROJECT_POINTER_REQUIRED"
-    )
-    require(
-        pointer.get("accepted_pv") == exact.get("accepted_pv")
-        and int(pointer.get("generation") or 0)
-        == int(exact.get("pointer_generation") or 0)
-        and _sha256(
-            pointer.get("accepted_manifest_sha256"),
-            field="accepted_manifest_sha256",
-        )
-        == exact.get("accepted_manifest_sha256"),
-        "CANON_CONTINUITY_POINTER_STALE",
-        "The Project Truth pointer changed since Canon continuity was sealed.",
-        status="STALE",
-    )
-    destination = {
-        "task_uuid": _exact_text(destination_task_uuid, field="destination_task_uuid"),
-        "task_deep_link": _exact_text(
-            destination_task_deep_link, field="destination_task_deep_link"
-        ),
-        "host_session_id": _exact_text(
-            destination_host_session_id, field="destination_host_session_id"
-        ),
-    }
-    consumption_key = sha256_bytes(
-        canonical_json_bytes(
-            {
-                "snapshot_sha256": claimed,
-                "destination": destination,
-            }
-        )
-    )
-    connection = _connect(root)
-    try:
-        existing = connection.execute(
-            """
-            SELECT receipt_json FROM canon_continuity_receipt
-            WHERE consumption_key_sha256=?
-            """,
-            (consumption_key,),
-        ).fetchone()
-        if existing is not None:
-            receipt = cast(dict[str, Any], json.loads(str(existing["receipt_json"])))
-            validate_canon_receipt(receipt)
-            after = _require_authorities_unchanged(
-                root, before, operation="restore_continuity_replay"
-            )
-            return {
-                "status": "PASS",
-                "idempotent_reuse": True,
-                "receipt": receipt,
-                "authority_before": before,
-                "authority_after": after,
-                "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-            }
-    finally:
-        connection.close()
-    receipt_body = {
-        "schema": CANON_RESTORE_RECEIPT_SCHEMA,
-        "project_id": project_id,
-        "snapshot_sha256": claimed,
-        "destination": destination,
-        "pending_packets": exact.get("pending_packets") or [],
-        "restore_effect": "CONTEXT_ONLY",
-        "canon_decision_replayed": False,
-        "canon_packet_state_changed": False,
-        "project_pointer_moved": False,
-        "learning_pointer_moved": False,
-        "restored_at": cast(str, _timestamp(restored_at, field="restored_at")),
-    }
-    receipt = {
-        **receipt_body,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-    }
-    validate_canon_receipt(receipt)
-    connection = _connect(root)
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            """
-            INSERT INTO canon_continuity_receipt(
-                consumption_key_sha256,snapshot_sha256,receipt_sha256,receipt_json
-            ) VALUES(?,?,?,?)
-            """,
-            (
-                consumption_key,
-                claimed,
-                receipt["receipt_sha256"],
-                canonical_json_bytes(receipt).decode("utf-8"),
-            ),
-        )
-        connection.commit()
-    finally:
-        connection.close()
-    after = _require_authorities_unchanged(root, before, operation="restore_continuity")
-    return {
-        "status": "PASS",
-        "idempotent_reuse": False,
-        "receipt": receipt,
-        "authority_before": before,
-        "authority_after": after,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-
-
-def inspect_canon_authority(
-    project_root: str | Path,
-    *,
-    project_id: str,
-) -> dict[str, Any]:
-    """Inspect contract, packet, graph, dispatch, receipt, and integrity state."""
-
-    root = _project_root(project_root, project_id=project_id)
-    connection = _connect(root)
-    try:
-        integrity = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
-        foreign_keys = [tuple(row) for row in connection.execute("PRAGMA foreign_key_check")]
-        counts = {
-            table: int(
-                connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-            )
-            for table in (
-                "canon_contract",
-                "canon_packet",
-                "canon_event",
-                "canon_receipt",
-                "canon_edge",
-                "canon_dispatch",
-                "canon_backfire_dedup",
-                "canon_continuity_receipt",
-                "canon_schema_migration",
-            )
-        }
-        event_head = _last_event_sha256(connection)
-        states = {
-            str(row["current_state"]): int(row["count"])
-            for row in connection.execute(
-                """
-                SELECT current_state,COUNT(*) AS count FROM canon_packet
-                GROUP BY current_state ORDER BY current_state
-                """
-            ).fetchall()
-        }
-    finally:
-        connection.close()
-    graph = inspect_canon_task_graph(root, project_id=project_id)
-    schema_contract = inspect_canon_schema_contract()
-    body = {
-        "status": "PASS" if integrity == ["ok"] and not foreign_keys else "FAIL",
-        "project_id": project_id,
-        "authority": "CANON_INPUT",
-        "ledger_path": str(_ledger_path(root)),
-        "ledger_sha256": _file_identity(_ledger_path(root)),
-        "integrity": integrity,
-        "foreign_key_errors": foreign_keys,
-        "counts": counts,
-        "packet_states": states,
-        "event_head_sha256": event_head,
-        "graph_sha256": graph["graph_sha256"],
-        "schema_contract": {
-            "manifest_sha256": schema_contract["manifest_sha256"],
-            "ledger_schema": schema_contract["ledger_schema"],
-            "ledger_version": schema_contract["ledger_version"],
-            "ledger_asset_sha256": schema_contract["ledger_asset_sha256"],
-            "ledger_schema_signature_sha256": schema_contract[
-                "ledger_schema_signature_sha256"
-            ],
-            "receipt_registry_schema": schema_contract[
-                "receipt_registry_schema"
-            ],
-            "receipt_registry_version": schema_contract[
-                "receipt_registry_version"
-            ],
-            "receipt_asset_sha256": schema_contract["receipt_asset_sha256"],
-            "supported_receipt_schemas": schema_contract[
-                "supported_receipt_schemas"
-            ],
-            "receipt_sha256": schema_contract["receipt_sha256"],
-        },
-        "project_truth_pointer_sha256": _authority_snapshot(root)[
-            "project_truth_pointer_sha256"
-        ],
-        "learning_pointer_sha256": _authority_snapshot(root)[
-            "learning_pointer_sha256"
-        ],
-        "authority_merge_allowed": False,
-        "project_truth_promotion_allowed": False,
-        "learning_promotion_allowed": False,
-        "source_write_authority_granted": False,
-        "authority_effects": dict(_AUTHORITY_EFFECTS_NONE),
-    }
-    return {**body, "projection_sha256": sha256_bytes(canonical_json_bytes(body))}
+    engine.registry.register(ActionSpec('canon_packet_classify',
+        'Preview an exact foreign source packet against the current receiving project without storing or admitting it.',
+        CanonReceive,CanonPacketClassification,classify_packet,profile='canon',queryable_in_delta=True,
+        read_migrations=CANON_MIGRATIONS,workflow='canon'))
+    engine.registry.register(ActionSpec('canon_classify',
+        'Classify a proposed Canon message against the current receiver contract without storing or admitting it.',
+        CanonSend, CanonClassification,
+        lambda context, request: CanonStore(engine.directory.open(context.project_id)).classify(request),
+        profile='canon', queryable_in_delta=True, read_migrations=CANON_MIGRATIONS, workflow='canon'))
+    for name,description,input_model,output_model,method in [
+        ('canon_inbox','Read project inboxes or one exact receiver with state filters, metadata and bounded attributed events.',
+            CanonInbox,CanonInboxPage,'inbox'),
+        ('canon_inspect','Verify bounded Canon database, schema, object digests and event-chain state without modifying it.',
+            CanonInspect,CanonInspection,'inspect'),
+        ('canon_graph','Inspect the full bounded recorded task DAG, destination bindings and locally admitted edge returns.',
+            CanonTaskGraphRead,CanonTaskGraph,'task_graph')]:
+        engine.registry.register(ActionSpec(name,description,input_model,output_model,
+            lambda context,request,method=method:getattr(CanonStore(engine.directory.open(context.project_id)),method)(request),
+            profile='canon',queryable_in_delta=True,cross_project_read=True,read_migrations=CANON_MIGRATIONS,workflow='canon'))

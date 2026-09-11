@@ -1,0 +1,98 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "title": "Action",
+        "type": "string"
+      },
+      "arguments": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Arguments"
+      }
+    },
+    "required": [
+      "action"
+    ],
+    "title": "ResolveRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "toolchain_resolve",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "resolution": {
+        "additionalProperties": true,
+        "title": "Resolution",
+        "type": "object"
+      }
+    },
+    "required": [
+      "resolution"
+    ],
+    "title": "ResolveResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7c6988430e5ba2649828b03e2063742c7c3a6f52fb33fb6617149abe81d1b3a6",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "toolchain_resolve",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tool_routes:register_toolchain_actions.<locals>.resolve",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "toolchain_resolve.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "toolchain"
+}

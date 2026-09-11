@@ -1,0 +1,288 @@
+{
+  "schema": "evidence-lane.authority-workflow.v4",
+  "owner_id": "instructions",
+  "source_package_folder": "authorities/instructions",
+  "storage": "Scoped instruction and separate workspace/host recall files; no database",
+  "actions": [
+    {
+      "name": "instructions_inspect",
+      "description": "Inspect scoped instruction and separate workspace/host recall file hashes; never import or modify their contents.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "cwd_relative": {
+            "default": ".",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Cwd Relative",
+            "type": "string"
+          },
+          "include_global": {
+            "default": false,
+            "title": "Include Global",
+            "type": "boolean"
+          },
+          "include_workspace_recall": {
+            "default": true,
+            "title": "Include Workspace Recall",
+            "type": "boolean"
+          },
+          "include_host_recall": {
+            "default": false,
+            "title": "Include Host Recall",
+            "type": "boolean"
+          },
+          "max_bytes": {
+            "default": 32768,
+            "maximum": 262144,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          }
+        },
+        "title": "InstructionRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "InstructionSource": {
+            "additionalProperties": false,
+            "properties": {
+              "arm": {
+                "enum": [
+                  "instructions",
+                  "workspace_recall",
+                  "host_recall"
+                ],
+                "title": "Arm",
+                "type": "string"
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project"
+                ],
+                "title": "Scope",
+                "type": "string"
+              },
+              "locator": {
+                "title": "Locator",
+                "type": "string"
+              },
+              "filename": {
+                "title": "Filename",
+                "type": "string"
+              },
+              "directory_depth": {
+                "title": "Directory Depth",
+                "type": "integer"
+              },
+              "sha256": {
+                "title": "Sha256",
+                "type": "string"
+              },
+              "byte_count": {
+                "title": "Byte Count",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "arm",
+              "scope",
+              "locator",
+              "filename",
+              "directory_depth",
+              "sha256",
+              "byte_count"
+            ],
+            "title": "InstructionSource",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "cwd_relative": {
+            "title": "Cwd Relative",
+            "type": "string"
+          },
+          "instructions": {
+            "items": {
+              "$ref": "#/$defs/InstructionSource"
+            },
+            "title": "Instructions",
+            "type": "array"
+          },
+          "workspace_recall": {
+            "items": {
+              "$ref": "#/$defs/InstructionSource"
+            },
+            "title": "Workspace Recall",
+            "type": "array"
+          },
+          "host_recall": {
+            "items": {
+              "$ref": "#/$defs/InstructionSource"
+            },
+            "title": "Host Recall",
+            "type": "array"
+          },
+          "inspected_config_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inspected Config Digest"
+          },
+          "instruction_chain_digest": {
+            "title": "Instruction Chain Digest",
+            "type": "string"
+          },
+          "max_bytes": {
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "consumed_bytes": {
+            "title": "Consumed Bytes",
+            "type": "integer"
+          },
+          "native_loaded_chain_attested": {
+            "const": false,
+            "default": false,
+            "title": "Native Loaded Chain Attested",
+            "type": "boolean"
+          },
+          "memory_truth_inferred": {
+            "const": false,
+            "default": false,
+            "title": "Memory Truth Inferred",
+            "type": "boolean"
+          },
+          "raw_text_returned": {
+            "const": false,
+            "default": false,
+            "title": "Raw Text Returned",
+            "type": "boolean"
+          },
+          "project_authorities_mutated": {
+            "const": false,
+            "default": false,
+            "title": "Project Authorities Mutated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "cwd_relative",
+          "instructions",
+          "workspace_recall",
+          "host_recall",
+          "inspected_config_digest",
+          "instruction_chain_digest",
+          "max_bytes",
+          "consumed_bytes"
+        ],
+        "title": "InstructionResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "core",
+      "workflow": "instructions",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "instructions_inspect",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "instructions_inspect.engine",
+            "adapter": "evidence_lane_plugin.agent_configuration:register_instruction_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "ffb6ed314bb59c33f79ac998d9b127beeec990f2a61be7e65a09200aae5f83fe"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    }
+  ],
+  "views": [],
+  "runtime_modules": [
+    "evidence_lane_plugin.agent_configuration"
+  ],
+  "topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_instructions",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 6,
+    "edge_count": 4,
+    "group_count": 0,
+    "semantic_topology_sha256": "B0A89EE6B0D241FD8C34C67F709BB5C2C56BB1DE885F7B0285F82FA356EEE55C",
+    "mmd_sha256": "1579A643E563A81E6A2B31FC7BB10AE652D3A5D971B0DF0D50EA671C1A9FBA9C",
+    "dot_sha256": "C3D4CCC7ECC03A7CA01DEA71FDB09E47EEF6EC8019016D3B32A288AF75996F0D",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "69524B1EEB79F82437F1921F441A977A6134442EAE7E654AA7F0CA12DA67E88D",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "25C7864903E9C229AC20F39CDA92E5A49AED6E31473C9343F903EC94895F8627"
+  },
+  "graph_role": "source_package_executable_routes",
+  "installed_execution_claimed": false
+}

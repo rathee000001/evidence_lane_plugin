@@ -1,0 +1,163 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read bounded current identities, literal search, typed facts or historical bytes in the research lane.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "research",
+        "default": "research",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_bytes": {
+        "default": 65536,
+        "maximum": 131072,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 8388608,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      },
+      "representation": {
+        "default": "snapshot",
+        "enum": [
+          "snapshot",
+          "original_source"
+        ],
+        "title": "Representation",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "ResearchRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "lane_fetch": {
+    "digest_result": "sha256",
+    "lanes": [
+      "research"
+    ],
+    "offset_argument": "offset",
+    "path_argument": null,
+    "path_prefix": "",
+    "path_result": "logical_name",
+    "primary_representation": "snapshot",
+    "size_result": "total_bytes"
+  },
+  "mutates": false,
+  "name": "research_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "research",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "44e56e3a222240866dd918a205c0d8e84fc50840c08d47a3323b02bf23385b88",
+      "owner": "research",
+      "version": 1
+    },
+    {
+      "digest": "156185210e2c72b1d022d8f1c8679a46f35cff276bef77f96546b6464d0d017f",
+      "owner": "research",
+      "version": 2
+    },
+    {
+      "digest": "8e51760c907d3e04345d10f7b27e37d76e160d0d72e5fb4d6e26fe02046a89a9",
+      "owner": "research",
+      "version": 3
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "963eb226fee9a95a80e878cb96f21407cdb5ee1fa3219265fc7b07139ed8b81d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "research_read",
+    "profile": "research",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.sector_evidence_profile:register_evidence_sector_actions.<locals>.reader.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "research_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

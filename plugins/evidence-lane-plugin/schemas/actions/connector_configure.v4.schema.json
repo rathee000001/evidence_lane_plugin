@@ -1,0 +1,294 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Add or configure one versioned project extension grant without executing its backend.",
+  "inputSchema": {
+    "$defs": {
+      "PluginRegistration": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 128,
+            "minItems": 1,
+            "title": "Allowed Actions",
+            "type": "array"
+          },
+          "allowed_lanes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 128,
+            "minItems": 1,
+            "title": "Allowed Lanes",
+            "type": "array"
+          },
+          "backend_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_.-]{2,127}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Backend Id"
+          },
+          "backend_runtime": {
+            "enum": [
+              "python",
+              "java",
+              "kotlin",
+              "go",
+              "rust",
+              "cpp",
+              "external_mcp"
+            ],
+            "title": "Backend Runtime",
+            "type": "string"
+          },
+          "backend_version": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Backend Version"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 128,
+            "minItems": 1,
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "config_env_keys": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Config Env Keys",
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "host_profiles": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Host Profiles",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "plugin_id": {
+            "pattern": "^[a-z][a-z0-9-]{2,63}$",
+            "title": "Plugin Id",
+            "type": "string"
+          },
+          "plugin_kind": {
+            "enum": [
+              "connector",
+              "toolchain"
+            ],
+            "title": "Plugin Kind",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "read_roots": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Read Roots",
+            "type": "array"
+          },
+          "resource_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Resource Ids",
+            "type": "array"
+          },
+          "role": {
+            "pattern": "^[a-z][a-z0-9_-]{2,63}$",
+            "title": "Role",
+            "type": "string"
+          },
+          "role_schema": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Role Schema",
+            "type": "object"
+          },
+          "write_roots": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Write Roots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plugin_id",
+          "name",
+          "plugin_kind",
+          "description",
+          "purpose",
+          "capabilities",
+          "allowed_lanes",
+          "allowed_actions",
+          "expires_at",
+          "role",
+          "role_schema",
+          "host_profiles",
+          "backend_runtime"
+        ],
+        "title": "PluginRegistration",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_version": {
+        "anyOf": [
+          {
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Version"
+      },
+      "registration": {
+        "$ref": "#/$defs/PluginRegistration"
+      }
+    },
+    "required": [
+      "registration"
+    ],
+    "title": "ConnectorConfigure",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "connector_configure",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "backend_execution_authorized": {
+        "const": false,
+        "default": false,
+        "title": "Backend Execution Authorized",
+        "type": "boolean"
+      },
+      "changed": {
+        "title": "Changed",
+        "type": "boolean"
+      },
+      "digest": {
+        "title": "Digest",
+        "type": "string"
+      },
+      "plugin_id": {
+        "title": "Plugin Id",
+        "type": "string"
+      },
+      "version": {
+        "title": "Version",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "plugin_id",
+      "version",
+      "digest",
+      "changed"
+    ],
+    "title": "ConnectorConfigured",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "admin",
+  "profile": "extensions",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "a028dacb8a3438202159d2a7e2681988260ec1f79567dd64035fcdc4e51a55b7",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "connector_configure",
+    "profile": "extensions",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.connector_governance:register_connector_actions.<locals>.configure",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "connector_configure.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "additional-plugin"
+}

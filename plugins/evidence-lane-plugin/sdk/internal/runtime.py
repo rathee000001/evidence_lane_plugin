@@ -1,13 +1,6 @@
-"""Binding to the canonical internal 88-action SDK."""
+"""Bind the internal SDK plane to the one current typed action registry."""
 
-from evidence_lane_plugin.internal_sdk import (
-    inspect_sdk_handler_parity,
-    runtime_workflow_sdk_registry,
-    sdk_plane_registry,
-)
+from evidence_lane_plugin.registry import ActionContext, ActionRegistry
+from evidence_lane_plugin.sdk import dispatch
 
-__all__ = [
-    "inspect_sdk_handler_parity",
-    "runtime_workflow_sdk_registry",
-    "sdk_plane_registry",
-]
+__all__ = ["ActionContext", "ActionRegistry", "dispatch"]

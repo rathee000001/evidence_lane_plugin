@@ -1,0 +1,272 @@
+{
+  "schema": "evidence-lane.empty-root-coordination-schema.v4",
+  "lane_id": "project_authority",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "9c91096e366982d410bb420663ddbb7e44584a750604202815f8016e2b363a4c",
+  "tables": [
+    {
+      "name": "project",
+      "type": "table",
+      "sql": "CREATE TABLE project (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL UNIQUE,\n    source_root TEXT NOT NULL, format_version INTEGER NOT NULL,\n    storage_layout TEXT NOT NULL, created_at TEXT NOT NULL,\n    registration_digest TEXT NOT NULL CHECK(length(registration_digest)=64))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_root",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "format_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "registration_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "project_registration",
+      "type": "table",
+      "sql": "CREATE TABLE project_registration (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n    body_json TEXT NOT NULL CHECK(json_valid(body_json)))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "root_lane_catalog",
+      "type": "table",
+      "sql": "CREATE TABLE root_lane_catalog (\n    lane_id TEXT PRIMARY KEY, kind TEXT NOT NULL CHECK(kind IN ('authority','sector')),\n    database_path TEXT NOT NULL UNIQUE, initialized_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "database_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "initialized_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "root_lane_heads",
+      "type": "table",
+      "sql": "CREATE TABLE root_lane_heads (\n    lane_id TEXT PRIMARY KEY REFERENCES root_lane_catalog(lane_id),\n    revision INTEGER NOT NULL, head_digest TEXT NOT NULL, commit_id TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "head_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commit_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "root_pv_head",
+      "type": "table",
+      "sql": "CREATE TABLE root_pv_head (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL,\n    head_digest TEXT NOT NULL, commit_id TEXT)",
+      "rows": 1,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "head_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "commit_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "root_transaction_journal",
+      "type": "table",
+      "sql": "CREATE TABLE root_transaction_journal (\n    commit_id TEXT PRIMARY KEY, phase TEXT NOT NULL, body_json TEXT NOT NULL,\n    created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "commit_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "phase",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "writer_lease",
+      "type": "table",
+      "sql": "CREATE TABLE writer_lease (\n            singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n            fence INTEGER NOT NULL CHECK(fence>=1), owner_id TEXT,\n            engine_id TEXT, expires_at TEXT)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "fence",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "owner_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "engine_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "expires_at",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "root_lane_heads",
+      "target": "root_lane_catalog",
+      "column": "lane_id",
+      "target_column": "lane_id"
+    }
+  ],
+  "runtime_initialization_performed": false,
+  "static_schema_metadata": {
+    "root_pv_head": [
+      [
+        1,
+        0,
+        "",
+        null
+      ]
+    ]
+  }
+}

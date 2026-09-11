@@ -1,0 +1,554 @@
+{
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "canon",
+  "database_role": "unbound_schema_template",
+  "business_rows": 0,
+  "project_identity_rows": 0,
+  "sqlite_version": "3.50.4",
+  "sqlite_sha256": "ff3be95d2dfc8f6d22d6c30c970a683cf88d1d11b4a509c8e03b8bf30c132a56",
+  "tables": [
+    {
+      "name": "canon_contract_current",
+      "type": "table",
+      "sql": "CREATE TABLE canon_contract_current (receiver_id TEXT NOT NULL REFERENCES canon_participants(participant_id),\n       contract_key TEXT NOT NULL, contract_digest TEXT NOT NULL REFERENCES canon_contracts(contract_digest),\n       PRIMARY KEY(receiver_id,contract_key))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "receiver_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "contract_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "contract_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_contracts",
+      "type": "table",
+      "sql": "CREATE TABLE canon_contracts (contract_digest TEXT PRIMARY KEY, receiver_id TEXT NOT NULL REFERENCES canon_participants(participant_id),\n       contract_key TEXT NOT NULL, version INTEGER NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       UNIQUE(receiver_id,contract_key,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "contract_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "receiver_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "contract_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_events",
+      "type": "table",
+      "sql": "CREATE TABLE canon_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE, kind TEXT NOT NULL,\n       actor_id TEXT NOT NULL, input_digest TEXT NOT NULL, result_json TEXT NOT NULL CHECK(json_valid(result_json)),\n       previous_digest TEXT, digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "actor_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "input_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "result_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "previous_digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_exchanges",
+      "type": "table",
+      "sql": "CREATE TABLE canon_exchanges (sequence INTEGER PRIMARY KEY, exchange_id TEXT NOT NULL UNIQUE,\n       sender_id TEXT NOT NULL, receiver_id TEXT NOT NULL,\n       kind TEXT NOT NULL, envelope_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       state TEXT NOT NULL CHECK(state IN ('sealed','received','admitted','rejected','needs_clarification','superseded')),\n       version INTEGER NOT NULL, state_digest TEXT NOT NULL, parent_id TEXT REFERENCES canon_exchanges(exchange_id), created_at TEXT NOT NULL,\n       source_project_id TEXT NOT NULL, destination_project_id TEXT NOT NULL,\n       local_role TEXT NOT NULL CHECK(local_role IN ('outbox','inbox','both')), artifact_path TEXT UNIQUE)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "exchange_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "sender_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "receiver_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "envelope_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "state_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "parent_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination_project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "local_role",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "artifact_path",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_participants",
+      "type": "table",
+      "sql": "CREATE TABLE canon_participants (participant_id TEXT PRIMARY KEY, owner_client_id TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL, created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "participant_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner_client_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_supersessions",
+      "type": "table",
+      "sql": "CREATE TABLE canon_supersessions (\n       exchange_id TEXT PRIMARY KEY REFERENCES canon_exchanges(exchange_id),\n       request_id TEXT NOT NULL UNIQUE REFERENCES canon_events(request_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "exchange_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_task_edge_bindings",
+      "type": "table",
+      "sql": "CREATE TABLE canon_task_edge_bindings (\n       edge_id TEXT PRIMARY KEY REFERENCES canon_task_edges(edge_id),\n       request_id TEXT NOT NULL UNIQUE REFERENCES canon_events(request_id))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "request_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "canon_task_edges",
+      "type": "table",
+      "sql": "CREATE TABLE canon_task_edges (\n       sequence INTEGER PRIMARY KEY, edge_id TEXT NOT NULL UNIQUE, edge_digest TEXT NOT NULL UNIQUE,\n       source_node TEXT NOT NULL, destination_node TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), artifact_path TEXT NOT NULL UNIQUE)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "sequence",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "edge_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "edge_digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "source_node",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "destination_node",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "body_json",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "artifact_path",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "lane_identity",
+      "type": "table",
+      "sql": "CREATE TABLE lane_identity (\n    singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL,\n    lane_id TEXT NOT NULL, kind TEXT NOT NULL, storage_layout TEXT NOT NULL,\n    created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "project_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "lane_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "storage_layout",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "type": "table",
+      "sql": "CREATE TABLE objects (\n    digest TEXT PRIMARY KEY CHECK(length(digest)=64),\n    size_bytes INTEGER NOT NULL CHECK(size_bytes>=0), created_at TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "sql": "CREATE TABLE schema_migrations (\n    owner TEXT NOT NULL, version INTEGER NOT NULL, digest TEXT NOT NULL,\n    description TEXT NOT NULL, applied_at TEXT NOT NULL, PRIMARY KEY(owner,version))",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 1
+        },
+        {
+          "name": "version",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": 2
+        },
+        {
+          "name": "digest",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "applied_at",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    },
+    {
+      "name": "schema_ownership",
+      "type": "table",
+      "sql": "CREATE TABLE schema_ownership (\n    object_name TEXT PRIMARY KEY, owner TEXT NOT NULL, object_type TEXT NOT NULL)",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "object_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": 1
+        },
+        {
+          "name": "owner",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        },
+        {
+          "name": "object_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": 0
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "source": "canon_contract_current",
+      "target": "canon_contracts",
+      "column": "contract_digest",
+      "target_column": "contract_digest"
+    },
+    {
+      "source": "canon_contract_current",
+      "target": "canon_participants",
+      "column": "receiver_id",
+      "target_column": "participant_id"
+    },
+    {
+      "source": "canon_contracts",
+      "target": "canon_participants",
+      "column": "receiver_id",
+      "target_column": "participant_id"
+    },
+    {
+      "source": "canon_exchanges",
+      "target": "canon_exchanges",
+      "column": "parent_id",
+      "target_column": "exchange_id"
+    },
+    {
+      "source": "canon_supersessions",
+      "target": "canon_events",
+      "column": "request_id",
+      "target_column": "request_id"
+    },
+    {
+      "source": "canon_supersessions",
+      "target": "canon_exchanges",
+      "column": "exchange_id",
+      "target_column": "exchange_id"
+    },
+    {
+      "source": "canon_task_edge_bindings",
+      "target": "canon_events",
+      "column": "request_id",
+      "target_column": "request_id"
+    },
+    {
+      "source": "canon_task_edge_bindings",
+      "target": "canon_task_edges",
+      "column": "edge_id",
+      "target_column": "edge_id"
+    }
+  ],
+  "runtime_initialization_performed": false
+}

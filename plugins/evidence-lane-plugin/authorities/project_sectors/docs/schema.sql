@@ -1,279 +1,65 @@
--- Generated inspection/replay schema from the canonical lane builder.
--- Canonical implementation: src/evidence_lane_plugin/lane_engine.py
-
-CREATE TABLE authority_index_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_bytes BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE VIRTUAL TABLE authority_index_fts USING fts5(
-            node_id UNINDEXED,
-            authority_id UNINDEXED,
-            source_table UNINDEXED,
-            source_identity UNINDEXED,
-            text_content,
-            content='',
-            contentless_delete=1,
-            tokenize='unicode61'
-        );
-
-CREATE TABLE authority_index_node(
-            node_id TEXT PRIMARY KEY,
-            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)
-                ON DELETE CASCADE,
-            ordinal INTEGER NOT NULL,
-            char_start INTEGER NOT NULL,
-            char_end INTEGER NOT NULL,
-            text_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            UNIQUE(source_id, ordinal)
-        ) STRICT;
-
-CREATE TABLE authority_index_refresh_receipt(
-            sequence INTEGER PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_count INTEGER NOT NULL,
-            node_count INTEGER NOT NULL,
-            indexed_table_count INTEGER NOT NULL,
-            llama_index_core_version TEXT NOT NULL,
-            chunk_size_tokens INTEGER NOT NULL,
-            chunk_overlap_tokens INTEGER NOT NULL,
-            prior_receipt_sha256 TEXT,
-            recorded_at TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE authority_index_source(
-            source_id TEXT PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_table TEXT NOT NULL,
-            source_identity TEXT NOT NULL,
-            source_text_sha256 TEXT NOT NULL,
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            recorded_at TEXT NOT NULL,
-            UNIQUE(authority_id, source_table, source_identity)
-        ) STRICT;
-
-CREATE TABLE chunk_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_text BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE chunk_history(
-            history_id INTEGER PRIMARY KEY,
-            source_path TEXT NOT NULL,
-            source_sha256 TEXT NOT NULL,
-            locator TEXT NOT NULL,
-            ordinal INTEGER NOT NULL,
-            chunk_sha256 TEXT NOT NULL REFERENCES chunk_content_cas(sha256),
-            snapshot_ref TEXT NOT NULL,
-            observed_at TEXT NOT NULL,
-            content_reused INTEGER NOT NULL CHECK(content_reused IN (0, 1)),
-            UNIQUE(snapshot_ref, source_path, locator, ordinal, chunk_sha256)
-        ) STRICT;
-
-CREATE TABLE chunk_index(
-            chunk_id INTEGER PRIMARY KEY,
-            source_id INTEGER NOT NULL REFERENCES source_registry(source_id) ON DELETE CASCADE,
-            locator TEXT NOT NULL,
-            ordinal INTEGER NOT NULL,
-            char_start INTEGER NOT NULL,
-            char_end INTEGER NOT NULL,
-            sha256 TEXT NOT NULL,
-            metadata_json TEXT NOT NULL,
-            UNIQUE(source_id, locator, ordinal)
-        ) STRICT;
-
-CREATE TABLE doc_chunk(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE doc_file(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE VIRTUAL TABLE doc_fts USING fts5(
-            path UNINDEXED,
-            locator UNINDEXED,
-            text_content,
-            chunk_id UNINDEXED,
-            content='',
-            contentless_delete=1,
-            tokenize='unicode61'
-        );
-
-CREATE TABLE doc_heading(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE doc_image_reference(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE doc_paragraph(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE doc_structure(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE doc_table_extract(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE docling_extraction(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE lane_meta(
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE lane_pointer(
-            pointer_kind TEXT PRIMARY KEY,
-            pointer_value TEXT,
-            generation INTEGER NOT NULL,
-            recorded_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE mutation_receipt(
-            mutation_id INTEGER PRIMARY KEY,
-            mutation_kind TEXT NOT NULL,
-            source_path TEXT,
-            prior_sha256 TEXT,
-            current_sha256 TEXT,
-            recorded_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE parser_capability(
-            capability TEXT PRIMARY KEY,
-            state TEXT NOT NULL,
-            tool TEXT NOT NULL,
-            detail TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE refresh_receipt(
-            receipt_id INTEGER PRIMARY KEY,
-            build_mode TEXT NOT NULL,
-            parent_pv TEXT,
-            proposed_pv TEXT NOT NULL,
-            unchanged_reuse INTEGER NOT NULL,
-            changed_rebuild INTEGER NOT NULL,
-            new_register INTEGER NOT NULL,
-            removed_purge INTEGER NOT NULL,
-            blocked_unsupported INTEGER NOT NULL,
-            details_json TEXT NOT NULL,
-            recorded_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE source_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_bytes BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE source_registry(
-            source_id INTEGER PRIMARY KEY,
-            path TEXT NOT NULL UNIQUE,
-            size_bytes INTEGER NOT NULL,
-            sha256 TEXT NOT NULL REFERENCES source_content_cas(sha256),
-            mime_type TEXT NOT NULL,
-            extension TEXT NOT NULL,
-            encoding TEXT,
-            parser_state TEXT NOT NULL,
-            registered_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE source_structure_signature(
-                record_id INTEGER PRIMARY KEY,
-                source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-                locator TEXT NOT NULL,
-                payload_json TEXT NOT NULL
-            ) STRICT
-            ;
-
-CREATE TABLE structured_fact(
-            fact_id INTEGER PRIMARY KEY,
-            source_id INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE,
-            kind TEXT NOT NULL,
-            locator TEXT NOT NULL,
-            payload_json TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE tfidf_term(
-            term TEXT PRIMARY KEY,
-            document_frequency INTEGER NOT NULL,
-            document_count INTEGER NOT NULL,
-            idf REAL NOT NULL
-        ) STRICT;
-
-CREATE TABLE tfidf_vector(
-            chunk_id INTEGER NOT NULL REFERENCES chunk_index(chunk_id) ON DELETE CASCADE,
-            term TEXT NOT NULL REFERENCES tfidf_term(term) ON DELETE CASCADE,
-            term_count INTEGER NOT NULL,
-            token_count INTEGER NOT NULL,
-            tf REAL NOT NULL,
-            tfidf REAL NOT NULL,
-            PRIMARY KEY(chunk_id, term)
-        ) STRICT;
-
-CREATE INDEX authority_index_node_source_idx
-        ON authority_index_node(source_id, ordinal);
-
-CREATE INDEX authority_index_source_table_idx
-        ON authority_index_source(authority_id, source_table, source_identity);
-
-CREATE INDEX chunk_history_source_idx
-        ON chunk_history(source_path, snapshot_ref, ordinal);
-
-CREATE INDEX chunk_source_idx ON chunk_index(source_id, ordinal);
-
-CREATE INDEX source_registry_path_idx ON source_registry(path);
-
-CREATE INDEX structured_fact_kind_idx ON structured_fact(kind);
+-- Projection only: the engine applies these owner migrations under its project writer.
+-- docs v1, digest f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29
+CREATE TABLE doc_file(document_id TEXT PRIMARY KEY, logical_name TEXT NOT NULL,
+       source_path TEXT, origin TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+CREATE TABLE doc_version(snapshot_id TEXT PRIMARY KEY, document_id TEXT NOT NULL REFERENCES doc_file(document_id),
+       generation INTEGER NOT NULL CHECK(generation>0), previous_snapshot TEXT REFERENCES doc_version(snapshot_id),
+       manifest_object TEXT NOT NULL REFERENCES objects(digest), raw_object TEXT NOT NULL REFERENCES objects(digest),
+       facts_object TEXT NOT NULL REFERENCES objects(digest), parser_contract TEXT NOT NULL,
+       created_at TEXT NOT NULL, UNIQUE(document_id,generation)) STRICT;
+CREATE TABLE doc_current(document_id TEXT PRIMARY KEY REFERENCES doc_file(document_id),
+       snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id)) STRICT;
+CREATE TABLE doc_structure(snapshot_id TEXT PRIMARY KEY REFERENCES doc_version(snapshot_id),
+       facts_object TEXT NOT NULL REFERENCES objects(digest), fidelity_json TEXT NOT NULL CHECK(json_valid(fidelity_json))) STRICT;
+CREATE TABLE doc_bookmark(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_content_control(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_embedded_object(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_field(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_heading(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_hyperlink(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_image_reference(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_paragraph(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_relationship(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_revision(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_table_extract(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       item_id TEXT NOT NULL, kind TEXT NOT NULL, ordinal INTEGER NOT NULL, part TEXT NOT NULL,
+       payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(snapshot_id,item_id)) STRICT;
+CREATE TABLE doc_chunk(snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       chunk_id TEXT NOT NULL, item_id TEXT NOT NULL, ordinal INTEGER NOT NULL,
+       text_object TEXT NOT NULL REFERENCES objects(digest), PRIMARY KEY(snapshot_id,chunk_id)) STRICT;
+CREATE VIRTUAL TABLE doc_chunk_fts USING fts5(snapshot_id UNINDEXED,chunk_id UNINDEXED,text_content,tokenize=unicode61);
+CREATE TABLE doc_render(render_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT;
+CREATE TABLE doc_export(export_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       destination TEXT NOT NULL, before_sha256 TEXT, after_sha256 TEXT NOT NULL,
+       effect_id TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;
+CREATE INDEX doc_versions_document ON doc_version(document_id,generation);
+-- docs v2, digest 57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc
+CREATE TABLE docling_extraction(enrichment_id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES doc_version(snapshot_id),
+       manifest_object TEXT NOT NULL REFERENCES objects(digest), created_at TEXT NOT NULL) STRICT;
+-- docsselector v1, digest c107d43c9784272e42121919513ae8de43e9d8a6bfcc41ee115442310ac2bc99
+CREATE TABLE selector_retirement(
+            snapshot_id TEXT PRIMARY KEY REFERENCES objects(digest),
+            proof_object TEXT NOT NULL REFERENCES objects(digest),
+            job_id TEXT NOT NULL, plan_revision INTEGER NOT NULL,
+            created_at TEXT NOT NULL) STRICT;

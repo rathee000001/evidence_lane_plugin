@@ -1,123 +1,30 @@
--- Generated from the canonical authority SQLite builder.
--- FTS5 shadow tables are intentionally omitted; SQLite creates them.
+-- Projection: runtime applies the real ordered migrations under its project writer.
 
-CREATE TABLE authority_index_content_cas(
-            sha256 TEXT PRIMARY KEY,
-            size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0),
-            compression TEXT NOT NULL,
-            compressed_bytes BLOB NOT NULL,
-            first_seen_at TEXT NOT NULL
-        ) STRICT;
-
-CREATE VIRTUAL TABLE authority_index_fts USING fts5(
-            node_id UNINDEXED,
-            authority_id UNINDEXED,
-            source_table UNINDEXED,
-            source_identity UNINDEXED,
-            text_content,
-            content='',
-            contentless_delete=1,
-            tokenize='unicode61'
-        );
-
-CREATE TABLE authority_index_node(
-            node_id TEXT PRIMARY KEY,
-            source_id TEXT NOT NULL REFERENCES authority_index_source(source_id)
-                ON DELETE CASCADE,
-            ordinal INTEGER NOT NULL,
-            char_start INTEGER NOT NULL,
-            char_end INTEGER NOT NULL,
-            text_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            UNIQUE(source_id, ordinal)
-        ) STRICT;
-
-CREATE TABLE authority_index_refresh_receipt(
-            sequence INTEGER PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_count INTEGER NOT NULL,
-            node_count INTEGER NOT NULL,
-            indexed_table_count INTEGER NOT NULL,
-            llama_index_core_version TEXT NOT NULL,
-            chunk_size_tokens INTEGER NOT NULL,
-            chunk_overlap_tokens INTEGER NOT NULL,
-            prior_receipt_sha256 TEXT,
-            recorded_at TEXT NOT NULL,
-            receipt_sha256 TEXT NOT NULL UNIQUE,
-            receipt_json TEXT NOT NULL
-        ) STRICT;
-
-CREATE TABLE authority_index_source(
-            source_id TEXT PRIMARY KEY,
-            authority_id TEXT NOT NULL,
-            source_table TEXT NOT NULL,
-            source_identity TEXT NOT NULL,
-            source_text_sha256 TEXT NOT NULL,
-            metadata_sha256 TEXT NOT NULL
-                REFERENCES authority_index_content_cas(sha256),
-            recorded_at TEXT NOT NULL,
-            UNIQUE(authority_id, source_table, source_identity)
-        ) STRICT;
-
-CREATE TABLE universe_edge(
-    edge_id TEXT PRIMARY KEY,
-    relation TEXT NOT NULL,
-    source_node_id TEXT NOT NULL REFERENCES universe_node(node_id),
-    destination_node_id TEXT NOT NULL REFERENCES universe_node(node_id),
-    attributes_json TEXT NOT NULL,
-    record_sha256 TEXT NOT NULL,
-    UNIQUE(relation, source_node_id, destination_node_id, attributes_json)
-) STRICT;
-
-CREATE VIRTUAL TABLE universe_fts USING fts5(
-    node_id UNINDEXED,
-    node_kind,
-    label,
-    canonical_locator,
-    attributes
-);
-
-CREATE TABLE universe_meta(
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE universe_metric(
-    metric_key TEXT PRIMARY KEY,
-    metric_value INTEGER NOT NULL CHECK(metric_value >= 0)
-) STRICT;
-
-CREATE TABLE universe_node(
-    node_id TEXT PRIMARY KEY,
-    node_kind TEXT NOT NULL,
-    canonical_locator TEXT NOT NULL UNIQUE,
-    label TEXT NOT NULL,
-    attributes_json TEXT NOT NULL,
-    record_sha256 TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE universe_refresh(
-    refresh_id TEXT PRIMARY KEY,
-    source_fingerprint_sha256 TEXT NOT NULL,
-    graph_sha256 TEXT NOT NULL,
-    recorded_at TEXT NOT NULL,
-    node_count INTEGER NOT NULL,
-    edge_count INTEGER NOT NULL
-) STRICT;
-
-CREATE INDEX authority_index_node_source_idx
-        ON authority_index_node(source_id, ordinal);
-
-CREATE INDEX authority_index_source_table_idx
-        ON authority_index_source(authority_id, source_table, source_identity);
-
-CREATE INDEX universe_edge_destination_idx
-ON universe_edge(destination_node_id, relation, source_node_id);
-
-CREATE INDEX universe_edge_source_idx
-ON universe_edge(source_node_id, relation, destination_node_id);
-
-CREATE INDEX universe_node_kind_idx
-ON universe_node(node_kind, node_id);
+-- universe v1, digest 738098e3bde2ea457809e5735318c13863466e2433789f8c8da5390ea49e4617
+CREATE TABLE universe_links (
+        target_project_id TEXT PRIMARY KEY, version INTEGER NOT NULL CHECK(version>0),
+        state TEXT NOT NULL CHECK(state IN ('linked','unlinked')),
+        binding_digest TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)));
+CREATE TABLE universe_link_events (
+        sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
+        actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)),
+        previous_digest TEXT, digest TEXT NOT NULL UNIQUE);
+-- federation v1, digest 25bc500aed38d1cbdf7bbdaa841024564b81e9f9fe54b07fc926f7646092c53b
+CREATE TABLE federation_identity (singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+        federation_id TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);
+CREATE TABLE federation_members (project_id TEXT PRIMARY KEY, version INTEGER NOT NULL,
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);
+CREATE TABLE federation_member_history (project_id TEXT NOT NULL, version INTEGER NOT NULL,
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL, PRIMARY KEY(project_id,version));
+CREATE TABLE federation_mini_brains (mini_brain_id TEXT PRIMARY KEY, project_id TEXT NOT NULL,
+        lane_id TEXT NOT NULL, body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);
+CREATE INDEX federation_mini_project ON federation_mini_brains(project_id,lane_id,mini_brain_id);
+CREATE TABLE federation_lane_heads (project_id TEXT NOT NULL, lane_id TEXT NOT NULL,
+        mini_brain_id TEXT NOT NULL REFERENCES federation_mini_brains(mini_brain_id), PRIMARY KEY(project_id,lane_id));
+CREATE TABLE federation_grants (grant_id TEXT PRIMARY KEY,
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);
+CREATE TABLE federation_revocations (grant_id TEXT PRIMARY KEY REFERENCES federation_grants(grant_id),
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);
+CREATE TABLE federation_links (edge_id TEXT PRIMARY KEY, grant_id TEXT NOT NULL REFERENCES federation_grants(grant_id),
+        body_json TEXT NOT NULL CHECK(json_valid(body_json)), digest TEXT NOT NULL);

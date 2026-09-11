@@ -1,0 +1,18 @@
+{
+  "schema": "evidence-lane.plan-law.v4",
+  "database": "authorities/plan/plan_authority_v001.sqlite",
+  "source": [
+    "plan_runtime",
+    "steering",
+    "jobs",
+    "adaptive_delta_entry",
+    "adaptive_delta_exit"
+  ],
+  "current_revision": "One current revision; immutable definitions and append-only attributed transitions",
+  "semantic_steer": "Checkpoint affected work and replace active/queued contracts atomically; reject stale completion",
+  "completion": "Exact task/revision/contract, accepted checks, succeeded job and delta_exit_verified receipt",
+  "logical_authority": "plan",
+  "native_step_list_is_project_plan": false,
+  "arbitrary_status_mutation": false,
+  "automatic_hil": false
+}

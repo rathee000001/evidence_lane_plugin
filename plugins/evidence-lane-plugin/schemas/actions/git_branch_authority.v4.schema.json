@@ -1,0 +1,104 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read the exact recorded branch and named remote selection without inspecting or changing Git.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "GitBranchRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "git_branch_authority",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "authority": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Authority"
+      },
+      "live_repository_observed": {
+        "default": false,
+        "title": "Live Repository Observed",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "authority"
+    ],
+    "title": "GitBranchState",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "57b55153da9c0963abb4ceb1ca8a4fe430581d1fe0d8de4f1c92b1869cb6d6c9",
+      "owner": "gitbranch",
+      "version": 1
+    },
+    {
+      "digest": "dbe99550c78e5a7fcfe1e8bec03b11ba025cd2ff8988588d2291def7f8bab5fb",
+      "owner": "gitbranch",
+      "version": 2
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "9ac5f85ea35e9ad19b7abce9a84f8801fe2910dc123ce2e58268d0f3d909532b",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "git_branch_authority",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.enrollment:register_git_sync_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "git_branch_authority.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

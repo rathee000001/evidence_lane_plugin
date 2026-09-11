@@ -1,0 +1,13 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "hooks",
+  "members": [
+    {
+      "path": "schemas/hooks/hook-family.v4.json",
+      "sha256": "3f853f979de299ecc6797e617713243946ff0f3e0b74be804ca10ebd2044d3a0"
+    }
+  ],
+  "purpose": "Complete hooks schema family",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

@@ -1,0 +1,13 @@
+{
+  "complete_owner_files_indexed": true,
+  "family": "skills",
+  "members": [
+    {
+      "path": "schemas/skills/skill-registry.v4.json",
+      "sha256": "c1f125b81024060cbf651bcff92baa8b54052f6ee130544fb1796769cf1d2a65"
+    }
+  ],
+  "purpose": "Complete skills schema family",
+  "runtime_execution_inferred": false,
+  "schema": "evidence-lane.schema-family.v4"
+}

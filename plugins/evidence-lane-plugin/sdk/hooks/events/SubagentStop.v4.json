@@ -1,0 +1,13 @@
+{
+  "automatic_retry": false,
+  "entrypoint": "hooks/events/SubagentStop/handler.py",
+  "event": "SubagentStop",
+  "event_contract": "hooks/events/SubagentStop/event.v4.json",
+  "event_contract_sha256": "201b0feb7a8a4938e7f00c99b287c6d06691ea63c7cad94e1edef4dcaba03e38",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "input_schema": "schemas/hooks/SubagentStop.v4.schema.json",
+  "input_schema_sha256": "68084e83ffbd997c8ec31e41203aa281dae20696ca99f5bae41f2c0a2d9ea889",
+  "installed_execution_claimed": false,
+  "schema": "evidence-lane.sdk-hook-binding.v4",
+  "shared_runtime": "sdk/hooks/runtime.py"
+}

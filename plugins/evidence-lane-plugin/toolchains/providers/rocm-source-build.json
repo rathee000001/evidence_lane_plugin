@@ -1,0 +1,63 @@
+{
+  "schema": "evidence-lane.rocm-source-wheel-build.v1",
+  "status": "REPRODUCIBLE_LICENSE_RESTORED_WHEEL",
+  "source_url": "https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm-7.2.1.tar.gz",
+  "source_sha256": "9084902eaa69213a00a90784ad89e6e5fe73c702df0cc6cc3a70d777c7a6142b",
+  "source_setup_sha256": "09340cf0ead19a2adef4ec303456171fb3d4f421703d5f352f4dea92b4f71dcd",
+  "source_setup_normalized_sha256": "dd5c4f2b98195adfbe825488a785be7c70c3059b0bcba535332d0abe27cf6bd7",
+  "upstream_repository": "https://github.com/ROCm/TheRock",
+  "upstream_commit": "b7533bf7e101239fab6b5894e9b0c72febde2311",
+  "upstream_setup_path": "build_tools/packaging/python/templates/rocm/setup.py",
+  "upstream_setup_sha256": "dd5c4f2b98195adfbe825488a785be7c70c3059b0bcba535332d0abe27cf6bd7",
+  "upstream_license_path": "LICENSE",
+  "upstream_license_url": "https://raw.githubusercontent.com/ROCm/TheRock/b7533bf7e101239fab6b5894e9b0c72febde2311/LICENSE",
+  "upstream_license_sha256": "7728762ecd3256782c89e28b1887727a484deda6356887ef2f2898598e950cb8",
+  "license_restoration_reason": "The AMD-published source archive omitted license metadata and copied license text; its setup.py matches the exact upstream template after newline normalization.",
+  "transformation": {
+    "files_added": [
+      {
+        "path": "LICENSE",
+        "sha256": "7728762ecd3256782c89e28b1887727a484deda6356887ef2f2898598e950cb8"
+      }
+    ],
+    "files_modified": [
+      {
+        "path": "setup.py",
+        "before_sha256": "09340cf0ead19a2adef4ec303456171fb3d4f421703d5f352f4dea92b4f71dcd",
+        "after_sha256": "6e2c140a642f9363813f983368a60170734016bf876da55dab0e77ab3a9e4c1c",
+        "added_setup_arguments": [
+          "license_expression=\"MIT\"",
+          "license_files=[\"LICENSE\"]"
+        ]
+      }
+    ]
+  },
+  "build_backend": "setuptools==83.0.0",
+  "build_environment": {
+    "pip": "25.3",
+    "setuptools": "83.0.0",
+    "wheel": "0.46.3"
+  },
+  "build_isolation": false,
+  "network_during_build": false,
+  "target_family": "custom",
+  "source_date_epoch": 1770000000,
+  "reproducibility": {
+    "fresh_build_count": 2,
+    "wheel_sha256s": [
+      "b0af2aca5fcb97cc85f30087914d8d547ecfb3b53d202c4346b2d28fe7950b8d",
+      "b0af2aca5fcb97cc85f30087914d8d547ecfb3b53d202c4346b2d28fe7950b8d"
+    ],
+    "byte_identical": true
+  },
+  "wheel_file": "wheels/rocm-7.2.1-py3-none-any.whl",
+  "wheel_bytes": 21011,
+  "wheel_sha256": "b0af2aca5fcb97cc85f30087914d8d547ecfb3b53d202c4346b2d28fe7950b8d",
+  "wheel_license": {
+    "metadata_path": "rocm-7.2.1.dist-info/METADATA",
+    "license_expression": "MIT",
+    "license_path": "rocm-7.2.1.dist-info/licenses/LICENSE",
+    "license_sha256": "7728762ecd3256782c89e28b1887727a484deda6356887ef2f2898598e950cb8"
+  },
+  "receipt_sha256": "8af8979f7940e56cc9bf1220d5c8da6a4b9834f40574ebc539f10d018e74ae39"
+}

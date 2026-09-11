@@ -1,0 +1,240 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Record source-bound intent, focus, owning lanes and next workflow action; classification does not apply a Plan steer or authorize work.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "classification_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Classification Id",
+        "type": "string"
+      },
+      "code_lane": {
+        "default": "local_code",
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Code Lane",
+        "type": "string"
+      },
+      "custom_modes": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "maxItems": 8,
+        "title": "Custom Modes",
+        "type": "array"
+      },
+      "explicit_modes": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 16,
+        "title": "Explicit Modes",
+        "type": "array"
+      },
+      "focus": {
+        "maxLength": 1000,
+        "minLength": 1,
+        "title": "Focus",
+        "type": "string"
+      },
+      "intent": {
+        "enum": [
+          "informational",
+          "semantic",
+          "stop",
+          "work"
+        ],
+        "title": "Intent",
+        "type": "string"
+      },
+      "lanes": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "Lanes",
+        "type": "array"
+      },
+      "next_action": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$",
+        "title": "Next Action",
+        "type": "string"
+      },
+      "source_cursor": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Cursor",
+        "type": "string"
+      },
+      "source_event_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Source Event Id",
+        "type": "string"
+      },
+      "source_text": {
+        "anyOf": [
+          {
+            "maxLength": 65536,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Text"
+      },
+      "workflow": {
+        "maxLength": 64,
+        "minLength": 1,
+        "title": "Workflow",
+        "type": "string"
+      }
+    },
+    "required": [
+      "classification_id",
+      "source_event_id",
+      "source_cursor",
+      "intent",
+      "focus",
+      "workflow",
+      "next_action"
+    ],
+    "title": "EntryClassify",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "task_classify",
+  "outputSchema": {
+    "$defs": {
+      "TaskModeBinding": {
+        "additionalProperties": false,
+        "description": "Exact, project-owned classification reference; never ambient session state.",
+        "properties": {
+          "classification_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Classification Digest",
+            "type": "string"
+          },
+          "classification_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Classification Id",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "selection_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Selection Sha256",
+            "type": "string"
+          },
+          "source_cursor": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Cursor",
+            "type": "string"
+          },
+          "source_event_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "classification_id",
+          "classification_digest",
+          "source_event_id",
+          "source_cursor",
+          "selection_sha256",
+          "manifest_digest"
+        ],
+        "title": "TaskModeBinding",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "entry": {
+        "additionalProperties": true,
+        "title": "Entry",
+        "type": "object"
+      },
+      "plan_changed": {
+        "const": false,
+        "default": false,
+        "title": "Plan Changed",
+        "type": "boolean"
+      },
+      "task_mode_binding": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/TaskModeBinding"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "entry"
+    ],
+    "title": "EntryResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "chat_lineage",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "a6fc81fae848bc1057d0d719394b2f6c7cb37352dcc8daac1cd916a58b8bd614",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "task_classify",
+    "profile": "chat_lineage",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.classify",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "task_classify.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "lifecycle"
+}

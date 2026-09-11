@@ -1,45 +1,74 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "pdf_ocr MERMAID_TRAVERSAL_MAP artifact receipt",
-  "type": "object",
-  "required": [
-    "authority_id",
-    "artifact_path",
-    "artifact_role",
-    "syntax",
-    "bytes",
-    "sha256",
-    "validator",
-    "status"
-  ],
-  "properties": {
-    "authority_id": {
-      "const": "pdf_ocr"
-    },
-    "artifact_path": {
-      "const": "pdf_ocr.mmd"
-    },
-    "artifact_role": {
-      "const": "MERMAID_TRAVERSAL_MAP"
-    },
-    "syntax": {
-      "const": "MERMAID_FLOWCHART"
-    },
-    "bytes": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[A-F0-9]{64}$"
-    },
-    "validator": {
-      "const": "topology_reconciliation.validate_mermaid"
-    },
-    "status": {
-      "const": "PASS"
-    }
+  "$defs": {
+    "JsonValue": {}
   },
   "additionalProperties": false,
-  "receipt_sha256": "8752AA3F760B8DCFB86351E36E2C8F6F327950375707C81CAACCEEA105D26E18"
+  "properties": {
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "view_id": {
+      "title": "View Id",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "published",
+        "empty"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "snapshot_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Snapshot Digest"
+    },
+    "files": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "source_authority_mutated": {
+      "const": false,
+      "default": false,
+      "title": "Source Authority Mutated",
+      "type": "boolean"
+    },
+    "reused_snapshot": {
+      "default": false,
+      "title": "Reused Snapshot",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "project_id",
+    "view_id",
+    "state",
+    "generation",
+    "snapshot_digest",
+    "files"
+  ],
+  "title": "PDF / OCR selected MMD publication",
+  "type": "object",
+  "x-format": "mmd",
+  "x-lane-id": "pdf_ocr",
+  "x-selection-policy": "Only explicitly selected lane formats; natural artifacts remain separate."
 }

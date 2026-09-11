@@ -1,0 +1,7 @@
+{
+  "schema": "evidence-lane.session-pointer-contract.v4",
+  "state_authority": "receipts_lane_sqlite",
+  "reference": "session_id, generation, event_digest and locked Flash",
+  "separate_current_file": false,
+  "native_task_attestation_inferred": false
+}

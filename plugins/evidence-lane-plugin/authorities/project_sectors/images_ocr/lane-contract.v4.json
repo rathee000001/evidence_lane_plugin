@@ -1,0 +1,87 @@
+{
+  "schema": "evidence-lane.installed-lane-contract.v4",
+  "lane_id": "images_ocr",
+  "source_package_folder": "authorities/project_sectors/images_ocr",
+  "project_state_folder": "sectors/images_ocr",
+  "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+  "files": "sectors/images_ocr/files",
+  "schema_history": "sectors/images_ocr/schema-history",
+  "migrations": [
+    {
+      "owner": "media",
+      "version": 1,
+      "digest": "6118a44cd7fd776b8553dae51c188751a324e3edb733efac42337879c5a43215"
+    },
+    {
+      "owner": "media",
+      "version": 2,
+      "digest": "e6b275e15b5028be6c3b20556d64814ef016cf9ea72836e02994af3824a0a074"
+    },
+    {
+      "owner": "imagesocrselector",
+      "version": 1,
+      "digest": "a7ee002d72fb6929925ea53492c0d49b7a63b26216343425441c5a4ae9797f50"
+    }
+  ],
+  "artifact_contract": {
+    "schema": "evidence-lane.lane-artifact-role-registry.v4",
+    "lane_id": "images_ocr",
+    "folder": "sectors/images_ocr",
+    "files_root": "sectors/images_ocr/files",
+    "required_roles": [
+      {
+        "role_id": "sqlite_authority",
+        "path": "images_ocr_sector_v001.sqlite"
+      }
+    ],
+    "schema_history": {
+      "path": "schema-history",
+      "condition": "migration_applied"
+    },
+    "natural_artifacts": {
+      "extensions": [
+        ".png",
+        ".jpg",
+        ".webp",
+        ".wav",
+        ".mp4",
+        ".txt"
+      ],
+      "condition": "declared_operation_produced_output"
+    },
+    "relationship_views": [
+      "media_derivation_and_source_provenance"
+    ],
+    "graph_exports": {
+      "condition": "declared_consumer_requested_view",
+      "mmd": "images_ocr.mmd",
+      "dot": "images_ocr.dot",
+      "both_required": false
+    },
+    "pointer": {
+      "condition": "declared_view_consumer",
+      "meaning": null
+    },
+    "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+    "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
+    "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+    "contract_sha256": "6CA075F1AA8B1A9FDA7B5A3342B285490E43F87BD8AB64189CBEB2B10E0243A7"
+  },
+  "actions": [
+    "media_current",
+    "media_export",
+    "media_extract",
+    "media_extraction_read",
+    "media_index",
+    "media_ocr",
+    "media_ocr_read",
+    "media_query",
+    "media_read",
+    "media_refresh",
+    "media_transform",
+    "source_snapshot_retire",
+    "source_snapshot_state"
+  ],
+  "shared_toolchain": "toolchains/operation-toolchains.v4.json",
+  "project_data_packaged": false
+}

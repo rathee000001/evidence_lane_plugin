@@ -1,0 +1,5075 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "actions": [
+    {
+      "cross_project_read": false,
+      "description": "Parse and replace one exact UTF-8 source file, then refresh Sources, every affected current Local Code scope and existing consumer exports.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "local_code",
+            "default": "local_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "replacement_utf8": {
+            "maxLength": 524288,
+            "title": "Replacement Utf8",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename",
+          "expected_sha256",
+          "replacement_utf8"
+        ],
+        "title": "CodeApply",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_apply",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "filename"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7994509f63924874c65b4f0750fa9ac9c7e8bcd8924f51500ebd633b13373442",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": null,
+        "operation": "code_apply",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:apply_code",
+            "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_apply.structural",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "local_code.relationships"
+            },
+            "worker_operations": [
+              "code_parse_content"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.code_profile:apply_code",
+            "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_apply.structural_export",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "local_code.relationships"
+            },
+            "worker_operations": [
+              "code_parse_content",
+              "render_lane_view"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.code_profile:apply_code",
+            "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_apply.syntax",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser",
+              "TreeSitter_LanguagePack"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "local_code.relationships"
+            },
+            "worker_operations": [
+              "code_parse_content"
+            ]
+          },
+          {
+            "adapter": "evidence_lane_plugin.code_profile:apply_code",
+            "applicable": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.edit_route.<locals>.applicable",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_apply.syntax_export",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser",
+              "TreeSitter_LanguagePack",
+              "LangGraph_Mermaid_engine",
+              "Python_Graphviz_DOT_engine",
+              "rustworkx"
+            ],
+            "view_refresh": {
+              "native_dot": {
+                "client_families": [
+                  "codex_desktop",
+                  "codex_cli",
+                  "codex_vm"
+                ],
+                "engine_systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Graphviz_dot"
+                ]
+              },
+              "preserve": [
+                "scope",
+                "formats",
+                "include_pointer",
+                "dot_validation"
+              ],
+              "selection": "existing_consumer_exact_snapshot",
+              "view_id": "local_code.relationships"
+            },
+            "worker_operations": [
+              "code_parse_content",
+              "render_lane_view"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_content",
+          "render_lane_view"
+        ]
+      },
+      "verification_checks": [
+        "code_replacement_hash_verified"
+      ],
+      "worker_operations": [
+        "code_parse_content",
+        "render_lane_view"
+      ],
+      "workflow": "build"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read current Code scope identities without refreshing source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          }
+        },
+        "title": "CodeSelection",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_current",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "b101e31c54f25a16ddd12c8377d61a535b0a79fbe4646c112624be5c055be8e8",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_current",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_current.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Follow bounded static import dependencies or dependents in one Code snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "default": "dependents",
+            "enum": [
+              "dependents",
+              "dependencies"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_depth": {
+            "default": 2,
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Max Depth",
+            "type": "integer"
+          },
+          "max_edges": {
+            "default": 200,
+            "maximum": 500,
+            "minimum": 0,
+            "title": "Max Edges",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 100,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "paths"
+        ],
+        "title": "CodeImpact",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_impact",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "b765d4b68866545429947846c7c93ea4415dff7ef25d54d33adee5c56706534c",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_impact",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_impact.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index bounded exact source bytes and attributed parser facts in a selected Code lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "lane_id": {
+            "const": "local_code",
+            "default": "local_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 64,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 4194304,
+            "maximum": 33554432,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "title": "CodeIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_index",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "paths"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_materialization": {
+        "auxiliary_paths": [],
+        "execution": "current_plan_delta",
+        "group_limit": 32,
+        "path_argument": "paths",
+        "preparation_is_execution": false
+      },
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "local_code"
+        ],
+        "path_fields": [
+          "paths"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "3cc13748c77fe394c3088be713048fda5e0c7f430a1a996dad326454302969b4",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_index",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.indexed",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_index.registered_parser",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "code_snapshot_integrity",
+        "code_source_hashes_unchanged"
+      ],
+      "worker_operations": [
+        "code_parse_file"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index exact granted local bytes at the selected clean Sources Git checkpoint.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "git_snapshot_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Git Snapshot Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "github_code",
+            "default": "github_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 64,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 4194304,
+            "maximum": 33554432,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths",
+          "git_snapshot_id"
+        ],
+        "title": "CodeGitIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_index_git",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "paths"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_materialization": {
+        "auxiliary_paths": [
+          "."
+        ],
+        "execution": "current_plan_delta",
+        "group_limit": 32,
+        "path_argument": "paths",
+        "preparation_is_execution": false
+      },
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "github_code"
+        ],
+        "path_fields": [
+          "paths"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "27404ca26f944aaeccbbfcb6fc98ac2500e37b1ebc913182c041943dcd8ec491",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_index_git",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.git",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_index_git.git_checkpoint",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_git_blob",
+          "code_git_checkpoint"
+        ]
+      },
+      "verification_checks": [
+        "code_snapshot_integrity",
+        "code_source_hashes_unchanged"
+      ],
+      "worker_operations": [
+        "code_parse_git_blob",
+        "code_git_checkpoint"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index bounded exact source bytes and attributed parser facts in a selected Code lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "lane_id": {
+            "const": "local_code",
+            "default": "local_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 64,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 4194304,
+            "maximum": 33554432,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "title": "CodeIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_index_syntax",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "paths"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "local_code"
+        ],
+        "path_fields": [
+          "paths"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7f7539096a72a70f283a6cf7d5dbd31a64e4ff5078c6ac62cc462f35204feed6",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_index_syntax",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.syntax",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_index_syntax.registered_parser",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "TreeSitter_LanguagePack"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "code_snapshot_integrity",
+        "code_source_hashes_unchanged"
+      ],
+      "worker_operations": [
+        "code_parse_file"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Search one exact Code snapshot with bounded FTS5/BM25 or typed fact queries.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "default": "text",
+            "enum": [
+              "text",
+              "files",
+              "symbols",
+              "imports",
+              "calls",
+              "routes",
+              "dependencies",
+              "receipts",
+              "diagnostics",
+              "changes"
+            ],
+            "title": "Collection",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "path_prefix": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Path Prefix"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "CodeQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "project_search": {
+        "basis": "sqlite_fts5_bm25",
+        "collection": "text",
+        "current_action": "code_current",
+        "current_items": "scopes",
+        "items": "rows",
+        "lanes": [
+          "local_code",
+          "github_code"
+        ],
+        "match_mode": "any",
+        "rerank_text": "text"
+      },
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "d325172bf8a93e4e5b1ea0e069ad12e3dfa6c53df89b4b8db1fed4234873102a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_query",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_query.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Read an attributed line excerpt from exact indexed source bytes.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "filename": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "line_count": {
+            "default": 80,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 1024,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "start_line": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Start Line",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "filename"
+        ],
+        "title": "CodeRead",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_read",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "96cd7f6903c410bd3b306b2d153dfcb461ade696c84ca6de76503818f217706b",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_read",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.query_handler.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_read.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index bounded exact source bytes and attributed parser facts in a selected Code lane.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "git_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Git Snapshot Id"
+          },
+          "lane_id": {
+            "const": "local_code",
+            "default": "local_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 64,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 4194304,
+            "maximum": 33554432,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "title": "CodeIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_refresh",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "paths"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "local_code"
+        ],
+        "path_fields": [
+          "paths"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "84644785d5a04013ee786394192a6de817fafa7cbe59c08901483cfa86a6cf2a",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_refresh",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.indexed",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_refresh.registered_parser",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_file"
+        ]
+      },
+      "verification_checks": [
+        "code_snapshot_integrity",
+        "code_source_hashes_unchanged"
+      ],
+      "worker_operations": [
+        "code_parse_file"
+      ],
+      "workflow": "refresh"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Index exact granted local bytes at the selected clean Sources Git checkpoint.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_snapshot": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Snapshot"
+          },
+          "git_snapshot_id": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Git Snapshot Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "const": "github_code",
+            "default": "github_code",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_file_bytes": {
+            "default": 262144,
+            "maximum": 1048576,
+            "minimum": 1,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 64,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Max Files",
+            "type": "integer"
+          },
+          "max_total_bytes": {
+            "default": 4194304,
+            "maximum": 33554432,
+            "minimum": 1,
+            "title": "Max Total Bytes",
+            "type": "integer"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paths",
+          "git_snapshot_id"
+        ],
+        "title": "CodeGitIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_refresh_git",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [
+        "paths"
+      ],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "source_routes": {
+        "implicit_global_default": false,
+        "lanes": [
+          "github_code"
+        ],
+        "path_fields": [
+          "paths"
+        ],
+        "selection": "delta_enter.source_route"
+      },
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "d5b4536f4b7034098c71ee59b949b40d89323bb922110a8792c565a4e715b085",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_refresh_git",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_profile:register_code_actions.<locals>.git",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_refresh_git.git_checkpoint",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Python_structural_parser",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_parse_git_blob",
+          "code_git_checkpoint"
+        ]
+      },
+      "verification_checks": [
+        "code_snapshot_integrity",
+        "code_source_hashes_unchanged"
+      ],
+      "worker_operations": [
+        "code_parse_git_blob",
+        "code_git_checkpoint"
+      ],
+      "workflow": "refresh"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Add a bounded optional embedding page over exact Code chunk identities using the pinned offline model.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_limit": {
+            "default": 128,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Chunk Limit",
+            "type": "integer"
+          },
+          "chunk_offset": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Chunk Offset",
+            "type": "integer"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "SemanticIndex",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "code_semantic_index",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "7764064a13aa7eacd6ee01bf69318afce9f4ce009328d23bd150b563ff2e7dcb",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_semantic_index",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_semantic:index_semantics",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "compute": {
+              "action_class": "RETRIEVAL",
+              "fallback_policy": "before_first_invocation_only",
+              "memory_basis": "adapter_conservative_reservation",
+              "providers": [
+                "CPU",
+                "NVIDIA_CUDA",
+                "AMD_ROCM"
+              ],
+              "required_vram_mib": 1024,
+              "runtime_operation": null,
+              "selection_is_execution": false,
+              "worker_operation": "code_embed_text"
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_semantic_index.local_model",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SentenceTransformers"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_embed_text"
+        ]
+      },
+      "verification_checks": [
+        "code_embedding_hashes_verified"
+      ],
+      "worker_operations": [
+        "code_embed_text"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Rank a bounded model-matched Code embedding page without changing project state.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "embedding_run_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Embedding Run Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "embedding_run_id",
+          "query"
+        ],
+        "title": "SemanticQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_semantic_query",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "bc801a316f9ba249f508750d0c3bb0feb6f46c602342d57bbe6252e17b8d1cf0",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_semantic_query",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_semantic:register_semantic_actions.<locals>.python_query",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "compute": {
+              "action_class": "RETRIEVAL",
+              "fallback_policy": "before_first_invocation_only",
+              "memory_basis": "adapter_conservative_reservation",
+              "providers": [
+                "CPU",
+                "NVIDIA_CUDA",
+                "AMD_ROCM"
+              ],
+              "required_vram_mib": 1024,
+              "runtime_operation": null,
+              "selection_is_execution": false,
+              "worker_operation": "code_embed_text"
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_semantic_query.local_model",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SentenceTransformers"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_embed_text"
+        ]
+      },
+      "verification_checks": [],
+      "worker_operations": [
+        "code_embed_text"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Rank a bounded model-matched Code embedding page without changing project state.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "embedding_run_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Embedding Run Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "embedding_run_id",
+          "query"
+        ],
+        "title": "SemanticQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_semantic_query_faiss",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "305b5bce1c89d61a8644335ca04e5ad159c38359327d14ed666997213632fdd0",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_semantic_query_faiss",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_semantic:register_semantic_actions.<locals>.faiss_query",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "compute": {
+              "action_class": "RETRIEVAL",
+              "fallback_policy": "before_first_invocation_only",
+              "memory_basis": "adapter_conservative_reservation",
+              "providers": [
+                "CPU",
+                "NVIDIA_CUDA",
+                "AMD_ROCM"
+              ],
+              "required_vram_mib": 1024,
+              "runtime_operation": null,
+              "selection_is_execution": false,
+              "worker_operation": "code_embed_text"
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_semantic_query_faiss.local_model",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SentenceTransformers",
+              "FAISS_CPU"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_embed_text"
+        ]
+      },
+      "verification_checks": [],
+      "worker_operations": [
+        "code_embed_text"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Rank a bounded model-matched Code embedding page without changing project state.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "embedding_run_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Embedding Run Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_bytes": {
+            "default": 65536,
+            "maximum": 262144,
+            "minimum": 2048,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "embedding_run_id",
+          "query"
+        ],
+        "title": "SemanticQuery",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "code_semantic_query_vec",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "lane_id",
+          "operation",
+          "result"
+        ],
+        "title": "CodeResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "58a0c2e177e75ec2e04375ef70032d4e8022cc84fb42d1161683a5b6407d0d6f",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "code_semantic_query_vec",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.code_semantic:register_semantic_actions.<locals>.vector_query",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "compute": {
+              "action_class": "RETRIEVAL",
+              "fallback_policy": "before_first_invocation_only",
+              "memory_basis": "adapter_conservative_reservation",
+              "providers": [
+                "CPU",
+                "NVIDIA_CUDA",
+                "AMD_ROCM"
+              ],
+              "required_vram_mib": 1024,
+              "runtime_operation": null,
+              "selection_is_execution": false,
+              "worker_operation": "code_embed_text"
+            },
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "code_semantic_query_vec.local_model",
+            "systems": [
+              "Windows"
+            ],
+            "tool_ids": [
+              "Python",
+              "SentenceTransformers",
+              "sqlite_vec"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": [
+          "code_embed_text"
+        ]
+      },
+      "verification_checks": [],
+      "worker_operations": [
+        "code_embed_text"
+      ],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Clone an exact selected branch into this project's empty source folder with journaled effects and preserved partial output.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authentication": {
+            "default": "none",
+            "enum": [
+              "none",
+              "host_git_credential_manager",
+              "host_openssh_agent"
+            ],
+            "title": "Authentication",
+            "type": "string"
+          },
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "expected_commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Expected Commit",
+            "type": "string"
+          },
+          "remote": {
+            "default": "origin",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "title": "Remote",
+            "type": "string"
+          },
+          "source": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "branch",
+          "expected_commit"
+        ],
+        "title": "GitEnrollmentSelection",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "enroll_project",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_digest": {
+            "title": "Authority Digest",
+            "type": "string"
+          },
+          "enrollment_digest": {
+            "title": "Enrollment Digest",
+            "type": "string"
+          },
+          "enrollment_id": {
+            "title": "Enrollment Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "enrollment_id",
+          "enrollment_digest",
+          "authority_digest",
+          "result"
+        ],
+        "title": "GitEnrollmentResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "4fa9530742884d7f1f76ef586ad7d121558258e9233fb2352c9af92b1eb708da",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "enroll_project",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.enrollment:enroll_project",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "enroll_project.exact_git",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "git_enrollment_identity",
+        "git_branch_authority_integrity",
+        "git_enrolled_source_fingerprint"
+      ],
+      "worker_operations": [],
+      "workflow": "lifecycle"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Fetch exact stored Code file or chunk bytes with bounded text or base64 output.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_offset": {
+            "default": 0,
+            "maximum": 1048576,
+            "minimum": 0,
+            "title": "Byte Offset",
+            "type": "integer"
+          },
+          "end_line": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Line"
+          },
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_bytes": {
+            "default": 256000,
+            "maximum": 1000000,
+            "minimum": 1,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_lines": {
+            "default": 400,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Max Lines",
+            "type": "integer"
+          },
+          "ref_id": {
+            "maxLength": 1100,
+            "minLength": 6,
+            "title": "Ref Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "start_line": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Line"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "ref_id"
+        ],
+        "title": "Fetch",
+        "type": "object"
+      },
+      "lane_fetch": {
+        "digest_result": "file_sha256",
+        "lanes": [
+          "local_code",
+          "github_code"
+        ],
+        "offset_argument": "byte_offset",
+        "path_argument": "ref_id",
+        "path_prefix": "file:",
+        "path_result": "path",
+        "primary_representation": null,
+        "size_result": "size_bytes"
+      },
+      "mutates": false,
+      "name": "fetch",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "580664b25232b1a5d57c74e2259b551f86e5504cf6fd4b22bcf30e912a988f16",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "fetch",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "fetch.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Select exact local branch authority without source changes, or fetch and apply one scoped clean fast-forward.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authentication": {
+            "default": "none",
+            "enum": [
+              "none",
+              "host_git_credential_manager",
+              "host_openssh_agent"
+            ],
+            "title": "Authentication",
+            "type": "string"
+          },
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "expected_authority_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Authority Digest"
+          },
+          "expected_before_commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Expected Before Commit",
+            "type": "string"
+          },
+          "expected_commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Expected Commit",
+            "type": "string"
+          },
+          "expected_remote_url": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Expected Remote Url",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "select_local_authority",
+              "fast_forward"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "remote": {
+            "default": "origin",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "title": "Remote",
+            "type": "string"
+          },
+          "replace_branch_authority": {
+            "default": false,
+            "title": "Replace Branch Authority",
+            "type": "boolean"
+          },
+          "source": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "branch",
+          "expected_before_commit",
+          "expected_commit",
+          "expected_remote_url",
+          "mode",
+          "expected_authority_digest"
+        ],
+        "title": "GitSyncSelection",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "git_sync_selected",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_digest": {
+            "title": "Authority Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "sync_digest": {
+            "title": "Sync Digest",
+            "type": "string"
+          },
+          "sync_id": {
+            "title": "Sync Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "sync_id",
+          "sync_digest",
+          "authority_digest",
+          "result"
+        ],
+        "title": "GitSyncResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "write",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "b08216b22a8534d8cbc39614dbdc013a75d1ad8f505c423cfb59fdaf4dfba8bd",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "git_sync_selected",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.enrollment:sync_selected_branch",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "git_sync_selected.exact_git",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "git_selected_source_identity",
+        "git_branch_authority_integrity",
+        "git_changed_source_fingerprint"
+      ],
+      "worker_operations": [],
+      "workflow": "lifecycle"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.",
+      "inputSchema": {
+        "$defs": {
+          "GitHubPageCursor": {
+            "additionalProperties": false,
+            "properties": {
+              "offset": {
+                "default": 0,
+                "maximum": 99,
+                "minimum": 0,
+                "title": "Offset",
+                "type": "integer"
+              },
+              "page": {
+                "default": 1,
+                "maximum": 1000000,
+                "minimum": 1,
+                "title": "Page",
+                "type": "integer"
+              },
+              "page_sha256": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Page Sha256"
+              }
+            },
+            "title": "GitHubPageCursor",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "branch_cursor": {
+            "$ref": "#/$defs/GitHubPageCursor"
+          },
+          "include_workflows": {
+            "default": true,
+            "title": "Include Workflows",
+            "type": "boolean"
+          },
+          "max_branches": {
+            "default": 100,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Max Branches",
+            "type": "integer"
+          },
+          "max_http_requests": {
+            "default": 16,
+            "maximum": 32,
+            "minimum": 1,
+            "title": "Max Http Requests",
+            "type": "integer"
+          },
+          "max_metadata_bytes": {
+            "default": 2097152,
+            "maximum": 8388608,
+            "minimum": 1024,
+            "title": "Max Metadata Bytes",
+            "type": "integer"
+          },
+          "max_response_bytes": {
+            "default": 2097152,
+            "maximum": 4194304,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          },
+          "max_total_response_bytes": {
+            "default": 8388608,
+            "maximum": 33554432,
+            "minimum": 1024,
+            "title": "Max Total Response Bytes",
+            "type": "integer"
+          },
+          "max_workflows": {
+            "default": 100,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Max Workflows",
+            "type": "integer"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "repository": {
+            "maxLength": 140,
+            "minLength": 3,
+            "title": "Repository",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "workflow_cursor": {
+            "$ref": "#/$defs/GitHubPageCursor"
+          }
+        },
+        "required": [
+          "repository"
+        ],
+        "title": "GitHubInspectionRequest",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "github_repository_inspect",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Snapshot",
+            "type": "object"
+          }
+        },
+        "required": [
+          "repository",
+          "snapshot",
+          "receipt_sha256"
+        ],
+        "title": "GitHubInspectionResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Python",
+        "PyGithub"
+      ],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "5088250473e7c83a90bb791b5c866a4abb0779c29b2975a68f81b51fec9e9d33",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "github_repository_inspect",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.github_toolchain:register_github_actions.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": {
+              "backend_id": "github.repository-reader",
+              "backend_runtime": "python",
+              "backend_version": "2.10.0",
+              "capability": "repository_metadata_read",
+              "code_loaded_from_registration": false,
+              "execution_owner": "engine_delta",
+              "lane": "github_code",
+              "lane_field": null,
+              "plugin_id_field": "plugin_id",
+              "read_path_fields": [],
+              "resource_fields": [
+                "repository"
+              ],
+              "role": "github_repository_snapshot",
+              "role_schema": {
+                "receipt_sha256": "blob_hash",
+                "repository": "text",
+                "snapshot": "json"
+              },
+              "write_path_fields": []
+            },
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "github_repository_inspect.pygithub",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "PyGithub"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "github_snapshot_integrity"
+      ],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": true,
+      "description": "Summarize verified bytes and facts of one exact Code snapshot.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "lane_id": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "max_read_bytes": {
+            "default": 67108864,
+            "maximum": 134217728,
+            "minimum": 1024,
+            "title": "Max Read Bytes",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "timeout_ms": {
+            "default": 10000,
+            "maximum": 30000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id"
+        ],
+        "title": "Summary",
+        "type": "object"
+      },
+      "mutates": false,
+      "name": "pv_summary",
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "mutation_performed": {
+            "const": false,
+            "default": false,
+            "title": "Mutation Performed",
+            "type": "boolean"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "refresh_performed": {
+            "const": false,
+            "default": false,
+            "title": "Refresh Performed",
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "project_id",
+          "operation",
+          "result"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "read",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": true,
+      "queued": false,
+      "read_schemas": [
+        {
+          "digest": "c2d2b57b9c8f604cd99f720b4ca75822690d277b0d10680e90c87921cc24c0d0",
+          "owner": "localcode",
+          "version": 1
+        },
+        {
+          "digest": "29fe79591cd63b7d8151efd3154bb880c45a2a387d1dd4371e6771be68b0529d",
+          "owner": "localcode",
+          "version": 2
+        },
+        {
+          "digest": "0b71ff5a2a2f43b87adbf99a8082f4e01a57b9672810ca7c4fd0617561220131",
+          "owner": "localcode",
+          "version": 3
+        },
+        {
+          "digest": "65ef1579753043b33fa5c10e181de3cdd9ee69de8125431734234b1c936e40dc",
+          "owner": "githubcode",
+          "version": 1
+        },
+        {
+          "digest": "dcad5347e1e8490a4f9ca5a39ffa40b3f3a3ea8593d848e42ea5be5c093ef353",
+          "owner": "githubcode",
+          "version": 2
+        },
+        {
+          "digest": "c7cfa7c305dbf1875dd7d67528e4236eed4289a245e8c216c3e1b37a105681e8",
+          "owner": "githubcode",
+          "version": 3
+        }
+      ],
+      "required_tools": [],
+      "requires_delta": false,
+      "studio_read": true,
+      "toolchain": {
+        "contract_digest": "e051bb629119f36b9b6e18a7675a2045d01a07510a68a066ba462273cad1ace1",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "pv_summary",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.reader:register_reader_actions.<locals>.handler.<locals>.read",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "pv_summary.engine",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [],
+      "worker_operations": [],
+      "workflow": "source-intake"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Prepare or execute one pinned, one-use development-branch Git push with remote readback.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "pattern": "^[0-9a-f-]{36}$",
+            "title": "Action Id",
+            "type": "string"
+          },
+          "expected_remote_url": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Expected Remote Url",
+            "type": "string"
+          },
+          "prepared_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prepared Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_id",
+          "prepared_digest",
+          "expected_remote_url"
+        ],
+        "title": "PushExecute",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "remote_git_execute_push",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "additionalProperties": true,
+            "title": "Action",
+            "type": "object"
+          },
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "action_id",
+          "digest",
+          "action"
+        ],
+        "title": "PushResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "publish",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Python",
+        "SQLite_FTS5_BM25",
+        "Git"
+      ],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "dc83d8c288cdb7cd2e75b59cd0e51ef5d81d5f2d0b551f3f241868f89fcf8e6f",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "remote_git_execute_push",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.remote_git:register_remote_git_actions.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "remote_git_execute_push.exact_git",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "git_push_remote_readback",
+        "git_push_local_preservation"
+      ],
+      "worker_operations": [],
+      "workflow": "lifecycle"
+    },
+    {
+      "cross_project_read": false,
+      "description": "Prepare or execute one pinned, one-use development-branch Git push with remote readback.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "authentication": {
+            "default": "none",
+            "enum": [
+              "none",
+              "host_git_credential_manager",
+              "host_openssh_agent"
+            ],
+            "title": "Authentication",
+            "type": "string"
+          },
+          "branch": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Branch",
+            "type": "string"
+          },
+          "expected_authority_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Authority Digest",
+            "type": "string"
+          },
+          "expected_commit": {
+            "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+            "title": "Expected Commit",
+            "type": "string"
+          },
+          "expected_remote_commit": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Remote Commit"
+          },
+          "expected_remote_url": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Expected Remote Url",
+            "type": "string"
+          },
+          "remote": {
+            "default": "origin",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "title": "Remote",
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch",
+          "expected_remote_url",
+          "expected_commit",
+          "expected_remote_commit",
+          "expected_authority_digest"
+        ],
+        "title": "PushPrepare",
+        "type": "object"
+      },
+      "mutates": true,
+      "name": "remote_git_prepare_push",
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "additionalProperties": true,
+            "title": "Action",
+            "type": "object"
+          },
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "action_id",
+          "digest",
+          "action"
+        ],
+        "title": "PushResult",
+        "type": "object"
+      },
+      "path_fields": [],
+      "permission": "publish",
+      "profile": "code",
+      "project_required": true,
+      "queryable_in_delta": false,
+      "queued": false,
+      "read_schemas": [],
+      "required_tools": [
+        "Python",
+        "SQLite_FTS5_BM25",
+        "Git"
+      ],
+      "requires_delta": true,
+      "studio_read": false,
+      "toolchain": {
+        "contract_digest": "409308f57cedc426dd495593bf930b4ae8a6e148dfe21afd5f84da569cbd8c24",
+        "fallback_after_invocation": false,
+        "installation_implied": false,
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "operation": "remote_git_prepare_push",
+        "profile": "code",
+        "routes": [
+          {
+            "adapter": "evidence_lane_plugin.remote_git:register_remote_git_actions.<locals>.handler",
+            "argument_suffixes": {},
+            "argument_values": {},
+            "extension": null,
+            "fidelity": "exact_contract",
+            "host_profiles": [],
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "route_id": "remote_git_prepare_push.exact_git",
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "tool_ids": [
+              "Python",
+              "SQLite_FTS5_BM25",
+              "Git"
+            ]
+          }
+        ],
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "worker_operations": []
+      },
+      "verification_checks": [
+        "git_push_preparation_integrity"
+      ],
+      "worker_operations": [],
+      "workflow": "lifecycle"
+    }
+  ],
+  "authority": "separate_owning_lane_sqlite_with_root_pv_coordination",
+  "automatic_tool_downloads_during_operations": false,
+  "contracts": {
+    "CodeApply": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "local_code",
+          "default": "local_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "replacement_utf8": {
+          "maxLength": 524288,
+          "title": "Replacement Utf8",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "filename",
+        "expected_sha256",
+        "replacement_utf8"
+      ],
+      "title": "CodeApply",
+      "type": "object"
+    },
+    "CodeGitIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "git_snapshot_id": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Git Snapshot Id",
+          "type": "string"
+        },
+        "lane_id": {
+          "const": "github_code",
+          "default": "github_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 64,
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 4194304,
+          "maximum": 33554432,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "paths",
+        "git_snapshot_id"
+      ],
+      "title": "CodeGitIndex",
+      "type": "object"
+    },
+    "CodeImpact": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "default": "dependents",
+          "enum": [
+            "dependents",
+            "dependencies"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_depth": {
+          "default": 2,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_edges": {
+          "default": 200,
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Max Edges",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 100,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "paths"
+      ],
+      "title": "CodeImpact",
+      "type": "object"
+    },
+    "CodeIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_snapshot": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Snapshot"
+        },
+        "git_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Git Snapshot Id"
+        },
+        "lane_id": {
+          "const": "local_code",
+          "default": "local_code",
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_file_bytes": {
+          "default": 262144,
+          "maximum": 1048576,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 64,
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 4194304,
+          "maximum": 33554432,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "CodeIndex",
+      "type": "object"
+    },
+    "CodeQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "collection": {
+          "default": "text",
+          "enum": [
+            "text",
+            "files",
+            "symbols",
+            "imports",
+            "calls",
+            "routes",
+            "dependencies",
+            "receipts",
+            "diagnostics",
+            "changes"
+          ],
+          "title": "Collection",
+          "type": "string"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "match_mode": {
+          "default": "all",
+          "enum": [
+            "all",
+            "any"
+          ],
+          "title": "Match Mode",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "path_prefix": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Prefix"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "CodeQuery",
+      "type": "object"
+    },
+    "CodeRead": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Filename",
+          "type": "string"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "line_count": {
+          "default": 80,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Line Count",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 1024,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "start_line": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Start Line",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "filename"
+      ],
+      "title": "CodeRead",
+      "type": "object"
+    },
+    "CodeResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "lane_id",
+        "operation",
+        "result"
+      ],
+      "title": "CodeResult",
+      "type": "object"
+    },
+    "CodeSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        }
+      },
+      "title": "CodeSelection",
+      "type": "object"
+    },
+    "Fetch": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_offset": {
+          "default": 0,
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Byte Offset",
+          "type": "integer"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_bytes": {
+          "default": 256000,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_lines": {
+          "default": 400,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "ref_id": {
+          "maxLength": 1100,
+          "minLength": 6,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "ref_id"
+      ],
+      "title": "Fetch",
+      "type": "object"
+    },
+    "GitEnrollmentResult": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_digest": {
+          "title": "Authority Digest",
+          "type": "string"
+        },
+        "enrollment_digest": {
+          "title": "Enrollment Digest",
+          "type": "string"
+        },
+        "enrollment_id": {
+          "title": "Enrollment Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": true,
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "enrollment_id",
+        "enrollment_digest",
+        "authority_digest",
+        "result"
+      ],
+      "title": "GitEnrollmentResult",
+      "type": "object"
+    },
+    "GitEnrollmentSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "authentication": {
+          "default": "none",
+          "enum": [
+            "none",
+            "host_git_credential_manager",
+            "host_openssh_agent"
+          ],
+          "title": "Authentication",
+          "type": "string"
+        },
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "expected_commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Expected Commit",
+          "type": "string"
+        },
+        "remote": {
+          "default": "origin",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+          "title": "Remote",
+          "type": "string"
+        },
+        "source": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "branch",
+        "expected_commit"
+      ],
+      "title": "GitEnrollmentSelection",
+      "type": "object"
+    },
+    "GitHubInspectionRequest": {
+      "$defs": {
+        "GitHubPageCursor": {
+          "additionalProperties": false,
+          "properties": {
+            "offset": {
+              "default": 0,
+              "maximum": 99,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "page": {
+              "default": 1,
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "page_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Page Sha256"
+            }
+          },
+          "title": "GitHubPageCursor",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "branch_cursor": {
+          "$ref": "#/$defs/GitHubPageCursor"
+        },
+        "include_workflows": {
+          "default": true,
+          "title": "Include Workflows",
+          "type": "boolean"
+        },
+        "max_branches": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Branches",
+          "type": "integer"
+        },
+        "max_http_requests": {
+          "default": 16,
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Max Http Requests",
+          "type": "integer"
+        },
+        "max_metadata_bytes": {
+          "default": 2097152,
+          "maximum": 8388608,
+          "minimum": 1024,
+          "title": "Max Metadata Bytes",
+          "type": "integer"
+        },
+        "max_response_bytes": {
+          "default": 2097152,
+          "maximum": 4194304,
+          "minimum": 1024,
+          "title": "Max Response Bytes",
+          "type": "integer"
+        },
+        "max_total_response_bytes": {
+          "default": 8388608,
+          "maximum": 33554432,
+          "minimum": 1024,
+          "title": "Max Total Response Bytes",
+          "type": "integer"
+        },
+        "max_workflows": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Workflows",
+          "type": "integer"
+        },
+        "plugin_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{2,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plugin Id"
+        },
+        "repository": {
+          "maxLength": 140,
+          "minLength": 3,
+          "title": "Repository",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 20,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "workflow_cursor": {
+          "$ref": "#/$defs/GitHubPageCursor"
+        }
+      },
+      "required": [
+        "repository"
+      ],
+      "title": "GitHubInspectionRequest",
+      "type": "object"
+    },
+    "GitHubInspectionResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "receipt_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt Sha256",
+          "type": "string"
+        },
+        "repository": {
+          "title": "Repository",
+          "type": "string"
+        },
+        "snapshot": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Snapshot",
+          "type": "object"
+        }
+      },
+      "required": [
+        "repository",
+        "snapshot",
+        "receipt_sha256"
+      ],
+      "title": "GitHubInspectionResult",
+      "type": "object"
+    },
+    "GitSyncResult": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_digest": {
+          "title": "Authority Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "result": {
+          "additionalProperties": true,
+          "title": "Result",
+          "type": "object"
+        },
+        "sync_digest": {
+          "title": "Sync Digest",
+          "type": "string"
+        },
+        "sync_id": {
+          "title": "Sync Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "sync_id",
+        "sync_digest",
+        "authority_digest",
+        "result"
+      ],
+      "title": "GitSyncResult",
+      "type": "object"
+    },
+    "GitSyncSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "authentication": {
+          "default": "none",
+          "enum": [
+            "none",
+            "host_git_credential_manager",
+            "host_openssh_agent"
+          ],
+          "title": "Authentication",
+          "type": "string"
+        },
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "expected_authority_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Authority Digest"
+        },
+        "expected_before_commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Expected Before Commit",
+          "type": "string"
+        },
+        "expected_commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Expected Commit",
+          "type": "string"
+        },
+        "expected_remote_url": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Expected Remote Url",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "select_local_authority",
+            "fast_forward"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "remote": {
+          "default": "origin",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+          "title": "Remote",
+          "type": "string"
+        },
+        "replace_branch_authority": {
+          "default": false,
+          "title": "Replace Branch Authority",
+          "type": "boolean"
+        },
+        "source": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "branch",
+        "expected_before_commit",
+        "expected_commit",
+        "expected_remote_url",
+        "mode",
+        "expected_authority_digest"
+      ],
+      "title": "GitSyncSelection",
+      "type": "object"
+    },
+    "PushExecute": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "pattern": "^[0-9a-f-]{36}$",
+          "title": "Action Id",
+          "type": "string"
+        },
+        "expected_remote_url": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Expected Remote Url",
+          "type": "string"
+        },
+        "prepared_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Prepared Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id",
+        "prepared_digest",
+        "expected_remote_url"
+      ],
+      "title": "PushExecute",
+      "type": "object"
+    },
+    "PushPrepare": {
+      "additionalProperties": false,
+      "properties": {
+        "authentication": {
+          "default": "none",
+          "enum": [
+            "none",
+            "host_git_credential_manager",
+            "host_openssh_agent"
+          ],
+          "title": "Authentication",
+          "type": "string"
+        },
+        "branch": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Branch",
+          "type": "string"
+        },
+        "expected_authority_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Authority Digest",
+          "type": "string"
+        },
+        "expected_commit": {
+          "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+          "title": "Expected Commit",
+          "type": "string"
+        },
+        "expected_remote_commit": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Remote Commit"
+        },
+        "expected_remote_url": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Expected Remote Url",
+          "type": "string"
+        },
+        "remote": {
+          "default": "origin",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+          "title": "Remote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "expected_remote_url",
+        "expected_commit",
+        "expected_remote_commit",
+        "expected_authority_digest"
+      ],
+      "title": "PushPrepare",
+      "type": "object"
+    },
+    "PushResult": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "additionalProperties": true,
+          "title": "Action",
+          "type": "object"
+        },
+        "action_id": {
+          "title": "Action Id",
+          "type": "string"
+        },
+        "digest": {
+          "title": "Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "action_id",
+        "digest",
+        "action"
+      ],
+      "title": "PushResult",
+      "type": "object"
+    },
+    "ReadResult": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "mutation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutation Performed",
+          "type": "boolean"
+        },
+        "operation": {
+          "title": "Operation",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "refresh_performed": {
+          "const": false,
+          "default": false,
+          "title": "Refresh Performed",
+          "type": "boolean"
+        },
+        "result": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "operation",
+        "result"
+      ],
+      "title": "ReadResult",
+      "type": "object"
+    },
+    "SemanticIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk_limit": {
+          "default": 128,
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Chunk Limit",
+          "type": "integer"
+        },
+        "chunk_offset": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Chunk Offset",
+          "type": "integer"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "SemanticIndex",
+      "type": "object"
+    },
+    "SemanticQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "embedding_run_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Embedding Run Id",
+          "type": "string"
+        },
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "max_bytes": {
+          "default": 65536,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "embedding_run_id",
+        "query"
+      ],
+      "title": "SemanticQuery",
+      "type": "object"
+    },
+    "Summary": {
+      "additionalProperties": false,
+      "properties": {
+        "lane_id": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Lane Id",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "default": 67108864,
+          "maximum": 134217728,
+          "minimum": 1024,
+          "title": "Max Read Bytes",
+          "type": "integer"
+        },
+        "snapshot_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "maximum": 30000,
+          "minimum": 100,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id"
+      ],
+      "title": "Summary",
+      "type": "object"
+    }
+  },
+  "generated_from": "typed Python registry contracts",
+  "graphs": "explicit_consumer_only_scoped_static_relationship_exports",
+  "installed_execution_claimed": false,
+  "mutations": "exact_plan_delta_with_source_hash_preconditions_and_effect_reconciliation",
+  "native_installation_verified": false,
+  "schema": "evidence-lane.code-workflow.v4",
+  "search": "mandatory_fts5_bm25_with_optional_model_bound_embedding_pages",
+  "source_bytes": "worktree_files_for_local_code_and_exact_commit_blobs_for_github_code",
+  "storage": "separate_local_code_and_github_code_databases_and_files"
+}

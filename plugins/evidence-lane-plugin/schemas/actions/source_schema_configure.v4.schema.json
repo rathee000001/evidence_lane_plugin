@@ -1,0 +1,160 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Add or version a source schema contract with exact predecessor checks.",
+  "inputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "batch_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:-]+$",
+        "title": "Batch Id",
+        "type": "string"
+      },
+      "definition": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Definition",
+        "type": "object"
+      },
+      "expected_previous_schema_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Previous Schema Sha256"
+      },
+      "operation": {
+        "enum": [
+          "ADD",
+          "MODIFY"
+        ],
+        "title": "Operation",
+        "type": "string"
+      },
+      "pill_name": {
+        "maxLength": 80,
+        "minLength": 1,
+        "title": "Pill Name",
+        "type": "string"
+      }
+    },
+    "required": [
+      "batch_id",
+      "definition",
+      "operation",
+      "pill_name"
+    ],
+    "title": "SourceSchemaConfigureRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "source_schema_configure",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "sources",
+        "default": "sources",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata_provenance": {
+        "const": "source_measurements_and_attributed_assertions",
+        "default": "source_measurements_and_attributed_assertions",
+        "title": "Metadata Provenance",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      },
+      "source_bytes_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Mutated",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "SourceOperationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "sources",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "61e4f42a235dfe4239d46ca3488e7185c4aa16766893cdee40655d5b808655db",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "source_schema_configure",
+    "profile": "sources",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.source_intake:register_source_actions.<locals>.bind.<locals>.handler",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "source_schema_configure.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

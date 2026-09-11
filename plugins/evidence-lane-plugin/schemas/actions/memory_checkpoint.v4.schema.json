@@ -1,0 +1,143 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Pin a bounded Memory slice to current Plan and attributed visible lineage.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "contract_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Contract Digest",
+        "type": "string"
+      },
+      "locator_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 20,
+        "title": "Locator Ids",
+        "type": "array"
+      },
+      "plan_revision": {
+        "minimum": 1,
+        "title": "Plan Revision",
+        "type": "integer"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "task_id": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+        "title": "Task Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "task_id",
+      "plan_revision",
+      "contract_digest",
+      "locator_ids"
+    ],
+    "title": "MemoryCheckpoint",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "memory_checkpoint",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "checkpoint_digest": {
+        "title": "Checkpoint Digest",
+        "type": "string"
+      },
+      "host_session_attached": {
+        "default": false,
+        "title": "Host Session Attached",
+        "type": "boolean"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "source_client_id": {
+        "title": "Source Client Id",
+        "type": "string"
+      },
+      "source_task_binding": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Source Task Binding"
+      }
+    },
+    "required": [
+      "checkpoint_digest",
+      "project_id",
+      "source_client_id",
+      "source_task_binding"
+    ],
+    "title": "MemoryCheckpointResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "memory",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "c404f1300b32501bbfe6beb558efe4541c9d9a6a67ae5d56810fb5ca72878e98",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "memory_checkpoint",
+    "profile": "memory",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.project_memory:register_memory_actions.<locals>.checkpoint",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "memory_checkpoint.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "memory"
+}

@@ -1,0 +1,2681 @@
+{
+  "authority": "engine_typed_action_registry",
+  "digest": "765a40956ebcd24ac8717a0fbaa5fbfc3c7326c3525f8e9dd3677cac9ee35cd9",
+  "removed_routes_have_fallback": false,
+  "routes": [
+    {
+      "action": "accelerator_configure",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "runtime",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "accelerator_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "runtime",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "artifacts_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "artifacts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "artifacts_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "artifacts",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "artifacts_index_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "artifacts",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "artifacts_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "artifacts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "artifacts_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "artifacts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "artifacts_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "artifacts",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "artifacts_refresh_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "artifacts",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "bigger_universe_create",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_grant",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_link",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_revoke",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "bigger_universe_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "bigger-universe"
+    },
+    {
+      "action": "brain_slice_select",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "brain-scaling"
+    },
+    {
+      "action": "canon_backfire",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_decide",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_expect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_graph",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_inbox",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_join",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_packet_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "canon",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_receive",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_send",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_supersede",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_task_edge_bind",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_task_edge_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "canon_task_result",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "canon",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "canon"
+    },
+    {
+      "action": "capture_bind",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "chatlineage",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "client_context",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "code_apply",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "code_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_impact",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_index_git",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_index_syntax",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "code_refresh_git",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "code_semantic_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_semantic_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_semantic_query_faiss",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "code_semantic_query_vec",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "connector_configure",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "extensions",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "additional-plugin"
+    },
+    {
+      "action": "connector_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "extensions",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "plugin"
+    },
+    {
+      "action": "connector_revoke",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "extensions",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "drop-additional-plugin"
+    },
+    {
+      "action": "context_index_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "memory",
+      "permission": "tools",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "context_index_sync",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "memory",
+      "permission": "publish",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "continuation_accept",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "continuity",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "state-travel"
+    },
+    {
+      "action": "continuation_cancel",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "continuity",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "state-travel"
+    },
+    {
+      "action": "continuation_context",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "continuity",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "state-travel"
+    },
+    {
+      "action": "continuation_offer",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "continuity",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "state-travel"
+    },
+    {
+      "action": "continuation_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "continuity",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "state-travel"
+    },
+    {
+      "action": "continuation_recovery_cancel",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "continuation_recovery_offer",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "cross_project_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "custom_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "custom",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "custom",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_index_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "custom",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_lane_configure",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_lanes_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "custom",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "custom",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "custom_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "custom",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "custom_refresh_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "custom",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "data_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "data",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "data_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "data_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_index_arrow",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_inspect_duckdb",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_inspect_pandas",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_inspect_polars",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_inspection_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "data",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "data",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "data",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "data_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "data_refresh_arrow",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "data_transform",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "data",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "delta_enter",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "delta",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "delta_enter_planned",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "delta",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "delta_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "delta",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "delta_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "delta",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "document_convert",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "document",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "document_enrich",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_enrichment_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "document",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "document_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "document_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "document",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "document",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "document_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "document_render",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "document",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "document_render_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "document",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "engine_health",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "enroll_project",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "env_uop_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "evi"
+    },
+    {
+      "action": "evaluation_feedback_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "core",
+      "permission": "publish",
+      "project_required": true,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "fetch",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "git_branch_authority",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "git_restore",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "git_restore_abandon",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "git_restore_preview",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "recovery",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "git_restore_reconcile",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "git_sync_selected",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "github_repository_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "instructions_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "instructions"
+    },
+    {
+      "action": "job_reconcile_effect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "job_recovery_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "plan",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "lane_catalog",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_configure_routes",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "lane_fetch",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "lane_search",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_view_catalog",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_view_preview",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "artifacts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_view_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "artifacts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "lane_view_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "artifacts",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "learning_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "learning",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "learning"
+    },
+    {
+      "action": "learning_record_host_memory_import",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "learning",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "learning"
+    },
+    {
+      "action": "learning_revoke",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "learning",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "learning"
+    },
+    {
+      "action": "lifecycle_transition_law",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "evi"
+    },
+    {
+      "action": "lineage_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "chatlineage",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "lineage_record",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "chatlineage",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "linked_projects_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "media_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "images_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "media_extract",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_extraction_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "images_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_ocr",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_ocr_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "images_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "images_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "images_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "media_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "media_transform",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "images_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "memory_checkpoint",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "memory",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "memory_ingest",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "memory",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "memory_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "memory",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "memory_rehydrate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "memory",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "mode_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "mode"
+    },
+    {
+      "action": "observability_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "core",
+      "permission": "publish",
+      "project_required": true,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "pdf_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "pdf_enrich",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_enrichment_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "pdf_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "pdf_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_ocr",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_ocr_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "pdf_render",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "pdf_ocr",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pdf_render_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "pdf_ocr",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "plan_create",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "plan_host_bind",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "plan_host_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "plan",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "plan_host_sync",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "plan_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "plan",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "plan_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "powerbi_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "power_bi",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "powerbi_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "power_bi",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "powerbi_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "power_bi",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "powerbi_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "power_bi",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "powerbi_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "power_bi",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "powerbi_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "power_bi",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "powerbi_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "power_bi",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "powerbi_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "power_bi",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "powerbi_schema",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "power_bi",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_convert",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "presentation",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "presentation_enrich",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_enrichment_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "presentation",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "presentation_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "presentation_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "presentation",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "presentation",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "presentation_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "presentation_render",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "presentation",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "presentation_render_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "presentation",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "project_backup",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "project_backup_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "recovery",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "project_catalog",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "project_admin",
+      "project_required": false,
+      "workflow": "evi"
+    },
+    {
+      "action": "project_deselect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "core",
+      "permission": "project_admin",
+      "project_required": false,
+      "workflow": "exit-boot"
+    },
+    {
+      "action": "project_link",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "project_memory_record_link",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "memory",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "memory"
+    },
+    {
+      "action": "project_recipe",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "project-recipe"
+    },
+    {
+      "action": "project_recovery_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "recovery",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "project_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "core",
+      "permission": "project_admin",
+      "project_required": false,
+      "workflow": "storage"
+    },
+    {
+      "action": "project_select",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "core",
+      "permission": "project_admin",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "project_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "project_unlink",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "universe",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "prompt_index_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "chat_lineage",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "pv_diff",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "pv_history",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "pv_summary",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "code",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "remote_git_action_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "remote_git_execute_push",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "publish",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "remote_git_prepare_push",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "code",
+      "permission": "publish",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "render_project_panel",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "render_runtime_panel",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "research_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "research",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_index_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "research",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "research",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "research_refresh_media",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "research_web_capture",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_web_discover",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "research_web_extract",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "research",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "restoration_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "recovery",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "restoration_reindex",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "recovery",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "recover"
+    },
+    {
+      "action": "runtime_doctor",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "runtime_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "search",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "projects",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "evi"
+    },
+    {
+      "action": "session_boot",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sessions",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "session_context",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sessions",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "session_exit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sessions",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "exit-boot"
+    },
+    {
+      "action": "session_exit_boundary",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "receipts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "exit-boot"
+    },
+    {
+      "action": "session_flash_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "boot"
+    },
+    {
+      "action": "session_resume",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sessions",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "session_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sessions",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "boot"
+    },
+    {
+      "action": "source_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_crosswalk",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_git_history",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_git_impact",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_graph",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_graph_diff",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_graph_impact",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_identity",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_inspect_sqlite",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_materialization_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_materialization_reconcile",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_materialize",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_preparation_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_prepare_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "source_prepare_tasks",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_reconcile_archives",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_register",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_routes_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_schema_configure",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_schema_map",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "source_snapshot_retire",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "sources",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "source_snapshot_state",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "source_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "sources",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "spreadsheet",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "spreadsheet_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "spreadsheet_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "spreadsheet_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_index_values",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_inspect_openpyxl",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_inspect_pandas",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_inspection_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "spreadsheet",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "spreadsheet",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "spreadsheet",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "spreadsheet_recalculate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "spreadsheet_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "spreadsheet_refresh_values",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "spreadsheet_render",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "spreadsheet",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "spreadsheet_render_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "spreadsheet",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "steer_preview",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "plan",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "steer_submit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "storage_connector_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "receipts",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "storage"
+    },
+    {
+      "action": "storage_connector_select",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "receipts",
+      "permission": "admin",
+      "project_required": true,
+      "workflow": "storage"
+    },
+    {
+      "action": "storage_status",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "storage"
+    },
+    {
+      "action": "tableau_current",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "tableau",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "tableau_edit",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "tableau",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "tableau_export",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "tableau",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "tableau_generate",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "tableau",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "build"
+    },
+    {
+      "action": "tableau_index",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "tableau",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "tableau_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "tableau",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "tableau_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "tableau",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "source-intake"
+    },
+    {
+      "action": "tableau_refresh",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "tableau",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "refresh"
+    },
+    {
+      "action": "task_classify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "chat_lineage",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "lifecycle"
+    },
+    {
+      "action": "toolchain_catalog",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "toolchain_resolve",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "toolchain"
+    },
+    {
+      "action": "universe_inspect",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "universe_links_verify",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "universe_query",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "universe",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "universe"
+    },
+    {
+      "action": "validation_policy_read",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "plan",
+      "permission": "read",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "validation_policy_set",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": true,
+      "owner": "plan",
+      "permission": "write",
+      "project_required": true,
+      "workflow": "plan"
+    },
+    {
+      "action": "workflow_catalog",
+      "implementation": "evidence_lane_plugin.sdk.dispatch",
+      "mutates": false,
+      "owner": "core",
+      "permission": "read",
+      "project_required": false,
+      "workflow": "evi"
+    }
+  ],
+  "schema": "evidence-lane.current-implementation-registry.v4"
+}

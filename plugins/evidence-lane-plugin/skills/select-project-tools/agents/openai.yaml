@@ -1,0 +1,11 @@
+interface:
+  display_name: "Select project tools"
+  short_description: "Resolve lane tools and measured compute readiness"
+  default_prompt: "Use $select-project-tools to inspect the required tools for the selected operation."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "evidence-lane"
+      description: "Evidence Lane native MCP server"
+policy:
+  allow_implicit_invocation: true

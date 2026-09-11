@@ -16,7 +16,6 @@ import hashlib
 import json
 import os
 import re
-import sqlite3
 import subprocess  # nosec B404
 from collections import defaultdict
 from dataclasses import dataclass
@@ -29,11 +28,15 @@ from .hashing import canonical_json_bytes, sha256_bytes
 from .redaction import redact_text
 from .source_authority import (
     SourceAuthoritySpec,
+    _connect,
     freeze_source_authority,
     initialize_source_authority_registry,
+    source_authority_write,
 )
 from .source_graph import source_graph_impact
 from .source_policy import path_exclusion_reason, redact_known_environment_secrets
+from .source_selection import registered_directory_selection
+from .storage import LaneStore, ProjectStore
 from .timeutil import utc_now
 
 GIT_HISTORY_SCHEMA = "evidence-lane.source-git-history.v1"
@@ -58,12 +61,7 @@ class _PathEvidence:
     git_argument: str | None
 
 
-def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    connection.execute("PRAGMA busy_timeout=5000")
-    return connection
+
 
 
 def _git_environment() -> dict[str, str]:
@@ -159,7 +157,7 @@ def _path_evidence(payload: bytes) -> _PathEvidence:
 
 
 def _load_registered_repository(
-    registry_path: Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     occurrence_ordinal: int,
 ) -> tuple[str, dict[str, Any], Path]:
@@ -205,6 +203,7 @@ def _load_registered_repository(
             source=str(root),
             ordinal=occurrence_ordinal,
             lane_id=str(row["lane_id"]),
+            directory_selection=registered_directory_selection(registry_path, row['object_id']),
         )
     )
     comparison = {
@@ -777,8 +776,9 @@ def _object_evidence(
     return rows, total_bytes
 
 
+@source_authority_write
 def build_registered_git_history(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     occurrence_ordinal: int,
     *,
@@ -1285,7 +1285,7 @@ def build_registered_git_history(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         connection.execute(
             """INSERT INTO source_git_snapshot VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
@@ -1539,8 +1539,9 @@ def build_registered_git_history(
     return receipt
 
 
+@source_authority_write
 def build_source_git_commit_impact(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     snapshot_id: str,
     graph_id: str,
     commit_sha: str,
@@ -1704,7 +1705,7 @@ def build_source_git_commit_impact(
     }
     receipt_sha256 = sha256_bytes(canonical_json_bytes(receipt_core))
     receipt = {**receipt_core, "receipt_sha256": receipt_sha256}
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         connection.execute(
             """INSERT INTO source_git_impact VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",

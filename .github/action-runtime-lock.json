@@ -11,33 +11,6 @@
       "source_url": "https://github.com/actions/checkout/blob/3d3c42e5aac5ba805825da76410c181273ba90b1/action.yml"
     },
     {
-      "reference": "actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d",
-      "release": "v6.0.0",
-      "using": "node24",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "55F1486AE3901C69BE182CEA1C1E3313954C78BE626751A85B19DDAF14AE8DA6",
-      "nested_uses": [],
-      "source_url": "https://github.com/actions/configure-pages/blob/45bfe0192ca1faeb007ade9deae92b16b8254a0d/action.yml"
-    },
-    {
-      "reference": "actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128",
-      "release": "v5.0.0",
-      "using": "node24",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "502C633CF956C1EEC123E43AA9C694FCF7821C4F4A3A2475AF1CD68CD731FD5C",
-      "nested_uses": [],
-      "source_url": "https://github.com/actions/deploy-pages/blob/cd2ce8fcbc39b97be8ca5fce6e763baed58fa128/action.yml"
-    },
-    {
-      "reference": "actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697",
-      "release": "v1.0.13",
-      "using": "docker",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "D4D5A6B67D8524727EBF3ECFD1E26F771FE54360E2784BD37F4206E0A47C564B",
-      "nested_uses": [],
-      "source_url": "https://github.com/actions/jekyll-build-pages/blob/44a6e6beabd48582f863aeeb6cb2151cc1716697/action.yml"
-    },
-    {
       "reference": "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
       "release": "v7.0.0",
       "using": "node24",
@@ -65,26 +38,6 @@
       "source_url": "https://github.com/actions/upload-artifact/blob/043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/action.yml"
     },
     {
-      "reference": "actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f",
-      "release": "v7.0.0",
-      "using": "node24",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "C5979822866A72362E609844B6EBE77D4B7E759AF68CC1C2C425DCF51481FAB4",
-      "nested_uses": [],
-      "source_url": "https://github.com/actions/upload-artifact/blob/bbbca2ddaa5d8feaa63e36b76fdaad77386f024f/action.yml"
-    },
-    {
-      "reference": "actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9",
-      "release": "v5.0.0",
-      "using": "composite",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "F84E759011E0C497E696F5BCE4EBB5FBE9BBDC5AEA309B73795283FA139C1558",
-      "nested_uses": [
-        "actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f"
-      ],
-      "source_url": "https://github.com/actions/upload-pages-artifact/blob/fc324d3547104276b827a68afc52ff2a11cc49c9/action.yml"
-    },
-    {
       "reference": "github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28",
       "release": "v4.37.8",
       "using": "node24",
@@ -101,15 +54,6 @@
       "metadata_sha256": "61990808C1FC753B69D8B1AA0D9DC89F258A764A29801D8FD99A102A8F9C0A41",
       "nested_uses": [],
       "source_url": "https://github.com/github/codeql-action/blob/db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28/init/action.yml"
-    },
-    {
-      "reference": "pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
-      "release": "v6.0.10",
-      "using": "node24",
-      "metadata_path": "action.yml",
-      "metadata_sha256": "7903B0A83562CD93DF4D70181E610D9A4D6AEDF76C83197208A6FDC13614D6F1",
-      "nested_uses": [],
-      "source_url": "https://github.com/pnpm/action-setup/blob/0977fd99725f1db4007ccb2928dbb4e90d06cc86/action.yml"
     }
   ]
 }

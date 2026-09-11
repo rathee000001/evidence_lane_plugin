@@ -1,29 +1,36 @@
 """Deterministic, read-only source authority registry.
 
 The registry records what Source Intake inspected without copying source payloads into
-the project store.  File content is hashed by streaming reads, directory members are
-hashed independently, excluded secret/runtime members remain counted without content
-capture, and every ordered occurrence is preserved.
+the project store. File content is hashed by streaming reads and approved directory
+members are hashed independently. Excluded secret/runtime entries are aggregated by
+reason without persisting their paths or traversing excluded runtime subtrees, and
+every ordered occurrence is preserved.
 """
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import os
-import shutil
 import sqlite3
 import stat
-import tempfile
+import struct
+import time
 import zipfile
 from collections import defaultdict
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import wraps
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from .errors import EvidenceLaneError, require
-from .hashing import atomic_write_json, canonical_json_bytes, sha256_bytes, sha256_file
+from .errors import EvidenceLaneError, LaneError, require
+from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
+from .lanes import LaneRegistryError, get_lane
+from .migrations import Migration, apply_migrations
+from .storage import LaneStore, ProjectStore, reject_links
 from .timeutil import utc_now
 
 REGISTRY_SCHEMA = "evidence-lane.source-authority-registry.v1"
@@ -86,6 +93,8 @@ class SourceAuthoritySpec:
     ordinal: int
     lane_id: str
     assertions: Mapping[str, Any] = field(default_factory=dict)
+    directory_selection: str | None = None
+    expected_directory_path_size_sha256: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +115,8 @@ class FrozenSourceObject:
     member_path_size_sha256: str | None
     content_merkle_sha256: str | None
     members: tuple[dict[str, Any], ...] = ()
+    exclusion_summary: tuple[dict[str, Any], ...] = ()
+    directory_selection: str | None = None
 
     def as_dict(self, *, include_members: bool = True) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -125,47 +136,126 @@ class FrozenSourceObject:
         }
         if include_members:
             payload["members"] = list(self.members)
+            payload["exclusion_summary"] = list(self.exclusion_summary)
+        if self.directory_selection is not None:
+            payload['directory_selection'] = self.directory_selection
         return payload
 
 
+@dataclass
+class SourceCaptureBudget:
+    """One bounded observation, authorized by its active engine operation.
+
+    This is an internal capture boundary, not a user-supplied callback or a new
+    authority. Repeated overlapping paths retain one measured byte identity.
+    """
+    authorize: Callable[[Path], None]
+    check: Callable[[], None]
+    max_files: int = 512
+    max_file_bytes: int = 1_048_576
+    max_total_bytes: int = 33_554_432
+    max_entries: int = 20_580
+    max_seconds: float = 15
+    allow_archives: bool = False
+    max_archive_members: int = 512
+    max_archive_member_bytes: int = 16_777_216
+    max_archive_total_bytes: int = 33_554_432
+    archive_observations: dict = field(default_factory=dict)
+    identities: dict = field(default_factory=dict)
+    entries: int = 0
+    started: float = field(default_factory=time.monotonic)
+
+    def boundary(self, path):
+        self.check()
+        self.authorize(path)
+        if time.monotonic() - self.started > self.max_seconds:
+            raise LaneError('SOURCE_CAPTURE_TIME_BUDGET', 'The source observation exceeded its elapsed-time budget.')
+
+    def entry(self, path):
+        self.boundary(path)
+        self.entries += 1
+        if self.entries > self.max_entries:
+            raise LaneError('SOURCE_CAPTURE_ENTRY_BUDGET', 'Select fewer source directory entries.')
+
+    def file(self, path, size):
+        self.boundary(path)
+        if path not in self.identities and len(self.identities) >= self.max_files:
+            raise LaneError('SOURCE_CAPTURE_FILE_BUDGET', 'Select fewer source files for this refresh.')
+        previous = self.identities.get(path, {}).get('size_bytes', 0)
+        total = sum(item['size_bytes'] for item in self.identities.values()) - previous + size
+        if size > self.max_file_bytes or total > self.max_total_bytes:
+            raise LaneError('SOURCE_CAPTURE_BYTE_BUDGET', 'The source refresh exceeds its explicit byte budget.')
+
+
+    def archive(self, path, infos):
+        self.boundary(path)
+        if not self.allow_archives:
+            raise LaneError('SOURCE_CAPTURE_LOCAL_SCOPE', 'This source observation does not permit archive expansion.')
+        observation = {'entries': len(infos), 'expanded_bytes': sum(info.file_size for info in infos)}
+        others = [value for key, value in self.archive_observations.items() if key != path]
+        if (observation['entries'] + sum(row['entries'] for row in others) > self.max_archive_members
+                or any(info.file_size > self.max_archive_member_bytes for info in infos)
+                or observation['expanded_bytes'] + sum(row['expanded_bytes'] for row in others) > self.max_archive_total_bytes):
+            raise LaneError('SOURCE_CAPTURE_ARCHIVE_BUDGET', 'The complete source observation exceeds its archive entry or expanded-byte bound.')
+        self.archive_observations[path] = observation
+
+
+def _capture_directory_walk(root, capture):
+    """Bound a directory listing before materializing it; preserve pruning."""
+    stack = [(root, 0)]
+    while stack:
+        current, depth = stack.pop()
+        capture.boundary(current)
+        if depth > 64:
+            raise LaneError('SOURCE_CAPTURE_DEPTH_BUDGET', 'Select a shallower source tree.')
+        directories, files = [], []
+        with os.scandir(current) as iterator:
+            for entry in iterator:
+                capture.entry(Path(entry.path))
+                (directories if entry.is_dir(follow_symlinks=False) else files).append(entry.name)
+        yield str(current), directories, files
+        stack.extend((current / name, depth + 1) for name in reversed(directories))
+
+
+def _source_store(store: ProjectStore | LaneStore) -> LaneStore:
+    if isinstance(store, ProjectStore):
+        return store.lane('sources')
+    if not isinstance(store, LaneStore) or store.lane_id != 'sources':
+        raise LaneError('SOURCE_AUTHORITY_STORE_REQUIRED', 'Select the Sources lane of an explicit project store.')
+    return store
+
+
 @contextmanager
-def _connect(path: Path) -> Iterator[sqlite3.Connection]:
-    connection = sqlite3.connect(path)
-    try:
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA foreign_keys=ON")
-        connection.execute("PRAGMA busy_timeout=5000")
+def _connect(store: ProjectStore | LaneStore, *, write: bool = False) -> Iterator[sqlite3.Connection]:
+    target = _source_store(store)
+    with (target.transaction() if write else target.connection(read_only=True)) as connection:
         yield connection
-    finally:
-        connection.close()
 
 
-def _ensure_column(
-    connection: sqlite3.Connection,
-    table: str,
-    column: str,
-    declaration: str,
-) -> None:
-    columns = {
-        str(row["name"]) for row in connection.execute(f'PRAGMA table_info("{table}")')
-    }
-    if column not in columns:
-        connection.execute(f'ALTER TABLE "{table}" ADD COLUMN "{column}" {declaration}')
+def source_authority_write(function):
+    """Keep an entire retained source operation and its evidence in one publication."""
+    @wraps(function)
+    def mutate(registry_path, *args, writer=None, **kwargs):
+        store = _source_store(registry_path)
+        with store.project.coordinated_transaction(['sources'], writer=writer):
+            initialize_source_authority_registry(store)
+            result = function(store, *args, **kwargs)
+            if result.get('append_status') != 'IDEMPOTENT_REUSE':
+                content_digest = store.put_object(canonical_json_bytes(result))
+                store.append_receipt('source_authority_operation', {
+                    'operation': function.__name__, 'batch_id': result.get('batch_id'),
+                    'content_digest': content_digest, 'content_lane_id': 'sources'})
+            return result
+    return mutate
 
 
-def initialize_source_authority_registry(path: str | Path) -> Path:
-    """Create the project-local authority registry idempotently."""
-
-    target = Path(path).resolve()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with _connect(target) as connection:
-        connection.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS registry_meta(
+SOURCES_MIGRATIONS = (
+    Migration('sources', 1, 'Retained source identities, provenance, archives, selected SQLite, graph and Git evidence', (
+        """CREATE TABLE IF NOT EXISTS registry_meta(
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS intake_batch(
+            )""",
+        """CREATE TABLE IF NOT EXISTS intake_batch(
                 batch_id TEXT PRIMARY KEY,
                 batch_sha256 TEXT NOT NULL UNIQUE,
                 source_count INTEGER NOT NULL,
@@ -175,8 +265,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 exact_extracted_zip_relations INTEGER NOT NULL,
                 unique_zip_count INTEGER NOT NULL,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_object(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_object(
                 object_id TEXT PRIMARY KEY,
                 source_pointer TEXT NOT NULL,
                 resolved_pointer TEXT NOT NULL,
@@ -190,16 +280,16 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 excluded_member_count INTEGER NOT NULL,
                 member_path_size_sha256 TEXT,
                 content_merkle_sha256 TEXT
-            );
-            CREATE TABLE IF NOT EXISTS source_occurrence(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_occurrence(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 ordinal INTEGER NOT NULL,
                 object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 supplied_pointer TEXT NOT NULL,
                 lane_id TEXT NOT NULL,
                 PRIMARY KEY(batch_id, ordinal)
-            );
-            CREATE TABLE IF NOT EXISTS source_member(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_member(
                 object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 member_path TEXT NOT NULL,
                 member_kind TEXT NOT NULL,
@@ -208,23 +298,33 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 policy_state TEXT NOT NULL,
                 policy_reason TEXT NOT NULL,
                 PRIMARY KEY(object_id, member_path)
-            );
-            CREATE TABLE IF NOT EXISTS source_relation(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_relation(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 left_object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 relation_type TEXT NOT NULL,
                 right_object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 receipt_sha256 TEXT NOT NULL,
                 PRIMARY KEY(batch_id, left_object_id, relation_type, right_object_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_policy_receipt(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_policy_receipt(
                 object_id TEXT PRIMARY KEY REFERENCES source_object(object_id),
                 included_member_count INTEGER NOT NULL,
                 excluded_member_count INTEGER NOT NULL,
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_archive_receipt(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_exclusion_summary(
+                object_id TEXT NOT NULL REFERENCES source_object(object_id),
+                policy_reason TEXT NOT NULL,
+                excluded_entry_count INTEGER NOT NULL,
+                excluded_bytes INTEGER,
+                descendant_members_enumerated INTEGER NOT NULL CHECK(descendant_members_enumerated IN (0, 1)),
+                member_paths_stored INTEGER NOT NULL CHECK(member_paths_stored = 0),
+                capture_mode TEXT NOT NULL,
+                PRIMARY KEY(object_id, policy_reason)
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_archive_receipt(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 archive_object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 intake_status TEXT NOT NULL,
@@ -238,16 +338,16 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_sha256 TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 PRIMARY KEY(batch_id, archive_object_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_provenance(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_provenance(
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 claim_key TEXT NOT NULL,
                 claim_json TEXT NOT NULL,
                 authority TEXT NOT NULL,
                 PRIMARY KEY(batch_id, object_id, claim_key)
-            );
-            CREATE TABLE IF NOT EXISTS source_assertion_set(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_assertion_set(
                 assertion_set_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 crosswalk_sha256 TEXT NOT NULL,
@@ -255,31 +355,31 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 claim_count INTEGER NOT NULL,
                 created_at TEXT NOT NULL,
                 UNIQUE(batch_id, crosswalk_sha256)
-            );
-            CREATE TABLE IF NOT EXISTS source_sqlite_asset(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_sqlite_asset(
                 object_id TEXT NOT NULL REFERENCES source_object(object_id),
                 member_path TEXT NOT NULL,
                 inspection_state TEXT NOT NULL,
                 schema_sha256 TEXT,
                 PRIMARY KEY(object_id, member_path)
-            );
-            CREATE TABLE IF NOT EXISTS source_sqlite_schema_object(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_sqlite_schema_object(
                 object_id TEXT NOT NULL,
                 member_path TEXT NOT NULL,
                 object_type TEXT NOT NULL,
                 object_name TEXT NOT NULL,
                 sql_sha256 TEXT,
                 PRIMARY KEY(object_id, member_path, object_type, object_name)
-            );
-            CREATE TABLE IF NOT EXISTS source_sqlite_table_stat(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_sqlite_table_stat(
                 object_id TEXT NOT NULL,
                 member_path TEXT NOT NULL,
                 table_name TEXT NOT NULL,
                 row_count INTEGER,
                 count_state TEXT NOT NULL,
                 PRIMARY KEY(object_id, member_path, table_name)
-            );
-            CREATE TABLE IF NOT EXISTS source_sqlite_receipt(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_sqlite_receipt(
                 canonical_asset_id TEXT PRIMARY KEY,
                 byte_sha256 TEXT NOT NULL,
                 size_bytes INTEGER NOT NULL,
@@ -297,8 +397,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_sqlite_foreign_key(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_sqlite_foreign_key(
                 canonical_asset_id TEXT NOT NULL REFERENCES source_sqlite_receipt(canonical_asset_id),
                 from_table TEXT NOT NULL,
                 foreign_key_id INTEGER NOT NULL,
@@ -310,8 +410,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 on_delete TEXT,
                 match_rule TEXT,
                 PRIMARY KEY(canonical_asset_id, from_table, foreign_key_id, sequence_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_custom_schema(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_custom_schema(
                 schema_id TEXT NOT NULL,
                 schema_version INTEGER NOT NULL,
                 schema_sha256 TEXT NOT NULL UNIQUE,
@@ -321,8 +421,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 compiled_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 PRIMARY KEY(schema_id, schema_version)
-            );
-            CREATE TABLE IF NOT EXISTS source_custom_schema_mapping(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_custom_schema_mapping(
                 mapping_id TEXT PRIMARY KEY,
                 schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
@@ -335,8 +435,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 mapping_sha256 TEXT NOT NULL,
                 mapping_state TEXT NOT NULL,
                 UNIQUE(schema_sha256, batch_id, occurrence_ordinal, member_path, selector_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_custom_schema_receipt(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_custom_schema_receipt(
                 receipt_id TEXT PRIMARY KEY,
                 schema_sha256 TEXT NOT NULL REFERENCES source_custom_schema(schema_sha256),
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
@@ -346,8 +446,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL,
                 UNIQUE(schema_sha256, batch_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_identity_entity(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_identity_entity(
                 entity_id TEXT PRIMARY KEY,
                 entity_kind TEXT NOT NULL,
                 label TEXT NOT NULL,
@@ -357,8 +457,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 entity_json TEXT NOT NULL,
                 entity_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_identity_assertion(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_identity_assertion(
                 assertion_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 object_id TEXT NOT NULL REFERENCES source_object(object_id),
@@ -369,8 +469,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 claim_state TEXT NOT NULL,
                 assertion_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_identity_relation(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_identity_relation(
                 relation_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 subject_type TEXT NOT NULL,
@@ -382,8 +482,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 evidence_ref TEXT NOT NULL,
                 relation_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_identity_receipt(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_identity_receipt(
                 receipt_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 matrix_sha256 TEXT NOT NULL UNIQUE,
@@ -394,8 +494,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_snapshot(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_snapshot(
                 graph_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 extractor_version TEXT NOT NULL,
@@ -412,8 +512,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_node(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_node(
                 graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
                 node_id TEXT NOT NULL,
                 source_scope_id TEXT NOT NULL,
@@ -432,8 +532,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 content_sha256 TEXT NOT NULL,
                 node_sha256 TEXT NOT NULL,
                 PRIMARY KEY(graph_id, node_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_edge(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_edge(
                 graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
                 edge_id TEXT NOT NULL,
                 source_node_id TEXT NOT NULL,
@@ -453,8 +553,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                     REFERENCES source_graph_node(graph_id, node_id),
                 FOREIGN KEY(graph_id, target_node_id)
                     REFERENCES source_graph_node(graph_id, node_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_file_coverage(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_file_coverage(
                 graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
                 object_id TEXT NOT NULL,
                 member_path TEXT NOT NULL,
@@ -470,8 +570,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 edge_count INTEGER NOT NULL,
                 reason TEXT NOT NULL,
                 PRIMARY KEY(graph_id, object_id, member_path)
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_diff(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_diff(
                 diff_id TEXT PRIMARY KEY,
                 from_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
                 to_graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
@@ -487,8 +587,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL,
                 UNIQUE(from_graph_id, to_graph_id)
-            );
-            CREATE TABLE IF NOT EXISTS source_graph_impact(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_graph_impact(
                 impact_id TEXT PRIMARY KEY,
                 graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
                 seed_nodes_json TEXT NOT NULL,
@@ -501,8 +601,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS source_git_snapshot(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_snapshot(
                 snapshot_id TEXT PRIMARY KEY,
                 batch_id TEXT NOT NULL REFERENCES intake_batch(batch_id),
                 occurrence_ordinal INTEGER NOT NULL,
@@ -543,8 +643,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                     worktree_status_sha256,
                     repository_identity_sha256
                 )
-            );
-            CREATE TABLE IF NOT EXISTS source_git_ref(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_ref(
                 snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),
                 ref_name TEXT NOT NULL,
                 object_sha TEXT NOT NULL,
@@ -553,8 +653,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 peeled_type TEXT,
                 ref_sha256 TEXT NOT NULL,
                 PRIMARY KEY(snapshot_id, ref_name)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_commit(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_commit(
                 snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),
                 commit_sha TEXT NOT NULL,
                 ordinal INTEGER NOT NULL,
@@ -570,8 +670,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 commit_sha256 TEXT NOT NULL,
                 PRIMARY KEY(snapshot_id, commit_sha),
                 UNIQUE(snapshot_id, ordinal)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_parent(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_parent(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 parent_ordinal INTEGER NOT NULL,
@@ -580,8 +680,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 PRIMARY KEY(snapshot_id, commit_sha, parent_ordinal),
                 FOREIGN KEY(snapshot_id, commit_sha)
                     REFERENCES source_git_commit(snapshot_id, commit_sha)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_object(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_object(
                 snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),
                 object_sha TEXT NOT NULL,
                 object_type TEXT NOT NULL,
@@ -589,8 +689,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 content_sha256 TEXT NOT NULL,
                 object_sha256 TEXT NOT NULL,
                 PRIMARY KEY(snapshot_id, object_sha)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_object_path(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_object_path(
                 snapshot_id TEXT NOT NULL,
                 object_sha TEXT NOT NULL,
                 path_ordinal INTEGER NOT NULL,
@@ -599,8 +699,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 PRIMARY KEY(snapshot_id, object_sha, path_ordinal),
                 FOREIGN KEY(snapshot_id, object_sha)
                     REFERENCES source_git_object(snapshot_id, object_sha)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_tree_entry(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_tree_entry(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 entry_ordinal INTEGER NOT NULL,
@@ -612,8 +712,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 PRIMARY KEY(snapshot_id, commit_sha, entry_ordinal),
                 FOREIGN KEY(snapshot_id, commit_sha)
                     REFERENCES source_git_commit(snapshot_id, commit_sha)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_file_change(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_file_change(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 parent_ordinal INTEGER NOT NULL,
@@ -639,8 +739,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 ),
                 FOREIGN KEY(snapshot_id, commit_sha)
                     REFERENCES source_git_commit(snapshot_id, commit_sha)
-            );
-            CREATE TABLE IF NOT EXISTS source_git_rename(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_rename(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 parent_ordinal INTEGER NOT NULL,
@@ -666,8 +766,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                     parent_ordinal,
                     change_ordinal
                 )
-            );
-            CREATE TABLE IF NOT EXISTS source_git_hunk(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_hunk(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 parent_ordinal INTEGER NOT NULL,
@@ -697,8 +797,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                     parent_ordinal,
                     change_ordinal
                 )
-            );
-            CREATE TABLE IF NOT EXISTS source_git_changed_line(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_changed_line(
                 snapshot_id TEXT NOT NULL,
                 commit_sha TEXT NOT NULL,
                 parent_ordinal INTEGER NOT NULL,
@@ -733,8 +833,8 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                     change_ordinal,
                     hunk_ordinal
                 )
-            );
-            CREATE TABLE IF NOT EXISTS source_git_impact(
+            )""",
+        """CREATE TABLE IF NOT EXISTS source_git_impact(
                 impact_id TEXT PRIMARY KEY,
                 snapshot_id TEXT NOT NULL REFERENCES source_git_snapshot(snapshot_id),
                 graph_id TEXT NOT NULL REFERENCES source_graph_snapshot(graph_id),
@@ -749,294 +849,71 @@ def initialize_source_authority_registry(path: str | Path) -> Path:
                 receipt_json TEXT NOT NULL,
                 receipt_sha256 TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS registry_event(
+            )""",
+        """CREATE TABLE IF NOT EXISTS registry_event(
                 event_id TEXT PRIMARY KEY,
                 batch_id TEXT,
                 event_type TEXT NOT NULL,
                 event_json TEXT NOT NULL,
                 event_sha256 TEXT NOT NULL,
                 occurred_at TEXT NOT NULL
-            );
-            """
-        )
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS source_git_change_path_idx "
-            "ON source_git_file_change(snapshot_id, member_path, commit_sha)"
-        )
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS source_git_prior_path_idx "
-            "ON source_git_file_change(snapshot_id, prior_path, commit_sha)"
-        )
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS source_git_tree_path_idx "
-            "ON source_git_tree_entry(snapshot_id, member_path, commit_sha)"
-        )
-        _ensure_column(
-            connection,
-            "source_object",
-            "member_path_size_sha256",
-            "TEXT",
-        )
-        _ensure_column(
-            connection,
-            "source_sqlite_asset",
-            "byte_sha256",
-            "TEXT",
-        )
-        _ensure_column(
-            connection,
-            "source_sqlite_asset",
-            "size_bytes",
-            "INTEGER",
-        )
-        _ensure_column(
-            connection,
-            "source_sqlite_asset",
-            "canonical_asset_id",
-            "TEXT",
-        )
-        _ensure_column(
-            connection,
-            "source_sqlite_asset",
-            "inspection_receipt_sha256",
-            "TEXT",
-        )
-        try:
-            connection.execute(
-                "CREATE VIRTUAL TABLE IF NOT EXISTS source_authority_fts "
-                "USING fts5(object_id UNINDEXED, source_pointer, member_path)"
-            )
-        except sqlite3.OperationalError as error:
-            raise EvidenceLaneError(
-                "SOURCE_AUTHORITY_FTS5_UNAVAILABLE",
-                "The source authority registry requires SQLite FTS5.",
-                status="BLOCKED",
-                details={"error": str(error)},
-            ) from error
-        connection.execute(
-            "INSERT OR REPLACE INTO registry_meta(key, value) VALUES (?, ?)",
-            ("schema", REGISTRY_SCHEMA),
-        )
-        connection.commit()
+            )""",
+        """ALTER TABLE source_object ADD COLUMN exclusion_summary_sha256 TEXT""",
+        """ALTER TABLE source_sqlite_asset ADD COLUMN byte_sha256 TEXT""",
+        """ALTER TABLE source_sqlite_asset ADD COLUMN size_bytes INTEGER""",
+        """ALTER TABLE source_sqlite_asset ADD COLUMN canonical_asset_id TEXT""",
+        """ALTER TABLE source_sqlite_asset ADD COLUMN inspection_receipt_sha256 TEXT""",
+        """CREATE INDEX IF NOT EXISTS source_git_change_path_idx ON source_git_file_change(snapshot_id, member_path, commit_sha)""",
+        """CREATE INDEX IF NOT EXISTS source_git_prior_path_idx ON source_git_file_change(snapshot_id, prior_path, commit_sha)""",
+        """CREATE INDEX IF NOT EXISTS source_git_tree_path_idx ON source_git_tree_entry(snapshot_id, member_path, commit_sha)""",
+        """CREATE VIRTUAL TABLE IF NOT EXISTS source_authority_fts USING fts5(object_id UNINDEXED, source_pointer, member_path)""",
+        """INSERT INTO registry_meta(key,value) VALUES('schema','evidence-lane.source-authority-registry.v1')""",
+    )),
+    Migration('sources', 2, 'Preserve SQLite occurrence history across complete source states and inspection contracts', (
+        """CREATE TABLE source_sqlite_asset_previous AS SELECT * FROM source_sqlite_asset""",
+        """DROP TABLE source_sqlite_asset""",
+        """CREATE TABLE source_sqlite_asset(
+            object_id TEXT NOT NULL REFERENCES source_object(object_id), member_path TEXT NOT NULL,
+            inspection_state TEXT NOT NULL, schema_sha256 TEXT, byte_sha256 TEXT, size_bytes INTEGER,
+            canonical_asset_id TEXT, inspection_receipt_sha256 TEXT, inspection_id TEXT NOT NULL,
+            PRIMARY KEY(object_id, member_path, inspection_id))""",
+        """INSERT INTO source_sqlite_asset SELECT *, COALESCE(canonical_asset_id, 'legacy')
+            FROM source_sqlite_asset_previous""",
+        """CREATE TABLE source_sqlite_schema_object_previous AS SELECT * FROM source_sqlite_schema_object""",
+        """DROP TABLE source_sqlite_schema_object""",
+        """CREATE TABLE source_sqlite_schema_object(
+            object_id TEXT NOT NULL, member_path TEXT NOT NULL, object_type TEXT NOT NULL,
+            object_name TEXT NOT NULL, sql_sha256 TEXT, inspection_id TEXT NOT NULL,
+            PRIMARY KEY(object_id, member_path, inspection_id, object_type, object_name))""",
+        """INSERT INTO source_sqlite_schema_object SELECT s.*, COALESCE(a.canonical_asset_id, 'legacy')
+            FROM source_sqlite_schema_object_previous s LEFT JOIN source_sqlite_asset_previous a
+            ON a.object_id=s.object_id AND a.member_path=s.member_path""",
+        """CREATE TABLE source_sqlite_table_stat_previous AS SELECT * FROM source_sqlite_table_stat""",
+        """DROP TABLE source_sqlite_table_stat""",
+        """CREATE TABLE source_sqlite_table_stat(
+            object_id TEXT NOT NULL, member_path TEXT NOT NULL, table_name TEXT NOT NULL,
+            row_count INTEGER, count_state TEXT NOT NULL, inspection_id TEXT NOT NULL,
+            PRIMARY KEY(object_id, member_path, inspection_id, table_name))""",
+        """INSERT INTO source_sqlite_table_stat SELECT s.*, COALESCE(a.canonical_asset_id, 'legacy')
+            FROM source_sqlite_table_stat_previous s LEFT JOIN source_sqlite_asset_previous a
+            ON a.object_id=s.object_id AND a.member_path=s.member_path""",
+        """DROP TABLE source_sqlite_schema_object_previous""",
+        """DROP TABLE source_sqlite_table_stat_previous""",
+        """DROP TABLE source_sqlite_asset_previous""",
+    )),
+)
+
+
+def initialize_source_authority_registry(store: ProjectStore | LaneStore, *, writer=None) -> LaneStore:
+    """Apply the retained schema only to the selected Sources authority."""
+    target = _source_store(store)
+    apply_migrations(target, SOURCES_MIGRATIONS, writer=writer)
     return target
 
 
-def reconcile_legacy_source_authority_registry(
-    project_root: str | Path,
-) -> dict[str, Any]:
-    """Move or merge the retired root registry into ``sources/`` exactly once."""
-
-    root = Path(project_root).resolve()
-    canonical = root / "sources" / "source_authority.sqlite"
-    legacy = root / "source_authority.sqlite"
-    receipt_path = root / "sources" / "source_authority_layout_receipt.json"
-    if not legacy.is_file():
-        return {
-            "status": "PASS",
-            "state": "CANONICAL_SOURCE_AUTHORITY_ROUTE",
-            "canonical_path": str(canonical),
-            "legacy_path_present": False,
-        }
-
-    canonical.parent.mkdir(parents=True, exist_ok=True)
-    legacy_before = sha256_file(legacy)
-    canonical_before = sha256_file(canonical) if canonical.is_file() else None
-    if not canonical.is_file():
-        os.replace(legacy, canonical)
-        initialize_source_authority_registry(canonical)
-        merge_counts: dict[str, int] = {}
-        state = "LEGACY_ROOT_REGISTRY_MOVED_TO_SOURCES"
-    else:
-        initialize_source_authority_registry(canonical)
-        checkpoint = sqlite3.connect(canonical)
-        try:
-            checkpoint.execute("PRAGMA wal_checkpoint(FULL)")
-        finally:
-            checkpoint.close()
-        with tempfile.TemporaryDirectory(
-            prefix=".source-authority-layout-", dir=canonical.parent
-        ) as temporary:
-            merged = Path(temporary) / canonical.name
-            shutil.copy2(canonical, merged)
-            connection = sqlite3.connect(merged)
-            try:
-                connection.execute("PRAGMA foreign_keys=OFF")
-                connection.execute("ATTACH DATABASE ? AS legacy", (str(legacy),))
-                main_tables = {
-                    str(row[0])
-                    for row in connection.execute(
-                        """
-                        SELECT name FROM main.sqlite_schema
-                        WHERE type='table'
-                          AND name NOT LIKE 'sqlite_%'
-                          AND name NOT LIKE 'source_authority_fts%'
-                          AND sql NOT LIKE 'CREATE VIRTUAL TABLE%'
-                        """
-                    )
-                }
-                legacy_tables = {
-                    str(row[0])
-                    for row in connection.execute(
-                        """
-                        SELECT name FROM legacy.sqlite_schema
-                        WHERE type='table'
-                          AND name NOT LIKE 'sqlite_%'
-                          AND name NOT LIKE 'source_authority_fts%'
-                          AND sql NOT LIKE 'CREATE VIRTUAL TABLE%'
-                        """
-                    )
-                }
-                require(
-                    legacy_tables <= main_tables,
-                    "SOURCE_AUTHORITY_LAYOUT_SCHEMA_MISMATCH",
-                    "The retired root source registry contains unknown tables.",
-                    status="MISMATCH",
-                    unknown_tables=sorted(legacy_tables - main_tables),
-                )
-                merge_counts = {}
-                connection.execute("BEGIN IMMEDIATE")
-                for table in sorted(legacy_tables):
-                    quoted = table.replace('"', '""')
-                    main_columns = [
-                        (str(row[1]), int(row[5]))
-                        for row in connection.execute(
-                            f'PRAGMA main.table_info("{quoted}")'
-                        )
-                    ]
-                    legacy_columns = [
-                        (str(row[1]), int(row[5]))
-                        for row in connection.execute(
-                            f'PRAGMA legacy.table_info("{quoted}")'
-                        )
-                    ]
-                    require(
-                        main_columns == legacy_columns,
-                        "SOURCE_AUTHORITY_LAYOUT_SCHEMA_MISMATCH",
-                        "The canonical and retired source registry table schemas differ.",
-                        status="MISMATCH",
-                        table=table,
-                    )
-                    column_names = [name for name, _ in main_columns]
-                    primary_keys = [
-                        name
-                        for name, order in sorted(
-                            main_columns, key=lambda item: item[1] or 10_000
-                        )
-                        if order > 0
-                    ]
-                    if primary_keys:
-                        join = " AND ".join(
-                            f'm."{name}" IS l."{name}"' for name in primary_keys
-                        )
-                        differs = " OR ".join(
-                            f'm."{name}" IS NOT l."{name}"' for name in column_names
-                        )
-                        conflict = connection.execute(
-                            f'SELECT 1 FROM main."{quoted}" m '
-                            f'JOIN legacy."{quoted}" l ON {join} '
-                            f'WHERE {differs} LIMIT 1'
-                        ).fetchone()
-                        require(
-                            conflict is None,
-                            "SOURCE_AUTHORITY_LAYOUT_PRIMARY_KEY_CONFLICT",
-                            "The canonical and retired source registries disagree on one identity.",
-                            status="MISMATCH",
-                            table=table,
-                        )
-                    before = int(
-                        connection.execute(
-                            f'SELECT COUNT(*) FROM main."{quoted}"'
-                        ).fetchone()[0]
-                    )
-                    columns = ",".join(f'"{name}"' for name in column_names)
-                    connection.execute(
-                        f'INSERT OR IGNORE INTO main."{quoted}"({columns}) '
-                        f'SELECT {columns} FROM legacy."{quoted}"'
-                    )
-                    after = int(
-                        connection.execute(
-                            f'SELECT COUNT(*) FROM main."{quoted}"'
-                        ).fetchone()[0]
-                    )
-                    merge_counts[table] = after - before
-                connection.execute("DELETE FROM source_authority_fts")
-                connection.execute(
-                    """
-                    INSERT INTO source_authority_fts(
-                        object_id,source_pointer,member_path
-                    )
-                    SELECT member.object_id,object.source_pointer,member.member_path
-                    FROM source_member AS member
-                    JOIN source_object AS object USING(object_id)
-                    ORDER BY member.object_id,member.member_path
-                    """
-                )
-                connection.commit()
-                connection.execute("DETACH DATABASE legacy")
-                connection.execute("PRAGMA foreign_keys=ON")
-                integrity = [
-                    str(row[0])
-                    for row in connection.execute("PRAGMA integrity_check")
-                ]
-                foreign_keys = list(connection.execute("PRAGMA foreign_key_check"))
-                require(
-                    integrity == ["ok"] and not foreign_keys,
-                    "SOURCE_AUTHORITY_LAYOUT_MERGE_INTEGRITY_FAILED",
-                    "The merged canonical source registry failed SQLite integrity checks.",
-                    status="MISMATCH",
-                )
-            finally:
-                connection.close()
-            # Windows can deny replacing an existing SQLite file even after all
-            # Python connections have closed when a short-lived host handle is
-            # still draining. SQLite's backup API performs the same page-atomic
-            # replacement without changing the canonical pathname.
-            source_connection = sqlite3.connect(merged)
-            target_connection = sqlite3.connect(canonical)
-            try:
-                source_connection.backup(target_connection)
-                target_connection.commit()
-                require(
-                    [
-                        str(row[0])
-                        for row in target_connection.execute(
-                            "PRAGMA integrity_check"
-                        )
-                    ]
-                    == ["ok"]
-                    and not list(
-                        target_connection.execute("PRAGMA foreign_key_check")
-                    ),
-                    "SOURCE_AUTHORITY_LAYOUT_MERGE_INTEGRITY_FAILED",
-                    "The canonical source registry failed post-backup integrity checks.",
-                    status="MISMATCH",
-                )
-            finally:
-                target_connection.close()
-                source_connection.close()
-        legacy.unlink()
-        state = "LEGACY_ROOT_REGISTRY_MERGED_INTO_SOURCES"
-
-    receipt_body = {
-        "schema": "evidence-lane.source-authority-layout-migration.v1",
-        "status": "PASS",
-        "state": state,
-        "canonical_relative_path": "sources/source_authority.sqlite",
-        "retired_relative_path": "source_authority.sqlite",
-        "legacy_sha256": legacy_before,
-        "canonical_before_sha256": canonical_before,
-        "canonical_after_sha256": sha256_file(canonical),
-        "inserted_row_counts": merge_counts,
-        "legacy_path_present_after": legacy.exists(),
-        "payload_reingested": False,
-    }
-    receipt = {
-        **receipt_body,
-        "receipt_sha256": sha256_bytes(canonical_json_bytes(receipt_body)),
-    }
-    atomic_write_json(receipt_path, receipt)
-    return receipt
+def reconcile_legacy_source_authority_registry(project_root: str | Path) -> dict[str, Any]:
+    """The retired implicit move/merge cannot mutate a separate-lane project."""
+    raise LaneError('SOURCE_LEGACY_ROUTE_RETIRED', 'Use explicit project storage migration into a fresh state root.')
 
 
 def _policy_reason(relative_path: str, policy: Mapping[str, Any]) -> tuple[str, str]:
@@ -1055,7 +932,9 @@ def _policy_reason(relative_path: str, policy: Mapping[str, Any]) -> tuple[str, 
     return "INCLUDED", "POLICY_APPROVED"
 
 
-def _stable_file_identity(path: Path) -> tuple[int, str]:
+def _stable_file_identity(path: Path, capture: SourceCaptureBudget | None = None) -> tuple[int, str]:
+    if capture:
+        capture.boundary(path)
     before = path.stat()
     require(
         stat.S_ISREG(before.st_mode),
@@ -1064,63 +943,164 @@ def _stable_file_identity(path: Path) -> tuple[int, str]:
         status="BLOCKED",
         source=str(path),
     )
-    digest = sha256_file(path)
+    if capture is None:
+        digest = sha256_file(path)
+    else:
+        capture.file(path, before.st_size)
+        observed, hasher = 0, hashlib.sha256()
+        with path.open('rb') as stream:
+            while chunk := stream.read(min(65_536, capture.max_file_bytes - observed + 1)):
+                observed += len(chunk)
+                capture.file(path, observed)
+                hasher.update(chunk)
+        digest = hasher.hexdigest().upper()
     after = path.stat()
     require(
-        (before.st_size, before.st_mtime_ns) == (after.st_size, after.st_mtime_ns),
+        (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+        == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+        and (capture is None or observed == after.st_size),
         "SOURCE_AUTHORITY_CHANGED_DURING_READ",
         "A source changed while its authority identity was being captured.",
         status="STALE",
         source=str(path),
     )
+    if capture:
+        identity = {'size_bytes': after.st_size, 'sha256': digest.lower()}
+        if path in capture.identities and capture.identities[path] != identity:
+            raise LaneError('SOURCE_AUTHORITY_CHANGED_DURING_READ', 'Overlapping source observations disagree about a file.')
+        capture.identities[path] = identity
     return after.st_size, digest
 
 
-def _directory_members(
-    root: Path, policy: Mapping[str, Any]
+def _record_exclusion(
+    accumulator: dict[str, dict[str, Any]],
+    *,
+    reason: str,
+    size_bytes: int | None,
+    descendant_members_enumerated: bool,
+) -> None:
+    row = accumulator.setdefault(
+        reason,
+        {
+            "policy_reason": reason,
+            "excluded_entry_count": 0,
+            "excluded_bytes": 0,
+            "excluded_bytes_complete": True,
+            "descendant_members_enumerated": True,
+            "member_paths_stored": False,
+        },
+    )
+    row["excluded_entry_count"] = int(row["excluded_entry_count"]) + 1
+    if size_bytes is None:
+        row["excluded_bytes_complete"] = False
+    else:
+        row["excluded_bytes"] = int(row["excluded_bytes"]) + int(size_bytes)
+    row["descendant_members_enumerated"] = bool(
+        row["descendant_members_enumerated"]
+    ) and bool(descendant_members_enumerated)
+
+
+def _finalize_exclusions(
+    accumulator: Mapping[str, Mapping[str, Any]],
 ) -> tuple[dict[str, Any], ...]:
+    rows: list[dict[str, Any]] = []
+    for reason in sorted(accumulator):
+        source = accumulator[reason]
+        rows.append(
+            {
+                "policy_reason": reason,
+                "excluded_entry_count": int(source["excluded_entry_count"]),
+                "excluded_bytes": (
+                    int(source["excluded_bytes"])
+                    if source["excluded_bytes_complete"]
+                    else None
+                ),
+                "descendant_members_enumerated": bool(
+                    source["descendant_members_enumerated"]
+                ),
+                "member_paths_stored": False,
+            }
+        )
+    return tuple(rows)
+
+
+def _directory_members(
+    root: Path, policy: Mapping[str, Any], capture: SourceCaptureBudget | None = None
+) -> tuple[tuple[dict[str, Any], ...], tuple[dict[str, Any], ...]]:
     members: list[dict[str, Any]] = []
+    exclusions: dict[str, dict[str, Any]] = {}
     max_members = int(policy.get("max_members", 250_000))
-    for candidate in sorted(
-        root.rglob("*"), key=lambda item: item.as_posix().casefold()
-    ):
-        relative = candidate.relative_to(root).as_posix()
-        if candidate.is_symlink():
-            members.append(
-                {
-                    "member_path": relative,
-                    "member_kind": "symlink",
-                    "size_bytes": None,
-                    "sha256": None,
-                    "policy_state": "EXCLUDED",
-                    "policy_reason": "SYMLINK_NOT_FOLLOWED",
-                }
-            )
-        elif candidate.is_file():
+    excluded_dirs = {
+        str(value).casefold()
+        for value in policy.get("excluded_directory_names", _RUNTIME_DIRECTORY_NAMES)
+    }
+    walk = _capture_directory_walk(root, capture) if capture else os.walk(root, topdown=True, followlinks=False)
+    for current_root, directory_names, file_names in walk:
+        current = Path(current_root)
+        retained_directories: list[str] = []
+        for name in sorted(directory_names, key=str.casefold):
+            candidate = current / name
+            if candidate.is_symlink():
+                _record_exclusion(
+                    exclusions,
+                    reason="SYMLINK_NOT_FOLLOWED",
+                    size_bytes=None,
+                    descendant_members_enumerated=False,
+                )
+            elif name.casefold() in excluded_dirs:
+                _record_exclusion(
+                    exclusions,
+                    reason="RUNTIME_DIRECTORY",
+                    size_bytes=None,
+                    descendant_members_enumerated=False,
+                )
+            else:
+                retained_directories.append(name)
+        directory_names[:] = retained_directories
+
+        for name in sorted(file_names, key=str.casefold):
+            candidate = current / name
+            relative = candidate.relative_to(root).as_posix()
+            if candidate.is_symlink():
+                _record_exclusion(
+                    exclusions,
+                    reason="SYMLINK_NOT_FOLLOWED",
+                    size_bytes=None,
+                    descendant_members_enumerated=True,
+                )
+                continue
             policy_state, reason = _policy_reason(relative, policy)
             if policy_state == "INCLUDED":
-                size_bytes, digest = _stable_file_identity(candidate)
+                size_bytes, digest = _stable_file_identity(candidate, capture)
             else:
-                size_bytes = candidate.stat().st_size
-                digest = None
+                _record_exclusion(
+                    exclusions,
+                    reason=reason,
+                    size_bytes=candidate.stat().st_size,
+                    descendant_members_enumerated=True,
+                )
+                continue
             members.append(
                 {
                     "member_path": relative,
                     "member_kind": "file",
                     "size_bytes": size_bytes,
                     "sha256": digest,
-                    "policy_state": policy_state,
-                    "policy_reason": reason,
+                    "policy_state": "INCLUDED",
+                    "policy_reason": "POLICY_APPROVED",
                 }
             )
-        if len(members) > max_members:
+        excluded_entries = sum(
+            int(row["excluded_entry_count"]) for row in exclusions.values()
+        )
+        if len(members) + excluded_entries > max_members:
             raise EvidenceLaneError(
                 "SOURCE_AUTHORITY_MEMBER_LIMIT_EXCEEDED",
                 "A source directory exceeded the governed member limit.",
                 status="BLOCKED",
                 details={"source": str(root), "max_members": max_members},
             )
-    return tuple(members)
+    return tuple(members), _finalize_exclusions(exclusions)
 
 
 def _normalize_archive_name(name: str) -> str | None:
@@ -1173,13 +1153,236 @@ def _archive_member_disposition(
     return member_path, policy_state, reason
 
 
+def _archive_records(stream, start, size, *, max_members, max_entries, check):
+    """Walk fixed central-directory records without creating decoded metadata."""
+    position, entries, files = start, 0, 0
+    while position < start + size:
+        check()
+        stream.seek(position)
+        header = stream.read(46)
+        if len(header) != 46 or header[:4] != b'PK\x01\x02':
+            raise zipfile.BadZipFile('Invalid central-directory record')
+        name_size, extra_size, comment_size = struct.unpack_from('<HHH', header, 28)
+        record_size = 46 + name_size + extra_size + comment_size
+        if position + record_size > start + size:
+            raise zipfile.BadZipFile('Truncated central-directory record')
+        entries += 1
+        require(entries <= max_entries, 'SOURCE_ARCHIVE_METADATA_ENTRY_BUDGET',
+            'The archive exceeds its metadata-entry budget.', status='BLOCKED')
+        stream.seek(position + 46 + max(0, name_size - 1))
+        last_name_byte = stream.read(1) if name_size else b''
+        files += last_name_byte not in {b'/', b'\\'}
+        require(files <= max_members, 'SOURCE_AUTHORITY_ARCHIVE_MEMBER_LIMIT_EXCEEDED',
+            'The archive exceeds its file-member budget.', status='BLOCKED')
+        position += record_size
+    if position != start + size:
+        raise zipfile.BadZipFile('Invalid central-directory size')
+    return entries
+
+
+def _archive_metadata(stream, *, max_members, max_entries, max_directory_bytes, check):
+    """Bound ZIP/ZIP64 directory bytes and records before ZipInfo allocation.
+
+    Record layouts follow PKWARE APPNOTE 6.3.10. This is metadata preflight;
+    the standard-library parser still owns decoding and decompression.
+    """
+    stream.seek(0, 2)
+    size = stream.tell()
+    tail_start = max(0, size - 65_557)
+    stream.seek(tail_start)
+    tail = stream.read(65_557)
+    caches = [(tail_start, tail)]
+    found = tail.rfind(b'PK\x05\x06')
+    if found < 0 or len(tail) - found < 22:
+        raise zipfile.BadZipFile('ZIP end record not found')
+    end = struct.unpack_from('<4s4H2IH', tail, found)
+    _, disk, directory_disk, disk_entries, entries, directory_size, directory_offset, comment_size = end
+    if len(tail) - found < 22 + comment_size:
+        raise zipfile.BadZipFile('Truncated ZIP comment')
+    directory_end = tail_start + found
+    if disk or directory_disk or disk_entries != entries:
+        raise zipfile.BadZipFile('Multipart or inconsistent ZIP directory')
+    locator_position = directory_end - 20
+    if locator_position >= 0:
+        stream.seek(locator_position)
+        locator = stream.read(20)
+        if locator[:4] == b'PK\x06\x07':
+            _, locator_disk, relative_record, disks = struct.unpack('<4sIQI', locator)
+            if locator_disk or disks != 1:
+                raise zipfile.BadZipFile('Multipart ZIP64 is unsupported')
+            record = b''
+            record_position = 0
+            for candidate in dict.fromkeys((relative_record, locator_position - 56)):
+                if not 0 <= candidate <= locator_position - 56:
+                    continue
+                stream.seek(candidate)
+                observed = stream.read(56)
+                caches.append((candidate, observed))
+                if observed[:4] == b'PK\x06\x06':
+                    record, record_position = observed, candidate
+                    break
+            if len(record) != 56:
+                raise zipfile.BadZipFile('ZIP64 end record not found')
+            _, record_size, _, _, disk, directory_disk, disk_entries, entries, directory_size, directory_offset = struct.unpack('<4sQ2H2I4Q', record)
+            if (disk or directory_disk or disk_entries != entries
+                    or record_size + 12 != locator_position - record_position
+                    or directory_offset + directory_size != relative_record):
+                raise zipfile.BadZipFile('Inconsistent ZIP64 end record')
+            require(record_size <= max_directory_bytes, 'SOURCE_ARCHIVE_DIRECTORY_BYTE_BUDGET',
+                'The ZIP64 metadata exceeds its byte budget.', status='BLOCKED')
+            directory_end = record_position
+    require(directory_size <= max_directory_bytes, 'SOURCE_ARCHIVE_DIRECTORY_BYTE_BUDGET',
+        'The archive directory exceeds its byte budget.', status='BLOCKED')
+    require(entries <= max_entries, 'SOURCE_ARCHIVE_METADATA_ENTRY_BUDGET',
+        'The archive exceeds its metadata-entry budget.', status='BLOCKED')
+    directory_start = directory_end - directory_size
+    if directory_start < 0 or directory_offset > directory_start:
+        raise zipfile.BadZipFile('Invalid central-directory offset')
+    actual = _archive_records(stream, directory_start, directory_size,
+        max_members=max_members, max_entries=max_entries, check=check)
+    if actual != entries:
+        raise zipfile.BadZipFile('Directory entry count disagrees with its end record')
+    stream.seek(directory_start)
+    directory = stream.read(directory_size)
+    if len(directory) != directory_size:
+        raise zipfile.BadZipFile('Truncated archive directory')
+    # Recheck the bounded bytes actually supplied to the native parser. Source
+    # changes between the streaming walk and capture cannot bypass the count.
+    actual = _archive_records(io.BytesIO(directory), 0, len(directory),
+        max_members=max_members, max_entries=max_entries, check=check)
+    if actual != entries:
+        raise zipfile.BadZipFile('Archive directory changed during preflight')
+    caches.append((directory_start, directory))
+    for index, (start, data) in enumerate(caches):
+        for other_start, other_data in caches[index + 1:]:
+            left, right = max(start, other_start), min(start + len(data), other_start + len(other_data))
+            if left < right and data[left-start:right-start] != other_data[left-other_start:right-other_start]:
+                raise EvidenceLaneError('SOURCE_ARCHIVE_CHANGED_DURING_READ',
+                    'Archive metadata changed during preflight.', status='STALE')
+    return size, caches
+
+
+class _ArchiveMetadataView:
+    """Seekable source view with immutable preflighted ZIP metadata regions."""
+    def __init__(self, stream, size, caches):
+        self.stream, self.size, self.caches, self.position = stream, size, caches, 0
+
+    def seekable(self):
+        return True
+
+    def tell(self):
+        return self.position
+
+    def seek(self, offset, whence=0):
+        if whence not in {0, 1, 2}:
+            raise ValueError('Invalid seek origin')
+        position = offset + (self.position if whence == 1 else self.size if whence == 2 else 0)
+        if position < 0:
+            raise OSError('Negative archive seek')
+        self.position = position
+        return position
+
+    def read(self, size=-1):
+        if size < 0:
+            size = max(0, self.size - self.position)
+        # Prefer a region containing the entire read (e.g. a directory that
+        # overlaps the bounded footer cache), avoiding artificial truncation.
+        matches = [(start, data) for start, data in self.caches
+            if start <= self.position < start + len(data)]
+        if matches:
+            start, data = max(matches, key=lambda row: row[0] + len(row[1]))
+            value = data[self.position-start:self.position-start+size]
+        else:
+            next_cache = min((start for start, _ in self.caches if start > self.position), default=self.size)
+            self.stream.seek(self.position)
+            value = self.stream.read(max(0, min(size, 1_048_576, next_cache - self.position)))
+        self.position += len(value)
+        return value
+
+
+@contextmanager
+def _open_source_archive(path: Path, *, max_members: int = 250_000,
+        max_entries: int | None = None, max_directory_bytes: int = 64 * 1024 * 1024,
+        content: bytes | None = None, expected_sha256: str | None = None,
+        expected_size: int | None = None, capture: SourceCaptureBudget | None = None) -> Iterator[zipfile.ZipFile]:
+    """Read through one bounded metadata view; never extract source payloads."""
+    require(type(max_members) is int and 0 <= max_members <= 250_000,
+        'SOURCE_ARCHIVE_BUDGET_INVALID', 'The archive file-member budget is invalid.', status='BLOCKED')
+    if max_entries is None:
+        max_entries = max(1024, 2 * max_members)
+    require(type(max_members) is int and 0 <= max_members <= 250_000
+        and type(max_entries) is int and 0 <= max_entries <= 500_000
+        and type(max_directory_bytes) is int and 1 <= max_directory_bytes <= 64 * 1024 * 1024,
+        'SOURCE_ARCHIVE_BUDGET_INVALID', 'Archive metadata budgets are invalid.', status='BLOCKED')
+    deadline = time.monotonic() + 15
+    def check():
+        require(time.monotonic() < deadline, 'SOURCE_ARCHIVE_TIME_BUDGET',
+            'The archive read exceeded its elapsed-time budget.', status='BLOCKED')
+        if capture:
+            capture.boundary(path)
+    def identity(stream):
+        check()
+        stream.seek(0)
+        hasher = hashlib.sha256()
+        observed = 0
+        while block := stream.read(1_048_576):
+            check()
+            observed += len(block)
+            require(observed <= 4 * 1024**3, 'SOURCE_ARCHIVE_CONTAINER_BYTE_BUDGET',
+                'The archive container exceeds its byte budget.', status='BLOCKED')
+            hasher.update(block)
+        return observed, hasher.hexdigest()
+    check()
+    source = path.expanduser().absolute()
+    stream: Any
+    before = opened = None
+    if content is not None:
+        require(type(content) is bytes and len(content) <= 4 * 1024**3,
+            'SOURCE_ARCHIVE_CONTAINER_BYTE_BUDGET', 'The archive byte image exceeds its budget.', status='BLOCKED')
+        stream = io.BytesIO(content)
+    else:
+        reject_links(source, Path(source.anchor))
+        before = source.stat()
+        require(stat.S_ISREG(before.st_mode) and before.st_size <= 4 * 1024**3,
+            'SOURCE_ARCHIVE_CONTAINER_BYTE_BUDGET', 'Select a bounded regular archive file.', status='BLOCKED')
+        descriptor = os.open(source, os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOFOLLOW', 0))
+        stream = os.fdopen(descriptor, 'rb')
+        opened = os.fstat(stream.fileno())
+    fields = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns')
+    try:
+        if before is not None:
+            require(all(getattr(before, name) == getattr(opened, name) for name in fields),
+                'SOURCE_ARCHIVE_CHANGED_DURING_READ', 'The opened archive identity changed.', status='STALE')
+        if expected_sha256 is not None:
+            measured_size, measured_sha = identity(stream)
+            require(measured_sha == expected_sha256.lower() and (expected_size is None or expected_size == measured_size),
+                'SOURCE_SQLITE_ARCHIVE_CONTAINER_CHANGED', 'The registered archive container changed.', status='STALE')
+        size, caches = _archive_metadata(stream, max_members=max_members, max_entries=max_entries,
+            max_directory_bytes=max_directory_bytes, check=check)
+        with zipfile.ZipFile(_ArchiveMetadataView(stream, size, caches)) as archive:
+            yield archive
+        check()
+        if expected_sha256 is not None:
+            measured_size, measured_sha = identity(stream)
+            require(measured_sha == expected_sha256.lower() and (expected_size is None or expected_size == measured_size),
+                'SOURCE_SQLITE_ARCHIVE_CONTAINER_CHANGED', 'The registered archive container changed during inspection.', status='STALE')
+        if before is not None:
+            reject_links(source, Path(source.anchor))
+            after, ended = source.stat(), os.fstat(stream.fileno())
+            require(all(getattr(before, name) == getattr(after, name) for name in (*fields, 'st_ctime_ns'))
+                and all(getattr(opened, name) == getattr(ended, name) for name in (*fields, 'st_ctime_ns')),
+                'SOURCE_ARCHIVE_CHANGED_DURING_READ', 'The archive changed during inspection.', status='STALE')
+    finally:
+        stream.close()
+
+
 def archive_safety_profile(
     archive_path: str | Path, policy: Mapping[str, Any] | None = None
 ) -> dict[str, Any]:
     """Inspect ZIP central-directory safety without extraction or source mutation."""
 
     exact_policy = policy or {}
-    target = Path(archive_path).expanduser().resolve()
+    target = Path(archive_path).expanduser().absolute()
     max_members = int(exact_policy.get("max_members", 250_000))
     max_member_bytes = int(exact_policy.get("max_archive_member_bytes", 1024**3))
     max_total_bytes = int(exact_policy.get("max_archive_total_bytes", 4 * 1024**3))
@@ -1187,7 +1390,8 @@ def archive_safety_profile(
         exact_policy.get("max_archive_compression_ratio", 1000.0)
     )
     try:
-        with zipfile.ZipFile(target) as archive:
+        with _open_source_archive(target, max_members=max_members,
+                max_directory_bytes=exact_policy.get('max_archive_directory_bytes', 64 * 1024 * 1024)) as archive:
             infos = [info for info in archive.infolist() if not info.is_dir()]
             total_uncompressed = sum(info.file_size for info in infos)
             total_compressed = sum(info.compress_size for info in infos)
@@ -1226,6 +1430,10 @@ def archive_safety_profile(
                     reasons.append(reason)
                 elif state == "EXCLUDED":
                     policy_excluded_count += 1
+    except EvidenceLaneError as error:
+        return {'schema': 'evidence-lane.archive-safety-profile.v1', 'status': error.status,
+            'code': error.code, 'max_members': max_members,
+            'source_bytes_mutated': False, 'source_payloads_extracted': False}
     except (OSError, zipfile.BadZipFile) as error:
         return {
             "schema": "evidence-lane.archive-safety-profile.v1",
@@ -1255,15 +1463,26 @@ def archive_safety_profile(
 
 
 def _archive_members(
-    archive_path: Path, policy: Mapping[str, Any]
+    archive_path: Path, policy: Mapping[str, Any], *, capture: SourceCaptureBudget | None = None,
+    content: bytes | None = None, expected_container_sha256: str | None = None,
 ) -> tuple[dict[str, Any], ...]:
     members: list[dict[str, Any]] = []
     max_members = int(policy.get("max_members", 250_000))
     max_member_bytes = int(policy.get("max_archive_member_bytes", 1024**3))
     max_total_bytes = int(policy.get("max_archive_total_bytes", 4 * 1024**3))
     max_compression_ratio = float(policy.get("max_archive_compression_ratio", 1000.0))
+    if capture:
+        capture.boundary(archive_path)
+        if content is not None and len(content) > capture.max_file_bytes:
+            raise LaneError('SOURCE_CAPTURE_BYTE_BUDGET', 'The proposed archive exceeds the source file bound.')
     try:
-        with zipfile.ZipFile(archive_path) as archive:
+        remaining_entries = (capture.max_archive_members - sum(value['entries'] for key, value
+            in capture.archive_observations.items() if key != archive_path)) if capture else None
+        with _open_source_archive(archive_path, max_members=max_members, max_entries=remaining_entries,
+                max_directory_bytes=policy.get('max_archive_directory_bytes', 64 * 1024 * 1024),
+                content=content, capture=capture, expected_sha256=expected_container_sha256) as archive:
+            if capture:
+                capture.archive(archive_path, archive.infolist())
             infos = [info for info in archive.infolist() if not info.is_dir()]
             require(
                 len(infos) <= max_members,
@@ -1283,6 +1502,8 @@ def _archive_members(
             )
             seen: set[str] = set()
             for info in sorted(infos, key=lambda row: row.filename.casefold()):
+                if capture:
+                    capture.boundary(archive_path)
                 member_path, policy_state, reason = _archive_member_disposition(
                     info,
                     seen,
@@ -1295,9 +1516,17 @@ def _archive_members(
                     import hashlib
 
                     hasher = hashlib.sha256()
+                    observed = 0
                     with archive.open(info, "r") as handle:
-                        while block := handle.read(1024 * 1024):
+                        while block := handle.read(65_536 if capture else 1024 * 1024):
+                            observed += len(block)
+                            if capture:
+                                capture.boundary(archive_path)
+                                if observed > info.file_size or observed > capture.max_archive_member_bytes:
+                                    raise LaneError('SOURCE_CAPTURE_ARCHIVE_BUDGET', 'An archive member exceeded its declared bounded size.')
                             hasher.update(block)
+                    if capture and observed != info.file_size:
+                        raise LaneError('SOURCE_CAPTURE_ARCHIVE_BUDGET', 'An archive member differs from its declared size.')
                     digest = hasher.hexdigest().upper()
                 members.append(
                     {
@@ -1309,7 +1538,11 @@ def _archive_members(
                         "policy_reason": reason,
                     }
                 )
-    except (OSError, zipfile.BadZipFile) as error:
+    except EvidenceLaneError as error:
+        if capture and error.code in {'SOURCE_ARCHIVE_METADATA_ENTRY_BUDGET', 'SOURCE_ARCHIVE_DIRECTORY_BYTE_BUDGET'}:
+            raise LaneError('SOURCE_CAPTURE_ARCHIVE_BUDGET', 'The source archive exceeded its bounded metadata budget.') from error
+        raise
+    except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError) as error:
         raise EvidenceLaneError(
             "SOURCE_AUTHORITY_ARCHIVE_UNREADABLE",
             "An archive could not be indexed safely.",
@@ -1317,6 +1550,28 @@ def _archive_members(
             details={"source": str(archive_path), "error": str(error)},
         ) from error
     return tuple(members)
+
+
+def _partition_archive_members(
+    members: Iterable[Mapping[str, Any]],
+) -> tuple[tuple[dict[str, Any], ...], tuple[dict[str, Any], ...]]:
+    included: list[dict[str, Any]] = []
+    exclusions: dict[str, dict[str, Any]] = {}
+    for member in members:
+        if member.get("policy_state") == "INCLUDED":
+            included.append(dict(member))
+            continue
+        _record_exclusion(
+            exclusions,
+            reason=str(member.get("policy_reason") or "POLICY_EXCLUDED"),
+            size_bytes=(
+                int(member["size_bytes"])
+                if member.get("size_bytes") is not None
+                else None
+            ),
+            descendant_members_enumerated=True,
+        )
+    return tuple(included), _finalize_exclusions(exclusions)
 
 
 def _member_merkle(members: Iterable[Mapping[str, Any]]) -> str:
@@ -1349,7 +1604,8 @@ def _member_path_size_identity(
 
 
 def freeze_source_authority(
-    spec: SourceAuthoritySpec, policy: Mapping[str, Any] | None = None
+    spec: SourceAuthoritySpec, policy: Mapping[str, Any] | None = None,
+    *, capture: SourceCaptureBudget | None = None,
 ) -> FrozenSourceObject:
     """Capture one stable source identity through read-only operations."""
 
@@ -1362,11 +1618,22 @@ def freeze_source_authority(
         status="BLOCKED",
     )
     path = Path(source).expanduser()
+    if capture:
+        # Archive expansion is an explicit internal capture mode. Embedded
+        # members remain provenance; they never become filesystem reads.
+        capture.boundary(path)
+        if (not path.is_absolute() or not path.exists()
+                or path.suffix.casefold() == '.zip' and not capture.allow_archives):
+            raise LaneError('SOURCE_CAPTURE_LOCAL_SCOPE', 'This automatic refresh requires existing local files and directories, without archive expansion.')
     if path.exists() and path.is_file():
-        size_bytes, byte_sha256 = _stable_file_identity(path)
+        size_bytes, byte_sha256 = _stable_file_identity(path, capture)
         kind = "zip" if path.suffix.casefold() == ".zip" else "file"
         before_archive_scan = path.stat() if kind == "zip" else None
-        members = _archive_members(path, exact_policy) if kind == "zip" else ()
+        raw_members = _archive_members(path, exact_policy, capture=capture,
+            expected_container_sha256=byte_sha256) if kind == "zip" else ()
+        members, exclusion_summary = (
+            _partition_archive_members(raw_members) if raw_members else ((), ())
+        )
         if before_archive_scan is not None:
             after_archive_scan = path.stat()
             require(
@@ -1377,12 +1644,20 @@ def freeze_source_authority(
                 status="STALE",
                 source=str(path),
             )
+        # Rehash after member reads: path metadata alone cannot bind the
+        # byte identity of a concurrently replaced same-sized archive.
+        if capture and kind == "zip" and _stable_file_identity(path, capture) != (size_bytes, byte_sha256):
+            raise LaneError('SOURCE_AUTHORITY_CHANGED_DURING_READ', 'The archive changed during member capture.')
         merkle = _member_merkle(members) if members else None
         path_size_identity = _member_path_size_identity(members) if members else None
         resolved = str(path.resolve())
     elif path.exists() and path.is_dir():
         kind = "directory"
-        members = _directory_members(path, exact_policy)
+        if spec.directory_selection is None:
+            members, exclusion_summary = _directory_members(path, exact_policy, capture)
+        else:
+            from .source_selection import capture_selected_directory
+            members, exclusion_summary = capture_selected_directory(path, spec, exact_policy, capture)
         merkle = _member_merkle(members)
         path_size_identity = _member_path_size_identity(members)
         size_bytes = sum(
@@ -1395,13 +1670,21 @@ def freeze_source_authority(
     else:
         kind = "remote_or_declared"
         members = ()
+        exclusion_summary = ()
         merkle = None
         path_size_identity = None
         size_bytes = None
         byte_sha256 = None
         resolved = source
-    included = sum(member["policy_state"] == "INCLUDED" for member in members)
-    excluded = len(members) - included
+    included = len(members)
+    excluded = sum(
+        int(row["excluded_entry_count"]) for row in exclusion_summary
+    )
+    exclusion_summary_sha256 = (
+        sha256_bytes(canonical_json_bytes(list(exclusion_summary)))
+        if exclusion_summary
+        else None
+    )
     identity_body = {
         "schema": "evidence-lane.frozen-source-object.v1",
         "source": source,
@@ -1415,7 +1698,13 @@ def freeze_source_authority(
         "excluded_member_count": excluded,
         "member_path_size_sha256": path_size_identity,
         "content_merkle_sha256": merkle,
+        "exclusion_summary_sha256": exclusion_summary_sha256,
     }
+    if spec.directory_selection is not None:
+        if kind != 'directory':
+            raise LaneError('SOURCE_SELECTION_CHANGED', 'The registered directory no longer exists as a directory.')
+        identity_body['directory_selection'] = spec.directory_selection
+        identity_body['directory_selection_version'] = 4
     identity_sha256 = sha256_bytes(canonical_json_bytes(identity_body))
     return FrozenSourceObject(
         object_id=f"source_{identity_sha256[:32].lower()}",
@@ -1432,6 +1721,8 @@ def freeze_source_authority(
         member_path_size_sha256=path_size_identity,
         content_merkle_sha256=merkle,
         members=members,
+        exclusion_summary=exclusion_summary,
+        directory_selection=spec.directory_selection,
     )
 
 
@@ -1547,9 +1838,9 @@ def _counterpart_relations(
     for archive in archives:
         unsafe_reasons = sorted(
             {
-                str(member["policy_reason"])
-                for member in archive.members
-                if member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
+                str(exclusion["policy_reason"])
+                for exclusion in archive.exclusion_summary
+                if exclusion["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
             }
         )
         if unsafe_reasons:
@@ -1604,11 +1895,13 @@ def _counterpart_relations(
     return relations
 
 
+@source_authority_write
 def register_source_batch(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     specs: Iterable[SourceAuthoritySpec],
     *,
     policy: Mapping[str, Any] | None = None,
+    capture: SourceCaptureBudget | None = None,
 ) -> dict[str, Any]:
     """Freeze and append one immutable ordered source batch."""
 
@@ -1625,7 +1918,14 @@ def register_source_batch(
         "Source authority ordinals must be the exact contiguous 1..N sequence.",
         status="BLOCKED",
     )
-    frozen = [freeze_source_authority(spec, policy) for spec in exact_specs]
+    for spec in exact_specs:
+        try:
+            lane = get_lane(spec.lane_id)
+        except LaneRegistryError:
+            raise LaneError('SOURCE_SECTOR_REQUIRED', 'Select a retained canonical sector lane.') from None
+        if lane.kind != 'sector' or lane.canonical_lane_id != spec.lane_id:
+            raise LaneError('SOURCE_SECTOR_REQUIRED', 'Bind each source to its explicit canonical sector lane.')
+    frozen = [freeze_source_authority(spec, policy, capture=capture) for spec in exact_specs]
     batch_body = {
         "schema": BATCH_SCHEMA,
         "occurrences": [
@@ -1664,7 +1964,7 @@ def register_source_batch(
         "source_payloads_copied": False,
     }
     target = initialize_source_authority_registry(registry_path)
-    with _connect(target) as connection:
+    with _connect(target, write=True) as connection:
         existing = connection.execute(
             "SELECT batch_sha256 FROM intake_batch WHERE batch_id=?", (batch_id,)
         ).fetchone()
@@ -1681,7 +1981,7 @@ def register_source_batch(
                 "append_status": "IDEMPOTENT_REUSE",
                 "archive_intake": archive_intake,
             }
-        with connection:
+        with target.transaction():
             connection.execute(
                 """INSERT INTO intake_batch VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -1702,8 +2002,9 @@ def register_source_batch(
                         object_id, source_pointer, resolved_pointer, kind, lane_id,
                         identity_sha256, byte_sha256, size_bytes, member_count,
                         included_member_count, excluded_member_count,
-                        member_path_size_sha256, content_merkle_sha256
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        member_path_size_sha256, content_merkle_sha256,
+                        exclusion_summary_sha256
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         source.object_id,
                         source.source,
@@ -1718,6 +2019,13 @@ def register_source_batch(
                         source.excluded_member_count,
                         source.member_path_size_sha256,
                         source.content_merkle_sha256,
+                        (
+                            sha256_bytes(
+                                canonical_json_bytes(list(source.exclusion_summary))
+                            )
+                            if source.exclusion_summary
+                            else None
+                        ),
                     ),
                 )
                 connection.execute(
@@ -1731,7 +2039,14 @@ def register_source_batch(
                     ),
                 )
                 for member in source.members:
-                    connection.execute(
+                    require(
+                        member["policy_state"] == "INCLUDED"
+                        and bool(member.get("sha256")),
+                        "SOURCE_AUTHORITY_EXCLUDED_MEMBER_PERSISTENCE_FORBIDDEN",
+                        "Excluded source members must be aggregated without paths.",
+                        status="FAIL",
+                    )
+                    inserted = connection.execute(
                         "INSERT OR IGNORE INTO source_member VALUES (?, ?, ?, ?, ?, ?, ?)",
                         (
                             source.object_id,
@@ -1743,9 +2058,27 @@ def register_source_batch(
                             member["policy_reason"],
                         ),
                     )
+                    if inserted.rowcount:
+                        connection.execute(
+                            "INSERT INTO source_authority_fts(object_id, source_pointer, member_path) VALUES (?, ?, ?)",
+                            (source.object_id, source.source, member["member_path"]),
+                        )
+                for exclusion in source.exclusion_summary:
                     connection.execute(
-                        "INSERT INTO source_authority_fts(object_id, source_pointer, member_path) VALUES (?, ?, ?)",
-                        (source.object_id, source.source, member["member_path"]),
+                        """
+                        INSERT OR IGNORE INTO source_exclusion_summary(
+                            object_id,policy_reason,excluded_entry_count,
+                            excluded_bytes,descendant_members_enumerated,
+                            member_paths_stored,capture_mode
+                        ) VALUES (?, ?, ?, ?, ?, 0, 'AGGREGATE_NO_PATHS')
+                        """,
+                        (
+                            source.object_id,
+                            exclusion["policy_reason"],
+                            exclusion["excluded_entry_count"],
+                            exclusion["excluded_bytes"],
+                            int(bool(exclusion["descendant_members_enumerated"])),
+                        ),
                     )
                 policy_receipt = {
                     "schema": "evidence-lane.source-policy.receipt.v1",
@@ -1753,7 +2086,12 @@ def register_source_batch(
                     "included_member_count": source.included_member_count,
                     "excluded_member_count": source.excluded_member_count,
                     "excluded_content_stored": False,
+                    "excluded_member_paths_stored": False,
+                    "exclusion_summary": list(source.exclusion_summary),
                 }
+                if source.directory_selection is not None:
+                    policy_receipt.update(directory_selection=source.directory_selection,
+                        directory_selection_version=4, excluded_inventory_scope='observed_candidates_only')
                 policy_sha = sha256_bytes(canonical_json_bytes(policy_receipt))
                 connection.execute(
                     "INSERT OR IGNORE INTO source_policy_receipt VALUES (?, ?, ?, ?, ?)",
@@ -1809,7 +2147,7 @@ def register_source_batch(
 
 
 def _load_registry_frozen_sources(
-    registry_path: Path, batch_id: str
+    registry_path: ProjectStore | LaneStore, batch_id: str
 ) -> list[FrozenSourceObject]:
     with _connect(registry_path) as connection:
         rows = list(
@@ -1831,6 +2169,22 @@ def _load_registry_frozen_sources(
                     (row["object_id"],),
                 )
             )
+            exclusion_summary = tuple(
+                {
+                    "policy_reason": str(summary["policy_reason"]),
+                    "excluded_entry_count": int(summary["excluded_entry_count"]),
+                    "excluded_bytes": summary["excluded_bytes"],
+                    "descendant_members_enumerated": bool(
+                        summary["descendant_members_enumerated"]
+                    ),
+                    "member_paths_stored": False,
+                }
+                for summary in connection.execute(
+                    "SELECT * FROM source_exclusion_summary WHERE object_id=? "
+                    "ORDER BY policy_reason",
+                    (row["object_id"],),
+                )
+            )
             frozen.append(
                 FrozenSourceObject(
                     object_id=str(row["object_id"]),
@@ -1847,13 +2201,15 @@ def _load_registry_frozen_sources(
                     member_path_size_sha256=row["member_path_size_sha256"],
                     content_merkle_sha256=row["content_merkle_sha256"],
                     members=members,
+                    exclusion_summary=exclusion_summary,
                 )
             )
     return frozen
 
 
+@source_authority_write
 def reconcile_archive_counterparts(
-    registry_path: str | Path, batch_id: str
+    registry_path: ProjectStore | LaneStore, batch_id: str
 ) -> dict[str, Any]:
     """Append safe archive-use receipts from one immutable registered batch."""
 
@@ -1876,20 +2232,19 @@ def reconcile_archive_counterparts(
     receipts: list[dict[str, Any]] = []
     for archive in archives:
         unsafe_reasons = sorted(
-            {
-                str(member["policy_reason"])
-                for member in archive.members
-                if member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
-            }
+            str(row["policy_reason"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
         )
         unsafe_member_count = sum(
-            member["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
-            for member in archive.members
+            int(row["excluded_entry_count"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] in _UNSAFE_ARCHIVE_REASONS
         )
         policy_excluded_member_count = sum(
-            member["policy_state"] == "EXCLUDED"
-            and member["policy_reason"] not in _UNSAFE_ARCHIVE_REASONS
-            for member in archive.members
+            int(row["excluded_entry_count"])
+            for row in archive.exclusion_summary
+            if row["policy_reason"] not in _UNSAFE_ARCHIVE_REASONS
         )
         relation = relation_by_archive.get(archive.object_id)
         if unsafe_member_count:
@@ -1950,7 +2305,7 @@ def reconcile_archive_counterparts(
     }
     event_sha = sha256_bytes(canonical_json_bytes(event))
     append_status = "IDEMPOTENT_REUSE"
-    with _connect(target) as connection, connection:
+    with _connect(target, write=True) as connection:
         for relation in relations:
             existing_relation = connection.execute(
                 """SELECT receipt_sha256 FROM source_relation
@@ -2037,10 +2392,10 @@ def reconcile_archive_counterparts(
     }
 
 
-def load_source_batch(registry_path: str | Path, batch_id: str) -> dict[str, Any]:
-    target = Path(registry_path).resolve()
+def load_source_batch(registry_path: ProjectStore | LaneStore, batch_id: str) -> dict[str, Any]:
+    target = _source_store(registry_path)
     require(
-        target.is_file(),
+        target.database.is_file(),
         "SOURCE_AUTHORITY_REGISTRY_MISSING",
         "The project source authority registry does not exist.",
         status="MISMATCH",
@@ -2110,8 +2465,9 @@ def load_source_batch(registry_path: str | Path, batch_id: str) -> dict[str, Any
     }
 
 
+@source_authority_write
 def register_source_crosswalk(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     crosswalk_path: str | Path,
 ) -> dict[str, Any]:
@@ -2203,7 +2559,7 @@ def register_source_crosswalk(
             )
     crosswalk_sha256 = sha256_file(crosswalk_file)
     assertion_set_id = f"assertions_{crosswalk_sha256[:32].lower()}"
-    with _connect(target) as connection:
+    with _connect(target, write=True) as connection:
         existing = connection.execute(
             "SELECT * FROM source_assertion_set WHERE assertion_set_id=?",
             (assertion_set_id,),
@@ -2221,7 +2577,7 @@ def register_source_crosswalk(
                 "append_status": "IDEMPOTENT_REUSE",
                 **dict(existing),
             }
-        with connection:
+        with target.transaction():
             for object_id, claim_key, claim_json, authority in claim_rows:
                 prior = connection.execute(
                     """SELECT claim_json, authority FROM source_provenance
@@ -2288,7 +2644,7 @@ def register_source_crosswalk(
 
 
 def verify_source_batch_unchanged(
-    registry_path: str | Path,
+    registry_path: ProjectStore | LaneStore,
     batch_id: str,
     *,
     policy: Mapping[str, Any] | None = None,
@@ -2298,11 +2654,13 @@ def verify_source_batch_unchanged(
     registered = load_source_batch(registry_path, batch_id)
     comparisons: list[dict[str, Any]] = []
     for occurrence in registered["occurrences"]:
+        from .source_selection import registered_directory_selection
         fresh = freeze_source_authority(
             SourceAuthoritySpec(
                 source=str(occurrence["supplied_pointer"]),
                 ordinal=int(occurrence["ordinal"]),
                 lane_id=str(occurrence["lane_id"]),
+                directory_selection=registered_directory_selection(registry_path, occurrence['object_id']),
             ),
             policy,
         )
@@ -2336,20 +2694,21 @@ def verify_source_batch_unchanged(
 
 
 def snapshot_source_authority_registry(
-    registry_path: str | Path, batch_id: str | None = None
+    registry_path: ProjectStore | LaneStore, batch_id: str | None = None
 ) -> dict[str, Any]:
     """Return a deterministic read-only registry projection."""
 
-    target = Path(registry_path).resolve()
-    if not target.is_file():
+    target = _source_store(registry_path)
+    if not target.database.is_file():
         return {
             "schema": REGISTRY_SCHEMA,
             "status": "NOT_INITIALIZED",
             "batch_count": 0,
             "latest_batch": None,
         }
-    initialize_source_authority_registry(target)
     with _connect(target) as connection:
+        if connection.execute("SELECT 1 FROM sqlite_schema WHERE name='intake_batch'").fetchone() is None:
+            return {'schema': REGISTRY_SCHEMA, 'status': 'NOT_INITIALIZED', 'batch_count': 0, 'latest_batch': None}
         batches = [
             dict(row)
             for row in connection.execute("SELECT * FROM intake_batch ORDER BY rowid")
@@ -2385,8 +2744,8 @@ def snapshot_source_authority_registry(
             for row in connection.execute(
                 """SELECT object_id, member_path, inspection_state,
                 schema_sha256, byte_sha256, size_bytes, canonical_asset_id,
-                inspection_receipt_sha256
-                FROM source_sqlite_asset ORDER BY object_id, member_path"""
+                inspection_receipt_sha256, inspection_id
+                FROM source_sqlite_asset ORDER BY object_id, member_path, inspection_id"""
             )
         ]
         sqlite_receipt_projection = [

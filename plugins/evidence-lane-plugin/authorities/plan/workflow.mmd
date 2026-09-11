@@ -1,0 +1,79 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=D712D1163E11A159C3F5217E6EC3E478FC663E7441EC4709578F04D24358F405
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  sdk["Authenticated SDK and native MCP client"]:::default
+  read["Exact selected scope and bounded recorded evidence"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
+  delta["Current stored Plan operation and Delta admission"]:::default
+  owner["plan current executable owner"]:::default
+  action_delta_enter["delta_enter"]:::default
+  action_delta_enter_planned["delta_enter_planned"]:::default
+  action_delta_query["delta_query"]:::default
+  action_delta_status["delta_status"]:::default
+  action_job_reconcile_effect["job_reconcile_effect"]:::default
+  action_job_recovery_inspect["job_recovery_inspect"]:::default
+  action_plan_create["plan_create"]:::default
+  action_plan_host_bind["plan_host_bind"]:::default
+  action_plan_host_status["plan_host_status"]:::default
+  action_plan_host_sync["plan_host_sync"]:::default
+  action_plan_read["plan_read"]:::default
+  action_plan_refresh["plan_refresh"]:::default
+  action_steer_preview["steer_preview"]:::default
+  action_steer_submit["steer_submit"]:::default
+  action_validation_policy_read["validation_policy_read"]:::default
+  action_validation_policy_set["validation_policy_set"]:::default
+  sdk -->|"write"| action_delta_enter
+  action_delta_enter -->|"build"| writer
+  sdk -->|"write"| action_delta_enter_planned
+  action_delta_enter_planned -->|"build"| writer
+  sdk -->|"read"| action_delta_query
+  action_delta_query -->|"evi"| read
+  sdk -->|"read"| action_delta_status
+  action_delta_status -->|"build"| read
+  sdk -->|"admin"| action_job_reconcile_effect
+  action_job_reconcile_effect -->|"recover"| writer
+  sdk -->|"read"| action_job_recovery_inspect
+  action_job_recovery_inspect -->|"recover"| read
+  sdk -->|"write"| action_plan_create
+  action_plan_create -->|"plan"| writer
+  sdk -->|"admin"| action_plan_host_bind
+  action_plan_host_bind -->|"plan"| writer
+  sdk -->|"read"| action_plan_host_status
+  action_plan_host_status -->|"plan"| read
+  sdk -->|"write"| action_plan_host_sync
+  action_plan_host_sync -->|"plan"| writer
+  sdk -->|"read"| action_plan_read
+  action_plan_read -->|"plan"| read
+  sdk -->|"write"| action_plan_refresh
+  action_plan_refresh -->|"plan"| writer
+  sdk -->|"read"| action_steer_preview
+  action_steer_preview -->|"plan"| read
+  sdk -->|"write"| action_steer_submit
+  action_steer_submit -->|"plan"| writer
+  sdk -->|"read"| action_validation_policy_read
+  action_validation_policy_read -->|"plan"| read
+  sdk -->|"write"| action_validation_policy_set
+  action_validation_policy_set -->|"plan"| writer
+  writer -->|"owned mutation and attributed result"| owner
+  owner -->|"published state"| read
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_delta_enter ~~~ action_delta_enter_planned
+  action_delta_query ~~~ action_delta_status
+  action_plan_create ~~~ action_plan_host_bind
+  action_plan_read ~~~ action_plan_refresh
+  action_validation_policy_read ~~~ action_validation_policy_set
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

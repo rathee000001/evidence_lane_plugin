@@ -1,0 +1,63 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=251228330302064E28AFA91B712D7BD2F4032EA7A0F4D0C885A89BA0C9442861
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  lane["tableau owning database and immutable files"]:::default
+  delta["Exact current Plan and normal Delta admission"]:::default
+  verify["Owning acceptance checks and verified Delta exit"]:::default
+  read["Scoped authenticated SDK read"]:::default
+  action_source_snapshot_retire["source_snapshot_retire"]:::default
+  action_source_snapshot_state["source_snapshot_state"]:::default
+  action_tableau_current["tableau_current"]:::default
+  action_tableau_edit["tableau_edit"]:::default
+  action_tableau_export["tableau_export"]:::default
+  action_tableau_generate["tableau_generate"]:::default
+  action_tableau_index["tableau_index"]:::default
+  action_tableau_query["tableau_query"]:::default
+  action_tableau_read["tableau_read"]:::default
+  action_tableau_refresh["tableau_refresh"]:::default
+  delta -->|"sources"| action_source_snapshot_retire
+  action_source_snapshot_retire -->|"owned publication"| lane
+  action_source_snapshot_retire -->|"source_selector_retirement_verified"| verify
+  read -->|"read"| action_source_snapshot_state
+  lane -->|"bounded recorded evidence"| action_source_snapshot_state
+  read -->|"read"| action_tableau_current
+  lane -->|"bounded recorded evidence"| action_tableau_current
+  delta -->|"tableau"| action_tableau_edit
+  action_tableau_edit -->|"owned publication"| lane
+  action_tableau_edit -->|"tableau_snapshot_integrity"| verify
+  delta -->|"tableau"| action_tableau_export
+  action_tableau_export -->|"owned publication"| lane
+  action_tableau_export -->|"tableau_export_hash_verified"| verify
+  delta -->|"tableau"| action_tableau_generate
+  action_tableau_generate -->|"owned publication"| lane
+  action_tableau_generate -->|"tableau_snapshot_integrity"| verify
+  delta -->|"tableau"| action_tableau_index
+  action_tableau_index -->|"owned publication"| lane
+  action_tableau_index -->|"tableau_snapshot_integrity, tableau_source_hash_unchanged"| verify
+  read -->|"read"| action_tableau_query
+  lane -->|"bounded recorded evidence"| action_tableau_query
+  read -->|"read"| action_tableau_read
+  lane -->|"bounded recorded evidence"| action_tableau_read
+  delta -->|"tableau"| action_tableau_refresh
+  action_tableau_refresh -->|"owned publication"| lane
+  action_tableau_refresh -->|"tableau_snapshot_integrity, tableau_source_hash_unchanged"| verify
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  action_source_snapshot_retire ~~~ action_tableau_edit
+  action_tableau_edit ~~~ action_tableau_export
+  action_tableau_generate ~~~ action_tableau_index
+  action_tableau_index ~~~ action_tableau_refresh
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

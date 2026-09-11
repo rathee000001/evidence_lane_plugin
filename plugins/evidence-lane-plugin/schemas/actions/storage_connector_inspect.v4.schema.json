@@ -1,0 +1,324 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "history_limit": {
+        "default": 4096,
+        "maximum": 4096,
+        "minimum": 1,
+        "title": "History Limit",
+        "type": "integer"
+      }
+    },
+    "title": "StorageInspect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "storage_connector_inspect",
+  "outputSchema": {
+    "$defs": {
+      "StorageBackend": {
+        "additionalProperties": false,
+        "properties": {
+          "connection": {
+            "enum": [
+              "local_api",
+              "remote_api",
+              "unavailable"
+            ],
+            "title": "Connection",
+            "type": "string"
+          },
+          "connector_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Connector Id"
+          },
+          "engine_instance_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Engine Instance Id",
+            "type": "string"
+          },
+          "evidence_basis": {
+            "title": "Evidence Basis",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "physical_durability_attested": {
+            "const": false,
+            "default": false,
+            "title": "Physical Durability Attested",
+            "type": "boolean"
+          },
+          "policy_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Policy Digest"
+          },
+          "project_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "restart_recovery_verified": {
+            "default": false,
+            "title": "Restart Recovery Verified",
+            "type": "boolean"
+          },
+          "restart_verified_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Restart Verified At"
+          },
+          "storage_class": {
+            "default": "unverified",
+            "enum": [
+              "persistent_operator_declared",
+              "ephemeral",
+              "unverified"
+            ],
+            "title": "Storage Class",
+            "type": "string"
+          },
+          "volume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Volume Id"
+          }
+        },
+        "required": [
+          "project_id",
+          "engine_instance_id",
+          "connection",
+          "evidence_basis",
+          "observed_at"
+        ],
+        "title": "StorageBackend",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "availability_reason": {
+        "title": "Availability Reason",
+        "type": "string"
+      },
+      "backend": {
+        "$ref": "#/$defs/StorageBackend"
+      },
+      "blob_mirror_primary_allowed": {
+        "const": false,
+        "default": false,
+        "title": "Blob Mirror Primary Allowed",
+        "type": "boolean"
+      },
+      "connection_redirected": {
+        "const": false,
+        "default": false,
+        "title": "Connection Redirected",
+        "type": "boolean"
+      },
+      "connector_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Connector Id"
+      },
+      "event_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Event Digest"
+      },
+      "history_count": {
+        "default": 0,
+        "title": "History Count",
+        "type": "integer"
+      },
+      "mode": {
+        "default": "AUTO",
+        "enum": [
+          "AUTO",
+          "LOCAL_SQLITE",
+          "CONFIGURED_DURABLE_CONNECTOR"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "observation_scope": {
+        "default": "current_read",
+        "enum": [
+          "current_read",
+          "at_selection_commit"
+        ],
+        "title": "Observation Scope",
+        "type": "string"
+      },
+      "policy_satisfied": {
+        "title": "Policy Satisfied",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "project_migrated": {
+        "const": false,
+        "default": false,
+        "title": "Project Migrated",
+        "type": "boolean"
+      },
+      "reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Reason"
+      },
+      "selected_at": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Selected At"
+      },
+      "selected_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Selected By"
+      },
+      "selection_recorded": {
+        "default": false,
+        "title": "Selection Recorded",
+        "type": "boolean"
+      },
+      "state_authority": {
+        "const": "receipts_lane_sqlite",
+        "default": "receipts_lane_sqlite",
+        "title": "State Authority",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "backend",
+      "policy_satisfied",
+      "availability_reason"
+    ],
+    "title": "StorageSelectionResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "receipts",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "d4414137503ca35a6278d50c266f972780e62f272d7090e59d5595d25686d17c",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "storage_connector_inspect",
+    "profile": "receipts",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.storage_selection:register_storage_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "storage_connector_inspect.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "storage"
+}

@@ -1,0 +1,151 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Add a bounded optional embedding page over exact Code chunk identities using the pinned offline model.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "chunk_limit": {
+        "default": 128,
+        "maximum": 512,
+        "minimum": 1,
+        "title": "Chunk Limit",
+        "type": "integer"
+      },
+      "chunk_offset": {
+        "default": 0,
+        "maximum": 1000000,
+        "minimum": 0,
+        "title": "Chunk Offset",
+        "type": "integer"
+      },
+      "lane_id": {
+        "default": "local_code",
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id"
+    ],
+    "title": "SemanticIndex",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "code_semantic_index",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "local_code",
+          "github_code"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "CodeResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "code",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7764064a13aa7eacd6ee01bf69318afce9f4ce009328d23bd150b563ff2e7dcb",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "code_semantic_index",
+    "profile": "code",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.code_semantic:index_semantics",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "compute": {
+          "action_class": "RETRIEVAL",
+          "fallback_policy": "before_first_invocation_only",
+          "memory_basis": "adapter_conservative_reservation",
+          "providers": [
+            "CPU",
+            "NVIDIA_CUDA",
+            "AMD_ROCM"
+          ],
+          "required_vram_mib": 1024,
+          "runtime_operation": null,
+          "selection_is_execution": false,
+          "worker_operation": "code_embed_text"
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "code_semantic_index.local_model",
+        "systems": [
+          "Windows"
+        ],
+        "tool_ids": [
+          "Python",
+          "SentenceTransformers"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "code_embed_text"
+    ]
+  },
+  "verification_checks": [
+    "code_embedding_hashes_verified"
+  ],
+  "worker_operations": [
+    "code_embed_text"
+  ],
+  "workflow": "source-intake"
+}

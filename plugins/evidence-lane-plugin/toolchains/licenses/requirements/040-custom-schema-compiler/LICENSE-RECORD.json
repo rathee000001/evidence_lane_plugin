@@ -1,24 +1,30 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 40,
   "tool": "Custom_schema_compiler",
   "requirement": "REQUIRED_INTERNAL",
   "classification": "EVIDENCE_LANE_INTERNAL_COMPONENT",
   "install_mode": "package_internal",
-  "license_expression_or_terms": "LicenseRef-Proprietary",
+  "license_expression_or_terms": "MIT",
   "license_evidence": "LICENSE.md",
   "evidence_paths": [
     "LICENSE.md"
   ],
   "redistributed_by_source_package": true,
-  "source_package_copied_license_text_present": false,
-  "source_package_copied_license_texts": [],
+  "source_package_copied_license_text_present": true,
+  "source_package_copied_license_texts": [
+    "LICENSE.md"
+  ],
   "native_license_acquisition": null,
   "runtime_distribution_license_required": false,
   "runtime_distribution_license_manifest": null,
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "1DFDC21B96C2A81E2C1282A8E9577886E728186BF9CDFF914BF939DB5042B873"
+  "historical_ordinal": 40,
+  "catalog_ordinal": 39,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "481d6b2d8eb41d50b3611e7d19169ec5d9a69efc691d0cba64d4de2364cef49e"
 }

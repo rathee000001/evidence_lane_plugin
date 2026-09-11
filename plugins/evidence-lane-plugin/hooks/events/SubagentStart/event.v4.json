@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/SubagentStart/handler.py",
+  "event": "SubagentStart",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/SubagentStart/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/SubagentStart/handler.py",
+      "sha256": "e069460585c35af41f82f9a7363cbc6c0bfac860ed00e792638d9aae64214c87"
+    },
+    {
+      "path": "hooks/events/SubagentStart/event.schema.json",
+      "sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a"
+    },
+    {
+      "path": "hooks/events/SubagentStart/pipeline.v4.json",
+      "sha256": "adbb3ad242e8158428a1c1afcfb18ec5fdb4d6afb8847b3c8402fe336a5c4137"
+    },
+    {
+      "path": "hooks/events/SubagentStart/README.md",
+      "sha256": "e2c187f98695773b7efdf2d6562044d6d0da746ce326259d223ea645c03c3700"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 2,
+  "pipeline": "hooks/events/SubagentStart/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

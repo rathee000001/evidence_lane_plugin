@@ -1,0 +1,1767 @@
+{
+  "schema": "evidence-lane.authority-workflow.v4",
+  "owner_id": "chat_lineage",
+  "source_package_folder": "authorities/chat_lineage",
+  "storage": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite with files and schema history in authorities/chat_lineage",
+  "actions": [
+    {
+      "name": "capture_bind",
+      "description": "Bind this client's selected project to a reported host session for visible hook capture.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "reported_session_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "Reported Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reported_session_id"
+        ],
+        "title": "CaptureBind",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reported_session_id": {
+            "title": "Reported Session Id",
+            "type": "string"
+          },
+          "bound": {
+            "const": true,
+            "default": true,
+            "title": "Bound",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "capture_route": {
+            "enum": [
+              "GOVERNED_PROJECT_FULL",
+              "ENV_BUILDER_SPARSE"
+            ],
+            "title": "Capture Route",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "reported_session_id",
+          "capture_route"
+        ],
+        "title": "CaptureBindingResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "chatlineage",
+      "workflow": "boot",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "capture_bind",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "capture_bind.engine",
+            "adapter": "evidence_lane_plugin.capture_routing:CaptureRouter.bind",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2edf8b24abefa7d7d770cb575a765c73bfbe1ae3dc5932a19a0096b128f68cdf"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "continuation_accept",
+      "description": "Accept a destination-pinned project continuation and put the source client in read-only closeout.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest"
+        ],
+        "title": "ContinuationAccept",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "owner_generation": {
+            "title": "Owner Generation",
+            "type": "integer"
+          },
+          "owner_client_id": {
+            "title": "Owner Client Id",
+            "type": "string"
+          },
+          "previous_owner_client_id": {
+            "title": "Previous Owner Client Id",
+            "type": "string"
+          },
+          "binding_digest": {
+            "title": "Binding Digest",
+            "type": "string"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "transferred_participant_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Transferred Participant Ids",
+            "type": "array"
+          },
+          "source_client_closeout_only": {
+            "default": true,
+            "title": "Source Client Closeout Only",
+            "type": "boolean"
+          },
+          "plan_mutated": {
+            "default": false,
+            "title": "Plan Mutated",
+            "type": "boolean"
+          },
+          "jobs_replayed": {
+            "default": false,
+            "title": "Jobs Replayed",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "source_bytes_reverified": {
+            "default": false,
+            "title": "Source Bytes Reverified",
+            "type": "boolean"
+          },
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          },
+          "canon_decisions_replayed": {
+            "default": false,
+            "title": "Canon Decisions Replayed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "participant_id",
+          "owner_generation",
+          "owner_client_id",
+          "previous_owner_client_id",
+          "binding_digest",
+          "plan_revision",
+          "task_id",
+          "transferred_participant_ids"
+        ],
+        "title": "ContinuationResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_accept",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_accept.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "b73b55c1fb1dde978212ebd3a2dd796dee738c07eca8a7942276fe905ea67ff5"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "continuation_cancel",
+      "description": "Cancel an unconsumed continuation owned by this source client.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "reason"
+        ],
+        "title": "ContinuationCancel",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "cancelled",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "continuation_id"
+        ],
+        "title": "ContinuationCancelled",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_cancel",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_cancel.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "28cf1d80646a4c4c2f56b2bb7eb61b122e821c00f867b1316cd3f1088232e92d"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "continuation_context",
+      "description": "Read attributed Plan, Canon, Memory and lineage locators for an accepted project continuation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "continuation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "limit": {
+            "default": 4,
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest"
+        ],
+        "title": "ContinuationContextRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "current_owner": {
+            "additionalProperties": true,
+            "title": "Current Owner",
+            "type": "object"
+          },
+          "plan_task": {
+            "additionalProperties": true,
+            "title": "Plan Task",
+            "type": "object"
+          },
+          "lineage_locators": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Lineage Locators",
+            "type": "array"
+          },
+          "canon": {
+            "additionalProperties": true,
+            "title": "Canon",
+            "type": "object"
+          },
+          "canon_continuity": {
+            "additionalProperties": true,
+            "title": "Canon Continuity",
+            "type": "object"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory"
+          },
+          "source_root": {
+            "title": "Source Root",
+            "type": "string"
+          },
+          "state_root": {
+            "title": "State Root",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "host_session_attached": {
+            "default": false,
+            "title": "Host Session Attached",
+            "type": "boolean"
+          },
+          "source_bytes_reverified": {
+            "default": false,
+            "title": "Source Bytes Reverified",
+            "type": "boolean"
+          },
+          "jobs_replayed": {
+            "default": false,
+            "title": "Jobs Replayed",
+            "type": "boolean"
+          },
+          "snapshot_scope": {
+            "default": "one_published_root_pv_with_separate_owner_views",
+            "title": "Snapshot Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "continuation_id",
+          "source_client_id",
+          "destination_client_id",
+          "current_owner",
+          "plan_task",
+          "lineage_locators",
+          "canon",
+          "canon_continuity",
+          "memory",
+          "source_root",
+          "state_root"
+        ],
+        "title": "ContinuationContext",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_context",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_context.engine",
+            "adapter": "evidence_lane_plugin.canon_runtime_continuity:register_continuation_context.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "1ca69edd5422374171f892c3aac5a0f19055bca7c4f7e95a029ac6bb81fb8f18"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "continuation_offer",
+      "description": "Offer exact project-participant continuity to another registered client at a safe work boundary.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "destination_participant_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Destination Participant Id",
+            "type": "string"
+          },
+          "plan_revision": {
+            "minimum": 1,
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "contract_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Digest",
+            "type": "string"
+          },
+          "memory_checkpoint": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Checkpoint"
+          },
+          "expires_in_seconds": {
+            "default": 3600,
+            "maximum": 86400,
+            "minimum": 30,
+            "title": "Expires In Seconds",
+            "type": "integer"
+          },
+          "require_native_attestation": {
+            "default": false,
+            "title": "Require Native Attestation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "participant_id",
+          "destination_participant_id",
+          "plan_revision",
+          "task_id",
+          "contract_digest"
+        ],
+        "title": "ContinuationOffer",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "continuation_id": {
+            "title": "Continuation Id",
+            "type": "string"
+          },
+          "continuation_digest": {
+            "title": "Continuation Digest",
+            "type": "string"
+          },
+          "source_client_id": {
+            "title": "Source Client Id",
+            "type": "string"
+          },
+          "destination_client_id": {
+            "title": "Destination Client Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "state": {
+            "default": "offered",
+            "title": "State",
+            "type": "string"
+          },
+          "identity_scope": {
+            "default": "authenticated_engine_clients",
+            "title": "Identity Scope",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "host_task_created": {
+            "default": false,
+            "title": "Host Task Created",
+            "type": "boolean"
+          },
+          "canon_checkpoint_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Canon Checkpoint Digest"
+          }
+        },
+        "required": [
+          "continuation_id",
+          "continuation_digest",
+          "source_client_id",
+          "destination_client_id",
+          "expires_at"
+        ],
+        "title": "ContinuationOffered",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_offer",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_offer.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.mutation.<locals>.run",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "1ed02188041722ee5b130c59a80b636fe98912a7ebf8e38a1d8c1e719427a732"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "continuation_read",
+      "description": "Read bounded project continuation bindings without reattaching host sessions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "participant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Participant Id"
+          },
+          "after_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Sequence",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ContinuationRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "offers": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "last_sequence": {
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "native_task_attestation": {
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          },
+          "scope": {
+            "default": "project_participant_ownership_and_context",
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "offers",
+          "last_sequence",
+          "truncated"
+        ],
+        "title": "ContinuationPage",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "continuity",
+      "workflow": "state-travel",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "continuation_read",
+        "profile": "continuity",
+        "routes": [
+          {
+            "route_id": "continuation_read.engine",
+            "adapter": "evidence_lane_plugin.task_binding_registry:register_continuation_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "87a205d3c9ae34fe843346443331887fbfeb4118f12d41abbff7babbf5e0a09b"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "lineage_read",
+      "description": "Search or page through the selected project's visible ChatLineage.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "match_mode": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match Mode",
+            "type": "string"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query"
+          },
+          "after_sequence": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Sequence",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "LineageRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "total_events": {
+            "title": "Total Events",
+            "type": "integer"
+          },
+          "current_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Cursor"
+          },
+          "last_sequence": {
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "query_mode": {
+            "enum": [
+              "sequence",
+              "fts5"
+            ],
+            "title": "Query Mode",
+            "type": "string"
+          },
+          "authority": {
+            "const": "project_sqlite",
+            "default": "project_sqlite",
+            "title": "Authority",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "events",
+          "total_events",
+          "current_cursor",
+          "last_sequence",
+          "truncated",
+          "query_mode"
+        ],
+        "title": "LineagePage",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "chatlineage",
+      "workflow": "lifecycle",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "lineage_read",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "lineage_read.engine",
+            "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "2879ddaca16fa7b3353286114f1c793c54e4e19aa160d43d12b38b8d3ba9ca5e"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": true,
+      "read_schemas": [
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "project_search": {
+        "lanes": [
+          "chat_lineage"
+        ],
+        "items": "events",
+        "current_action": null,
+        "current_items": null,
+        "collection": null,
+        "match_mode": "any",
+        "basis": "sqlite_fts5_sequence",
+        "rerank_text": null
+      }
+    },
+    {
+      "name": "lineage_record",
+      "description": "Record bounded visible content with agent-report provenance.",
+      "inputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "prompt",
+              "steer",
+              "assistant",
+              "tool_call",
+              "tool_result",
+              "session",
+              "interrupt",
+              "receipt",
+              "handoff"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Payload",
+            "type": "object"
+          },
+          "parent_event_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Event Id"
+          },
+          "reported_session_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reported Session Id"
+          },
+          "reported_turn_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reported Turn Id"
+          },
+          "tool_use_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool Use Id"
+          }
+        },
+        "required": [
+          "kind",
+          "payload"
+        ],
+        "title": "LineageRecord",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "cursor": {
+            "title": "Cursor",
+            "type": "string"
+          },
+          "payload_digest": {
+            "title": "Payload Digest",
+            "type": "string"
+          },
+          "duplicate": {
+            "title": "Duplicate",
+            "type": "boolean"
+          },
+          "provenance": {
+            "title": "Provenance",
+            "type": "string"
+          },
+          "native_task_attestation": {
+            "const": "not_provided",
+            "default": "not_provided",
+            "title": "Native Task Attestation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "sequence",
+          "cursor",
+          "payload_digest",
+          "duplicate",
+          "provenance"
+        ],
+        "title": "LineageAppendResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "chatlineage",
+      "workflow": "lifecycle",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "lineage_record",
+        "profile": "chatlineage",
+        "routes": [
+          {
+            "route_id": "lineage_record.engine",
+            "adapter": "evidence_lane_plugin.lineage:register_lineage_actions.<locals>.append",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "f08384de72bfa55d05a3cb0d958999a2aa35ccb92368db3f00145f9e2d8cc357"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "prompt_index_status",
+      "description": "Read verified prompt entry indices and separate classifications for this exact client/project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "reported_session_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reported Session Id"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "after_index": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After Index",
+            "type": "integer"
+          }
+        },
+        "title": "PromptRead",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "additionalProperties": true,
+            "title": "Index",
+            "type": "object"
+          },
+          "plan_changed": {
+            "const": false,
+            "default": false,
+            "title": "Plan Changed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "PromptStatus",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "chat_lineage",
+      "workflow": "source-intake",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "prompt_index_status",
+        "profile": "chat_lineage",
+        "routes": [
+          {
+            "route_id": "prompt_index_status.engine",
+            "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.<lambda>",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "fcfb3642fdd4ab461aa72e1453c306bd8f94ea0747c3d37f8b8efe2eed958da6"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "task_classify",
+      "description": "Record source-bound intent, focus, owning lanes and next workflow action; classification does not apply a Plan steer or authorize work.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "classification_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Classification Id",
+            "type": "string"
+          },
+          "source_event_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Source Event Id",
+            "type": "string"
+          },
+          "source_cursor": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Cursor",
+            "type": "string"
+          },
+          "intent": {
+            "enum": [
+              "informational",
+              "semantic",
+              "stop",
+              "work"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "focus": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Focus",
+            "type": "string"
+          },
+          "workflow": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Workflow",
+            "type": "string"
+          },
+          "next_action": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Next Action",
+            "type": "string"
+          },
+          "lanes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Lanes",
+            "type": "array"
+          },
+          "explicit_modes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Explicit Modes",
+            "type": "array"
+          },
+          "custom_modes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 8,
+            "title": "Custom Modes",
+            "type": "array"
+          },
+          "code_lane": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Code Lane",
+            "type": "string"
+          },
+          "source_text": {
+            "anyOf": [
+              {
+                "maxLength": 65536,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Text"
+          }
+        },
+        "required": [
+          "classification_id",
+          "source_event_id",
+          "source_cursor",
+          "intent",
+          "focus",
+          "workflow",
+          "next_action"
+        ],
+        "title": "EntryClassify",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "TaskModeBinding": {
+            "additionalProperties": false,
+            "description": "Exact, project-owned classification reference; never ambient session state.",
+            "properties": {
+              "classification_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Classification Id",
+                "type": "string"
+              },
+              "classification_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Classification Digest",
+                "type": "string"
+              },
+              "source_event_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Source Event Id",
+                "type": "string"
+              },
+              "source_cursor": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Source Cursor",
+                "type": "string"
+              },
+              "selection_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Selection Sha256",
+                "type": "string"
+              },
+              "manifest_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Manifest Digest",
+                "type": "string"
+              }
+            },
+            "required": [
+              "classification_id",
+              "classification_digest",
+              "source_event_id",
+              "source_cursor",
+              "selection_sha256",
+              "manifest_digest"
+            ],
+            "title": "TaskModeBinding",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "entry": {
+            "additionalProperties": true,
+            "title": "Entry",
+            "type": "object"
+          },
+          "task_mode_binding": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TaskModeBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "plan_changed": {
+            "const": false,
+            "default": false,
+            "title": "Plan Changed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "entry"
+        ],
+        "title": "EntryResult",
+        "type": "object"
+      },
+      "permission": "write",
+      "profile": "chat_lineage",
+      "workflow": "lifecycle",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "task_classify",
+        "profile": "chat_lineage",
+        "routes": [
+          {
+            "route_id": "task_classify.engine",
+            "adapter": "evidence_lane_plugin.prompt_index:register_prompt_actions.<locals>.classify",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows",
+              "Darwin",
+              "Linux"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "a6fc81fae848bc1057d0d719394b2f6c7cb37352dcc8daac1cd916a58b8bd614"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    }
+  ],
+  "views": [
+    {
+      "view_id": "chat_lineage.ancestry",
+      "lane_id": "chat_lineage",
+      "folder": "authorities/chat_lineage",
+      "version": 1,
+      "meaning": "Visible conversation events and their recorded parent ancestry.",
+      "consumer": "artifact_export",
+      "implementation_digest": "85c07bfb876371e4bef2a902443ca92bd4e68d54115f2ffe57387730dabf1e4c",
+      "files": {
+        "mmd": "chat_lineage.mmd",
+        "dot": "chat_lineage.dot"
+      },
+      "scope": {
+        "query": true,
+        "include_history": false,
+        "max_nodes": 200,
+        "max_edges": 500
+      },
+      "source_owners": [
+        "lineage"
+      ],
+      "node_kinds": [
+        "lineage_event"
+      ],
+      "edge_kinds": [
+        "PARENT_OF"
+      ],
+      "schemas": [
+        {
+          "owner": "lineage",
+          "version": 1,
+          "digest": "1c3ad8a553193b2ca680e5d247f68d4d848958f378283e3805433005462e763c"
+        }
+      ],
+      "authority": "owning_lane_sqlite",
+      "current_selector": "owning_lane_sqlite",
+      "head_reader": "declared_owner_events",
+      "pointer_scope": null,
+      "shared_tools": {
+        "mmd": {
+          "primary": "langgraph_graph_exporter",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ]
+        },
+        "dot": {
+          "primary": "python_graphviz",
+          "dependencies": [
+            "langgraph",
+            "langchain-core",
+            "graphviz",
+            "rustworkx"
+          ],
+          "native_validation": "explicit_native_choice_requires_shared_binary_and_supported_client_profile"
+        }
+      },
+      "graph_execution": {
+        "analysis": "bounded_rustworkx",
+        "default_dot_validation": "source",
+        "native_failure_fallback": false,
+        "package_projection_runtime_observations": false
+      }
+    }
+  ],
+  "runtime_modules": [
+    "evidence_lane_plugin.lineage",
+    "evidence_lane_plugin.task_binding_registry",
+    "evidence_lane_plugin.prompt_index",
+    "evidence_lane_plugin.codex_turn_control"
+  ],
+  "topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "workflow_chat_lineage",
+    "graph_role": "EXECUTABLE_WORKFLOW",
+    "node_count": 15,
+    "edge_count": 22,
+    "group_count": 0,
+    "semantic_topology_sha256": "62D0B4B05CC67321D8FD47AAB1ABBEEEB347595303D97EFCAC52A5003FC931FE",
+    "mmd_sha256": "B3F62D62DE41180DE32385CC002B0193EA6345DA8051D4B3584D2BC53BB728E8",
+    "dot_sha256": "DF418AB3DB37F96BB3BAE650E724516E954E28B00BDDAFB2BEDE990EB7E10074",
+    "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "E7610A5CE6FB0FF648B0B3B3D51EE69BDEF4599B55FF3BAE1071E874FC778CD7",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 4,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "92EB63F56B7ECBAF6FEEDAC9BF2C54250640522942B12F36202F69597D15E7A7"
+  },
+  "graph_role": "source_package_executable_routes",
+  "installed_execution_claimed": false,
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_chat_lineage",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 14,
+    "edge_count": 8,
+    "group_count": 0,
+    "semantic_topology_sha256": "B912E74FBC8FA81F15D7FEF4B6FB568F19513585BC91C738736B35A4ED6745B3",
+    "mmd_sha256": "E1382B4918464EEDADFFC848C66979E1EF3F192FCF26BFB3AEC9AC7D0C378D41",
+    "dot_sha256": "F9B97649CE716E15942878619F1AF6E09DF3D57FF1DC012293454AE902B5597C",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "13AA790E4DFF54CAA480BAAF1F7271E017F2689A17C0F8474C7706C71977BA81",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "F7CF21C5FE4E8FEC911F9E55BC9AE105BA1151B4F5AA068F880F5018F59945BA"
+  }
+}

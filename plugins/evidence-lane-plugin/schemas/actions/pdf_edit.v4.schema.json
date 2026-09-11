@@ -1,0 +1,199 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish an immutable PDF derivative and verify canonical field values and page widgets.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "allow_signed_derivative": {
+        "default": false,
+        "title": "Allow Signed Derivative",
+        "type": "boolean"
+      },
+      "expected_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Expected Sha256",
+        "type": "string"
+      },
+      "fields": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "maxProperties": 200,
+        "title": "Fields",
+        "type": "object"
+      },
+      "flatten": {
+        "default": false,
+        "title": "Flatten",
+        "type": "boolean"
+      },
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "metadata": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "maxProperties": 6,
+        "title": "Metadata",
+        "type": "object"
+      },
+      "page_order": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Page Order"
+      },
+      "repair_orphan_widgets": {
+        "default": false,
+        "title": "Repair Orphan Widgets",
+        "type": "boolean"
+      },
+      "rotation": {
+        "default": 0,
+        "enum": [
+          0,
+          90,
+          180,
+          270
+        ],
+        "title": "Rotation",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "snapshot_id",
+      "expected_sha256"
+    ],
+    "title": "PdfEdit",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "pdf_edit",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "pdf_ocr",
+        "default": "pdf_ocr",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PdfResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "pdf_ocr",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "7b21b9657eeff0ffb9454bf08c2b1a0bc02a860665cc4100a006076339cbac13",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "pdf_edit",
+    "profile": "pdf_ocr",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.pdf_profile:edit_pdf",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "pdf_edit.native_pdf",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "pypdf",
+          "PyMuPDF",
+          "pdfplumber"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "pdf_edit"
+    ]
+  },
+  "verification_checks": [
+    "pdf_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "pdf_edit"
+  ],
+  "workflow": "build"
+}

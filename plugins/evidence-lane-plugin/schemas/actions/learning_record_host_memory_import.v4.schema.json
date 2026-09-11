@@ -1,0 +1,238 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Record explicit host-memory provenance and its exact Plan-task link without reading host memory or creating Learning.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "contract_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Contract Digest",
+        "type": "string"
+      },
+      "delta_job_id": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Delta Job Id"
+      },
+      "observed_at": {
+        "maxLength": 40,
+        "minLength": 20,
+        "title": "Observed At",
+        "type": "string"
+      },
+      "plan_revision": {
+        "minimum": 1,
+        "title": "Plan Revision",
+        "type": "integer"
+      },
+      "purpose": {
+        "maxLength": 500,
+        "minLength": 1,
+        "title": "Purpose",
+        "type": "string"
+      },
+      "request_id": {
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "title": "Request Id",
+        "type": "string"
+      },
+      "source_context_id_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Context Id Sha256",
+        "type": "string"
+      },
+      "source_kind": {
+        "enum": [
+          "CODEX_LOCAL_MEMORY",
+          "CHATGPT_SAVED_MEMORY",
+          "CHATGPT_CHAT_HISTORY_MEMORY"
+        ],
+        "title": "Source Kind",
+        "type": "string"
+      },
+      "source_locator": {
+        "maxLength": 512,
+        "minLength": 1,
+        "title": "Source Locator",
+        "type": "string"
+      },
+      "source_record_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Record Sha256",
+        "type": "string"
+      },
+      "task_id": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+        "title": "Task Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "source_kind",
+      "source_locator",
+      "source_record_sha256",
+      "source_context_id_sha256",
+      "observed_at",
+      "purpose",
+      "task_id",
+      "plan_revision",
+      "contract_digest"
+    ],
+    "title": "HostMemoryImport",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "learning_record_host_memory_import",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "duplicate": {
+        "default": false,
+        "title": "Duplicate",
+        "type": "boolean"
+      },
+      "import_context": {
+        "additionalProperties": true,
+        "title": "Import Context",
+        "type": "object"
+      },
+      "imported_role": {
+        "const": "non_authoritative_evidence_reference",
+        "default": "non_authoritative_evidence_reference",
+        "title": "Imported Role",
+        "type": "string"
+      },
+      "learning_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Learning Mutated",
+        "type": "boolean"
+      },
+      "memory_graph": {
+        "additionalProperties": true,
+        "title": "Memory Graph",
+        "type": "object"
+      },
+      "memory_link_semantics": {
+        "const": "agent_report",
+        "default": "agent_report",
+        "title": "Memory Link Semantics",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "plan_mutated": {
+        "const": false,
+        "default": false,
+        "title": "Plan Mutated",
+        "type": "boolean"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "raw_host_memory_stored": {
+        "const": false,
+        "default": false,
+        "title": "Raw Host Memory Stored",
+        "type": "boolean"
+      },
+      "receipt_digest": {
+        "title": "Receipt Digest",
+        "type": "string"
+      },
+      "receipt_id": {
+        "title": "Receipt Id",
+        "type": "string"
+      },
+      "source": {
+        "additionalProperties": true,
+        "title": "Source",
+        "type": "object"
+      },
+      "source_bytes_read_or_verified": {
+        "const": false,
+        "default": false,
+        "title": "Source Bytes Read Or Verified",
+        "type": "boolean"
+      },
+      "source_identity_basis": {
+        "const": "caller_reported_hashes",
+        "default": "caller_reported_hashes",
+        "title": "Source Identity Basis",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "receipt_id",
+      "receipt_digest",
+      "source",
+      "import_context",
+      "memory_graph"
+    ],
+    "title": "HostMemoryImported",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "learning",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "b72a8be78377c67a0177ed641dfff56fb7e0babca24d02d717960cd4a82b1c50",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "learning_record_host_memory_import",
+    "profile": "learning",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.agent_learning:register_learning_actions.<locals>.import_provenance",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "learning_record_host_memory_import.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "learning"
+}

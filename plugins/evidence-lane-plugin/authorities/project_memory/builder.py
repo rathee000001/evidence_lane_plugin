@@ -1,10 +1,11 @@
-"""Build/refresh binding for this separate authority support system."""
+"""memory: authenticated public SDK mutation binding."""
+from evidence_lane_plugin.authority_support import call_authority_action
 
-from evidence_lane_plugin.authority_support import refresh_authority_support
+OWNER_ID = 'memory'
+ACTIONS = {'memory_checkpoint': True, 'memory_ingest': True, 'project_memory_record_link': True}
 
-AUTHORITY_ID = "project_memory"
 
-def refresh(project_root):
-    return refresh_authority_support(project_root, AUTHORITY_ID)
+def build_authority(client, **request):
+    return call_authority_action(client, ACTIONS, **request)
 
-__all__ = ["AUTHORITY_ID", "refresh"]
+__all__ = ["OWNER_ID", "build_authority"]

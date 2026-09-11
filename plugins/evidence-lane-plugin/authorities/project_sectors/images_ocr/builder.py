@@ -1,17 +1,10 @@
-"""Lane-specific binding to the canonical shared lane bundle builder."""
+"""images_ocr: typed binding to the authenticated shared SDK and owning engine."""
+from evidence_lane_plugin.sector_support import build_sector_source
 
-from evidence_lane_plugin.lane_engine import build_lane_bundle
+LANE_ID = 'images_ocr'
+ACTION_LANES = {'media_export': 'images_ocr', 'media_extract': 'images_ocr', 'media_index': 'images_ocr', 'media_ocr': 'images_ocr', 'media_refresh': 'images_ocr', 'media_transform': 'images_ocr', 'source_snapshot_retire': 'images_ocr'}
 
-LANE_ID = "images_ocr"
-
-def build_lane_sources(*, source_paths, source_overrides=None, **kwargs):
-    paths = tuple(dict.fromkeys(str(path) for path in source_paths))
-    overrides = dict(source_overrides or {})
-    overrides.update({path: LANE_ID for path in paths})
-    return build_lane_bundle(
-        source_paths_override=paths,
-        source_overrides=overrides,
-        **kwargs,
-    )
+def build_lane_sources(client, **arguments):
+    return build_sector_source(client, LANE_ID, ACTION_LANES, **arguments)
 
 __all__ = ["LANE_ID", "build_lane_sources"]

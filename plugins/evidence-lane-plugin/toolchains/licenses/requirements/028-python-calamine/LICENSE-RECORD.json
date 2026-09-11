@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 28,
   "tool": "python_calamine",
@@ -24,5 +24,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": true,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "FA9098F2379EE0F0EFB70D378B95B59D7578016910D242693A94502B4054B391"
+  "historical_ordinal": 28,
+  "catalog_ordinal": 27,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "7c431996930438b0a264d6d76d4c3164f7a7fc5a15d039218a5c1b59a43e6a82"
 }

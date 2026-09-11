@@ -1,48 +1,106 @@
-"""One immutable V1/V3-fused registry for all Evidence Lane sectors."""
+"""Separate authority and sector contracts, adapted from the admitted lane registry.
 
+This catalog defines ownership and routing. An entry does not establish that its
+parsers, mutations or native host routes have passed runtime qualification.
+"""
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Iterable
-from dataclasses import asdict, dataclass
-from pathlib import Path
+from dataclasses import asdict, dataclass, replace
+from pathlib import Path, PurePosixPath
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Literal
 
-from .hashing import canonical_json_bytes, sha256_bytes, sha256_file
-from .package_root import resolve_plugin_root
+from .code_schema_contract import CODE_TABLES
+from .hashing import canonical_json_bytes, sha256_bytes
 
-MUTATION_AUTOMATIC_APPEND_ONLY = "automatic_append_only"
-MUTATION_NAMED_GRANT_RELOCK = "explicit_named_one_turn_grant_receipt_snapshot_relock"
-PRIMARY_CODE_LANES = frozenset({"github_code", "local_code"})
-LANE_SCHEMA_REGISTRY_SCHEMA = "evidence-lane.lane-schema-registry.v1"
-def _package_schema_root() -> Path:
-    return resolve_plugin_root(__file__) / "schemas"
+MUTATION_AUTOMATIC_APPEND_ONLY = 'verified_workflow_append'
+MUTATION_NAMED_GRANT_RELOCK = 'selected_project_writer_and_workflow_contract'
+PRIMARY_CODE_LANES = frozenset({'github_code', 'local_code'})
+LANE_SCHEMA_REGISTRY_SCHEMA = 'evidence-lane.lane-schema-registry.v4'
+LANE_ARTIFACT_ROLE_REGISTRY_SCHEMA = 'evidence-lane.lane-artifact-role-registry.v4'
+LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA = 'evidence-lane.lane-schema-evolution-policy.v4'
+BASE_REGISTRY_SHA256 = 'b63a8708b7c27eef09c7680ab97ca3410554f4afacf819d39e0be1e824193376'
 
 
-_PACKAGE_SCHEMA_ROOT = _package_schema_root()
-LANE_SCHEMA_REGISTRY_PATH = _PACKAGE_SCHEMA_ROOT / "lane-schema-registry.v001.json"
-LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA = (
-    "evidence-lane.lane-schema-evolution-policy.v1"
-)
-LANE_SCHEMA_EVOLUTION_POLICY_PATH = (
-    _PACKAGE_SCHEMA_ROOT / "lane-schema-evolution.v001.json"
-)
-LANE_ARTIFACT_ROLE_REGISTRY_SCHEMA = (
-    "evidence-lane.lane-artifact-role-registry.v1"
-)
-LANE_ARTIFACT_ROLE_REGISTRY_PATH = (
-    _PACKAGE_SCHEMA_ROOT / "lane-artifact-contract.v001.json"
-)
-_SHA256_RE = re.compile(r"^[A-F0-9]{64}$")
-_SAFE_SCHEMA_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+class LaneRegistryError(ValueError):
+    """The canonical lane, ownership or source routing contract is invalid."""
 
-# Exact SHA-256 of the authorized SQLite Brain Builder
-# ``backend/src/sqlite_brain_builder/mmd/generate_lane_mmd.py`` supplied for
-# this contract.  The runtime does not depend on that external workstation
-# path; it carries the fingerprint so receipts can prove which logical
-# projection was implemented.
+
+@dataclass(frozen=True, slots=True)
+class LaneDefinition:
+    canonical_lane_id: str
+    display_label: str
+    command: str
+    aliases: tuple[str, ...]
+    source_types: tuple[str, ...]
+    extensions: tuple[str, ...]
+    parser_id: str
+    chunker_version: str
+    fts_table: str
+    schema_contract: tuple[str, ...]
+    mutation_policy: str = MUTATION_NAMED_GRANT_RELOCK
+    kind: Literal['authority', 'sector'] = 'sector'
+    schema_owners: tuple[str, ...] = ()
+    source_origins: tuple[str, ...] = ()
+    operations: tuple[str, ...] = ('intake', 'query', 'refresh')
+    natural_extensions: tuple[str, ...] = ()
+    relationship_views: tuple[str, ...] = ()
+    pointer_semantics: str | None = None
+
+    @property
+    def sqlite_filename(self) -> str:
+        # Retain the existing sector filenames. Authority roles never use a sector filename.
+        return f'{self.canonical_lane_id}_{self.kind}_v001.sqlite'
+
+    @property
+    def folder(self) -> str:
+        return f'{"authorities" if self.kind == "authority" else "sectors"}/{self.canonical_lane_id}'
+
+    @property
+    def database_relative_path(self) -> str:
+        return f'{self.folder}/{self.sqlite_filename}'
+
+    @property
+    def files_relative_path(self) -> str:
+        return f'{self.folder}/files'
+
+    @property
+    def schema_history_relative_path(self) -> str:
+        return f'{self.folder}/schema-history'
+
+    @property
+    def mmd_filename(self) -> str:
+        return f'{self.canonical_lane_id}.mmd'
+
+    @property
+    def dot_filename(self) -> str:
+        return f'{self.canonical_lane_id}.dot'
+
+    @property
+    def mmd_node_id(self) -> str:
+        return f'lane_{self.canonical_lane_id}'
+
+    def as_dict(self) -> dict[str, Any]:
+        result = asdict(self)
+        result.update(folder=self.folder, sqlite_filename=self.sqlite_filename,
+                      database_relative_path=self.database_relative_path,
+                      files_relative_path=self.files_relative_path,
+                      schema_history_relative_path=self.schema_history_relative_path,
+                      mmd_filename=self.mmd_filename, dot_filename=self.dot_filename,
+                      mmd_node_id=self.mmd_node_id,
+                      qualification='definition_only_until_owning_workflow_verified')
+        return result
+
+
+def _lane(lane_id, label, command, *, aliases=(), source_types=(), extensions=(),
+          parser_id, chunker, fts_table, schema=(), mutation_policy=MUTATION_NAMED_GRANT_RELOCK):
+    return LaneDefinition(lane_id, label, command, (lane_id, label, command, *aliases),
+                          source_types, extensions, parser_id, chunker, fts_table, schema,
+                          mutation_policy)
+
+
 SQLITE_BRAIN_BUILDER_MMD_AUTHORITY_SHA256 = (
     "1B87064906E8A805C4A69A7A3A14668DCCE963E00928ED3EB23CC186AB8A65EC"
 )
@@ -59,82 +117,15 @@ SQLITE_BRAIN_BUILDER_MASTER_TOPOLOGY_AUTHORITY_SHA256 = (
 # current lane database intentionally keeps its richer physical schema; both
 # code modes must still expose this exact seven-entity contract in MMD and DOT.
 CODE_LOGICAL_TOPOLOGY = (
-    ("code_repo", "Repo", "lane_meta"),
-    ("git_commit", "Commit", "git_commit_registry"),
-    ("code_file", "File", "source_registry"),
+    ("code_repo", "Repo", "code_repo"),
+    ("git_commit", "Commit", "code_git_reference"),
+    ("code_file", "File", "code_file"),
     ("code_symbol", "Symbol", "code_symbol"),
     ("app_route", "Route", "code_route"),
     ("dependency_item", "Dependency", "code_dependency"),
-    ("project_artifact", "Artifact", "structured_fact"),
+    ("project_artifact", "Artifact", "code_snapshot"),
 )
 
-
-class LaneRegistryError(ValueError):
-    """The canonical lane registry or a requested alias is invalid."""
-
-
-@dataclass(frozen=True, slots=True)
-class LaneDefinition:
-    canonical_lane_id: str
-    display_label: str
-    command: str
-    aliases: tuple[str, ...]
-    source_types: tuple[str, ...]
-    extensions: tuple[str, ...]
-    parser_id: str
-    chunker_version: str
-    fts_table: str
-    schema_contract: tuple[str, ...]
-    mutation_policy: str = MUTATION_NAMED_GRANT_RELOCK
-
-    @property
-    def sqlite_filename(self) -> str:
-        return f"{self.canonical_lane_id}_sector_v001.sqlite"
-
-    @property
-    def mmd_filename(self) -> str:
-        return f"{self.canonical_lane_id}.mmd"
-
-    @property
-    def dot_filename(self) -> str:
-        return f"{self.canonical_lane_id}.dot"
-
-    @property
-    def mmd_node_id(self) -> str:
-        return f"lane_{self.canonical_lane_id}"
-
-    def as_dict(self) -> dict[str, object]:
-        payload = asdict(self)
-        schema = lane_schema_asset(self.canonical_lane_id)
-        payload.update(
-            {
-                "sqlite_filename": self.sqlite_filename,
-                "mmd_filename": self.mmd_filename,
-                "dot_filename": self.dot_filename,
-                "mmd_node_id": self.mmd_node_id,
-                "lane_schema_id": schema["schema_id"],
-                "lane_schema_version": schema["schema_version"],
-                "lane_schema_contract_sha256": schema["contract_sha256"],
-                "lane_schema_registry_sha256": LANE_SCHEMA_REGISTRY_SHA256,
-                "extension_namespace": schema["extension_namespace"],
-                "migration_head": schema["migration_ledger"][-1][
-                    "migration_id"
-                ],
-                "lane_schema_evolution_policy_sha256": (
-                    LANE_SCHEMA_EVOLUTION_POLICY_SHA256
-                ),
-                "lane_schema_evolution_user_gate": (
-                    self.canonical_lane_id in PRIMARY_CODE_LANES
-                ),
-                "lane_artifact_contract_sha256": lane_artifact_contract(
-                    self.canonical_lane_id
-                )["contract_sha256"],
-                "lane_artifact_registry_sha256": (
-                    LANE_ARTIFACT_ROLE_REGISTRY_SHA256
-                ),
-            }
-        )
-        return payload
 
 
 _CORE_SCHEMA = (
@@ -147,6 +138,8 @@ _CORE_SCHEMA = (
     "chunk_history",
     "structured_fact",
     "parser_capability",
+    "tool_route_contract",
+    "tool_execution_receipt",
     "tfidf_term",
     "tfidf_vector",
     "refresh_receipt",
@@ -159,24 +152,7 @@ _CORE_SCHEMA = (
 )
 CORE_SCHEMA_TABLES = frozenset(_CORE_SCHEMA)
 
-_CODE_SCHEMA = _CORE_SCHEMA + (
-    "code_symbol",
-    "code_import",
-    "code_call",
-    "code_parser_receipt",
-    "code_parser_diagnostic",
-    "code_route",
-    "code_dependency",
-    "git_commit_registry",
-    "git_commit_parent",
-    "git_file_change",
-    "git_ref_registry",
-    "git_blob_cas",
-    "git_content_chunk_cas",
-    "git_chunk_occurrence",
-    "git_history_fts",
-    "code_chunk_fts",
-)
+_CODE_SCHEMA = CODE_TABLES
 
 _CODE_EXTENSIONS = (
     ".bat",
@@ -231,40 +207,12 @@ _CODE_MANIFEST_NAMES = frozenset(
 )
 
 
-def _lane(
-    lane_id: str,
-    label: str,
-    command: str,
-    *,
-    aliases: tuple[str, ...],
-    source_types: tuple[str, ...],
-    extensions: tuple[str, ...],
-    parser_id: str,
-    chunker: str,
-    fts_table: str,
-    schema: tuple[str, ...] = _CORE_SCHEMA,
-    mutation_policy: str = MUTATION_NAMED_GRANT_RELOCK,
-) -> LaneDefinition:
-    return LaneDefinition(
-        canonical_lane_id=lane_id,
-        display_label=label,
-        command=command,
-        aliases=(lane_id, label, command, *aliases),
-        source_types=source_types,
-        extensions=extensions,
-        parser_id=parser_id,
-        chunker_version=chunker,
-        fts_table=fts_table,
-        schema_contract=schema,
-        mutation_policy=mutation_policy,
-    )
 
-
-_DEFINITIONS = (
-    _lane(
+_RETAINED_DEFINITIONS = (
+_lane(
         "github_code",
         "GitHub Code",
-        "evi-source-intake --lane github_code",
+        "manage-project-sources --lane github_code",
         aliases=("code", "git", "github", "github repository", "git remote"),
         source_types=("github_repository", "git_remote"),
         extensions=_CODE_EXTENSIONS,
@@ -273,10 +221,10 @@ _DEFINITIONS = (
         fts_table="code_chunk_fts",
         schema=_CODE_SCHEMA,
     ),
-    _lane(
+_lane(
         "local_code",
         "Local Code",
-        "evi-source-intake --lane local_code",
+        "manage-project-sources --lane local_code",
         aliases=("code", "local", "code folder", "local git worktree"),
         source_types=("local_code_folder", "local_git_worktree"),
         extensions=_CODE_EXTENSIONS,
@@ -285,140 +233,10 @@ _DEFINITIONS = (
         fts_table="code_chunk_fts",
         schema=_CODE_SCHEMA,
     ),
-    _lane(
-        "chat_lineage",
-        "Chat Lineage",
-        "evi-source-intake --lane chat_lineage",
-        aliases=("chat-lineage", "chat", "chat history", "conversation lineage"),
-        source_types=("chat_export", "prompt_response_packet", "lineage_append_packet"),
-        extensions=(".docx", ".json", ".jsonl", ".md", ".txt", ".zip"),
-        parser_id="chat_lineage_state_travel_v57",
-        chunker="prepare_response_commit_v1",
-        fts_table="turn_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "writeback_policy",
-            "turn_prepare",
-            "prompt_raw_exact",
-            "prompt_normalized_summary",
-            "response_raw_visible_exact",
-            "response_summary",
-            "visible_reasoning_summary",
-            "file_link_registry",
-            "source_normalization_receipt",
-            "mode_classification_run",
-            "gate_evaluation_run",
-            "operator_activation_run",
-            "entry_exit_receipt",
-            "legacy_project_carry_forward",
-            "turn_commit",
-            "lineage_head",
-            "state_hash_chain",
-            "turn_fts",
-        ),
-        mutation_policy=MUTATION_AUTOMATIC_APPEND_ONLY,
-    ),
-    _lane(
-        "discussion",
-        "Discussion",
-        "evi-source-intake --lane discussion",
-        aliases=("discussion notes", "meeting notes"),
-        source_types=("discussion_document", "meeting_notes", "conversation_export"),
-        extensions=(".docx", ".md", ".pdf", ".txt"),
-        parser_id="discussion_structured_v1",
-        chunker="semantic_blocks_v1",
-        fts_table="discussion_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "discussion_source",
-            "discussion_turn",
-            "discussion_item",
-            "discussion_decision",
-            "discussion_delta",
-            "discussion_next_action",
-            "discussion_hard_gate",
-            "discussion_artifact_reference",
-            "discussion_fts",
-        ),
-    ),
-    _lane(
-        "analysis",
-        "Analysis",
-        "evi-source-intake --lane analysis",
-        aliases=("analytical notes", "audit analysis"),
-        source_types=("analysis_document", "audit_report", "decision_analysis"),
-        extensions=(".docx", ".md", ".pdf", ".txt"),
-        parser_id="analysis_structured_v1",
-        chunker="semantic_blocks_v1",
-        fts_table="analysis_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "analysis_source",
-            "analysis_claim",
-            "analysis_evidence",
-            "analysis_supporting_evidence",
-            "analysis_risk",
-            "analysis_alternative",
-            "analysis_open_question",
-            "analysis_accepted_decision",
-            "analysis_blocked_item",
-            "analysis_fts",
-        ),
-    ),
-    _lane(
-        "plan",
-        "Plan",
-        "evi-source-intake --lane plan",
-        aliases=("planning", "project plan"),
-        source_types=("project_plan", "implementation_plan", "task_plan"),
-        extensions=(".docx", ".json", ".md", ".pdf", ".txt"),
-        parser_id="plan_structured_v1",
-        chunker="semantic_blocks_v1",
-        fts_table="plan_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "plan_source",
-            "plan_phase",
-            "plan_milestone",
-            "plan_task",
-            "plan_owner",
-            "plan_status",
-            "plan_dependency",
-            "plan_blocker",
-            "plan_next_action",
-            "plan_acceptance_criteria",
-            "plan_fts",
-        ),
-    ),
-    _lane(
-        "mode",
-        "Mode",
-        "evi-mode",
-        aliases=("operating mode", "mode contract"),
-        source_types=("mode_contract", "operating_rules", "control_prompt"),
-        extensions=(".docx", ".json", ".md", ".txt"),
-        parser_id="mode_contract_v1",
-        chunker="rule_blocks_v1",
-        fts_table="mode_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "mode_source",
-            "mode_scope",
-            "mode_trigger",
-            "mode_rule",
-            "mode_gate",
-            "mode_allowed_action",
-            "mode_blocked_action",
-            "mode_response_template",
-            "mode_priority",
-            "mode_supersede_ledger",
-            "mode_fts",
-        ),
-    ),
-    _lane(
+_lane(
         "docs",
         "Docs",
-        "evi-source-intake --lane docs",
+        "manage-project-sources --lane docs",
         aliases=("documents", "documentation"),
         source_types=("document", "markdown", "html_document", "xml_document"),
         extensions=(
@@ -449,10 +267,10 @@ _DEFINITIONS = (
             "doc_fts",
         ),
     ),
-    _lane(
+_lane(
         "data_excel",
         "Data / Excel / CSV",
-        "evi-source-intake --lane data_excel",
+        "manage-project-sources --lane data_excel",
         aliases=("excel", "data", "excel csv", "spreadsheet data"),
         source_types=("spreadsheet", "delimited_data", "structured_data"),
         extensions=(
@@ -497,10 +315,10 @@ _DEFINITIONS = (
             "data_fts",
         ),
     ),
-    _lane(
+_lane(
         "ppt",
         "PPT / Presentation",
-        "evi-source-intake --lane ppt",
+        "manage-project-sources --lane ppt",
         aliases=("presentation", "powerpoint"),
         source_types=("presentation", "slide_deck"),
         extensions=(".odp", ".ppt", ".pptx"),
@@ -523,10 +341,10 @@ _DEFINITIONS = (
             "ppt_fts",
         ),
     ),
-    _lane(
+_lane(
         "pdf_ocr",
         "PDF / OCR",
-        "evi-source-intake --lane pdf_ocr",
+        "manage-project-sources --lane pdf_ocr",
         aliases=("pdf", "portable document"),
         source_types=("pdf_document", "scanned_pdf"),
         extensions=(".pdf",),
@@ -548,10 +366,10 @@ _DEFINITIONS = (
             "pdf_fts",
         ),
     ),
-    _lane(
+_lane(
         "images_ocr",
         "Images / OCR",
-        "evi-source-intake --lane images_ocr",
+        "manage-project-sources --lane images_ocr",
         aliases=("images", "image", "image ocr"),
         source_types=("image", "scanned_image"),
         extensions=(".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"),
@@ -569,10 +387,10 @@ _DEFINITIONS = (
             "image_ocr_fts",
         ),
     ),
-    _lane(
+_lane(
         "artifacts",
         "Artifacts",
-        "evi-source-intake --lane artifacts",
+        "manage-project-sources --lane artifacts",
         aliases=("project artifacts", "artifact vault"),
         source_types=("project_artifact", "structured_artifact", "notebook"),
         extensions=(
@@ -612,10 +430,10 @@ _DEFINITIONS = (
             "artifact_fts",
         ),
     ),
-    _lane(
+_lane(
         "custom",
         "Custom",
-        "evi-source-intake --lane custom",
+        "manage-project-sources --lane custom",
         aliases=("custom source", "generic", "other"),
         source_types=("custom_file", "custom_folder"),
         extensions=(
@@ -649,35 +467,10 @@ _DEFINITIONS = (
             "custom_fts",
         ),
     ),
-    _lane(
-        "brain_loader",
-        "SQLite PV Candidate Loader",
-        "evi-source-intake --lane brain_loader",
-        aliases=("brain-loader", "Brain Loader", "load brain", "brain import"),
-        source_types=("sqlite_brain_package", "brain_folder", "brain_database"),
-        extensions=(".db", ".sqlite", ".sqlite3", ".zip"),
-        parser_id="brain_package_loader_v1",
-        chunker="package_member_v1",
-        fts_table="brain_loader_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "brain_loader_source",
-            "brain_loader_package",
-            "brain_loader_member",
-            "brain_loader_manifest",
-            "brain_loader_pointer",
-            "brain_loader_database",
-            "brain_loader_schema_object",
-            "brain_loader_relationship",
-            "brain_loader_receipt",
-            "sqlalchemy_schema_inspection",
-            "brain_loader_fts",
-        ),
-    ),
-    _lane(
+_lane(
         "research",
         "Research",
-        "evi-source-intake --lane research",
+        "manage-project-sources --lane research",
         aliases=("research evidence", "research sources"),
         source_types=("research_document", "research_dataset", "research_note"),
         extensions=(
@@ -708,739 +501,386 @@ _DEFINITIONS = (
             "research_fts",
         ),
     ),
-    _lane(
-        "project_engulf",
-        "Project Engulf",
-        "evi-source-intake --lane project_engulf",
-        aliases=("project-engulf", "engulf project", "project import"),
-        source_types=("project_folder", "project_archive"),
-        extensions=(".zip",),
-        parser_id="project_engulf_v1",
-        chunker="project_structure_v1",
-        fts_table="project_engulf_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "project_engulf_source",
-            "project_engulf_file",
-            "project_engulf_component",
-            "project_engulf_relationship",
-            "project_engulf_conflict",
-            "project_engulf_sector_target",
-            "project_engulf_chunk",
-            "project_engulf_origin",
-            "project_engulf_schema_mapping",
-            "project_engulf_object_decision",
-            "project_engulf_run",
-            "project_engulf_topology_update",
-            "project_engulf_receipt",
-            "project_engulf_fts",
-        ),
-    ),
-    _lane(
-        "sqlite_brain",
-        "SQLite Brain",
-        "evi-source-intake --lane sqlite_brain",
-        aliases=("sqlite-brain", "sqlite", "sqlitebrain", "sqlite brain import"),
-        source_types=("sqlite_database", "sqlite_brain_package"),
-        extensions=(".db", ".sqlite", ".sqlite3", ".zip"),
-        parser_id="sqlite_brain_inspector_v1",
-        chunker="sqlite_schema_row_v1",
-        fts_table="loaded_sqlite_brain_fts",
-        schema=_CORE_SCHEMA
-        + (
-            "loaded_sqlite_brain_source",
-            "loaded_sqlite_brain_database",
-            "loaded_sqlite_brain_schema_object",
-            "loaded_sqlite_brain_table_stat",
-            "loaded_sqlite_brain_foreign_key",
-            "loaded_sqlite_brain_fts_table",
-            "loaded_sqlite_brain_relationship",
-            "loaded_sqlite_brain_integrity_result",
-            "loaded_sqlite_brain_package_pointer",
-            "loaded_sqlite_brain_compatibility",
-            "loaded_sqlite_brain_sector_mapping",
-            "loaded_sqlite_brain_receipt",
-            "sqlalchemy_schema_inspection",
-            "loaded_sqlite_brain_fts",
-        ),
-    ),
 )
 
 
-def _lane_schema_registry_payload() -> tuple[
-    dict[str, Any], MappingProxyType[str, dict[str, Any]], str
-]:
-    if not LANE_SCHEMA_REGISTRY_PATH.is_file():
-        raise LaneRegistryError(
-            f"Lane schema registry is missing: {LANE_SCHEMA_REGISTRY_PATH.name}"
-        )
-    try:
-        payload = json.loads(LANE_SCHEMA_REGISTRY_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise LaneRegistryError("Lane schema registry is not valid UTF-8 JSON.") from exc
-    if not isinstance(payload, dict) or set(payload) != {
-        "schema",
-        "registry_version",
-        "base_schema",
-        "entity_table_template",
-        "lanes",
-    }:
-        raise LaneRegistryError("Lane schema registry has an unexpected root shape.")
-    if (
-        payload.get("schema") != LANE_SCHEMA_REGISTRY_SCHEMA
-        or payload.get("registry_version") != 1
-    ):
-        raise LaneRegistryError("Lane schema registry identity is unsupported.")
-    base = payload.get("base_schema")
-    template = payload.get("entity_table_template")
-    if not isinstance(base, dict) or set(base) != {"schema_id", "tables", "owner"}:
-        raise LaneRegistryError("Lane base-schema contract is malformed.")
-    if base != {
-        "schema_id": "evidence-lane.universal-lane.v4",
-        "tables": sorted(CORE_SCHEMA_TABLES),
-        "owner": "lane_engine.py:_create_lane_schema",
-    }:
-        raise LaneRegistryError("Lane base-schema bytes disagree with runtime authority.")
-    expected_template = {
-        "template_id": "GENERIC_ENTITY_RECORD_V1",
-        "strict": True,
-        "columns": [
-            {"name": "record_id", "declaration": "INTEGER PRIMARY KEY"},
-            {
-                "name": "source_id",
-                "declaration": (
-                    "INTEGER REFERENCES source_registry(source_id) ON DELETE CASCADE"
-                ),
-            },
-            {"name": "locator", "declaration": "TEXT NOT NULL"},
-            {"name": "payload_json", "declaration": "TEXT NOT NULL"},
-        ],
-    }
-    if template != expected_template:
-        raise LaneRegistryError("Lane entity-table template bytes are not canonical.")
-    rows = payload.get("lanes")
-    if not isinstance(rows, list) or len(rows) != len(_DEFINITIONS):
-        raise LaneRegistryError("Lane schema registry must contain every canonical lane.")
-    definitions = {lane.canonical_lane_id: lane for lane in _DEFINITIONS}
-    assets: dict[str, dict[str, Any]] = {}
-    entry_keys = {
-        "lane_id",
-        "schema_id",
-        "schema_version",
-        "base_schema_id",
-        "fts_table",
-        "tables",
-        "lane_table_builder",
-        "extension_namespace",
-        "mutation_policy",
-        "migration_ledger",
-        "sqlite_master_projection_sha256",
-    }
-    migration_keys = {
-        "migration_id",
-        "sequence",
-        "from_version",
-        "to_version",
-        "operation",
-        "additive_only",
-    }
-    rebuild_migration_keys = migration_keys | {"rebuild_required"}
-    for raw in rows:
-        if not isinstance(raw, dict) or set(raw) != entry_keys:
-            raise LaneRegistryError("A lane schema entry has an unexpected shape.")
-        lane_id = str(raw.get("lane_id") or "")
-        definition = definitions.get(lane_id)
-        if definition is None or lane_id in assets:
-            raise LaneRegistryError(f"Unknown or duplicate lane schema: {lane_id!r}")
-        version = raw.get("schema_version")
-        tables = raw.get("tables")
-        migrations = raw.get("migration_ledger")
-        if not isinstance(version, int) or version < 1:
-            raise LaneRegistryError(f"Invalid lane schema version: {lane_id}")
-        if (
-            raw.get("schema_id")
-            != f"evidence-lane.lane-schema.{lane_id}.v{version:03d}"
-            or raw.get("base_schema_id") != base["schema_id"]
-            or raw.get("fts_table") != definition.fts_table
-            or raw.get("mutation_policy") != definition.mutation_policy
-            or raw.get("extension_namespace")
-            != f"evidence_lane.{lane_id}.extensions"
-            or raw.get("lane_table_builder")
-            != (
-                "GIT_HISTORY_V2_PLUS_GENERIC_ENTITY_RECORD_V1"
-                if lane_id in PRIMARY_CODE_LANES
-                else "GENERIC_ENTITY_RECORD_V1"
-            )
-            or not isinstance(tables, list)
-            or tuple(tables) != definition.schema_contract
-            or len(tables) != len(set(tables))
-            or not all(
-                isinstance(table, str) and _SAFE_SCHEMA_NAME_RE.fullmatch(table)
-                for table in tables
-            )
-            or not isinstance(migrations, list)
-            or not migrations
-            or not _SHA256_RE.fullmatch(
-                str(raw.get("sqlite_master_projection_sha256") or "")
-            )
-        ):
-            raise LaneRegistryError(f"Lane schema contract mismatch: {lane_id}")
-        previous_version = 0
-        for sequence, migration in enumerate(migrations, start=1):
-            if (
-                not isinstance(migration, dict)
-                or frozenset(migration)
-                not in {frozenset(migration_keys), frozenset(rebuild_migration_keys)}
-                or migration.get("sequence") != sequence
-                or migration.get("from_version") != previous_version
-                or not isinstance(migration.get("to_version"), int)
-                or migration["to_version"] <= previous_version
-                or not isinstance(migration.get("additive_only"), bool)
-                or (
-                    migration.get("additive_only") is not True
-                    and migration.get("rebuild_required") is not True
-                )
-                or not str(migration.get("migration_id") or "").startswith(
-                    f"{lane_id}."
-                )
-                or not str(migration.get("operation") or "")
-            ):
-                raise LaneRegistryError(
-                    f"Lane migration ledger is not additive and contiguous: {lane_id}"
-                )
-            previous_version = int(migration["to_version"])
-        if previous_version != version:
-            raise LaneRegistryError(
-                f"Lane migration head does not equal its schema version: {lane_id}"
-            )
-        entry = json.loads(canonical_json_bytes(raw).decode("utf-8"))
-        entry["contract_sha256"] = sha256_bytes(canonical_json_bytes(raw))
-        assets[lane_id] = entry
-    if tuple(assets) != tuple(lane.canonical_lane_id for lane in _DEFINITIONS):
-        raise LaneRegistryError("Lane schema registry order is not canonical.")
-    return (
-        payload,
-        MappingProxyType(assets),
-        sha256_file(LANE_SCHEMA_REGISTRY_PATH),
-    )
+# This preserves the admitted sector definitions, then narrows only the roles
+# explicitly moved or split by the v4 contract. Declared source schemas are inputs
+# to each profile's adaptation; they are not a second enabled v3 runtime.
+_SECTOR_ADAPTATIONS: dict[str, dict[str, Any]] = {
+    'github_code': {'relationship_views': ('repository_commit_file_symbol_route_dependency_artifact',),
+                        'parser_id': 'code_git_blob_snapshot_v4', 'chunker_version': 'line_80_overlap8_v4',
+                        'operations': ('index_git_checkpoint', 'query', 'read_lines', 'impact', 'refresh_git_checkpoint', 'export_selected_view'),
+                        'pointer_semantics': 'Exact indexed repository and commit selection'},
+    'local_code': {'relationship_views': ('repository_commit_file_symbol_route_dependency_artifact',),
+                       'parser_id': 'code_worktree_snapshot_v4', 'chunker_version': 'line_80_overlap8_v4',
+                       'operations': ('index', 'query', 'read_lines', 'impact', 'replace_utf8', 'refresh', 'export_selected_view'),
+                       'pointer_semantics': 'Exact indexed working-tree source hashes'},
+    'docs': {'natural_extensions': ('.docx', '.dotx', '.odt', '.md', '.html', '.pdf', '.png'),
+                 'extensions': ('.doc', '.docx', '.dotx', '.html', '.htm', '.md', '.odt', '.rst', '.rtf', '.txt', '.xml'),
+                 'parser_id': 'bounded_native_document_v4', 'chunker_version': 'paragraph_4096_v4',
+                 'fts_table': 'doc_chunk_fts',
+                 'schema_contract': ('doc_file', 'doc_version', 'doc_current', 'doc_structure', 'doc_paragraph',
+                     'doc_heading', 'doc_table_extract', 'doc_image_reference', 'doc_relationship', 'doc_content_control',
+                     'doc_revision', 'doc_field', 'doc_hyperlink', 'doc_bookmark', 'doc_embedded_object',
+                     'doc_chunk', 'doc_chunk_fts', 'doc_render', 'doc_export', 'docling_extraction'),
+                 'operations': ('index', 'query', 'read_bytes', 'generate_docx', 'edit_paragraph', 'render', 'export', 'refresh', 'export_selected_view'),
+                 'pointer_semantics': 'Exact immutable document and native structure item locators; page renders are separate',
+                 'relationship_views': ('document_structure_and_linked_assets',)},
+    'data_excel': {'display_label': 'Excel', 'aliases': ('data_excel', 'Excel', 'spreadsheet', 'workbook'),
+                       'extensions': ('.xls', '.xlsm', '.xlsx', '.xlsb', '.ods', '.xltx', '.xltm'),
+                       'source_types': ('spreadsheet',), 'natural_extensions': ('.xlsx', '.xlsm', '.xls', '.xlsb', '.ods', '.xltx', '.xltm', '.pdf', '.png'),
+                       'parser_id': 'spreadsheet_native_v4', 'chunker_version': 'typed_cell_text_v4', 'fts_table': 'sheet_chunk_fts',
+                       'schema_contract': ('sheet_source', 'sheet_version', 'sheet_current', 'sheet_workbook', 'sheet_tab',
+                           'sheet_cell_sample', 'sheet_formula', 'sheet_defined_name', 'sheet_range', 'sheet_validation',
+                           'sheet_hyperlink', 'sheet_relationship', 'sheet_table', 'sheet_chart_metadata',
+                           'sheet_chunk', 'sheet_chunk_fts', 'sheet_export', 'sheet_derivative'),
+                       'operations': ('index', 'query', 'read_bytes', 'generate_xlsx', 'edit_cells', 'recalculate', 'render',
+                                      'export', 'refresh', 'library_inspection', 'export_selected_view'),
+                       'relationship_views': ('workbook_sheet_formula_dependencies',)},
+    'ppt': {'extensions': ('.odp', '.ppt', '.pptx', '.pptm', '.potx', '.ppsx'),
+                'natural_extensions': ('.pptx', '.pptm', '.potx', '.ppsx', '.odp', '.ppt', '.pdf', '.png'),
+                'parser_id': 'bounded_native_presentation_v4', 'chunker_version': 'slide_paragraph_4096_v4',
+                'fts_table': 'ppt_chunk_fts',
+                'schema_contract': ('ppt_file', 'ppt_version', 'ppt_current', 'ppt_structure', 'ppt_slide', 'ppt_shape',
+                    'ppt_text_block', 'ppt_notes', 'ppt_table', 'ppt_image_reference', 'ppt_slide_relationship', 'ppt_chart',
+                    'ppt_chunk', 'ppt_chunk_fts', 'ppt_render', 'ppt_export', 'ppt_enrichment'),
+                'operations': ('index', 'query', 'read_bytes', 'generate_pptx', 'edit_text', 'reorder_slides',
+                    'render', 'export', 'refresh', 'enrich', 'convert_legacy', 'export_selected_view'),
+                'pointer_semantics': 'Exact presentation snapshot, declared slide number and native object locators; rendered pages are separate',
+                'relationship_views': ('slide_order_shapes_notes_and_assets',)},
+    'pdf_ocr': {'natural_extensions': ('.pdf', '.txt', '.png'),
+        'parser_id': 'bounded_native_pdf_forms_page_ocr_v4', 'chunker_version': 'pdf_native_text_4096_v4',
+        'fts_table': 'pdf_chunk_fts',
+        'schema_contract': ('pdf_file', 'pdf_version', 'pdf_current', 'pdf_structure', 'pdf_page',
+            'pdf_text_block', 'pdf_text_line', 'pdf_image', 'pdf_table', 'pdf_link', 'pdf_annotation',
+            'pdf_form_field', 'pdf_widget', 'pdf_outline', 'pdf_attachment', 'pdf_chunk', 'pdf_chunk_fts',
+            'pdf_export', 'pdf_render', 'pdf_ocr_run', 'pdf_ocr_line', 'pdf_review_region', 'docling_extraction'),
+        'operations': ('index', 'refresh', 'query', 'read_bytes', 'generate_pdf', 'edit_forms_metadata_pages',
+            'render_selected_pages', 'ocr_selected_pages', 'export'),
+        'pointer_semantics': 'Exact PDF snapshot, page and native item locators; raster/OCR/Docling derivatives keep independent source bindings.',
+        'relationship_views': ('pages_forms_annotations_and_extraction_provenance',)},
+    'images_ocr': {'extensions': ('.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp', '.gif', '.webp',
+                                  '.svg', '.mp3', '.wav', '.flac', '.m4a', '.ogg', '.mp4', '.mov', '.webm'),
+                       'source_types': ('image', 'audio', 'video', 'media_metadata'),
+                       'natural_extensions': ('.png', '.jpg', '.webp', '.wav', '.mp4', '.txt'),
+                       'relationship_views': ('media_derivation_and_source_provenance',)},
+    'research': {'natural_extensions': ('.md', '.json', '.bib'),
+                     'relationship_views': ('questions_claims_evidence_citations_limitations',)},
+    'artifacts': {'natural_extensions': ('*declared_by_producer',),
+                      'relationship_views': ('producer_source_output_and_verification',),
+                      'pointer_semantics': 'Exact produced artifact and verification receipt'},
+    'custom': {'aliases': ('custom', 'Custom', 'custom source', 'generic', 'other', 'sqlite',
+                           'selected sqlite', 'sqlite database'),
+                   'source_types': ('custom_file', 'custom_folder', 'selected_sqlite_database'),
+                   'extensions': ('.db', '.sqlite', '.sqlite3', '.zip'),
+                   'natural_extensions': ('*declared_by_adapter',),
+                   'relationship_views': ('adapter_declared_schema_and_source_lineage',)},
+}
+_SECTORS = tuple(replace(lane, schema_owners=(('media' if lane.canonical_lane_id == 'images_ocr' else lane.canonical_lane_id.replace('_', '')),),
+                         source_origins=(f'authorities/project_sectors/{lane.canonical_lane_id}/schema.sql',),
+                         **_SECTOR_ADAPTATIONS[lane.canonical_lane_id]) for lane in _RETAINED_DEFINITIONS)
 
 
-(
-    _LANE_SCHEMA_REGISTRY_PAYLOAD,
-    _LANE_SCHEMA_ASSETS,
-    LANE_SCHEMA_REGISTRY_SHA256,
-) = _lane_schema_registry_payload()
+def _sector(lane_id, label, extensions, entities, view, *, origin, aliases=()):
+    return LaneDefinition(lane_id, label, f'manage-project-sources --lane {lane_id}',
+                          (lane_id, label, *aliases), (lane_id,), extensions,
+                          f'{lane_id}_profile', 'profile_declared', f'{lane_id}_fts', entities,
+                          schema_owners=((lane_id.replace('_', '')),),
+                          source_origins=(origin,) if origin else (),
+                          natural_extensions=extensions, relationship_views=(view,))
 
 
-def lane_schema_asset(lane_id: str) -> dict[str, Any]:
-    """Return one detached, hash-bound versioned lane schema contract."""
+_ADDITIONAL_SECTORS = (
+    _sector('data', 'Structured data', ('.csv', '.tsv', '.json', '.jsonl', '.parquet', '.arrow', '.feather'),
+            ('data_source', 'data_table', 'data_column', 'data_sample', 'data_lineage'),
+            'source_schema_columns_samples_and_transform_lineage',
+            origin='authorities/project_sectors/data/schema.sql'),
+    _sector('tableau', 'Tableau', ('.twb', '.twbx', '.tds', '.tdsx', '.hyper', '.tde'),
+            ('tableau_workbook', 'tableau_datasource', 'tableau_sheet', 'tableau_calculation', 'tableau_relationship'),
+            'workbooks_sources_sheets_calculations_and_model_links',
+            origin='authorities/project_sectors/tableau/schema.sql'),
+    _sector('power_bi', 'Power BI', ('.pbip', '.pbix', '.pbit', '.pbir', '.pbism', '.tmdl', '.bim'),
+            ('powerbi_project', 'powerbi_report', 'powerbi_model', 'powerbi_table', 'powerbi_measure', 'powerbi_relationship'),
+            'projects_reports_models_measures_and_relationships',
+            origin='authorities/project_sectors/power_bi/schema.sql'),
+)
 
-    try:
-        asset = _LANE_SCHEMA_ASSETS[lane_id]
-    except KeyError as exc:
-        raise LaneRegistryError(f"Unknown lane schema: {lane_id!r}") from exc
-    return json.loads(canonical_json_bytes(asset).decode("utf-8"))
-
-
-def lane_schema_registry_contract() -> dict[str, Any]:
-    """Return the bounded public identity of the complete schema registry."""
-
-    return {
-        "schema": LANE_SCHEMA_REGISTRY_SCHEMA,
-        "registry_version": _LANE_SCHEMA_REGISTRY_PAYLOAD["registry_version"],
-        "asset_path": "schemas/lane-schema-registry.v001.json",
-        "asset_sha256": LANE_SCHEMA_REGISTRY_SHA256,
-        "lane_count": len(_LANE_SCHEMA_ASSETS),
-        "base_schema_id": _LANE_SCHEMA_REGISTRY_PAYLOAD["base_schema"][
-            "schema_id"
-        ],
-        "entity_table_template_id": _LANE_SCHEMA_REGISTRY_PAYLOAD[
-            "entity_table_template"
-        ]["template_id"],
-        "extension_model": "PER_LANE_NAMESPACED_ADDITIVE_VERSIONING",
-    }
+_TABULAR_ADAPTATIONS = {
+    'data': {'parser_id': 'structured_data_native_v4', 'chunker_version': 'typed_row_text_v4', 'fts_table': 'data_chunk_fts',
+        'schema_contract': ('data_source', 'data_version', 'data_current', 'data_table', 'data_column', 'data_sample',
+            'data_lineage', 'data_chunk', 'data_chunk_fts', 'data_export', 'data_derivative'),
+        'operations': ('index', 'query', 'read_bytes', 'generate', 'transform', 'library_inspection', 'export', 'refresh', 'export_selected_view')},
+}
+_ADDITIONAL_SECTORS = tuple(replace(lane, **_TABULAR_ADAPTATIONS.get(lane.canonical_lane_id, {})) for lane in _ADDITIONAL_SECTORS)
+# Revisions 24 and 25 narrow Office to Word, PowerPoint and Excel. Keep only the
+# ids as a fail-closed negative guard; no retired profile or schema is packaged.
+RETIRED_OFFICE_LANE_IDS = frozenset({'onenote', 'access', 'visio', 'outlook', 'project', 'publisher'})
 
 
-def _lane_schema_evolution_policy_payload() -> tuple[dict[str, Any], str]:
-    if not LANE_SCHEMA_EVOLUTION_POLICY_PATH.is_file():
-        raise LaneRegistryError(
-            "Lane schema evolution policy is missing: "
-            f"{LANE_SCHEMA_EVOLUTION_POLICY_PATH.name}"
-        )
-    try:
-        payload = json.loads(
-            LANE_SCHEMA_EVOLUTION_POLICY_PATH.read_text(encoding="utf-8")
-        )
-    except (OSError, json.JSONDecodeError) as exc:
-        raise LaneRegistryError(
-            "Lane schema evolution policy is not valid UTF-8 JSON."
-        ) from exc
-    expected = {
-        "schema": LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA,
-        "policy_version": 3,
-        "ledger": {
-            "schema": "evidence-lane.lane-schema-migration-ledger.v1",
-            "table": "lane_schema_migration",
-            "append_only": True,
-            "hash_chained": True,
-            "updates_forbidden": True,
-            "deletes_forbidden": True,
-        },
-        "migration": {
-            "schema": "evidence-lane.lane-schema-migration-plan.v1",
-            "allowed_operations": [
-                "CREATE_TABLE",
-                "ADD_COLUMN",
-                "CREATE_INDEX",
-            ],
-            "raw_sql_allowed": False,
-            "additive_only": True,
-            "single_version_increment": True,
-            "physical_name_prefix_template": "elx_{lane_id}_",
-            "migration_id_prefix_template": "{lane_id}.extension.",
-        },
-        "compatibility": {
-            "existing_objects_must_remain": True,
-            "existing_columns_must_remain_byte_compatible": True,
-            "existing_indexes_must_remain": True,
-            "foreign_key_check_required": True,
-            "integrity_check_required": True,
-            "base_schema_builder_parity_required": True,
-        },
-        "fts_rebuild": {
-            "explicit_request_only": True,
-            "preserve_rowids": True,
-            "before_after_content_hash_required": True,
-            "before_after_row_count_required": True,
-        },
-        "core_rebuild": {
-            "allowed_operations": [
-                "REBUILD_COMPACT_CONTENT_CAS_AND_CONTENTLESS_FTS",
-                "REBUILD_REFERENCE_ONLY_CHUNKS_AND_COMPACT_AUTHORITY_INDEX",
-            ],
-            "explicit_user_authorization_required": True,
-            "rebuild_from_exact_source_hashes": True,
-            "exact_byte_reconstruction_required": True,
-            "integrity_and_foreign_key_checks_required": True,
-            "accepted_artifact_in_place_mutation_allowed": False,
-            "atomic_generation_swap_required": True,
-            "superseded_storage_route_retained": False,
-        },
-        "protected_lanes": {
-            "lane_ids": ["github_code", "local_code"],
-            "explicit_user_confirmation_required": True,
-            "confirmation_template": (
-                "AUTHORIZE_LANE_SCHEMA_EVOLUTION::"
-                "{lane_id}::{migration_id}::{ddl_sha256}"
-            ),
-            "missing_or_mismatched_confirmation_effect": (
-                "FAIL_CLOSED_BEFORE_SQLITE_WRITE"
-            ),
-        },
-    }
-    if payload != expected:
-        raise LaneRegistryError(
-            "Lane schema evolution policy bytes are not canonical."
-        )
-    return payload, sha256_file(LANE_SCHEMA_EVOLUTION_POLICY_PATH)
+def _authority(lane_id, label, owners, tables, operations, view, origin, *, aliases=(), pointer=None):
+    return LaneDefinition(lane_id, label, f'evi {lane_id}', (lane_id, label, *aliases), (), (),
+                          'owning_workflow', 'authority_owned', '', tables,
+                          MUTATION_AUTOMATIC_APPEND_ONLY, 'authority', owners, (origin,), operations,
+                          (), (view,), pointer)
 
 
-(
-    _LANE_SCHEMA_EVOLUTION_POLICY,
-    LANE_SCHEMA_EVOLUTION_POLICY_SHA256,
-) = _lane_schema_evolution_policy_payload()
-
-
-def lane_schema_evolution_contract(lane_id: str) -> dict[str, Any]:
-    """Return lane extension rules plus the authorized core-rebuild boundary."""
-
-    if lane_id not in _LANE_SCHEMA_ASSETS:
-        raise LaneRegistryError(f"Unknown lane schema: {lane_id!r}")
-    policy = json.loads(
-        canonical_json_bytes(_LANE_SCHEMA_EVOLUTION_POLICY).decode("utf-8")
-    )
-    policy.update(
-        {
-            "asset_path": "schemas/lane-schema-evolution.v001.json",
-            "asset_sha256": LANE_SCHEMA_EVOLUTION_POLICY_SHA256,
-            "lane_id": lane_id,
-            "extension_namespace": _LANE_SCHEMA_ASSETS[lane_id][
-                "extension_namespace"
-            ],
-            "physical_name_prefix": f"elx_{lane_id}_",
-            "migration_id_prefix": f"{lane_id}.extension.",
-            "explicit_user_confirmation_required": (
-                lane_id in PRIMARY_CODE_LANES
-            ),
-        }
-    )
-    return policy
-
-
-def _lane_artifact_role_registry_payload() -> tuple[
-    dict[str, Any], MappingProxyType[str, dict[str, Any]], str
-]:
-    if not LANE_ARTIFACT_ROLE_REGISTRY_PATH.is_file():
-        raise LaneRegistryError(
-            "Lane artifact-role registry is missing: "
-            f"{LANE_ARTIFACT_ROLE_REGISTRY_PATH.name}"
-        )
-    try:
-        payload = json.loads(
-            LANE_ARTIFACT_ROLE_REGISTRY_PATH.read_text(encoding="utf-8")
-        )
-    except (OSError, json.JSONDecodeError) as exc:
-        raise LaneRegistryError(
-            "Lane artifact-role registry is not valid UTF-8 JSON."
-        ) from exc
-    if not isinstance(payload, dict) or set(payload) != {
-        "schema",
-        "registry_version",
-        "core_roles",
-        "extension_policy",
-        "role_catalog",
-        "lanes",
-    }:
-        raise LaneRegistryError(
-            "Lane artifact-role registry has an unexpected root shape."
-        )
-    if (
-        payload.get("schema") != LANE_ARTIFACT_ROLE_REGISTRY_SCHEMA
-        or payload.get("registry_version") != 1
-    ):
-        raise LaneRegistryError("Lane artifact-role registry identity is unsupported.")
-    expected_core_roles = [
-        {
-            "role_id": "sqlite_authority",
-            "classification": "REQUIRED",
-            "path_template": "{sqlite_filename}",
-            "seal": "FOUR_FILE_CONTRACT",
-        },
-        {
-            "role_id": "mermaid_projection",
-            "classification": "REQUIRED",
-            "path_template": "{mmd_filename}",
-            "seal": "FOUR_FILE_CONTRACT",
-        },
-        {
-            "role_id": "dot_projection",
-            "classification": "REQUIRED",
-            "path_template": "{dot_filename}",
-            "seal": "FOUR_FILE_CONTRACT",
-        },
-        {
-            "role_id": "toolchain_identity",
-            "classification": "REQUIRED",
-            "path_template": "tools.json",
-            "seal": "FOUR_FILE_CONTRACT",
-        },
-        {
-            "role_id": "pointer_evidence",
-            "classification": "REQUIRED",
-            "path_template": "lane_pointer.json",
-            "seal": "EVIDENCE_ARTIFACTS",
-        },
-        {
-            "role_id": "refresh_receipt",
-            "classification": "REQUIRED",
-            "path_template": "refresh_receipt.json",
-            "seal": "EVIDENCE_ARTIFACTS",
-        },
-        {
-            "role_id": "lane_manifest",
-            "classification": "REQUIRED",
-            "path_template": "lane_manifest.json",
-            "seal": "SELF_MANIFEST",
-        },
-    ]
-    if payload.get("core_roles") != expected_core_roles:
-        raise LaneRegistryError("Lane core artifact roles are not canonical.")
-    expected_extension_policy = {
-        "root_template": "extensions/{extension_id}",
-        "role_id_template": (
-            "evidence_lane.{lane_id}.extensions.{extension_id}.{role_name}"
-        ),
-        "classifications": ["REQUIRED", "CONDITIONAL", "OPTIONAL"],
-        "undeclared_files": "FAIL_CLOSED",
-        "core_override": "FORBIDDEN",
-        "path_escape": "FORBIDDEN",
-        "symlink": "FORBIDDEN",
-        "unrelated_lane_effect": "NONE",
-    }
-    if payload.get("extension_policy") != expected_extension_policy:
-        raise LaneRegistryError("Lane artifact extension policy is not canonical.")
-    catalog_payload = payload.get("role_catalog")
-    if not isinstance(catalog_payload, dict) or not catalog_payload:
-        raise LaneRegistryError("Lane artifact role catalog is empty or malformed.")
-    role_catalog: dict[str, dict[str, Any]] = {}
-    for role_name, role in catalog_payload.items():
-        if (
-            not _SAFE_SCHEMA_NAME_RE.fullmatch(str(role_name))
-            or not isinstance(role, dict)
-            or set(role) != {"classification", "condition"}
-            or role.get("classification")
-            not in {"REQUIRED", "CONDITIONAL", "OPTIONAL"}
-            or (
-                role["classification"] == "CONDITIONAL"
-                and not str(role.get("condition") or "")
-            )
-            or (
-                role["classification"] in {"REQUIRED", "OPTIONAL"}
-                and role.get("condition") is not None
-            )
-        ):
-            raise LaneRegistryError(
-                f"Lane artifact role is malformed: {role_name!r}"
-            )
-        role_catalog[str(role_name)] = dict(role)
-    lane_rows = payload.get("lanes")
-    if not isinstance(lane_rows, list) or len(lane_rows) != len(_DEFINITIONS):
-        raise LaneRegistryError(
-            "Lane artifact registry must contain every canonical lane."
-        )
-    assets: dict[str, dict[str, Any]] = {}
-    for raw, definition in zip(lane_rows, _DEFINITIONS, strict=True):
-        if not isinstance(raw, dict) or set(raw) != {
-            "lane_id",
-            "conditional_roles",
-            "optional_roles",
-        }:
-            raise LaneRegistryError("A lane artifact profile has an unexpected shape.")
-        lane_id = str(raw.get("lane_id") or "")
-        conditional = raw.get("conditional_roles")
-        optional = raw.get("optional_roles")
-        if (
-            lane_id != definition.canonical_lane_id
-            or not isinstance(conditional, list)
-            or len(conditional) != len(set(conditional))
-            or not isinstance(optional, list)
-            or len(optional) != len(set(optional))
-            or set(conditional) & set(optional)
-            or any(
-                name not in role_catalog
-                or role_catalog[name]["classification"] != "CONDITIONAL"
-                for name in conditional
-            )
-            or any(
-                name not in role_catalog
-                or role_catalog[name]["classification"] != "OPTIONAL"
-                for name in optional
-            )
-        ):
-            raise LaneRegistryError(
-                f"Lane artifact profile is malformed: {lane_id!r}"
-            )
-        assets[lane_id] = json.loads(
-            canonical_json_bytes(raw).decode("utf-8")
-        )
-    return (
-        payload,
-        MappingProxyType(assets),
-        sha256_file(LANE_ARTIFACT_ROLE_REGISTRY_PATH),
-    )
-
-
-(
-    _LANE_ARTIFACT_ROLE_REGISTRY,
-    _LANE_ARTIFACT_ROLE_PROFILES,
-    LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
-) = _lane_artifact_role_registry_payload()
-
-
-def lane_artifact_contract(lane_id: str) -> dict[str, Any]:
-    """Return one detached concrete required/conditional/optional contract."""
-
-    try:
-        lane = next(
-            definition
-            for definition in _DEFINITIONS
-            if definition.canonical_lane_id == lane_id
-        )
-        profile = _LANE_ARTIFACT_ROLE_PROFILES[lane_id]
-    except (KeyError, StopIteration) as exc:
-        raise LaneRegistryError(f"Unknown lane artifact contract: {lane_id!r}") from exc
-    path_values = {
-        "sqlite_filename": lane.sqlite_filename,
-        "mmd_filename": lane.mmd_filename,
-        "dot_filename": lane.dot_filename,
-    }
-    required_roles = [
-        {
-            "role_id": row["role_id"],
-            "classification": row["classification"],
-            "path": str(row["path_template"]).format(**path_values),
-            "seal": row["seal"],
-        }
-        for row in _LANE_ARTIFACT_ROLE_REGISTRY["core_roles"]
-    ]
-    catalog_payload = _LANE_ARTIFACT_ROLE_REGISTRY["role_catalog"]
-    extension_required_roles = [
-        {"role_name": name, **role}
-        for name, role in catalog_payload.items()
-        if role["classification"] == "REQUIRED"
-    ]
-    conditional_roles = [
-        {"role_name": name, **catalog_payload[name]}
-        for name in profile["conditional_roles"]
-    ]
-    optional_roles = [
-        {"role_name": name, **catalog_payload[name]}
-        for name in profile["optional_roles"]
-    ]
-    body = {
-        "schema": "evidence-lane.lane-artifact-role-contract.v1",
-        "registry_sha256": LANE_ARTIFACT_ROLE_REGISTRY_SHA256,
-        "lane_id": lane_id,
-        "required_roles": required_roles,
-        "extension_required_roles": extension_required_roles,
-        "conditional_roles": conditional_roles,
-        "optional_roles": optional_roles,
-        "extension_policy": _LANE_ARTIFACT_ROLE_REGISTRY[
-            "extension_policy"
-        ],
-    }
-    return {
-        **json.loads(canonical_json_bytes(body).decode("utf-8")),
-        "contract_sha256": sha256_bytes(canonical_json_bytes(body)),
-    }
-
+_AUTHORITIES = (
+    _authority('plan', 'Plan', ('plan', 'steer', 'jobs', 'delta', 'validation', 'validationrun'),
+               ('plan_current', 'plan_dependencies', 'plan_events', 'plan_revisions', 'plan_tasks',
+                'validation_policy_current', 'validation_policy_revisions', 'validationrun_summaries'),
+               ('create', 'read', 'replace', 'transition', 'verify', 'configure_validation'), 'tasks_dependencies_revisions_status_transitions',
+               'src/evidence_lane_plugin/plan_runtime.py', pointer='Exact Plan revision and immutable dependency snapshot'),
+    _authority('chat_lineage', 'ChatLineage', ('lineage', 'continuation', 'prompt', 'turn'),
+               ('lineage_chunks', 'lineage_events', 'lineage_fts'),
+               ('append_visible_event', 'query', 'bind_capture', 'handoff', 'verify'), 'tasks_visible_events_ancestry_steers_handoffs',
+               'src/evidence_lane_plugin/lineage.py', aliases=('lineage',)),
+    _authority('canon', 'Canon', ('canon',), ('canon_contract_current', 'canon_contracts', 'canon_events', 'canon_exchanges', 'canon_participants', 'canon_supersessions', 'canon_task_edges', 'canon_task_edge_bindings'),
+               ('offer', 'inspect', 'decide', 'supersede', 'return_result', 'verify'), 'typed_exchanges_consequences_and_receiver_decisions',
+               'authorities/canon_input/schema.sql', aliases=('canon_input',)),
+    _authority('memory', 'Project Memory', ('memory',), ('memory_checkpoints', 'memory_edges', 'memory_events', 'memory_fts', 'memory_locators'),
+               ('append', 'search', 'link', 'verify'), 'records_sources_links_and_attribution',
+               'authorities/project_memory/schema.sql', aliases=('project_memory',),
+               pointer='Exact bounded attributed Memory slice, never host MEMORY.md'),
+    _authority('learning', 'Learning', ('learning',), ('learning_controls', 'learning_current', 'learning_events', 'learning_fts', 'learning_versions'),
+               ('record_verified_exit', 'query', 'revoke', 'verify'), 'verified_delta_results_lessons_and_provenance',
+               'authorities/agent_learning/schema.sql', aliases=('agent_learning',)),
+    _authority('sources', 'Sources', ('sources', 'restoration', 'gitbranch', 'sourceroutes', 'sourcematerialization', 'customlanes'), ('customlanes_contracts', 'customlanes_current', 'sourceroutes_receipts', 'sourceroutes_requests', 'sourceroutes_preparations', 'sourcematerialization_runs', 'gitbranch_history', 'gitbranch_current', 'gitbranch_sync', 'gitbranch_enrollment', 'registry_meta', 'intake_batch', 'source_object', 'source_occurrence', 'source_member', 'source_relation', 'source_policy_receipt', 'source_exclusion_summary', 'source_archive_receipt', 'source_provenance', 'source_assertion_set', 'source_sqlite_asset', 'source_sqlite_schema_object', 'source_sqlite_table_stat', 'source_sqlite_receipt', 'source_sqlite_foreign_key', 'source_custom_schema', 'source_custom_schema_mapping', 'source_custom_schema_receipt', 'source_identity_entity', 'source_identity_assertion', 'source_identity_relation', 'source_identity_receipt', 'source_graph_snapshot', 'source_graph_node', 'source_graph_edge', 'source_graph_file_coverage', 'source_graph_diff', 'source_graph_impact', 'source_git_snapshot', 'source_git_ref', 'source_git_commit', 'source_git_parent', 'source_git_object', 'source_git_object_path', 'source_git_tree_entry', 'source_git_file_change', 'source_git_rename', 'source_git_hunk', 'source_git_changed_line', 'source_git_impact', 'registry_event', 'source_authority_fts'),
+               ('register', 'resolve', 'verify', 'refresh_provenance'), 'source_identities_versions_locators_and_sector_references',
+               'src/evidence_lane_plugin/source_authority.py', aliases=('source_authority',)),
+    _authority('receipts', 'Receipts', ('receipts', 'access', 'extensions', 'accelerator', 'recovery', 'remote', 'sessions', 'hostmemory', 'gitpush', 'capture', 'storage'),
+               ('receipts', 'gitpush_events', 'gitpush_current'), ('append', 'query', 'verify'), 'operations_results_grants_runtime_evidence_and_commit_references',
+               'authorities/receipt_ledger/schema.sql', aliases=('receipt_ledger',)),
+    _authority('universe', 'Universe', ('universe', 'federation'), ('universe_link_events', 'universe_links',
+               'federation_identity', 'federation_members', 'federation_member_history', 'federation_mini_brains',
+               'federation_lane_heads', 'federation_grants', 'federation_revocations', 'federation_links'),
+               ('inspect', 'refresh', 'link_project', 'query_integrity'), 'root_pv_lane_heads_integrity_and_hash_only_project_links',
+               'authorities/project_universe/schema.sql', aliases=('project_universe',)),
+)
+_TABLEAU_ADAPTATION = {
+    'parser_id': 'tableau_closed_xml_native_hyper_v4', 'chunker_version': 'typed_item_text_4096_v4', 'fts_table': 'tableau_chunk_fts',
+    'schema_contract': ('tableau_file', 'tableau_version', 'tableau_current', 'tableau_structure',
+        'tableau_workbook', 'tableau_datasource', 'tableau_sheet', 'tableau_dashboard', 'tableau_story',
+        'tableau_column', 'tableau_calculation', 'tableau_relationship', 'tableau_connection', 'tableau_filter',
+        'tableau_parameter', 'tableau_mark', 'tableau_layout', 'tableau_package_member', 'tableau_hyper_schema',
+        'tableau_hyper_table', 'tableau_hyper_column', 'tableau_hyper_row', 'tableau_opaque',
+        'tableau_chunk', 'tableau_chunk_fts', 'tableau_export'),
+    'operations': ('index', 'refresh', 'query', 'read_bytes', 'read_package_member', 'generate_hyper', 'edit_xml', 'export'),
+    'pointer_semantics': 'Exact snapshot and XML locators or native Hyper schema/table identities; samples and layout metadata are labeled',
+}
+_ADDITIONAL_SECTORS = tuple(replace(lane, **_TABLEAU_ADAPTATION) if lane.canonical_lane_id == 'tableau' else lane for lane in _ADDITIONAL_SECTORS)
+_POWERBI_ADAPTATION = {
+    'parser_id': 'powerbi_pbir_schema_tom_pbixray_v4', 'chunker_version': 'typed_item_text_4096_v4', 'fts_table': 'powerbi_chunk_fts',
+    'schema_contract': ('powerbi_file', 'powerbi_version', 'powerbi_current', 'powerbi_structure',
+        'powerbi_project', 'powerbi_report', 'powerbi_page', 'powerbi_visual', 'powerbi_model', 'powerbi_table',
+        'powerbi_column', 'powerbi_measure', 'powerbi_relationship', 'powerbi_partition', 'powerbi_expression',
+        'powerbi_role', 'powerbi_hierarchy', 'powerbi_data_source', 'powerbi_perspective', 'powerbi_culture',
+        'powerbi_annotation', 'powerbi_bookmark', 'powerbi_filter', 'powerbi_theme', 'powerbi_model_metadata',
+        'powerbi_model_row', 'powerbi_reference', 'powerbi_package_member', 'powerbi_opaque',
+        'powerbi_chunk', 'powerbi_chunk_fts', 'powerbi_export'),
+    'operations': ('index', 'refresh', 'query', 'read_bytes', 'read_package_member', 'read_original_member',
+        'generate_bim_or_pbir_project', 'edit_model_or_pbir_members', 'export'),
+    'natural_extensions': ('.pbip', '.pbir', '.pbism', '.bim', '.tmdl', '.pbix', '.pbit', '.zip'),
+    'pointer_semantics': 'Exact snapshot and report/model locators; source JSON versus native canonical model metadata and bounded stored rows are distinguished.',
+}
+_ADDITIONAL_SECTORS = tuple(replace(lane, **_POWERBI_ADAPTATION) if lane.canonical_lane_id == 'power_bi' else lane for lane in _ADDITIONAL_SECTORS)
+_DEFINITIONS = (*_AUTHORITIES, *(replace(lane,
+    schema_owners=(*lane.schema_owners, lane.canonical_lane_id.replace('_', '') + 'selector'),
+    schema_contract=(*lane.schema_contract, 'selector_retirement'))
+    for lane in (*_SECTORS, *_ADDITIONAL_SECTORS)))
 CANONICAL_LANE_IDS = tuple(lane.canonical_lane_id for lane in _DEFINITIONS)
+AUTHORITY_LANE_IDS = tuple(lane.canonical_lane_id for lane in _AUTHORITIES)
+SECTOR_LANE_IDS = tuple(lane.canonical_lane_id for lane in (*_SECTORS, *_ADDITIONAL_SECTORS))
+RETIRED_LANE_IDS = frozenset({'discussion', 'analysis', 'mode', 'brain_loader', 'project_engulf',
+                            'sqlite_brain', 'project_overlay', 'connector_brain', 'accepted'}) | RETIRED_OFFICE_LANE_IDS
 
 
 def _normalize(value: str) -> str:
-    normalized = re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
+    normalized = re.sub(r'[^a-z0-9]+', '_', value.strip().lower()).strip('_')
     if not normalized:
-        raise LaneRegistryError("A lane alias must contain an alphanumeric character.")
+        raise LaneRegistryError('A lane alias must contain an alphanumeric character.')
     return normalized
 
 
-def _validate() -> tuple[
-    MappingProxyType[str, LaneDefinition],
-    MappingProxyType[str, tuple[str, ...]],
-]:
-    registry: dict[str, LaneDefinition] = {}
-    aliases: dict[str, set[str]] = {}
-    sqlite_names: set[str] = set()
+def _validate():
+    registry, aliases, paths, owners = {}, {}, set(), {}
     for lane in _DEFINITIONS:
-        if lane.canonical_lane_id in registry:
-            raise LaneRegistryError(f"Duplicate lane ID: {lane.canonical_lane_id}")
-        if lane.sqlite_filename in sqlite_names:
-            raise LaneRegistryError(
-                f"Duplicate lane SQLite name: {lane.sqlite_filename}"
-            )
+        if lane.canonical_lane_id in registry or not re.fullmatch(r'[a-z][a-z0-9_]*', lane.canonical_lane_id):
+            raise LaneRegistryError(f'Invalid or duplicate lane ID: {lane.canonical_lane_id}')
+        if lane.canonical_lane_id in RETIRED_LANE_IDS or lane.kind not in {'authority', 'sector'}:
+            raise LaneRegistryError(f'Unsupported lane: {lane.canonical_lane_id}')
+        path = PurePosixPath(lane.database_relative_path)
+        if path.is_absolute() or '..' in path.parts or str(path).casefold() in paths:
+            raise LaneRegistryError(f'Invalid or colliding lane database: {path}')
+        paths.add(str(path).casefold())
+        for owner in lane.schema_owners:
+            if owner in owners:
+                raise LaneRegistryError(f'Schema owner belongs to more than one lane: {owner}')
+            owners[owner] = lane.canonical_lane_id
         registry[lane.canonical_lane_id] = lane
-        sqlite_names.add(lane.sqlite_filename)
         for alias in lane.aliases:
             aliases.setdefault(_normalize(alias), set()).add(lane.canonical_lane_id)
-    # The legacy alias /code is deliberately shared by two mutually exclusive modes.
-    ambiguous = {
-        alias: values
-        for alias, values in aliases.items()
-        if len(values) > 1 and not (alias == "code" and values == PRIMARY_CODE_LANES)
-    }
+    ambiguous = {k: v for k, v in aliases.items() if len(v) > 1 and not (k == 'code' and v == PRIMARY_CODE_LANES)}
     if ambiguous:
-        raise LaneRegistryError(f"Ambiguous lane aliases: {ambiguous}")
-    return (
-        MappingProxyType(registry),
-        MappingProxyType(
-            {alias: tuple(sorted(values)) for alias, values in aliases.items()}
-        ),
-    )
+        raise LaneRegistryError(f'Ambiguous lane aliases: {ambiguous}')
+    return MappingProxyType(registry), MappingProxyType({k: tuple(sorted(v)) for k, v in aliases.items()}), MappingProxyType(owners)
 
 
-LANE_REGISTRY, LANE_ALIAS_INDEX = _validate()
+LANE_REGISTRY, LANE_ALIAS_INDEX, SCHEMA_OWNER_LANES = _validate()
+
+# Preserve the admitted Sources registry's names. These prefixes belong to one
+# owner in one database; they do not grant other owners access to its tables.
+SCHEMA_OWNER_PREFIXES = MappingProxyType({'sources': ('source_', 'intake_', 'registry_', 'sources_'),
+                                        'artifacts': ('artifact_', 'project_artifact'),
+                                        'pdfocr': ('pdf_', 'docling_'),
+                                        'localcode': ('code_',), 'githubcode': ('code_',), 'docs': ('doc_', 'docling_'),
+                                        'dataexcel': ('sheet_',), 'msaccess': ('access_',),
+                                        **{lane_id.replace('_', '') + 'selector': ('selector_',)
+                                           for lane_id in SECTOR_LANE_IDS}})
+
+
+def owns_schema_object(owner: str, name: str) -> bool:
+    return name.startswith(SCHEMA_OWNER_PREFIXES.get(owner, (owner + '_',)))
 
 
 def resolve_lane_id(alias: str, *, code_mode: str | None = None) -> str:
+    if is_named_custom_lane(alias):
+        return alias
     matches = LANE_ALIAS_INDEX.get(_normalize(alias))
     if not matches:
-        raise LaneRegistryError(
-            f"Unknown lane {alias!r}; expected one of {', '.join(CANONICAL_LANE_IDS)}."
-        )
+        raise LaneRegistryError(f'Unknown or removed lane: {alias!r}')
     if len(matches) == 1:
         return matches[0]
-    if code_mode in PRIMARY_CODE_LANES:
+    if code_mode in matches:
         return str(code_mode)
-    raise LaneRegistryError(
-        "Use /evi-source-intake with an exact github_code or local_code override; "
-        "the legacy code alias requires exactly one code mode."
-    )
+    raise LaneRegistryError('The code alias requires an explicit local_code or github_code mode.')
 
 
 def get_lane(alias: str, *, code_mode: str | None = None) -> LaneDefinition:
+    if is_named_custom_lane(alias):
+        return replace(LANE_REGISTRY['custom'], canonical_lane_id=alias,
+                       display_label=alias.removeprefix('custom__'), aliases=(alias,),
+                       command=alias)
     return LANE_REGISTRY[resolve_lane_id(alias, code_mode=code_mode)]
 
 
-_SEMANTIC_PATH_LANES = (
-    ("chat_lineage", ("chat", "lineage", "conversation", "prompt")),
-    ("discussion", ("discussion", "meeting", "minutes")),
-    ("analysis", ("analysis", "audit", "forensic")),
-    ("plan", ("plan", "roadmap", "milestone")),
-    ("mode", ("mode", "rules", "contract", "policy")),
-    ("research", ("research", "study", "hypothesis", "citation")),
-    ("artifacts", ("artifact", "output", "receipt")),
-    ("brain_loader", ("brain_loader", "brain-package", "brain_package")),
-    ("project_engulf", ("engulf", "project_archive", "project-import")),
-)
+CUSTOM_INSTANCE_PATTERN = r'custom__[a-z][a-z0-9_]{0,39}'
+MAX_CUSTOM_INSTANCES = 256
 
 
-def route_source(
-    relative_path: str,
-    *,
-    code_mode: str,
-    explicit_lane: str | None = None,
-) -> str:
-    """Resolve one source to one sector; never duplicate a sector write."""
+def is_named_custom_lane(lane_id: str) -> bool:
+    """Validate a canonical instance identity without changing the global catalog."""
+    return isinstance(lane_id, str) and re.fullmatch(CUSTOM_INSTANCE_PATTERN, lane_id) is not None
 
+
+def lane_family(lane_id: str) -> str:
+    return 'custom' if is_named_custom_lane(lane_id) else lane_id
+
+
+def lane_for_schema_owner(owner: str) -> LaneDefinition:
+    try:
+        return LANE_REGISTRY[SCHEMA_OWNER_LANES[owner]]
+    except KeyError:
+        raise LaneRegistryError(f'No lane owns schema {owner!r}; select a registered owner.') from None
+
+
+def route_source(relative_path: str, *, code_mode: str, explicit_lane: str | None = None) -> str:
+    """Resolve one source to one sector; source filenames never confer authority."""
     if code_mode not in PRIMARY_CODE_LANES:
-        raise LaneRegistryError("code_mode must be github_code or local_code")
+        raise LaneRegistryError('code_mode must be github_code or local_code')
     if explicit_lane:
-        return resolve_lane_id(explicit_lane, code_mode=code_mode)
-    normalized = relative_path.replace("\\", "/").lower()
-    suffix = Path(normalized).suffix.lower()
-    filename = Path(normalized).name
-    name_tokens = normalized.replace("-", "_")
-
-    for lane_id, tokens in _SEMANTIC_PATH_LANES:
-        if any(token in name_tokens for token in tokens):
-            return lane_id
-    if suffix == ".pdf":
-        return "pdf_ocr"
-    if suffix in LANE_REGISTRY["images_ocr"].extensions:
-        return "images_ocr"
+        lane = get_lane(explicit_lane, code_mode=code_mode)
+        if lane.kind != 'sector':
+            raise LaneRegistryError('Source intake cannot write an authority lane; use its owning workflow.')
+        return lane.canonical_lane_id
+    normalized = relative_path.replace('\\', '/').lower()
+    filename, suffix = Path(normalized).name, Path(normalized).suffix
     if filename in _CODE_MANIFEST_NAMES:
         return code_mode
-    if suffix in LANE_REGISTRY["data_excel"].extensions:
-        return "data_excel"
-    if suffix in LANE_REGISTRY["ppt"].extensions:
-        return "ppt"
-    if suffix in (".db", ".sqlite", ".sqlite3"):
-        return "sqlite_brain"
+    # Specialty formats precede document and code fallbacks. JSON project/model
+    # files need an explicit profile or bounded package inspection, not guessing.
+    order = ('tableau',
+             'power_bi', 'pdf_ocr', 'images_ocr', 'data_excel', 'ppt', 'data')
+    for lane_id in order:
+        if suffix in LANE_REGISTRY[lane_id].extensions:
+            return lane_id
+    if suffix in ('.db', '.sqlite', '.sqlite3'):
+        return 'custom'
     if suffix in _CODE_EXTENSIONS:
         return code_mode
-    if suffix in LANE_REGISTRY["docs"].extensions:
-        return "docs"
-    if suffix == ".zip":
-        return "custom"
-    return "custom"
+    if suffix in LANE_REGISTRY['docs'].extensions:
+        return 'docs'
+    return 'custom'
 
 
-def route_batch(
-    paths: Iterable[str],
-    *,
-    code_mode: str,
-    overrides: dict[str, str] | None = None,
-) -> dict[str, str]:
-    exact_overrides = overrides or {}
-    return {
-        path: route_source(
-            path,
-            code_mode=code_mode,
-            explicit_lane=exact_overrides.get(path),
-        )
-        for path in sorted(set(paths))
-    }
+def route_batch(paths: Iterable[str], *, code_mode: str, overrides: dict[str, str] | None = None) -> dict[str, str]:
+    exact = overrides or {}
+    return {path: route_source(path, code_mode=code_mode, explicit_lane=exact.get(path)) for path in sorted(set(paths))}
 
 
-def catalog() -> list[dict[str, object]]:
-    return [LANE_REGISTRY[lane_id].as_dict() for lane_id in CANONICAL_LANE_IDS]
+def lane_schema_asset(lane_id: str) -> dict[str, Any]:
+    lane = get_lane(lane_id)
+    result = {'schema': LANE_SCHEMA_REGISTRY_SCHEMA, 'lane_id': lane.canonical_lane_id,
+                  'kind': lane.kind, 'schema_id': f'evidence-lane.{lane.kind}.{lane.canonical_lane_id}.v4',
+                  'schema_version': 4, 'database_relative_path': lane.database_relative_path,
+                  'schema_history_relative_path': lane.schema_history_relative_path,
+                  'owners': list(lane.schema_owners), 'tables': list(lane.schema_contract),
+                  'prefixes_by_owner': {owner: list(SCHEMA_OWNER_PREFIXES.get(owner, (owner + '_',))) for owner in lane.schema_owners},
+                  'original_schema_sources': list(lane.source_origins),
+                  'qualification': 'definition_only_until_owning_workflow_verified',
+                  'migration_rule': 'Lane-owned ordered digest-verified history; explicit migration preserves source state'}
+    result['contract_sha256'] = sha256_bytes(canonical_json_bytes(result))
+    return result
+
+
+def lane_artifact_contract(lane_id: str) -> dict[str, Any]:
+    lane = get_lane(lane_id)
+    result = {'schema': LANE_ARTIFACT_ROLE_REGISTRY_SCHEMA, 'lane_id': lane.canonical_lane_id,
+                  'folder': lane.folder, 'files_root': lane.files_relative_path,
+                  'required_roles': [{'role_id': 'sqlite_authority', 'path': lane.sqlite_filename}],
+                  'schema_history': {'path': 'schema-history', 'condition': 'migration_applied'},
+                  'natural_artifacts': {'extensions': list(lane.natural_extensions), 'condition': 'declared_operation_produced_output'},
+                  'relationship_views': list(lane.relationship_views),
+                  'graph_exports': {'condition': 'declared_consumer_requested_view', 'mmd': lane.mmd_filename,
+                                     'dot': lane.dot_filename, 'both_required': False},
+                  'pointer': {'condition': 'declared_view_consumer', 'meaning': lane.pointer_semantics},
+                  'refresh': 'Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head',
+                  'validation': 'Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only',
+                  'toolchain': 'Shared installations selected by operation; no mandatory tools.json per lane'}
+    result['contract_sha256'] = sha256_bytes(canonical_json_bytes(result))
+    return result
+
+
+def lane_schema_evolution_contract(lane_id: str) -> dict[str, Any]:
+    lane = get_lane(lane_id)
+    return {'schema': LANE_SCHEMA_EVOLUTION_POLICY_SCHEMA, 'lane_id': lane.canonical_lane_id,
+                'database': lane.database_relative_path, 'history': lane.schema_history_relative_path,
+                'immutable_applied_migrations': True, 'source_preserving_migration': True,
+                'publication': 'Root PV selects verified heads after the coordinated commit',
+                'implicit_legacy_migration': False}
+
+
+def lane_schema_registry_contract() -> dict[str, Any]:
+    return {'schema': LANE_SCHEMA_REGISTRY_SCHEMA, 'registry_version': 4,
+                'authorities': list(AUTHORITY_LANE_IDS), 'sectors': list(SECTOR_LANE_IDS),
+                'instance_templates': {'custom': {'canonical_id_pattern': CUSTOM_INSTANCE_PATTERN,
+                    'max_instances_per_project': MAX_CUSTOM_INSTANCES, 'registration_authority': 'sources',
+                    'registration_owner': 'customlanes', 'global_catalog_mutated': False,
+                    'schema_owner_requires_explicit_instance_store': True,
+                    'storage': 'sectors/<instance_id>/<instance_id>_sector_v001.sqlite with separate files and schema-history'}},
+                'root_pv': 'Project identity and exact lane-head references only; no universal business database',
+                'coordination': {'writer_scope': 'one_project', 'schema_owners': ['writer'],
+                                 'shared_lane_mechanisms': ['views'],
+                                 'shared_mechanism_requires_explicit_lane': True,
+                                 'business_records_in_root': False,
+                                 'unpublished_lane_changes': 'recoverable_until_coordinated_root_publication'},
+                'lanes': [lane_schema_asset(lane) for lane in CANONICAL_LANE_IDS]}
+
+
+def catalog() -> list[dict[str, Any]]:
+    return [lane.as_dict() for lane in _DEFINITIONS]
+
+
+LANE_SCHEMA_REGISTRY_SHA256 = sha256_bytes(canonical_json_bytes(lane_schema_registry_contract()))
+LANE_ARTIFACT_ROLE_REGISTRY_SHA256 = sha256_bytes(canonical_json_bytes([lane_artifact_contract(k) for k in CANONICAL_LANE_IDS]))
+LANE_SCHEMA_EVOLUTION_POLICY_SHA256 = sha256_bytes(canonical_json_bytes([lane_schema_evolution_contract(k) for k in CANONICAL_LANE_IDS]))

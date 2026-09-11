@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 51,
   "tool": "PowerShell_Win32_APIs",
@@ -9,7 +9,7 @@
   "license_expression_or_terms": "HOST_PLATFORM_TERMS",
   "license_evidence": "Windows host capability probe; no host binary redistributed",
   "evidence_paths": [
-    "toolchains/tool-requirement-matrix.v1.json"
+    "toolchains/tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -20,5 +20,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "8D91B36152C1352E76A94DFCEFA058777B81A893CF560E656631922C9C8EE7B6"
+  "historical_ordinal": 51,
+  "catalog_ordinal": 50,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "1c9322d5aa39032d6bfb45a0725576339453752477a8d26e584662e312946655"
 }

@@ -1,0 +1,13 @@
+{
+  "action": "canon_backfire",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "contract": "schemas/actions/canon_backfire.v4.schema.json",
+  "contract_sha256": "b790dde26fac0f26b51d0ea4cdbf3b9cfe3e016da553ca943fb5b3846b6c9364",
+  "installed_execution_claimed": false,
+  "request_envelope": "schemas/action-request.v4.schema.json",
+  "response_envelope": "schemas/action-response.v4.schema.json",
+  "schema": "evidence-lane.sdk-action.v4"
+}

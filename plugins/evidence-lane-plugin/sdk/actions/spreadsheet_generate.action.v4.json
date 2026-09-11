@@ -1,0 +1,13 @@
+{
+  "action": "spreadsheet_generate",
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "automatic_mutation_retry": false,
+  "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
+  "contract": "schemas/actions/spreadsheet_generate.v4.schema.json",
+  "contract_sha256": "3defcf07790b75935642906954e1c89eaf87d4bc2c1b745ef46d845f8b0a02cd",
+  "installed_execution_claimed": false,
+  "request_envelope": "schemas/action-request.v4.schema.json",
+  "response_envelope": "schemas/action-response.v4.schema.json",
+  "schema": "evidence-lane.sdk-action.v4"
+}

@@ -1,0 +1,339 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Publish a new immutable lane-owned PPTX version with explicit structural and layout fidelity.",
+  "inputSchema": {
+    "$defs": {
+      "Slide": {
+        "additionalProperties": false,
+        "properties": {
+          "background": {
+            "default": "FFFFFF",
+            "pattern": "^[0-9A-Fa-f]{6}$",
+            "title": "Background",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "maxLength": 16384,
+            "title": "Notes",
+            "type": "string"
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/$defs/SlideObject"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Objects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "objects"
+        ],
+        "title": "Slide",
+        "type": "object"
+      },
+      "SlideObject": {
+        "additionalProperties": false,
+        "properties": {
+          "bold": {
+            "default": false,
+            "title": "Bold",
+            "type": "boolean"
+          },
+          "color": {
+            "default": "172333",
+            "pattern": "^[0-9A-Fa-f]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "fill": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fill"
+          },
+          "font_points": {
+            "default": 24,
+            "maximum": 96,
+            "minimum": 8,
+            "title": "Font Points",
+            "type": "integer"
+          },
+          "height": {
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "title": "Height",
+            "type": "number"
+          },
+          "image_base64": {
+            "anyOf": [
+              {
+                "maxLength": 1048576,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Image Base64"
+          },
+          "image_format": {
+            "default": "png",
+            "enum": [
+              "png",
+              "jpeg"
+            ],
+            "title": "Image Format",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "rectangle",
+              "ellipse",
+              "table",
+              "image"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "maxItems": 100,
+            "title": "Rows",
+            "type": "array"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 16384,
+            "title": "Text",
+            "type": "string"
+          },
+          "width": {
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "title": "Width",
+            "type": "number"
+          },
+          "x": {
+            "maximum": 100,
+            "minimum": 0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "SlideObject",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "height_inches": {
+        "default": 7.5,
+        "maximum": 56,
+        "minimum": 1,
+        "title": "Height Inches",
+        "type": "number"
+      },
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "logical_name": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[^/\\\\:]+\\.pptx$",
+        "title": "Logical Name",
+        "type": "string"
+      },
+      "slides": {
+        "items": {
+          "$ref": "#/$defs/Slide"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "title": "Slides",
+        "type": "array"
+      },
+      "title": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Title",
+        "type": "string"
+      },
+      "width_inches": {
+        "default": 13.333333,
+        "maximum": 56,
+        "minimum": 1,
+        "title": "Width Inches",
+        "type": "number"
+      }
+    },
+    "required": [
+      "logical_name",
+      "title",
+      "slides"
+    ],
+    "title": "PresentationGenerate",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "presentation_generate",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "ppt",
+        "default": "ppt",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "PresentationResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "presentation",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "9c6e3a031cd1e792dc6e3fc3aa93f8621eca9f03898a94c9289a3f3e1b9f4d33",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "presentation_generate",
+    "profile": "presentation",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.presentation_profile:generate_presentation",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "presentation_generate.native_presentation",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "PPTX_OpenXML",
+          "Pillow",
+          "lxml"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "presentation_generate"
+    ]
+  },
+  "verification_checks": [
+    "presentation_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "presentation_generate"
+  ],
+  "workflow": "build"
+}

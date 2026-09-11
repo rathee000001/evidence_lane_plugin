@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "RemoteGrant": {
+      "additionalProperties": false,
+      "properties": {
+        "access_grant_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Access Grant Id",
+          "type": "string"
+        },
+        "actions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "allow_storage_probe": {
+          "default": false,
+          "title": "Allow Storage Probe",
+          "type": "boolean"
+        },
+        "credential_env": {
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$",
+          "title": "Credential Env",
+          "type": "string"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "string"
+        },
+        "principal_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Principal Id",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "purpose": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principal_id",
+        "project_id",
+        "access_grant_id",
+        "credential_env",
+        "actions",
+        "expires_at",
+        "purpose"
+      ],
+      "title": "RemoteGrant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "grants": {
+      "items": {
+        "$ref": "#/$defs/RemoteGrant"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Grants",
+      "type": "array"
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string"
+    },
+    "server_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Server Id",
+      "type": "string"
+    },
+    "storage_class": {
+      "default": "unverified",
+      "enum": [
+        "persistent_operator_declared",
+        "ephemeral",
+        "unverified"
+      ],
+      "title": "Storage Class",
+      "type": "string"
+    },
+    "volume_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "title": "Volume Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "server_id",
+    "origin",
+    "volume_id",
+    "grants"
+  ],
+  "title": "RemotePolicy",
+  "type": "object"
+}

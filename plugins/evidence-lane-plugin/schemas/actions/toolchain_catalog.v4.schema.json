@@ -1,0 +1,90 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Read shared tool declarations and executable operation routes; installation and execution remain separately qualified.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "title": "CatalogRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "toolchain_catalog",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "installation_scope": {
+        "default": "shared_windows_studio_bundle_once_per_installation",
+        "title": "Installation Scope",
+        "type": "string"
+      },
+      "operations": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Operations",
+        "type": "array"
+      },
+      "tools": {
+        "additionalProperties": true,
+        "title": "Tools",
+        "type": "object"
+      }
+    },
+    "required": [
+      "tools",
+      "operations"
+    ],
+    "title": "CatalogResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "core",
+  "project_required": false,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "29996609f03a2230c2f4bff2eb719a9315c13181f2bab5b4577c5052e5c4be96",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "toolchain_catalog",
+    "profile": "core",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tool_routes:register_toolchain_actions.<locals>.catalog",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "toolchain_catalog.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "toolchain"
+}

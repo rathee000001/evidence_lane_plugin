@@ -1,0 +1,284 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Search current registered lane owners with separate authority results, exact snapshots and explicit missing coverage.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "candidate_limit": {
+        "default": 20,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Candidate Limit",
+        "type": "integer"
+      },
+      "lane_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 32,
+        "title": "Lane Ids",
+        "type": "array"
+      },
+      "limit": {
+        "default": 8,
+        "maximum": 20,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 131072,
+        "maximum": 262144,
+        "minimum": 4096,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "query": {
+        "maxLength": 500,
+        "minLength": 1,
+        "title": "Query",
+        "type": "string"
+      },
+      "retrieval": {
+        "default": "fts5",
+        "enum": [
+          "fts5",
+          "bm25",
+          "tfidf",
+          "hybrid",
+          "rank_bm25"
+        ],
+        "title": "Retrieval",
+        "type": "string"
+      },
+      "snapshot_limit": {
+        "default": 4,
+        "maximum": 8,
+        "minimum": 1,
+        "title": "Snapshot Limit",
+        "type": "integer"
+      },
+      "snapshot_offset": {
+        "default": 0,
+        "maximum": 127,
+        "minimum": 0,
+        "title": "Snapshot Offset",
+        "type": "integer"
+      },
+      "timeout_ms": {
+        "default": 10000,
+        "maximum": 30000,
+        "minimum": 100,
+        "title": "Timeout Ms",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "ProjectSearchRequest",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "search",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "arms": {
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        "title": "Arms",
+        "type": "array"
+      },
+      "complete_within_selected_scope": {
+        "title": "Complete Within Selected Scope",
+        "type": "boolean"
+      },
+      "databases_merged": {
+        "const": false,
+        "default": false,
+        "title": "Databases Merged",
+        "type": "boolean"
+      },
+      "elapsed_ms": {
+        "title": "Elapsed Ms",
+        "type": "integer"
+      },
+      "mutation_performed": {
+        "const": false,
+        "default": false,
+        "title": "Mutation Performed",
+        "type": "boolean"
+      },
+      "observed_at": {
+        "title": "Observed At",
+        "type": "string"
+      },
+      "owner_calls": {
+        "title": "Owner Calls",
+        "type": "integer"
+      },
+      "plan_boundary": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Plan Boundary",
+        "type": "object"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "query": {
+        "title": "Query",
+        "type": "string"
+      },
+      "ranking_scope": {
+        "const": "within_each_owner_snapshot_only",
+        "default": "within_each_owner_snapshot_only",
+        "title": "Ranking Scope",
+        "type": "string"
+      },
+      "refresh_performed": {
+        "const": false,
+        "default": false,
+        "title": "Refresh Performed",
+        "type": "boolean"
+      },
+      "registered_lanes": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Registered Lanes",
+        "type": "array"
+      },
+      "retrieval": {
+        "title": "Retrieval",
+        "type": "string"
+      },
+      "root_pv": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Root Pv",
+        "type": "object"
+      },
+      "snapshot_scope": {
+        "const": "one_published_root_and_independent_owner_reads",
+        "default": "one_published_root_and_independent_owner_reads",
+        "title": "Snapshot Scope",
+        "type": "string"
+      },
+      "source_currentness": {
+        "const": "not_rechecked",
+        "default": "not_rechecked",
+        "title": "Source Currentness",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "root_pv",
+      "plan_boundary",
+      "query",
+      "retrieval",
+      "arms",
+      "registered_lanes",
+      "complete_within_selected_scope",
+      "owner_calls",
+      "elapsed_ms",
+      "observed_at"
+    ],
+    "title": "SearchPage",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "projects",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "a92f2dc7e3af73b1519485f7ad6092248ca80feb67f4e084706f11e4317085d4",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": null,
+    "operation": "search",
+    "profile": "projects",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.search",
+        "argument_suffixes": {},
+        "argument_values": {
+          "retrieval": [
+            "fts5",
+            "bm25",
+            "tfidf",
+            "hybrid"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "search.sqlite_lexical",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25"
+        ]
+      },
+      {
+        "adapter": "evidence_lane_plugin.live_authority_query:register_query_actions.<locals>.search",
+        "argument_suffixes": {},
+        "argument_values": {
+          "retrieval": [
+            "rank_bm25"
+          ]
+        },
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "search.rank_bm25",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "SQLite_FTS5_BM25",
+          "rank_bm25"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "evi"
+}

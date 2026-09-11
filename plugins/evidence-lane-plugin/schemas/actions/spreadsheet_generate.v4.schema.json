@@ -1,0 +1,294 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Generate a new immutable lane-owned file under the format-specific contract.",
+  "inputSchema": {
+    "$defs": {
+      "Cell": {
+        "additionalProperties": false,
+        "properties": {
+          "cell": {
+            "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+            "title": "Cell",
+            "type": "string"
+          },
+          "formula": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Formula"
+          },
+          "number_format": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Number Format"
+          },
+          "value": {
+            "$ref": "#/$defs/Value"
+          }
+        },
+        "required": [
+          "cell",
+          "value"
+        ],
+        "title": "Cell",
+        "type": "object"
+      },
+      "Sheet": {
+        "additionalProperties": false,
+        "properties": {
+          "autofilter": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Autofilter"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/$defs/Cell"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "title": "Cells",
+            "type": "array"
+          },
+          "freeze_panes": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Freeze Panes"
+          },
+          "name": {
+            "maxLength": 31,
+            "minLength": 1,
+            "pattern": "^[^\\\\/?*\\[\\]:]+$",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "cells"
+        ],
+        "title": "Sheet",
+        "type": "object"
+      },
+      "Value": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": [
+              "text",
+              "number",
+              "boolean",
+              "null",
+              "date",
+              "datetime",
+              "time",
+              "iso_date",
+              "error",
+              "duration_seconds",
+              "binary",
+              "json",
+              "missing",
+              "nonfinite"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "title": "Value",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "lane_id": {
+        "const": "data_excel",
+        "default": "data_excel",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "logical_name": {
+        "maxLength": 160,
+        "minLength": 1,
+        "pattern": "^[^/\\\\:]+\\.xlsx$",
+        "title": "Logical Name",
+        "type": "string"
+      },
+      "sheets": {
+        "items": {
+          "$ref": "#/$defs/Sheet"
+        },
+        "maxItems": 16,
+        "minItems": 1,
+        "title": "Sheets",
+        "type": "array"
+      }
+    },
+    "required": [
+      "logical_name",
+      "sheets"
+    ],
+    "title": "DataExcelSpreadsheetGenerate",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "spreadsheet_generate",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "enum": [
+          "data_excel",
+          "data"
+        ],
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "TabularResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "spreadsheet",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "3d73845dd9d8945f10a5ec1d1bc0ffe30068ddf1fdb7715b1c3b6622dcbd862b",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "spreadsheet_generate",
+    "profile": "spreadsheet",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.tabular_profile:generate",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "spreadsheet_generate.native",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "openpyxl"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "spreadsheet_generate"
+    ]
+  },
+  "verification_checks": [
+    "tabular_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "spreadsheet_generate"
+  ],
+  "workflow": "build"
+}

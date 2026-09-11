@@ -1,0 +1,222 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Discover bounded attributed sources through selected DDGS providers and preserve their response bundle in Research.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "backends": {
+        "items": {
+          "enum": [
+            "brave",
+            "duckduckgo",
+            "google",
+            "mojeek",
+            "startpage",
+            "wikipedia",
+            "yahoo"
+          ],
+          "type": "string"
+        },
+        "maxItems": 4,
+        "minItems": 1,
+        "title": "Backends",
+        "type": "array"
+      },
+      "expected_snapshot": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Expected Snapshot"
+      },
+      "lane_id": {
+        "const": "research",
+        "default": "research",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "limit": {
+        "default": 10,
+        "maximum": 50,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "max_bytes": {
+        "default": 2097152,
+        "maximum": 2097152,
+        "minimum": 1024,
+        "title": "Max Bytes",
+        "type": "integer"
+      },
+      "max_requests": {
+        "default": 8,
+        "maximum": 16,
+        "minimum": 1,
+        "title": "Max Requests",
+        "type": "integer"
+      },
+      "page": {
+        "default": 1,
+        "maximum": 10,
+        "minimum": 1,
+        "title": "Page",
+        "type": "integer"
+      },
+      "query": {
+        "maxLength": 500,
+        "minLength": 1,
+        "title": "Query",
+        "type": "string"
+      },
+      "region": {
+        "default": "us-en",
+        "pattern": "^[a-z]{2}-[a-z]{2}$",
+        "title": "Region",
+        "type": "string"
+      },
+      "safesearch": {
+        "default": "moderate",
+        "enum": [
+          "on",
+          "moderate",
+          "off"
+        ],
+        "title": "Safesearch",
+        "type": "string"
+      },
+      "timelimit": {
+        "anyOf": [
+          {
+            "enum": [
+              "d",
+              "w",
+              "m",
+              "y"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Timelimit"
+      },
+      "timeout_seconds": {
+        "default": 30,
+        "maximum": 60,
+        "minimum": 1,
+        "title": "Timeout Seconds",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "Discover",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "research_web_discover",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "pattern": "^(?:research|artifacts|custom|custom__[a-z][a-z0-9_]{0,39})$",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "lane_id",
+      "operation",
+      "result"
+    ],
+    "title": "EvidenceResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "research",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": true,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "bcc60861685d90c2a157fed1c7aeba1db1c9bfb2e6852574b920e4bdb9fa5510",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "research_web_discover",
+    "profile": "research",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.research_discovery_profile:discover",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Pinned DDGS provider parsing and ranking over bounded HTTPX requests; targets remain unvisited.",
+        "route_id": "research_web_discover.ddgs",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python",
+          "DDGS",
+          "HTTPX",
+          "lxml"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": [
+      "research_discover_sources"
+    ]
+  },
+  "verification_checks": [
+    "research_discovery_snapshot_integrity"
+  ],
+  "worker_operations": [
+    "research_discover_sources"
+  ],
+  "workflow": "source-intake"
+}

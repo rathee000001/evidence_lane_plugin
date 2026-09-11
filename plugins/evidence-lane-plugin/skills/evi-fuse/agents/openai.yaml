@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Fuse"
-  short_description: "Decide dual HIL and promote only exact approval"
-  default_prompt: "Use $evi-fuse to classify or record the separate Project and Learning HIL decisions; only exact dual APPROVE may promote."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

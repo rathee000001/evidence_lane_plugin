@@ -1,0 +1,112 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Bind this client's selected project to a reported host session for visible hook capture.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "reported_session_id": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9._-]+$",
+        "title": "Reported Session Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "reported_session_id"
+    ],
+    "title": "CaptureBind",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": true,
+  "name": "capture_bind",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "bound": {
+        "const": true,
+        "default": true,
+        "title": "Bound",
+        "type": "boolean"
+      },
+      "capture_route": {
+        "enum": [
+          "GOVERNED_PROJECT_FULL",
+          "ENV_BUILDER_SPARSE"
+        ],
+        "title": "Capture Route",
+        "type": "string"
+      },
+      "native_task_attestation": {
+        "const": "not_provided",
+        "default": "not_provided",
+        "title": "Native Task Attestation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "reported_session_id": {
+        "title": "Reported Session Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_id",
+      "reported_session_id",
+      "capture_route"
+    ],
+    "title": "CaptureBindingResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "write",
+  "profile": "chatlineage",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": false,
+  "toolchain": {
+    "contract_digest": "2edf8b24abefa7d7d770cb575a765c73bfbe1ae3dc5932a19a0096b128f68cdf",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "capture_bind",
+    "profile": "chatlineage",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.capture_routing:CaptureRouter.bind",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "capture_bind.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "boot"
+}

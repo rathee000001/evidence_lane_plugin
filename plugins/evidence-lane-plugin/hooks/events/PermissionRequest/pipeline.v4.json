@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "event": "PermissionRequest",
+  "schema": "evidence-lane.native-hook-pipeline.v4",
+  "separate_process_per_stage": false,
+  "stages": [
+    {
+      "id": "read_bounded_input",
+      "implementation": "hook_contract.main_for_event",
+      "max_bytes": 262144,
+      "owner": "event_handler"
+    },
+    {
+      "id": "validate_and_redact_visible_fields",
+      "implementation": "hook_contract.prepare_hook",
+      "owner": "shared_hook_contract"
+    },
+    {
+      "id": "verify_bound_engine_build",
+      "implementation": "hook_contract.submit_hook and launcher.verify_engine_binding",
+      "owner": "shared_hook_contract"
+    },
+    {
+      "automatic_retry": false,
+      "id": "deliver_once_to_bound_project",
+      "implementation": "hook_contract.submit_hook",
+      "owner": "shared_hook_contract"
+    },
+    {
+      "id": "verify_receipt_and_emit_bounded_output",
+      "implementation": "hook_contract.context_hook_output",
+      "owner": "shared_hook_contract"
+    }
+  ]
+}

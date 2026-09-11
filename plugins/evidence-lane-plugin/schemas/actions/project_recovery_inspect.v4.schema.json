@@ -1,0 +1,124 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": false,
+  "description": "Inspect registered files, unregistered leftovers and database recovery status without repair.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "sample_limit": {
+        "default": 20,
+        "maximum": 50,
+        "minimum": 0,
+        "title": "Sample Limit",
+        "type": "integer"
+      }
+    },
+    "title": "RecoveryInspect",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "project_recovery_inspect",
+  "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "database_recovery": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Database Recovery"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "registered_bytes": {
+        "title": "Registered Bytes",
+        "type": "integer"
+      },
+      "registered_file_count": {
+        "title": "Registered File Count",
+        "type": "integer"
+      },
+      "repairs_performed": {
+        "default": false,
+        "title": "Repairs Performed",
+        "type": "boolean"
+      },
+      "unregistered_file_count": {
+        "title": "Unregistered File Count",
+        "type": "integer"
+      },
+      "unregistered_sample": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Unregistered Sample",
+        "type": "array"
+      }
+    },
+    "required": [
+      "project_id",
+      "registered_file_count",
+      "registered_bytes",
+      "unregistered_file_count",
+      "unregistered_sample",
+      "database_recovery"
+    ],
+    "title": "RecoveryInspection",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "recovery",
+  "project_required": true,
+  "queryable_in_delta": false,
+  "queued": false,
+  "read_schemas": [],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "ba947761a5c72e4f47c4d8edcaae00d2cfe8a13925af058bc948c695e066d32d",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "project_recovery_inspect",
+    "profile": "recovery",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.database_recovery:register_recovery_actions.<locals>.<lambda>",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "project_recovery_inspect.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "recover"
+}

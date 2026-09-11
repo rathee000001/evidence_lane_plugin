@@ -1,0 +1,149 @@
+{
+  "action_set_sha256": "b4971ad1d61e8bcbb0fb841e8626b12bc7f232606c1651b5607d7188f37ba758",
+  "authority": "engine_typed_action_registry",
+  "cross_project_read": true,
+  "description": "Read a bounded Markdown excerpt and optional structured projection from an exact completed rich conversion.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "enrichment_id": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Enrichment Id",
+        "type": "string"
+      },
+      "include_structure": {
+        "default": false,
+        "title": "Include Structure",
+        "type": "boolean"
+      },
+      "lane_id": {
+        "const": "docs",
+        "default": "docs",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "max_characters": {
+        "default": 32768,
+        "maximum": 65536,
+        "minimum": 1,
+        "title": "Max Characters",
+        "type": "integer"
+      },
+      "max_structure_bytes": {
+        "default": 131072,
+        "maximum": 524288,
+        "minimum": 4096,
+        "title": "Max Structure Bytes",
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "maximum": 2097152,
+        "minimum": 0,
+        "title": "Offset",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "enrichment_id"
+    ],
+    "title": "DocumentEnrichmentRead",
+    "type": "object"
+  },
+  "installed_execution_claimed": false,
+  "mutates": false,
+  "name": "document_enrichment_read",
+  "outputSchema": {
+    "$defs": {
+      "JsonValue": {}
+    },
+    "additionalProperties": false,
+    "properties": {
+      "lane_id": {
+        "const": "docs",
+        "default": "docs",
+        "title": "Lane Id",
+        "type": "string"
+      },
+      "operation": {
+        "title": "Operation",
+        "type": "string"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string"
+      },
+      "result": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "title": "Result",
+        "type": "object"
+      }
+    },
+    "required": [
+      "project_id",
+      "operation",
+      "result"
+    ],
+    "title": "DocumentResult",
+    "type": "object"
+  },
+  "path_fields": [],
+  "permission": "read",
+  "profile": "document",
+  "project_required": true,
+  "queryable_in_delta": true,
+  "queued": false,
+  "read_schemas": [
+    {
+      "digest": "f84601b682a83ba60e52cca1c2ed14be94ffcff5be784ed9153f5422c2dd5c29",
+      "owner": "docs",
+      "version": 1
+    },
+    {
+      "digest": "57748c24417eadbb119e7087f54220dd341aba8156c55258c1911d0bfa2f3ccc",
+      "owner": "docs",
+      "version": 2
+    }
+  ],
+  "required_tools": [],
+  "requires_delta": false,
+  "schema": "evidence-lane.action-schema.v4",
+  "studio_read": true,
+  "toolchain": {
+    "contract_digest": "8a238103b0c06ad19fa941b6dbdf2b5b28488595cb4c1577fdf1f2df02680ac8",
+    "fallback_after_invocation": false,
+    "installation_implied": false,
+    "installation_matrix": "toolchains/shared-toolchain.v4.json",
+    "no_fallback_reason": "No equivalent alternate adapter is registered.",
+    "operation": "document_enrichment_read",
+    "profile": "document",
+    "routes": [
+      {
+        "adapter": "evidence_lane_plugin.document_enrichment:register_enrichment_actions.<locals>.read",
+        "argument_suffixes": {},
+        "argument_values": {},
+        "extension": null,
+        "fidelity": "exact_contract",
+        "host_profiles": [],
+        "provider": "engine_cpu",
+        "reason": "Registered engine adapter",
+        "route_id": "document_enrichment_read.engine",
+        "systems": [
+          "Windows",
+          "Darwin",
+          "Linux"
+        ],
+        "tool_ids": [
+          "Python"
+        ]
+      }
+    ],
+    "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+    "worker_operations": []
+  },
+  "verification_checks": [],
+  "worker_operations": [],
+  "workflow": "source-intake"
+}

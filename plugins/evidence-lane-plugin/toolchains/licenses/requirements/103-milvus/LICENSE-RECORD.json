@@ -1,5 +1,5 @@
 {
-  "schema": "evidence-lane.tool-requirement-license-record.v1",
+  "schema": "evidence-lane.tool-requirement-license-record.v4",
   "status": "PASS",
   "ordinal": 103,
   "tool": "Milvus",
@@ -9,7 +9,7 @@
   "license_expression_or_terms": "EXTERNAL_SERVICE_OR_REPOSITORY_TERMS",
   "license_evidence": "validated at the repository/delivery gate; no binary redistributed",
   "evidence_paths": [
-    "toolchains/tool-requirement-matrix.v1.json"
+    "toolchains/tool-definitions.v4.json"
   ],
   "redistributed_by_source_package": false,
   "source_package_copied_license_text_present": false,
@@ -20,5 +20,9 @@
   "runtime_distribution_license_files_must_be_copied_before_use": false,
   "metadata_without_a_license_file_is_labeled_metadata_only": true,
   "mcp_inventory_separate": true,
-  "receipt_sha256": "37C807F44BC41664AC5FFF4E652D5FDB780D783C41D90D648164957C4F7FD8C9"
+  "historical_ordinal": 103,
+  "catalog_ordinal": 94,
+  "source_definition": "toolchains/tool-definitions.v4.json",
+  "source_definition_sha256": "7e80b605869d8037ad79b79eb23b6d05d39ebbfba2c82b62b96721207703ec4c",
+  "receipt_sha256": "ff749e06f648b0c51a9b534bbf42e31dc706bfa4e71f86d8123b5ce25f920935"
 }

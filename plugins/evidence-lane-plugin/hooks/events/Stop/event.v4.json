@@ -1,0 +1,35 @@
+{
+  "automatic_retry": false,
+  "bounded_context_output": false,
+  "entrypoint": "hooks/events/Stop/handler.py",
+  "event": "Stop",
+  "execution_owner": "evidence_lane_plugin.hook_contract",
+  "host_control_output": false,
+  "input_schema": "hooks/events/Stop/event.schema.json",
+  "members": [
+    {
+      "path": "hooks/events/Stop/handler.py",
+      "sha256": "b9a505c79c5f9f321c53a2341996f8f445a428af81a58e4f506b6d8bb651a285"
+    },
+    {
+      "path": "hooks/events/Stop/event.schema.json",
+      "sha256": "e23b500827978d6d7786e61a94f60fa0d3b98b3eba607d6449dc73acf5d49b0c"
+    },
+    {
+      "path": "hooks/events/Stop/pipeline.v4.json",
+      "sha256": "6d628ce934abe68541b9bae7f59549b6211864d0f4f6f483dfe85c0d7b83cd25"
+    },
+    {
+      "path": "hooks/events/Stop/README.md",
+      "sha256": "4e390536455f5cd2c2cda1af77f466f3a46d01f642545130930385dd2809351f"
+    }
+  ],
+  "native_installation_verified": false,
+  "order": 9,
+  "pipeline": "hooks/events/Stop/pipeline.v4.json",
+  "remote_route": "/remote/v4/capture",
+  "requires_explicit_project_session_binding": true,
+  "route": "/v4/capture",
+  "schema": "evidence-lane.native-hook-event.v4",
+  "subagent_control_output": false
+}

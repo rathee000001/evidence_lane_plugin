@@ -1,9 +1,0 @@
-interface:
-  display_name: "Evidence Lane Instructions"
-  short_description: "Resolve AGENTS.md and host MEMORY.md"
-  default_prompt: "Use $evi-instructions to resolve and apply AGENTS.md instruction scope and bounded host MEMORY.md recall as two separate ENV/UOP-governed arms."
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "evidence-lane"
-      description: "Evidence Lane native MCP server"

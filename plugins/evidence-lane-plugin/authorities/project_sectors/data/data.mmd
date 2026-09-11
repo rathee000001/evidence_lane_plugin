@@ -1,0 +1,51 @@
+flowchart TB
+%% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
+%% LANGGRAPH_VERSION=1.2.11
+%% LANGGRAPH_EXPORT_SHA256=7AE5DBD16E97432A145CF51A111B9729852C7DCF57C0FA10C315E2DD3394D106
+%% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+  classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
+  classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
+  classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef retrieval fill:#eaf8f1,stroke:#24805c,color:#101828;
+  classDef git fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef lifecycle fill:#fff1f0,stroke:#ba4236,color:#101828;
+  classDef output fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef warn fill:#fff7e7,stroke:#c88722,color:#101828;
+  classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
+  classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
+  classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  t_data_chunk["data_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
+  t_data_chunk_fts["data_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
+  t_data_column["data_column<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_data_current["data_current<br/>source_id, snapshot_id"]:::table
+  t_data_derivative["data_derivative<br/>derivative_id, snapshot_id, kind, manifest_object, created_at"]:::table
+  t_data_export["data_export<br/>export_id, snapshot_id, destination, before_sha256, after_sha256, effect_id, created_at"]:::table
+  t_data_lineage["data_lineage<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_data_sample["data_sample<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_data_source["data_source<br/>source_id, logical_name, source_path, origin, created_at"]:::table
+  t_data_table["data_table<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  t_data_version["data_version<br/>snapshot_id, source_id, generation, previous_snapshot, manifest_object, raw_object, facts_object, parser_contract, created_at"]:::table
+  t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
+  t_objects["objects<br/>digest, size_bytes, created_at"]:::table
+  t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
+  t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  t_data_chunk -->|"text_object"| t_objects
+  t_data_chunk -->|"snapshot_id"| t_data_version
+  t_data_column -->|"snapshot_id"| t_data_version
+  t_data_current -->|"snapshot_id"| t_data_version
+  t_data_current -->|"source_id"| t_data_source
+  t_data_derivative -->|"manifest_object"| t_objects
+  t_data_derivative -->|"snapshot_id"| t_data_version
+  t_data_export -->|"snapshot_id"| t_data_version
+  t_data_lineage -->|"snapshot_id"| t_data_version
+  t_data_sample -->|"snapshot_id"| t_data_version
+  t_data_table -->|"snapshot_id"| t_data_version
+  t_data_version -->|"facts_object"| t_objects
+  t_data_version -->|"raw_object"| t_objects
+  t_data_version -->|"manifest_object"| t_objects
+  t_data_version -->|"previous_snapshot"| t_data_version
+  t_data_version -->|"source_id"| t_data_source
+  t_selector_retirement -->|"proof_object"| t_objects
+  t_selector_retirement -->|"snapshot_id"| t_objects
