@@ -18,6 +18,7 @@ sys.path.insert(0, str(PLUGIN_ROOT / 'src'))
 
 import generate_public_schema_catalog as action_catalog
 import generate_studio_linkage as studio_linkage
+import generate_toolchain_execution_matrix as toolchain_execution_matrix
 import generate_toolchain_license_records as license_records
 import regenerate_authority_packages as authority_packages
 import regenerate_compact_lane_schema_registry as lane_contracts
@@ -54,12 +55,13 @@ def generate(*, check=False):
     with tempfile.TemporaryDirectory(prefix='evidence-lane-package-projections-') as temporary:
         registry = Engine(Path(temporary)).registry
         registry.freeze()
+        lanes = lane_contracts.generate(root=PLUGIN_ROOT, check=check)
         authorities = authority_packages.generate(registry, check=check)
         sectors = sector_packages.generate(registry, check=check)
-        lanes = lane_contracts.generate(root=PLUGIN_ROOT, check=check)
         actions = action_catalog.generate(registry, check=check)
         hooks = hook_packages.generate(root=PLUGIN_ROOT, check=check)
         licenses = license_records.generate(check=check)
+        execution_matrix = toolchain_execution_matrix.generate(check=check)
         architecture = build_universal_plugin_architecture(PLUGIN_ROOT, registry=registry)
         connection = build_engine_connection_contract(PLUGIN_ROOT, registry=registry)
     outputs = {
@@ -87,6 +89,7 @@ def generate(*, check=False):
         raise RuntimeError('Package projections require regeneration: ' + ', '.join(changed))
     return {'actions': actions, 'sectors': sectors, 'authorities': authorities, 'hooks': hooks,
             'licenses': licenses, 'studio_linkage': studio,
+            'toolchain_execution_matrix': execution_matrix,
             'lane_contracts': {'changed': lanes},
             'authority_count': 8, 'lane_count': len(architecture['surfaces']),
             'changed_projections': changed, 'installed_execution_claimed': False,

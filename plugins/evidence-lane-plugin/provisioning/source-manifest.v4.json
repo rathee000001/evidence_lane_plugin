@@ -7,9 +7,9 @@
     "provisioning/release-binding.v4.json",
     "provisioning/source-manifest.v4.json"
   ],
-  "file_count": 3307,
-  "total_bytes": 54803520,
-  "files_sha256": "c832d7723b611959edd016d23f37574abcef15a83d220f9ba25b03542103bc95",
+  "file_count": 3309,
+  "total_bytes": 54908318,
+  "files_sha256": "f8fb97249ccc4624bcaa275d908e71a08a7db0293ad64697b924c929878d4d1a",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
@@ -7493,8 +7493,8 @@
     },
     {
       "path": "scripts/generate_package_surface_projections.py",
-      "bytes": 4629,
-      "sha256": "aa700254a0cc10c5febd267ae05808989db99f148afd9de1bbd88daf98ec2d50"
+      "bytes": 4838,
+      "sha256": "6e5af3270c5a28050ded4b5ad4865f70e7c89755ac2cb5fd35dc4c9f5fe31196"
     },
     {
       "path": "scripts/generate_public_schema_catalog.py",
@@ -7510,6 +7510,11 @@
       "path": "scripts/generate_studio_linkage.py",
       "bytes": 7792,
       "sha256": "4edbe03a26d3019166fc02da208956b70cc1aafb75e47aeaac2e8fbb90a0ec09"
+    },
+    {
+      "path": "scripts/generate_toolchain_execution_matrix.py",
+      "bytes": 10839,
+      "sha256": "a543359b667474e0fd4be5a129ae8e95e48735de808b692158904812a9361266"
     },
     {
       "path": "scripts/generate_toolchain_license_records.py",
@@ -15797,6 +15802,11 @@
       "sha256": "4c8cb601d9e6fb07980a0645502e8d854cee642161e6fdcf2852eebd1798c444"
     },
     {
+      "path": "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md",
+      "bytes": 93750,
+      "sha256": "b9ad44e9b2dd3f83599f5bb6f4a2d72a59ab0b5582a279b423fe413045673d0d"
+    },
+    {
       "path": "toolchains/docling-models.v4.json",
       "bytes": 3186,
       "sha256": "0b76bfbed781595bf1a3517fc71e7bd334584a8382b28f13169a24567f94e9c5"
@@ -16547,5 +16557,5 @@
       "sha256": "12cc1a6d9b14f0040d53eaf4df1c0182238aaf122be9bf16cda43a4d4c024752"
     }
   ],
-  "receipt_sha256": "ce40900cee68ef535dd95240c5f1cbfa200cf077cefbf4c83d92c5d8d20cf70e"
+  "receipt_sha256": "e9ab80b8e951ac1f1f471bd97792d5fae303fae29c2ce0b062cae2da5478e5d4"
 }

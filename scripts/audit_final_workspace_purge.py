@@ -370,7 +370,20 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
         not (ROOT / "apps/evidence-lane-studio/src/design-system").is_dir(),
         "STUDIO_DESIGN_SYSTEM_ROOT_MISSING",
     )
-    reject(bool(list((ROOT / "docs").glob("*.md"))), "STALE_PUBLIC_DOC_PRESENT")
+    public_docs = sorted(
+        path.name for path in (ROOT / "docs").glob("*.md")
+    )
+    allowed_public_docs = ["TOOLCHAIN_EXECUTION_MATRIX.md"]
+    reject(
+        public_docs != allowed_public_docs,
+        "STALE_PUBLIC_DOC_PRESENT",
+        paths=public_docs,
+    )
+    reject(
+        sha256(ROOT / "docs/TOOLCHAIN_EXECUTION_MATRIX.md")
+        != sha256(PLUGIN / "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md"),
+        "TOOLCHAIN_EXECUTION_MATRIX_PROJECTION_MISMATCH",
+    )
     reject((ROOT / "github-pages").exists(), "GITHUB_PAGES_ROOT_PRESENT")
     reject(
         (ROOT / ".github/workflows/evidence-lane-github-pages.yml").exists(),
