@@ -98,7 +98,7 @@ def test_register_reuse_retains_history_and_never_changes_members(federation):
     assert advanced.result['result']['changed_lane_ids'] == ['chat_lineage', 'receipts']
     with projects[0].lane('universe').connection(read_only=True) as connection:
         assert connection.execute('SELECT COUNT(*) FROM federation_member_history').fetchone()[0] == 3
-        assert connection.execute('SELECT COUNT(*) FROM federation_mini_brains').fetchone()[0] == 18
+        assert connection.execute('SELECT COUNT(*) FROM federation_mini_brains').fetchone()[0] == 20
     assert b'Private content stays here' not in projects[0].lane('universe').database.read_bytes()
     verified = call('project_evidence_network_verify')
     assert verified.status == 'ok', verified.error
@@ -192,7 +192,7 @@ def test_universe_inspection_graph_and_budgets_are_read_only(federation):
     before = hashes(projects[1])
     snapshot = call('project_evidence_map_inspect', project=projects[1])
     assert snapshot.status == 'ok', snapshot.error
-    assert len(snapshot.result['lanes']) == 8
+    assert len(snapshot.result['lanes']) == 9
     graph = call('project_evidence_map_query', project=projects[1])
     assert graph.status == 'ok', graph.error
     assert {'project', 'root_pv', 'lane', 'plan_task'} <= {node['kind'] for node in graph.result['graph']['nodes']}
@@ -278,7 +278,7 @@ def test_packaged_mcp_routes_real_federation_and_universe_actions(federation, tm
     from mcp.client.stdio import stdio_client
     engine, projects, _, _ = federation
     plugin = Path(__file__).resolve().parents[1] / 'plugins/evidence-lane-plugin'
-    arguments = [str(plugin / 'scripts/run_mcp.py'), '--runtime-root', str(engine.root),
+    arguments = ['-m', 'evidence_lane_plugin.mcp_adapter', '--runtime-root', str(engine.root),
                  '--host-profile', 'codex_desktop', '--permission', 'read', '--permission', 'write']
     for project in projects:
         arguments += ['--project-id', project.project_id]
@@ -418,15 +418,9 @@ def test_integrity_verification_rejects_mini_brain_index_swapped_between_members
 
 
 def test_universe_inspection_checks_schema_file_identity_against_migration(federation):
-    engine, projects, _, call = federation
+    _engine, projects, _, call = federation
     project = projects[1]
     payload = b'{"different":"schema history"}'
-    value = hashlib.sha256(payload).hexdigest()
     lane = project.lane('plan')
-    with engine.project_work.mutation(project) as lease, lease.transaction('plan') as connection:
-        row = connection.execute('SELECT owner,version FROM schema_history_files ORDER BY owner,version LIMIT 1').fetchone()
-        name = f"{row['owner']}.{row['version']}.{value}.json"
-        (lane.schema_history / name).write_bytes(payload)
-        connection.execute('UPDATE schema_history_files SET digest=?,filename=? WHERE owner=? AND version=?',
-            (value, name, row['owner'], row['version']))
+    lane.schema_history.write_bytes(payload)
     assert call('project_evidence_map_inspect', project=project).error.code == 'UNIVERSE_SCHEMA_INTEGRITY'

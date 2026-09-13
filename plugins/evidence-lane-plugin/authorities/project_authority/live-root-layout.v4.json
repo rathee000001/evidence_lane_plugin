@@ -3,175 +3,183 @@
   "source_package_folder": "authorities/project_authority",
   "root_database": "root-pv.sqlite3",
   "root_business_records": false,
-  "authority_count": 8,
+  "authority_count": 9,
   "lanes": [
     {
       "lane_id": "plan",
       "kind": "authority",
-      "folder": "authorities/plan",
-      "database": "authorities/plan/plan_authority_v001.sqlite",
-      "files": "authorities/plan/files",
-      "schema_history": "authorities/plan/schema-history"
+      "folder": "plan",
+      "database": "plan/plan_authority_v001.sqlite",
+      "files": "plan/objects",
+      "schema_history": "plan/schema-history.v4.json"
     },
     {
       "lane_id": "chat_lineage",
       "kind": "authority",
-      "folder": "authorities/chat_lineage",
-      "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
-      "files": "authorities/chat_lineage/files",
-      "schema_history": "authorities/chat_lineage/schema-history"
+      "folder": "chat_lineage",
+      "database": "chat_lineage/chat_lineage_authority_v001.sqlite",
+      "files": "chat_lineage/objects",
+      "schema_history": "chat_lineage/schema-history.v4.json"
     },
     {
       "lane_id": "canon",
       "kind": "authority",
-      "folder": "authorities/canon",
-      "database": "authorities/canon/canon_authority_v001.sqlite",
-      "files": "authorities/canon/files",
-      "schema_history": "authorities/canon/schema-history"
+      "folder": "canon",
+      "database": "canon/canon_authority_v001.sqlite",
+      "files": "canon/objects",
+      "schema_history": "canon/schema-history.v4.json"
     },
     {
       "lane_id": "memory",
       "kind": "authority",
-      "folder": "authorities/memory",
-      "database": "authorities/memory/memory_authority_v001.sqlite",
-      "files": "authorities/memory/files",
-      "schema_history": "authorities/memory/schema-history"
+      "folder": "memory",
+      "database": "memory/memory_authority_v001.sqlite",
+      "files": "memory/objects",
+      "schema_history": "memory/schema-history.v4.json"
     },
     {
       "lane_id": "learning",
       "kind": "authority",
-      "folder": "authorities/learning",
-      "database": "authorities/learning/learning_authority_v001.sqlite",
-      "files": "authorities/learning/files",
-      "schema_history": "authorities/learning/schema-history"
+      "folder": "learning",
+      "database": "learning/learning_authority_v001.sqlite",
+      "files": "learning/objects",
+      "schema_history": "learning/schema-history.v4.json"
     },
     {
       "lane_id": "sources",
       "kind": "authority",
-      "folder": "authorities/sources",
-      "database": "authorities/sources/sources_authority_v001.sqlite",
-      "files": "authorities/sources/files",
-      "schema_history": "authorities/sources/schema-history"
+      "folder": "sources",
+      "database": "sources/sources_authority_v001.sqlite",
+      "files": "sources/objects",
+      "schema_history": "sources/schema-history.v4.json"
+    },
+    {
+      "lane_id": "sessions",
+      "kind": "authority",
+      "folder": "sessions",
+      "database": "sessions/sessions_authority_v001.sqlite",
+      "files": "sessions/objects",
+      "schema_history": "sessions/schema-history.v4.json"
     },
     {
       "lane_id": "receipts",
       "kind": "authority",
-      "folder": "authorities/receipts",
-      "database": "authorities/receipts/receipts_authority_v001.sqlite",
-      "files": "authorities/receipts/files",
-      "schema_history": "authorities/receipts/schema-history"
+      "folder": "receipts",
+      "database": "receipts/receipts_authority_v001.sqlite",
+      "files": "receipts/objects",
+      "schema_history": "receipts/schema-history.v4.json"
     },
     {
       "lane_id": "universe",
       "kind": "authority",
-      "folder": "authorities/universe",
-      "database": "authorities/universe/universe_authority_v001.sqlite",
-      "files": "authorities/universe/files",
-      "schema_history": "authorities/universe/schema-history"
+      "folder": "universe",
+      "database": "universe/universe_authority_v001.sqlite",
+      "files": "universe/objects",
+      "schema_history": "universe/schema-history.v4.json"
     },
     {
       "lane_id": "github_code",
       "kind": "sector",
-      "folder": "sectors/github_code",
-      "database": "sectors/github_code/github_code_sector_v001.sqlite",
-      "files": "sectors/github_code/files",
-      "schema_history": "sectors/github_code/schema-history"
+      "folder": "github_code",
+      "database": "github_code/github_code_sector_v001.sqlite",
+      "files": "github_code/objects",
+      "schema_history": "github_code/schema-history.v4.json"
     },
     {
       "lane_id": "local_code",
       "kind": "sector",
-      "folder": "sectors/local_code",
-      "database": "sectors/local_code/local_code_sector_v001.sqlite",
-      "files": "sectors/local_code/files",
-      "schema_history": "sectors/local_code/schema-history"
+      "folder": "local_code",
+      "database": "local_code/local_code_sector_v001.sqlite",
+      "files": "local_code/objects",
+      "schema_history": "local_code/schema-history.v4.json"
     },
     {
       "lane_id": "docs",
       "kind": "sector",
-      "folder": "sectors/docs",
-      "database": "sectors/docs/docs_sector_v001.sqlite",
-      "files": "sectors/docs/files",
-      "schema_history": "sectors/docs/schema-history"
+      "folder": "docs",
+      "database": "docs/docs_sector_v001.sqlite",
+      "files": "docs/objects",
+      "schema_history": "docs/schema-history.v4.json"
     },
     {
       "lane_id": "data_excel",
       "kind": "sector",
-      "folder": "sectors/data_excel",
-      "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
-      "files": "sectors/data_excel/files",
-      "schema_history": "sectors/data_excel/schema-history"
+      "folder": "data_excel",
+      "database": "data_excel/data_excel_sector_v001.sqlite",
+      "files": "data_excel/objects",
+      "schema_history": "data_excel/schema-history.v4.json"
     },
     {
       "lane_id": "ppt",
       "kind": "sector",
-      "folder": "sectors/ppt",
-      "database": "sectors/ppt/ppt_sector_v001.sqlite",
-      "files": "sectors/ppt/files",
-      "schema_history": "sectors/ppt/schema-history"
+      "folder": "ppt",
+      "database": "ppt/ppt_sector_v001.sqlite",
+      "files": "ppt/objects",
+      "schema_history": "ppt/schema-history.v4.json"
     },
     {
       "lane_id": "pdf_ocr",
       "kind": "sector",
-      "folder": "sectors/pdf_ocr",
-      "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
-      "files": "sectors/pdf_ocr/files",
-      "schema_history": "sectors/pdf_ocr/schema-history"
+      "folder": "pdf_ocr",
+      "database": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "files": "pdf_ocr/objects",
+      "schema_history": "pdf_ocr/schema-history.v4.json"
     },
     {
       "lane_id": "images_ocr",
       "kind": "sector",
-      "folder": "sectors/images_ocr",
-      "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
-      "files": "sectors/images_ocr/files",
-      "schema_history": "sectors/images_ocr/schema-history"
+      "folder": "images_ocr",
+      "database": "images_ocr/images_ocr_sector_v001.sqlite",
+      "files": "images_ocr/objects",
+      "schema_history": "images_ocr/schema-history.v4.json"
     },
     {
       "lane_id": "artifacts",
       "kind": "sector",
-      "folder": "sectors/artifacts",
-      "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
-      "files": "sectors/artifacts/files",
-      "schema_history": "sectors/artifacts/schema-history"
+      "folder": "artifacts",
+      "database": "artifacts/artifacts_sector_v001.sqlite",
+      "files": "artifacts/objects",
+      "schema_history": "artifacts/schema-history.v4.json"
     },
     {
       "lane_id": "custom",
       "kind": "sector",
-      "folder": "sectors/custom",
-      "database": "sectors/custom/custom_sector_v001.sqlite",
-      "files": "sectors/custom/files",
-      "schema_history": "sectors/custom/schema-history"
+      "folder": "custom",
+      "database": "custom/custom_sector_v001.sqlite",
+      "files": "custom/objects",
+      "schema_history": "custom/schema-history.v4.json"
     },
     {
       "lane_id": "research",
       "kind": "sector",
-      "folder": "sectors/research",
-      "database": "sectors/research/research_sector_v001.sqlite",
-      "files": "sectors/research/files",
-      "schema_history": "sectors/research/schema-history"
+      "folder": "research",
+      "database": "research/research_sector_v001.sqlite",
+      "files": "research/objects",
+      "schema_history": "research/schema-history.v4.json"
     },
     {
       "lane_id": "data",
       "kind": "sector",
-      "folder": "sectors/data",
-      "database": "sectors/data/data_sector_v001.sqlite",
-      "files": "sectors/data/files",
-      "schema_history": "sectors/data/schema-history"
+      "folder": "data",
+      "database": "data/data_sector_v001.sqlite",
+      "files": "data/objects",
+      "schema_history": "data/schema-history.v4.json"
     },
     {
       "lane_id": "tableau",
       "kind": "sector",
-      "folder": "sectors/tableau",
-      "database": "sectors/tableau/tableau_sector_v001.sqlite",
-      "files": "sectors/tableau/files",
-      "schema_history": "sectors/tableau/schema-history"
+      "folder": "tableau",
+      "database": "tableau/tableau_sector_v001.sqlite",
+      "files": "tableau/objects",
+      "schema_history": "tableau/schema-history.v4.json"
     },
     {
       "lane_id": "power_bi",
       "kind": "sector",
-      "folder": "sectors/power_bi",
-      "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
-      "files": "sectors/power_bi/files",
-      "schema_history": "sectors/power_bi/schema-history"
+      "folder": "power_bi",
+      "database": "power_bi/power_bi_sector_v001.sqlite",
+      "files": "power_bi/objects",
+      "schema_history": "power_bi/schema-history.v4.json"
     }
   ],
   "separate_source_workspace": true,

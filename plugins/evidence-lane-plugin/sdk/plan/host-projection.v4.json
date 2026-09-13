@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "contract": "host-projection.v4",
   "database_first": true,
@@ -16,7 +16,7 @@
     {
       "bytes": 6449,
       "path": "schemas/actions/plan_host_sync.v4.schema.json",
-      "sha256": "1b00ddfccca27919dc8b932eada1953e24e94dece88b780621081da98f19d8bb"
+      "sha256": "297ddfdf6b3d4317c44d5ea41b94a390d031b4942ac6773aa8106790f787d9cd"
     }
   ],
   "status": "PASS"

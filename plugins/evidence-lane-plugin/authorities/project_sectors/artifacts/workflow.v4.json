@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sector-workflow.v4",
   "lane_id": "artifacts",
   "source_package_folder": "authorities/project_sectors/artifacts",
-  "external_project_folder": "sectors/artifacts",
+  "external_project_folder": "artifacts",
   "actions": [
     {
       "name": "artifacts_current",
@@ -848,11 +848,11 @@
     {
       "view_id": "artifacts.structure",
       "lane_id": "artifacts",
-      "folder": "sectors/artifacts",
+      "folder": "artifacts",
       "version": 1,
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "artifacts.mmd",
         "dot": "artifacts.dot",

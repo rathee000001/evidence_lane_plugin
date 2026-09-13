@@ -83,7 +83,14 @@ def test_prototype_migrates_into_owned_databases_without_source_changes(prototyp
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
         assert connection.execute('SELECT digest FROM schema_migrations').fetchone()[0] == MIGRATIONS[1].digest
     assert project.lane('memory').read_object(digest) == content
-    assert len(list(project.lane('memory').schema_history.glob('memory.1.*.json'))) == 1
+    schema_history = json.loads(
+        project.lane('memory').schema_history.read_text(encoding='utf-8')
+    )
+    memory_entries = [
+        entry for entry in schema_history['entries'] if entry['owner'] == 'memory'
+    ]
+    assert len(memory_entries) == 1
+    assert memory_entries[0]['migration_digest'] == MIGRATIONS[1].digest
     assert all(row['status'] == 'compatible' for row in read_compatibility(project, MIGRATIONS))
     with pytest.raises(LaneError):
         project.lane('plan').read_object(digest)

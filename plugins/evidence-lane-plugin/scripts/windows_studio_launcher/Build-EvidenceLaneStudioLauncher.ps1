@@ -35,9 +35,9 @@ $Receipt = [ordered]@{
     output_bytes = (Get-Item -LiteralPath $ExactOutput).Length
     compiler = $Compiler
     target = 'winexe-x64'
-    version = '4.0.3.0'
+    version = '4.0.4.0'
 }
-$ReceiptJson = $Receipt | ConvertTo-Json -Depth 4
+$ReceiptJson = ($Receipt | ConvertTo-Json -Depth 4).Replace("`r`n", "`n")
 $DefaultOutput = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'EvidenceLaneStudioLauncher.exe'))
 if ($ExactOutput.Equals($DefaultOutput, [StringComparison]::OrdinalIgnoreCase)) {
     $ReceiptPath = Join-Path $PSScriptRoot 'EvidenceLaneStudioLauncher.build.json'

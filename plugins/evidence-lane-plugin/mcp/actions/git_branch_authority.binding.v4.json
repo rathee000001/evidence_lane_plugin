@@ -1,13 +1,13 @@
 {
   "action": "git_branch_authority",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/git_branch_authority.action.v4.json",
-  "sdk_binding_sha256": "7b14d19471d6ad3ef173282ed53a2ec35ad8b0e0b8f2c15cf38545e9df45cb76",
+  "sdk_binding_sha256": "06b764f23a87475fad3a6769867a49d67c39af3d22cf60dcebef0fee97beb654",
   "tool": {
     "annotations": {
       "destructiveHint": false,

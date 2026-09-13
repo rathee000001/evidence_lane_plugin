@@ -74,11 +74,11 @@
     {
       "view_id": "plan.dependencies",
       "lane_id": "plan",
-      "folder": "authorities/plan",
+      "folder": "plan",
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
+      "implementation_digest": "8d4c72ccc0e27c99a4036e16da642d2447cfd860da12aff564c3cb0c7d49cadb",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",

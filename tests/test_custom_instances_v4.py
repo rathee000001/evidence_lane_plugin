@@ -61,7 +61,7 @@ def test_two_custom_instances_share_parser_but_never_storage_or_selectors(system
     assert {item['item_id'] for item in facts_a['items']}.isdisjoint(item['item_id'] for item in facts_b['items'])
     assert lane_a.database != lane_b.database and lane_a.files != lane_b.files
     assert lane_a.object_path(manifest_a['raw_object']).read_bytes() == lane_b.object_path(manifest_b['raw_object']).read_bytes()
-    assert not (store.root / 'sectors/custom').exists()
+    assert not (store.root / 'custom').exists()
     before = database_bytes(store)
     for lane_id, snapshot in ((lane_a.lane_id, a), (lane_b.lane_id, b)):
         searched = call(system, 'lane_search', {'lane_id': lane_id, 'query': 'exact source'})
@@ -175,7 +175,7 @@ def test_named_custom_pointer_and_retirement_remain_in_their_own_lane(system, mo
     assert all(node['locator']['lane_id'] == lane_id for node in chosen['graph']['nodes'])
     assert chosen['source_head']['schemas'][0]['status'] == 'compatible'
     published = publish(system, lane_id, chosen, formats=(), pointer=True)
-    assert all('/sectors/' + lane_id + '/' in row['path'].replace('\\', '/') for row in published['files'])
+    assert all('/' + lane_id + '/' in row['path'].replace('\\', '/') for row in published['files'])
     pointer = call(system, 'lane_view_read', {'view_id': lane_id + '.structure', 'include_content': True})
     assert pointer.status == 'ok' and pointer.result['state'] == 'fresh', pointer.error
     values = json.loads(pointer.result['contents']['pointer'])['items_and_schema'].values()
@@ -279,7 +279,7 @@ def test_custom_instance_and_pointer_survive_coherent_backup(system, tmp_path):
     copied = ProjectStore(Path(backup.backup_root) / 'payload', read_only=True)
     assert copied.lane(lane_id).database.read_bytes() == before
     assert read_snapshot(copied, lane_id, indexed['snapshot_id'])[0]['adapter_contract'] == contract['contract_sha256']
-    assert any(row['path'].startswith('sectors/' + lane_id + '/') and row['path'].endswith('lane_pointer.json') for row in manifest['files'])
+    assert any(row['path'].startswith(lane_id + '/') and row['path'].endswith('lane_pointer.json') for row in manifest['files'])
     assert view['snapshot_digest']
 
 

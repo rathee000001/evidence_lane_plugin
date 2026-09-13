@@ -821,11 +821,11 @@
     {
       "view_id": "ppt.structure",
       "lane_id": "ppt",
-      "folder": "sectors/ppt",
+      "folder": "ppt",
       "version": 1,
       "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
       "consumer": "artifact_export",
-      "implementation_digest": "eba9bfb662bf635f1ee41e3cec2cbdcbd10c2ab0ec8c45a99113528febb09987",
+      "implementation_digest": "8fb1689738ae00315ce928c585e596f0a485e122e898ac3e0c9825061b3c36fb",
       "files": {
         "mmd": "ppt.mmd",
         "dot": "ppt.dot",
@@ -897,6 +897,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/ppt",
+  "runtime_state_folder": "ppt",
   "source_package_folder": "authorities/project_sectors/ppt"
 }

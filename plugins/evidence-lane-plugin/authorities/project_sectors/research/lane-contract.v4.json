@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "research",
   "source_package_folder": "authorities/project_sectors/research",
-  "project_state_folder": "sectors/research",
-  "database": "sectors/research/research_sector_v001.sqlite",
-  "files": "sectors/research/files",
-  "schema_history": "sectors/research/schema-history",
+  "project_state_folder": "research",
+  "database": "research/research_sector_v001.sqlite",
+  "files": "research/objects",
+  "schema_history": "research/schema-history.v4.json",
   "migrations": [
     {
       "owner": "research",
@@ -31,8 +31,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "research",
-    "folder": "sectors/research",
-    "files_root": "sectors/research/files",
+    "folder": "research",
+    "objects_root": "research/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -40,7 +40,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -67,7 +67,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "339C0D04DE36F69517499B893FCAED3C15D305D0082607F0AF03FAB0102A1EA9"
+    "contract_sha256": "4F98ECB42C93A8894F3C76C968BD3764F0FFAA5DBADF82E17AEA2E857F63A3B8"
   },
   "actions": [
     "research_current",

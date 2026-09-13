@@ -83,7 +83,7 @@ def test_native_dot_worker_binds_current_client_and_exact_bytes(views, monkeypat
     assert manifest['tool_evidence']['mmd']['semantic_topology_sha256'] == manifest['tool_evidence']['dot']['semantic_topology_sha256']
     assert manifest['tool_evidence']['dot']['graph_analysis']['weak_component_count'] == 1
     assert manifest['tool_evidence']['dot']['graph_analysis']['is_directed_acyclic']
-    assert all(Path(row['path']).is_relative_to(store.root / 'authorities/plan') for row in published['files'])
+    assert all(Path(row['path']).is_relative_to(store.root / 'plan') for row in published['files'])
     assert not any((store.root / lane / 'plan').exists() for lane in ('sectors',))
 
 
@@ -206,7 +206,12 @@ def test_native_failure_has_no_source_fallback_or_publication(views, monkeypatch
         return original(operation, {**arguments, 'native_host_profile': 'INVALID'})
 
     monkeypatch.setattr(engine.workers, 'submit', invalid_profile)
+    before_dot = {
+        path.relative_to(store.root): path.read_bytes() for path in store.root.rglob('*.dot')
+    }
     result = call('lane_view_refresh', request.model_dump(mode='json'))
     assert result.error.code == 'VIEW_EXPORT_FAILED'
-    assert not list(store.root.rglob('*.dot'))
+    assert {
+        path.relative_to(store.root): path.read_bytes() for path in store.root.rglob('*.dot')
+    } == before_dot
     assert call('lane_view_read', {'view_id': request.view_id}).result['state'] == 'not_materialized'

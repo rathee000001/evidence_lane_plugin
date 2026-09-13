@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "data_excel",
   "source_package_folder": "authorities/project_sectors/data_excel",
-  "project_state_folder": "sectors/data_excel",
-  "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
-  "files": "sectors/data_excel/files",
-  "schema_history": "sectors/data_excel/schema-history",
+  "project_state_folder": "data_excel",
+  "database": "data_excel/data_excel_sector_v001.sqlite",
+  "files": "data_excel/objects",
+  "schema_history": "data_excel/schema-history.v4.json",
   "migrations": [
     {
       "owner": "dataexcel",
@@ -21,8 +21,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "data_excel",
-    "folder": "sectors/data_excel",
-    "files_root": "sectors/data_excel/files",
+    "folder": "data_excel",
+    "objects_root": "data_excel/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -30,7 +30,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -63,7 +63,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C"
+    "contract_sha256": "3282CE1037D03D7B1E7F038E5A9493FD6A701916A447C34D510965E78FF79B27"
   },
   "actions": [
     "source_snapshot_retire",

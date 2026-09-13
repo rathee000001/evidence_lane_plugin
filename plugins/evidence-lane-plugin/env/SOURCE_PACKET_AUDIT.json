@@ -8,7 +8,7 @@
   "counts": {
     "action_count": 297,
     "tool_count": 103,
-    "lane_count": 21,
+    "lane_count": 22,
     "skill_count": 24,
     "hook_event_count": 12,
     "host_variant_count": 7,
@@ -23,7 +23,7 @@
       "counts": {
         "action_count": 297,
         "tool_count": 103,
-        "lane_count": 21,
+        "lane_count": 22,
         "skill_count": 24,
         "hook_event_count": 12,
         "host_variant_count": 7,
@@ -33,22 +33,22 @@
       },
       "table_count": 34,
       "domain_catalog_sha256": "bcf5cdc358dc2475969f95e38d38b7c4dfaada2ebfe4fce167e3a2ea81471636",
-      "action_set_digest": "163e9de6ef442dcdec6649e3cce2ca3ae4532ec87454f3c864b1a30491e40594",
+      "action_set_digest": "90794aa49175fb35d6308de2170be2b0eb5349e2e49e98e73b76a924b65dd561",
       "graph": {
         "schema": "evidence-lane.semantic-graph-pipeline.v1",
         "status": "PASS",
         "graph": "env_operating_framework",
         "graph_role": "AUTHORITY_TRAVERSAL",
-        "node_count": 1616,
-        "edge_count": 1614,
+        "node_count": 1618,
+        "edge_count": 1616,
         "group_count": 20,
-        "semantic_topology_sha256": "874F12F9FD68C1D280E66A59714B291D7F614C5F9A853818017BA71A3C836FCE",
-        "mmd_sha256": "5CF6812D9D31F507BE44C79027F704F6F99AE685CF80838D201513B087492CF8",
-        "dot_sha256": "1D6BC01A4ACCE941025AC2BDBD74DDE53742AF81C90F6FD4688EFEFE8A91A09C",
+        "semantic_topology_sha256": "F7BD57F4C9352ABBDD3D587FC2C7C2AD25C04931B2CF2BDAD854DEADCCE52D3B",
+        "mmd_sha256": "988AEA47C1CC7B21A1072C59967739F785463EB49586A81B9CCED058CA54F1B0",
+        "dot_sha256": "737F0D2351187D95F4DC197AF24C8AA9AD53F2444AD3851CE26F0A831AC56584",
         "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
         "langgraph_version": "1.2.11",
         "langchain_core_version": "1.6.1",
-        "langgraph_export_sha256": "4F982BBEE7740ACAF14FADA25E9D8D557D935949355751397CFCA0939F01E8FE",
+        "langgraph_export_sha256": "2B4579C9096F6F20C97B663C1EE1964735B405BD7427DFA638A09F2DA004E9E3",
         "dot_exporter": "PYTHON_GRAPHVIZ",
         "python_graphviz_version": "0.21",
         "native_graphviz_dot_available": null,
@@ -70,15 +70,15 @@
         "mmd_and_dot_are_sqlite_traversal_maps": true,
         "sqlite_authority_replaced": false,
         "mmd_dot_same_semantic_topology": true,
-        "receipt_sha256": "5AA16D315855934F3E446A625FD8F37A271B91D47BDA71313710A7E9D074FE6D"
+        "receipt_sha256": "0642969123F561DAC1EA975FB65B909B8D1882B119754581B5149870EFE7C3E5"
       },
       "index": {
         "schema": "evidence-lane.llama-sqlite-authority-index-refresh.v1",
         "status": "PASS",
         "sequence": 1,
         "authority_id": "env",
-        "source_count": 1575,
-        "node_count": 1630,
+        "source_count": 1577,
+        "node_count": 1632,
         "indexed_table_count": 19,
         "indexed_tables": [
           "codex_host_variant_v4",
@@ -108,7 +108,7 @@
         "mmd_dot_remain_traversal_maps": true,
         "prior_receipt_sha256": null,
         "recorded_at": "2000-01-01T00:00:00Z",
-        "receipt_sha256": "72FD4DDD3CC18BFBE8948464A1339A570FB372FC388220EAFC6A2352BF35F7DD"
+        "receipt_sha256": "70781C1EEC8580442A0ADB8193B5ABC3F85EA74ABA49A6A5D9C45F072EBB9B6A"
       },
       "scope": "clean_policy_package_generation",
       "runtime_execution_claimed": false,
@@ -121,7 +121,7 @@
       "counts": {
         "action_count": 297,
         "tool_count": 103,
-        "lane_count": 21,
+        "lane_count": 22,
         "skill_count": 24,
         "hook_event_count": 12,
         "host_variant_count": 7,
@@ -131,7 +131,7 @@
       },
       "table_count": 30,
       "domain_catalog_sha256": "252c3c8e3b94bec5dc9b4e790f53cb480c0ba9108f0d3e55609fb5bfefb79eb1",
-      "action_set_digest": "163e9de6ef442dcdec6649e3cce2ca3ae4532ec87454f3c864b1a30491e40594",
+      "action_set_digest": "90794aa49175fb35d6308de2170be2b0eb5349e2e49e98e73b76a924b65dd561",
       "graph": {
         "schema": "evidence-lane.semantic-graph-pipeline.v1",
         "status": "PASS",

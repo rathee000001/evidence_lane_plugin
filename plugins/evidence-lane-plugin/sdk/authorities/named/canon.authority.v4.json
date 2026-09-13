@@ -1,15 +1,15 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "authority_id": "canon",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 138506,
+    "bytes": 138454,
     "path": "authorities/canon_input/manifest.v4.json",
-    "sha256": "3839564d048750115bb703ebc5183a19738fc48df89dc31b6331bc62d980e4cf"
+    "sha256": "79cea030f518efe1c8298189043b99e2280af34e535e8f66c949f8fa1ed79ca5"
   },
   "path": "authorities/canon_input",
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "root_pv_role": "coordinate_published_lane_head",
   "runtime_execution_inferred": false,
   "runtime_module": "evidence_lane_plugin.canon_task_graph",

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane_id",
+    "database_role",
+    "business_rows",
+    "project_identity_rows",
+    "sqlite_version",
+    "sqlite_sha256",
+    "tables",
+    "relations",
+    "runtime_initialization_performed"
+  ],
+  "properties": {
+    "lane_id": {
+      "const": "sessions"
+    },
+    "database_role": {
+      "const": "unbound_schema_template"
+    },
+    "business_rows": {
+      "const": 0
+    },
+    "project_identity_rows": {
+      "const": 0
+    },
+    "sqlite_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "title": "sessions empty unbound schema template"
+}

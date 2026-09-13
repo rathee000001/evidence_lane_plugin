@@ -71,7 +71,7 @@ def bound_observer(tmp_path, request):
 
 def test_child_observations_remain_distinct_inert_and_bound_to_parent(bound_observer):
     engine, project, client = bound_observer
-    before = hashes(project.root / 'authorities/plan')
+    before = hashes(project.root / 'plan')
     envelopes = [envelope(native_event(name, agent_id=agent))
                  for agent in ('child-one-identity-8271', 'child-two-identity-8271')
                  for name in ('SubagentStart', 'SubagentStop')]
@@ -104,7 +104,7 @@ def test_child_observations_remain_distinct_inert_and_bound_to_parent(bound_obse
                and item['reported_turn_id'] == 'reported-parent-turn' for item in page.events)
     assert all(item['payload']['identity_provenance'] == 'reported_unverified'
                and not item['payload']['execution_authorized'] for item in page.events)
-    assert hashes(project.root / 'authorities/plan') == before
+    assert hashes(project.root / 'plan') == before
     assert PlanStore(project).task('retained-work', expected_revision=1).state == 'active'
     assert CaptureRouteAuthority(project).verify()['decisions_verified'] == 4
     assert TurnControl(engine, project).verify_history()['events_verified'] == 4
@@ -118,7 +118,7 @@ def test_child_observations_remain_distinct_inert_and_bound_to_parent(bound_obse
 
 def test_child_identity_never_selects_or_rebinds_a_parent_project(bound_observer):
     engine, project, client = bound_observer
-    before = hashes(project.root / 'authorities/plan')
+    before = hashes(project.root / 'plan')
     changed = envelope(native_event(session_id='child-agent-identifier-4621'))
     with pytest.raises(LaneError) as error:
         engine.capture.capture(changed)
@@ -133,7 +133,7 @@ def test_child_identity_never_selects_or_rebinds_a_parent_project(bound_observer
     assert engine.capture.session_bound(client.client_id, project.project_id, 'bound-parent-session')
     assert not engine.capture.session_bound(client.client_id, project.project_id, 'child-agent-identifier-4621')
     assert ChatLineage(project).read().total_events == 0
-    assert hashes(project.root / 'authorities/plan') == before
+    assert hashes(project.root / 'plan') == before
 
 
 @pytest.mark.parametrize('name', ['SubagentStart', 'SubagentStop'])

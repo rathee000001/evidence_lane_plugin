@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.StopHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/Stop/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/Stop/pipeline.v4.json",
-      "sha256": "bd3d4a55830009b5cfd401a653bb39c96b3dc07219f82daa7d31014caaf33c5a"
+      "sha256": "5e503a64261a79e95cefaf0d27ad7a1d425432b20b83385af23ac74bc3e38286"
     },
     {
       "path": "hooks/events/Stop/README.md",
-      "sha256": "44ef37860bec49698c5ce6c851f04ece6b696384744ed0d6ca1642151bb4bbd4"
+      "sha256": "a40321f7aa54d72e2032580e3dbf62e57d5ece8c0592940aeb9af40351c1790f"
     }
   ],
   "native_installation_verified": false,

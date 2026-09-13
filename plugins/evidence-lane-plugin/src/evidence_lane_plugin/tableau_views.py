@@ -40,7 +40,7 @@ def tableau_pointer(binding, graph, files):
 
 def register_tableau_views(engine):
     from .tableau_profile import current_tableaus
-    engine.registry.register_view(LaneView('tableau.structure', 'tableau', 'sectors/tableau',
+    engine.registry.register_view(LaneView('tableau.structure', 'tableau', 'tableau',
         'Exact workbook/source/sheet/model metadata and embedded native extract table locators.',
         tableau_graph, ('tableau',), TABLEAU_MIGRATIONS, mmd_filename='tableau.mmd', dot_filename='tableau.dot',
         pointer_filename='tableau.pointer.json', pointer=tableau_pointer, supports_query=True,

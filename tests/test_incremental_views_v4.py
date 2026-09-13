@@ -99,7 +99,7 @@ def test_edit_preserves_exact_consumer_and_records_selected_tool_admission(code_
     assert selected['view_refresh']['selection']['snapshot_digest'] == initial['snapshot_digest']
     if mode == 'pointer':
         engine.workers.operations.pop('render_lane_view')
-    source_before = files(store.root / 'sectors/github_code')
+    source_before = files(store.root / 'github_code')
     result = execute(system, 'code_apply', edit_arguments(system, first), index=1)
     refreshed = result['view_refresh']
     assert refreshed['generation'] == initial['generation'] + 1 and not refreshed['reused_snapshot']
@@ -116,7 +116,7 @@ def test_edit_preserves_exact_consumer_and_records_selected_tool_admission(code_
         if native is not None:
             assert native['status'] == 'PASS' and native['host_profile'] == 'CODEX_CLI'
     assert all(Path(row['path']).is_relative_to(store.lane('local_code').folder) for row in refreshed['files'])
-    assert files(store.root / 'sectors/github_code') == source_before
+    assert files(store.root / 'github_code') == source_before
 
 
 def test_same_format_selection_change_invalidates_admission_before_invocation(code_system):

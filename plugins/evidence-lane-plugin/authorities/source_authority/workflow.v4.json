@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-workflow.v4",
   "owner_id": "sources",
   "source_package_folder": "authorities/source_authority",
-  "storage": "authorities/sources/sources_authority_v001.sqlite with files and schema history in authorities/sources",
+  "storage": "sources/sources_authority_v001.sqlite with files and schema history in sources",
   "actions": [
     {
       "name": "custom_lane_configure",

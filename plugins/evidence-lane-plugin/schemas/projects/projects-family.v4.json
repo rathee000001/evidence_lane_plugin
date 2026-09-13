@@ -8,11 +8,11 @@
     },
     {
       "path": "src/evidence_lane_plugin/project_actions.py",
-      "sha256": "38e89dc6be31e0a5d6a74755ab0180dd5cc56d534b94db36291a5c2388f388cc"
+      "sha256": "abd8e1375596929ad7d4a2c8a94ed668bce572a00edc669641b7ecc43d69e457"
     },
     {
       "path": "src/evidence_lane_plugin/projects.py",
-      "sha256": "f5f400e43cfc7d6d081cf6896905b4a6fd64cdd62e34acda77406172490cf18f"
+      "sha256": "ac0b225b40e3d03011f39e955ac9b0a632f07e46068eda7b634b168912fb2462"
     }
   ],
   "purpose": "Project registration, selection, grants and separate storage layout",

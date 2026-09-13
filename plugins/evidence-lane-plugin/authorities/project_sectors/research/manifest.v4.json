@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "research",
-  "folder": "sectors/research",
+  "folder": "research",
   "source_package_folder": "authorities/project_sectors/research",
   "folder_role": "external_project_state",
-  "database": "sectors/research/research_sector_v001.sqlite",
-  "files": "sectors/research/files",
-  "schema_history": "sectors/research/schema-history",
+  "database": "research/research_sector_v001.sqlite",
+  "files": "research/objects",
+  "schema_history": "research/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.sector_evidence_profile",
   "parser_modules": [
     "evidence_lane_plugin.sector_evidence_parsers",
@@ -2778,8 +2778,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "research",
-    "folder": "sectors/research",
-    "files_root": "sectors/research/files",
+    "folder": "research",
+    "objects_root": "research/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -2787,7 +2787,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -2814,7 +2814,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "339C0D04DE36F69517499B893FCAED3C15D305D0082607F0AF03FAB0102A1EA9"
+    "contract_sha256": "4F98ECB42C93A8894F3C76C968BD3764F0FFAA5DBADF82E17AEA2E857F63A3B8"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2947,11 +2947,11 @@
     {
       "view_id": "research.structure",
       "lane_id": "research",
-      "folder": "sectors/research",
+      "folder": "research",
       "version": 1,
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "research.mmd",
         "dot": "research.dot",
@@ -3126,11 +3126,11 @@
     },
     {
       "path": "authorities/project_sectors/research/workflow.v4.json",
-      "sha256": "5575363ecf3c2c489eed18820198d84701d7de7b051a4d4ec7489c1411075b89"
+      "sha256": "9c5feb0c7826aea8aa83fe78e35531ffce11f7a90aa5f5902eeba548fd1f04b9"
     },
     {
       "path": "authorities/project_sectors/research/tools.json",
-      "sha256": "49f852066b7ea40d2673cfec52b5a5a6c051041dc3cc0aa9dfd462911ab556e5"
+      "sha256": "0766654f339486ea94064eabe3dd4bb4e9c32e7a07e88e097fab8536838f2e0f"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",
@@ -3138,15 +3138,15 @@
     },
     {
       "path": "authorities/project_sectors/research/README.md",
-      "sha256": "eb97f281ebe4b9791d36ef30944c6c5796b8a370bc521cba0b8445520f22f5ec"
+      "sha256": "e10c1c6b1474a2167c955be0ab4ed0ba3649bf254e969a5ae79e74387f8594f7"
     },
     {
       "path": "authorities/project_sectors/research/lane-contract.v4.json",
-      "sha256": "18baccad469d8362b7d8556b0f1bba9a3bfbc7f905548863577e6b7786656c10"
+      "sha256": "b94ed99cb54b6bb3ba9f11e5bdc2c50c08b69ba10b5cafcd64fe8e8040912d46"
     },
     {
       "path": "authorities/project_sectors/research/manifest.schema.json",
-      "sha256": "762d4e13ce674c47d50a1a900745928fd0217773b32bf335fcb0b016b5068751"
+      "sha256": "ac92c25adda483c0ed1267e43f0ea89ebae643efe99352603776cb1b0826475b"
     }
   ]
 }

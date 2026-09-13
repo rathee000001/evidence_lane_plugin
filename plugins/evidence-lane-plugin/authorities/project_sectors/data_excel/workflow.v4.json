@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sector-workflow.v4",
   "lane_id": "data_excel",
   "source_package_folder": "authorities/project_sectors/data_excel",
-  "external_project_folder": "sectors/data_excel",
+  "external_project_folder": "data_excel",
   "actions": [
     {
       "name": "source_snapshot_retire",
@@ -1059,11 +1059,11 @@
     {
       "view_id": "data_excel.structure",
       "lane_id": "data_excel",
-      "folder": "sectors/data_excel",
+      "folder": "data_excel",
       "version": 1,
       "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
       "consumer": "artifact_export",
-      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
+      "implementation_digest": "4b8b91ccfd9b44ac95dc5b140981bfb4b98c5f16f3be98057da8479ff3e51fa9",
       "files": {
         "mmd": "data_excel.mmd",
         "dot": "data_excel.dot",

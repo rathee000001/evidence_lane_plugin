@@ -99,6 +99,9 @@ def wait(sector, admission, expected='verified'):
             continue
         if row['state'] in {'verified', 'blocked'}:
             assert row['state'] == expected, row
+            sector['system'][0].delta.owned_completion(admission.job_id).result(
+                timeout=max(1, deadline - time.monotonic())
+            )
             return row if expected == 'blocked' else json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
         time.sleep(.03)
     pytest.fail('PDF/media export did not reach a terminal state within 90 seconds')
@@ -493,5 +496,4 @@ def test_media_export_keeps_extracted_bytes_and_snapshot_binding(media_system, k
     assert call(media_system, 'media_extraction_read', {'extraction_id': extracted['extraction_id']}).status == 'ok'
     graph = call(media_system, 'lane_view_preview', {'view_id': 'images_ocr.structure'})
     assert graph.status == 'ok' and not any(row['kind'] == 'media_extraction' for row in graph.result['graph']['nodes'])
-
 

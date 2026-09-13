@@ -60,7 +60,7 @@ class TurnControl:
         self.store = project.lane('chat_lineage')
 
     def _session(self, client_id, reported_session_id=None):
-        with self.project.lane('receipts').connection(read_only=True) as connection:
+        with self.project.lane('sessions').connection(read_only=True) as connection:
             row = SessionAuthority.current(connection)
         if not row or row['state'] != 'active':
             return None, 'active_engine_session_missing'

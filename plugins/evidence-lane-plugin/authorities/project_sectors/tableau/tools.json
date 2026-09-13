@@ -583,11 +583,11 @@
     {
       "view_id": "tableau.structure",
       "lane_id": "tableau",
-      "folder": "sectors/tableau",
+      "folder": "tableau",
       "version": 1,
       "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
       "consumer": "artifact_export",
-      "implementation_digest": "a3f200b10b610f4c3c60f5ed48a6a965dcb0cf15c4104a30f6d72dd3108544d4",
+      "implementation_digest": "824f2ba115caebc72b6d6e34b29e16866770ee35264fbf7ee3c1f3eea4ddac8d",
       "files": {
         "mmd": "tableau.mmd",
         "dot": "tableau.dot",
@@ -661,6 +661,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/tableau",
+  "runtime_state_folder": "tableau",
   "source_package_folder": "authorities/project_sectors/tableau"
 }

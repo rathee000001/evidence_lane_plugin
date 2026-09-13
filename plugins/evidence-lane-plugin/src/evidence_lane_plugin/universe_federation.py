@@ -235,7 +235,8 @@ class UniverseFederation:
             body = {'project_id': snapshot.project_id, 'version': request.expected_version + 1,
                 'project_root_identity_sha256': snapshot.project_root_identity_sha256,
                 'root_pv': snapshot.root_pv, 'snapshot_sha256': snapshot.snapshot_sha256,
-                'lane_heads': desired, 'registered_at': now(), 'registered_by': actor,
+                'lane_heads': desired, 'lane_order': [lane['lane_id'] for lane in snapshot.lanes],
+                'registered_at': now(), 'registered_by': actor,
                 'observation_scope': 'captured_coherent_member_snapshot'}
             values = (snapshot.project_id, body['version'], json_text(body), digest(body))
             connection.execute('INSERT INTO federation_member_history VALUES(?,?,?,?)', values)
@@ -415,7 +416,10 @@ class UniverseFederation:
             for row in records['federation_member_history']:
                 body = checked(row)
                 try:
-                    lane_refs = [minis[key] for _, key in sorted(body['lane_heads'].items())]
+                    lane_order = body.get('lane_order') or sorted(body['lane_heads'])
+                    if len(lane_order) != len(set(lane_order)) or set(lane_order) != set(body['lane_heads']):
+                        raise ValueError('invalid recorded lane order')
+                    lane_refs = [minis[body['lane_heads'][lane_id]] for lane_id in lane_order]
                     core = {key: body[key] for key in ('project_id', 'project_root_identity_sha256', 'root_pv')}
                     core['lanes'] = [{**item, 'mini_brain_id': 'mini_' + digest(item)} for item in lane_refs]
                     valid = (body['project_id'] == row['project_id'] and body['version'] == row['version']
@@ -621,7 +625,7 @@ def federation_view(project, scope):
 
 def register_federation_view(engine):
     from .lane_contract import LaneView
-    engine.registry.register_view(LaneView('universe.federation', 'universe', 'authorities/universe',
+    engine.registry.register_view(LaneView('universe.federation', 'universe', 'universe',
         'Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.',
         federation_view, ('federation',), FEDERATION_MIGRATIONS, 'project_evidence_network.mmd', 'project_evidence_network.dot',
         supports_history=True, node_kinds=('federation', 'federation_member', 'mini_brain', 'federation_edge'),

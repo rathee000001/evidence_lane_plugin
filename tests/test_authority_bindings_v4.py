@@ -61,20 +61,22 @@ def test_authority_initializes_complete_owning_schemas_and_packaged_sql(project,
             actual_schema = {tuple(row) for row in connection.execute(
                 "SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'")}
         assert len(histories) == len(expected_history)
+        projection = json.loads(lane.schema_history.read_bytes())
+        entries = {(row['owner'], row['version']): row for row in projection['entries']}
         for row in histories:
-            path = lane.schema_history / row['filename']
-            assert hashlib.sha256(path.read_bytes()).hexdigest() == row['digest']
-            content = json.loads(path.read_bytes())
+            content = entries[row['owner'], row['version']]
+            assert hashlib.sha256(row['document_json'].encode()).hexdigest() == row['digest']
+            assert content == json.loads(row['document_json'])
             assert (content['project_id'], content['lane_id']) == (project.project_id, lane_id)
         assert Path(refreshed['database']) == project.root / get_lane(lane_id).database_relative_path
         assert refreshed['automatic_graph_exports'] is False
         assert refreshed['separate_tool_installation'] is False
         assert {row['lane_id'] for row in project.lane_catalog()} == set(AUTHORITY_LANE_IDS)
         assert all(files(project.lane(name).folder) == before for name, before in unrelated.items())
-        before_history_files = files(lane.schema_history)
+        before_history_file = lane.schema_history.read_bytes()
         again = refresh_authority_support(lane, lane_id, writer=writer)
         assert again['migrations_applied'] == []
-        assert files(lane.schema_history) == before_history_files
+        assert lane.schema_history.read_bytes() == before_history_file
     before_read = files(project.root)
     inspected = runtime.inspect(ProjectStore(project.root, read_only=True))
     assert inspected['mutation_performed'] is False
@@ -138,7 +140,7 @@ def test_initialization_preserves_unrelated_lane_records_and_files(project):
         'CREATE TABLE doc_fixture(id INTEGER PRIMARY KEY, value TEXT)',
         "INSERT INTO doc_fixture VALUES(1,'preserve this row')",
     )),))
-    (docs.files / 'fixture.bin').write_bytes(b'preserve these unrelated bytes')
+    (docs.folder / 'fixture.bin').write_bytes(b'preserve these unrelated bytes')
     before = files(docs.folder)
     with WriterLease(project, 'authority-bindings-fixture') as writer:
         for lane_id in AUTHORITY_LANE_IDS:

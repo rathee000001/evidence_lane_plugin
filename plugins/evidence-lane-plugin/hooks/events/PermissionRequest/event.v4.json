@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/PermissionRequest/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/PermissionRequest/pipeline.v4.json",
-      "sha256": "691723cb467dd19f61676894af1bada8b1b2071a42975142d1c9ae8d994d744c"
+      "sha256": "4d7a9dd3ff42c13c9c83ac9d42ec4dc7ca7351e215a7f971fc14ecd8f58a4e7c"
     },
     {
       "path": "hooks/events/PermissionRequest/README.md",
-      "sha256": "3216fc70024c727fd3eae215e55600a73fe75031d475da5c7af82f71c994df6f"
+      "sha256": "eee7c43089b7a0efeb321cd2a402b371544dce7afbadb9e018e0ed5e3d90efee"
     }
   ],
   "native_installation_verified": false,

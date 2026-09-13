@@ -994,11 +994,11 @@
     {
       "view_id": "github_code.relationships",
       "lane_id": "github_code",
-      "folder": "sectors/github_code",
+      "folder": "github_code",
       "version": 1,
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "consumer": "artifact_export",
-      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
+      "implementation_digest": "d2e8feb9d3721bfa6d27b5863dd5b6559d32b5ca9d064f9b50a00e2cadea61be",
       "files": {
         "mmd": "github_code.mmd",
         "dot": "github_code.dot",
@@ -1085,6 +1085,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/github_code",
+  "runtime_state_folder": "github_code",
   "source_package_folder": "authorities/project_sectors/github_code"
 }

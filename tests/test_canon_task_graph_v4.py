@@ -52,7 +52,7 @@ def test_edge_registration_binding_replay_and_named_lane_file(pair):
     assert value['local_role'] == 'source' and not value['destination_bound']
     assert not value['host_task_created'] and not value['source_write_granted'] and not value['plan_mutated']
     path = project.root / value['artifact_path']
-    assert path.name == value['edge_id'] + '.json' and 'authorities/canon/files/graph/' in value['artifact_path']
+    assert path.name == value['edge_id'] + '.json' and 'canon/objects/graph/' in value['artifact_path']
     assert json.loads(path.read_bytes()) == value['edge'] and content_digest(value['edge']) == value['edge_digest']
     assert invoke(sender, 'task_evidence_edge_register', request).result['duplicate']
     wrong = invoke(sender, 'task_evidence_edge_bind', {'source_project_id':project.project_id,
@@ -251,7 +251,7 @@ def test_aborted_graph_write_keeps_orphan_unregistered_and_retry_is_safe(pair, m
     assert len(CanonStore(project).task_graph(CanonTaskGraphRead()).edges) == 1
     with project_snapshot(project.root):
         files = inventory(project, require_quiescent=False)['files']
-    assert len([item for item in files if '/files/graph/' in item['path']]) == 1
+    assert len([item for item in files if '/objects/graph/' in item['path']]) == 1
 
 
 def test_graph_actions_through_actual_mcp_stdio_and_persistent_backend(system):

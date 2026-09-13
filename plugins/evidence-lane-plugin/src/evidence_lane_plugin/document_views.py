@@ -35,7 +35,7 @@ def document_pointer(binding, graph, files):
 
 def register_document_views(engine):
     from .document_profile import current_documents
-    engine.registry.register_view(LaneView('docs.structure', 'docs', 'sectors/docs',
+    engine.registry.register_view(LaneView('docs.structure', 'docs', 'docs',
         'Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.',
         document_graph, ('docs',), DOC_MIGRATIONS, mmd_filename='docs.mmd', dot_filename='docs.dot',
         pointer_filename='docs.pointer.json', pointer=document_pointer, supports_query=True,

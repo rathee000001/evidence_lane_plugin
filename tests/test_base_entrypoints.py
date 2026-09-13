@@ -52,7 +52,7 @@ def test_corrected_imported_cli_runs_native_mcp_to_same_engine(tmp_path):
         async with (stdio_client(parameters) as (read, write),
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session):
             initialized = await session.initialize()
-            assert initialized.serverInfo.version == "4.0.3"
+            assert initialized.serverInfo.version == "4.0.4"
             catalog = await session.list_tools()
             assert [tool.name for tool in catalog.tools] == [item["name"] for item in engine.registry.schemas()]
             result = await session.call_tool("engine_health", {"arguments": {}})
@@ -79,8 +79,8 @@ def test_bound_package_launcher_owns_installed_reentry() -> None:
         "--local-project-administration",
     ]
     assert manifest["required"] is False
-    assert binding["plugin_version"] == "4.0.3"
+    assert binding["plugin_version"] == "4.0.4"
     assert binding["release_ref"] == (
-        "refs/tags/evidence-lane-v4.0.3-bundle-977fb5ec2702ff9d"
+        "refs/tags/evidence-lane-v4.0.4-bundle-977fb5ec2702ff9d"
     )
     assert binding["installation_enabled"] is True

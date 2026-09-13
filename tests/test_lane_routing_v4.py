@@ -34,9 +34,9 @@ def test_source_routes_are_sector_only(path, expected):
 
 
 def test_authority_identity_and_explicit_intake_do_not_collapse():
-    assert set(AUTHORITY_LANE_IDS) == {'plan', 'chat_lineage', 'canon', 'memory', 'learning', 'sources', 'receipts', 'universe'}
+    assert set(AUTHORITY_LANE_IDS) == {'plan', 'chat_lineage', 'canon', 'memory', 'learning', 'sources', 'sessions', 'receipts', 'universe'}
     for lane in AUTHORITY_LANE_IDS:
-        assert get_lane(lane).folder == f'authorities/{lane}'
+        assert get_lane(lane).folder == lane
         with pytest.raises(LaneRegistryError, match='owning workflow'):
             route_source('input.md', code_mode='local_code', explicit_lane=lane)
     for lane in RETIRED_LANE_IDS:

@@ -9,18 +9,19 @@
       "canonical_lane_id": "plan",
       "chunker_version": "authority_owned",
       "command": "evi plan",
-      "database_relative_path": "authorities/plan/plan_authority_v001.sqlite",
+      "database_relative_path": "plan/plan_authority_v001.sqlite",
       "display_label": "Plan",
       "dot_filename": "plan.dot",
       "extensions": [],
-      "files_relative_path": "authorities/plan/files",
-      "folder": "authorities/plan",
+      "files_relative_path": "plan/objects",
+      "folder": "plan",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "plan.mmd",
       "mmd_node_id": "lane_plan",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "plan/objects",
       "operations": [
         "create",
         "read",
@@ -45,7 +46,7 @@
         "validation_policy_revisions",
         "validationrun_summaries"
       ],
-      "schema_history_relative_path": "authorities/plan/schema-history",
+      "schema_history_relative_path": "plan/schema-history.v4.json",
       "schema_owners": [
         "plan",
         "steer",
@@ -69,18 +70,19 @@
       "canonical_lane_id": "chat_lineage",
       "chunker_version": "authority_owned",
       "command": "evi chat_lineage",
-      "database_relative_path": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+      "database_relative_path": "chat_lineage/chat_lineage_authority_v001.sqlite",
       "display_label": "ChatLineage",
       "dot_filename": "chat_lineage.dot",
       "extensions": [],
-      "files_relative_path": "authorities/chat_lineage/files",
-      "folder": "authorities/chat_lineage",
+      "files_relative_path": "chat_lineage/objects",
+      "folder": "chat_lineage",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "chat_lineage.mmd",
       "mmd_node_id": "lane_chat_lineage",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "chat_lineage/objects",
       "operations": [
         "append_visible_event",
         "query",
@@ -99,7 +101,7 @@
         "lineage_events",
         "lineage_fts"
       ],
-      "schema_history_relative_path": "authorities/chat_lineage/schema-history",
+      "schema_history_relative_path": "chat_lineage/schema-history.v4.json",
       "schema_owners": [
         "lineage",
         "continuation",
@@ -121,18 +123,19 @@
       "canonical_lane_id": "canon",
       "chunker_version": "authority_owned",
       "command": "evi canon",
-      "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
+      "database_relative_path": "canon/canon_authority_v001.sqlite",
       "display_label": "task exchange authority",
       "dot_filename": "canon.dot",
       "extensions": [],
-      "files_relative_path": "authorities/canon/files",
-      "folder": "authorities/canon",
+      "files_relative_path": "canon/objects",
+      "folder": "canon",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "canon.mmd",
       "mmd_node_id": "lane_canon",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "canon/objects",
       "operations": [
         "offer",
         "inspect",
@@ -157,7 +160,7 @@
         "canon_task_edges",
         "canon_task_edge_bindings"
       ],
-      "schema_history_relative_path": "authorities/canon/schema-history",
+      "schema_history_relative_path": "canon/schema-history.v4.json",
       "schema_owners": [
         "canon"
       ],
@@ -176,18 +179,19 @@
       "canonical_lane_id": "memory",
       "chunker_version": "authority_owned",
       "command": "evi memory",
-      "database_relative_path": "authorities/memory/memory_authority_v001.sqlite",
+      "database_relative_path": "memory/memory_authority_v001.sqlite",
       "display_label": "Project Memory",
       "dot_filename": "memory.dot",
       "extensions": [],
-      "files_relative_path": "authorities/memory/files",
-      "folder": "authorities/memory",
+      "files_relative_path": "memory/objects",
+      "folder": "memory",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "memory.mmd",
       "mmd_node_id": "lane_memory",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "memory/objects",
       "operations": [
         "append",
         "search",
@@ -207,7 +211,7 @@
         "memory_fts",
         "memory_locators"
       ],
-      "schema_history_relative_path": "authorities/memory/schema-history",
+      "schema_history_relative_path": "memory/schema-history.v4.json",
       "schema_owners": [
         "memory"
       ],
@@ -226,18 +230,19 @@
       "canonical_lane_id": "learning",
       "chunker_version": "authority_owned",
       "command": "evi learning",
-      "database_relative_path": "authorities/learning/learning_authority_v001.sqlite",
+      "database_relative_path": "learning/learning_authority_v001.sqlite",
       "display_label": "Learning",
       "dot_filename": "learning.dot",
       "extensions": [],
-      "files_relative_path": "authorities/learning/files",
-      "folder": "authorities/learning",
+      "files_relative_path": "learning/objects",
+      "folder": "learning",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "learning.mmd",
       "mmd_node_id": "lane_learning",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "learning/objects",
       "operations": [
         "record_verified_exit",
         "query",
@@ -257,7 +262,7 @@
         "learning_fts",
         "learning_versions"
       ],
-      "schema_history_relative_path": "authorities/learning/schema-history",
+      "schema_history_relative_path": "learning/schema-history.v4.json",
       "schema_owners": [
         "learning"
       ],
@@ -276,18 +281,19 @@
       "canonical_lane_id": "sources",
       "chunker_version": "authority_owned",
       "command": "evi sources",
-      "database_relative_path": "authorities/sources/sources_authority_v001.sqlite",
+      "database_relative_path": "sources/sources_authority_v001.sqlite",
       "display_label": "Sources",
       "dot_filename": "sources.dot",
       "extensions": [],
-      "files_relative_path": "authorities/sources/files",
-      "folder": "authorities/sources",
+      "files_relative_path": "sources/objects",
+      "folder": "sources",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "sources.mmd",
       "mmd_node_id": "lane_sources",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "sources/objects",
       "operations": [
         "register",
         "resolve",
@@ -355,7 +361,7 @@
         "registry_event",
         "source_authority_fts"
       ],
-      "schema_history_relative_path": "authorities/sources/schema-history",
+      "schema_history_relative_path": "sources/schema-history.v4.json",
       "schema_owners": [
         "sources",
         "restoration",
@@ -372,6 +378,56 @@
     },
     {
       "aliases": [
+        "sessions",
+        "Sessions",
+        "session_authority"
+      ],
+      "canonical_lane_id": "sessions",
+      "chunker_version": "authority_owned",
+      "command": "evi sessions",
+      "database_relative_path": "sessions/sessions_authority_v001.sqlite",
+      "display_label": "Sessions",
+      "dot_filename": "sessions.dot",
+      "extensions": [],
+      "files_relative_path": "sessions/objects",
+      "folder": "sessions",
+      "fts_table": "",
+      "kind": "authority",
+      "mmd_filename": "sessions.mmd",
+      "mmd_node_id": "lane_sessions",
+      "mutation_policy": "verified_workflow_append",
+      "natural_extensions": [],
+      "objects_relative_path": "sessions/objects",
+      "operations": [
+        "boot",
+        "resume",
+        "status",
+        "close",
+        "verify"
+      ],
+      "parser_id": "owning_workflow",
+      "pointer_semantics": "Exact authenticated engine session head and reported host binding",
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "relationship_views": [
+        "session_heads_transitions_and_reported_host_bindings"
+      ],
+      "schema_contract": [
+        "sessions_records",
+        "sessions_current",
+        "sessions_events"
+      ],
+      "schema_history_relative_path": "sessions/schema-history.v4.json",
+      "schema_owners": [
+        "sessions"
+      ],
+      "source_origins": [
+        "src/evidence_lane_plugin/session_authority.py"
+      ],
+      "source_types": [],
+      "sqlite_filename": "sessions_authority_v001.sqlite"
+    },
+    {
+      "aliases": [
         "receipts",
         "Receipts",
         "receipt_ledger"
@@ -379,18 +435,19 @@
       "canonical_lane_id": "receipts",
       "chunker_version": "authority_owned",
       "command": "evi receipts",
-      "database_relative_path": "authorities/receipts/receipts_authority_v001.sqlite",
+      "database_relative_path": "receipts/receipts_authority_v001.sqlite",
       "display_label": "Receipts",
       "dot_filename": "receipts.dot",
       "extensions": [],
-      "files_relative_path": "authorities/receipts/files",
-      "folder": "authorities/receipts",
+      "files_relative_path": "receipts/objects",
+      "folder": "receipts",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "receipts.mmd",
       "mmd_node_id": "lane_receipts",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "receipts/objects",
       "operations": [
         "append",
         "query",
@@ -407,7 +464,7 @@
         "gitpush_events",
         "gitpush_current"
       ],
-      "schema_history_relative_path": "authorities/receipts/schema-history",
+      "schema_history_relative_path": "receipts/schema-history.v4.json",
       "schema_owners": [
         "receipts",
         "access",
@@ -415,7 +472,6 @@
         "accelerator",
         "recovery",
         "remote",
-        "sessions",
         "hostmemory",
         "gitpush",
         "capture",
@@ -436,18 +492,19 @@
       "canonical_lane_id": "universe",
       "chunker_version": "authority_owned",
       "command": "evi universe",
-      "database_relative_path": "authorities/universe/universe_authority_v001.sqlite",
+      "database_relative_path": "universe/universe_authority_v001.sqlite",
       "display_label": "Universe",
       "dot_filename": "universe.dot",
       "extensions": [],
-      "files_relative_path": "authorities/universe/files",
-      "folder": "authorities/universe",
+      "files_relative_path": "universe/objects",
+      "folder": "universe",
       "fts_table": "",
       "kind": "authority",
       "mmd_filename": "universe.mmd",
       "mmd_node_id": "lane_universe",
       "mutation_policy": "verified_workflow_append",
       "natural_extensions": [],
+      "objects_relative_path": "universe/objects",
       "operations": [
         "inspect",
         "refresh",
@@ -472,7 +529,7 @@
         "federation_revocations",
         "federation_links"
       ],
-      "schema_history_relative_path": "authorities/universe/schema-history",
+      "schema_history_relative_path": "universe/schema-history.v4.json",
       "schema_owners": [
         "universe",
         "federation"
@@ -497,7 +554,7 @@
       "canonical_lane_id": "github_code",
       "chunker_version": "line_80_overlap8_v4",
       "command": "manage-project-sources --lane github_code",
-      "database_relative_path": "sectors/github_code/github_code_sector_v001.sqlite",
+      "database_relative_path": "github_code/github_code_sector_v001.sqlite",
       "display_label": "GitHub Code",
       "dot_filename": "github_code.dot",
       "extensions": [
@@ -535,14 +592,15 @@
         ".yaml",
         ".yml"
       ],
-      "files_relative_path": "sectors/github_code/files",
-      "folder": "sectors/github_code",
+      "files_relative_path": "github_code/objects",
+      "folder": "github_code",
       "fts_table": "code_chunk_fts",
       "kind": "sector",
       "mmd_filename": "github_code.mmd",
       "mmd_node_id": "lane_github_code",
       "mutation_policy": "selected_project_writer_and_workflow_contract",
       "natural_extensions": [],
+      "objects_relative_path": "github_code/objects",
       "operations": [
         "index_git_checkpoint",
         "query",
@@ -581,7 +639,7 @@
         "code_embedding",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/github_code/schema-history",
+      "schema_history_relative_path": "github_code/schema-history.v4.json",
       "schema_owners": [
         "githubcode",
         "githubcodeselector"
@@ -608,7 +666,7 @@
       "canonical_lane_id": "local_code",
       "chunker_version": "line_80_overlap8_v4",
       "command": "manage-project-sources --lane local_code",
-      "database_relative_path": "sectors/local_code/local_code_sector_v001.sqlite",
+      "database_relative_path": "local_code/local_code_sector_v001.sqlite",
       "display_label": "Local Code",
       "dot_filename": "local_code.dot",
       "extensions": [
@@ -646,14 +704,15 @@
         ".yaml",
         ".yml"
       ],
-      "files_relative_path": "sectors/local_code/files",
-      "folder": "sectors/local_code",
+      "files_relative_path": "local_code/objects",
+      "folder": "local_code",
       "fts_table": "code_chunk_fts",
       "kind": "sector",
       "mmd_filename": "local_code.mmd",
       "mmd_node_id": "lane_local_code",
       "mutation_policy": "selected_project_writer_and_workflow_contract",
       "natural_extensions": [],
+      "objects_relative_path": "local_code/objects",
       "operations": [
         "index",
         "query",
@@ -693,7 +752,7 @@
         "code_embedding",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/local_code/schema-history",
+      "schema_history_relative_path": "local_code/schema-history.v4.json",
       "schema_owners": [
         "localcode",
         "localcodeselector"
@@ -718,7 +777,7 @@
       "canonical_lane_id": "docs",
       "chunker_version": "paragraph_4096_v4",
       "command": "manage-project-sources --lane docs",
-      "database_relative_path": "sectors/docs/docs_sector_v001.sqlite",
+      "database_relative_path": "docs/docs_sector_v001.sqlite",
       "display_label": "Docs",
       "dot_filename": "docs.dot",
       "extensions": [
@@ -734,8 +793,8 @@
         ".txt",
         ".xml"
       ],
-      "files_relative_path": "sectors/docs/files",
-      "folder": "sectors/docs",
+      "files_relative_path": "docs/objects",
+      "folder": "docs",
       "fts_table": "doc_chunk_fts",
       "kind": "sector",
       "mmd_filename": "docs.mmd",
@@ -750,6 +809,7 @@
         ".pdf",
         ".png"
       ],
+      "objects_relative_path": "docs/objects",
       "operations": [
         "index",
         "query",
@@ -790,7 +850,7 @@
         "docling_extraction",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/docs/schema-history",
+      "schema_history_relative_path": "docs/schema-history.v4.json",
       "schema_owners": [
         "docs",
         "docsselector"
@@ -816,7 +876,7 @@
       "canonical_lane_id": "data_excel",
       "chunker_version": "typed_cell_text_v4",
       "command": "manage-project-sources --lane data_excel",
-      "database_relative_path": "sectors/data_excel/data_excel_sector_v001.sqlite",
+      "database_relative_path": "data_excel/data_excel_sector_v001.sqlite",
       "display_label": "Excel",
       "dot_filename": "data_excel.dot",
       "extensions": [
@@ -828,8 +888,8 @@
         ".xltx",
         ".xltm"
       ],
-      "files_relative_path": "sectors/data_excel/files",
-      "folder": "sectors/data_excel",
+      "files_relative_path": "data_excel/objects",
+      "folder": "data_excel",
       "fts_table": "sheet_chunk_fts",
       "kind": "sector",
       "mmd_filename": "data_excel.mmd",
@@ -846,6 +906,7 @@
         ".pdf",
         ".png"
       ],
+      "objects_relative_path": "data_excel/objects",
       "operations": [
         "index",
         "query",
@@ -886,7 +947,7 @@
         "sheet_derivative",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/data_excel/schema-history",
+      "schema_history_relative_path": "data_excel/schema-history.v4.json",
       "schema_owners": [
         "dataexcel",
         "dataexcelselector"
@@ -910,7 +971,7 @@
       "canonical_lane_id": "ppt",
       "chunker_version": "slide_paragraph_4096_v4",
       "command": "manage-project-sources --lane ppt",
-      "database_relative_path": "sectors/ppt/ppt_sector_v001.sqlite",
+      "database_relative_path": "ppt/ppt_sector_v001.sqlite",
       "display_label": "PPT / Presentation",
       "dot_filename": "ppt.dot",
       "extensions": [
@@ -921,8 +982,8 @@
         ".potx",
         ".ppsx"
       ],
-      "files_relative_path": "sectors/ppt/files",
-      "folder": "sectors/ppt",
+      "files_relative_path": "ppt/objects",
+      "folder": "ppt",
       "fts_table": "ppt_chunk_fts",
       "kind": "sector",
       "mmd_filename": "ppt.mmd",
@@ -938,6 +999,7 @@
         ".pdf",
         ".png"
       ],
+      "objects_relative_path": "ppt/objects",
       "operations": [
         "index",
         "query",
@@ -978,7 +1040,7 @@
         "ppt_enrichment",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/ppt/schema-history",
+      "schema_history_relative_path": "ppt/schema-history.v4.json",
       "schema_owners": [
         "ppt",
         "pptselector"
@@ -1003,14 +1065,14 @@
       "canonical_lane_id": "pdf_ocr",
       "chunker_version": "pdf_native_text_4096_v4",
       "command": "manage-project-sources --lane pdf_ocr",
-      "database_relative_path": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "database_relative_path": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
       "display_label": "PDF / OCR",
       "dot_filename": "pdf_ocr.dot",
       "extensions": [
         ".pdf"
       ],
-      "files_relative_path": "sectors/pdf_ocr/files",
-      "folder": "sectors/pdf_ocr",
+      "files_relative_path": "pdf_ocr/objects",
+      "folder": "pdf_ocr",
       "fts_table": "pdf_chunk_fts",
       "kind": "sector",
       "mmd_filename": "pdf_ocr.mmd",
@@ -1021,6 +1083,7 @@
         ".txt",
         ".png"
       ],
+      "objects_relative_path": "pdf_ocr/objects",
       "operations": [
         "index",
         "refresh",
@@ -1064,7 +1127,7 @@
         "docling_extraction",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/pdf_ocr/schema-history",
+      "schema_history_relative_path": "pdf_ocr/schema-history.v4.json",
       "schema_owners": [
         "pdfocr",
         "pdfocrselector"
@@ -1090,7 +1153,7 @@
       "canonical_lane_id": "images_ocr",
       "chunker_version": "ocr_region_v1",
       "command": "manage-project-sources --lane images_ocr",
-      "database_relative_path": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+      "database_relative_path": "images_ocr/images_ocr_sector_v001.sqlite",
       "display_label": "Images / OCR",
       "dot_filename": "images_ocr.dot",
       "extensions": [
@@ -1112,8 +1175,8 @@
         ".mov",
         ".webm"
       ],
-      "files_relative_path": "sectors/images_ocr/files",
-      "folder": "sectors/images_ocr",
+      "files_relative_path": "images_ocr/objects",
+      "folder": "images_ocr",
       "fts_table": "image_ocr_fts",
       "kind": "sector",
       "mmd_filename": "images_ocr.mmd",
@@ -1127,6 +1190,7 @@
         ".mp4",
         ".txt"
       ],
+      "objects_relative_path": "images_ocr/objects",
       "operations": [
         "intake",
         "query",
@@ -1168,7 +1232,7 @@
         "image_ocr_fts",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/images_ocr/schema-history",
+      "schema_history_relative_path": "images_ocr/schema-history.v4.json",
       "schema_owners": [
         "media",
         "imagesocrselector"
@@ -1195,7 +1259,7 @@
       "canonical_lane_id": "artifacts",
       "chunker_version": "artifact_blocks_v1",
       "command": "manage-project-sources --lane artifacts",
-      "database_relative_path": "sectors/artifacts/artifacts_sector_v001.sqlite",
+      "database_relative_path": "artifacts/artifacts_sector_v001.sqlite",
       "display_label": "Artifacts",
       "dot_filename": "artifacts.dot",
       "extensions": [
@@ -1221,8 +1285,8 @@
         ".webm",
         ".xml"
       ],
-      "files_relative_path": "sectors/artifacts/files",
-      "folder": "sectors/artifacts",
+      "files_relative_path": "artifacts/objects",
+      "folder": "artifacts",
       "fts_table": "artifact_fts",
       "kind": "sector",
       "mmd_filename": "artifacts.mmd",
@@ -1231,6 +1295,7 @@
       "natural_extensions": [
         "*declared_by_producer"
       ],
+      "objects_relative_path": "artifacts/objects",
       "operations": [
         "intake",
         "query",
@@ -1272,7 +1337,7 @@
         "artifact_fts",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/artifacts/schema-history",
+      "schema_history_relative_path": "artifacts/schema-history.v4.json",
       "schema_owners": [
         "artifacts",
         "artifactsselector"
@@ -1301,7 +1366,7 @@
       "canonical_lane_id": "custom",
       "chunker_version": "bounded_text_v1",
       "command": "manage-project-sources --lane custom",
-      "database_relative_path": "sectors/custom/custom_sector_v001.sqlite",
+      "database_relative_path": "custom/custom_sector_v001.sqlite",
       "display_label": "Custom",
       "dot_filename": "custom.dot",
       "extensions": [
@@ -1310,8 +1375,8 @@
         ".sqlite3",
         ".zip"
       ],
-      "files_relative_path": "sectors/custom/files",
-      "folder": "sectors/custom",
+      "files_relative_path": "custom/objects",
+      "folder": "custom",
       "fts_table": "custom_fts",
       "kind": "sector",
       "mmd_filename": "custom.mmd",
@@ -1320,6 +1385,7 @@
       "natural_extensions": [
         "*declared_by_adapter"
       ],
+      "objects_relative_path": "custom/objects",
       "operations": [
         "intake",
         "query",
@@ -1360,7 +1426,7 @@
         "custom_fts",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/custom/schema-history",
+      "schema_history_relative_path": "custom/schema-history.v4.json",
       "schema_owners": [
         "custom",
         "customselector"
@@ -1386,7 +1452,7 @@
       "canonical_lane_id": "research",
       "chunker_version": "claim_evidence_v1",
       "command": "manage-project-sources --lane research",
-      "database_relative_path": "sectors/research/research_sector_v001.sqlite",
+      "database_relative_path": "research/research_sector_v001.sqlite",
       "display_label": "Research",
       "dot_filename": "research.dot",
       "extensions": [
@@ -1399,8 +1465,8 @@
         ".txt",
         ".xlsx"
       ],
-      "files_relative_path": "sectors/research/files",
-      "folder": "sectors/research",
+      "files_relative_path": "research/objects",
+      "folder": "research",
       "fts_table": "research_fts",
       "kind": "sector",
       "mmd_filename": "research.mmd",
@@ -1411,6 +1477,7 @@
         ".json",
         ".bib"
       ],
+      "objects_relative_path": "research/objects",
       "operations": [
         "intake",
         "query",
@@ -1456,7 +1523,7 @@
         "research_fts",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/research/schema-history",
+      "schema_history_relative_path": "research/schema-history.v4.json",
       "schema_owners": [
         "research",
         "researchselector"
@@ -1479,7 +1546,7 @@
       "canonical_lane_id": "data",
       "chunker_version": "typed_row_text_v4",
       "command": "manage-project-sources --lane data",
-      "database_relative_path": "sectors/data/data_sector_v001.sqlite",
+      "database_relative_path": "data/data_sector_v001.sqlite",
       "display_label": "Structured data",
       "dot_filename": "data.dot",
       "extensions": [
@@ -1491,8 +1558,8 @@
         ".arrow",
         ".feather"
       ],
-      "files_relative_path": "sectors/data/files",
-      "folder": "sectors/data",
+      "files_relative_path": "data/objects",
+      "folder": "data",
       "fts_table": "data_chunk_fts",
       "kind": "sector",
       "mmd_filename": "data.mmd",
@@ -1507,6 +1574,7 @@
         ".arrow",
         ".feather"
       ],
+      "objects_relative_path": "data/objects",
       "operations": [
         "index",
         "query",
@@ -1538,7 +1606,7 @@
         "data_derivative",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/data/schema-history",
+      "schema_history_relative_path": "data/schema-history.v4.json",
       "schema_owners": [
         "data",
         "dataselector"
@@ -1559,7 +1627,7 @@
       "canonical_lane_id": "tableau",
       "chunker_version": "typed_item_text_4096_v4",
       "command": "manage-project-sources --lane tableau",
-      "database_relative_path": "sectors/tableau/tableau_sector_v001.sqlite",
+      "database_relative_path": "tableau/tableau_sector_v001.sqlite",
       "display_label": "Tableau",
       "dot_filename": "tableau.dot",
       "extensions": [
@@ -1570,8 +1638,8 @@
         ".hyper",
         ".tde"
       ],
-      "files_relative_path": "sectors/tableau/files",
-      "folder": "sectors/tableau",
+      "files_relative_path": "tableau/objects",
+      "folder": "tableau",
       "fts_table": "tableau_chunk_fts",
       "kind": "sector",
       "mmd_filename": "tableau.mmd",
@@ -1585,6 +1653,7 @@
         ".hyper",
         ".tde"
       ],
+      "objects_relative_path": "tableau/objects",
       "operations": [
         "index",
         "refresh",
@@ -1630,7 +1699,7 @@
         "tableau_export",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/tableau/schema-history",
+      "schema_history_relative_path": "tableau/schema-history.v4.json",
       "schema_owners": [
         "tableau",
         "tableauselector"
@@ -1651,7 +1720,7 @@
       "canonical_lane_id": "power_bi",
       "chunker_version": "typed_item_text_4096_v4",
       "command": "manage-project-sources --lane power_bi",
-      "database_relative_path": "sectors/power_bi/power_bi_sector_v001.sqlite",
+      "database_relative_path": "power_bi/power_bi_sector_v001.sqlite",
       "display_label": "Power BI",
       "dot_filename": "power_bi.dot",
       "extensions": [
@@ -1663,8 +1732,8 @@
         ".tmdl",
         ".bim"
       ],
-      "files_relative_path": "sectors/power_bi/files",
-      "folder": "sectors/power_bi",
+      "files_relative_path": "power_bi/objects",
+      "folder": "power_bi",
       "fts_table": "powerbi_chunk_fts",
       "kind": "sector",
       "mmd_filename": "power_bi.mmd",
@@ -1680,6 +1749,7 @@
         ".pbit",
         ".zip"
       ],
+      "objects_relative_path": "power_bi/objects",
       "operations": [
         "index",
         "refresh",
@@ -1732,7 +1802,7 @@
         "powerbi_export",
         "selector_retirement"
       ],
-      "schema_history_relative_path": "sectors/power_bi/schema-history",
+      "schema_history_relative_path": "power_bi/schema-history.v4.json",
       "schema_owners": [
         "powerbi",
         "powerbiselector"

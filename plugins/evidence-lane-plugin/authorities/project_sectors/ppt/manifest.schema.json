@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/ppt"
     },
     "folder": {
-      "const": "sectors/ppt"
+      "const": "ppt"
     },
     "folder_role": {
       "const": "external_project_state"

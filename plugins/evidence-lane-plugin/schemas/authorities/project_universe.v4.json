@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/project_universe/dot-artifact.schema.json",
-      "sha256": "5c61873946cc428a3d00b7e89a8f5620b254ac49e1fb530b62ac537c023fda69"
+      "sha256": "1914d46a33556ab7acf01f4dfbf1ecd0abe3deca67853546e797d2bdce4aab35"
     },
     {
       "path": "authorities/project_universe/manifest.schema.json",
-      "sha256": "776369cecdb38b759bbc88e1dada9b25a02c483be99e2c34c9b2ac3c49f8b260"
+      "sha256": "0bf59ce332bb3aab4da540cb86b966956b73e1ad3e87a541a1f8550484b47d6e"
     },
     {
       "path": "authorities/project_universe/manifest.v4.json",
-      "sha256": "f4ac594ef9009df4e16dd381e9851a93086b86fc42cbbf7df1453fb13da35d6e"
+      "sha256": "da4f4179b0b284a3c909ddc1404edf1f702af43f691ad063c6504b63cf49f8a9"
     },
     {
       "path": "authorities/project_universe/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_universe/mmd-artifact.schema.json",
-      "sha256": "5dba28a313aa7d1e226cdd1057955097efb8be3abba0e86ca79a8c885735bbc9"
+      "sha256": "ec52f0a3418d4a83e53d4ab0ea811a41063603488b4e973715bdfc1bb4b0a372"
     },
     {
       "path": "authorities/project_universe/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/project_universe/pointer-contract.v4.json",
-      "sha256": "3cca702e600c6726f609d3390078a874a308d98439d6f82c8e13a05e04feef9c"
+      "sha256": "44b091ef465cb7e8cb285de0cc09a94174fa6a79fd3f0c6f23a019609d7294e4"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/project_universe/runtime-binding.schema.json",
-      "sha256": "fc71d45287489f0d30a97565ffbd66db73546a572aa38d4d9464e70134f9748e"
+      "sha256": "2135af64dd3997a029d0879017eef1a922b775bc234cf688891112f69228c437"
     },
     {
       "path": "authorities/project_universe/runtime-binding.v4.json",
-      "sha256": "072175d7625f3cff40a63d557ac03d0d579fd503cdc9a471df551b1e44330962"
+      "sha256": "fd5668eb5a928615b7fc39bbd0f8b53f89837c3f97512592f88382ac29da4848"
     },
     {
       "path": "authorities/project_universe/schema.sql",

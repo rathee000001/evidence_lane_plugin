@@ -29,7 +29,7 @@ def test_catalog_is_distinct_from_workflows_and_does_not_require_project(code_sy
     _, unselected = engine.clients.connect(ConnectRequest())
     response = PublicActionSDKDispatcher(engine).execute(ActionRequest(action='lane_catalog'), unselected)
     assert response.status == 'ok', response.error
-    assert response.result['lane_count'] == 21
+    assert response.result['lane_count'] == 22
     assert not response.result['installed_readiness_verified']
     lanes = {row['definition']['canonical_lane_id']: row for row in response.result['lanes']}
     assert lanes['plan']['definition']['kind'] == 'authority'
@@ -164,9 +164,7 @@ def test_status_rejects_corrupt_schema_history_without_repair(code_system):
     execute(code_system)
     store = code_system[1]
     lane = store.lane('local_code')
-    with lane.connection(read_only=True) as connection:
-        filename = connection.execute('SELECT filename FROM schema_history_files LIMIT 1').fetchone()[0]
-    history = lane.schema_history / filename
+    history = lane.schema_history
     history.write_bytes(history.read_bytes() + b' ')
     before = bytes_digest(store.root)
     response = call(code_system, 'lane_status', {'lane_id': 'local_code', 'include_views': False})

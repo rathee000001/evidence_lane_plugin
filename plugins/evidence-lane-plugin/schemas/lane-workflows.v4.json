@@ -6564,9 +6564,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "B1CA88D292F8192F87B03E5406A0F2BF37E725E599FBA781A80B90FE8F69DF61",
-        "files_root": "authorities/plan/files",
-        "folder": "authorities/plan",
+        "contract_sha256": "60CA0D0EFF54E8A0FDC30DCD4EE0E7035EC1AED09A8F3B55D13BAC1A280F70C3",
+        "folder": "plan",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -6578,6 +6577,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "plan/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact Plan revision and immutable dependency snapshot"
@@ -6595,23 +6595,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/plan/plan_authority_v001.sqlite",
-      "files": "authorities/plan/files",
-      "folder": "authorities/plan",
+      "database": "plan/plan_authority_v001.sqlite",
+      "files": "plan/objects",
+      "folder": "plan",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/plan/manifest.v4.json",
-        "sha256": "10B51643E9EC71712132501A9BA4B31A6CC4B3C5C23B77EEE0B4683593BF1A44"
+        "sha256": "C9A95228FB0DC6981CCC7C36B160B12D18DB1E0FB1E96089305B2B256F6151FE"
       },
       "runtime": "evidence_lane_plugin.plan_runtime",
       "schema": {
-        "contract_sha256": "D1A71E52959811A133B28549C96F104CC11A44A0E2832EE7DAF82AE82588EC10",
-        "database_relative_path": "authorities/plan/plan_authority_v001.sqlite",
+        "contract_sha256": "7F48FA4424AA970F31AD230915EB8A14D02F3AFA9B571372E41CE4FF6515597E",
+        "database_relative_path": "plan/plan_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "plan",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -6648,7 +6648,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/plan/schema-history",
+        "schema_history_relative_path": "plan/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.plan.v4",
         "schema_version": 4,
         "tables": [
@@ -8280,9 +8280,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "D8E6973B64B9370AFAEE35A0CE21426B8F2FD642D21EF3566B35E5C8A5F52511",
-        "files_root": "authorities/chat_lineage/files",
-        "folder": "authorities/chat_lineage",
+        "contract_sha256": "E3EAE71EB94F54890F5512C051885442065873E90A71C30B8A33343835C04122",
+        "folder": "chat_lineage",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -8294,6 +8293,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "chat_lineage/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -8311,23 +8311,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
-      "files": "authorities/chat_lineage/files",
-      "folder": "authorities/chat_lineage",
+      "database": "chat_lineage/chat_lineage_authority_v001.sqlite",
+      "files": "chat_lineage/objects",
+      "folder": "chat_lineage",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/chat_lineage/manifest.v4.json",
-        "sha256": "386E629119C8FE2577496A077BC29656B78E92FC34F6A37B0A02A9A3124C75A6"
+        "sha256": "4391641C253C699F4CA5CDCF711BD2D03749D3185171658D4CA10C384501EC22"
       },
       "runtime": "evidence_lane_plugin.lineage",
       "schema": {
-        "contract_sha256": "660B8839D8C3B689F46F43AA0F2F3823BE861B419705DCA5F2DBA9F7041F130E",
-        "database_relative_path": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+        "contract_sha256": "46F6B623ABD767CC6EDFB3988C8FA3F3BE22CE036C8F00669766739007B59EFF",
+        "database_relative_path": "chat_lineage/chat_lineage_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "chat_lineage",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -8356,7 +8356,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/chat_lineage/schema-history",
+        "schema_history_relative_path": "chat_lineage/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.chat_lineage.v4",
         "schema_version": 4,
         "tables": [
@@ -12550,9 +12550,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "7C4C7CABD05FD386123871B81250E297786AE0F6CE351EFE1E5E71ECA8342B56",
-        "files_root": "authorities/canon/files",
-        "folder": "authorities/canon",
+        "contract_sha256": "E33CBF5356358C74F314AB8213D769C1C542CD536029F4B3F2DD4A047292CC52",
+        "folder": "canon",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -12564,6 +12563,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "canon/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -12581,23 +12581,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/canon/canon_authority_v001.sqlite",
-      "files": "authorities/canon/files",
-      "folder": "authorities/canon",
+      "database": "canon/canon_authority_v001.sqlite",
+      "files": "canon/objects",
+      "folder": "canon",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/canon_input/manifest.v4.json",
-        "sha256": "3839564D048750115BB703EBC5183A19738FC48DF89DC31B6331BC62D980E4CF"
+        "sha256": "79CEA030F518EFE1C8298189043B99E2280AF34E535E8F66C949F8FA1ED79CA5"
       },
       "runtime": "evidence_lane_plugin.canon_task_graph",
       "schema": {
-        "contract_sha256": "CFFF8D3B1C9D8F3F81EA7ADF4850A46968852E1BF173B8F0A6FFDD601B768055",
-        "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
+        "contract_sha256": "96AB3A2EB007BD0F23E817D3808F0A0CA18883CA408635B0B28DCFC709F1675B",
+        "database_relative_path": "canon/canon_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "canon",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -12614,7 +12614,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/canon/schema-history",
+        "schema_history_relative_path": "canon/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.canon.v4",
         "schema_version": 4,
         "tables": [
@@ -14469,9 +14469,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "166FCEE43DF23C3A11496D723A181FF23B78C27147EF2CC323914CF8211B69D3",
-        "files_root": "authorities/memory/files",
-        "folder": "authorities/memory",
+        "contract_sha256": "7F80D4DCAE4E08D88BC654E95BC0ADCFBDC0907DBF72FF97F3CCD23173E76452",
+        "folder": "memory",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -14483,6 +14482,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "memory/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact bounded attributed Memory slice, never host MEMORY.md"
@@ -14500,23 +14500,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/memory/memory_authority_v001.sqlite",
-      "files": "authorities/memory/files",
-      "folder": "authorities/memory",
+      "database": "memory/memory_authority_v001.sqlite",
+      "files": "memory/objects",
+      "folder": "memory",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_memory/manifest.v4.json",
-        "sha256": "E595C81CB2A1493A954E986C24CFA1C3BD0ACE5EDAAB72E23EA830FB57279BC9"
+        "sha256": "34585843D74CBD55B6FC2067981ABEB53C2FE22F151543E74B07086CF1E6FA36"
       },
       "runtime": "evidence_lane_plugin.project_memory",
       "schema": {
-        "contract_sha256": "1A3A21F3CBBE8020F76685DF6166A6C85C23B5D6F43C310A9D0FC6D5A08AA8CD",
-        "database_relative_path": "authorities/memory/memory_authority_v001.sqlite",
+        "contract_sha256": "4A3413CEBE07B73E5F5900982EFAB685A9F43544BA34BA47687A5DD57D660474",
+        "database_relative_path": "memory/memory_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "memory",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -14533,7 +14533,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/memory/schema-history",
+        "schema_history_relative_path": "memory/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.memory.v4",
         "schema_version": 4,
         "tables": [
@@ -15073,9 +15073,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "B8DD42EBF2DCB973F7FBD5E0BA55F328800B0911B1496740AB731EC29CEAECBE",
-        "files_root": "authorities/learning/files",
-        "folder": "authorities/learning",
+        "contract_sha256": "63EBF148738D5BEE712FF0019F3F8A151330D5139AF1368B754CABB7B32E3139",
+        "folder": "learning",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -15087,6 +15086,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "learning/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -15104,23 +15104,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/learning/learning_authority_v001.sqlite",
-      "files": "authorities/learning/files",
-      "folder": "authorities/learning",
+      "database": "learning/learning_authority_v001.sqlite",
+      "files": "learning/objects",
+      "folder": "learning",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/agent_learning/manifest.v4.json",
-        "sha256": "907216183DAC0470255615A287FAD7B2AD3912BE7A93235549645B98478E2CF2"
+        "sha256": "B473ED5A5D6FCE2E617DA169B52AA392AADB0EB7E6C6E5404BF167E8F424B19A"
       },
       "runtime": "evidence_lane_plugin.agent_learning",
       "schema": {
-        "contract_sha256": "F693B139511785A8A8F26B1949AF892AFD5DB2AE011F8AF903A5D8B9125C6FA5",
-        "database_relative_path": "authorities/learning/learning_authority_v001.sqlite",
+        "contract_sha256": "69A2C19D05331A8AE18D352B6DB38F681470AE15C0A72D411A8DA968EFA8D59E",
+        "database_relative_path": "learning/learning_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "learning",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -15137,7 +15137,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/learning/schema-history",
+        "schema_history_relative_path": "learning/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.learning.v4",
         "schema_version": 4,
         "tables": [
@@ -20259,9 +20259,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "EFBE8C42F8F9A5FD227ABE77DB7713E33ED92394F165B836BA566E35757624E6",
-        "files_root": "authorities/sources/files",
-        "folder": "authorities/sources",
+        "contract_sha256": "2DE1826E2499E94565FE9E0BE67BA42925884A224046EABFC91718F4A46E8602",
+        "folder": "sources",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -20273,6 +20272,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "sources/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -20290,23 +20290,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/sources/sources_authority_v001.sqlite",
-      "files": "authorities/sources/files",
-      "folder": "authorities/sources",
+      "database": "sources/sources_authority_v001.sqlite",
+      "files": "sources/objects",
+      "folder": "sources",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/source_authority/manifest.v4.json",
-        "sha256": "9D0989EB6EFD823E88E0C15A7AD21E42B337B28406F8B4064A83ED10252535E4"
+        "sha256": "AC05CBB88339FF0CCB648183099008622CCA7FCDE52BEB85CC9B2CDDD52F8B85"
       },
       "runtime": "evidence_lane_plugin.source_authority",
       "schema": {
-        "contract_sha256": "2219A0783014607A2260C520E61261A37B5961A0D2FE9B7CC6AF30F30A301B87",
-        "database_relative_path": "authorities/sources/sources_authority_v001.sqlite",
+        "contract_sha256": "E7DB5D85FAECDBB022F003AF52E2BA355246297279668867C6B1186812D1897D",
+        "database_relative_path": "sources/sources_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "sources",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -20346,7 +20346,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/sources/schema-history",
+        "schema_history_relative_path": "sources/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.sources.v4",
         "schema_version": 4,
         "tables": [
@@ -20410,6 +20410,2154 @@
       ],
       "source_package_folder": "authorities/source_authority",
       "surface_id": "sources",
+      "surface_kind": "authority"
+    },
+    {
+      "actions": [
+        {
+          "cross_project_read": false,
+          "description": "Retrieve bounded current ENV/UOP policy from its own locked SQLite/FTS index.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "limit": {
+                "default": 8,
+                "maximum": 20,
+                "minimum": 1,
+                "title": "Limit",
+                "type": "integer"
+              },
+              "query": {
+                "maxLength": 240,
+                "minLength": 1,
+                "title": "Query",
+                "type": "string"
+              },
+              "role": {
+                "default": "env",
+                "enum": [
+                  "env",
+                  "uop"
+                ],
+                "title": "Role",
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "OperatingPolicyInspect",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "env_uop_inspect",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "manifest_digest": {
+                "title": "Manifest Digest",
+                "type": "string"
+              },
+              "matches": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "title": "Matches",
+                "type": "array"
+              },
+              "project_payload_accessed": {
+                "const": false,
+                "default": false,
+                "title": "Project Payload Accessed",
+                "type": "boolean"
+              },
+              "query_mode": {
+                "const": "owning_sqlite_fts5_bm25",
+                "default": "owning_sqlite_fts5_bm25",
+                "title": "Query Mode",
+                "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            },
+            "required": [
+              "role",
+              "manifest_digest",
+              "matches"
+            ],
+            "title": "OperatingPolicyResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [
+            "SQLite_FTS5_BM25",
+            "rank_bm25"
+          ],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "169b156eb6ecf0d31262a547510d70a220a3becd6c5efce4269562c71a429eb9",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "env_uop_inspect",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.mode_governance:register_mode_actions.<locals>.inspect",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "env_uop_inspect.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "SQLite_FTS5_BM25",
+                  "rank_bm25"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Boot one project session with verified Flash and attributed capture.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "expected_root_pv_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Expected Root Pv Digest",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9._-]+$",
+                "title": "Reported Session Id",
+                "type": "string"
+              },
+              "require_native_attestation": {
+                "default": false,
+                "title": "Require Native Attestation",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "reported_session_id",
+              "expected_root_pv_digest"
+            ],
+            "title": "SessionBoot",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "session_boot",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "capture_bound": {
+                "default": false,
+                "title": "Capture Bound",
+                "type": "boolean"
+              },
+              "context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Context"
+              },
+              "event_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Event Digest"
+              },
+              "exit_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Exit Reason"
+              },
+              "flash_current": {
+                "default": false,
+                "title": "Flash Current",
+                "type": "boolean"
+              },
+              "flash_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Flash Digest"
+              },
+              "generation": {
+                "default": 0,
+                "title": "Generation",
+                "type": "integer"
+              },
+              "hook_execution_attested": {
+                "const": false,
+                "default": false,
+                "title": "Hook Execution Attested",
+                "type": "boolean"
+              },
+              "host_observation": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Host Observation"
+              },
+              "identity_scope": {
+                "const": "authenticated_engine_client",
+                "default": "authenticated_engine_client",
+                "title": "Identity Scope",
+                "type": "string"
+              },
+              "jobs_replayed": {
+                "const": false,
+                "default": false,
+                "title": "Jobs Replayed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_plan_updated": {
+                "const": false,
+                "default": false,
+                "title": "Native Plan Updated",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observation_scope": {
+                "default": "current_read",
+                "enum": [
+                  "current_read",
+                  "at_transition_commit"
+                ],
+                "title": "Observation Scope",
+                "type": "string"
+              },
+              "operation": {
+                "default": "status",
+                "title": "Operation",
+                "type": "string"
+              },
+              "owner_authenticated": {
+                "default": false,
+                "title": "Owner Authenticated",
+                "type": "boolean"
+              },
+              "owner_client_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Client Id"
+              },
+              "owner_engine_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Engine Id"
+              },
+              "plan": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Plan",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Session Id"
+              },
+              "reported_session_identity": {
+                "const": "client_report_only",
+                "default": "client_report_only",
+                "title": "Reported Session Identity",
+                "type": "string"
+              },
+              "root_pv": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Root Pv",
+                "type": "object"
+              },
+              "runtime_package_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Runtime Package Digest"
+              },
+              "session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session Id"
+              },
+              "state": {
+                "enum": [
+                  "none",
+                  "active",
+                  "closed"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "state_authority": {
+                "const": "sessions_lane_sqlite",
+                "default": "sessions_lane_sqlite",
+                "title": "State Authority",
+                "type": "string"
+              },
+              "storage_route": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Storage Route"
+              },
+              "terminal_exit": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Exit",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "project_id",
+              "state",
+              "root_pv",
+              "plan"
+            ],
+            "title": "SessionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "write",
+          "profile": "sessions",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "29865a06dde2747ff62940798dbfc67eb9456f0e851508011031303d21f1480b",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_boot",
+            "profile": "sessions",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_boot.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read current bounded Plan and separate lane references, verified Flash and exact engine-scoped compact recovery.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "SessionStatusRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "session_context",
+          "outputSchema": {
+            "$defs": {
+              "FlashStatus": {
+                "additionalProperties": false,
+                "properties": {
+                  "action_set_digest": {
+                    "title": "Action Set Digest",
+                    "type": "string"
+                  },
+                  "authority_version": {
+                    "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+                    "title": "Authority Version",
+                    "type": "string"
+                  },
+                  "context": {
+                    "title": "Context",
+                    "type": "string"
+                  },
+                  "manifest_digest": {
+                    "title": "Manifest Digest",
+                    "type": "string"
+                  },
+                  "member_count": {
+                    "title": "Member Count",
+                    "type": "integer"
+                  },
+                  "members": {
+                    "items": {
+                      "additionalProperties": {
+                        "$ref": "#/$defs/JsonValue"
+                      },
+                      "type": "object"
+                    },
+                    "title": "Members",
+                    "type": "array"
+                  },
+                  "native_attachment_attested": {
+                    "default": false,
+                    "title": "Native Attachment Attested",
+                    "type": "boolean"
+                  },
+                  "runtime_data_mutated": {
+                    "default": false,
+                    "title": "Runtime Data Mutated",
+                    "type": "boolean"
+                  },
+                  "state": {
+                    "default": "verified",
+                    "title": "State",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "manifest_digest",
+                  "action_set_digest",
+                  "member_count",
+                  "members",
+                  "context"
+                ],
+                "title": "FlashStatus",
+                "type": "object"
+              },
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "engine_instance_id": {
+                "title": "Engine Instance Id",
+                "type": "string"
+              },
+              "engine_phase": {
+                "title": "Engine Phase",
+                "type": "string"
+              },
+              "flash": {
+                "$ref": "#/$defs/FlashStatus"
+              },
+              "host": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Host",
+                "type": "object"
+              },
+              "managed_toolchain": {
+                "title": "Managed Toolchain",
+                "type": "string"
+              },
+              "native_task_attestation": {
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "operating_context": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Operating Context",
+                "type": "object"
+              },
+              "package_digest": {
+                "title": "Package Digest",
+                "type": "string"
+              },
+              "project_mutated": {
+                "default": false,
+                "title": "Project Mutated",
+                "type": "boolean"
+              },
+              "studio_supported": {
+                "title": "Studio Supported",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "engine_phase",
+              "engine_instance_id",
+              "package_digest",
+              "flash",
+              "host",
+              "studio_supported",
+              "managed_toolchain",
+              "operating_context"
+            ],
+            "title": "SessionContext",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "sessions",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "3f804dade0c069c415ff119e161524dc0ed0f30da9687600a4d2a58e1a2c5c1d",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_context",
+            "profile": "sessions",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:SessionManager.context",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_context.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Close the exact current session at a safe boundary and detach its capture binding.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "expected_event_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Expected Event Digest",
+                "type": "string"
+              },
+              "expected_generation": {
+                "minimum": 1,
+                "title": "Expected Generation",
+                "type": "integer"
+              },
+              "reason": {
+                "maxLength": 1000,
+                "minLength": 1,
+                "title": "Reason",
+                "type": "string"
+              },
+              "session_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Session Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "session_id",
+              "expected_generation",
+              "expected_event_digest",
+              "reason"
+            ],
+            "title": "SessionExit",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "session_exit",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "capture_bound": {
+                "default": false,
+                "title": "Capture Bound",
+                "type": "boolean"
+              },
+              "context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Context"
+              },
+              "event_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Event Digest"
+              },
+              "exit_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Exit Reason"
+              },
+              "flash_current": {
+                "default": false,
+                "title": "Flash Current",
+                "type": "boolean"
+              },
+              "flash_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Flash Digest"
+              },
+              "generation": {
+                "default": 0,
+                "title": "Generation",
+                "type": "integer"
+              },
+              "hook_execution_attested": {
+                "const": false,
+                "default": false,
+                "title": "Hook Execution Attested",
+                "type": "boolean"
+              },
+              "host_observation": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Host Observation"
+              },
+              "identity_scope": {
+                "const": "authenticated_engine_client",
+                "default": "authenticated_engine_client",
+                "title": "Identity Scope",
+                "type": "string"
+              },
+              "jobs_replayed": {
+                "const": false,
+                "default": false,
+                "title": "Jobs Replayed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_plan_updated": {
+                "const": false,
+                "default": false,
+                "title": "Native Plan Updated",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observation_scope": {
+                "default": "current_read",
+                "enum": [
+                  "current_read",
+                  "at_transition_commit"
+                ],
+                "title": "Observation Scope",
+                "type": "string"
+              },
+              "operation": {
+                "default": "status",
+                "title": "Operation",
+                "type": "string"
+              },
+              "owner_authenticated": {
+                "default": false,
+                "title": "Owner Authenticated",
+                "type": "boolean"
+              },
+              "owner_client_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Client Id"
+              },
+              "owner_engine_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Engine Id"
+              },
+              "plan": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Plan",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Session Id"
+              },
+              "reported_session_identity": {
+                "const": "client_report_only",
+                "default": "client_report_only",
+                "title": "Reported Session Identity",
+                "type": "string"
+              },
+              "root_pv": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Root Pv",
+                "type": "object"
+              },
+              "runtime_package_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Runtime Package Digest"
+              },
+              "session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session Id"
+              },
+              "state": {
+                "enum": [
+                  "none",
+                  "active",
+                  "closed"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "state_authority": {
+                "const": "sessions_lane_sqlite",
+                "default": "sessions_lane_sqlite",
+                "title": "State Authority",
+                "type": "string"
+              },
+              "storage_route": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Storage Route"
+              },
+              "terminal_exit": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Exit",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "project_id",
+              "state",
+              "root_pv",
+              "plan"
+            ],
+            "title": "SessionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "write",
+          "profile": "sessions",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "a3bbf3acc36f9c641a91b32bffb603b6ff2f7158846f4ad776d4b38c2ec231c7",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_exit",
+            "profile": "sessions",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_exit.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "close-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "continuation_digest": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Continuation Digest"
+              },
+              "continuation_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Continuation Id"
+              },
+              "kind": {
+                "enum": [
+                  "ordinary_turn",
+                  "delta_append",
+                  "session_exit",
+                  "work_handoff",
+                  "goal_completion"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "source_cursor": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source Cursor"
+              },
+              "source_event_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source Event Id"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "title": "SessionBoundaryRead",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "session_exit_boundary",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "continuation_reference": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Continuation Reference"
+              },
+              "evidence_state": {
+                "title": "Evidence State",
+                "type": "string"
+              },
+              "flash_digest": {
+                "title": "Flash Digest",
+                "type": "string"
+              },
+              "kind": {
+                "title": "Kind",
+                "type": "string"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "next_requirement": {
+                "title": "Next Requirement",
+                "type": "string"
+              },
+              "plan_changed": {
+                "const": false,
+                "default": false,
+                "title": "Plan Changed",
+                "type": "boolean"
+              },
+              "policy": {
+                "additionalProperties": true,
+                "title": "Policy",
+                "type": "object"
+              },
+              "policy_event": {
+                "title": "Policy Event",
+                "type": "string"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "project_mutated": {
+                "const": false,
+                "default": false,
+                "title": "Project Mutated",
+                "type": "boolean"
+              },
+              "source_reference": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source Reference"
+              },
+              "terminal_exit_allowed": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Exit Allowed",
+                "type": "boolean"
+              },
+              "terminal_receipt_emitted": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Receipt Emitted",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "project_id",
+              "kind",
+              "policy_event",
+              "flash_digest",
+              "policy",
+              "evidence_state",
+              "next_requirement"
+            ],
+            "title": "SessionBoundaryResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "receipts",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "4570b723432e785020abff068cae6cb6b6e9699fcef570ce80c0c35f8ee3eb30",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_exit_boundary",
+            "profile": "receipts",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:SessionManager.boundary",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_exit_boundary.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "close-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Verify exact ENV/UOP policy bytes against the current registry without writing state.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "SessionStatusRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "session_flash_status",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "action_set_digest": {
+                "title": "Action Set Digest",
+                "type": "string"
+              },
+              "authority_version": {
+                "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+                "title": "Authority Version",
+                "type": "string"
+              },
+              "context": {
+                "title": "Context",
+                "type": "string"
+              },
+              "manifest_digest": {
+                "title": "Manifest Digest",
+                "type": "string"
+              },
+              "member_count": {
+                "title": "Member Count",
+                "type": "integer"
+              },
+              "members": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Members",
+                "type": "array"
+              },
+              "native_attachment_attested": {
+                "default": false,
+                "title": "Native Attachment Attested",
+                "type": "boolean"
+              },
+              "runtime_data_mutated": {
+                "default": false,
+                "title": "Runtime Data Mutated",
+                "type": "boolean"
+              },
+              "state": {
+                "default": "verified",
+                "title": "State",
+                "type": "string"
+              }
+            },
+            "required": [
+              "manifest_digest",
+              "action_set_digest",
+              "member_count",
+              "members",
+              "context"
+            ],
+            "title": "FlashStatus",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "f5f518c18e3b774389fc919a550192dea141c1baf344c7c63ae521006cb6ca2a",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_flash_status",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_flash_status.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Resume the exact project session without duplicating or silently taking over a live owner.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "continuation_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Continuation Id"
+              },
+              "expected_event_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Expected Event Digest",
+                "type": "string"
+              },
+              "expected_generation": {
+                "minimum": 1,
+                "title": "Expected Generation",
+                "type": "integer"
+              },
+              "expected_root_pv_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Expected Root Pv Digest",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9._-]+$",
+                "title": "Reported Session Id",
+                "type": "string"
+              },
+              "require_native_attestation": {
+                "default": false,
+                "title": "Require Native Attestation",
+                "type": "boolean"
+              },
+              "session_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Session Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "reported_session_id",
+              "expected_root_pv_digest",
+              "session_id",
+              "expected_generation",
+              "expected_event_digest"
+            ],
+            "title": "SessionResume",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "session_resume",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "capture_bound": {
+                "default": false,
+                "title": "Capture Bound",
+                "type": "boolean"
+              },
+              "context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Context"
+              },
+              "event_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Event Digest"
+              },
+              "exit_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Exit Reason"
+              },
+              "flash_current": {
+                "default": false,
+                "title": "Flash Current",
+                "type": "boolean"
+              },
+              "flash_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Flash Digest"
+              },
+              "generation": {
+                "default": 0,
+                "title": "Generation",
+                "type": "integer"
+              },
+              "hook_execution_attested": {
+                "const": false,
+                "default": false,
+                "title": "Hook Execution Attested",
+                "type": "boolean"
+              },
+              "host_observation": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Host Observation"
+              },
+              "identity_scope": {
+                "const": "authenticated_engine_client",
+                "default": "authenticated_engine_client",
+                "title": "Identity Scope",
+                "type": "string"
+              },
+              "jobs_replayed": {
+                "const": false,
+                "default": false,
+                "title": "Jobs Replayed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_plan_updated": {
+                "const": false,
+                "default": false,
+                "title": "Native Plan Updated",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observation_scope": {
+                "default": "current_read",
+                "enum": [
+                  "current_read",
+                  "at_transition_commit"
+                ],
+                "title": "Observation Scope",
+                "type": "string"
+              },
+              "operation": {
+                "default": "status",
+                "title": "Operation",
+                "type": "string"
+              },
+              "owner_authenticated": {
+                "default": false,
+                "title": "Owner Authenticated",
+                "type": "boolean"
+              },
+              "owner_client_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Client Id"
+              },
+              "owner_engine_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Engine Id"
+              },
+              "plan": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Plan",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Session Id"
+              },
+              "reported_session_identity": {
+                "const": "client_report_only",
+                "default": "client_report_only",
+                "title": "Reported Session Identity",
+                "type": "string"
+              },
+              "root_pv": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Root Pv",
+                "type": "object"
+              },
+              "runtime_package_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Runtime Package Digest"
+              },
+              "session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session Id"
+              },
+              "state": {
+                "enum": [
+                  "none",
+                  "active",
+                  "closed"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "state_authority": {
+                "const": "sessions_lane_sqlite",
+                "default": "sessions_lane_sqlite",
+                "title": "State Authority",
+                "type": "string"
+              },
+              "storage_route": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Storage Route"
+              },
+              "terminal_exit": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Exit",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "project_id",
+              "state",
+              "root_pv",
+              "plan"
+            ],
+            "title": "SessionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "write",
+          "profile": "sessions",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "c688664c9dded26797c89cb73ced1c7779ca8dc68990f0195b729c5ff96fde49",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_resume",
+            "profile": "sessions",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_resume.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read the current project session, exact resume head and Plan reference.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "SessionStatusRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "session_status",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "capture_bound": {
+                "default": false,
+                "title": "Capture Bound",
+                "type": "boolean"
+              },
+              "context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Context"
+              },
+              "event_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Event Digest"
+              },
+              "exit_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Exit Reason"
+              },
+              "flash_current": {
+                "default": false,
+                "title": "Flash Current",
+                "type": "boolean"
+              },
+              "flash_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Flash Digest"
+              },
+              "generation": {
+                "default": 0,
+                "title": "Generation",
+                "type": "integer"
+              },
+              "hook_execution_attested": {
+                "const": false,
+                "default": false,
+                "title": "Hook Execution Attested",
+                "type": "boolean"
+              },
+              "host_observation": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Host Observation"
+              },
+              "identity_scope": {
+                "const": "authenticated_engine_client",
+                "default": "authenticated_engine_client",
+                "title": "Identity Scope",
+                "type": "string"
+              },
+              "jobs_replayed": {
+                "const": false,
+                "default": false,
+                "title": "Jobs Replayed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_plan_updated": {
+                "const": false,
+                "default": false,
+                "title": "Native Plan Updated",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observation_scope": {
+                "default": "current_read",
+                "enum": [
+                  "current_read",
+                  "at_transition_commit"
+                ],
+                "title": "Observation Scope",
+                "type": "string"
+              },
+              "operation": {
+                "default": "status",
+                "title": "Operation",
+                "type": "string"
+              },
+              "owner_authenticated": {
+                "default": false,
+                "title": "Owner Authenticated",
+                "type": "boolean"
+              },
+              "owner_client_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Client Id"
+              },
+              "owner_engine_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Owner Engine Id"
+              },
+              "plan": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Plan",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reported_session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Session Id"
+              },
+              "reported_session_identity": {
+                "const": "client_report_only",
+                "default": "client_report_only",
+                "title": "Reported Session Identity",
+                "type": "string"
+              },
+              "root_pv": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Root Pv",
+                "type": "object"
+              },
+              "runtime_package_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Runtime Package Digest"
+              },
+              "session_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session Id"
+              },
+              "state": {
+                "enum": [
+                  "none",
+                  "active",
+                  "closed"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "state_authority": {
+                "const": "sessions_lane_sqlite",
+                "default": "sessions_lane_sqlite",
+                "title": "State Authority",
+                "type": "string"
+              },
+              "storage_route": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Storage Route"
+              },
+              "terminal_exit": {
+                "const": false,
+                "default": false,
+                "title": "Terminal Exit",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "project_id",
+              "state",
+              "root_pv",
+              "plan"
+            ],
+            "title": "SessionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "sessions",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": true,
+          "toolchain": {
+            "contract_digest": "a239671a46940918c0443b777016fe2a5bdaa8cd0c2b321ee25fcb3b3286e59b",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "session_status",
+            "profile": "sessions",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:SessionManager.status",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "session_status.engine",
+                "systems": [
+                  "Windows",
+                  "Darwin",
+                  "Linux"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        }
+      ],
+      "artifacts": {
+        "contract_sha256": "ADBA9C5AF570BD6FB2AF6D94A6FD19E887D54402892DCE50C304DB556FD4B036",
+        "folder": "sessions",
+        "graph_exports": {
+          "both_required": false,
+          "condition": "declared_consumer_requested_view",
+          "dot": "sessions.dot",
+          "mmd": "sessions.mmd"
+        },
+        "lane_id": "sessions",
+        "natural_artifacts": {
+          "condition": "declared_operation_produced_output",
+          "extensions": []
+        },
+        "objects_root": "sessions/objects",
+        "pointer": {
+          "condition": "declared_view_consumer",
+          "meaning": "Exact authenticated engine session head and reported host binding"
+        },
+        "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+        "relationship_views": [
+          "session_heads_transitions_and_reported_host_bindings"
+        ],
+        "required_roles": [
+          {
+            "path": "sessions_authority_v001.sqlite",
+            "role_id": "sqlite_authority"
+          }
+        ],
+        "schema": "evidence-lane.lane-artifact-role-registry.v4",
+        "schema_history": {
+          "condition": "migration_applied",
+          "path": "schema-history.v4.json"
+        },
+        "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+        "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
+      },
+      "database": "sessions/sessions_authority_v001.sqlite",
+      "files": "sessions/objects",
+      "folder": "sessions",
+      "installation_verified": false,
+      "manifest": {
+        "path": "authorities/session_authority/manifest.v4.json",
+        "sha256": "637DF12F35745BC1DBD157E56E712761318A8A3D53BD4064343923FA56469134"
+      },
+      "runtime": "evidence_lane_plugin.session_authority",
+      "schema": {
+        "contract_sha256": "F5D2B614E56D2A1873E5DF1AA2610932BD729F1EA01186980B60EA458B8A152E",
+        "database_relative_path": "sessions/sessions_authority_v001.sqlite",
+        "kind": "authority",
+        "lane_id": "sessions",
+        "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+        "original_schema_sources": [
+          "src/evidence_lane_plugin/session_authority.py"
+        ],
+        "owners": [
+          "sessions"
+        ],
+        "prefixes_by_owner": {
+          "sessions": [
+            "sessions_"
+          ]
+        },
+        "qualification": "definition_only_until_owning_workflow_verified",
+        "schema": "evidence-lane.lane-schema-registry.v4",
+        "schema_history_relative_path": "sessions/schema-history.v4.json",
+        "schema_id": "evidence-lane.authority.sessions.v4",
+        "schema_version": 4,
+        "tables": [
+          "sessions_records",
+          "sessions_current",
+          "sessions_events"
+        ]
+      },
+      "source_origins": [
+        "src/evidence_lane_plugin/session_authority.py"
+      ],
+      "source_package_folder": "authorities/session_authority",
+      "surface_id": "sessions",
       "surface_kind": "authority"
     },
     {
@@ -21929,892 +24077,6 @@
         },
         {
           "cross_project_read": false,
-          "description": "Boot one project session with verified Flash and attributed capture.",
-          "inputSchema": {
-            "additionalProperties": false,
-            "properties": {
-              "expected_root_pv_digest": {
-                "pattern": "^[0-9a-f]{64}$",
-                "title": "Expected Root Pv Digest",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9._-]+$",
-                "title": "Reported Session Id",
-                "type": "string"
-              },
-              "require_native_attestation": {
-                "default": false,
-                "title": "Require Native Attestation",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "reported_session_id",
-              "expected_root_pv_digest"
-            ],
-            "title": "SessionBoot",
-            "type": "object"
-          },
-          "mutates": true,
-          "name": "session_boot",
-          "outputSchema": {
-            "$defs": {
-              "JsonValue": {}
-            },
-            "additionalProperties": false,
-            "properties": {
-              "capture_bound": {
-                "default": false,
-                "title": "Capture Bound",
-                "type": "boolean"
-              },
-              "context": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Context"
-              },
-              "event_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Event Digest"
-              },
-              "exit_reason": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Exit Reason"
-              },
-              "flash_current": {
-                "default": false,
-                "title": "Flash Current",
-                "type": "boolean"
-              },
-              "flash_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Flash Digest"
-              },
-              "generation": {
-                "default": 0,
-                "title": "Generation",
-                "type": "integer"
-              },
-              "hook_execution_attested": {
-                "const": false,
-                "default": false,
-                "title": "Hook Execution Attested",
-                "type": "boolean"
-              },
-              "host_observation": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Host Observation"
-              },
-              "identity_scope": {
-                "const": "authenticated_engine_client",
-                "default": "authenticated_engine_client",
-                "title": "Identity Scope",
-                "type": "string"
-              },
-              "jobs_replayed": {
-                "const": false,
-                "default": false,
-                "title": "Jobs Replayed",
-                "type": "boolean"
-              },
-              "native_goal_completed": {
-                "const": false,
-                "default": false,
-                "title": "Native Goal Completed",
-                "type": "boolean"
-              },
-              "native_plan_updated": {
-                "const": false,
-                "default": false,
-                "title": "Native Plan Updated",
-                "type": "boolean"
-              },
-              "native_task_attestation": {
-                "const": "not_provided",
-                "default": "not_provided",
-                "title": "Native Task Attestation",
-                "type": "string"
-              },
-              "observation_scope": {
-                "default": "current_read",
-                "enum": [
-                  "current_read",
-                  "at_transition_commit"
-                ],
-                "title": "Observation Scope",
-                "type": "string"
-              },
-              "operation": {
-                "default": "status",
-                "title": "Operation",
-                "type": "string"
-              },
-              "owner_authenticated": {
-                "default": false,
-                "title": "Owner Authenticated",
-                "type": "boolean"
-              },
-              "owner_client_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Client Id"
-              },
-              "owner_engine_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Engine Id"
-              },
-              "plan": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Plan",
-                "type": "object"
-              },
-              "project_id": {
-                "title": "Project Id",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Reported Session Id"
-              },
-              "reported_session_identity": {
-                "const": "client_report_only",
-                "default": "client_report_only",
-                "title": "Reported Session Identity",
-                "type": "string"
-              },
-              "root_pv": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Root Pv",
-                "type": "object"
-              },
-              "runtime_package_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Runtime Package Digest"
-              },
-              "session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Session Id"
-              },
-              "state": {
-                "enum": [
-                  "none",
-                  "active",
-                  "closed"
-                ],
-                "title": "State",
-                "type": "string"
-              },
-              "state_authority": {
-                "const": "receipts_lane_sqlite",
-                "default": "receipts_lane_sqlite",
-                "title": "State Authority",
-                "type": "string"
-              },
-              "storage_route": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Storage Route"
-              },
-              "terminal_exit": {
-                "const": false,
-                "default": false,
-                "title": "Terminal Exit",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "state",
-              "root_pv",
-              "plan"
-            ],
-            "title": "SessionResult",
-            "type": "object"
-          },
-          "path_fields": [],
-          "permission": "write",
-          "profile": "sessions",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "read_schemas": [],
-          "required_tools": [],
-          "requires_delta": false,
-          "studio_read": false,
-          "toolchain": {
-            "contract_digest": "29865a06dde2747ff62940798dbfc67eb9456f0e851508011031303d21f1480b",
-            "fallback_after_invocation": false,
-            "installation_implied": false,
-            "installation_matrix": "toolchains/shared-toolchain.v4.json",
-            "no_fallback_reason": "No equivalent alternate adapter is registered.",
-            "operation": "session_boot",
-            "profile": "sessions",
-            "routes": [
-              {
-                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
-                "argument_suffixes": {},
-                "argument_values": {},
-                "extension": null,
-                "fidelity": "exact_contract",
-                "host_profiles": [],
-                "provider": "engine_cpu",
-                "reason": "Registered engine adapter",
-                "route_id": "session_boot.engine",
-                "systems": [
-                  "Windows",
-                  "Darwin",
-                  "Linux"
-                ],
-                "tool_ids": [
-                  "Python"
-                ]
-              }
-            ],
-            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-            "worker_operations": []
-          },
-          "verification_checks": [],
-          "worker_operations": [],
-          "workflow": "open-project-session"
-        },
-        {
-          "cross_project_read": false,
-          "description": "Read current bounded Plan and separate lane references, verified Flash and exact engine-scoped compact recovery.",
-          "inputSchema": {
-            "additionalProperties": false,
-            "properties": {},
-            "title": "SessionStatusRequest",
-            "type": "object"
-          },
-          "mutates": false,
-          "name": "session_context",
-          "outputSchema": {
-            "$defs": {
-              "FlashStatus": {
-                "additionalProperties": false,
-                "properties": {
-                  "action_set_digest": {
-                    "title": "Action Set Digest",
-                    "type": "string"
-                  },
-                  "authority_version": {
-                    "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
-                    "title": "Authority Version",
-                    "type": "string"
-                  },
-                  "context": {
-                    "title": "Context",
-                    "type": "string"
-                  },
-                  "manifest_digest": {
-                    "title": "Manifest Digest",
-                    "type": "string"
-                  },
-                  "member_count": {
-                    "title": "Member Count",
-                    "type": "integer"
-                  },
-                  "members": {
-                    "items": {
-                      "additionalProperties": {
-                        "$ref": "#/$defs/JsonValue"
-                      },
-                      "type": "object"
-                    },
-                    "title": "Members",
-                    "type": "array"
-                  },
-                  "native_attachment_attested": {
-                    "default": false,
-                    "title": "Native Attachment Attested",
-                    "type": "boolean"
-                  },
-                  "runtime_data_mutated": {
-                    "default": false,
-                    "title": "Runtime Data Mutated",
-                    "type": "boolean"
-                  },
-                  "state": {
-                    "default": "verified",
-                    "title": "State",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "manifest_digest",
-                  "action_set_digest",
-                  "member_count",
-                  "members",
-                  "context"
-                ],
-                "title": "FlashStatus",
-                "type": "object"
-              },
-              "JsonValue": {}
-            },
-            "additionalProperties": false,
-            "properties": {
-              "engine_instance_id": {
-                "title": "Engine Instance Id",
-                "type": "string"
-              },
-              "engine_phase": {
-                "title": "Engine Phase",
-                "type": "string"
-              },
-              "flash": {
-                "$ref": "#/$defs/FlashStatus"
-              },
-              "host": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Host",
-                "type": "object"
-              },
-              "managed_toolchain": {
-                "title": "Managed Toolchain",
-                "type": "string"
-              },
-              "native_task_attestation": {
-                "default": "not_provided",
-                "title": "Native Task Attestation",
-                "type": "string"
-              },
-              "operating_context": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Operating Context",
-                "type": "object"
-              },
-              "package_digest": {
-                "title": "Package Digest",
-                "type": "string"
-              },
-              "project_mutated": {
-                "default": false,
-                "title": "Project Mutated",
-                "type": "boolean"
-              },
-              "studio_supported": {
-                "title": "Studio Supported",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "engine_phase",
-              "engine_instance_id",
-              "package_digest",
-              "flash",
-              "host",
-              "studio_supported",
-              "managed_toolchain",
-              "operating_context"
-            ],
-            "title": "SessionContext",
-            "type": "object"
-          },
-          "path_fields": [],
-          "permission": "read",
-          "profile": "sessions",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "read_schemas": [],
-          "required_tools": [],
-          "requires_delta": false,
-          "studio_read": false,
-          "toolchain": {
-            "contract_digest": "3f804dade0c069c415ff119e161524dc0ed0f30da9687600a4d2a58e1a2c5c1d",
-            "fallback_after_invocation": false,
-            "installation_implied": false,
-            "installation_matrix": "toolchains/shared-toolchain.v4.json",
-            "no_fallback_reason": "No equivalent alternate adapter is registered.",
-            "operation": "session_context",
-            "profile": "sessions",
-            "routes": [
-              {
-                "adapter": "evidence_lane_plugin.session:SessionManager.context",
-                "argument_suffixes": {},
-                "argument_values": {},
-                "extension": null,
-                "fidelity": "exact_contract",
-                "host_profiles": [],
-                "provider": "engine_cpu",
-                "reason": "Registered engine adapter",
-                "route_id": "session_context.engine",
-                "systems": [
-                  "Windows",
-                  "Darwin",
-                  "Linux"
-                ],
-                "tool_ids": [
-                  "Python"
-                ]
-              }
-            ],
-            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-            "worker_operations": []
-          },
-          "verification_checks": [],
-          "worker_operations": [],
-          "workflow": "open-project-session"
-        },
-        {
-          "cross_project_read": false,
-          "description": "Close the exact current session at a safe boundary and detach its capture binding.",
-          "inputSchema": {
-            "additionalProperties": false,
-            "properties": {
-              "expected_event_digest": {
-                "pattern": "^[0-9a-f]{64}$",
-                "title": "Expected Event Digest",
-                "type": "string"
-              },
-              "expected_generation": {
-                "minimum": 1,
-                "title": "Expected Generation",
-                "type": "integer"
-              },
-              "reason": {
-                "maxLength": 1000,
-                "minLength": 1,
-                "title": "Reason",
-                "type": "string"
-              },
-              "session_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Session Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "session_id",
-              "expected_generation",
-              "expected_event_digest",
-              "reason"
-            ],
-            "title": "SessionExit",
-            "type": "object"
-          },
-          "mutates": true,
-          "name": "session_exit",
-          "outputSchema": {
-            "$defs": {
-              "JsonValue": {}
-            },
-            "additionalProperties": false,
-            "properties": {
-              "capture_bound": {
-                "default": false,
-                "title": "Capture Bound",
-                "type": "boolean"
-              },
-              "context": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Context"
-              },
-              "event_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Event Digest"
-              },
-              "exit_reason": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Exit Reason"
-              },
-              "flash_current": {
-                "default": false,
-                "title": "Flash Current",
-                "type": "boolean"
-              },
-              "flash_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Flash Digest"
-              },
-              "generation": {
-                "default": 0,
-                "title": "Generation",
-                "type": "integer"
-              },
-              "hook_execution_attested": {
-                "const": false,
-                "default": false,
-                "title": "Hook Execution Attested",
-                "type": "boolean"
-              },
-              "host_observation": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Host Observation"
-              },
-              "identity_scope": {
-                "const": "authenticated_engine_client",
-                "default": "authenticated_engine_client",
-                "title": "Identity Scope",
-                "type": "string"
-              },
-              "jobs_replayed": {
-                "const": false,
-                "default": false,
-                "title": "Jobs Replayed",
-                "type": "boolean"
-              },
-              "native_goal_completed": {
-                "const": false,
-                "default": false,
-                "title": "Native Goal Completed",
-                "type": "boolean"
-              },
-              "native_plan_updated": {
-                "const": false,
-                "default": false,
-                "title": "Native Plan Updated",
-                "type": "boolean"
-              },
-              "native_task_attestation": {
-                "const": "not_provided",
-                "default": "not_provided",
-                "title": "Native Task Attestation",
-                "type": "string"
-              },
-              "observation_scope": {
-                "default": "current_read",
-                "enum": [
-                  "current_read",
-                  "at_transition_commit"
-                ],
-                "title": "Observation Scope",
-                "type": "string"
-              },
-              "operation": {
-                "default": "status",
-                "title": "Operation",
-                "type": "string"
-              },
-              "owner_authenticated": {
-                "default": false,
-                "title": "Owner Authenticated",
-                "type": "boolean"
-              },
-              "owner_client_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Client Id"
-              },
-              "owner_engine_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Engine Id"
-              },
-              "plan": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Plan",
-                "type": "object"
-              },
-              "project_id": {
-                "title": "Project Id",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Reported Session Id"
-              },
-              "reported_session_identity": {
-                "const": "client_report_only",
-                "default": "client_report_only",
-                "title": "Reported Session Identity",
-                "type": "string"
-              },
-              "root_pv": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Root Pv",
-                "type": "object"
-              },
-              "runtime_package_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Runtime Package Digest"
-              },
-              "session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Session Id"
-              },
-              "state": {
-                "enum": [
-                  "none",
-                  "active",
-                  "closed"
-                ],
-                "title": "State",
-                "type": "string"
-              },
-              "state_authority": {
-                "const": "receipts_lane_sqlite",
-                "default": "receipts_lane_sqlite",
-                "title": "State Authority",
-                "type": "string"
-              },
-              "storage_route": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Storage Route"
-              },
-              "terminal_exit": {
-                "const": false,
-                "default": false,
-                "title": "Terminal Exit",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "state",
-              "root_pv",
-              "plan"
-            ],
-            "title": "SessionResult",
-            "type": "object"
-          },
-          "path_fields": [],
-          "permission": "write",
-          "profile": "sessions",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "read_schemas": [],
-          "required_tools": [],
-          "requires_delta": false,
-          "studio_read": false,
-          "toolchain": {
-            "contract_digest": "a3bbf3acc36f9c641a91b32bffb603b6ff2f7158846f4ad776d4b38c2ec231c7",
-            "fallback_after_invocation": false,
-            "installation_implied": false,
-            "installation_matrix": "toolchains/shared-toolchain.v4.json",
-            "no_fallback_reason": "No equivalent alternate adapter is registered.",
-            "operation": "session_exit",
-            "profile": "sessions",
-            "routes": [
-              {
-                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
-                "argument_suffixes": {},
-                "argument_values": {},
-                "extension": null,
-                "fidelity": "exact_contract",
-                "host_profiles": [],
-                "provider": "engine_cpu",
-                "reason": "Registered engine adapter",
-                "route_id": "session_exit.engine",
-                "systems": [
-                  "Windows",
-                  "Darwin",
-                  "Linux"
-                ],
-                "tool_ids": [
-                  "Python"
-                ]
-              }
-            ],
-            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-            "worker_operations": []
-          },
-          "verification_checks": [],
-          "worker_operations": [],
-          "workflow": "close-project-session"
-        },
-        {
-          "cross_project_read": false,
           "description": "Inspect exact local exit references and current UOP gates; unsupported native Goal or project handoff proof cannot become a terminal receipt.",
           "inputSchema": {
             "additionalProperties": false,
@@ -23037,711 +24299,6 @@
           "verification_checks": [],
           "worker_operations": [],
           "workflow": "close-project-session"
-        },
-        {
-          "cross_project_read": false,
-          "description": "Resume the exact project session without duplicating or silently taking over a live owner.",
-          "inputSchema": {
-            "additionalProperties": false,
-            "properties": {
-              "continuation_id": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Continuation Id"
-              },
-              "expected_event_digest": {
-                "pattern": "^[0-9a-f]{64}$",
-                "title": "Expected Event Digest",
-                "type": "string"
-              },
-              "expected_generation": {
-                "minimum": 1,
-                "title": "Expected Generation",
-                "type": "integer"
-              },
-              "expected_root_pv_digest": {
-                "pattern": "^[0-9a-f]{64}$",
-                "title": "Expected Root Pv Digest",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9._-]+$",
-                "title": "Reported Session Id",
-                "type": "string"
-              },
-              "require_native_attestation": {
-                "default": false,
-                "title": "Require Native Attestation",
-                "type": "boolean"
-              },
-              "session_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Session Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "reported_session_id",
-              "expected_root_pv_digest",
-              "session_id",
-              "expected_generation",
-              "expected_event_digest"
-            ],
-            "title": "SessionResume",
-            "type": "object"
-          },
-          "mutates": true,
-          "name": "session_resume",
-          "outputSchema": {
-            "$defs": {
-              "JsonValue": {}
-            },
-            "additionalProperties": false,
-            "properties": {
-              "capture_bound": {
-                "default": false,
-                "title": "Capture Bound",
-                "type": "boolean"
-              },
-              "context": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Context"
-              },
-              "event_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Event Digest"
-              },
-              "exit_reason": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Exit Reason"
-              },
-              "flash_current": {
-                "default": false,
-                "title": "Flash Current",
-                "type": "boolean"
-              },
-              "flash_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Flash Digest"
-              },
-              "generation": {
-                "default": 0,
-                "title": "Generation",
-                "type": "integer"
-              },
-              "hook_execution_attested": {
-                "const": false,
-                "default": false,
-                "title": "Hook Execution Attested",
-                "type": "boolean"
-              },
-              "host_observation": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Host Observation"
-              },
-              "identity_scope": {
-                "const": "authenticated_engine_client",
-                "default": "authenticated_engine_client",
-                "title": "Identity Scope",
-                "type": "string"
-              },
-              "jobs_replayed": {
-                "const": false,
-                "default": false,
-                "title": "Jobs Replayed",
-                "type": "boolean"
-              },
-              "native_goal_completed": {
-                "const": false,
-                "default": false,
-                "title": "Native Goal Completed",
-                "type": "boolean"
-              },
-              "native_plan_updated": {
-                "const": false,
-                "default": false,
-                "title": "Native Plan Updated",
-                "type": "boolean"
-              },
-              "native_task_attestation": {
-                "const": "not_provided",
-                "default": "not_provided",
-                "title": "Native Task Attestation",
-                "type": "string"
-              },
-              "observation_scope": {
-                "default": "current_read",
-                "enum": [
-                  "current_read",
-                  "at_transition_commit"
-                ],
-                "title": "Observation Scope",
-                "type": "string"
-              },
-              "operation": {
-                "default": "status",
-                "title": "Operation",
-                "type": "string"
-              },
-              "owner_authenticated": {
-                "default": false,
-                "title": "Owner Authenticated",
-                "type": "boolean"
-              },
-              "owner_client_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Client Id"
-              },
-              "owner_engine_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Engine Id"
-              },
-              "plan": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Plan",
-                "type": "object"
-              },
-              "project_id": {
-                "title": "Project Id",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Reported Session Id"
-              },
-              "reported_session_identity": {
-                "const": "client_report_only",
-                "default": "client_report_only",
-                "title": "Reported Session Identity",
-                "type": "string"
-              },
-              "root_pv": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Root Pv",
-                "type": "object"
-              },
-              "runtime_package_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Runtime Package Digest"
-              },
-              "session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Session Id"
-              },
-              "state": {
-                "enum": [
-                  "none",
-                  "active",
-                  "closed"
-                ],
-                "title": "State",
-                "type": "string"
-              },
-              "state_authority": {
-                "const": "receipts_lane_sqlite",
-                "default": "receipts_lane_sqlite",
-                "title": "State Authority",
-                "type": "string"
-              },
-              "storage_route": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Storage Route"
-              },
-              "terminal_exit": {
-                "const": false,
-                "default": false,
-                "title": "Terminal Exit",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "state",
-              "root_pv",
-              "plan"
-            ],
-            "title": "SessionResult",
-            "type": "object"
-          },
-          "path_fields": [],
-          "permission": "write",
-          "profile": "sessions",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "read_schemas": [],
-          "required_tools": [],
-          "requires_delta": false,
-          "studio_read": false,
-          "toolchain": {
-            "contract_digest": "c688664c9dded26797c89cb73ced1c7779ca8dc68990f0195b729c5ff96fde49",
-            "fallback_after_invocation": false,
-            "installation_implied": false,
-            "installation_matrix": "toolchains/shared-toolchain.v4.json",
-            "no_fallback_reason": "No equivalent alternate adapter is registered.",
-            "operation": "session_resume",
-            "profile": "sessions",
-            "routes": [
-              {
-                "adapter": "evidence_lane_plugin.session:register_session_actions.<locals>.<lambda>",
-                "argument_suffixes": {},
-                "argument_values": {},
-                "extension": null,
-                "fidelity": "exact_contract",
-                "host_profiles": [],
-                "provider": "engine_cpu",
-                "reason": "Registered engine adapter",
-                "route_id": "session_resume.engine",
-                "systems": [
-                  "Windows",
-                  "Darwin",
-                  "Linux"
-                ],
-                "tool_ids": [
-                  "Python"
-                ]
-              }
-            ],
-            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-            "worker_operations": []
-          },
-          "verification_checks": [],
-          "worker_operations": [],
-          "workflow": "open-project-session"
-        },
-        {
-          "cross_project_read": false,
-          "description": "Read the current project session, exact resume head and Plan reference.",
-          "inputSchema": {
-            "additionalProperties": false,
-            "properties": {},
-            "title": "SessionStatusRequest",
-            "type": "object"
-          },
-          "mutates": false,
-          "name": "session_status",
-          "outputSchema": {
-            "$defs": {
-              "JsonValue": {}
-            },
-            "additionalProperties": false,
-            "properties": {
-              "capture_bound": {
-                "default": false,
-                "title": "Capture Bound",
-                "type": "boolean"
-              },
-              "context": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Context"
-              },
-              "event_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Event Digest"
-              },
-              "exit_reason": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Exit Reason"
-              },
-              "flash_current": {
-                "default": false,
-                "title": "Flash Current",
-                "type": "boolean"
-              },
-              "flash_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Flash Digest"
-              },
-              "generation": {
-                "default": 0,
-                "title": "Generation",
-                "type": "integer"
-              },
-              "hook_execution_attested": {
-                "const": false,
-                "default": false,
-                "title": "Hook Execution Attested",
-                "type": "boolean"
-              },
-              "host_observation": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Host Observation"
-              },
-              "identity_scope": {
-                "const": "authenticated_engine_client",
-                "default": "authenticated_engine_client",
-                "title": "Identity Scope",
-                "type": "string"
-              },
-              "jobs_replayed": {
-                "const": false,
-                "default": false,
-                "title": "Jobs Replayed",
-                "type": "boolean"
-              },
-              "native_goal_completed": {
-                "const": false,
-                "default": false,
-                "title": "Native Goal Completed",
-                "type": "boolean"
-              },
-              "native_plan_updated": {
-                "const": false,
-                "default": false,
-                "title": "Native Plan Updated",
-                "type": "boolean"
-              },
-              "native_task_attestation": {
-                "const": "not_provided",
-                "default": "not_provided",
-                "title": "Native Task Attestation",
-                "type": "string"
-              },
-              "observation_scope": {
-                "default": "current_read",
-                "enum": [
-                  "current_read",
-                  "at_transition_commit"
-                ],
-                "title": "Observation Scope",
-                "type": "string"
-              },
-              "operation": {
-                "default": "status",
-                "title": "Operation",
-                "type": "string"
-              },
-              "owner_authenticated": {
-                "default": false,
-                "title": "Owner Authenticated",
-                "type": "boolean"
-              },
-              "owner_client_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Client Id"
-              },
-              "owner_engine_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Owner Engine Id"
-              },
-              "plan": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Plan",
-                "type": "object"
-              },
-              "project_id": {
-                "title": "Project Id",
-                "type": "string"
-              },
-              "reported_session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Reported Session Id"
-              },
-              "reported_session_identity": {
-                "const": "client_report_only",
-                "default": "client_report_only",
-                "title": "Reported Session Identity",
-                "type": "string"
-              },
-              "root_pv": {
-                "additionalProperties": {
-                  "$ref": "#/$defs/JsonValue"
-                },
-                "title": "Root Pv",
-                "type": "object"
-              },
-              "runtime_package_digest": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Runtime Package Digest"
-              },
-              "session_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Session Id"
-              },
-              "state": {
-                "enum": [
-                  "none",
-                  "active",
-                  "closed"
-                ],
-                "title": "State",
-                "type": "string"
-              },
-              "state_authority": {
-                "const": "receipts_lane_sqlite",
-                "default": "receipts_lane_sqlite",
-                "title": "State Authority",
-                "type": "string"
-              },
-              "storage_route": {
-                "anyOf": [
-                  {
-                    "additionalProperties": {
-                      "$ref": "#/$defs/JsonValue"
-                    },
-                    "type": "object"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Storage Route"
-              },
-              "terminal_exit": {
-                "const": false,
-                "default": false,
-                "title": "Terminal Exit",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "state",
-              "root_pv",
-              "plan"
-            ],
-            "title": "SessionResult",
-            "type": "object"
-          },
-          "path_fields": [],
-          "permission": "read",
-          "profile": "sessions",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "read_schemas": [],
-          "required_tools": [],
-          "requires_delta": false,
-          "studio_read": true,
-          "toolchain": {
-            "contract_digest": "a239671a46940918c0443b777016fe2a5bdaa8cd0c2b321ee25fcb3b3286e59b",
-            "fallback_after_invocation": false,
-            "installation_implied": false,
-            "installation_matrix": "toolchains/shared-toolchain.v4.json",
-            "no_fallback_reason": "No equivalent alternate adapter is registered.",
-            "operation": "session_status",
-            "profile": "sessions",
-            "routes": [
-              {
-                "adapter": "evidence_lane_plugin.session:SessionManager.status",
-                "argument_suffixes": {},
-                "argument_values": {},
-                "extension": null,
-                "fidelity": "exact_contract",
-                "host_profiles": [],
-                "provider": "engine_cpu",
-                "reason": "Registered engine adapter",
-                "route_id": "session_status.engine",
-                "systems": [
-                  "Windows",
-                  "Darwin",
-                  "Linux"
-                ],
-                "tool_ids": [
-                  "Python"
-                ]
-              }
-            ],
-            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-            "worker_operations": []
-          },
-          "verification_checks": [],
-          "worker_operations": [],
-          "workflow": "open-project-session"
         },
         {
           "cross_project_read": false,
@@ -24431,9 +24988,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "05C9A12758698D4F7133CB1B0D8F710D6B3305B7B3B1D643CFBCBD87114F7B40",
-        "files_root": "authorities/receipts/files",
-        "folder": "authorities/receipts",
+        "contract_sha256": "8F57BD4C3AF0BD4E1A3C8AC04051BE8783D9E4A6709D2D93D48CA40CAFBE18F9",
+        "folder": "receipts",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -24445,6 +25001,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "receipts/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -24462,23 +25019,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/receipts/receipts_authority_v001.sqlite",
-      "files": "authorities/receipts/files",
-      "folder": "authorities/receipts",
+      "database": "receipts/receipts_authority_v001.sqlite",
+      "files": "receipts/objects",
+      "folder": "receipts",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/receipt_ledger/manifest.v4.json",
-        "sha256": "0B66123D5D365BFDAFC07822DBD3E6DC76748BBB954F5BF30792B69EDD4C0E4F"
+        "sha256": "F98BEA08058EC4AAD981F7E7A09C51AB665900403BF90588C9E830C8E92B7FA4"
       },
       "runtime": "evidence_lane_plugin.projects",
       "schema": {
-        "contract_sha256": "5F4A912F9DD326FFC95143AF7E7BF58DE94575A3E241C6AB7038391ABEF27BEF",
-        "database_relative_path": "authorities/receipts/receipts_authority_v001.sqlite",
+        "contract_sha256": "79B9E3DCDA9C2A495755B2233C1EF2021E6D95FC6F93723FBB01B8A760EC36DC",
+        "database_relative_path": "receipts/receipts_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "receipts",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -24492,7 +25049,6 @@
           "accelerator",
           "recovery",
           "remote",
-          "sessions",
           "hostmemory",
           "gitpush",
           "capture",
@@ -24526,16 +25082,13 @@
           "remote": [
             "remote_"
           ],
-          "sessions": [
-            "sessions_"
-          ],
           "storage": [
             "storage_"
           ]
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/receipts/schema-history",
+        "schema_history_relative_path": "receipts/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.receipts.v4",
         "schema_version": 4,
         "tables": [
@@ -26405,9 +26958,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "69465C676605970703240B9199D7C70035E43C89D11955256066ECC06DC3004B",
-        "files_root": "authorities/universe/files",
-        "folder": "authorities/universe",
+        "contract_sha256": "8F0B39A342ABF63EE05DAA9E3FAD904872800ECD91705E0CBFD13D0230B14757",
+        "folder": "universe",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -26419,6 +26971,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "universe/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -26436,23 +26989,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "authorities/universe/universe_authority_v001.sqlite",
-      "files": "authorities/universe/files",
-      "folder": "authorities/universe",
+      "database": "universe/universe_authority_v001.sqlite",
+      "files": "universe/objects",
+      "folder": "universe",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_universe/manifest.v4.json",
-        "sha256": "F4AC594EF9009DF4E16DD381E9851A93086B86FC42CBBF7DF1453FB13DA35D6E"
+        "sha256": "DA4F4179B0B284A3C909DDC1404EDF1F702AF43F691AD063C6504B63CF49F8A9"
       },
       "runtime": "evidence_lane_plugin.project_universe",
       "schema": {
-        "contract_sha256": "C0EAA654E17D243600C6E392C3F0E7CCF74A6F99F631D663C899B8167EDFD50D",
-        "database_relative_path": "authorities/universe/universe_authority_v001.sqlite",
+        "contract_sha256": "4ADB7F225C1E9386F126513BF99F76C6F73C2432A54B4E75566934B31642437D",
+        "database_relative_path": "universe/universe_authority_v001.sqlite",
         "kind": "authority",
         "lane_id": "universe",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -26473,7 +27026,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "authorities/universe/schema-history",
+        "schema_history_relative_path": "universe/schema-history.v4.json",
         "schema_id": "evidence-lane.authority.universe.v4",
         "schema_version": 4,
         "tables": [
@@ -29038,9 +29591,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "775887863E941C5E595A76816FCFE5D24515B9DA5BCB8BCA1586A671FBB78630",
-        "files_root": "sectors/github_code/files",
-        "folder": "sectors/github_code",
+        "contract_sha256": "39D8A445AAC6A0FBDBB8C999B908ED85B5AF2CC5FD92DEF44C102BD06E3FC41F",
+        "folder": "github_code",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -29052,6 +29604,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "github_code/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact indexed repository and commit selection"
@@ -29069,23 +29622,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/github_code/github_code_sector_v001.sqlite",
-      "files": "sectors/github_code/files",
-      "folder": "sectors/github_code",
+      "database": "github_code/github_code_sector_v001.sqlite",
+      "files": "github_code/objects",
+      "folder": "github_code",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/github_code/manifest.v4.json",
-        "sha256": "C37F9F5078F85D41D2536D1FC060DA15E060A96F0F75891A0D65B0E524062345"
+        "sha256": "E924B52E91DEF1DC42A3B6D0D9FFB6389CBFE3CB29EE3E774D2E8A83F000C87F"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
-        "contract_sha256": "2C9C47877EC77593891A737525C590CBD7ACB37DBDE2F28B8D89758775EAB0BC",
-        "database_relative_path": "sectors/github_code/github_code_sector_v001.sqlite",
+        "contract_sha256": "487D9751EF0B74909E2EBCF634131C6F8EF415703EA4D6B5D8F906A707CBC203",
+        "database_relative_path": "github_code/github_code_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "github_code",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -29106,7 +29659,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/github_code/schema-history",
+        "schema_history_relative_path": "github_code/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.github_code.v4",
         "schema_version": 4,
         "tables": [
@@ -32190,9 +32743,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "08DA284D12F301A06AA2A5582560BE9D71EA8956EDCFBCFAC18E98C4034D6358",
-        "files_root": "sectors/local_code/files",
-        "folder": "sectors/local_code",
+        "contract_sha256": "10E7AB89B8484067B8255E806AD0FEB52ECA141F18DE3AE756B4514B68A08105",
+        "folder": "local_code",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -32204,6 +32756,7 @@
           "condition": "declared_operation_produced_output",
           "extensions": []
         },
+        "objects_root": "local_code/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact indexed working-tree source hashes"
@@ -32221,23 +32774,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/local_code/local_code_sector_v001.sqlite",
-      "files": "sectors/local_code/files",
-      "folder": "sectors/local_code",
+      "database": "local_code/local_code_sector_v001.sqlite",
+      "files": "local_code/objects",
+      "folder": "local_code",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/local_code/manifest.v4.json",
-        "sha256": "48B38A15E3D47EEAB6129E671A84A25593BAA96B7A03ECC70B05C55DEEB5C88D"
+        "sha256": "797F41F41CC40E5CA2A62B2899FC4A21674E03604CCF6A89454B57A8A4E80BA3"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
-        "contract_sha256": "6210AE6BD1320D4CF0ED582BFFBE0102CCB7477155AA0333067CD77308B627DA",
-        "database_relative_path": "sectors/local_code/local_code_sector_v001.sqlite",
+        "contract_sha256": "4C0CEE440A1875FF67B73C65D3354B1332B0000E2EB52B223E18257469E2AA5B",
+        "database_relative_path": "local_code/local_code_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "local_code",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -32258,7 +32811,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/local_code/schema-history",
+        "schema_history_relative_path": "local_code/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.local_code.v4",
         "schema_version": 4,
         "tables": [
@@ -34669,9 +35222,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "7BA0B1392FBD209DD8B37D331F03D5067B78C326D0E44BF9F26E4321B9BB68E7",
-        "files_root": "sectors/docs/files",
-        "folder": "sectors/docs",
+        "contract_sha256": "B6F4BA87C99E7495D6BB6581716887952B791A2BC367C6B359B3F7AA9256F6B0",
+        "folder": "docs",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -34691,6 +35243,7 @@
             ".png"
           ]
         },
+        "objects_root": "docs/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact immutable document and native structure item locators; page renders are separate"
@@ -34708,23 +35261,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/docs/docs_sector_v001.sqlite",
-      "files": "sectors/docs/files",
-      "folder": "sectors/docs",
+      "database": "docs/docs_sector_v001.sqlite",
+      "files": "docs/objects",
+      "folder": "docs",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/docs/manifest.v4.json",
-        "sha256": "0F2DAF931B1C2E39CC89B44017E3E0C3F0705E2E062E68B2D1C2A80096F1F7B2"
+        "sha256": "7E0715E7AA0573B098DAA356D5A3DC785DB3F5A4467D9A383E7300AB57C2DE0A"
       },
       "runtime": "evidence_lane_plugin.document_profile",
       "schema": {
-        "contract_sha256": "7E3837C4A42907B0B9C1109C861C655D899F07A910936E10AC7180C5F05644CB",
-        "database_relative_path": "sectors/docs/docs_sector_v001.sqlite",
+        "contract_sha256": "7A78B775D1868FCDB590979AEDDFAFDBA3311D3638315CCBA79DDCDA6FB5E2F4",
+        "database_relative_path": "docs/docs_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "docs",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -34746,7 +35299,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/docs/schema-history",
+        "schema_history_relative_path": "docs/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.docs.v4",
         "schema_version": 4,
         "tables": [
@@ -37833,9 +38386,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C",
-        "files_root": "sectors/data_excel/files",
-        "folder": "sectors/data_excel",
+        "contract_sha256": "3282CE1037D03D7B1E7F038E5A9493FD6A701916A447C34D510965E78FF79B27",
+        "folder": "data_excel",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -37857,6 +38409,7 @@
             ".png"
           ]
         },
+        "objects_root": "data_excel/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -37874,23 +38427,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
-      "files": "sectors/data_excel/files",
-      "folder": "sectors/data_excel",
+      "database": "data_excel/data_excel_sector_v001.sqlite",
+      "files": "data_excel/objects",
+      "folder": "data_excel",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/data_excel/manifest.v4.json",
-        "sha256": "C2BB5E311B7E31FCFBCDA955A100DE245233531AE0E943DFF2AA963280A937F1"
+        "sha256": "AF532D887CD39024028AFF4418689EA3B26502F61512203C01D08C33DCFBDABC"
       },
       "runtime": "evidence_lane_plugin.tabular_profile",
       "schema": {
-        "contract_sha256": "A66C4B96A8BD053A93C54F63794621B0D44A4F6A0825EF6CFB46017A4F7C8AE8",
-        "database_relative_path": "sectors/data_excel/data_excel_sector_v001.sqlite",
+        "contract_sha256": "ECC342DBDA09E32792A0116FB4A21E4D58A985B81F1B384644CAB3B13AFE2DEE",
+        "database_relative_path": "data_excel/data_excel_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "data_excel",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -37911,7 +38464,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/data_excel/schema-history",
+        "schema_history_relative_path": "data_excel/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.data_excel.v4",
         "schema_version": 4,
         "tables": [
@@ -40434,9 +40987,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "F3E85A0F941B60A5CBCDB490AF88DE7EE8C81AC083E2F68E27FB763EEB577B57",
-        "files_root": "sectors/ppt/files",
-        "folder": "sectors/ppt",
+        "contract_sha256": "FDB572E39ACCEC42A52C92FE5809083A0D3C1EAEEEBDF543940B563E1152008A",
+        "folder": "ppt",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -40457,6 +41009,7 @@
             ".png"
           ]
         },
+        "objects_root": "ppt/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact presentation snapshot, declared slide number and native object locators; rendered pages are separate"
@@ -40474,23 +41027,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/ppt/ppt_sector_v001.sqlite",
-      "files": "sectors/ppt/files",
-      "folder": "sectors/ppt",
+      "database": "ppt/ppt_sector_v001.sqlite",
+      "files": "ppt/objects",
+      "folder": "ppt",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/ppt/manifest.v4.json",
-        "sha256": "11D0B2FF2059F504E26719B2C1FDD7B5585A911E29E9793921892CA6E96B54F3"
+        "sha256": "B77093940E2C2E9FC9AADCE18062224FDDA6390673F25797CC8C1677BE1390F9"
       },
       "runtime": "evidence_lane_plugin.presentation_profile",
       "schema": {
-        "contract_sha256": "5FB8D315D4142D7CE76E117C78C63BF7C9B2C8FDE75E0498B8E5688D97778839",
-        "database_relative_path": "sectors/ppt/ppt_sector_v001.sqlite",
+        "contract_sha256": "796E0BB8E876E61D07027FAD1A7F12318F7810D1C81B3341723B5E74194B71AB",
+        "database_relative_path": "ppt/ppt_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "ppt",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -40511,7 +41064,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/ppt/schema-history",
+        "schema_history_relative_path": "ppt/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.ppt.v4",
         "schema_version": 4,
         "tables": [
@@ -43865,9 +44418,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "3DA21A7786678DB2791F4A00881015D2618BDA872002315E5B7E2906FDC78856",
-        "files_root": "sectors/pdf_ocr/files",
-        "folder": "sectors/pdf_ocr",
+        "contract_sha256": "EE394F5C646F915B1307D2648CAC57DC8EF8955C64E826EBA96C7CF983A96D2A",
+        "folder": "pdf_ocr",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -43883,6 +44435,7 @@
             ".png"
           ]
         },
+        "objects_root": "pdf_ocr/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact PDF snapshot, page and native item locators; raster/OCR/Docling derivatives keep independent source bindings."
@@ -43900,23 +44453,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
-      "files": "sectors/pdf_ocr/files",
-      "folder": "sectors/pdf_ocr",
+      "database": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "files": "pdf_ocr/objects",
+      "folder": "pdf_ocr",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/pdf_ocr/manifest.v4.json",
-        "sha256": "C69E83290A7020F33727C938B01DB93DE9B2A13EC31A0A7ACB25810B3E2DFADA"
+        "sha256": "0F324A94C5289D75D3D688074C7EE5DC793B25D85F0C0DA4B4FD3D305D6F0FF5"
       },
       "runtime": "evidence_lane_plugin.pdf_profile",
       "schema": {
-        "contract_sha256": "2DFF7B85B418DECD1D691E3B5DEDED0F234DEAF8B5D1C0760D03EAAECBDAA883",
-        "database_relative_path": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+        "contract_sha256": "39F5B92F94F448248B5B2C5925F03A02FB88B4A1C4A0B000C64AC8AF06773001",
+        "database_relative_path": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "pdf_ocr",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -43938,7 +44491,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/pdf_ocr/schema-history",
+        "schema_history_relative_path": "pdf_ocr/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.pdf_ocr.v4",
         "schema_version": 4,
         "tables": [
@@ -46712,9 +47265,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "6CA075F1AA8B1A9FDA7B5A3342B285490E43F87BD8AB64189CBEB2B10E0243A7",
-        "files_root": "sectors/images_ocr/files",
-        "folder": "sectors/images_ocr",
+        "contract_sha256": "5B1B579E6EDBB81602B7C6631128DD590588EE72C69C5BF5F376D9614761A598",
+        "folder": "images_ocr",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -46733,6 +47285,7 @@
             ".txt"
           ]
         },
+        "objects_root": "images_ocr/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -46750,23 +47303,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
-      "files": "sectors/images_ocr/files",
-      "folder": "sectors/images_ocr",
+      "database": "images_ocr/images_ocr_sector_v001.sqlite",
+      "files": "images_ocr/objects",
+      "folder": "images_ocr",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/images_ocr/manifest.v4.json",
-        "sha256": "098868D8F024925C686304F63D904EEF92CEE2FD9C4B30ABDF773A533611DEC3"
+        "sha256": "E5CF7BAFE2B3D818BDDE9D79C4E52FA0AFDEA628B2F8B6049BCBB418FEEAD3AA"
       },
       "runtime": "evidence_lane_plugin.media_profile",
       "schema": {
-        "contract_sha256": "7FD72417839138783E7CA5D262EBE4EFE9FBE4141685BD64D678113138D6A0E1",
-        "database_relative_path": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+        "contract_sha256": "101E23A1D247E4122B20DDAA203E5FF83244EA2DD3CF9ECD3E1374DA5106D1B6",
+        "database_relative_path": "images_ocr/images_ocr_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "images_ocr",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -46787,7 +47340,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/images_ocr/schema-history",
+        "schema_history_relative_path": "images_ocr/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.images_ocr.v4",
         "schema_version": 4,
         "tables": [
@@ -48805,9 +49358,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "13A15772CDA7D1777CE83C9C0959F1BD94B6ED437F9153D644B0A101FAA49E43",
-        "files_root": "sectors/artifacts/files",
-        "folder": "sectors/artifacts",
+        "contract_sha256": "97C1168660C40E2968DB6AED4B10255E7BFF43829745B069403F76B9945788F4",
+        "folder": "artifacts",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -48821,6 +49373,7 @@
             "*declared_by_producer"
           ]
         },
+        "objects_root": "artifacts/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact produced artifact and verification receipt"
@@ -48838,23 +49391,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
-      "files": "sectors/artifacts/files",
-      "folder": "sectors/artifacts",
+      "database": "artifacts/artifacts_sector_v001.sqlite",
+      "files": "artifacts/objects",
+      "folder": "artifacts",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/artifacts/manifest.v4.json",
-        "sha256": "6DDEF803D0020C5A1A10180DEE542236AE23C5A033F0D2A7023E8B7A3A70ABE6"
+        "sha256": "541C26520D351C18421BD48EEBADB72BDF2C2B61A473768ACA77E61567B8B79B"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
-        "contract_sha256": "7D3319448D0BC523E3DCA9106B51FE4CCEC2F3113224D962C6BBF4EFFCC09AAA",
-        "database_relative_path": "sectors/artifacts/artifacts_sector_v001.sqlite",
+        "contract_sha256": "1189C62DCEB964623A46DF52AFCF5A82EAEEC4115F996F6377AF94FECCEA0E31",
+        "database_relative_path": "artifacts/artifacts_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "artifacts",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -48876,7 +49429,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/artifacts/schema-history",
+        "schema_history_relative_path": "artifacts/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.artifacts.v4",
         "schema_version": 4,
         "tables": [
@@ -50894,9 +51447,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "F600829AC08FCDE33E83C382D4B5F31E592419AE687BBB5078711B3E11351BFA",
-        "files_root": "sectors/custom/files",
-        "folder": "sectors/custom",
+        "contract_sha256": "33F1C2D86DBFF938951912B4BC855976DDD5C0E9C3B6C8E7BD88CDE55482772E",
+        "folder": "custom",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -50910,6 +51462,7 @@
             "*declared_by_adapter"
           ]
         },
+        "objects_root": "custom/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -50927,23 +51480,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/custom/custom_sector_v001.sqlite",
-      "files": "sectors/custom/files",
-      "folder": "sectors/custom",
+      "database": "custom/custom_sector_v001.sqlite",
+      "files": "custom/objects",
+      "folder": "custom",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/custom/manifest.v4.json",
-        "sha256": "3D03CC6B1C09BB9FCF4D33CF29491D7FF3FE554C507D4CCFE7935D3E854B386E"
+        "sha256": "654C7A6CD27DECCE65FA1BE9A6DA16312C8F8B05598F48394E73DCEEE92D5405"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
-        "contract_sha256": "C2C64D439BA56425A6A32F27DA6451C1B4C455596A2D88605E6A64D376BC7094",
-        "database_relative_path": "sectors/custom/custom_sector_v001.sqlite",
+        "contract_sha256": "BEB25780774BF5E2E157722E4C20CBDA8DC42A0CD6A724E84D809FF9AC91A317",
+        "database_relative_path": "custom/custom_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "custom",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -50964,7 +51517,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/custom/schema-history",
+        "schema_history_relative_path": "custom/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.custom.v4",
         "schema_version": 4,
         "tables": [
@@ -53731,9 +54284,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "339C0D04DE36F69517499B893FCAED3C15D305D0082607F0AF03FAB0102A1EA9",
-        "files_root": "sectors/research/files",
-        "folder": "sectors/research",
+        "contract_sha256": "4F98ECB42C93A8894F3C76C968BD3764F0FFAA5DBADF82E17AEA2E857F63A3B8",
+        "folder": "research",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -53749,6 +54301,7 @@
             ".bib"
           ]
         },
+        "objects_root": "research/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -53766,23 +54319,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/research/research_sector_v001.sqlite",
-      "files": "sectors/research/files",
-      "folder": "sectors/research",
+      "database": "research/research_sector_v001.sqlite",
+      "files": "research/objects",
+      "folder": "research",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/research/manifest.v4.json",
-        "sha256": "C9D50165028DE87BE610BE9B6A027E1A9841566EDD37EE78AAF4350C23EC4BF5"
+        "sha256": "9098CDA63C3BB54F26AE6BA7204C44F6EBAF55808CFD19EC186E0CE694F25136"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
-        "contract_sha256": "86AEEAEE6AFE899368C6D38E68389945CD04B5DBE3AFC2D34ED1252815045913",
-        "database_relative_path": "sectors/research/research_sector_v001.sqlite",
+        "contract_sha256": "7B775884474D7BB622AF5391B7BB45EE9165F0A868265BE8DDD8BDE7401E177B",
+        "database_relative_path": "research/research_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "research",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -53803,7 +54356,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/research/schema-history",
+        "schema_history_relative_path": "research/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.research.v4",
         "schema_version": 4,
         "tables": [
@@ -56604,9 +57157,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "BE989BAD500F5A17D6888A08A3FE6E5AE8BED0A7B0AD5B6C6973C330B78A9FF2",
-        "files_root": "sectors/data/files",
-        "folder": "sectors/data",
+        "contract_sha256": "B30F9F632BEE64F86B635632A532F86E9A0428D13715F4F0C4D4CC39F224943D",
+        "folder": "data",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -56626,6 +57178,7 @@
             ".feather"
           ]
         },
+        "objects_root": "data/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": null
@@ -56643,23 +57196,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/data/data_sector_v001.sqlite",
-      "files": "sectors/data/files",
-      "folder": "sectors/data",
+      "database": "data/data_sector_v001.sqlite",
+      "files": "data/objects",
+      "folder": "data",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/data/manifest.v4.json",
-        "sha256": "1CF31200C89A2B8E3D915CAB4EF5EDB7AF764A76A78F2A62E45A25A6A3321419"
+        "sha256": "5EAC12D722F61ED411510770414506251E4515536AD9F18917251AF816E128A5"
       },
       "runtime": "evidence_lane_plugin.tabular_profile",
       "schema": {
-        "contract_sha256": "9CF514C7C0C0784BA3BF3458F74B33D5544AE629410A649A45ECBC6AA587966B",
-        "database_relative_path": "sectors/data/data_sector_v001.sqlite",
+        "contract_sha256": "BE7C2E7112D1B5C16BD3FEBAD587C320431AC12CAD3B67E76502834FFFFA29FE",
+        "database_relative_path": "data/data_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "data",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -56680,7 +57233,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/data/schema-history",
+        "schema_history_relative_path": "data/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.data.v4",
         "schema_version": 4,
         "tables": [
@@ -58484,9 +59037,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "352BBD720CCABF81FD53241D00C0BDB511298811C939A54B90D656A0765C52C7",
-        "files_root": "sectors/tableau/files",
-        "folder": "sectors/tableau",
+        "contract_sha256": "CA7B2147C468112F68D5688371459FDE98F3D2DA6AA49795DD117C8E539CB96E",
+        "folder": "tableau",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -58505,6 +59057,7 @@
             ".tde"
           ]
         },
+        "objects_root": "tableau/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact snapshot and XML locators or native Hyper schema/table identities; samples and layout metadata are labeled"
@@ -58522,23 +59075,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/tableau/tableau_sector_v001.sqlite",
-      "files": "sectors/tableau/files",
-      "folder": "sectors/tableau",
+      "database": "tableau/tableau_sector_v001.sqlite",
+      "files": "tableau/objects",
+      "folder": "tableau",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/tableau/manifest.v4.json",
-        "sha256": "A03949F11101F40F0C6EC25012BB29B1F8D4EC04C30B268CBA7E42DC010F744E"
+        "sha256": "6F26DCA7F4F297A084F64D134EA1350CA4A14880DDE662EDCA32E4624E329E3A"
       },
       "runtime": "evidence_lane_plugin.tableau_profile",
       "schema": {
-        "contract_sha256": "8E12750FF15E4F2056E33607DD59882DB28E6B53AC89D50015FC36AD6B05E74C",
-        "database_relative_path": "sectors/tableau/tableau_sector_v001.sqlite",
+        "contract_sha256": "7B46C3637935222037132F2C321D4EFB8B3C4AF7B0449DA6CEB6126EE1DD2387",
+        "database_relative_path": "tableau/tableau_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "tableau",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -58559,7 +59112,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/tableau/schema-history",
+        "schema_history_relative_path": "tableau/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.tableau.v4",
         "schema_version": 4,
         "tables": [
@@ -60490,9 +61043,8 @@
         }
       ],
       "artifacts": {
-        "contract_sha256": "0F1D298F8F103BB87CC95930B8AD5E4BE2CEBC434F3638AF9B60578D1C164B9B",
-        "files_root": "sectors/power_bi/files",
-        "folder": "sectors/power_bi",
+        "contract_sha256": "34CB10EB7389304AF58E482E2E40F04C8BB2B8CEACA5D1C6D5073021EC0D6149",
+        "folder": "power_bi",
         "graph_exports": {
           "both_required": false,
           "condition": "declared_consumer_requested_view",
@@ -60513,6 +61065,7 @@
             ".zip"
           ]
         },
+        "objects_root": "power_bi/objects",
         "pointer": {
           "condition": "declared_view_consumer",
           "meaning": "Exact snapshot and report/model locators; source JSON versus native canonical model metadata and bounded stored rows are distinguished."
@@ -60530,23 +61083,23 @@
         "schema": "evidence-lane.lane-artifact-role-registry.v4",
         "schema_history": {
           "condition": "migration_applied",
-          "path": "schema-history"
+          "path": "schema-history.v4.json"
         },
         "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
         "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
       },
-      "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
-      "files": "sectors/power_bi/files",
-      "folder": "sectors/power_bi",
+      "database": "power_bi/power_bi_sector_v001.sqlite",
+      "files": "power_bi/objects",
+      "folder": "power_bi",
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/power_bi/manifest.v4.json",
-        "sha256": "B7FA6C8624D07E285BB75826EFE0376611FA8A6D1A0DC1BA5D4BBE3298B0F392"
+        "sha256": "E626BFBCD92B1FC7292DCDE1A28C5C374D02324DB608F9CE382A3413687E0211"
       },
       "runtime": "evidence_lane_plugin.powerbi_profile",
       "schema": {
-        "contract_sha256": "38520E6F83C0144B0E6A11906B0E97B4F9192FE6FC7DE9A9EE823EA00479A4CA",
-        "database_relative_path": "sectors/power_bi/power_bi_sector_v001.sqlite",
+        "contract_sha256": "A95D0422B8D52316EA0BEF5CF0AB6EBC21AC69073131E979D8AFC14DE2AAFF20",
+        "database_relative_path": "power_bi/power_bi_sector_v001.sqlite",
         "kind": "sector",
         "lane_id": "power_bi",
         "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -60567,7 +61120,7 @@
         },
         "qualification": "definition_only_until_owning_workflow_verified",
         "schema": "evidence-lane.lane-schema-registry.v4",
-        "schema_history_relative_path": "sectors/power_bi/schema-history",
+        "schema_history_relative_path": "power_bi/schema-history.v4.json",
         "schema_id": "evidence-lane.sector.power_bi.v4",
         "schema_version": 4,
         "tables": [

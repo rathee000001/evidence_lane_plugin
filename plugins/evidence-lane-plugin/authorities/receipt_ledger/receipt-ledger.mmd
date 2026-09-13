@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=DA52578A7CC221E161F9E2B0CD5971160CC3076372FF3ACEBA3634B8AE50D18C
+%% LANGGRAPH_EXPORT_SHA256=E10FB9CC37E8198631EEAD7304816D008E7ED025BE1A245195C24EB47DF06AA2
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -33,9 +33,6 @@ flowchart TB
   t_remote_probe["remote_probe<br/>principal_id, policy_digest, nonce_digest, object_digest, engine_id, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
-  t_sessions_current["sessions_current<br/>singleton, session_id"]:::table
-  t_sessions_events["sessions_events<br/>sequence, request_id, session_id, generation, action, client_id, input_digest, body_json, previous_digest, digest, created_at"]:::table
-  t_sessions_records["sessions_records<br/>session_id, state, generation, owner_client_id, owner_engine_id, reported_session_id, flash_digest, runtime_package_digest, event_digest, created_at, updated_at"]:::table
   t_storage_selection_events["storage_selection_events<br/>sequence, request_id, client_id, input_digest, previous_digest, body_json, digest, created_at"]:::table
   t_access_grants -->|"parent_grant_id"| t_access_grants
   t_extensions_events -->|"plugin_id"| t_extensions_registration
@@ -43,5 +40,3 @@ flowchart TB
   t_gitpush_current -->|"action_id"| t_gitpush_events
   t_gitpush_current -->|"sequence"| t_gitpush_events
   t_hostmemory_imports -->|"receipt_id"| t_receipts
-  t_sessions_current -->|"session_id"| t_sessions_records
-  t_sessions_events -->|"session_id"| t_sessions_records

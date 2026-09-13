@@ -31,7 +31,7 @@
       "const": "authorities/project_universe"
     },
     "project_state_folder": {
-      "const": "authorities/universe"
+      "const": "universe"
     },
     "runtime_database_packaged": {
       "const": false

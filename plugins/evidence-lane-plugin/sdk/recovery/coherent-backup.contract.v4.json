@@ -1,6 +1,6 @@
 {
   "accepted_pv_rollback": false,
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "contract": "coherent-backup.contract.v4",
   "installed_execution_claimed": false,
@@ -8,14 +8,14 @@
   "schema": "evidence-lane.sdk-recovery-contract.v4",
   "sources": [
     {
-      "bytes": 10553,
+      "bytes": 11622,
       "path": "src/evidence_lane_plugin/recovery_snapshot.py",
-      "sha256": "ada648c42feb028b0eaafa70e4d720f2672873a2afff2579fbe694715cd1f5f0"
+      "sha256": "5e1704a4ca3ffeb3d6c3a38f83ebe40208e830d52506ae0e8f5005e576966a83"
     },
     {
-      "bytes": 37271,
+      "bytes": 37064,
       "path": "src/evidence_lane_plugin/database_recovery.py",
-      "sha256": "ebfcebbaebc83cb7571ecfc6195eaf339faef9bd31f3d1316a0c80a50fbd6031"
+      "sha256": "394900f1a0cba128e74a6c46421e6a6e53e3311d846283624ac8b8dd7d268457"
     }
   ],
   "status": "PASS"

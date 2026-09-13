@@ -8,11 +8,11 @@
     },
     {
       "path": "mcp/mcp-manifest.v4.json",
-      "sha256": "11f4316baf958e097e8c8d8098bd4368bc2c4711670ea4175782d3da66b4fa21"
+      "sha256": "17d198903841c36879f123ccc71283ca72f1f00fac62e7fbbe2e5553fc1914d2"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_adapter.py",
-      "sha256": "17564247ae0a34209c2b63960a7ad7c3fff537a25a055715cc48f9e3d449a531"
+      "sha256": "fbd3fbc87bea8b2168f4a16b115867ad9cb851d562af1cfde855f19d13894f0d"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_server.py",

@@ -1,6 +1,6 @@
 # GitHub Code sector package
 
-This original source owner is `authorities/project_sectors/github_code`. Live project state belongs to `sectors/github_code` under the selected external project root. The packaged SQLite is an empty, unbound schema template; the engine creates identities and applies exact migrations under its writer. It is never opened as project state.
+This original source owner is `authorities/project_sectors/github_code`. Live project state belongs to `github_code` under the selected external project root. The packaged SQLite is an empty, unbound schema template; the engine creates identities and applies exact migrations under its writer. It is never opened as project state.
 
 `builder.py` admits one stored, hash-bound sector Plan operation through the authenticated SDK. `reader.py` admits only this lane's typed read actions. Both use the same public SDK and engine; `runtime.py` exposes the actual owning migration and read functions. A queued builder response is not completion. Read the normal Delta result and acceptance receipt.
 

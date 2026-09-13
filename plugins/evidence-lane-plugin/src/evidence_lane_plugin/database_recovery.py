@@ -68,7 +68,7 @@ class BackupResult(Contract):
     file_count: int
     total_bytes: int
     created_at: str
-    scope: str = 'coherent_root_pv_separate_lane_databases_registered_files_and_schema_view_history'
+    scope: str = 'coherent_root_pv_direct_lane_databases_objects_artifacts_and_schema_history'
     lane_count: int = 0
     root_pv: dict = Field(default_factory=dict)
     live_source_workspace_copied: bool = False
@@ -281,7 +281,7 @@ def verify_authority_history(store):
         ('learning', 'learning_events', lambda: LearningStore(store).verify_history()),
         ('canon', 'canon_events', lambda: CanonStore(store).verify_history()),
         ('chat_lineage', 'continuation_events', lambda: TaskContinuity(store).verify_history()),
-        ('receipts', 'sessions_events', lambda: SessionAuthority(store).verify_history()),
+        ('sessions', 'sessions_events', lambda: SessionAuthority(store).verify_history()),
         ('universe', 'universe_link_events', lambda: ProjectUniverse(store).verify(ProjectLinksVerify(max_events=10000))),
         ('universe', 'federation_identity', lambda: UniverseFederation(store).verify(FederationVerify(max_records=10000))),
     )
@@ -407,8 +407,9 @@ class DatabaseRecovery:
             registered={item['path'] for item in files}
             orphans=[]
             observed=0
-            for base in ('authorities','sectors'):
-                for folder,directories,names in os.walk(self.store.root/base,followlinks=False):
+            for lane_row in self.store.lane_catalog():
+                base = self.store.lane(lane_row['lane_id']).folder
+                for folder,directories,names in os.walk(base,followlinks=False):
                     for name in [*directories,*names]:
                         reject_links(Path(folder)/name,self.store.root)
                     for name in names:
@@ -464,12 +465,7 @@ def restore_backup_offline(runtime_root, project_id, backup_root, manifest_diges
                 relative=_relative(item['path'])
                 _copy(Path(backup_root)/'payload'/relative,Path(backup_root).resolve(),destination/relative,destination,item)
             store=ProjectStore(destination)
-            from .lanes import get_lane
-            for item in body['lanes']:
-                definition = get_lane(item['lane_id'])
-                for relative in (definition.files_relative_path, definition.schema_history_relative_path):
-                    (destination/relative).mkdir(parents=True, exist_ok=True)
-            with store.coordinated_transaction(['receipts', 'plan', 'universe']) as commit:
+            with store.coordinated_transaction(['receipts', 'plan', 'sessions', 'universe']) as commit:
                 # Schema readiness and every recovery mutation share one
                 # publication; a failed receipt must not leave a partial head.
                 apply_migrations(store,RECOVERY_MIGRATIONS)
@@ -495,7 +491,7 @@ def restore_backup_offline(runtime_root, project_id, backup_root, manifest_diges
                     root.execute('UPDATE writer_lease SET fence=fence+1,owner_id=NULL,engine_id=NULL,expires_at=NULL')
                 if has_table(plan,'jobs_jobs'):
                     plan.execute("UPDATE jobs_jobs SET resumable=0,state='superseded',updated_at=? WHERE state='checkpointed'",(now(),))
-                closed = close_recovery_session(store, connection, manifest_digest)
+                closed = close_recovery_session(store, commit.connection('sessions'), manifest_digest)
                 revision=plan.execute('SELECT revision FROM plan_current').fetchone() if has_table(plan,'plan_current') else None
                 previous=connection.execute('SELECT sequence,digest FROM recovery_history ORDER BY sequence DESC LIMIT 1').fetchone()
                 record={'project_id':project_id,'original_state_root':str(original),'state_root':str(destination),
@@ -523,18 +519,18 @@ def restore_backup_offline(runtime_root, project_id, backup_root, manifest_diges
             return result
 
 
-def close_recovery_session(store, connection, recovery_digest, *, reason='administrative_recovery'):
+def close_recovery_session(store, session_connection, recovery_digest, *, reason='administrative_recovery'):
     from .session_authority import SessionAuthority
     owner = SessionAuthority(store)
-    current = owner.current(connection)
+    current = owner.current(session_connection)
     if current is None or current['state'] != 'active':
         return 0
-    event = connection.execute('SELECT body_json FROM sessions_events WHERE digest=?', (current['event_digest'],)).fetchone()
+    event = session_connection.execute('SELECT body_json FROM sessions_events WHERE digest=?', (current['event_digest'],)).fetchone()
     body = {**json.loads(event[0]), 'state':'closed', 'generation':current['generation']+1,
             'owner_authenticated':False, 'capture_bound':False, 'flash_current':False, 'operation':'recovery',
             'observation_scope':'at_transition_commit', 'exit_reason':reason,
             'root_pv':store.pv_head()}
-    owner.append(connection, action='session_recovery_closed', client_id='administrative-recovery',
+    owner.append(session_connection, action='session_recovery_closed', client_id='administrative-recovery',
                  request_id=str(uuid4()), input_digest=recovery_digest, body=body)
     return 1
 

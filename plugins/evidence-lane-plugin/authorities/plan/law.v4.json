@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.plan-law.v4",
-  "database": "authorities/plan/plan_authority_v001.sqlite",
+  "database": "plan/plan_authority_v001.sqlite",
   "source": [
     "plan_runtime",
     "steering",

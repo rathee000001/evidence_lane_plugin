@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "ppt",
   "source_package_folder": "authorities/project_sectors/ppt",
-  "project_state_folder": "sectors/ppt",
-  "database": "sectors/ppt/ppt_sector_v001.sqlite",
-  "files": "sectors/ppt/files",
-  "schema_history": "sectors/ppt/schema-history",
+  "project_state_folder": "ppt",
+  "database": "ppt/ppt_sector_v001.sqlite",
+  "files": "ppt/objects",
+  "schema_history": "ppt/schema-history.v4.json",
   "migrations": [
     {
       "owner": "ppt",
@@ -21,8 +21,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "ppt",
-    "folder": "sectors/ppt",
-    "files_root": "sectors/ppt/files",
+    "folder": "ppt",
+    "objects_root": "ppt/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -30,7 +30,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -62,7 +62,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "F3E85A0F941B60A5CBCDB490AF88DE7EE8C81AC083E2F68E27FB763EEB577B57"
+    "contract_sha256": "FDB572E39ACCEC42A52C92FE5809083A0D3C1EAEEEBDF543940B563E1152008A"
   },
   "actions": [
     "presentation_convert",

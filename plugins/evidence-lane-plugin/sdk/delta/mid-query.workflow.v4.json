@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "actions": [
     "delta_query",
     "delta_status"
@@ -14,9 +14,9 @@
       "sha256": "41156baa47dccf8b401fee5fb41acce0511bc9944aac8e5c7ae2d4a882793cab"
     },
     {
-      "bytes": 20738,
+      "bytes": 21144,
       "path": "src/evidence_lane_plugin/coordination.py",
-      "sha256": "f91acbe7aa7f4fe2c31cc9ece4b99a64ac62cb03f2c074b40c38b1ab3cd18808"
+      "sha256": "0e7336660de106561e5aa8f582213dfbf3b1aef75fbd3b3b9656854f2ed475ea"
     }
   ],
   "plan_owned": true,

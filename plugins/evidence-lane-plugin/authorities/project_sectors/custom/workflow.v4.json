@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sector-workflow.v4",
   "lane_id": "custom",
   "source_package_folder": "authorities/project_sectors/custom",
-  "external_project_folder": "sectors/custom",
+  "external_project_folder": "custom",
   "actions": [
     {
       "name": "custom_current",
@@ -848,11 +848,11 @@
     {
       "view_id": "custom.structure",
       "lane_id": "custom",
-      "folder": "sectors/custom",
+      "folder": "custom",
       "version": 1,
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "custom.mmd",
         "dot": "custom.dot",

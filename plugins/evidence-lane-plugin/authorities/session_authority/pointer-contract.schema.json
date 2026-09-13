@@ -205,8 +205,8 @@
       "title": "Storage Route"
     },
     "state_authority": {
-      "const": "receipts_lane_sqlite",
-      "default": "receipts_lane_sqlite",
+      "const": "sessions_lane_sqlite",
+      "default": "sessions_lane_sqlite",
       "title": "State Authority",
       "type": "string"
     },

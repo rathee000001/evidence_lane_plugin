@@ -11,7 +11,7 @@ from .errors import LaneError
 from .registry import ActionSpec, Contract
 from .sdk import UUID_PATTERN
 from .session_authority import SessionAuthority
-from .storage import project_snapshot, reject_links
+from .storage import STORAGE_LAYOUT, project_snapshot, reject_links
 
 
 class ProjectRegister(Contract):
@@ -43,6 +43,7 @@ class ProjectRecord(Contract):
     registration_digest: str | None
     registration_bound: bool
     sensitivity_enforcement: str
+    initial_source_intake: dict[str, JsonValue] | None = None
 
 
 class ProjectCatalogRequest(Contract):
@@ -91,7 +92,7 @@ class StorageStatus(Contract):
     lanes: list[dict[str, JsonValue]]
     registration: dict[str, JsonValue]
     storage_selection: dict[str, JsonValue]
-    storage_layout: str = 'separate_lane_sqlite_and_files'
+    storage_layout: str = STORAGE_LAYOUT
     physical_durability_attested: bool = False
     project_migrated: bool = False
 
@@ -105,11 +106,32 @@ def register_project_actions(engine):
         runtime_root = engine.root.resolve()
         if any(resolved.is_relative_to(root) or root.is_relative_to(resolved) for root in (plugin_root, runtime_root)):
             raise LaneError('PROJECT_RUNTIME_OVERLAP', 'Keep the selected project state separate from plugin and engine installation roots.')
+        bootstrap = None
+        initial_lane_ids = None
+        initializer = None
+        if request.create:
+            from .project_bootstrap import (
+                bootstrap_project,
+                classify_initial_source,
+                initial_lane_order,
+            )
+            source_root = Path(request.source_root) if request.source_root else None
+            if source_root is None:
+                raise LaneError('PROJECT_CREATE_CONTRACT', 'Creating a project requires an explicitly selected source root.')
+            classification = classify_initial_source(source_root.resolve(strict=True))
+            initial_lane_ids = initial_lane_order(classification)
+
+            def initialize(store):
+                nonlocal bootstrap
+                bootstrap = bootstrap_project(engine, store, classification, actor_id=context.client_id)
+
+            initializer = initialize
         record = engine.directory.register(state_root,
             source_root=Path(request.source_root) if request.source_root else None,
             create=request.create, read_only=request.read_only, display_name=request.display_name,
-            sensitivity=request.sensitivity, capture_route=request.capture_route)
-        return ProjectRecord.model_validate(record)
+            sensitivity=request.sensitivity, capture_route=request.capture_route,
+            initial_lane_ids=initial_lane_ids, initializer=initializer)
+        return ProjectRecord.model_validate({**record, 'initial_source_intake': bootstrap})
 
     def read(context, request):
         entries = sorted(engine.directory.entries().values(), key=lambda row: row['project_id'])
@@ -125,7 +147,7 @@ def register_project_actions(engine):
     def deselect(context, request):
         store = engine.directory.open(request.project_id)
         with engine.project_work.control_boundary(store):
-            with store.lane('receipts').connection(read_only=True) as connection:
+            with store.lane('sessions').connection(read_only=True) as connection:
                 session = SessionAuthority.current(connection)
             if session and session['state'] == 'active' and session['owner_client_id'] == context.client_id:
                 raise LaneError('SESSION_ACTIVE', 'Close this active project session before deselecting it.')
@@ -144,7 +166,7 @@ def register_project_actions(engine):
 
     engine.registry.register(ActionSpec('project_catalog', 'Read registered project roots through the owner-granted native administration channel.',
         ProjectCatalogRequest, ProjectCatalog, read, permission='project_admin', workflow='evidence-lane', project_required=False))
-    engine.registry.register(ActionSpec('project_register', 'Register or create an explicitly selected external project root; preserve existing project bytes.',
+    engine.registry.register(ActionSpec('project_register', 'Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.',
         ProjectRegister, ProjectRecord, register, permission='project_admin', mutates=True, workflow='select-project-storage', project_required=False))
     engine.registry.register(ActionSpec('project_select', 'Select one registered project and its explicit permissions on this owner-authorized client.',
         ProjectSelection, ProjectSelected, select, permission='project_admin', mutates=True, workflow='open-project-session', project_required=False))

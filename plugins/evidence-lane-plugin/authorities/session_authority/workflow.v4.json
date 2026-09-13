@@ -1,8 +1,8 @@
 {
   "schema": "evidence-lane.authority-workflow.v4",
-  "owner_id": "session_authority",
+  "owner_id": "sessions",
   "source_package_folder": "authorities/session_authority",
-  "storage": "authorities/receipts/receipts_authority_v001.sqlite sessions schema owner",
+  "storage": "sessions/sessions_authority_v001.sqlite with files and schema history in sessions",
   "actions": [
     {
       "name": "env_uop_inspect",
@@ -369,8 +369,8 @@
             "title": "Storage Route"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -907,8 +907,8 @@
             "title": "Storage Route"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -1631,8 +1631,8 @@
             "title": "Storage Route"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -1957,8 +1957,8 @@
             "title": "Storage Route"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -2076,14 +2076,14 @@
   "topology": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
-    "graph": "workflow_session_authority",
+    "graph": "workflow_sessions",
     "graph_role": "EXECUTABLE_WORKFLOW",
     "node_count": 13,
     "edge_count": 18,
     "group_count": 0,
-    "semantic_topology_sha256": "31B6C12EB37577795A1E46CF18C7BE7C2540850B1A4F1FA2167765290D696737",
-    "mmd_sha256": "5717E152A1FF005FD675F9607EEA983AAA23674247E1D66C10BC5E0C9CBA3F0B",
-    "dot_sha256": "CFB0A1DEC8898366DBF0933FED70DBF8CD6C9F1373DE74F7546B7F0634554C95",
+    "semantic_topology_sha256": "CB4361BB3489FB0686D3216469EB1E365CDEBCC943A9FAB602059D19C413BBFE",
+    "mmd_sha256": "93E563EA8CC2BAE8609DCFAC39D989841FDA1B9053AA627FD5985B14E1429E18",
+    "dot_sha256": "0C69E003590605DA4F8238049DEF85E7CD122B534015F3111B5B7B1024D3A2CA",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
@@ -2109,8 +2109,46 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "01AC810F10C46BDADCCDEB60D849C4568836A0F61303016F7982AB8681DA78D6"
+    "receipt_sha256": "6C9A7EC33F04F192A48D98E9C7E12443E4C58D93BAC3D0600E984E8C3A6530C8"
   },
   "graph_role": "source_package_executable_routes",
-  "installed_execution_claimed": false
+  "installed_execution_claimed": false,
+  "schema_topology": {
+    "schema": "evidence-lane.semantic-graph-pipeline.v1",
+    "status": "PASS",
+    "graph": "schema_sessions",
+    "graph_role": "AUTHORITY_TRAVERSAL",
+    "node_count": 7,
+    "edge_count": 2,
+    "group_count": 0,
+    "semantic_topology_sha256": "3A9A33D140BBA420BA0DD0150FCACD8F23B8AC582FDB66972F80ACE540A93F5C",
+    "mmd_sha256": "83465297760C6A799EBA6F8AA1E0CAE4E1C92E869A856D133F46B4DDFF3B876E",
+    "dot_sha256": "03C54C4A7F3EA4E950F8A8E2C29DBD3C79FA87646B2AACBED0DB217C600162A9",
+    "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
+    "langgraph_version": "1.2.11",
+    "langchain_core_version": "1.6.1",
+    "langgraph_export_sha256": "96A790E389CCF8BB5522573CEECDFD90E38B6D44A0A92DAEC65EDAD73F932946",
+    "dot_exporter": "PYTHON_GRAPHVIZ",
+    "python_graphviz_version": "0.21",
+    "native_graphviz_dot_available": null,
+    "native_graphviz_hidden_runtime_available": null,
+    "native_graphviz_observation_basis": "not_requested",
+    "analysis_policy": "omit",
+    "native_graphviz_validation": null,
+    "graph_analysis": {
+      "status": "NOT_REQUESTED",
+      "engine": "rustworkx",
+      "authority_replaced": false
+    },
+    "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
+    "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
+    "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
+    "layout_constraint_count": 0,
+    "balanced_two_dimensional_projection": true,
+    "layout_constraints_change_semantic_topology": false,
+    "mmd_and_dot_are_sqlite_traversal_maps": true,
+    "sqlite_authority_replaced": false,
+    "mmd_dot_same_semantic_topology": true,
+    "receipt_sha256": "0DA4BEAAD7324457E4B1F2BF6F291FF81D5A7B8F2527616CB5839865E4F79D71"
+  }
 }

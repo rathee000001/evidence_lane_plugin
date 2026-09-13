@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
   "event": "UserPromptSubmit",
   "event_contract": "hooks/events/UserPromptSubmit/event.v4.json",
-  "event_contract_sha256": "9febfcc96a774c378eefba7a67e7173e16a4b4b4b9dcea3ff7f317c75bc059e6",
+  "event_contract_sha256": "c59a88857a377f6fee81d7cd5232200ec144b8cab2e1262c89451b0c06933634",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/UserPromptSubmit.v4.schema.json",
   "input_schema_sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f",
   "installed_execution_claimed": false,

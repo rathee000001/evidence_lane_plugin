@@ -1,73 +1,73 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 13,
   "members": [
     {
-      "bytes": 570,
+      "bytes": 580,
       "path": "sdk/authorities/project-sectors/artifacts.sector.v4.json",
-      "sha256": "8808d153f742a2ee1a61efa040755763a8d7380af28cd05f71a82bab3f2ebe0e"
-    },
-    {
-      "bytes": 564,
-      "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
-      "sha256": "af3f3a73b2f5c93c43941f100c03b92dedcac68f6bd6914cd9650f7256c8165c"
-    },
-    {
-      "bytes": 560,
-      "path": "sdk/authorities/project-sectors/data.sector.v4.json",
-      "sha256": "16dfbfaca8b52adf6eed369fce6a768da07e27cb96a6b44370489caa8d630e79"
-    },
-    {
-      "bytes": 572,
-      "path": "sdk/authorities/project-sectors/data_excel.sector.v4.json",
-      "sha256": "91829985c4306135479941ca85da6a5116a4b4d4316ea82ca19e46d463e1e763"
-    },
-    {
-      "bytes": 560,
-      "path": "sdk/authorities/project-sectors/docs.sector.v4.json",
-      "sha256": "8b495626503686d64757772878411bb2da4f24ad2240dac6425b356d996758a6"
+      "sha256": "195b399b83dd35294e47f71ae4de3984b34d93c70aa176e4a6e949037b3a1b43"
     },
     {
       "bytes": 574,
+      "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
+      "sha256": "c02dd91cfb18cc26f8d930685c5bdc2a5975db2a01dec937bf12f40b0fa71e9d"
+    },
+    {
+      "bytes": 570,
+      "path": "sdk/authorities/project-sectors/data.sector.v4.json",
+      "sha256": "4fa04362c0d1b296be529a9533a20831ec52a304394b629c44715164c0b65f69"
+    },
+    {
+      "bytes": 582,
+      "path": "sdk/authorities/project-sectors/data_excel.sector.v4.json",
+      "sha256": "10046ac759c7c4342935ea9007249c040c43345e3fb7c074201f283b63aa8519"
+    },
+    {
+      "bytes": 570,
+      "path": "sdk/authorities/project-sectors/docs.sector.v4.json",
+      "sha256": "46349d11d36b3f713387796c3c784aef1997d1b93e53a62fcfcf6d93d3215897"
+    },
+    {
+      "bytes": 584,
       "path": "sdk/authorities/project-sectors/github_code.sector.v4.json",
-      "sha256": "a3be6fe4b285979f70538f1c9b2e565ed8c29b5edb1b358812b74eabb302621a"
+      "sha256": "18c43517f96185ba3d382ac11fe22b2aeb106272aa55aaacefb818276d67a036"
     },
     {
-      "bytes": 572,
+      "bytes": 582,
       "path": "sdk/authorities/project-sectors/images_ocr.sector.v4.json",
-      "sha256": "c23955c868cfe8901bcdeaa6b4c047a132cc4765bdbbdf8d90214faf1a65089a"
+      "sha256": "294add54146622911ba2e2b6797f9b031c93ec1d2bcf57831a048d1f3f0c726b"
     },
     {
-      "bytes": 572,
+      "bytes": 582,
       "path": "sdk/authorities/project-sectors/local_code.sector.v4.json",
-      "sha256": "1d711496ee934320a733abad1b6065f3914e1e348544c7b5841c1c1b06df65a7"
+      "sha256": "b08457b7ca09fab50e214f9e4878c0f3a29213b183457fadcc60e792eb81ebb5"
     },
     {
-      "bytes": 567,
+      "bytes": 577,
       "path": "sdk/authorities/project-sectors/pdf_ocr.sector.v4.json",
-      "sha256": "0faaa04c613905c08eb9ef105cf70b7979fc530fe3b2847e49045644404c1cb5"
+      "sha256": "8a1d1ab7327beb8beee2bb5d2cd1d5d9e9f5b420696009bb441b4f175c60fc62"
     },
     {
-      "bytes": 568,
+      "bytes": 578,
       "path": "sdk/authorities/project-sectors/power_bi.sector.v4.json",
-      "sha256": "79c55874dd47e9c227ceae8a62462fc1b0f14bbe8cd9abc26312fdae6f0902f5"
-    },
-    {
-      "bytes": 558,
-      "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
-      "sha256": "09574e138d5966c7ab6d1558c3877ca1156d39f61a72210ee0c439dbc6c86eea"
+      "sha256": "1a8ad3df95d072684dd77dc2c62b65e8771dc339ae5586d7cf3d25dbb755978d"
     },
     {
       "bytes": 568,
-      "path": "sdk/authorities/project-sectors/research.sector.v4.json",
-      "sha256": "0ce8e1f6ba410c2ecf28994047f637c48e013c9e013f2df3aa9d89476a745bda"
+      "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
+      "sha256": "5b9e925e79c1cfe273f7a683b2baef718fa6a242aa0a776425c950d519edc472"
     },
     {
-      "bytes": 566,
+      "bytes": 578,
+      "path": "sdk/authorities/project-sectors/research.sector.v4.json",
+      "sha256": "ddca5eec628ca7142a70293366771e1ca8703e403bdd4200392c102738beaa48"
+    },
+    {
+      "bytes": 576,
       "path": "sdk/authorities/project-sectors/tableau.sector.v4.json",
-      "sha256": "a977185644fb420b5addb81b0f46e93fa258419089fa8a7cff901e8dfee65087"
+      "sha256": "6a99403bcd7ff325e7e437b82f41da26dcdc6e26c4ac426a5dc49386e96a9a5e"
     }
   ],
   "other_sector_definitions": "schemas/lane-registry.v4.json",

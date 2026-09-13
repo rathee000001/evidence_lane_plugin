@@ -91,7 +91,7 @@ def test_original_sector_packages_preserve_empty_schemas_and_conditional_artifac
         folder = PLUGIN / sector_package_folder(lane_id)
         manifest = json.loads((folder / 'manifest.v4.json').read_bytes())
         assert manifest['source_package_folder'] == sector_package_folder(lane_id)
-        assert manifest['folder'] == 'sectors/' + lane_id
+        assert manifest['folder'] == lane_id
         assert manifest['folder_role'] == 'external_project_state'
         for member in manifest['members']:
             path = PLUGIN / member['path']

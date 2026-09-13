@@ -1,15 +1,15 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "authority_id": "chat_lineage",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 58542,
+    "bytes": 58490,
     "path": "authorities/chat_lineage/manifest.v4.json",
-    "sha256": "386e629119c8fe2577496a077bc29656b78e92fc34f6a37b0a02a9a3124c75a6"
+    "sha256": "4391641c253c699f4ca5cdcf711bd2d03749d3185171658d4ca10c384501ec22"
   },
   "path": "authorities/chat_lineage",
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "root_pv_role": "coordinate_published_lane_head",
   "runtime_execution_inferred": false,
   "runtime_module": "evidence_lane_plugin.lineage",

@@ -76,6 +76,9 @@ def test_https_code_delta_uses_shared_workers_and_separate_lane_state(tmp_path, 
                         break
                     time.sleep(.02)
                 assert row and row['state'] == 'verified', row
+                engine.delta.owned_completion(response.job_id).result(
+                    timeout=max(1, deadline - time.monotonic())
+                )
                 result = json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
                 assert result['files'] == 1
                 before = {p: p.read_bytes() for p in store.root.rglob('*') if p.is_file()}

@@ -1,14 +1,14 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "tableau",
   "manifest": {
-    "bytes": 59773,
+    "bytes": 59747,
     "path": "authorities/project_sectors/tableau/manifest.v4.json",
-    "sha256": "a03949f11101f40f0c6ec25012bb29b1f8d4ec04c30b268cba7e42dc010f744e"
+    "sha256": "6f26dca7f4f297a084f64d134ea1350ca4a14880dde662edca32e4624e329e3a"
   },
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,
   "schema": "evidence-lane.sdk-project-sector-binding.v4",
   "status": "PASS"

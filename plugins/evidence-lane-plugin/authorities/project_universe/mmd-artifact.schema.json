@@ -74,11 +74,11 @@
     {
       "view_id": "universe.federation",
       "lane_id": "universe",
-      "folder": "authorities/universe",
+      "folder": "universe",
       "version": 1,
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "consumer": "artifact_export",
-      "implementation_digest": "d063feb5bb5cef90caecc875d9147a0c3f1e807f7f64cf1c9e3aabaeee9dbe27",
+      "implementation_digest": "5b5a545ccce74a071370448e91be5b9b38d9a526e3c61bbc94307d663a349385",
       "files": {
         "mmd": "project_evidence_network.mmd",
         "dot": "project_evidence_network.dot"
@@ -146,11 +146,11 @@
     {
       "view_id": "universe.topology",
       "lane_id": "universe",
-      "folder": "authorities/universe",
+      "folder": "universe",
       "version": 1,
       "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "consumer": "artifact_export",
-      "implementation_digest": "cd1c9faf8fef3b9d007e7db81c2a77fd05e482799c594ace90c0c807fe7a3ed2",
+      "implementation_digest": "1f62b8d23b9b2c36ef31a6a2b8545f2a5213cb4c8b06c798b09168fe5743faf3",
       "files": {
         "mmd": "project_universe.mmd",
         "dot": "project_universe.dot"

@@ -9,17 +9,17 @@
   "launcher_binary": {
     "bytes": 9216,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-    "sha256": "a912d3c35ebf0a883e3acae57bcd036d2f419857ffbeca8fc88a9f88deb62d8d"
+    "sha256": "7ce438633c6fae23635065856919343a296359e1e49e977aad52ea5f5bd3d2a5"
   },
   "launcher_build": {
     "bytes": 502,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-    "sha256": "cd1d94d938cd03c7f2c10b38e205fb6da00e4596d164841dfbd53aa83b0ee391"
+    "sha256": "f3e0f4090c256bb5356c0aeb5c8d64ca8b8676ade436218f1d479076118c76bc"
   },
   "launcher_source": {
     "bytes": 8132,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-    "sha256": "980953ced680ce58fea35dfbc666ac31b454f2dd98176dd62191af77cb61844b"
+    "sha256": "dd08405c0f6e921b36ff0da1513197f34a5d9e50d352ebd503cd3115e011357c"
   },
   "native_installation_verified": false,
   "registration": {

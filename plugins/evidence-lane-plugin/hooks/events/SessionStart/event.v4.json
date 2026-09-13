@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/SessionStart/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/SessionStart/pipeline.v4.json",
-      "sha256": "bd0964cae424cc1a5adcf4b602c466eae5d7c8dca5eab58b06134bad5d717bc5"
+      "sha256": "1a43e62cf0141ee675f564ac4a1aa0a45b2d41773d42bc27d490d418fbbfc4ce"
     },
     {
       "path": "hooks/events/SessionStart/README.md",
-      "sha256": "8ad21f874e846a83aab5617399a38768493e661c2ec33fcd5f22e2969906660a"
+      "sha256": "b72ef0050dd7e2dcf193ba1f5b1f7f9ada351cfe2a7eaf704ca38f764738d2b1"
     }
   ],
   "native_installation_verified": false,

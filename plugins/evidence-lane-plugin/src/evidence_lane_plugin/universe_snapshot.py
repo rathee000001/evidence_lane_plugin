@@ -164,27 +164,43 @@ def inspect_project(store, request=None):
                     path = lane.object_path(record['digest'])
                     if not path.is_file() or path.stat().st_size != record['size_bytes'] or file_hash(path) != record['digest']:
                         raise LaneError('UNIVERSE_FILE_INTEGRITY', 'A registered lane file differs from its content address.')
+                entries = []
                 for record in history:
                     if (not re.fullmatch(r'[a-z][a-z0-9]{0,31}', record['owner']) or record['version'] < 1
                             or not re.fullmatch(r'[0-9a-f]{64}', record['digest'])
-                            or record['filename'] != f"{record['owner']}.{record['version']}.{record['digest']}.json"):
+                            or record['filename'] != 'schema-history.v4.json'):
                         raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'A schema history file has an invalid identity.')
-                    path = lane.schema_history / record['filename']
-                    reject_links(path, project.root)
-                    if not path.is_file() or path.stat().st_size > 4194304:
-                        raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'A schema history file is missing or exceeds its bound.')
-                    file_digest, content = file_hash(path, capture=True)
                     try:
-                        body = json.loads(content)
+                        if len(record['document_json'].encode()) > 4194304:
+                            raise ValueError('entry too large')
+                        body = json.loads(record['document_json'])
                         migration_digest = digest([body['owner'], body['version'], body['description'], body['statements']])
-                        valid = (body['schema'] == 'evidence-lane.schema-history.v4'
+                        entry_digest = digest(body)
+                        valid = (body['schema'] == 'evidence-lane.schema-history-entry.v4'
                             and body['project_id'] == project.project_id and body['lane_id'] == lane.lane_id
                             and body['owner'] == record['owner'] and body['version'] == record['version']
                             and body['migration_digest'] == migration_digest == schema_digests[record['owner'], record['version']])
                     except (ValueError, KeyError, TypeError):
+                        entry_digest = None
                         valid = False
-                    if file_digest != record['digest'] or not valid:
+                    if entry_digest != record['digest'] or not valid:
                         raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'A schema history file differs from its recorded bytes.')
+                    entries.append(body)
+                path = lane.schema_history
+                reject_links(path, project.root)
+                if not path.is_file() or path.stat().st_size > 4194304:
+                    raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'The direct schema history projection is missing or exceeds its bound.')
+                remaining_files -= 1
+                if remaining_files < 0:
+                    raise LaneError('UNIVERSE_FILE_BUDGET', 'The direct schema history projection exceeds the selected file budget.')
+                _, content = file_hash(path, capture=True)
+                try:
+                    projection = json.loads(content)
+                except (ValueError, TypeError):
+                    raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'The direct schema history projection is not valid JSON.') from None
+                if projection != {'schema': 'evidence-lane.schema-history.v4',
+                        'project_id': project.project_id, 'lane_id': lane.lane_id, 'entries': entries}:
+                    raise LaneError('UNIVERSE_SCHEMA_INTEGRITY', 'The direct schema history projection differs from the migration ledger.')
             body = {'project_id': project.project_id, 'lane_id': lane.lane_id,
                 'database_sha256': database_hash, 'schema_history_sha256': digest(schemas),
                 'file_references_sha256': digest(files), 'file_count': len(files),
@@ -461,7 +477,7 @@ def register_universe_view(engine):
     from .plan_runtime import PLAN_MIGRATIONS
     from .project_universe import UNIVERSE_MIGRATIONS
     from .source_authority import SOURCES_MIGRATIONS
-    engine.registry.register_view(LaneView('universe.topology', 'universe', 'authorities/universe',
+    engine.registry.register_view(LaneView('universe.topology', 'universe', 'universe',
         'Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.',
         universe_topology_view, ('plan', 'sources', 'universe'), (*PLAN_MIGRATIONS, *SOURCES_MIGRATIONS, *UNIVERSE_MIGRATIONS),
         'project_universe.mmd', 'project_universe.dot', node_kinds=('project', 'lane', 'plan_task', 'source_reference', 'linked_project'),

@@ -15,7 +15,7 @@ def plugin(tmp_path):
         json.dumps(
             {
                 "name": "evidence-lane-plugin",
-                "version": "4.0.3",
+                "version": "4.0.4",
             }
         )
     )

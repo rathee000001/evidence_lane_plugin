@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/UserPromptSubmit/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/UserPromptSubmit/pipeline.v4.json",
-      "sha256": "ced0f7287850fea5e7d7fc1c36d20b400fb870fa90591b8c6fa3db5035c2caaa"
+      "sha256": "f61fd989f311fe8c62693d53fe35da1992929fd3b9578452e94f3c9a1dae2dba"
     },
     {
       "path": "hooks/events/UserPromptSubmit/README.md",
-      "sha256": "0b4b516197460af18122e6481d8ac787cfb003ae55634603c001062f836e2459"
+      "sha256": "20711516db3b8631219c36b8cc32471d8e3d4812d35991b7b1b103749e0663b5"
     }
   ],
   "native_installation_verified": false,

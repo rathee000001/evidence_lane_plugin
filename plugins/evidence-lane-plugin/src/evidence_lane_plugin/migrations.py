@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-import os
+import json
 import re
 import sqlite3
 from collections.abc import Sequence
@@ -12,7 +12,7 @@ from itertools import groupby
 
 from .errors import LaneError
 from .lanes import LaneRegistryError, lane_for_schema_owner, owns_schema_object
-from .storage import LaneStore, ProjectStore, json_text, now, reject_links
+from .storage import LaneStore, ProjectStore, _commit_scope, json_text, now, reject_links
 
 
 @dataclass(frozen=True)
@@ -142,6 +142,32 @@ def apply_migrations(store: ProjectStore | LaneStore, migrations: Sequence[Migra
         groups.setdefault(_migration_lane(store, migration.owner), []).append(migration)
     if not groups:
         return []
+    owner_groups: dict[str, list[Migration]] = {}
+    for migration in migrations:
+        owner_groups.setdefault(migration.owner, []).append(migration)
+    complete_contract = all(
+        [item.version for item in sorted(group, key=lambda item: item.version)]
+        == list(range(1, len(group) + 1))
+        for group in owner_groups.values()
+    )
+    if complete_contract:
+        fully_compatible = True
+        for group in owner_groups.values():
+            try:
+                compatibility = read_compatibility(store, group)
+            except LaneError as error:
+                # A partial or older compatible owner still needs the
+                # transactional upgrade path below. Other read failures
+                # identify corruption and remain fail-closed.
+                if error.code != 'QUERY_SCHEMA_INCOMPATIBLE':
+                    raise
+                fully_compatible = False
+                break
+            if not compatibility or any(row['status'] != 'compatible' for row in compatibility):
+                fully_compatible = False
+                break
+        if fully_compatible:
+            return []
     project = store.project if isinstance(store, LaneStore) else store
     lanes = sorted(lane_id for lane_id in groups if lane_id is not None)
     if writer is not None and (writer.store.root != project.root or writer.store.project_id != project.project_id):
@@ -157,47 +183,56 @@ def apply_migrations(store: ProjectStore | LaneStore, migrations: Sequence[Migra
 def _record_history(store, connection, migration):
     if not isinstance(store, LaneStore):
         return
-    content = json_text({'schema': 'evidence-lane.schema-history.v4',
+    document = {'schema': 'evidence-lane.schema-history-entry.v4',
         'project_id': store.project_id, 'lane_id': store.lane_id,
         'owner': migration.owner, 'version': migration.version,
         'migration_digest': migration.digest, 'description': migration.description,
-        'statements': migration.statements}).encode()
+        'statements': migration.statements}
+    content = json_text(document).encode()
     digest = hashlib.sha256(content).hexdigest()
-    filename = f'{migration.owner}.{migration.version}.{digest}.json'
-    path = store.schema_history / filename
-    reject_links(path, store.root)
-    try:
-        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError:
-        if path.read_bytes() != content:
-            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The immutable migration file changed.') from None
-    else:
-        with os.fdopen(descriptor, 'wb') as stream:
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-    prior = connection.execute('SELECT filename,digest FROM schema_history_files WHERE owner=? AND version=?',
+    filename = 'schema-history.v4.json'
+    prior = connection.execute('SELECT filename,digest,document_json FROM schema_history_files WHERE owner=? AND version=?',
                                (migration.owner, migration.version)).fetchone()
-    if prior is not None and tuple(prior) != (filename, digest):
-        raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The migration file reference differs from its schema.')
-    connection.execute('INSERT OR IGNORE INTO schema_history_files VALUES(?,?,?,?)',
-                       (migration.owner, migration.version, filename, digest))
+    expected = (filename, digest, json_text(document))
+    if prior is not None and tuple(prior) != expected:
+        raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The migration history entry differs from its schema.')
+    connection.execute('INSERT OR IGNORE INTO schema_history_files VALUES(?,?,?,?,?)',
+                       (migration.owner, migration.version, filename, digest, json_text(document)))
 
 
 def verify_schema_history_files(store, connection):
     if not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='schema_history_files'").fetchone():
         return
-    for row in connection.execute('SELECT * FROM schema_history_files'):
+    entries = []
+    for row in connection.execute('SELECT * FROM schema_history_files ORDER BY owner,version'):
+        try:
+            document = json.loads(row['document_json'])
+        except (ValueError, TypeError, json.JSONDecodeError):
+            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'A migration history entry is not valid JSON.') from None
         if (not re.fullmatch(r'[a-z][a-z0-9]{0,31}', row['owner']) or row['version'] < 1
                 or not re.fullmatch(r'[0-9a-f]{64}', row['digest'])
-                or row['filename'] != f"{row['owner']}.{row['version']}.{row['digest']}.json"):
-            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The migration file reference is invalid.')
-        path = store.schema_history / row['filename']
-        reject_links(path, store.root)
-        if not path.is_file() or path.stat().st_size > 4_194_304:
-            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The registered migration file is missing or too large.')
-        if hashlib.sha256(path.read_bytes()).hexdigest() != row['digest']:
-            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The registered migration file changed.')
+                or row['filename'] != 'schema-history.v4.json'
+                or hashlib.sha256(row['document_json'].encode()).hexdigest() != row['digest']
+                or document.get('schema') != 'evidence-lane.schema-history-entry.v4'
+                or any(document.get(key) != value for key, value in {
+                    'project_id': store.project_id, 'lane_id': store.lane_id,
+                    'owner': row['owner'], 'version': row['version'],
+                }.items())):
+            raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The migration history entry is invalid.')
+        entries.append(document)
+    if _commit_scope.get() is not None:
+        return
+    projection = {
+        'schema': 'evidence-lane.schema-history.v4',
+        'project_id': store.project_id,
+        'lane_id': store.lane_id,
+        'entries': entries,
+    }
+    path = store.schema_history
+    reject_links(path, store.root)
+    if (not path.is_file() or path.stat().st_size > 4_194_304
+            or path.read_bytes() != (json_text(projection) + '\n').encode()):
+        raise LaneError('SCHEMA_HISTORY_INTEGRITY', 'The direct schema-history projection is missing or stale.')
 
 
 def _apply_migrations(store, migrations: Sequence[Migration]) -> list[dict]:
@@ -231,7 +266,8 @@ def _apply_migrations(store, migrations: Sequence[Migration]) -> list[dict]:
         if isinstance(store, LaneStore):
             connection.execute('''CREATE TABLE IF NOT EXISTS schema_history_files (
                 owner TEXT NOT NULL, version INTEGER NOT NULL, filename TEXT NOT NULL,
-                digest TEXT NOT NULL, PRIMARY KEY(owner,version),
+                digest TEXT NOT NULL, document_json TEXT NOT NULL CHECK(json_valid(document_json)),
+                PRIMARY KEY(owner,version),
                 FOREIGN KEY(owner,version) REFERENCES schema_migrations(owner,version))''')
         for owner, group in groups.items():
             history = {

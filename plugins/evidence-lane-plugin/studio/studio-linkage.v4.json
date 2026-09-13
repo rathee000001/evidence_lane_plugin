@@ -13,7 +13,7 @@
     {
       "bytes": 1415,
       "path": "studio/engine-api.contract.v4.json",
-      "sha256": "d8c267d09d9fe4954ce6505eae118c6e4d0225dd4819cbb30bdd86d70ad76ef2"
+      "sha256": "1d7e5cdc100c905e51120b6b3e4f080159a5da04cbe0bada748a6ff3a6d04ca5"
     },
     {
       "bytes": 637,
@@ -23,7 +23,7 @@
     {
       "bytes": 1407,
       "path": "studio/installation.contract.v4.json",
-      "sha256": "1c9feb877f4aa4c15c400374f4b151e37db094a01f8c1429fe3b95721df51542"
+      "sha256": "5d33953cd67b8522f1c9b0a301f95f7a351367edfbd2939e233b08f9f1bf06d8"
     },
     {
       "bytes": 1009,
@@ -33,7 +33,7 @@
     {
       "bytes": 1575,
       "path": "studio/windows-integration.contract.v4.json",
-      "sha256": "997c8c3e532ec576255e2d7e93fad5698d6165ffc403b9caa88b6612d0ac94d2"
+      "sha256": "2fe48980fe1638ff2a320e68d93fb72735995378dd1440ebdcee60a43b318b9e"
     }
   ],
   "native_installation_verified": false,

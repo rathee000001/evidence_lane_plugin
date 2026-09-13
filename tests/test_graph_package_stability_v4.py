@@ -1,5 +1,4 @@
 import hashlib
-import os
 from pathlib import Path
 
 from evidence_lane_plugin.engine import Engine
@@ -35,7 +34,7 @@ def test_all_current_lane_packages_ignore_optional_runtime_graph_observations(tm
     monkeypatch.setattr(pipeline, '_rustworkx_analysis', forbidden)
     monkeypatch.setattr(pipeline, 'configured_runtime_root', forbidden)
     monkeypatch.setattr(pipeline, 'try_resolve_native_tool', forbidden)
-    monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', os.environ['EVI_GRAPH_QUALIFICATION_ASSETS'])
+    monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', str(tmp_path / 'unobserved-studio-root'))
     monkeypatch.setenv('EVIDENCE_LANE_HOST_PROFILE', 'CODEX_DESKTOP')
     second = generated(tmp_path / 'second')
     assert first == second

@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/local_code"
     },
     "folder": {
-      "const": "sectors/local_code"
+      "const": "local_code"
     },
     "folder_role": {
       "const": "external_project_state"

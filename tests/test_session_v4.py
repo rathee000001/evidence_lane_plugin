@@ -82,9 +82,9 @@ def test_boot_resume_exit_preserve_separate_state_and_exact_head(selected):
     assert (project.source_root / 'input.txt').read_bytes() == source_bytes
     with project.connection(read_only=True) as root:
         assert not root.execute("SELECT 1 FROM sqlite_schema WHERE name='sessions_records'").fetchone()
-    with project.lane('receipts').connection(read_only=True) as receipts:
-        assert receipts.execute('SELECT COUNT(*) FROM sessions_events').fetchone()[0] == 3
-        assert receipts.execute("SELECT COUNT(*) FROM schema_migrations WHERE owner='sessions'").fetchone()[0] == 1
+    with project.lane('sessions').connection(read_only=True) as sessions:
+        assert sessions.execute('SELECT COUNT(*) FROM sessions_events').fetchone()[0] == 3
+        assert sessions.execute("SELECT COUNT(*) FROM schema_migrations WHERE owner='sessions'").fetchone()[0] == 1
     assert boot(engine, project, client).status == 'ok'
 
 
@@ -107,7 +107,7 @@ def test_stale_root_and_native_attestation_fail_before_session_or_capture(select
         ({'reported_session_id': 'test', 'expected_root_pv_digest': project.pv_head()['head_digest'],
           'require_native_attestation': True}, 'NATIVE_TASK_ATTESTATION_UNAVAILABLE')]:
         assert call(engine, project, client, 'session_boot', arguments).error.code == code
-    with project.lane('receipts').connection(read_only=True) as connection:
+    with project.lane('sessions').connection(read_only=True) as connection:
         assert not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='sessions_records'").fetchone()
     assert not engine.capture.session_bound(client.client_id, project.project_id, 'test')
 
@@ -122,9 +122,14 @@ def test_failed_session_commit_does_not_publish_capture_or_schema(selected, monk
     response = boot(engine, project, client)
     assert response.error.code == 'INJECTED_SESSION_COMMIT_FAILURE'
     assert not engine.capture.session_bound(client.client_id, project.project_id, 'host-reported-session')
-    with project.lane('receipts').connection(read_only=True) as connection:
+    with project.lane('sessions').connection(read_only=True) as connection:
         assert not connection.execute("SELECT 1 FROM sqlite_schema WHERE name='sessions_records'").fetchone()
-        assert not connection.execute("SELECT 1 FROM schema_history_files WHERE owner='sessions'").fetchone()
+        history_table = connection.execute(
+            "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='schema_history_files'"
+        ).fetchone()
+        assert history_table is None or not connection.execute(
+            "SELECT 1 FROM schema_history_files WHERE owner='sessions'"
+        ).fetchone()
     # The coordinator deliberately preserves immutable unregistered files after
     # abort. They are not admitted schema history; an exact retry can reuse them.
     monkeypatch.setattr(SessionAuthority, 'append', original)

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "contract": "plan-contracts.v4",
   "database_first": true,
@@ -14,9 +14,9 @@
       "sha256": "4b3f5607cc98b4988d908ddc95a1d76c6a59c2988100df6038102e2825ac6287"
     },
     {
-      "bytes": 204783,
+      "bytes": 204731,
       "path": "authorities/plan/manifest.v4.json",
-      "sha256": "10b51643e9ec71712132501a9ba4b31a6cc4b3c5c23b77eee0b4683593bf1a44"
+      "sha256": "c9a95228fb0dc6981ccc7c36b160b12d18db1e0fb1e96089305b2b256f6151fe"
     }
   ],
   "status": "PASS"

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 6,
@@ -7,32 +7,32 @@
     {
       "bytes": 905,
       "path": "sdk/delta/entry.workflow.v4.json",
-      "sha256": "ee271fecf4bd694a4676930c6045a491035175d80e803e21b89a5c1ffb0848d9"
+      "sha256": "4ebcd1d98c6a1252361b22a122cb863d5e8667b7b6ed8865f963d0fcd8be7fd4"
     },
     {
       "bytes": 859,
       "path": "sdk/delta/exit.workflow.v4.json",
-      "sha256": "508af1b2c3df611f4ba3ca988997b12711f150344922f16a0a475be7b55a7b26"
+      "sha256": "58d7dc445a124898eba87b735db4698e4eae53459689bb41a791f3a335b835ec"
     },
     {
       "bytes": 1007,
       "path": "sdk/delta/handoff-project-work.workflow.v4.json",
-      "sha256": "1990fad1f74437a85d600073580b50e62c28971551bd806395afc283b909dd0d"
+      "sha256": "fd260d54904dca84250ccc3950ebe85566cb33845099e56f77547588e7a90f06"
     },
     {
       "bytes": 900,
       "path": "sdk/delta/mid-query.workflow.v4.json",
-      "sha256": "ab8ad2f58272f288ec1067bfd56687515b3dd07e334baf851d2e8293972434c3"
+      "sha256": "aab623e9ca85bdacfcfa859f2ca69d719d032c995ac1eb2145aff66b75ad698f"
     },
     {
       "bytes": 919,
       "path": "sdk/delta/prompt-steer.workflow.v4.json",
-      "sha256": "56355eeb33a9d33189facac0efd11c2f8b2aac4cdda51fefb68c0df8462b37ab"
+      "sha256": "e71dd755b25ca3f75690405aa26fc6d73d8badc3020782c0b9c16b03195c040e"
     },
     {
       "bytes": 958,
       "path": "sdk/delta/run-project-lifecycle.workflow.v4.json",
-      "sha256": "0c910518b71cfeda74d1ddec09f494def9cfa0bd66dfb5637ce338dafd46d7fd"
+      "sha256": "10d712a8debad278f4e866ebf4e0ef46f55047337dbc8299617b08cf046f16f9"
     }
   ],
   "removed_workflows": [

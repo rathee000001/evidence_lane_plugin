@@ -6,62 +6,62 @@
     {
       "event": "SessionStart",
       "path": "sdk/hooks/events/SessionStart.v4.json",
-      "sha256": "a3aaa77d4083c933bb50d4a3730a68219bcf59c24eb1d6124f9fa1203931e1c9"
+      "sha256": "ca8612f483b34ffe8ce737be044b5ab4564f8364be05730d7cf7038542ed3cbe"
     },
     {
       "event": "SubagentStart",
       "path": "sdk/hooks/events/SubagentStart.v4.json",
-      "sha256": "88d9170588a59ebfcfb2e50f2f8170437b2451d34c8f617a8b79101b968f13a0"
+      "sha256": "f6b9bd8eba7fc538edbdea3313034b6f05615bb188424e4b6fd932019e958cf4"
     },
     {
       "event": "UserPromptSubmit",
       "path": "sdk/hooks/events/UserPromptSubmit.v4.json",
-      "sha256": "02231a66f391608731ea8284ccfadf40f80d7648183039e8e3bc1099258850d2"
+      "sha256": "9f8e5602939d28ad640b1bd4518a1b1b1c81c3c47a1ace88df712de25c38830f"
     },
     {
       "event": "PreToolUse",
       "path": "sdk/hooks/events/PreToolUse.v4.json",
-      "sha256": "35e3002c407ceab182be35a1b66fe369f5f259a7922b0c00a814c363f70eb10b"
+      "sha256": "2aaad30f110f9ec3c0aa44af47c0447dee27b39d9436beee5e99451976c0fd49"
     },
     {
       "event": "PermissionRequest",
       "path": "sdk/hooks/events/PermissionRequest.v4.json",
-      "sha256": "a7f3dfac72df37ae4c213a4ce3daf375ca69973bc3ebf7709bf2c1feb67b8a14"
+      "sha256": "1c203b27c481cda861713df80c002d4fe03aa192aeeb6aac2fdf40104f60a457"
     },
     {
       "event": "PostToolUse",
       "path": "sdk/hooks/events/PostToolUse.v4.json",
-      "sha256": "e4d2a68131d3c937661d44bc352884e131dd5eb50bd08fc75d1d0ca3358d657f"
+      "sha256": "21ef080d9b850aa1fc4199e4477a7067f11c1f3184b909d181a2a75bfcb4540a"
     },
     {
       "event": "PreCompact",
       "path": "sdk/hooks/events/PreCompact.v4.json",
-      "sha256": "471a0b437bb7c9f91fd86990e1bb660ae57470c26f3d061758cc47127be9c870"
+      "sha256": "8358ab8878e4fe89c27f09b82918f43a7ba78f83ee1a6501d6d2ad58e6192da6"
     },
     {
       "event": "PostCompact",
       "path": "sdk/hooks/events/PostCompact.v4.json",
-      "sha256": "1e6ba0768efbc3bbc51351bcc9f4260e5413fa4c8d9193d9bb5e3f71bd2ee83a"
+      "sha256": "049372b09b532833a66d468d022bae8d4a00f3b4e28d51e410e44aaa6a42b155"
     },
     {
       "event": "Stop",
       "path": "sdk/hooks/events/Stop.v4.json",
-      "sha256": "17d5cfafd726f41f8ad3c3dc1de14d4c9b123fc020abf0cceaab298f5dab9015"
+      "sha256": "8b261678c86df15bebf71c193fb77b24ce25d46be6eff8f22f4b9bc60fffa468"
     },
     {
       "event": "SubagentStop",
       "path": "sdk/hooks/events/SubagentStop.v4.json",
-      "sha256": "cdbc1d9d710154a37e3b0346d4801c2ebea2fab487d566f9788e767a258a938e"
+      "sha256": "3de37cf707fe6faba98e186ce61342371a53927437c4637f6786df15c9aa6e5d"
     },
     {
       "event": "Interrupt",
       "path": "sdk/hooks/events/Interrupt.v4.json",
-      "sha256": "8cb3dce6919d3099e44bf8b6f5ecda829f9d394f3d975a3856dbfc68f4982562"
+      "sha256": "6958e189ced3835200a18edc05e4cb210982cf3e65c55517e3afdf72c3f956db"
     },
     {
       "event": "SessionEnd",
       "path": "sdk/hooks/events/SessionEnd.v4.json",
-      "sha256": "f6917687bff5d9d7f8853766acf8b07c79681c1a36bfcf2e20192c2bfa7422c2"
+      "sha256": "bf94950dde45de534150ce209ebe9abb003208d7ed93556384b1ae36788a5c4e"
     }
   ],
   "native_installation_verified": false,

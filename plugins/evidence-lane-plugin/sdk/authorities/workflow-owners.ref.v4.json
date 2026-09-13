@@ -1,21 +1,16 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
-  "member_count": 2,
+  "member_count": 1,
   "members": [
     {
       "bytes": 510,
       "path": "sdk/authorities/workflow-owners/instructions.owner.v4.json",
-      "sha256": "39d60a6c884c56dd8e67d95a48d8745c671d3e96e915480977fa4d306eab1a22"
-    },
-    {
-      "bytes": 520,
-      "path": "sdk/authorities/workflow-owners/session_authority.owner.v4.json",
-      "sha256": "419df834a4fd99b1f994cb606bcf76d4f0937271bc22f52f94b75b15928304da"
+      "sha256": "1e8e8d7d6723fda1919afd4ff75819bb710f8474ea77e632d5010ce2433f0b70"
     }
   ],
-  "owner_count": 2,
+  "owner_count": 1,
   "schema": "evidence-lane.sdk-workflow-authority-owners.v4",
   "status": "PASS"
 }

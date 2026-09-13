@@ -80,6 +80,9 @@ def wait_run(system, admitted, timeout=45):
             time.sleep(.02)
             continue
         if row['state'] in {'verified', 'blocked'}:
+            system[0].delta.owned_completion(admitted.job_id).result(
+                timeout=max(1, deadline - time.monotonic())
+            )
             return row
         time.sleep(.02)
     pytest.fail('Document operation did not reach a terminal observation within its deadline')
@@ -295,12 +298,12 @@ def test_export_destination_race_preserves_external_bytes(document_system, monke
         source.write_bytes(b'previous bytes')
     create_plan(document_system, ['document_index', 'document_export'])
     indexed = execute(document_system, 'document_index', {'filename': 'fixture.docx'})
-    original = document_profile.tempfile.mkstemp
+    original = document_profile._export_mkstemp
     def concurrent_edit(*args, **kwargs):
         value = original(*args, **kwargs)
         source.write_bytes(b'concurrent user edit')
         return value
-    monkeypatch.setattr(document_profile.tempfile, 'mkstemp', concurrent_edit)
+    monkeypatch.setattr(document_profile, '_export_mkstemp', concurrent_edit)
     row = wait_run(document_system, admit(document_system, 'document_export', {'snapshot_id': indexed['snapshot_id'],
         'filename': source.name, 'expected_sha256': hashlib.sha256(b'previous bytes').hexdigest() if target_exists else None}, index=1))
     assert row['state'] == 'blocked' and row['error_code'] == 'DOCUMENT_EXPORT_DESTINATION_CHANGED'

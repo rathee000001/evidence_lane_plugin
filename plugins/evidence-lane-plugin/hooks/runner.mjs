@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Run one capture-only Hook through the sealed Studio Python when available. */
+/** Run one Host-visible Hook stage through the sealed Studio Python when available. */
 
 import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
@@ -21,9 +21,11 @@ const events = new Set([
   "UserPromptSubmit",
 ]);
 const selectedEvent = process.argv[2];
+const selectedStage = process.argv[3];
 const hooksRoot = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(hooksRoot, "..");
-const handler = path.join(hooksRoot, "events", selectedEvent || "", "handler.py");
+const handler = path.join(hooksRoot, "stage_runner.py");
+const stages = new Set(["VALIDATE", "SEAL", "TRANSPORT", "EMIT"]);
 const studioRoot = process.env.EVIDENCE_LANE_STUDIO_ROOT || "C:\\Apps\\EvidenceLaneStudio";
 const stablePython = path.join(studioRoot, "engine", "venv", "Scripts", "python.exe");
 const checkoutPython = path.resolve(pluginRoot, "..", "..", ".venv", "Scripts", "python.exe");
@@ -33,7 +35,7 @@ function unavailable(code) {
   process.exitCode = 0;
 }
 
-if (!events.has(selectedEvent) || !existsSync(handler)) {
+if (!events.has(selectedEvent) || !stages.has(selectedStage) || !existsSync(handler)) {
   unavailable("HOOK_EVENT_UNSUPPORTED");
 } else {
   const candidates = [];
@@ -52,7 +54,7 @@ if (!events.has(selectedEvent) || !existsSync(handler)) {
       return;
     }
     const command = unique[index++];
-    const child = spawn(command, ["-I", "-B", handler], {
+    const child = spawn(command, ["-I", "-B", handler, selectedEvent, selectedStage], {
       cwd: pluginRoot,
       env: { ...process.env, EVIDENCE_LANE_PLUGIN_ROOT: pluginRoot },
       shell: false,

@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/PostToolUse/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/PostToolUse/pipeline.v4.json",
-      "sha256": "b483e9b66d8ae3d64ae6b0d404b885739022b13406a1ec2d5a775262a03b7294"
+      "sha256": "bdd5d2dc644fa63ceb335b83bde9e0fae65ee7b864b64e3fd3eab25e3d40c241"
     },
     {
       "path": "hooks/events/PostToolUse/README.md",
-      "sha256": "250ed7048d72136d262f7e89144f12f0134a00816c170b1e4e85ee3bb685cb69"
+      "sha256": "096084e62a5d722cde5d8aa72179f75488e215285165e13bb8e840857489872b"
     }
   ],
   "native_installation_verified": false,

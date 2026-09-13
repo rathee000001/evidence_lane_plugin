@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/plan/dot-artifact.schema.json",
-      "sha256": "a3129cd11de68c54e715e52eb1eb3a883bc36c202c1b4d3a0d7be9856538d632"
+      "sha256": "1e38d72af21bad16304d40195dec4ec3f787981aa43b310882fbe1cd6de83e82"
     },
     {
       "path": "authorities/plan/manifest.schema.json",
-      "sha256": "c7ccee9c1eb70d8ee811b71be7297eb937013e54d7ecdbe2b36c6c172db3e086"
+      "sha256": "f1d304ba15af2df1b2d767ad7d7d7b486308ca0d1ab11bae65025c2ff1ffdc1d"
     },
     {
       "path": "authorities/plan/manifest.v4.json",
-      "sha256": "10b51643e9ec71712132501a9ba4b31a6cc4b3c5c23b77eee0b4683593bf1a44"
+      "sha256": "c9a95228fb0dc6981ccc7c36b160b12d18db1e0fb1e96089305b2b256f6151fe"
     },
     {
       "path": "authorities/plan/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/plan/mmd-artifact.schema.json",
-      "sha256": "db2f09b6178f30c273e95a263fa9704fd3a5477d97bdb0f0d7c715efd558b53a"
+      "sha256": "aae2b02b48c7705e6ad7c3a07fc25f82467e45b7e5e047ac223ea7054a83e7dc"
     },
     {
       "path": "authorities/plan/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/plan/pointer-contract.v4.json",
-      "sha256": "cfcc9e2dba370450ff8287127c5e3344094812803e2deec57dcf82df3cd7f6ed"
+      "sha256": "80fa58c83d9771016c5c9dd852f2ffc5c30d6b0f42761dccc2897f39bb13a5d1"
     },
     {
       "path": "authorities/plan/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/plan/runtime-binding.schema.json",
-      "sha256": "6cfb7737d92137d082df0bf13714e90a2697d4f8187c2a2cff410461915ac1fa"
+      "sha256": "6eb4d5f563d4d42342227b90b18528260169b7296e9789314e42ab3570a15abc"
     },
     {
       "path": "authorities/plan/runtime-binding.v4.json",
-      "sha256": "e526b9ebbc41b42e4bd453892fe9d15195dcfd368b5aae5dc156c127908fa4bf"
+      "sha256": "4dbd1a3c1642116f2745cd69a1e0830dab5412a7a0ee034d25e78e19a6c601ce"
     },
     {
       "path": "authorities/plan/schema.sql",

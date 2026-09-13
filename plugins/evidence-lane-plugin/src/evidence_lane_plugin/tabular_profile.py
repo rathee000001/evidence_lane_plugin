@@ -33,6 +33,10 @@ from .tool_routes import ToolRoute
 ACTION_PREFIX = {'data_excel': 'spreadsheet', 'data': 'data'}
 
 
+def _export_mkstemp(*, prefix: str, suffix: str, directory: Path) -> tuple[int, str]:
+    return tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=directory)
+
+
 class TabularResult(Contract):
     project_id: str
     lane_id: Literal['data_excel', 'data']
@@ -487,7 +491,9 @@ def export(context, request):
         store.append_receipt('tabular_export_prepared', {'lane_id': lane_id, 'export_id': export_id,
             'snapshot_id': request.snapshot_id, 'destination': relative, 'before_sha256': before,
             'after_sha256': manifest['raw_object'], 'effect_id': effect})
-    descriptor, temporary = tempfile.mkstemp(prefix='.evidence-lane-tabular-', suffix='.tmp', dir=path.parent)
+    descriptor, temporary = _export_mkstemp(
+        prefix='.evidence-lane-tabular-', suffix='.tmp', directory=path.parent
+    )
     temporary = Path(temporary)
     try:
         with os.fdopen(descriptor, 'wb') as stream:

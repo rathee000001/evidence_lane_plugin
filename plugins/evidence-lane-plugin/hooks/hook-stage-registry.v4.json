@@ -1,6 +1,41 @@
 {
   "ambient_python_required": false,
   "event_specific_handler_classes": true,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    {
+      "id": "VALIDATE",
+      "owners": [
+        "hook_admission"
+      ],
+      "status": "Validating and redacting Evidence Lane {event}"
+    },
+    {
+      "id": "SEAL",
+      "owners": [
+        "hook_classification",
+        "hook_lifecycle_boundary"
+      ],
+      "status": "Classifying and sealing Evidence Lane {event}"
+    },
+    {
+      "id": "TRANSPORT",
+      "owners": [
+        "event_specific_handler",
+        "hook_transport"
+      ],
+      "status": "Handling and delivering Evidence Lane {event}"
+    },
+    {
+      "id": "EMIT",
+      "owners": [
+        "hook_receipts",
+        "hook_output"
+      ],
+      "status": "Verifying and emitting Evidence Lane {event}"
+    }
+  ],
   "monolithic_hook_implementation": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.hook-stage-registry.v4",

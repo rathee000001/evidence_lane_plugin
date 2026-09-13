@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "chat_lineage",
   "source_package_folder": "authorities/chat_lineage",
-  "project_state_folder": "authorities/chat_lineage",
+  "project_state_folder": "chat_lineage",
   "runtime_module": "evidence_lane_plugin.lineage",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.chat_lineage.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/chat_lineage/schema-history",
+    "database_relative_path": "chat_lineage/chat_lineage_authority_v001.sqlite",
+    "schema_history_relative_path": "chat_lineage/schema-history.v4.json",
     "owners": [
       "lineage",
       "continuation",
@@ -42,13 +42,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "660B8839D8C3B689F46F43AA0F2F3823BE861B419705DCA5F2DBA9F7041F130E"
+    "contract_sha256": "46F6B623ABD767CC6EDFB3988C8FA3F3BE22CE036C8F00669766739007B59EFF"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "chat_lineage",
-    "folder": "authorities/chat_lineage",
-    "files_root": "authorities/chat_lineage/files",
+    "folder": "chat_lineage",
+    "objects_root": "chat_lineage/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -56,7 +56,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -79,7 +79,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "D8E6973B64B9370AFAEE35A0CE21426B8F2FD642D21EF3566B35E5C8A5F52511"
+    "contract_sha256": "E3EAE71EB94F54890F5512C051885442065873E90A71C30B8A33343835C04122"
   },
   "migration_bindings": [
     {
@@ -1738,11 +1738,11 @@
     {
       "view_id": "chat_lineage.ancestry",
       "lane_id": "chat_lineage",
-      "folder": "authorities/chat_lineage",
+      "folder": "chat_lineage",
       "version": 1,
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "consumer": "artifact_export",
-      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
+      "implementation_digest": "4e2924d44ac93230c707fde0295396e1fb76286c9b73f086e038cb52660625a9",
       "files": {
         "mmd": "chat_lineage.mmd",
         "dot": "chat_lineage.dot"
@@ -1807,7 +1807,7 @@
   "members": [
     {
       "path": "authorities/chat_lineage/README.md",
-      "sha256": "adf266e63c150868dc4ff14c4e571127925e770be57cfb2c41f77385b53eef86"
+      "sha256": "3576c1d4a71e058ad786af09ae71e509fb2876a7d6e8464d425fab8f5dcc3297"
     },
     {
       "path": "authorities/chat_lineage/build-refresh-contract.schema.json",
@@ -1831,19 +1831,19 @@
     },
     {
       "path": "authorities/chat_lineage/chat_lineage.tools.json",
-      "sha256": "42e0ba321dbe9391384e50124c98764b3da8d020abccc59717ff12f66747d2a7"
+      "sha256": "76a550f21f479b8503b274bbfcfd8c6ba746db0a3663e19352c64ded463a0b72"
     },
     {
       "path": "authorities/chat_lineage/dot-artifact.schema.json",
-      "sha256": "689e5a22c0601018c5fbae87e89fc1e20eb4bb7548d9c61d47d90b920f6d34d3"
+      "sha256": "a9017312c5ea23a5752d753ca8c971e333ec6d3b8cafa054c8a509dc757f9402"
     },
     {
       "path": "authorities/chat_lineage/law.v4.json",
-      "sha256": "5db6914ceff906cc3de771c4beda3a2a8aa716b569296cb2dd72ef192f926d91"
+      "sha256": "9176fe1733af5521c061fa394723f9e0b93e0818208c94ba97dfd23041f18b07"
     },
     {
       "path": "authorities/chat_lineage/manifest.schema.json",
-      "sha256": "7aa64555c1a81a438330bac2691028430bfce3945d103287dac8640b8fe707ab"
+      "sha256": "ecaf3beeb949432494fafedf08b4ea2ea0f0ef04d2385bb71679c62b4a7f3f27"
     },
     {
       "path": "authorities/chat_lineage/migration-history.json",
@@ -1851,7 +1851,7 @@
     },
     {
       "path": "authorities/chat_lineage/mmd-artifact.schema.json",
-      "sha256": "3a0f3508c9b07ccf403784f38cb8c528d9528bc05b9ae36f464b0a7973158b3e"
+      "sha256": "2f0db54c3d2601a142f3c8726e044591aeb1c569a45bf51145fc59db922dbf87"
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.schema.json",
@@ -1859,7 +1859,7 @@
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.v4.json",
-      "sha256": "dd51574d336576a512ec0307a9bba74e7235dc40a25d01eed111e87a82526955"
+      "sha256": "cd30e52987eae4699c1b4d9f18e68fc3ba239c82a7123349ea52e3d6a9b8e53b"
     },
     {
       "path": "authorities/chat_lineage/reader-contract.schema.json",
@@ -1875,11 +1875,11 @@
     },
     {
       "path": "authorities/chat_lineage/runtime-binding.schema.json",
-      "sha256": "39540b44316b760f0563f75b6abaaff760a528fa5be6502855692be7b018de42"
+      "sha256": "0c081f5a43baf84728bd42d02eedeb8b1904676d04112361c276fa985eaf8ab5"
     },
     {
       "path": "authorities/chat_lineage/runtime-binding.v4.json",
-      "sha256": "6645b48b7cbf739dc4940ec54a30b1be1c610b147c6b338aa15669324638884a"
+      "sha256": "769e5cc3c4ae3dc06d2885eba2e6f4b7f300d5114c485bd4a9b8f03ef66dce9c"
     },
     {
       "path": "authorities/chat_lineage/runtime.py",
@@ -1911,7 +1911,7 @@
     },
     {
       "path": "authorities/chat_lineage/workflow.v4.json",
-      "sha256": "3985aa25ad2aeebcf9aca60377ede96c8cc9c5232ca78f6578f8a2b22698ebc2"
+      "sha256": "79d2a4a5e645d2c4ef6c83c9961ec74ef201834ddf70c93ea7aa2b1225cd4447"
     }
   ]
 }

@@ -26,7 +26,7 @@ def test_presentation_package_binds_its_own_reader_and_migrations(presentation_s
     assert module.inspect(store)['initialized'] is False
     manifest = sector_package_contract('ppt', engine.registry)
     assert len(manifest['actions']) == 15
-    assert manifest['database'] == 'sectors/ppt/ppt_sector_v001.sqlite'
+    assert manifest['database'] == 'ppt/ppt_sector_v001.sqlite'
     assert manifest['runtime_module'] == 'evidence_lane_plugin.presentation_profile'
     assert {item['name'] for item in manifest['actions']} >= {'presentation_generate', 'presentation_convert', 'presentation_enrich'}
 
@@ -50,7 +50,7 @@ def test_presentation_views_preserve_slide_and_note_locators(presentation_system
         'source_digest': preview['source_digest'], 'formats': ['mmd', 'dot'], 'include_pointer': True})
     assert published.status == 'ok', published.error
     assert {Path(row['path']).name for row in published.result['files']} == {'ppt.mmd', 'ppt.dot', 'ppt.pointer.json'}
-    assert all('/sectors/ppt/' in row['path'].replace('\\', '/') for row in published.result['files'])
+    assert all('/ppt/' in row['path'].replace('\\', '/') for row in published.result['files'])
     read = call(presentation_system, 'lane_view_read', {'view_id': arguments['view_id'],
         'snapshot_digest': published.result['snapshot_digest'], 'include_content': True})
     assert read.status == 'ok', read.error

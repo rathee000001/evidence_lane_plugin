@@ -97,7 +97,7 @@ def test_powerpoint_requires_its_selected_tool_before_worker_dispatch(system):
         'arguments': {'filename': 'report.pptx'}}, expected_revision=1)
     assert admitted.status == 'error'
     assert system[0].workers.status()['succeeded_operations'] == 0
-    assert not (system[1].root / 'sectors/artifacts').exists()
+    assert not (system[1].root / 'artifacts').exists()
 
 
 def test_presentation_artifact_owned_worker_refresh_and_historical_reads(system):
@@ -122,7 +122,7 @@ def test_presentation_artifact_owned_worker_refresh_and_historical_reads(system)
         assert base64.b64decode(read.result['result']['content_base64']) == expected
         query = call(system, 'artifacts_query', {'snapshot_id': snapshot['snapshot_id'], 'query': text})
         assert query.status == 'ok' and query.result['result']['rows'], query.error
-    assert not (store.root / 'sectors/ppt').exists()
+    assert not (store.root / 'ppt').exists()
     assert system[0].workers.status()['succeeded_operations'] == 2
 
 
@@ -137,4 +137,4 @@ def test_shared_presentation_parser_keeps_other_evidence_lane_ownership(system, 
     assert all(not row['kind'].startswith('artifact_') for row in facts['items'])
     searched = call(system, lane_id + '_query', {'snapshot_id': indexed['snapshot_id'], 'query': 'alpha'})
     assert searched.status == 'ok' and searched.result['result']['rows'], searched.error
-    assert not (system[1].root / 'sectors/artifacts').exists()
+    assert not (system[1].root / 'artifacts').exists()

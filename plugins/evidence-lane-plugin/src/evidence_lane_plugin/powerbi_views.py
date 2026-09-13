@@ -116,7 +116,7 @@ def register_powerbi_views(engine):
         LaneView(
             "power_bi.structure",
             "power_bi",
-            "sectors/power_bi",
+            "power_bi",
             "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
             powerbi_graph,
             ("powerbi",),

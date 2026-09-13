@@ -1,11 +1,11 @@
 {
   "action": "pdf_query",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/pdf_query.v4.schema.json",
-  "contract_sha256": "2302fbf19f2a69f209c0fc4986550ece98dcf383592f11952df114ae155eaa0d",
+  "contract_sha256": "2f7d762d337556d3d98bd1d2958e76fabd52a17039300f66274d5d1d82d4a014",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

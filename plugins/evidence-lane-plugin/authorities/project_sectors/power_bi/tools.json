@@ -635,11 +635,11 @@
     {
       "view_id": "power_bi.structure",
       "lane_id": "power_bi",
-      "folder": "sectors/power_bi",
+      "folder": "power_bi",
       "version": 1,
       "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
       "consumer": "artifact_export",
-      "implementation_digest": "0c50a61e463500f454cf5e63972f0fb94481d89122812dbc541a47e7891ccee1",
+      "implementation_digest": "a5f284adfab8775212843fe36574b231da9feae15035db30720b94aad1af9d4e",
       "files": {
         "mmd": "powerbi.mmd",
         "dot": "powerbi.dot",
@@ -716,6 +716,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/power_bi",
+  "runtime_state_folder": "power_bi",
   "source_package_folder": "authorities/project_sectors/power_bi"
 }

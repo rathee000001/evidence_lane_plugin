@@ -10,7 +10,7 @@
       "evidence_lane_plugin.source_materialization",
       "evidence_lane_plugin.custom_lanes"
     ],
-    "storage": "authorities/sources/sources_authority_v001.sqlite with files and schema history in authorities/sources",
+    "storage": "sources/sources_authority_v001.sqlite with files and schema history in sources",
     "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
     "alternate_writer": false
   },

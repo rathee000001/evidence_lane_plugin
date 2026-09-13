@@ -1,11 +1,11 @@
 {
   "action": "project_memory_record_link",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/project_memory_record_link.v4.schema.json",
-  "contract_sha256": "6b6695e18139ceb70e40a651b83c05dac2aa6fbdf66fc0c3e1c8e931094a4a0b",
+  "contract_sha256": "91f9ec38e11ed5da9c5382b194fa076e64b313d53b17847d683253e6057aa189",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

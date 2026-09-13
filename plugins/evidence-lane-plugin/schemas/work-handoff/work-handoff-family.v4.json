@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "src/evidence_lane_plugin/session_authority.py",
-      "sha256": "7a329d92c4130793bd8c8d140cc8527a5044169d5b4d6f44f740d07fc754a1b4"
+      "sha256": "190f5ce061f46ea185ce7b4b39c72406ea2419708bed46ae8f0ea4ca040aa27b"
     },
     {
       "path": "src/evidence_lane_plugin/task_binding_registry.py",

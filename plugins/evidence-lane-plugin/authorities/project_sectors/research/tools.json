@@ -1194,11 +1194,11 @@
     {
       "view_id": "research.structure",
       "lane_id": "research",
-      "folder": "sectors/research",
+      "folder": "research",
       "version": 1,
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "research.mmd",
         "dot": "research.dot",
@@ -1302,6 +1302,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/research",
+  "runtime_state_folder": "research",
   "source_package_folder": "authorities/project_sectors/research"
 }

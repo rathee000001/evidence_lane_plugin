@@ -151,7 +151,8 @@ def test_incompatible_targets_fail_without_automatic_migration(projects, sql, ex
     if expected == 'SCHEMA_NEWER_THAN_ENGINE':
         from evidence_lane_plugin.migrations import Migration, apply_migrations
         from evidence_lane_plugin.plan_runtime import PLAN_MIGRATIONS
-        apply_migrations(stores[1], (*PLAN_MIGRATIONS, Migration('plan', 3, 'Future compatible owner',
+        future_version = PLAN_MIGRATIONS[-1].version + 1
+        apply_migrations(stores[1], (*PLAN_MIGRATIONS, Migration('plan', future_version, 'Future compatible owner',
             ('CREATE TABLE plan_future(value TEXT)',))))
     else:
         target = stores[1] if expected == 'UNSUPPORTED_PROJECT_VERSION' else stores[1].lane('chat_lineage')

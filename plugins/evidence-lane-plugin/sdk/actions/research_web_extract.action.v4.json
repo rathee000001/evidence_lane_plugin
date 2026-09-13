@@ -1,11 +1,11 @@
 {
   "action": "research_web_extract",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/research_web_extract.v4.schema.json",
-  "contract_sha256": "6b19909a7c7fb79ae3eb4c6a8fe10eb78ec2882f16b33729628a78137c63374d",
+  "contract_sha256": "f3f34ca308a7a99e52a6c7c1b8216a27617e27cc218327ce2fc8f62907037059",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

@@ -32,6 +32,10 @@ from .tool_routes import ToolRoute
 DIGEST = r'^[0-9a-f]{64}$'
 
 
+def _export_mkstemp(*, prefix: str, suffix: str, directory: Path) -> tuple[int, str]:
+    return tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=directory)
+
+
 class DocumentSelection(Contract):
     lane_id: Literal['docs'] = 'docs'
 
@@ -538,7 +542,9 @@ def export_document(context, request):
                 (export_id, request.snapshot_id, relative, before, manifest['raw_object'], effect, now()))
         store.append_receipt('document_export_prepared', {'export_id': export_id, 'snapshot_id': request.snapshot_id,
             'destination': relative, 'before_sha256': before, 'after_sha256': manifest['raw_object'], 'effect_id': effect})
-    descriptor, temporary = tempfile.mkstemp(prefix='.evidence-lane-document-', suffix='.tmp', dir=path.parent)
+    descriptor, temporary = _export_mkstemp(
+        prefix='.evidence-lane-document-', suffix='.tmp', directory=path.parent
+    )
     temporary = Path(temporary)
     try:
         with os.fdopen(descriptor, 'wb') as stream:

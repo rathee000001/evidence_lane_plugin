@@ -1,14 +1,14 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "pdf_ocr",
   "manifest": {
-    "bytes": 104347,
+    "bytes": 104321,
     "path": "authorities/project_sectors/pdf_ocr/manifest.v4.json",
-    "sha256": "c69e83290a7020f33727c938b01db93de9b2a13ec31a0a7acb25810b3e2dfada"
+    "sha256": "0f324a94c5289d75d3d688074c7ee5dc793b25d85f0c0da4b4fd3d305d6f0ff5"
   },
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,
   "schema": "evidence-lane.sdk-project-sector-binding.v4",
   "status": "PASS"

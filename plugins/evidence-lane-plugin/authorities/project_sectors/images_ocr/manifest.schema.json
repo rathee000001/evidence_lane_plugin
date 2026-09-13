@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/images_ocr"
     },
     "folder": {
-      "const": "sectors/images_ocr"
+      "const": "images_ocr"
     },
     "folder_role": {
       "const": "external_project_state"

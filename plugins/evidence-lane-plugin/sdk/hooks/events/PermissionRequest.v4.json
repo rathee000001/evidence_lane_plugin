@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/PermissionRequest/handler.py",
   "event": "PermissionRequest",
   "event_contract": "hooks/events/PermissionRequest/event.v4.json",
-  "event_contract_sha256": "0ee39a4725ea56ae8b704ad20acd9dae61af10c0c4c990a64f4bcabc16cfa8ab",
+  "event_contract_sha256": "2cb121f92dcbe7ab267e2545c21aa6edbe57b4caaa03dd35e6f01aeb73d9f693",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/PermissionRequest.v4.schema.json",
   "input_schema_sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98",
   "installed_execution_claimed": false,

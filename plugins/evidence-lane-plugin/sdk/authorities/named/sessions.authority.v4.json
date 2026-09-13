@@ -1,0 +1,18 @@
+{
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "authority": "engine_typed_action_registry",
+  "authority_id": "sessions",
+  "installed_execution_claimed": false,
+  "manifest": {
+    "bytes": 65889,
+    "path": "authorities/session_authority/manifest.v4.json",
+    "sha256": "637df12f35745bc1dbd157e56e712761318a8a3d53bd4064343923fa56469134"
+  },
+  "path": "authorities/session_authority",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
+  "root_pv_role": "coordinate_published_lane_head",
+  "runtime_execution_inferred": false,
+  "runtime_module": "evidence_lane_plugin.session_authority",
+  "schema": "evidence-lane.sdk-authority-binding.v4",
+  "status": "PASS"
+}

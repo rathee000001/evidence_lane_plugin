@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/data_excel"
     },
     "folder": {
-      "const": "sectors/data_excel"
+      "const": "data_excel"
     },
     "folder_role": {
       "const": "external_project_state"

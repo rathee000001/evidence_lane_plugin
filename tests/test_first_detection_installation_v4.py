@@ -483,8 +483,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.3"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.3-bundle-")
+        assert binding["plugin_version"] == "4.0.4"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.4-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()

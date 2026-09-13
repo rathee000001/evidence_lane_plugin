@@ -8,7 +8,7 @@
       "evidence_lane_plugin.prompt_index",
       "evidence_lane_plugin.codex_turn_control"
     ],
-    "storage": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite with files and schema history in authorities/chat_lineage",
+    "storage": "chat_lineage/chat_lineage_authority_v001.sqlite with files and schema history in chat_lineage",
     "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
     "alternate_writer": false
   },

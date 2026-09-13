@@ -1,13 +1,13 @@
 {
   "action": "tableau_current",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/tableau_current.action.v4.json",
-  "sdk_binding_sha256": "38a85f4770b4782e2cf336b2450e115b40d8ee1494c2efe6db3404e766f43fb1",
+  "sdk_binding_sha256": "f0d22c5072c61c83a4f7bbc4e4bd47360018aeba216ac9a6b7732cfadd7932e2",
   "tool": {
     "annotations": {
       "destructiveHint": false,

@@ -135,6 +135,11 @@ def execute(system, action, arguments, *, index=0, failure=None, transport=None)
     assert row["state"] == "verified", {
         key: row[key] for key in ("state", "error_code", "result_object")
     }
+    while time.monotonic() < deadline and any(
+        item["project_id"] == store.project_id for item in system[0].project_work.status()
+    ):
+        time.sleep(0.01)
+    assert not any(item["project_id"] == store.project_id for item in system[0].project_work.status())
     return json.loads(store.lane("plan").read_object(row["result_object"]))["result"]["result"]
 
 
@@ -277,7 +282,7 @@ def test_schema_catalog_and_unknown_uri_never_initialize_the_lane(powerbi_system
     assert rejected.error.code == "POWERBI_SCHEMA_UNSUPPORTED"
     current = call(powerbi_system, "powerbi_current")
     assert current.status == "ok" and not current.result["result"]["initialized"]
-    assert not (store.root / "sectors/power_bi/power_bi_sector_v001.sqlite").exists()
+    assert not (store.root / "power_bi/power_bi_sector_v001.sqlite").exists()
 
 
 def test_companion_paths_are_guarded_before_worker_reads(powerbi_system):

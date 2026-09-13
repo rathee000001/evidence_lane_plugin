@@ -50,12 +50,12 @@ def test_export_rechecks_destination_and_preserves_competing_bytes(tabular_syste
         source.write_bytes(b'old bytes')
     plan(tabular_system, ['data_index', 'data_export'])
     indexed = execute(tabular_system, 'data_index', {'filename': 'values.json'})
-    original = tabular_profile.tempfile.mkstemp
+    original = tabular_profile._export_mkstemp
     def changed(*args, **kwargs):
         result = original(*args, **kwargs)
         source.write_bytes(b'competing external bytes')
         return result
-    monkeypatch.setattr(tabular_profile.tempfile, 'mkstemp', changed)
+    monkeypatch.setattr(tabular_profile, '_export_mkstemp', changed)
     result = execute(tabular_system, 'data_export', {'snapshot_id': indexed['snapshot_id'], 'filename': source.name,
         'expected_sha256': hashlib.sha256(b'old bytes').hexdigest() if exists else None}, index=1, expected='blocked')
     assert result['error_code'] == 'TABULAR_EXPORT_DESTINATION_CHANGED'

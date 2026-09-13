@@ -12,7 +12,7 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-contract.v4.json",
-      "sha256": "5dc8a48bc55af5570bd2ef0f38abc0581bcd5cf51e950502de9497f840c203c5"
+      "sha256": "9da9f1caa57bf84551de5b2cdca9b51f9935730e2a9213c07db2e4aabfa9376f"
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-pointer.schema.json",
@@ -20,11 +20,11 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/manifest.schema.json",
-      "sha256": "b89223b5c189a6fccb58dbadc43525f24c5ed065a0fbccf22c3f640d17828c77"
+      "sha256": "d9121e921358ac2a1ad027a452247d5480b6a645299fb6c42fe77a57d870af35"
     },
     {
       "path": "authorities/project_sectors/data_excel/manifest.v4.json",
-      "sha256": "c2bb5e311b7e31fcfbcda955a100de245233531ae0e943dff2aa963280a937f1"
+      "sha256": "af532d887cd39024028aff4418689ea3b26502f61512203c01d08c33dcfbdabc"
     },
     {
       "path": "authorities/project_sectors/data_excel/migration-history.json",

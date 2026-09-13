@@ -12,11 +12,11 @@
     },
     {
       "path": "authorities/source_authority/manifest.schema.json",
-      "sha256": "85d3eafba3dfb6b3afa22a9c4935ef906dd585555e8b6397fd3aa36710de23ae"
+      "sha256": "c64cd072abe83ccb1aef142e06066f71f7eafe6d26029e6b59ff8edae836dadd"
     },
     {
       "path": "authorities/source_authority/manifest.v4.json",
-      "sha256": "9d0989eb6efd823e88e0c15a7ad21e42b337b28406f8b4064a83ed10252535e4"
+      "sha256": "ac05cbb88339ff0ccb648183099008622cca7fcde52beb85cc9b2cddd52f8b85"
     },
     {
       "path": "authorities/source_authority/migration-history.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/source_authority/pointer-contract.v4.json",
-      "sha256": "2c01945db1c210c9284019f051044bf7ce56d4bcfd7ee9a47baeb3c169cb29da"
+      "sha256": "0b55b01895045215215853fb1e06e7f2abc3c7cb26f6d9f359809d520f8a812d"
     },
     {
       "path": "authorities/source_authority/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/source_authority/runtime-binding.schema.json",
-      "sha256": "4ede131bfe37461d384b79d7ff07ba307b2d958217518cf0f829c94d0c693aa1"
+      "sha256": "eb70195c84e483075d7df5a847b4ca08072d97f7090d59ccf7670cbe9af469ee"
     },
     {
       "path": "authorities/source_authority/runtime-binding.v4.json",
-      "sha256": "048ed0c9bc455f261435f4129fd7d1c9632e5a87f9dd597d0d45c10d771ea166"
+      "sha256": "b624212b435fcfc52b5d130d821993e69e6fba00346829c68906f313192353fd"
     },
     {
       "path": "authorities/source_authority/schema.sql",

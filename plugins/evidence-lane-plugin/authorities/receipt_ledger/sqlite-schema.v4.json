@@ -5,7 +5,7 @@
   "business_rows": 0,
   "project_identity_rows": 0,
   "sqlite_version": "3.50.4",
-  "sqlite_sha256": "8396128b62def1e83fd6ae1940dfe2fc635a8bb54d5f1b00163b660a60809fab",
+  "sqlite_sha256": "3382fd512b2ce2af4e2ee5f0879d9d6b0cd9236a962427584b30a77adf452b13",
   "tables": [
     {
       "name": "accelerator_settings",
@@ -680,174 +680,6 @@
       ]
     },
     {
-      "name": "sessions_current",
-      "type": "table",
-      "sql": "CREATE TABLE sessions_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id))",
-      "rows": 0,
-      "columns": [
-        {
-          "name": "singleton",
-          "type": "INTEGER",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "name": "session_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        }
-      ]
-    },
-    {
-      "name": "sessions_events",
-      "type": "table",
-      "sql": "CREATE TABLE sessions_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id) DEFERRABLE INITIALLY DEFERRED,\n       generation INTEGER NOT NULL, action TEXT NOT NULL, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE,\n       created_at TEXT NOT NULL, UNIQUE(session_id,generation))",
-      "rows": 0,
-      "columns": [
-        {
-          "name": "sequence",
-          "type": "INTEGER",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "name": "request_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "session_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "generation",
-          "type": "INTEGER",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "action",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "client_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "input_digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "body_json",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "previous_digest",
-          "type": "TEXT",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "name": "digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "created_at",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        }
-      ]
-    },
-    {
-      "name": "sessions_records",
-      "type": "table",
-      "sql": "CREATE TABLE sessions_records (session_id TEXT PRIMARY KEY,\n       state TEXT NOT NULL CHECK(state IN ('active','closed')), generation INTEGER NOT NULL CHECK(generation>=1),\n       owner_client_id TEXT NOT NULL, owner_engine_id TEXT NOT NULL, reported_session_id TEXT NOT NULL,\n       flash_digest TEXT NOT NULL, runtime_package_digest TEXT NOT NULL, event_digest TEXT NOT NULL,\n       created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
-      "rows": 0,
-      "columns": [
-        {
-          "name": "session_id",
-          "type": "TEXT",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "name": "state",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "generation",
-          "type": "INTEGER",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "owner_client_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "owner_engine_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "reported_session_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "flash_digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "runtime_package_digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "event_digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "created_at",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "updated_at",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        }
-      ]
-    },
-    {
       "name": "storage_selection_events",
       "type": "table",
       "sql": "CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,\n       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
@@ -940,18 +772,6 @@
       "target": "receipts",
       "column": "receipt_id",
       "target_column": "receipt_id"
-    },
-    {
-      "source": "sessions_current",
-      "target": "sessions_records",
-      "column": "session_id",
-      "target_column": "session_id"
-    },
-    {
-      "source": "sessions_events",
-      "target": "sessions_records",
-      "column": "session_id",
-      "target_column": "session_id"
     }
   ],
   "runtime_initialization_performed": false

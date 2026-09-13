@@ -12,11 +12,11 @@
     },
     {
       "path": "src/evidence_lane_plugin/universe_federation.py",
-      "sha256": "ffe82077a1e89f0abc68c546270fb714177f274780f3eb5d2d26c88b57d54072"
+      "sha256": "a516b7d265267b0a949a4f83525c1a8ff0ef7958b3ce2311ef00394eb94f3912"
     },
     {
       "path": "src/evidence_lane_plugin/universe_snapshot.py",
-      "sha256": "b58efa488dc36407bb737e89139d6aa1b45b0bd81a6917aee97beef0409edb53"
+      "sha256": "f92ea2e1b9e67c26ee8effaab99a08db4b3a22e52b3ad709865c84a271f56b5d"
     }
   ],
   "purpose": "Per-project links and cross-project hash-only network contracts",

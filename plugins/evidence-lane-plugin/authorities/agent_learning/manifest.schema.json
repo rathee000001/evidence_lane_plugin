@@ -31,7 +31,7 @@
       "const": "authorities/agent_learning"
     },
     "project_state_folder": {
-      "const": "authorities/learning"
+      "const": "learning"
     },
     "runtime_database_packaged": {
       "const": false

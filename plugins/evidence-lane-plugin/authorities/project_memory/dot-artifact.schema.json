@@ -74,11 +74,11 @@
     {
       "view_id": "memory.links",
       "lane_id": "memory",
-      "folder": "authorities/memory",
+      "folder": "memory",
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
+      "implementation_digest": "360bb288f886cd3ae5815e4e34326165bc96320880c5b0959887dd0e85a170a6",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",

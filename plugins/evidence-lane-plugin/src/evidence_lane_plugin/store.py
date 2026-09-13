@@ -334,7 +334,7 @@ class SourceRestoration:
             raise LaneError('RESTORE_SOURCE_CHANGED', 'The original source or Plan changed before restoration could be applied.')
         generation = preview.generation + 1
         tick()
-        with lease.coordinated_transaction(['sources', 'plan', 'receipts']) as commit:
+        with lease.coordinated_transaction(['sources', 'plan', 'receipts', 'sessions']) as commit:
             connection = commit.connection('sources')
             plan = commit.connection('plan')
             receipts = commit.connection('receipts')
@@ -361,7 +361,7 @@ class SourceRestoration:
             if has_table(plan, 'jobs_jobs'):
                 plan.execute("UPDATE jobs_jobs SET state='superseded',resumable=0,updated_at=? WHERE state='checkpointed'", (now(),))
             from .database_recovery import close_recovery_session
-            close_recovery_session(self.project, receipts, digest, reason='source_binding_changed')
+            close_recovery_session(self.project, commit.connection('sessions'), digest, reason='source_binding_changed')
             connection.execute("UPDATE restoration_requests SET state='published',result_json=? WHERE request_id=?",
                                (result.model_dump_json(),request.request_id))
             self.store.append_receipt('git_source_restored', result.model_dump(), connection=connection)

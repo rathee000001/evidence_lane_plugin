@@ -1,11 +1,11 @@
 {
   "action": "data_inspect_duckdb",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/data_inspect_duckdb.v4.schema.json",
-  "contract_sha256": "a3a315a25d555a83b9cd68062eae865a9d42ee6cc8185a48a1f9ee3e5e002156",
+  "contract_sha256": "77f09fb11e3c81aff797df3a16218c1528244fc550a578a6ee3329216fd0e122",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

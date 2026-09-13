@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "images_ocr",
   "source_package_folder": "authorities/project_sectors/images_ocr",
-  "project_state_folder": "sectors/images_ocr",
-  "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
-  "files": "sectors/images_ocr/files",
-  "schema_history": "sectors/images_ocr/schema-history",
+  "project_state_folder": "images_ocr",
+  "database": "images_ocr/images_ocr_sector_v001.sqlite",
+  "files": "images_ocr/objects",
+  "schema_history": "images_ocr/schema-history.v4.json",
   "migrations": [
     {
       "owner": "media",
@@ -26,8 +26,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "images_ocr",
-    "folder": "sectors/images_ocr",
-    "files_root": "sectors/images_ocr/files",
+    "folder": "images_ocr",
+    "objects_root": "images_ocr/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -35,7 +35,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -65,7 +65,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "6CA075F1AA8B1A9FDA7B5A3342B285490E43F87BD8AB64189CBEB2B10E0243A7"
+    "contract_sha256": "5B1B579E6EDBB81602B7C6631128DD590588EE72C69C5BF5F376D9614761A598"
   },
   "actions": [
     "media_current",

@@ -10,7 +10,7 @@ import inspect
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 from pydantic import Field
 
@@ -105,8 +105,8 @@ class LaneView:
         identifier = r"[a-z][a-z0-9_]{0,47}"
         if (not re.fullmatch(identifier + r"\." + identifier, self.view_id)
                 or not re.fullmatch(identifier, self.lane_id) or not self.view_id.startswith(self.lane_id + ".")
-                or not re.fullmatch(r"(authorities|sectors)/" + identifier, self.folder)
-                or PurePosixPath(self.folder).name != self.lane_id or self.version < 1):
+                or not re.fullmatch(identifier, self.folder)
+                or self.folder != self.lane_id or self.version < 1):
             raise LaneError("INVALID_VIEW_CONTRACT", "A view requires a canonical lane, version and owned folder.")
         names = [value for value in (self.mmd_filename, self.dot_filename, self.pointer_filename) if value]
         if not names or len(set(names)) != len(names) or any(not re.fullmatch(r"[a-z][a-z0-9_.-]{0,95}", value) for value in names):
@@ -199,20 +199,20 @@ def register_authority_views(engine):
     from .project_memory import MEMORY_MIGRATIONS, memory_view
     from .task_binding_registry import CONTINUATION_MIGRATIONS
     definitions = [
-        LaneView("plan.dependencies", "plan", "authorities/plan", "Current Plan tasks, states and declared dependencies.", plan_view,
+        LaneView("plan.dependencies", "plan", "plan", "Current Plan tasks, states and declared dependencies.", plan_view,
             ("plan",), PLAN_MIGRATIONS, "plan.mmd", "plan.dot", "plan-pointer.json", plan_pointer,
             node_kinds=('plan_task',), edge_kinds=('DEPENDS_ON',)),
-        LaneView("chat_lineage.ancestry", "chat_lineage", "authorities/chat_lineage", "Visible conversation events and their recorded parent ancestry.", lineage_view,
+        LaneView("chat_lineage.ancestry", "chat_lineage", "chat_lineage", "Visible conversation events and their recorded parent ancestry.", lineage_view,
             ("lineage",), LINEAGE_MIGRATIONS, "chat_lineage.mmd", "chat_lineage.dot", supports_query=True,
             node_kinds=('lineage_event',), edge_kinds=('PARENT_OF',)),
-        LaneView("memory.links", "memory", "authorities/memory", "Attributed locators and explicitly recorded typed Memory relationships.", memory_view,
+        LaneView("memory.links", "memory", "memory", "Attributed locators and explicitly recorded typed Memory relationships.", memory_view,
             ("memory","plan","learning","canon"), (*MEMORY_MIGRATIONS,*PLAN_MIGRATIONS,*LEARNING_MIGRATIONS,*CANON_MIGRATIONS,*LINEAGE_MIGRATIONS),
             "memory.mmd", "memory.dot", "memory-pointer.json", memory_pointer, supports_query=True, supports_history=True,
             node_kinds=('memory_locator',), edge_kinds=('DERIVED_FROM','EVIDENCES','LEARNED_FROM','MAPS_TO','RELATED_TO','REVOKES','SUPERSEDES','SUPPRESSES')),
-        LaneView("learning.provenance", "learning", "authorities/learning", "Verified observations, their exact source receipts and version relationships.", learning_view,
+        LaneView("learning.provenance", "learning", "learning", "Verified observations, their exact source receipts and version relationships.", learning_view,
             ("learning",), LEARNING_MIGRATIONS, "agent-learning.mmd", "agent-learning.dot", supports_query=True, supports_history=True,
             node_kinds=('learning_version','verified_exit'), edge_kinds=('VERIFIED_SOURCE_OF','PREVIOUS_VERSION')),
-        LaneView("canon.consequences", "canon", "authorities/canon", "Participants, exchanges, receiver states, replies and explicit evidence references.", canon_view,
+        LaneView("canon.consequences", "canon", "canon", "Participants, exchanges, receiver states, replies and explicit evidence references.", canon_view,
             ("canon","continuation"), (*CANON_MIGRATIONS,*CONTINUATION_MIGRATIONS),
             "canon-input.mmd", "canon-input.dot", "consequence-graph-pointer.json", canon_pointer,
             node_kinds=('canon_participant','canon_contract','canon_exchange','canon_exchange_reference','evidence_reference'),

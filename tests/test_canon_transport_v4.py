@@ -291,7 +291,11 @@ def test_packet_files_are_registered_for_recovery_and_orphans_are_excluded(proje
     for project, expected in ((first,{sealed['artifact_path'],retried['artifact_path']}),(second,{incoming['artifact_path']})):
         with project_snapshot(project.root):
             selected = inventory(project,require_quiescent=False)['files']
-        assert {row['path'] for row in selected if '/files/outbox/' in row['path'] or '/files/inbox/' in row['path']} == expected
+        assert {
+            row['path']
+            for row in selected
+            if '/objects/outbox/' in row['path'] or '/objects/inbox/' in row['path']
+        } == expected
         for row in selected:
             if row['path'] in expected:
                 assert content_digest(json.loads((project.root/row['path']).read_bytes())) == row['sha256']

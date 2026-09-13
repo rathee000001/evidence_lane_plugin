@@ -68,7 +68,7 @@ def register_code_views(engine):
         def head(store):
             return {lane_id: read_current(store, lane_id)}
 
-        return LaneView(lane_id + '.relationships', lane_id, 'sectors/' + lane_id,
+        return LaneView(lane_id + '.relationships', lane_id, lane_id,
             'Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.',
             producer, (lane_id.replace('_', ''),), code_migrations(lane_id),
             mmd_filename=lane_id + '.mmd', dot_filename=lane_id + '.dot',

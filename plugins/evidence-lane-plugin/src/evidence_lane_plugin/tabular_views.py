@@ -70,7 +70,7 @@ def register_tabular_views(engine):
         ('data', data_graph, 'Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.')):
         def heads(selected):
             return lambda store: {selected: current(store, model_for(selected, Selection)())}
-        engine.registry.register_view(LaneView(lane_id + '.structure', lane_id, 'sectors/' + lane_id,
+        engine.registry.register_view(LaneView(lane_id + '.structure', lane_id, lane_id,
             meaning, producer, (lane_id,), tabular_migrations(lane_id),
             mmd_filename=lane_id + '.mmd', dot_filename=lane_id + '.dot', pointer_filename=lane_id + '.pointer.json',
             pointer=pointer, supports_query=True, node_kinds=('source', 'sheet', 'table', 'column', 'formula', 'query', 'reference'),

@@ -1200,11 +1200,11 @@
     {
       "view_id": "images_ocr.structure",
       "lane_id": "images_ocr",
-      "folder": "sectors/images_ocr",
+      "folder": "images_ocr",
       "version": 1,
       "meaning": "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
       "consumer": "artifact_export",
-      "implementation_digest": "33f536ccae0e090ca562c91d03c47b8d27adfaceb43d0a0e397ee95a1a5347a4",
+      "implementation_digest": "ae9ad9a1489d2a05add575f9b99880ae46522c6e5d16d8e3dfb38a3a9938b309",
       "files": {
         "mmd": "media.mmd",
         "dot": "media.dot",
@@ -1287,6 +1287,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/images_ocr",
+  "runtime_state_folder": "images_ocr",
   "source_package_folder": "authorities/project_sectors/images_ocr"
 }

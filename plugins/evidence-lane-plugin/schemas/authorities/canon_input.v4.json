@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/canon_input/dot-artifact.schema.json",
-      "sha256": "91e5974f8c0f6c4a9598704f76e283c804ed2df58cdbfa5a9c1ffca8ebf492da"
+      "sha256": "1de0c010be82c186383a297a43efb75f623751d14a00376c8de1cb0af4d22222"
     },
     {
       "path": "authorities/canon_input/manifest.schema.json",
-      "sha256": "a199baf3edc4685f8df8a099dfdd2ffdce9571dc897df78fce2346adb579280e"
+      "sha256": "b61aec94373f1771a83900f76c9c1f565b8e27e04f3e1f11970edf68897a848c"
     },
     {
       "path": "authorities/canon_input/manifest.v4.json",
-      "sha256": "3839564d048750115bb703ebc5183a19738fc48df89dc31b6331bc62d980e4cf"
+      "sha256": "79cea030f518efe1c8298189043b99e2280af34e535e8f66c949f8fa1ed79ca5"
     },
     {
       "path": "authorities/canon_input/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/canon_input/mmd-artifact.schema.json",
-      "sha256": "a8aa0fe43dbc6b337a929943f3e6efdf0653eb127439ac7fe0638dbdf899f52e"
+      "sha256": "2cdc576abea41311383b07bfa30fbb52d7bcf3cc6be65e82462ceff93b2a9e25"
     },
     {
       "path": "authorities/canon_input/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/canon_input/pointer-contract.v4.json",
-      "sha256": "aa04c87b986e770fea64e7b7f58e79455b537f1c82673c9d1efc60a25f2d39cb"
+      "sha256": "8a8bec3d15eff2e1a2b54c93174130cb918ce842982b5ec6d4f1bcb5312870dd"
     },
     {
       "path": "authorities/canon_input/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/canon_input/runtime-binding.schema.json",
-      "sha256": "3db931cb7653443e9b518e519d9510c78f6c0cf398e5e89860dbf7049f2914d8"
+      "sha256": "69909d3329375409982c6618c150bc76c46370a3d3d9cdf2929308a05e878588"
     },
     {
       "path": "authorities/canon_input/runtime-binding.v4.json",
-      "sha256": "9151094922e97ed1eef359a4be8f7b7bf19d34da071270720d0c218f37e60bac"
+      "sha256": "b1f7e7ec597285df8c94b1394c00b6c3fcdf7dbcb4f8092c9f421cc0376e894a"
     },
     {
       "path": "authorities/canon_input/schema.sql",

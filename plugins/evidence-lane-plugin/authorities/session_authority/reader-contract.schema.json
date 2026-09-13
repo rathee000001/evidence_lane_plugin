@@ -399,5 +399,5 @@
       "$ref": "#/$defs/AuthorityRequest_session_status"
     }
   ],
-  "title": "session_authority typed SDK requests"
+  "title": "sessions typed SDK requests"
 }

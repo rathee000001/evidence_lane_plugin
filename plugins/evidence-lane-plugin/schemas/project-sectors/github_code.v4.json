@@ -12,7 +12,7 @@
     },
     {
       "path": "authorities/project_sectors/github_code/lane-contract.v4.json",
-      "sha256": "27135be54360b4b5e3e10364de34aac54439da1fe5d0a829745d8a8e63b48fca"
+      "sha256": "cc72377faf99ef933f26942882e0304cb627c45f800d7155dd98109228a28710"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-pointer.schema.json",
@@ -20,11 +20,11 @@
     },
     {
       "path": "authorities/project_sectors/github_code/manifest.schema.json",
-      "sha256": "6df322631fc370028415aa8f2ff8f15f6e1a2016948dc080eb93c3cd07b58098"
+      "sha256": "15d5832bfe66f93dc81a55562b3fe7ba8e96265ffa4e15ef02504736cc83f553"
     },
     {
       "path": "authorities/project_sectors/github_code/manifest.v4.json",
-      "sha256": "c37f9f5078f85d41d2536d1fc060da15e060a96f0f75891a0d65b0e524062345"
+      "sha256": "e924b52e91def1dc42a3b6d0d9ffb6389cbfe3cb29ee3e774d2e8a83f000c87f"
     },
     {
       "path": "authorities/project_sectors/github_code/migration-history.json",

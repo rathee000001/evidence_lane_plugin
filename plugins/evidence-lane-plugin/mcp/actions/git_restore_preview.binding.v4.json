@@ -1,13 +1,13 @@
 {
   "action": "git_restore_preview",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/git_restore_preview.action.v4.json",
-  "sdk_binding_sha256": "78025acd03730d464f7a2cd03d9686d61677998dca36f0adec49d176487043d8",
+  "sdk_binding_sha256": "a0196ba93bc9b91faa5c513393ae6857d9e9939f6da2df8a8b5bdb6bc84c5beb",
   "tool": {
     "annotations": {
       "destructiveHint": false,

@@ -953,7 +953,7 @@ class CanonStore:
                 or role not in {'outbox','inbox','both'}):
             raise LaneError('CANON_PACKET_FILE_INTEGRITY', 'Packet files require exact bounded UUID and digest locators.')
         folder = 'outbox' if role == 'outbox' else 'inbox'
-        return f"authorities/canon/files/{folder}/{digest}/{body['exchange_id']}.json"
+        return f"canon/objects/{folder}/{digest}/{body['exchange_id']}.json"
 
     def _packet_file(self, body, digest, role, *, write=False):
         relative = self._packet_path(body, digest, role)

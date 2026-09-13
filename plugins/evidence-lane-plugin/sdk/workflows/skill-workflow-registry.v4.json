@@ -1,7 +1,7 @@
 {
   "authority": "engine_typed_action_registry",
   "schema": "evidence-lane.skill-workflow-registry.v4",
-  "skill_surface_digest": "e640ea2295e1711cc1020c1ef62e26dcd6bfed87fa1fb02ac853e11e3c3ba88c",
+  "skill_surface_digest": "0fa76d47615a263477a9b7cca8a9de8b8a3aee0907643366a19daebd4163bc96",
   "workflows": [
     {
       "actions": [
@@ -3397,7 +3397,7 @@
       "actions": [
         {
           "cross_project_read": false,
-          "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+          "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
           "mutates": true,
           "name": "project_register",
           "permission": "project_admin",

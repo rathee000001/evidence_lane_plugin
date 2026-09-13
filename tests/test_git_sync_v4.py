@@ -10,6 +10,7 @@ import pytest
 from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.enrollment import current_branch_authority
+from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.git_adapter import restoration_source_identity
 from evidence_lane_plugin.internal_sdk import PublicActionSDKDispatcher
 from evidence_lane_plugin.plan_runtime import PlanCreate, PlanStore, TaskDefinition
@@ -81,11 +82,20 @@ def execute(system, arguments, *, index=0, error=None):
     deadline = time.monotonic() + 35
     row = None
     while time.monotonic() < deadline:
-        with system[1].lane('plan').connection(read_only=True) as db:
-            row = dict(db.execute('SELECT * FROM delta_runs WHERE job_id=?', (admitted.job_id,)).fetchone())
+        try:
+            with system[1].lane('plan').connection(read_only=True) as db:
+                row = dict(db.execute('SELECT * FROM delta_runs WHERE job_id=?', (admitted.job_id,)).fetchone())
+        except LaneError as observed:
+            if observed.code != 'PROJECT_RECOVERY_REQUIRED':
+                raise
+            time.sleep(.02)
+            continue
         if row['state'] in {'verified', 'blocked'}:
             break
         time.sleep(.02)
+    system[0].delta.owned_completion(admitted.job_id).result(
+        timeout=max(1, deadline - time.monotonic())
+    )
     if error:
         assert row['state'] == 'blocked' and row['error_code'] == error, row
         return admitted.job_id

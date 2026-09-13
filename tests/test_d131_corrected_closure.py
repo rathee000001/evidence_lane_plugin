@@ -118,14 +118,27 @@ def test_schema_names_and_dialects_are_unambiguous() -> None:
 
 
 def test_skill_icons_and_mcp_bridge_are_deterministic() -> None:
-    source_digest = hashlib.sha256((PLUGIN / "assets/evidence-lane-icon.png").read_bytes()).hexdigest()
+    import base64
+
+    from evidence_lane_plugin.mcp_adapter import server_identity
+
+    plugin_icon = PLUGIN / "assets/evidence-lane-icon.png"
+    assert plugin_icon.is_file() and hashlib.sha256(plugin_icon.read_bytes()).hexdigest()
     skill_dirs = [path for path in (PLUGIN / "skills").iterdir() if (path / "SKILL.md").is_file()]
     assert len(skill_dirs) == 24
     for folder in skill_dirs:
         metadata = yaml.safe_load((folder / "agents/openai.yaml").read_text(encoding="utf-8"))["interface"]
-        assert metadata["icon_small"] == metadata["icon_large"] == "./assets/evidence-lane-skill.png"
+        assert "icon_small" not in metadata and "icon_large" not in metadata
         assert metadata["brand_color"] == "#18A9C8"
-        assert hashlib.sha256((folder / metadata["icon_small"]).read_bytes()).hexdigest() == source_digest
+        if (folder / "assets").exists():
+            assert not list((folder / "assets").glob("*"))
+    manifest = json.loads((PLUGIN / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+    assert manifest["interface"]["displayName"] == "Evidence Lane"
+    assert manifest["interface"]["logo"] == manifest["interface"]["composerIcon"] == "./assets/evidence-lane-icon.png"
+    identity = server_identity()
+    assert identity["name"] == "Evidence Lane" and identity["website_url"] == "https://evidencelane.org"
+    assert len(identity["icons"]) == 1 and identity["icons"][0].mimeType == "image/png"
+    assert base64.b64decode(identity["icons"][0].src.removeprefix("data:image/png;base64,")) == plugin_icon.read_bytes()
     config = json.loads((PLUGIN / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["evidence-lane"]
     assert config["required"] is False and config["startup_timeout_sec"] == 120
     assert config["command"] == "node" and config["args"][0] == "./mcp/server.mjs"
@@ -135,11 +148,12 @@ def test_skill_icons_and_mcp_bridge_are_deterministic() -> None:
     subprocess.run(["node", "--check", str(PLUGIN / "hooks/runner.mjs")], check=True)
     hooks = json.loads((PLUGIN / "hooks/hooks.json").read_text(encoding="utf-8"))["hooks"]
     for event, groups in hooks.items():
-        command = groups[0]["hooks"][0]
-        assert command["command"].endswith(f'hooks/runner.mjs" {event}')
-        assert command["commandWindows"].endswith(f'hooks\\runner.mjs" {event}')
-        assert " python" not in command["command"].lower()
-        assert " python" not in command["commandWindows"].lower()
+        assert len(groups) == 1 and len(groups[0]["hooks"]) == 4
+        for stage, command in zip(("VALIDATE", "SEAL", "TRANSPORT", "EMIT"), groups[0]["hooks"], strict=True):
+            assert command["command"].endswith(f'hooks/runner.mjs" {event} {stage}')
+            assert command["commandWindows"].endswith(f'hooks\\runner.mjs" {event} {stage}')
+            assert " python" not in command["command"].lower()
+            assert " python" not in command["commandWindows"].lower()
     assert not list((PLUGIN / "mcp/actions").glob("*.sh"))
 
 

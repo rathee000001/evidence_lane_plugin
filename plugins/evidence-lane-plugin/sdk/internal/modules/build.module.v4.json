@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "execution_logic_duplicated_in_binding": false,
   "installed_execution_claimed": false,
@@ -11,7 +11,7 @@
   "source": {
     "bytes": 5701,
     "path": "src/evidence_lane_plugin/build.py",
-    "sha256": "6c69a8d0c05a4920747c7fb08279051da2da3d4436b6344c77026ffe4c13f10f"
+    "sha256": "d7c1cc17b7dbf5a9394d7de009a241cb3ca128e9bb2967e615bd84de299df172"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

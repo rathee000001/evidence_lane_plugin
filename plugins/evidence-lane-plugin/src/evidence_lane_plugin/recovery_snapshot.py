@@ -9,6 +9,7 @@ import json
 import re
 
 from .errors import LaneError
+from .lane_artifacts import DIRECT_LANE_ARTIFACTS
 from .lanes import (
     AUTHORITY_LANE_IDS,
     CANONICAL_LANE_IDS,
@@ -27,17 +28,26 @@ def relative_file(value):
         return Path(value)
     if not isinstance(value, str):
         raise LaneError('RECOVERY_FILE_SCOPE', 'A recorded file lacks its canonical relative path.')
-    if re.fullmatch(r'authorities/canon/files/(?:graph|outbox|inbox)/[0-9a-f]{64}/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.json', value):
+    if value in {'project.json', 'project_authority.json', 'active_pointer.json',
+                 'active_session.json', 'capture_route.json'}:
+        return Path(value)
+    if re.fullmatch(r'canon/objects/(?:graph|outbox|inbox)/[0-9a-f]{64}/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.json', value):
         return Path(value)
     parts = value.split('/')
-    named = (parts[1],) if len(parts) >= 3 and parts[0] == 'sectors' and is_named_custom_lane(parts[1]) else ()
+    named = (parts[0],) if len(parts) >= 2 and is_named_custom_lane(parts[0]) else ()
     for lane_id in (*CANONICAL_LANE_IDS, *named):
         lane = get_lane(lane_id)
         if value == lane.database_relative_path:
             return Path(value)
+        direct = {
+            *(lane.folder + '/' + name for name in DIRECT_LANE_ARTIFACTS),
+            lane.folder + '/' + lane.mmd_filename,
+            lane.folder + '/' + lane.dot_filename,
+        }
+        if value in direct:
+            return Path(value)
         patterns = (
             re.escape(lane.files_relative_path) + r'/[0-9a-f]{2}/[0-9a-f]{62}',
-            re.escape(lane.schema_history_relative_path) + r'/[a-z][a-z0-9]{0,31}\.[1-9][0-9]*\.[0-9a-f]{64}\.json',
             re.escape(lane.folder) + r'/[a-z][a-z0-9_]{0,47}/[0-9a-f]{64}/[a-z][a-z0-9_.-]{0,95}',
         )
         if any(re.fullmatch(pattern, value) for pattern in patterns):
@@ -50,7 +60,6 @@ def inventory(project, *, tick=lambda: None, require_quiescent=True):
     from .database_recovery import MAX_BYTES, MAX_FILES, _hash, _integrity
     from .lane_traversal import validate_snapshot_contract
     from .plan_runtime import content_digest
-    from .storage import reject_links
 
     selected = {}
     total = 0
@@ -88,6 +97,10 @@ def inventory(project, *, tick=lambda: None, require_quiescent=True):
         metadata = _integrity(connection, project.project_id)
     root_identity = _hash(project.database, project.root)
     add(DATABASE_NAME, root_identity['sha256'], root_identity['bytes'])
+    for relative in ('project.json', 'project_authority.json', 'active_pointer.json',
+                     'active_session.json', 'capture_route.json'):
+        identity = _hash(project.root / relative, project.root)
+        add(relative, identity['sha256'], identity['bytes'])
     catalog = project.lane_catalog()
     if not (set(AUTHORITY_LANE_IDS) <= {row['lane_id'] for row in catalog}
             and len(catalog) <= len(CANONICAL_LANE_IDS) + MAX_CUSTOM_INSTANCES):
@@ -97,6 +110,10 @@ def inventory(project, *, tick=lambda: None, require_quiescent=True):
         lane = project.lane(entry['lane_id'])  # Validates catalog, identity and published head.
         identity = _hash(lane.database, project.root)
         add(lane.definition.database_relative_path, identity['sha256'], identity['bytes'])
+        for name in (*DIRECT_LANE_ARTIFACTS, lane.definition.mmd_filename, lane.definition.dot_filename):
+            relative = lane.definition.folder + '/' + name
+            artifact = _hash(project.root / relative_file(relative), project.root)
+            add(relative, artifact['sha256'], artifact['bytes'])
         with lane.connection(read_only=True) as connection:
             _integrity(connection, project.project_id, lane=lane)
             if lane.lane_id == 'plan' and require_quiescent:
@@ -124,19 +141,21 @@ def inventory(project, *, tick=lambda: None, require_quiescent=True):
             history = rows(connection, 'SELECT * FROM schema_history_files ORDER BY owner,version') if has_table(connection, 'schema_history_files') else []
             if set(migrations) != {(item['owner'], item['version']) for item in history}:
                 raise LaneError('BACKUP_SCHEMA_HISTORY', 'Every lane migration must retain its exact schema history file.')
+            entries = []
             for item in history:
-                relative = lane.definition.schema_history_relative_path + '/' + item['filename']
-                path = project.root / relative_file(relative)
-                reject_links(path, project.root)
-                if item['filename'] != f"{item['owner']}.{item['version']}.{item['digest']}.json" or path.stat().st_size > 4194304:
+                if item['filename'] != 'schema-history.v4.json' or len(item['document_json'].encode()) > 4194304:
                     raise LaneError('BACKUP_SCHEMA_HISTORY', 'A schema history reference is invalid or too large.')
-                document = bounded_json(path.read_text(encoding='utf-8'), 4194304)
+                document = bounded_json(item['document_json'], 4194304)
                 if (content_digest(document) != item['digest'] or document['project_id'] != project.project_id
                         or document['lane_id'] != lane.lane_id or document['owner'] != item['owner']
                         or document['version'] != item['version']
                         or document['migration_digest'] != migrations[(item['owner'], item['version'])]):
                     raise LaneError('BACKUP_SCHEMA_HISTORY', 'The schema history file differs from its lane migration.')
-                add(relative, item['digest'], path.stat().st_size)
+                entries.append(document)
+            history_projection = {'schema': 'evidence-lane.schema-history.v4',
+                'project_id': project.project_id, 'lane_id': lane.lane_id, 'entries': entries}
+            if bounded_json(lane.schema_history.read_text(encoding='utf-8'), 4194304) != history_projection:
+                raise LaneError('BACKUP_SCHEMA_HISTORY', 'The direct schema history projection differs from its lane migration ledger.')
             if not has_table(connection, 'views_snapshots'):
                 continue
             snapshots = {}

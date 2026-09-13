@@ -17,6 +17,7 @@ from .hook_event_handlers import NativeHookHandler, handler_class_for_event
 from .hook_output import project_hook_output
 from .hook_pipeline import HOOK_PIPELINE, run_hook_pipeline
 from .hook_receipts import seal_hook_receipt
+from .hook_stage_runtime import HOST_HOOK_STAGES
 from .hook_transport import deliver_hook
 from .storage import json_text
 
@@ -79,6 +80,9 @@ def hook_event_contract(name: str) -> dict:
         "entrypoint": hook_event_handler_path(name),
         "handler_class": f"evidence_lane_plugin.hook_event_handlers.{handler.__name__}",
         "runtime_bridge": "hooks/runner.mjs",
+        "host_stage_runner": "hooks/stage_runner.py",
+        "host_stage_count": len(HOST_HOOK_STAGES),
+        "host_stages": [stage["id"] for stage in HOST_HOOK_STAGES],
         "ambient_python_required": False,
         "input_schema": f"hooks/events/{name}/event.schema.json",
         "pipeline": f"hooks/events/{name}/pipeline.v4.json",
@@ -97,15 +101,29 @@ def hook_event_contract(name: str) -> dict:
 def hook_manifest() -> dict:
     hooks = {}
     for name in HOOK_EVENT_NAMES:
-        hooks[name] = [{"hooks": [{
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" " + name,
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" " + name,
-            "timeout": 3 if name in {"Interrupt", "SessionEnd"} else 10,
-            "statusMessage": "Record bound Evidence Lane " + name + " evidence",
-        }]}]
-        if name in {"SessionStart", "UserPromptSubmit"}:
-            hooks[name][0]["hooks"][0]["additionalContextLimit"] = 3000
+        handlers = []
+        for stage in HOST_HOOK_STAGES:
+            handler = {
+                "type": "command",
+                "command": (
+                    "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" "
+                    + name
+                    + " "
+                    + stage["id"]
+                ),
+                "commandWindows": (
+                    "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" "
+                    + name
+                    + " "
+                    + stage["id"]
+                ),
+                "timeout": 3 if name in {"Interrupt", "SessionEnd"} else 10,
+                "statusMessage": stage["status"].format(event=name),
+            }
+            if stage["id"] == "EMIT" and name in {"SessionStart", "UserPromptSubmit"}:
+                handler["additionalContextLimit"] = 3000
+            handlers.append(handler)
+        hooks[name] = [{"hooks": handlers}]
     return {"description": "Supported v4 visible-event capture through the plugin-owned engine; no lifecycle or host-control instructions.", "hooks": hooks}
 
 
@@ -137,6 +155,10 @@ def hook_registry() -> dict:
         ],
         "pipeline": [row["id"] for row in HOOK_PIPELINE],
         "stage_owners": {row["id"]: row["implementation"] for row in HOOK_PIPELINE},
+        "host_pipeline": [stage["id"] for stage in HOST_HOOK_STAGES],
+        "host_stage_count": len(HOST_HOOK_STAGES),
+        "host_stage_runner": "hooks/stage_runner.py",
+        "separate_host_process_per_stage": True,
         "runtime_bridge": "hooks/runner.mjs",
         "ambient_python_required": False,
         "event_isolation_owner": "src/evidence_lane_plugin/hook_event_isolation.py",
@@ -162,7 +184,21 @@ def context_hook_output(envelope: HookEnvelope, delivery: dict) -> dict:
     handler = handler_class_for_event(name)
     classification = classify_hook(envelope, name)
     handled = handler.handle(envelope, classification)
-    return project_hook_output(handled, seal_hook_receipt(handled, delivery))
+    result = delivery.get("result")
+    if (
+        delivery.get("captured") is True
+        and isinstance(result, dict)
+        and result.get("event_id") != envelope.event_id
+    ):
+        raise LaneError("HOOK_CONTEXT_BINDING", "The returned context differs from this exact Hook input.")
+    normalized = delivery
+    if "handler_id" not in delivery:
+        normalized = {
+            **delivery,
+            "handler_id": handled.handler_id,
+            "transport": delivery.get("transport", "direct_engine_capture"),
+        }
+    return project_hook_output(handled, seal_hook_receipt(handled, normalized))
 
 
 def main_for_handler(handler: type[NativeHookHandler]) -> int:

@@ -86,6 +86,9 @@ def execute(system, action, arguments, *, index=0, timeout=60):
     else:
         pytest.fail('Presentation operation did not reach a readable terminal state within its deadline')
     assert row['state'] == 'verified', {key: row[key] for key in ('state', 'error_code', 'result_object')}
+    system[0].delta.owned_completion(admitted.job_id).result(
+        timeout=max(1, deadline - time.monotonic())
+    )
     return json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
 
 
@@ -94,7 +97,7 @@ def test_intake_retrieves_slide_notes_tables_and_exact_original_from_own_lane(pr
     store = presentation_system[1]
     original = (store.source_root / 'fixture.pptx').read_bytes()
     indexed = execute(presentation_system, 'presentation_index', {'filename': 'fixture.pptx'})
-    assert indexed['sha256'] == digest(original) and '/sectors/ppt/files/natural/' in indexed['natural_path'].replace('\\', '/')
+    assert indexed['sha256'] == digest(original) and '/ppt/objects/natural/' in indexed['natural_path'].replace('\\', '/')
     assert not indexed['fidelity']['layout_verified']
     before = {p: p.read_bytes() for p in store.root.rglob('*.sqlite*') if p.is_file()}
     arguments = {'snapshot_id': indexed['snapshot_id']}

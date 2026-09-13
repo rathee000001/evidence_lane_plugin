@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "canon",
   "source_package_folder": "authorities/canon_input",
-  "project_state_folder": "authorities/canon",
+  "project_state_folder": "canon",
   "runtime_module": "evidence_lane_plugin.canon_task_graph",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.canon.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/canon/schema-history",
+    "database_relative_path": "canon/canon_authority_v001.sqlite",
+    "schema_history_relative_path": "canon/schema-history.v4.json",
     "owners": [
       "canon"
     ],
@@ -35,13 +35,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "CFFF8D3B1C9D8F3F81EA7ADF4850A46968852E1BF173B8F0A6FFDD601B768055"
+    "contract_sha256": "96AB3A2EB007BD0F23E817D3808F0A0CA18883CA408635B0B28DCFC709F1675B"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "canon",
-    "folder": "authorities/canon",
-    "files_root": "authorities/canon/files",
+    "folder": "canon",
+    "objects_root": "canon/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -49,7 +49,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -72,7 +72,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "7C4C7CABD05FD386123871B81250E297786AE0F6CE351EFE1E5E71ECA8342B56"
+    "contract_sha256": "E33CBF5356358C74F314AB8213D769C1C542CD536029F4B3F2DD4A047292CC52"
   },
   "migration_bindings": [
     {
@@ -4291,11 +4291,11 @@
     {
       "view_id": "canon.consequences",
       "lane_id": "canon",
-      "folder": "authorities/canon",
+      "folder": "canon",
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
+      "implementation_digest": "6f62295af1d29605e41ba1ecbc33af9668c4d57e2c9c0bbba84c5cc24efdbb3b",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",
@@ -4406,7 +4406,7 @@
   "members": [
     {
       "path": "authorities/canon_input/README.md",
-      "sha256": "630c4e3108b62022634febe97230d701a79ab1fd6d23fb089a846e61d8c799da"
+      "sha256": "708b4f7dfddcc1b206ff3793aa8de7dc67f2b3c5a6e465ea36032e9faebf0329"
     },
     {
       "path": "authorities/canon_input/build-refresh-contract.schema.json",
@@ -4430,7 +4430,7 @@
     },
     {
       "path": "authorities/canon_input/canon-input.tools.json",
-      "sha256": "5a384a3f5c347c5a5eb7bcca1770747d55599367536b64e5fb97ee6a3b173147"
+      "sha256": "ab578a144d9e58b33ccf21fc93384325c8223a5ac26656aa00efdfc24ca18c94"
     },
     {
       "path": "authorities/canon_input/consequence_graph/README.md",
@@ -4450,7 +4450,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/manifest.v4.json",
-      "sha256": "173a403b15411484dbdb2be16566cb1eee7cdc6c94ce22ac447deef88573a84f"
+      "sha256": "31271fed410e9799402a1d2ae97cc85d16bfef2185f07e33b18a3a60e696d84f"
     },
     {
       "path": "authorities/canon_input/consequence_graph/reader-contract.schema.json",
@@ -4478,7 +4478,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "e5bef3aa4f63b8fe0c4b0c7a170018f1995ba40cdef69692c72ad63dad93dd3a"
+      "sha256": "ec6fbbb9a3ec86220f274c7a16e0e16df6cbc79a24d60cbdaaa63999de18c2e7"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -4494,15 +4494,15 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "78a1e56590e6d8ca96c157cdf2794f0654d952f2d26c84f6ac6704a6447bcc88"
+      "sha256": "6e4c5fdf586f3aeeca41a45e367c73b2bab66aeaf908e1519be7faa37b1575e3"
     },
     {
       "path": "authorities/canon_input/dot-artifact.schema.json",
-      "sha256": "91e5974f8c0f6c4a9598704f76e283c804ed2df58cdbfa5a9c1ffca8ebf492da"
+      "sha256": "1de0c010be82c186383a297a43efb75f623751d14a00376c8de1cb0af4d22222"
     },
     {
       "path": "authorities/canon_input/manifest.schema.json",
-      "sha256": "a199baf3edc4685f8df8a099dfdd2ffdce9571dc897df78fce2346adb579280e"
+      "sha256": "b61aec94373f1771a83900f76c9c1f565b8e27e04f3e1f11970edf68897a848c"
     },
     {
       "path": "authorities/canon_input/migration-history.json",
@@ -4510,7 +4510,7 @@
     },
     {
       "path": "authorities/canon_input/mmd-artifact.schema.json",
-      "sha256": "a8aa0fe43dbc6b337a929943f3e6efdf0653eb127439ac7fe0638dbdf899f52e"
+      "sha256": "2cdc576abea41311383b07bfa30fbb52d7bcf3cc6be65e82462ceff93b2a9e25"
     },
     {
       "path": "authorities/canon_input/pointer-contract.schema.json",
@@ -4518,7 +4518,7 @@
     },
     {
       "path": "authorities/canon_input/pointer-contract.v4.json",
-      "sha256": "aa04c87b986e770fea64e7b7f58e79455b537f1c82673c9d1efc60a25f2d39cb"
+      "sha256": "8a8bec3d15eff2e1a2b54c93174130cb918ce842982b5ec6d4f1bcb5312870dd"
     },
     {
       "path": "authorities/canon_input/reader-contract.schema.json",
@@ -4534,11 +4534,11 @@
     },
     {
       "path": "authorities/canon_input/runtime-binding.schema.json",
-      "sha256": "3db931cb7653443e9b518e519d9510c78f6c0cf398e5e89860dbf7049f2914d8"
+      "sha256": "69909d3329375409982c6618c150bc76c46370a3d3d9cdf2929308a05e878588"
     },
     {
       "path": "authorities/canon_input/runtime-binding.v4.json",
-      "sha256": "9151094922e97ed1eef359a4be8f7b7bf19d34da071270720d0c218f37e60bac"
+      "sha256": "b1f7e7ec597285df8c94b1394c00b6c3fcdf7dbcb4f8092c9f421cc0376e894a"
     },
     {
       "path": "authorities/canon_input/runtime.py",
@@ -4570,7 +4570,7 @@
     },
     {
       "path": "authorities/canon_input/workflow.v4.json",
-      "sha256": "9461bfea2e3991073db6696d58cefaf3c978907935152ce2c0960a6c66d79c0e"
+      "sha256": "32720375d717ed6cc3fec4ef39a16e55554fd33f4242bb67d9c164fd8a0f6549"
     }
   ]
 }

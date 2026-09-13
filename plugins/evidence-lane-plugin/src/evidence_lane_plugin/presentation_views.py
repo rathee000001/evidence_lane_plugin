@@ -43,7 +43,7 @@ def presentation_pointer(binding, graph, files):
 
 def register_presentation_views(engine):
     from .presentation_profile import current_presentations
-    engine.registry.register_view(LaneView('ppt.structure', 'ppt', 'sectors/ppt',
+    engine.registry.register_view(LaneView('ppt.structure', 'ppt', 'ppt',
         'Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.',
         presentation_graph, ('ppt',), PPT_MIGRATIONS, mmd_filename='ppt.mmd', dot_filename='ppt.dot',
         pointer_filename='ppt.pointer.json', pointer=presentation_pointer, supports_query=True,

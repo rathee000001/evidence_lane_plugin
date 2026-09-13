@@ -1,13 +1,13 @@
 {
   "action": "media_index",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/media_index.action.v4.json",
-  "sdk_binding_sha256": "7c15fd42f8a0f528a6ced191f5663c19d02342d96e4a53cae6d1d489792db150",
+  "sdk_binding_sha256": "d70d4c08bdb90d103c9b6e2cf9bc07f526b3a937a231741738f5d5587c4d6e5b",
   "tool": {
     "annotations": {
       "destructiveHint": true,

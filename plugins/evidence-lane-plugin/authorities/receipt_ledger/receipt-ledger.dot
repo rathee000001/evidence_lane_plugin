@@ -22,9 +22,6 @@ digraph schema_receipts {
   t_remote_probe [label="remote_probe\nprincipal_id, policy_digest, nonce_digest, object_digest, engine_id, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_migrations [label="schema_migrations\nowner, version, digest, description, applied_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_ownership [label="schema_ownership\nobject_name, owner, object_type" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  t_sessions_current [label="sessions_current\nsingleton, session_id" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  t_sessions_events [label="sessions_events\nsequence, request_id, session_id, generation, action, client_id, input_digest, body_json, previous_digest, digest, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  t_sessions_records [label="sessions_records\nsession_id, state, generation, owner_client_id, owner_engine_id, reported_session_id, flash_digest, runtime_package_digest, event_digest, created_at, updated_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_storage_selection_events [label="storage_selection_events\nsequence, request_id, client_id, input_digest, previous_digest, body_json, digest, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_access_grants -> t_access_grants [label=parent_grant_id]
   t_extensions_events -> t_extensions_registration [label=plugin_id]
@@ -32,6 +29,4 @@ digraph schema_receipts {
   t_gitpush_current -> t_gitpush_events [label=action_id]
   t_gitpush_current -> t_gitpush_events [label=sequence]
   t_hostmemory_imports -> t_receipts [label=receipt_id]
-  t_sessions_current -> t_sessions_records [label=session_id]
-  t_sessions_events -> t_sessions_records [label=session_id]
 }

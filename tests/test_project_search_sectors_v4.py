@@ -99,6 +99,9 @@ def indexed_media_system(tmp_path):
                 break
             time.sleep(.03)
         assert run['state'] == 'verified', run['error_code']
+        engine.delta.owned_completion(response.job_id).result(
+            timeout=max(1, deadline - time.monotonic())
+        )
         indexed = json.loads(store.lane('plan').read_object(run['result_object']))['result']['result']
         yield system, indexed, raw
 

@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/SessionStart/handler.py",
   "event": "SessionStart",
   "event_contract": "hooks/events/SessionStart/event.v4.json",
-  "event_contract_sha256": "82be3d4f2b3260b97bd963e63b3bc8ccfead1114e078a6adb3485d905b8cf73b",
+  "event_contract_sha256": "bf398f23b35f5aa55adef8692d83a9cf0b9118d39c2366f632ff1d93ec34160f",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/SessionStart.v4.schema.json",
   "input_schema_sha256": "543596dc2b3dad5a2fdc929da107c8dcb26f22670ef8667dbf7e786bf7104747",
   "installed_execution_claimed": false,

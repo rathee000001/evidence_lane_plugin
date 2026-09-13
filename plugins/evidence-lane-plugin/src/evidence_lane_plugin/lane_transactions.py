@@ -263,6 +263,10 @@ def coordinated_transaction(project, lanes, *, writer=None, expected_revision=No
         for lane_id in selected:
             project._initialize_lane(get_lane(lane_id))
         lane_stores = {lane_id: project.lane(lane_id) for lane_id in selected}
+        from .migrations import verify_schema_history_files
+        for lane in lane_stores.values():
+            with lane.connection(read_only=True) as connection:
+                verify_schema_history_files(lane, connection)
         root = stack.enter_context(project._raw_connection(read_only=False))
         root.execute('BEGIN EXCLUSIVE')
         if root.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
@@ -360,6 +364,10 @@ def coordinated_transaction(project, lanes, *, writer=None, expected_revision=No
             published = True
             commit.phase = 'published'
             commit.published_head = {'revision': revision, 'head_digest': digest, 'commit_id': commit_id}
+            from .lane_artifacts import refresh_lane_artifacts, refresh_project_artifacts
+            for lane in lane_stores.values():
+                refresh_lane_artifacts(lane)
+            refresh_project_artifacts(project)
             _checkpoint(fault, 'published')
         except BaseException:
             # A durable published marker wins even if the caller loses its reply.

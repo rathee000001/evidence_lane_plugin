@@ -1,7 +1,7 @@
-"""session_authority: authenticated public SDK mutation binding."""
+"""sessions: authenticated public SDK mutation binding."""
 from evidence_lane_plugin.authority_support import call_authority_action
 
-OWNER_ID = 'session_authority'
+OWNER_ID = 'sessions'
 ACTIONS = {'session_boot': True, 'session_exit': True, 'session_resume': True}
 
 

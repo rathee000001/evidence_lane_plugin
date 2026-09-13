@@ -1,14 +1,14 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "data_excel",
   "manifest": {
-    "bytes": 98520,
+    "bytes": 98494,
     "path": "authorities/project_sectors/data_excel/manifest.v4.json",
-    "sha256": "c2bb5e311b7e31fcfbcda955a100de245233531ae0e943dff2aa963280a937f1"
+    "sha256": "af532d887cd39024028aff4418689ea3b26502f61512203c01d08c33dcfbdabc"
   },
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,
   "schema": "evidence-lane.sdk-project-sector-binding.v4",
   "status": "PASS"

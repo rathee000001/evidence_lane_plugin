@@ -45,6 +45,9 @@ def wait_run(system, admitted):
             time.sleep(.02)
             continue
         if row['state'] in {'verified', 'blocked'}:
+            system[0].delta.owned_completion(admitted.job_id).result(
+                timeout=max(1, deadline - time.monotonic())
+            )
             return row
         time.sleep(.02)
     pytest.fail('Code worker did not reach its bounded terminal observation')

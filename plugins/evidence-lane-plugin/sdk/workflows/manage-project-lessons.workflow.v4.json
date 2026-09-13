@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 505,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 2818,
     "path": "sdk/workflows/skills/manage-project-lessons/workflow.v4.json",
-    "sha256": "efcffc0288543502a20d582bda058b018c6cf4613cd7a957c66fa2ddce32e151"
+    "sha256": "8a81c7c5c2f4a4e48747e00c2a0b3b780f405f508e17164276c26703d872514d"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "manage-project-lessons",

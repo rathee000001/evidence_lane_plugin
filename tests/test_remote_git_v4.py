@@ -43,6 +43,7 @@ def run(system, action, arguments, index, *, error=None):
             break
         time.sleep(.02)
     assert row is not None
+    system[0].delta.owned_completion(admitted.job_id).result(timeout=40)
     if error:
         assert row['state'] == 'blocked' and row['error_code'] == error, row
         return admitted.job_id

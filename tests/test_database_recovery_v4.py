@@ -58,14 +58,14 @@ def backup(project,tmp_path):
 
 def test_consistent_backup_includes_registered_files_and_reports_orphans_without_copying(project,tmp_path):
     engine,store,admin=project
-    orphan=store.root/'authorities'/'plan'/'orphan.txt'
+    orphan=store.root/'plan'/'orphan.txt'
     orphan.parent.mkdir(parents=True,exist_ok=True)
     orphan.write_text('Unselected file from a failed earlier export')
     original_plan=PlanStore(store).snapshot().model_dump()
     request,result=backup(project,tmp_path)
     manifest=verify_backup(result.backup_root,result.manifest_digest,store.project_id)
-    assert result.lane_count == 8
-    assert len([item for item in manifest['files'] if item['path'].endswith(('.sqlite','.sqlite3'))]) == 9
+    assert result.lane_count == 9
+    assert len([item for item in manifest['files'] if item['path'].endswith(('.sqlite','.sqlite3'))]) == 10
     assert result.root_pv == manifest['root_pv']
     assert any(item['path']=='root-pv.sqlite3' for item in manifest['files'])
     assert all('source-only' not in item['path'] and 'orphan' not in item['path'] for item in manifest['files'])
@@ -76,7 +76,7 @@ def test_consistent_backup_includes_registered_files_and_reports_orphans_without
     assert replay==result
     before=store.database.read_bytes()
     inspection=DatabaseRecovery(engine,store).inspect(RecoveryInspect())
-    assert inspection.unregistered_file_count==1 and inspection.unregistered_sample==['authorities/plan/orphan.txt']
+    assert inspection.unregistered_file_count==1 and inspection.unregistered_sample==['plan/orphan.txt']
     assert store.database.read_bytes()==before and orphan.exists()
     with pytest.raises(LaneError) as error:
         ProjectStore(Path(result.backup_root)/'payload').append_receipt('bad',{})
@@ -165,7 +165,7 @@ def test_failed_backup_receipt_reuses_sealed_snapshot_without_recopy(project,tmp
     with engine.project_work.mutation(store) as lease:
         result=DatabaseRecovery(engine,store).backup(request,lease,actor_id=admin.client_id)
     assert (tmp_path/'backup'/'payload'/'root-pv.sqlite3').read_bytes()==payload
-    assert result.lane_count==8 and result.file_count>9
+    assert result.lane_count==9 and result.file_count>10
 
 
 def test_directory_failure_reconciles_complete_fresh_recovery_without_rewriting_it(project,tmp_path,monkeypatch):

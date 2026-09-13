@@ -102,7 +102,7 @@ class SessionResult(Contract):
     observation_scope: Literal['current_read', 'at_transition_commit'] = 'current_read'
     exit_reason: str | None = None
     storage_route: dict[str, JsonValue] | None = None
-    state_authority: Literal['receipts_lane_sqlite'] = 'receipts_lane_sqlite'
+    state_authority: Literal['sessions_lane_sqlite'] = 'sessions_lane_sqlite'
     identity_scope: Literal['authenticated_engine_client'] = 'authenticated_engine_client'
     reported_session_identity: Literal['client_report_only'] = 'client_report_only'
     native_task_attestation: Literal['not_provided'] = 'not_provided'
@@ -133,7 +133,7 @@ SESSION_MIGRATIONS = (Migration('sessions', 1, 'Project session head and immutab
 class SessionAuthority:
     def __init__(self, project):
         self.project = project
-        self.store = project.lane('receipts')
+        self.store = project.lane('sessions')
 
     def initialize(self, lease):
         apply_migrations(self.store, SESSION_MIGRATIONS, writer=lease)

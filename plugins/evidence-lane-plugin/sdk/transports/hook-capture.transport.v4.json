@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "credentials_recorded": false,
   "installed_execution_claimed": false,
@@ -12,9 +12,9 @@
       "sha256": "319fbe6589843117f647a49118a520205006eba9bf369d316d8cfa582f499b53"
     },
     {
-      "bytes": 5085,
+      "bytes": 17814,
       "path": "hooks/hooks.json",
-      "sha256": "c27286f3d37ef5594f4fe73ab5c9e25d43b68161f0acb5f745c75a50f6a3dec7"
+      "sha256": "eeaea0bc18e6ebec60d45e38b1de3fd252cb662a71859fe1ee74d0b88f5eaff1"
     }
   ],
   "status": "PASS",

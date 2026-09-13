@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "power_bi",
-  "folder": "sectors/power_bi",
+  "folder": "power_bi",
   "source_package_folder": "authorities/project_sectors/power_bi",
   "folder_role": "external_project_state",
-  "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
-  "files": "sectors/power_bi/files",
-  "schema_history": "sectors/power_bi/schema-history",
+  "database": "power_bi/power_bi_sector_v001.sqlite",
+  "files": "power_bi/objects",
+  "schema_history": "power_bi/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.powerbi_profile",
   "parser_modules": [
     "evidence_lane_plugin.powerbi_parsers",
@@ -1930,8 +1930,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "power_bi",
-    "folder": "sectors/power_bi",
-    "files_root": "sectors/power_bi/files",
+    "folder": "power_bi",
+    "objects_root": "power_bi/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -1939,7 +1939,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -1971,7 +1971,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "0F1D298F8F103BB87CC95930B8AD5E4BE2CEBC434F3638AF9B60578D1C164B9B"
+    "contract_sha256": "34CB10EB7389304AF58E482E2E40F04C8BB2B8CEACA5D1C6D5073021EC0D6149"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2115,11 +2115,11 @@
     },
     {
       "path": "authorities/project_sectors/power_bi/workflow.v4.json",
-      "sha256": "ca9fcb5c6525965f222818daffae3a7023d70789f1a5a2cd2dc2a0f6a0eb7dda"
+      "sha256": "fc1ca86abca227163fea525422d4cdd01261d4c6466d307ccd9b4a598e4d5829"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.json",
-      "sha256": "1126ae0569c4081057b062a02df4e1dea53d47d832d77f4d786be629636cd7d2"
+      "sha256": "b13835290974433a70f6484ed1134cce09d1f0209206fb604d9158d0ce8e3833"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.schema.json",
@@ -2127,15 +2127,15 @@
     },
     {
       "path": "authorities/project_sectors/power_bi/README.md",
-      "sha256": "b85ec0f7e08d5104b18b64efc362d1417294f89cdce7395e9933d7079d53f910"
+      "sha256": "2c59b436797756b2f28c98b044090a964fc1fdf0385b6e6e5daa7b0ace0b759e"
     },
     {
       "path": "authorities/project_sectors/power_bi/lane-contract.v4.json",
-      "sha256": "2ef1bd0728bd516e3b2adac88eae81fb42b65a8fb6cecee8f5d3f28fb180a2bb"
+      "sha256": "9f8c301af9d380a3e8508b63a576d9fe942925c0b37c415ea0d378d47157e324"
     },
     {
       "path": "authorities/project_sectors/power_bi/manifest.schema.json",
-      "sha256": "c16236979b9edded9ee72ee9c4dc620b24945f19fd88e9f9df5d6471c58be226"
+      "sha256": "f6388ad56e5acf4e344d1ea8010cd41d6765761399e0fe2fcb205f20dd0b1af0"
     }
   ]
 }

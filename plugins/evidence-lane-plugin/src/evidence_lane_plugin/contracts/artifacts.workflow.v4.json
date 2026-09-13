@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "actions": [
     {
       "cross_project_read": false,
@@ -1346,7 +1346,7 @@
         "mmd": "artifacts.mmd",
         "pointer": "lane_pointer.json"
       },
-      "folder": "sectors/artifacts",
+      "folder": "artifacts",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1354,7 +1354,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "lane_id": "artifacts",
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "node_kinds": [
@@ -1442,7 +1442,7 @@
         "mmd": "canon-input.mmd",
         "pointer": "consequence-graph-pointer.json"
       },
-      "folder": "authorities/canon",
+      "folder": "canon",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1450,7 +1450,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
+      "implementation_digest": "6f62295af1d29605e41ba1ecbc33af9668c4d57e2c9c0bbba84c5cc24efdbb3b",
       "lane_id": "canon",
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "node_kinds": [
@@ -1538,7 +1538,7 @@
         "dot": "chat_lineage.dot",
         "mmd": "chat_lineage.mmd"
       },
-      "folder": "authorities/chat_lineage",
+      "folder": "chat_lineage",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1546,7 +1546,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
+      "implementation_digest": "4e2924d44ac93230c707fde0295396e1fb76286c9b73f086e038cb52660625a9",
       "lane_id": "chat_lineage",
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "node_kinds": [
@@ -1609,7 +1609,7 @@
         "mmd": "custom.mmd",
         "pointer": "lane_pointer.json"
       },
-      "folder": "sectors/custom",
+      "folder": "custom",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1617,7 +1617,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "lane_id": "custom",
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "node_kinds": [
@@ -1692,7 +1692,7 @@
         "mmd": "data.mmd",
         "pointer": "data.pointer.json"
       },
-      "folder": "sectors/data",
+      "folder": "data",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1700,7 +1700,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
+      "implementation_digest": "4b8b91ccfd9b44ac95dc5b140981bfb4b98c5f16f3be98057da8479ff3e51fa9",
       "lane_id": "data",
       "meaning": "Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.",
       "node_kinds": [
@@ -1768,7 +1768,7 @@
         "mmd": "data_excel.mmd",
         "pointer": "data_excel.pointer.json"
       },
-      "folder": "sectors/data_excel",
+      "folder": "data_excel",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1776,7 +1776,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
+      "implementation_digest": "4b8b91ccfd9b44ac95dc5b140981bfb4b98c5f16f3be98057da8479ff3e51fa9",
       "lane_id": "data_excel",
       "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
       "node_kinds": [
@@ -1841,7 +1841,7 @@
         "mmd": "docs.mmd",
         "pointer": "docs.pointer.json"
       },
-      "folder": "sectors/docs",
+      "folder": "docs",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1849,7 +1849,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "324516aca0f6295c86c5ed4326bd9f0309dd6c2b9bd93f164820ab763946e22a",
+      "implementation_digest": "5c0e2752ed197470638639ac87691debe2f6dcb11e11d7360cb6729ce067aeb0",
       "lane_id": "docs",
       "meaning": "Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.",
       "node_kinds": [
@@ -1923,7 +1923,7 @@
         "mmd": "github_code.mmd",
         "pointer": "github_code.pointer.json"
       },
-      "folder": "sectors/github_code",
+      "folder": "github_code",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -1931,7 +1931,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
+      "implementation_digest": "d2e8feb9d3721bfa6d27b5863dd5b6559d32b5ca9d064f9b50a00e2cadea61be",
       "lane_id": "github_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2009,7 +2009,7 @@
         "mmd": "media.mmd",
         "pointer": "media.pointer.json"
       },
-      "folder": "sectors/images_ocr",
+      "folder": "images_ocr",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2017,7 +2017,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "media_heads",
-      "implementation_digest": "33f536ccae0e090ca562c91d03c47b8d27adfaceb43d0a0e397ee95a1a5347a4",
+      "implementation_digest": "ae9ad9a1489d2a05add575f9b99880ae46522c6e5d16d8e3dfb38a3a9938b309",
       "lane_id": "images_ocr",
       "meaning": "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
       "node_kinds": [
@@ -2091,7 +2091,7 @@
         "dot": "agent-learning.dot",
         "mmd": "agent-learning.mmd"
       },
-      "folder": "authorities/learning",
+      "folder": "learning",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2099,7 +2099,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
+      "implementation_digest": "49c999dce780a669d4e970b3ca47fd0b4efc0de9ee1ad0ecb3af8df97c58e89e",
       "lane_id": "learning",
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "node_kinds": [
@@ -2165,7 +2165,7 @@
         "mmd": "local_code.mmd",
         "pointer": "local_code.pointer.json"
       },
-      "folder": "sectors/local_code",
+      "folder": "local_code",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2173,7 +2173,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "head",
-      "implementation_digest": "fb6f82efe591bbcbb1a55cfdb585d61ed195c48237479611b300ea0cb1954642",
+      "implementation_digest": "d2e8feb9d3721bfa6d27b5863dd5b6559d32b5ca9d064f9b50a00e2cadea61be",
       "lane_id": "local_code",
       "meaning": "Repository, exact source files, symbols, routes, dependencies and attributed Sources Git references; static import edges only.",
       "node_kinds": [
@@ -2255,7 +2255,7 @@
         "mmd": "memory.mmd",
         "pointer": "memory-pointer.json"
       },
-      "folder": "authorities/memory",
+      "folder": "memory",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2263,7 +2263,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
+      "implementation_digest": "360bb288f886cd3ae5815e4e34326165bc96320880c5b0959887dd0e85a170a6",
       "lane_id": "memory",
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "node_kinds": [
@@ -2378,7 +2378,7 @@
         "mmd": "pdf.mmd",
         "pointer": "pdf.pointer.json"
       },
-      "folder": "sectors/pdf_ocr",
+      "folder": "pdf_ocr",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2386,7 +2386,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "pdf_heads",
-      "implementation_digest": "82b32a5c057310dd63b9c581488338fede19ad500a08e06424ff7a26b1368814",
+      "implementation_digest": "2384068c5afb8289dfa9d4d6cbf88c51f5ec24e2ba624c0f7db1e74f9784350a",
       "lane_id": "pdf_ocr",
       "meaning": "Page, native form/widget and separate OCR evidence locators.",
       "node_kinds": [
@@ -2460,7 +2460,7 @@
         "mmd": "plan.mmd",
         "pointer": "plan-pointer.json"
       },
-      "folder": "authorities/plan",
+      "folder": "plan",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2468,7 +2468,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "declared_owner_events",
-      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
+      "implementation_digest": "8d4c72ccc0e27c99a4036e16da642d2447cfd860da12aff564c3cb0c7d49cadb",
       "lane_id": "plan",
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "node_kinds": [
@@ -2537,7 +2537,7 @@
         "mmd": "powerbi.mmd",
         "pointer": "powerbi.pointer.json"
       },
-      "folder": "sectors/power_bi",
+      "folder": "power_bi",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2545,7 +2545,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "0c50a61e463500f454cf5e63972f0fb94481d89122812dbc541a47e7891ccee1",
+      "implementation_digest": "a5f284adfab8775212843fe36574b231da9feae15035db30720b94aad1af9d4e",
       "lane_id": "power_bi",
       "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
       "node_kinds": [
@@ -2617,7 +2617,7 @@
         "mmd": "ppt.mmd",
         "pointer": "ppt.pointer.json"
       },
-      "folder": "sectors/ppt",
+      "folder": "ppt",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2625,7 +2625,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "eba9bfb662bf635f1ee41e3cec2cbdcbd10c2ab0ec8c45a99113528febb09987",
+      "implementation_digest": "8fb1689738ae00315ce928c585e596f0a485e122e898ac3e0c9825061b3c36fb",
       "lane_id": "ppt",
       "meaning": "Exact presentation versions and declared slide order, notes, editable tables, images and chart locators; independent of page rendering.",
       "node_kinds": [
@@ -2697,7 +2697,7 @@
         "mmd": "research.mmd",
         "pointer": "lane_pointer.json"
       },
-      "folder": "sectors/research",
+      "folder": "research",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2705,7 +2705,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "lane_id": "research",
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "node_kinds": [
@@ -2796,7 +2796,7 @@
         "mmd": "tableau.mmd",
         "pointer": "tableau.pointer.json"
       },
-      "folder": "sectors/tableau",
+      "folder": "tableau",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2804,7 +2804,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "<lambda>",
-      "implementation_digest": "a3f200b10b610f4c3c60f5ed48a6a965dcb0cf15c4104a30f6d72dd3108544d4",
+      "implementation_digest": "824f2ba115caebc72b6d6e34b29e16866770ee35264fbf7ee3c1f3eea4ddac8d",
       "lane_id": "tableau",
       "meaning": "Exact workbook/source/sheet/model metadata and embedded native extract table locators.",
       "node_kinds": [
@@ -2874,7 +2874,7 @@
         "dot": "project_evidence_network.dot",
         "mmd": "project_evidence_network.mmd"
       },
-      "folder": "authorities/universe",
+      "folder": "universe",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2882,7 +2882,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "federation_view_head",
-      "implementation_digest": "d063feb5bb5cef90caecc875d9147a0c3f1e807f7f64cf1c9e3aabaeee9dbe27",
+      "implementation_digest": "5b5a545ccce74a071370448e91be5b9b38d9a526e3c61bbc94307d663a349385",
       "lane_id": "universe",
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "node_kinds": [
@@ -2948,7 +2948,7 @@
         "dot": "project_universe.dot",
         "mmd": "project_universe.mmd"
       },
-      "folder": "authorities/universe",
+      "folder": "universe",
       "graph_execution": {
         "analysis": "bounded_rustworkx",
         "default_dot_validation": "source",
@@ -2956,7 +2956,7 @@
         "package_projection_runtime_observations": false
       },
       "head_reader": "universe_topology_head",
-      "implementation_digest": "cd1c9faf8fef3b9d007e7db81c2a77fd05e482799c594ace90c0c807fe7a3ed2",
+      "implementation_digest": "1f62b8d23b9b2c36ef31a6a2b8545f2a5213cb4c8b06c798b09168fe5743faf3",
       "lane_id": "universe",
       "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "node_kinds": [

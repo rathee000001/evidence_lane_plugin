@@ -4,51 +4,67 @@
   "members": [
     {
       "path": "authorities/session_authority/build-refresh-contract.schema.json",
-      "sha256": "75cfad7af4dcc8377907164eb58a8f80729d22ab833f2b26fb1a06586057d98d"
+      "sha256": "e3e0ce611ee1352789205b1d72ed47e6eabee753402af78a4dd4641e3f4d3d6a"
+    },
+    {
+      "path": "authorities/session_authority/dot-artifact.schema.json",
+      "sha256": "5b33d49374a5dce29a313b3a59d3a716f37ee2bc2e3f2c1261e64888b3b377b3"
     },
     {
       "path": "authorities/session_authority/manifest.schema.json",
-      "sha256": "f6ffaa90218b714122f4c30b1ae5d419627f06d3407fab804f32251a6209d714"
+      "sha256": "fe46fa1fd4a94251b3d831ff8c7846bfc44164e11cb4b564fe0de7576c4b97ed"
     },
     {
       "path": "authorities/session_authority/manifest.v4.json",
-      "sha256": "a683ae934be97b1f92ae81106206caab5b0dd65070a511939bf903e30b9ab860"
+      "sha256": "637df12f35745bc1dbd157e56e712761318a8a3d53bd4064343923fa56469134"
+    },
+    {
+      "path": "authorities/session_authority/migration-history.json",
+      "sha256": "827c3b098bf41b763ddfeca0e345b27f06b4289f4e266ef61fabb14331c172d5"
+    },
+    {
+      "path": "authorities/session_authority/mmd-artifact.schema.json",
+      "sha256": "4271db73a2d18ee2cac5ccd517d15da86f074cfea015fb6418722809cf33ea26"
     },
     {
       "path": "authorities/session_authority/pointer-contract.schema.json",
-      "sha256": "e909af7bebc48ebf49defbf19eecd6a3691dcade85a26df19bb955323b1029c0"
+      "sha256": "a4524c5b48f9a07f6bc3f8e5d1b74c7f951585f90cd1279eedd6376d55313bbd"
     },
     {
       "path": "authorities/session_authority/pointer-contract.v4.json",
-      "sha256": "6497b0fe1be4c428ed49f5066e4c75f5f15dcedeccf391dbef812374f30cfdc3"
+      "sha256": "2e37243c499c79c0e9b03324e2ac91943cc0f76a6087ddabb31dffaac9c3a93e"
     },
     {
       "path": "authorities/session_authority/reader-contract.schema.json",
-      "sha256": "d455640333e093ffb6e734947fc3db873fb64e750da889e00cc4eedebfe4d65e"
+      "sha256": "921909b325f85ed15a8bf3111020d04674f219220b0fbb10cc41237ffebc39f0"
     },
     {
       "path": "authorities/session_authority/refresh-receipt.schema.json",
-      "sha256": "773a0fcb4c86d3dd6b1f64e30c88e76b9aa7353a4c2e26a0005e3b1642327f66"
+      "sha256": "82663480ac3d502241dce200b78dd422b4fb4aebbc53b76135de68273fddf82b"
     },
     {
       "path": "authorities/session_authority/runtime-binding.schema.json",
-      "sha256": "0b48ffb7c1af284436703592671110e3c282f9ee1821a7cf15cc6c64ef8b15ed"
+      "sha256": "079003fe544a7c82ac1788c161be56c051bec6905ce15447ab406af8ecf6a9b7"
     },
     {
       "path": "authorities/session_authority/runtime-binding.v4.json",
-      "sha256": "216ee3199c42bcd867d7966aff9d4745e241b5c93d0a23cf338fc0fd39835f01"
+      "sha256": "ff5c32809c568a6b947dadea1b0f68b7665abd5856a4a4f030d894e1b5f3a225"
     },
     {
       "path": "authorities/session_authority/schema.sql",
       "sha256": "fa01fea7d5df53cc903958dba3a7226d999b43d8311be490340f24694b2d4fc9"
     },
     {
+      "path": "authorities/session_authority/sqlite-artifact.schema.json",
+      "sha256": "093ee67377891f6a95a31de6dd9db5d2f8a5a660af925ddc878de951145e93cb"
+    },
+    {
       "path": "authorities/session_authority/sqlite-schema.v4.json",
-      "sha256": "097f2948cc015aee664b2016e9db966a166bd32bcbe800604d2c2ae0ad87fc9f"
+      "sha256": "34a55f6554c33b2aa5998187ab37a34af866848153fdd9f068dec3fe707123b3"
     },
     {
       "path": "authorities/session_authority/tools.schema.json",
-      "sha256": "d498572eb5107fe5fd55f8f624d18d03665b377134776b6535a7e22101c17454"
+      "sha256": "15a16073fb9ce072c73e450b1827445d8f32312fdc019a3254f4dcb0ae9b2192"
     }
   ],
   "purpose": "Complete current authority owner schema and contract index",

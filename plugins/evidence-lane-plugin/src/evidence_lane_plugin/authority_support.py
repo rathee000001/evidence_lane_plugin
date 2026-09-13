@@ -1,4 +1,4 @@
-"""Executable bindings for the eight separate authority packages.
+"""Executable bindings for the nine separate authority packages.
 
 The old support module generated a second index and a mandatory artifact bundle
 for each authority. The current binding uses each real owner implementation,
@@ -36,7 +36,7 @@ class AuthoritySupportProfile:
 AUTHORITY_SOURCE_OWNERS = MappingProxyType({
     'plan': 'plan', 'chat_lineage': 'chat_lineage', 'canon': 'canon_input',
     'memory': 'project_memory', 'learning': 'agent_learning', 'sources': 'source_authority',
-    'receipts': 'receipt_ledger', 'universe': 'project_universe',
+    'sessions': 'session_authority', 'receipts': 'receipt_ledger', 'universe': 'project_universe',
 })
 PROJECT_COORDINATION_FOLDER = 'authorities/project_authority'
 
@@ -45,22 +45,22 @@ PROJECT_COORDINATION_FOLDER = 'authorities/project_authority'
 _ACTION_PROFILES = MappingProxyType({
     'plan': ('plan', 'delta'), 'chat_lineage': ('chatlineage', 'chat_lineage', 'continuity'),
     'canon': ('canon',), 'memory': ('memory',), 'learning': ('learning',),
-    'sources': ('sources',), 'receipts': ('receipts', 'extensions', 'runtime', 'sessions'),
+    'sources': ('sources',), 'sessions': ('sessions',), 'receipts': ('receipts', 'extensions', 'runtime'),
     'universe': ('universe',), 'project_authority': ('projects', 'recovery'),
-    'session_authority': ('sessions',), 'instructions': (),
+    'instructions': (),
 })
 _ACTION_NAMES = MappingProxyType({
     'sources': ('git_branch_authority', 'enroll_project', 'fetch', 'git_sync_selected'),
     'receipts': ('capture_bind', 'remote_git_action_read', 'remote_git_prepare_push', 'remote_git_execute_push'),
     'project_authority': ('project_catalog', 'project_deselect', 'project_register', 'project_select',
                           'project_status', 'storage_status', 'code_snapshot_summary'),
-    'session_authority': ('session_flash_status', 'session_exit_boundary', 'env_uop_inspect'),
+    'sessions': ('session_flash_status', 'session_exit_boundary', 'env_uop_inspect'),
     'instructions': ('instructions_inspect',),
 })
 
 
 def authority_package_folder(authority_id):
-    """Original source owner, distinct from authorities/<lane> project state."""
+    """Original executable source owner, distinct from a direct project lane."""
     return authority_profile(authority_id).package_folder
 
 
@@ -103,10 +103,12 @@ AUTHORITY_SUPPORT_PROFILES = MappingProxyType({
         ('source_authority', 'SOURCES_MIGRATIONS'), ('store', 'RESTORE_MIGRATIONS'),
         ('enrollment', 'GIT_BRANCH_MIGRATIONS'), ('source_routing', 'ROUTE_MIGRATIONS'),
         ('source_materialization', 'MATERIALIZATION_MIGRATIONS'), ('custom_lanes', 'MIGRATIONS'))),
+    'sessions': AuthoritySupportProfile('sessions', 'session_authority', (
+        ('session_authority', 'SESSION_MIGRATIONS'),)),
     'receipts': AuthoritySupportProfile('receipts', 'projects', (
         ('projects', 'ACCESS_MIGRATIONS'), ('connector_governance', 'EXTENSION_MIGRATIONS'),
         ('accelerators', 'ACCELERATOR_MIGRATIONS'), ('remote_api', 'REMOTE_MIGRATIONS'),
-        ('database_recovery', 'RECOVERY_MIGRATIONS'), ('session_authority', 'SESSION_MIGRATIONS'),
+        ('database_recovery', 'RECOVERY_MIGRATIONS'),
         ('remote_git', 'PUSH_MIGRATIONS'), ('capture_routing', 'CAPTURE_MIGRATIONS'),
         ('agent_learning', 'HOST_MEMORY_MIGRATIONS'), ('storage_selection', 'STORAGE_MIGRATIONS')),
         foundation_owners=('receipts',)),
@@ -118,7 +120,7 @@ AUTHORITY_SUPPORT_PROFILES = MappingProxyType({
 def authority_profile(authority_id):
     definition = get_lane(authority_id)
     if definition.kind != 'authority':
-        raise LaneError('AUTHORITY_REQUIRED', 'Select one of the eight authority lanes.')
+        raise LaneError('AUTHORITY_REQUIRED', 'Select one of the nine authority lanes.')
     return AUTHORITY_SUPPORT_PROFILES[definition.canonical_lane_id]
 
 

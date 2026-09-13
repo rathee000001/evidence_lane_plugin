@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "const": {
-    "owner_id": "session_authority",
+    "owner_id": "sessions",
     "modules": [
       "evidence_lane_plugin.session_authority"
     ],
-    "storage": "authorities/receipts/receipts_authority_v001.sqlite sessions schema owner",
+    "storage": "sessions/sessions_authority_v001.sqlite with files and schema history in sessions",
     "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
     "alternate_writer": false
   },
-  "title": "session_authority canonical runtime binding"
+  "title": "sessions canonical runtime binding"
 }

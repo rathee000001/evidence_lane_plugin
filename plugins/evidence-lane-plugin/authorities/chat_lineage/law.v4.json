@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.chatlineage-law.v4",
-  "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
-  "files": "authorities/chat_lineage/files",
+  "database": "chat_lineage/chat_lineage_authority_v001.sqlite",
+  "files": "chat_lineage/objects",
   "source": [
     "lineage",
     "capture_routing",
@@ -327,6 +327,15 @@
       "verify_and_seal_receipt": "hook_receipts.seal_hook_receipt",
       "project_bounded_output": "hook_output.project_hook_output"
     },
+    "host_pipeline": [
+      "VALIDATE",
+      "SEAL",
+      "TRANSPORT",
+      "EMIT"
+    ],
+    "host_stage_count": 4,
+    "host_stage_runner": "hooks/stage_runner.py",
+    "separate_host_process_per_stage": true,
     "runtime_bridge": "hooks/runner.mjs",
     "ambient_python_required": false,
     "event_isolation_owner": "src/evidence_lane_plugin/hook_event_isolation.py",

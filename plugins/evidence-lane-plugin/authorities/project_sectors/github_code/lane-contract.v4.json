@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "github_code",
   "source_package_folder": "authorities/project_sectors/github_code",
-  "project_state_folder": "sectors/github_code",
-  "database": "sectors/github_code/github_code_sector_v001.sqlite",
-  "files": "sectors/github_code/files",
-  "schema_history": "sectors/github_code/schema-history",
+  "project_state_folder": "github_code",
+  "database": "github_code/github_code_sector_v001.sqlite",
+  "files": "github_code/objects",
+  "schema_history": "github_code/schema-history.v4.json",
   "migrations": [
     {
       "owner": "githubcode",
@@ -31,8 +31,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "github_code",
-    "folder": "sectors/github_code",
-    "files_root": "sectors/github_code/files",
+    "folder": "github_code",
+    "objects_root": "github_code/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -40,7 +40,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -63,7 +63,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "775887863E941C5E595A76816FCFE5D24515B9DA5BCB8BCA1586A671FBB78630"
+    "contract_sha256": "39D8A445AAC6A0FBDBB8C999B908ED85B5AF2CC5FD92DEF44C102BD06E3FC41F"
   },
   "actions": [
     "code_current",

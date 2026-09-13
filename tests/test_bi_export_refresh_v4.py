@@ -74,6 +74,9 @@ def wait(sector, admission, expected='verified'):
             continue
         if row['state'] in {'verified', 'blocked'}:
             assert row['state'] == expected, row
+            sector['system'][0].delta.owned_completion(admission.job_id).result(
+                timeout=max(1, deadline - time.monotonic())
+            )
             return row if expected == 'blocked' else json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
         time.sleep(.03)
     pytest.fail('BI export did not reach a terminal state within 90 seconds')
@@ -501,4 +504,3 @@ def test_zip_bound_does_not_expand_companion_or_plain_model_limits():
     for arguments in [{'filename': 'model.bim'}, {'filename': 'Example.pbip', 'companion_files': ['model.bim']}]:
         with pytest.raises(ValidationError):
             PowerBiIndex(**arguments, max_file_bytes=8_388_609)
-

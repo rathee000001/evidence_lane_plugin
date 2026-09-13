@@ -1,11 +1,11 @@
 {
   "action": "lifecycle_transition_law",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/lifecycle_transition_law.v4.schema.json",
-  "contract_sha256": "efdcabc40aa74b3b36db1759b024222f92988863cbb3eb15602e1cdd360675f5",
+  "contract_sha256": "c4f906b74ea39b27b2bac6a73120b07a86e28230cf0f206b09f1ed35e67e1b4e",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

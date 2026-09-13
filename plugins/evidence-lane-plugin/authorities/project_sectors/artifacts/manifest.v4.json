@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "artifacts",
-  "folder": "sectors/artifacts",
+  "folder": "artifacts",
   "source_package_folder": "authorities/project_sectors/artifacts",
   "folder_role": "external_project_state",
-  "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
-  "files": "sectors/artifacts/files",
-  "schema_history": "sectors/artifacts/schema-history",
+  "database": "artifacts/artifacts_sector_v001.sqlite",
+  "files": "artifacts/objects",
+  "schema_history": "artifacts/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.sector_evidence_profile",
   "parser_modules": [
     "evidence_lane_plugin.sector_evidence_parsers",
@@ -2012,8 +2012,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "artifacts",
-    "folder": "sectors/artifacts",
-    "files_root": "sectors/artifacts/files",
+    "folder": "artifacts",
+    "objects_root": "artifacts/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -2021,7 +2021,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -2046,7 +2046,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "13A15772CDA7D1777CE83C9C0959F1BD94B6ED437F9153D644B0A101FAA49E43"
+    "contract_sha256": "97C1168660C40E2968DB6AED4B10255E7BFF43829745B069403F76B9945788F4"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2168,11 +2168,11 @@
     {
       "view_id": "artifacts.structure",
       "lane_id": "artifacts",
-      "folder": "sectors/artifacts",
+      "folder": "artifacts",
       "version": 1,
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "artifacts.mmd",
         "dot": "artifacts.dot",
@@ -2328,11 +2328,11 @@
     },
     {
       "path": "authorities/project_sectors/artifacts/workflow.v4.json",
-      "sha256": "8a97b1367a901e7e86ec15a0bec3742e69adf0b52a560aabda15d8e949f949b3"
+      "sha256": "b4ef30b9111567b5073d74f44dd3d10472138a09e6966f7b80b6f9740160cfe9"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.json",
-      "sha256": "a5a562e1f0c4b105274544f0d80e698476b635009f666469d74092220f6c9f66"
+      "sha256": "a48f06e596f860ffc7d6aae668745dd26db23a74d54021773a140db0f196eab5"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.schema.json",
@@ -2340,15 +2340,15 @@
     },
     {
       "path": "authorities/project_sectors/artifacts/README.md",
-      "sha256": "e5aa916dd3c63a1f595b52e668f4dcb2f1fe2860b6075ecbb026f1fe613a00d4"
+      "sha256": "a334c5ecdb8c5e963f81d24fbb37d2a9095385ea164d3b0a2a6ef4deadff70ad"
     },
     {
       "path": "authorities/project_sectors/artifacts/lane-contract.v4.json",
-      "sha256": "5a87ad143285bd347fd9ef50308314afcc3c789d9587f3657a6b338156266ee9"
+      "sha256": "0a8525dca1153e402d6c4351146f7094f2c139dedadfc1fd0249d7119c69a095"
     },
     {
       "path": "authorities/project_sectors/artifacts/manifest.schema.json",
-      "sha256": "6fc3840afd1159640cf9cecdb429fb5dafb09ced3a9943478a0038f8cc0f2f9e"
+      "sha256": "2f5e1a1b36cf34423a5923fe87bea07788dfeab85ac61f1cdc92d9c28ad75809"
     }
   ]
 }

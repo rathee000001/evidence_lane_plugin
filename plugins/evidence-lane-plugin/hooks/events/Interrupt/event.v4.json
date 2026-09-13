@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.InterruptHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/Interrupt/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/Interrupt/pipeline.v4.json",
-      "sha256": "e65bd26ed53f0ca5deb50fb8e137e0b9db4f8426a5d021fc97cbfe3af279d62e"
+      "sha256": "a477fda7a015458eccd8bec290f4b977437180c8ce8d10a97ace6018d88995d0"
     },
     {
       "path": "hooks/events/Interrupt/README.md",
-      "sha256": "7d2aea186a782a7b031d294037ddbdcb93acf93d065d10b457970c56e467d046"
+      "sha256": "78b1c0fcaa67907dc20fbd5f3c0959a2f06be522172f4850de040449c0000fc4"
     }
   ],
   "native_installation_verified": false,

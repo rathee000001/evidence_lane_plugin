@@ -1,23 +1,23 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "duplicate_runtime_databases_packaged": false,
   "families": [
     {
       "path": "schemas/actions/actions-family.v4.json",
-      "sha256": "da9c2d686e83811e755a84b50c9c7987ce52fa9f9aa3a817d4804f1100d73c2e"
+      "sha256": "51607f08ed794b0fc2485367777abb762e053477ffe7c35a360b8391b96a68ff"
     },
     {
       "path": "schemas/authorities/agent_learning.v4.json",
-      "sha256": "f7bed4f04420d665a21d7104ddad714a063751178f21966c20261ced27aa98eb"
+      "sha256": "cbf6b5ee39f1793b06565841b6a085d71215e39d7135d1faa0f0e8f2dfe6685c"
     },
     {
       "path": "schemas/authorities/canon_input.v4.json",
-      "sha256": "8be68ca1c3359dfeceb76394ae9b2649339fac354ee6fc28068c23834755777d"
+      "sha256": "6c4a6975d0c0601058fbcb73751b0faadc8e5861403d728fff38809ddeacb596"
     },
     {
       "path": "schemas/authorities/chat_lineage.v4.json",
-      "sha256": "4788d51891fd6ad3257254654f9d4392d7ac88e431d7eafc18736c46b6b32494"
+      "sha256": "faa4e7768484432cdab12c8f7ab787e0f833cb2f155820b33dc8d6877feb400a"
     },
     {
       "path": "schemas/authorities/instructions.v4.json",
@@ -25,39 +25,39 @@
     },
     {
       "path": "schemas/authorities/plan.v4.json",
-      "sha256": "eb1e467b61f901a40ca66728ebee07e71174ae0180be6d1b6b43ecdb0bbf7255"
+      "sha256": "cdb8302a3f62bb22c651a5be4e3c4294c1e20b70c9310f1fda89797a323dc102"
     },
     {
       "path": "schemas/authorities/project_authority.v4.json",
-      "sha256": "8846c7d995307a92393756ca3f141a61fa9816becf0397c439e4d6643ebf1f8b"
+      "sha256": "8c90e428df87b2ec2890c679a5a1632eda587ddf65ac1cb4255897d4782d598e"
     },
     {
       "path": "schemas/authorities/project_memory.v4.json",
-      "sha256": "a8af1f75326d9433de4b6cd3b0674f3708ac1d171e986e7288ccb9c58893501c"
+      "sha256": "73734e27af4a313e7a32ab87293e8fb9424ce354bd236ca7485f018b7c60eb73"
     },
     {
       "path": "schemas/authorities/project_universe.v4.json",
-      "sha256": "b35bf804f16c22f3864bfff6d0663d53487fed4aa2b5c13db9ad1b7d5ccf6a6b"
+      "sha256": "c1056ed2dff95bee2c577e328b52f5a947edbe7e9a94fff60a47a37e5b3c1f69"
     },
     {
       "path": "schemas/authorities/receipt_ledger.v4.json",
-      "sha256": "7630e7bd04eaaddfa55e126adaed06599bec3aad2a3a162ac478b1e4478fd335"
+      "sha256": "69add5890c8321de1600643b2dc9e5a13cb2f4bd382ffa7e8f6d4abad57fe30a"
     },
     {
       "path": "schemas/authorities/session_authority.v4.json",
-      "sha256": "52df0c23a88778fe3034b39545c00ffe1c991650449f966870a9f0cc6256d092"
+      "sha256": "bfdfe2655c2987b9dab420269e781b0393f2fd2415051a59dcc7daa2425a0bf4"
     },
     {
       "path": "schemas/authorities/source_authority.v4.json",
-      "sha256": "41414c126060d5d52b54fff5efeb5094dc80c30b5698f725d9be335115d2b639"
+      "sha256": "3663860558c93388fcfe98a34d12cf24fbd1c370ebfe681cd5de6d6b8af280e3"
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "53dbbfcc8887076da0a33c369bf4ef380ad70f69ce759241829d2ec84078501c"
+      "sha256": "3fa79b47f0dc3918c794a599119431fcb7ba4dc0d52c0c65fe75d00f9aed690b"
     },
     {
       "path": "schemas/env/env-family.v4.json",
-      "sha256": "d77c0353894a3eab138b68c67649fe38cc4d8300f9fd8947cfdc1948e9207494"
+      "sha256": "9fa3ccff1a7b7ad28c7e58a12f1d9294c60cf5ad5a1ed5d18200e962b19100b8"
     },
     {
       "path": "schemas/governance/governance-family.v4.json",
@@ -77,15 +77,15 @@
     },
     {
       "path": "schemas/lifecycle/lifecycle-family.v4.json",
-      "sha256": "d0651066611e827178a1cbbf541926b671c3293024392baa0a79034b8c35d014"
+      "sha256": "878f7fc28aef6b6dbf9ee7cf3252fca2c5f00725f36346acb80cc14148ceed7f"
     },
     {
       "path": "schemas/mcp/mcp-family.v4.json",
-      "sha256": "345e25601c601758b6382a52535b83c6367b51f9be90e472b5dd852b9c802a57"
+      "sha256": "be4a2df27f3ccd0e60debb9f38d9a7e105785044afa5e41d52f53b1dd251b1c8"
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "531e36991ef14145c0f476d49f884272b2fe8d6af0286577e1554c14ab54287d"
+      "sha256": "802ab58b814917a95ba241c1c9c8d3841f22c16ad354a5020f1d55471eb8cdd6"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -93,7 +93,7 @@
     },
     {
       "path": "schemas/project-evidence-map/project-evidence-map-family.v4.json",
-      "sha256": "70827ca6343b92de4d3abb4f4fafdf1d419620a71fa227c0bb1f5be4b831f9ac"
+      "sha256": "3f715aef6cb6345e62c69cb98f1083b22523028334c3a6d6c8ecfdfb5434aac9"
     },
     {
       "path": "schemas/project-memory/project-memory-family.v4.json",
@@ -101,63 +101,63 @@
     },
     {
       "path": "schemas/project-sectors/artifacts.v4.json",
-      "sha256": "1c2c5fdf837aa181bbd64340e54ead19c2e4b623b195d453abe0b3f11a675fc1"
+      "sha256": "3c614d071d1e6bf4de6549222983a423a8231432a68a0ecd0e5136e963f7f690"
     },
     {
       "path": "schemas/project-sectors/custom.v4.json",
-      "sha256": "8485b77565d9d1324d9804bea9ba41e756687e9e2787d569738a6d25df11f00e"
+      "sha256": "366fa3a2478ae1192f534f6821b066785791aa3bef2c35759d41f17474dc1e93"
     },
     {
       "path": "schemas/project-sectors/data.v4.json",
-      "sha256": "ea87f6d13ee26b32b7ede3048441e3f30c8bacde29d2f0b3ac3c830e883f1ff9"
+      "sha256": "49563adeef5872705bea55f8f90413b4cfa311898e459bc4ec42cdf1b24d463d"
     },
     {
       "path": "schemas/project-sectors/data_excel.v4.json",
-      "sha256": "8230b40eb86d60a71ea34dad033d13eb83f804487a42b1a608e21aeae2053d60"
+      "sha256": "f0124f9a0c2914985549c36fd3b323690e6716e278a5c4559072fecf6c382013"
     },
     {
       "path": "schemas/project-sectors/docs.v4.json",
-      "sha256": "f11911876dce1e4564be2831927a7c7cca7ce473f40b75450f9db82fa4081686"
+      "sha256": "f164cfa722a73bd90a6d58acc98e1f7cb7f506919d065dcb6c1e710a25d4f7ce"
     },
     {
       "path": "schemas/project-sectors/github_code.v4.json",
-      "sha256": "22167f14331978db8f70eb0b7d033129c4f941c4fc525ea13eaacbac881dc631"
+      "sha256": "448294f54bb49d4ea16a9538e269d362f74ef0467e5b7c234ea5f44a434b7d64"
     },
     {
       "path": "schemas/project-sectors/images_ocr.v4.json",
-      "sha256": "773eccb150abc663abd375093d4324c3622315fd4a984109e67ce7453a14302d"
+      "sha256": "a336af689a7096acdcd92387206bf77c5ae6de5309e234263f8470b45bce4f2b"
     },
     {
       "path": "schemas/project-sectors/local_code.v4.json",
-      "sha256": "639306587f1c5d08086faf0ceba693dba3e77e573c0efc4cc39b2fc98774a008"
+      "sha256": "8dfceb5d80e10eb8891548b86526f38942e4c949a0143aa831a5763ff6cf79d0"
     },
     {
       "path": "schemas/project-sectors/pdf_ocr.v4.json",
-      "sha256": "f536b137716c0fee0770a605107c44e35b24897b9a8115381e329f6006cedc28"
+      "sha256": "1eb67669595f6af3dad9d401c230cf40b83c1aded1fcdbf480c07b63753d17ac"
     },
     {
       "path": "schemas/project-sectors/power_bi.v4.json",
-      "sha256": "14b343fc663b1eeced5649cd3274abb633b9f757f21ad9ba11e983869164d2f8"
+      "sha256": "44145e02e590ace27291e104a3fe2d0bc4b1e490a1bb8b5accf5a1c46447d930"
     },
     {
       "path": "schemas/project-sectors/ppt.v4.json",
-      "sha256": "604a42d48c685202279f398f3492ea4282843ff011405f0d008836369f626288"
+      "sha256": "9fac1eeb0a0c49eee118bc1710a7c63f4ae68cf28e448e4addb3988324992b9d"
     },
     {
       "path": "schemas/project-sectors/research.v4.json",
-      "sha256": "f92907ddc8faf614f472df14b3de48b4a2b7d41c6305788a60988bf0d7151de7"
+      "sha256": "d45a3ecd4a7d44bd6a2a8780d3c0d53785794f2d85fc09e84a380b3d9c61234e"
     },
     {
       "path": "schemas/project-sectors/tableau.v4.json",
-      "sha256": "52850d7c0c37efa4760099a582396a32beb3bd84c1be60025ee174ba5cbaf8ca"
+      "sha256": "ccd09f14184d02e21374d1a040fa514ac7e27c3d4fe07da49581d21bbf27a0a6"
     },
     {
       "path": "schemas/projects/projects-family.v4.json",
-      "sha256": "a577057b37d7c29f6c84ba6acd1ab12544a1b9b6f6f71ab80c6f032267ba540a"
+      "sha256": "449b5d51e8985beeacea3087ceab1d98e9bbf78d59771a679e1ef578617cd233"
     },
     {
       "path": "schemas/recovery/recovery-family.v4.json",
-      "sha256": "88c45e51d033c3cc61040c13342eda7c1fb16adb0cea6ff3bfdbcf96464e22cb"
+      "sha256": "597ef367220fd89b1fbb8ab6bbfd2daa3bb9c206c9c6ecbca7290da2e209510a"
     },
     {
       "path": "schemas/routing/routing-family.v4.json",
@@ -165,15 +165,15 @@
     },
     {
       "path": "schemas/schema-authority/schema-authority-family.v4.json",
-      "sha256": "d4386ca064154a2833bee25994d83aa6f461bbfd453bdae27e85aa355c61b80e"
+      "sha256": "4227095a4d5e5054b2df7ca0b03ed1b566dc499e4e08422afb58558e81f12a49"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",
-      "sha256": "740fe2cc056fa0ffc4d2682664395ad3acf9287bb72b5255efc2e4ebf2759e61"
+      "sha256": "972d94b0b797750c47d5b3b0612fcb1b5062d3edf8a32ed0691e4db3b15ba28d"
     },
     {
       "path": "schemas/skills/skills-family.v4.json",
-      "sha256": "28ad6cab6693a2b128375cef43741593fafb03c8f0f31413ca3ad29b04019292"
+      "sha256": "8104d6cf0cb04960b518758f3e56babdfbde72a694bce192aed5cd2587a3853e"
     },
     {
       "path": "schemas/source-intake/source-intake-family.v4.json",
@@ -181,11 +181,11 @@
     },
     {
       "path": "schemas/task-exchange/task-exchange-family.v4.json",
-      "sha256": "38c3a208115b95748d0ecae4125c319bc24757e7d840f64703ba1eb590c1a04e"
+      "sha256": "ffa7694f3e0c7d4421892127b480a3d9459f2d5080eaeaa3e18146bf99928b5a"
     },
     {
       "path": "schemas/toolchains/toolchains-family.v4.json",
-      "sha256": "ed91a480ae6a0d4ad6ae8acc616962083b4713b94466c0012ccd4e4cbaced2f8"
+      "sha256": "3bc9d736ff5898cf605bc1fa3e742eb5dd70aa09bd5342bc469ef493c772b2c7"
     },
     {
       "path": "schemas/transports/transports-family.v4.json",
@@ -193,11 +193,11 @@
     },
     {
       "path": "schemas/uop/uop-family.v4.json",
-      "sha256": "eaa146bdb266c7ed9735dbd4ebfd840bd9c2375a2c4ce17c507a3ef94d99f49c"
+      "sha256": "92b0a74b895ff0386385fc96939bc99f8fa0dbcd8d6878108962e57a6ee2da87"
     },
     {
       "path": "schemas/work-handoff/work-handoff-family.v4.json",
-      "sha256": "f96e5ebad81a4c2a84308a76fdf9832a82d815a87fdc52c3e1ceedaea36dbb0a"
+      "sha256": "e11d0c15fcead0303ae46ecbc97494ea019811cff83fba7d438d871a2fcd39e1"
     }
   ],
   "family_count": 49,

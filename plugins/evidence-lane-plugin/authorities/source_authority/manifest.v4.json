@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "sources",
   "source_package_folder": "authorities/source_authority",
-  "project_state_folder": "authorities/sources",
+  "project_state_folder": "sources",
   "runtime_module": "evidence_lane_plugin.source_authority",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.sources.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/sources/sources_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/sources/schema-history",
+    "database_relative_path": "sources/sources_authority_v001.sqlite",
+    "schema_history_relative_path": "sources/schema-history.v4.json",
     "owners": [
       "sources",
       "restoration",
@@ -103,13 +103,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "2219A0783014607A2260C520E61261A37B5961A0D2FE9B7CC6AF30F30A301B87"
+    "contract_sha256": "E7DB5D85FAECDBB022F003AF52E2BA355246297279668867C6B1186812D1897D"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "sources",
-    "folder": "authorities/sources",
-    "files_root": "authorities/sources/files",
+    "folder": "sources",
+    "objects_root": "sources/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -117,7 +117,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -140,7 +140,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "EFBE8C42F8F9A5FD227ABE77DB7713E33ED92394F165B836BA566E35757624E6"
+    "contract_sha256": "2DE1826E2499E94565FE9E0BE67BA42925884A224046EABFC91718F4A46E8602"
   },
   "migration_bindings": [
     {
@@ -5332,7 +5332,7 @@
   "members": [
     {
       "path": "authorities/source_authority/README.md",
-      "sha256": "b25305fb41bd7a2fe512681f8b7b7cef4891b43dae9af9e0f009d27104aa8bcd"
+      "sha256": "5396bf282b9caf106d467742e5e49adc6e8e8bee314037a9aeed925a9e24c784"
     },
     {
       "path": "authorities/source_authority/build-refresh-contract.schema.json",
@@ -5348,7 +5348,7 @@
     },
     {
       "path": "authorities/source_authority/manifest.schema.json",
-      "sha256": "85d3eafba3dfb6b3afa22a9c4935ef906dd585555e8b6397fd3aa36710de23ae"
+      "sha256": "c64cd072abe83ccb1aef142e06066f71f7eafe6d26029e6b59ff8edae836dadd"
     },
     {
       "path": "authorities/source_authority/migration-history.json",
@@ -5364,7 +5364,7 @@
     },
     {
       "path": "authorities/source_authority/pointer-contract.v4.json",
-      "sha256": "2c01945db1c210c9284019f051044bf7ce56d4bcfd7ee9a47baeb3c169cb29da"
+      "sha256": "0b55b01895045215215853fb1e06e7f2abc3c7cb26f6d9f359809d520f8a812d"
     },
     {
       "path": "authorities/source_authority/reader-contract.schema.json",
@@ -5380,11 +5380,11 @@
     },
     {
       "path": "authorities/source_authority/runtime-binding.schema.json",
-      "sha256": "4ede131bfe37461d384b79d7ff07ba307b2d958217518cf0f829c94d0c693aa1"
+      "sha256": "eb70195c84e483075d7df5a847b4ca08072d97f7090d59ccf7670cbe9af469ee"
     },
     {
       "path": "authorities/source_authority/runtime-binding.v4.json",
-      "sha256": "048ed0c9bc455f261435f4129fd7d1c9632e5a87f9dd597d0d45c10d771ea166"
+      "sha256": "b624212b435fcfc52b5d130d821993e69e6fba00346829c68906f313192353fd"
     },
     {
       "path": "authorities/source_authority/runtime.py",
@@ -5432,7 +5432,7 @@
     },
     {
       "path": "authorities/source_authority/workflow.v4.json",
-      "sha256": "cd506887e778cf3c7f1eaab3c10d9ebadcee2e59e91f085de8d04b722983117c"
+      "sha256": "f7fcfb92f09bd5cbff49ab3e057a39edaaabb3bb18787081f9083f9399098626"
     }
   ]
 }

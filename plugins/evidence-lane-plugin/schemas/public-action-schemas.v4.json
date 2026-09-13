@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "actions": [
     {
       "cross_project_read": false,
@@ -35163,7 +35163,7 @@
             "type": "boolean"
           },
           "scope": {
-            "default": "coherent_root_pv_separate_lane_databases_registered_files_and_schema_view_history",
+            "default": "coherent_root_pv_direct_lane_databases_objects_artifacts_and_schema_history",
             "title": "Scope",
             "type": "string"
           },
@@ -35381,6 +35381,7 @@
       "name": "project_catalog",
       "outputSchema": {
         "$defs": {
+          "JsonValue": {},
           "ProjectRecord": {
             "additionalProperties": false,
             "properties": {
@@ -35391,6 +35392,21 @@
               "display_name": {
                 "title": "Display Name",
                 "type": "string"
+              },
+              "initial_source_intake": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Initial Source Intake"
               },
               "project_id": {
                 "title": "Project Id",
@@ -38405,7 +38421,7 @@
     },
     {
       "cross_project_read": false,
-      "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+      "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -38498,6 +38514,9 @@
       "mutates": true,
       "name": "project_register",
       "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
         "additionalProperties": false,
         "properties": {
           "capture_route": {
@@ -38507,6 +38526,21 @@
           "display_name": {
             "title": "Display Name",
             "type": "string"
+          },
+          "initial_source_intake": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Initial Source Intake"
           },
           "project_id": {
             "title": "Project Id",
@@ -38647,6 +38681,7 @@
       "name": "project_select",
       "outputSchema": {
         "$defs": {
+          "JsonValue": {},
           "ProjectRecord": {
             "additionalProperties": false,
             "properties": {
@@ -38657,6 +38692,21 @@
               "display_name": {
                 "title": "Display Name",
                 "type": "string"
+              },
+              "initial_source_intake": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Initial Source Intake"
               },
               "project_id": {
                 "title": "Project Id",
@@ -44006,8 +44056,8 @@
             "type": "string"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -44544,8 +44594,8 @@
             "type": "string"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -45268,8 +45318,8 @@
             "type": "string"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -45594,8 +45644,8 @@
             "type": "string"
           },
           "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
+            "const": "sessions_lane_sqlite",
+            "default": "sessions_lane_sqlite",
             "title": "State Authority",
             "type": "string"
           },
@@ -53445,7 +53495,7 @@
             "type": "string"
           },
           "storage_layout": {
-            "default": "separate_lane_sqlite_and_files",
+            "default": "direct_flat_pv_lanes_v2",
             "title": "Storage Layout",
             "type": "string"
           },

@@ -101,7 +101,7 @@ def test_stdio_generated_exported_artifact_refresh_and_provenance(tmp_path):
                         'source_digest': selected['source_digest'], 'expected_generation': selected['generation'],
                         'formats': ['mmd', 'dot'], 'include_pointer': True})
                     assert {Path(row['path']).name for row in view['files']} == {'artifacts.mmd', 'artifacts.dot', 'lane_pointer.json'}
-                    assert all('/sectors/artifacts/' in row['path'].replace('\\', '/') for row in view['files'])
+                    assert all('/artifacts/' in row['path'].replace('\\', '/') for row in view['files'])
                     artifacts.append(indexed | {'bytes': raw, 'word': word, 'view': view})
                     producers.append(produced)
                     previous_export, prior_view = exported['after_sha256'], view
@@ -120,7 +120,7 @@ def test_stdio_generated_exported_artifact_refresh_and_provenance(tmp_path):
                     assert {row['snapshot_id'] for row in pointer['artifacts_and_parts'].values()} == {artifact['snapshot_id']}
                 assert (await call('artifacts_current'))['result']['files'][0]['snapshot_id'] == artifacts[-1]['snapshot_id']
                 assert before == {str(path): path.read_bytes() for path in store.root.rglob('*.sqlite')}
-                assert not (store.root / 'sectors/research').exists() and not (store.root / 'sectors/custom').exists()
+                assert not (store.root / 'research').exists() and not (store.root / 'custom').exists()
                 with store.connection(read_only=True) as connection:
                     assert connection.execute("SELECT count(*) FROM sqlite_schema WHERE name LIKE 'artifact_%' OR name LIKE 'ppt_%'").fetchone()[0] == 0
         with LocalEndpoint(engine, studio_enabled=False):

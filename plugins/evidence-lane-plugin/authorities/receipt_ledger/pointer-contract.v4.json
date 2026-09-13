@@ -4,8 +4,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "receipts",
-    "folder": "authorities/receipts",
-    "files_root": "authorities/receipts/files",
+    "folder": "receipts",
+    "objects_root": "receipts/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -13,7 +13,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -36,7 +36,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "05C9A12758698D4F7133CB1B0D8F710D6B3305B7B3B1D643CFBCBD87114F7B40"
+    "contract_sha256": "8F57BD4C3AF0BD4E1A3C8AC04051BE8783D9E4A6709D2D93D48CA40CAFBE18F9"
   },
   "views": [],
   "role": "Exact immutable selected-view navigation; never a second current-state authority",

@@ -5,9 +5,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt",
-            "statusMessage": "Record bound Evidence Lane Interrupt evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane Interrupt",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane Interrupt",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane Interrupt",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane Interrupt",
             "timeout": 3,
             "type": "command"
           }
@@ -18,9 +39,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest",
-            "statusMessage": "Record bound Evidence Lane PermissionRequest evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane PermissionRequest",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane PermissionRequest",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane PermissionRequest",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PermissionRequest EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PermissionRequest EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane PermissionRequest",
             "timeout": 10,
             "type": "command"
           }
@@ -31,9 +73,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact",
-            "statusMessage": "Record bound Evidence Lane PostCompact evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane PostCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane PostCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane PostCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostCompact EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostCompact EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane PostCompact",
             "timeout": 10,
             "type": "command"
           }
@@ -44,9 +107,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse",
-            "statusMessage": "Record bound Evidence Lane PostToolUse evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane PostToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane PostToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane PostToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PostToolUse EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PostToolUse EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane PostToolUse",
             "timeout": 10,
             "type": "command"
           }
@@ -57,9 +141,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact",
-            "statusMessage": "Record bound Evidence Lane PreCompact evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane PreCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane PreCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane PreCompact",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreCompact EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreCompact EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane PreCompact",
             "timeout": 10,
             "type": "command"
           }
@@ -70,9 +175,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse",
-            "statusMessage": "Record bound Evidence Lane PreToolUse evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" PreToolUse EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" PreToolUse EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane PreToolUse",
             "timeout": 10,
             "type": "command"
           }
@@ -83,9 +209,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd",
-            "statusMessage": "Record bound Evidence Lane SessionEnd evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane SessionEnd",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane SessionEnd",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane SessionEnd",
+            "timeout": 3,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane SessionEnd",
             "timeout": 3,
             "type": "command"
           }
@@ -96,10 +243,31 @@
       {
         "hooks": [
           {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane SessionStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane SessionStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane SessionStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
             "additionalContextLimit": 3000,
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart",
-            "statusMessage": "Record bound Evidence Lane SessionStart evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionStart EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionStart EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane SessionStart",
             "timeout": 10,
             "type": "command"
           }
@@ -110,9 +278,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop",
-            "statusMessage": "Record bound Evidence Lane Stop evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane Stop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane Stop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane Stop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Stop EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Stop EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane Stop",
             "timeout": 10,
             "type": "command"
           }
@@ -123,9 +312,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart",
-            "statusMessage": "Record bound Evidence Lane SubagentStart evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane SubagentStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane SubagentStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane SubagentStart",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStart EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStart EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane SubagentStart",
             "timeout": 10,
             "type": "command"
           }
@@ -136,9 +346,30 @@
       {
         "hooks": [
           {
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop",
-            "statusMessage": "Record bound Evidence Lane SubagentStop evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane SubagentStop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane SubagentStop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane SubagentStop",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SubagentStop EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SubagentStop EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane SubagentStop",
             "timeout": 10,
             "type": "command"
           }
@@ -149,10 +380,31 @@
       {
         "hooks": [
           {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit VALIDATE",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit VALIDATE",
+            "statusMessage": "Validating and redacting Evidence Lane UserPromptSubmit",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit SEAL",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit SEAL",
+            "statusMessage": "Classifying and sealing Evidence Lane UserPromptSubmit",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit TRANSPORT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit TRANSPORT",
+            "statusMessage": "Handling and delivering Evidence Lane UserPromptSubmit",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
             "additionalContextLimit": 3000,
-            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit",
-            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit",
-            "statusMessage": "Record bound Evidence Lane UserPromptSubmit evidence",
+            "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" UserPromptSubmit EMIT",
+            "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" UserPromptSubmit EMIT",
+            "statusMessage": "Verifying and emitting Evidence Lane UserPromptSubmit",
             "timeout": 10,
             "type": "command"
           }

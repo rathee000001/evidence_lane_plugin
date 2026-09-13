@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "execution_logic_duplicated_in_binding": false,
   "installed_execution_claimed": false,
@@ -11,7 +11,7 @@
   "source": {
     "bytes": 9183,
     "path": "src/evidence_lane_plugin/flash_authority.py",
-    "sha256": "019e39d9b65ad3ed5ce0c1da7623d7b304fe935e7a36d5e5beb300fd59ddec53"
+    "sha256": "d7d42c487e6d05bb5becf28ab1756c222e675e37488f467ee6fc26af257fce79"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/project_authority/live-root-layout.schema.json",
-      "sha256": "00d2a32be6dd019a3d4f3644da9e1eaec2909dd7edca06125c7f87bb32d03f27"
+      "sha256": "7b16428c1c5c3de2ff80b12a855078fd2c04a4c6bcb4fcdce30cdc47a65a1eef"
     },
     {
       "path": "authorities/project_authority/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/project_authority/manifest.v4.json",
-      "sha256": "53649c7662a3416eb92473f97e6ed4103e37177318b000ab520495527ea22896"
+      "sha256": "e530625431e00bbc4f60c9e3c8c07cb30de78465ff41cab078e0abe5ceb21d0e"
     },
     {
       "path": "authorities/project_authority/reader-contract.schema.json",

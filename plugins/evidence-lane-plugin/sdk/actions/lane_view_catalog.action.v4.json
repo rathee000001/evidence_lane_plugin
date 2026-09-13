@@ -1,11 +1,11 @@
 {
   "action": "lane_view_catalog",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/lane_view_catalog.v4.schema.json",
-  "contract_sha256": "057846fb15d8ca623e02a85c0522a97dc96a382cd3520cb37c283f2ef0b3c15d",
+  "contract_sha256": "5639e24c0c1ba37adf5731afd5742d8b95e8335e9d9cea000c75f499512b7c3f",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

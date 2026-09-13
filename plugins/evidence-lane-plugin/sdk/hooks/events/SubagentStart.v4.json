@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/SubagentStart/handler.py",
   "event": "SubagentStart",
   "event_contract": "hooks/events/SubagentStart/event.v4.json",
-  "event_contract_sha256": "08ea448744d81c9e5314ebd58a4497de3238451024111866141e3b94bf11895f",
+  "event_contract_sha256": "b8e4eab494004e8ca62d7460e07f8e7a1090abe5ac896ecccab4751ad857ff92",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/SubagentStart.v4.schema.json",
   "input_schema_sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a",
   "installed_execution_claimed": false,

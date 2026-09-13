@@ -1,4 +1,4 @@
-digraph schema_session_authority {
+digraph schema_sessions {
   // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
   // PYTHON_GRAPHVIZ_VERSION=0.21
   bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
@@ -6,7 +6,6 @@ digraph schema_session_authority {
   edge [color="#667085" fontname=Arial]
   t_lane_identity [label="lane_identity\nsingleton, project_id, lane_id, kind, storage_layout, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_objects [label="objects\ndigest, size_bytes, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  t_receipts [label="receipts\nreceipt_id, kind, body_json, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_migrations [label="schema_migrations\nowner, version, digest, description, applied_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_ownership [label="schema_ownership\nobject_name, owner, object_type" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_sessions_current [label="sessions_current\nsingleton, session_id" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]

@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/power_bi"
     },
     "folder": {
-      "const": "sectors/power_bi"
+      "const": "power_bi"
     },
     "folder_role": {
       "const": "external_project_state"

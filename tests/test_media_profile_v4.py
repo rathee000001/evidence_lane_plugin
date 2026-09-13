@@ -81,7 +81,7 @@ def test_real_ocr_preserves_empty_frame_review_and_honors_any_search(media_syste
     assert any(n['kind'] == 'media_review_frame' for n in graph.result['graph']['nodes'])
     assert before == {p: p.read_bytes() for p in store.root.rglob('*.sqlite*') if p.is_file()}
     assert (store.source_root / 'frames.tiff').read_bytes() == raw
-    assert not (store.root / 'sectors/pdf_ocr').exists()
+    assert not (store.root / 'pdf_ocr').exists()
     with media_system[0].project_work.mutation(store) as lease, lease.transaction('images_ocr'), store.lane('images_ocr').transaction() as connection:
         connection.execute('DELETE FROM media_review_frame WHERE ocr_id=?', (ocr['ocr_id'],))
     changed = call(media_system, 'media_ocr_read', {'ocr_id': ocr['ocr_id']})
@@ -110,7 +110,7 @@ def test_extracted_files_keep_original_snapshot_after_source_refresh(media_syste
     assert store.lane('images_ocr').read_object(extracted['sha256']) == content
     assert artifact['total_bytes'] == len(content)
     assert (store.source_root / filename).read_bytes() == raw
-    assert not (store.root / 'sectors/artifacts').exists()
+    assert not (store.root / 'artifacts').exists()
 
 
 def test_missing_ocr_language_blocks_without_publishing_derivative(media_system):

@@ -1,9 +1,8 @@
 {
   "lanes": [
     {
-      "contract_sha256": "B1CA88D292F8192F87B03E5406A0F2BF37E725E599FBA781A80B90FE8F69DF61",
-      "files_root": "authorities/plan/files",
-      "folder": "authorities/plan",
+      "contract_sha256": "60CA0D0EFF54E8A0FDC30DCD4EE0E7035EC1AED09A8F3B55D13BAC1A280F70C3",
+      "folder": "plan",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -15,6 +14,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "plan/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact Plan revision and immutable dependency snapshot"
@@ -32,15 +32,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "D8E6973B64B9370AFAEE35A0CE21426B8F2FD642D21EF3566B35E5C8A5F52511",
-      "files_root": "authorities/chat_lineage/files",
-      "folder": "authorities/chat_lineage",
+      "contract_sha256": "E3EAE71EB94F54890F5512C051885442065873E90A71C30B8A33343835C04122",
+      "folder": "chat_lineage",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -52,6 +51,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "chat_lineage/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -69,15 +69,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "7C4C7CABD05FD386123871B81250E297786AE0F6CE351EFE1E5E71ECA8342B56",
-      "files_root": "authorities/canon/files",
-      "folder": "authorities/canon",
+      "contract_sha256": "E33CBF5356358C74F314AB8213D769C1C542CD536029F4B3F2DD4A047292CC52",
+      "folder": "canon",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -89,6 +88,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "canon/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -106,15 +106,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "166FCEE43DF23C3A11496D723A181FF23B78C27147EF2CC323914CF8211B69D3",
-      "files_root": "authorities/memory/files",
-      "folder": "authorities/memory",
+      "contract_sha256": "7F80D4DCAE4E08D88BC654E95BC0ADCFBDC0907DBF72FF97F3CCD23173E76452",
+      "folder": "memory",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -126,6 +125,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "memory/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact bounded attributed Memory slice, never host MEMORY.md"
@@ -143,15 +143,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "B8DD42EBF2DCB973F7FBD5E0BA55F328800B0911B1496740AB731EC29CEAECBE",
-      "files_root": "authorities/learning/files",
-      "folder": "authorities/learning",
+      "contract_sha256": "63EBF148738D5BEE712FF0019F3F8A151330D5139AF1368B754CABB7B32E3139",
+      "folder": "learning",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -163,6 +162,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "learning/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -180,15 +180,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "EFBE8C42F8F9A5FD227ABE77DB7713E33ED92394F165B836BA566E35757624E6",
-      "files_root": "authorities/sources/files",
-      "folder": "authorities/sources",
+      "contract_sha256": "2DE1826E2499E94565FE9E0BE67BA42925884A224046EABFC91718F4A46E8602",
+      "folder": "sources",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -200,6 +199,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "sources/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -217,15 +217,51 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "05C9A12758698D4F7133CB1B0D8F710D6B3305B7B3B1D643CFBCBD87114F7B40",
-      "files_root": "authorities/receipts/files",
-      "folder": "authorities/receipts",
+      "contract_sha256": "ADBA9C5AF570BD6FB2AF6D94A6FD19E887D54402892DCE50C304DB556FD4B036",
+      "folder": "sessions",
+      "graph_exports": {
+        "both_required": false,
+        "condition": "declared_consumer_requested_view",
+        "dot": "sessions.dot",
+        "mmd": "sessions.mmd"
+      },
+      "lane_id": "sessions",
+      "natural_artifacts": {
+        "condition": "declared_operation_produced_output",
+        "extensions": []
+      },
+      "objects_root": "sessions/objects",
+      "pointer": {
+        "condition": "declared_view_consumer",
+        "meaning": "Exact authenticated engine session head and reported host binding"
+      },
+      "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
+      "relationship_views": [
+        "session_heads_transitions_and_reported_host_bindings"
+      ],
+      "required_roles": [
+        {
+          "path": "sessions_authority_v001.sqlite",
+          "role_id": "sqlite_authority"
+        }
+      ],
+      "schema": "evidence-lane.lane-artifact-role-registry.v4",
+      "schema_history": {
+        "condition": "migration_applied",
+        "path": "schema-history.v4.json"
+      },
+      "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
+      "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
+    },
+    {
+      "contract_sha256": "8F57BD4C3AF0BD4E1A3C8AC04051BE8783D9E4A6709D2D93D48CA40CAFBE18F9",
+      "folder": "receipts",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -237,6 +273,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "receipts/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -254,15 +291,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "69465C676605970703240B9199D7C70035E43C89D11955256066ECC06DC3004B",
-      "files_root": "authorities/universe/files",
-      "folder": "authorities/universe",
+      "contract_sha256": "8F0B39A342ABF63EE05DAA9E3FAD904872800ECD91705E0CBFD13D0230B14757",
+      "folder": "universe",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -274,6 +310,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "universe/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -291,15 +328,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "775887863E941C5E595A76816FCFE5D24515B9DA5BCB8BCA1586A671FBB78630",
-      "files_root": "sectors/github_code/files",
-      "folder": "sectors/github_code",
+      "contract_sha256": "39D8A445AAC6A0FBDBB8C999B908ED85B5AF2CC5FD92DEF44C102BD06E3FC41F",
+      "folder": "github_code",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -311,6 +347,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "github_code/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact indexed repository and commit selection"
@@ -328,15 +365,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "08DA284D12F301A06AA2A5582560BE9D71EA8956EDCFBCFAC18E98C4034D6358",
-      "files_root": "sectors/local_code/files",
-      "folder": "sectors/local_code",
+      "contract_sha256": "10E7AB89B8484067B8255E806AD0FEB52ECA141F18DE3AE756B4514B68A08105",
+      "folder": "local_code",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -348,6 +384,7 @@
         "condition": "declared_operation_produced_output",
         "extensions": []
       },
+      "objects_root": "local_code/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact indexed working-tree source hashes"
@@ -365,15 +402,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "7BA0B1392FBD209DD8B37D331F03D5067B78C326D0E44BF9F26E4321B9BB68E7",
-      "files_root": "sectors/docs/files",
-      "folder": "sectors/docs",
+      "contract_sha256": "B6F4BA87C99E7495D6BB6581716887952B791A2BC367C6B359B3F7AA9256F6B0",
+      "folder": "docs",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -393,6 +429,7 @@
           ".png"
         ]
       },
+      "objects_root": "docs/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact immutable document and native structure item locators; page renders are separate"
@@ -410,15 +447,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C",
-      "files_root": "sectors/data_excel/files",
-      "folder": "sectors/data_excel",
+      "contract_sha256": "3282CE1037D03D7B1E7F038E5A9493FD6A701916A447C34D510965E78FF79B27",
+      "folder": "data_excel",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -440,6 +476,7 @@
           ".png"
         ]
       },
+      "objects_root": "data_excel/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -457,15 +494,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "F3E85A0F941B60A5CBCDB490AF88DE7EE8C81AC083E2F68E27FB763EEB577B57",
-      "files_root": "sectors/ppt/files",
-      "folder": "sectors/ppt",
+      "contract_sha256": "FDB572E39ACCEC42A52C92FE5809083A0D3C1EAEEEBDF543940B563E1152008A",
+      "folder": "ppt",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -486,6 +522,7 @@
           ".png"
         ]
       },
+      "objects_root": "ppt/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact presentation snapshot, declared slide number and native object locators; rendered pages are separate"
@@ -503,15 +540,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "3DA21A7786678DB2791F4A00881015D2618BDA872002315E5B7E2906FDC78856",
-      "files_root": "sectors/pdf_ocr/files",
-      "folder": "sectors/pdf_ocr",
+      "contract_sha256": "EE394F5C646F915B1307D2648CAC57DC8EF8955C64E826EBA96C7CF983A96D2A",
+      "folder": "pdf_ocr",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -527,6 +563,7 @@
           ".png"
         ]
       },
+      "objects_root": "pdf_ocr/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact PDF snapshot, page and native item locators; raster/OCR/Docling derivatives keep independent source bindings."
@@ -544,15 +581,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "6CA075F1AA8B1A9FDA7B5A3342B285490E43F87BD8AB64189CBEB2B10E0243A7",
-      "files_root": "sectors/images_ocr/files",
-      "folder": "sectors/images_ocr",
+      "contract_sha256": "5B1B579E6EDBB81602B7C6631128DD590588EE72C69C5BF5F376D9614761A598",
+      "folder": "images_ocr",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -571,6 +607,7 @@
           ".txt"
         ]
       },
+      "objects_root": "images_ocr/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -588,15 +625,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "13A15772CDA7D1777CE83C9C0959F1BD94B6ED437F9153D644B0A101FAA49E43",
-      "files_root": "sectors/artifacts/files",
-      "folder": "sectors/artifacts",
+      "contract_sha256": "97C1168660C40E2968DB6AED4B10255E7BFF43829745B069403F76B9945788F4",
+      "folder": "artifacts",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -610,6 +646,7 @@
           "*declared_by_producer"
         ]
       },
+      "objects_root": "artifacts/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact produced artifact and verification receipt"
@@ -627,15 +664,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "F600829AC08FCDE33E83C382D4B5F31E592419AE687BBB5078711B3E11351BFA",
-      "files_root": "sectors/custom/files",
-      "folder": "sectors/custom",
+      "contract_sha256": "33F1C2D86DBFF938951912B4BC855976DDD5C0E9C3B6C8E7BD88CDE55482772E",
+      "folder": "custom",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -649,6 +685,7 @@
           "*declared_by_adapter"
         ]
       },
+      "objects_root": "custom/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -666,15 +703,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "339C0D04DE36F69517499B893FCAED3C15D305D0082607F0AF03FAB0102A1EA9",
-      "files_root": "sectors/research/files",
-      "folder": "sectors/research",
+      "contract_sha256": "4F98ECB42C93A8894F3C76C968BD3764F0FFAA5DBADF82E17AEA2E857F63A3B8",
+      "folder": "research",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -690,6 +726,7 @@
           ".bib"
         ]
       },
+      "objects_root": "research/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -707,15 +744,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "BE989BAD500F5A17D6888A08A3FE6E5AE8BED0A7B0AD5B6C6973C330B78A9FF2",
-      "files_root": "sectors/data/files",
-      "folder": "sectors/data",
+      "contract_sha256": "B30F9F632BEE64F86B635632A532F86E9A0428D13715F4F0C4D4CC39F224943D",
+      "folder": "data",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -735,6 +771,7 @@
           ".feather"
         ]
       },
+      "objects_root": "data/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": null
@@ -752,15 +789,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "352BBD720CCABF81FD53241D00C0BDB511298811C939A54B90D656A0765C52C7",
-      "files_root": "sectors/tableau/files",
-      "folder": "sectors/tableau",
+      "contract_sha256": "CA7B2147C468112F68D5688371459FDE98F3D2DA6AA49795DD117C8E539CB96E",
+      "folder": "tableau",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -779,6 +815,7 @@
           ".tde"
         ]
       },
+      "objects_root": "tableau/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact snapshot and XML locators or native Hyper schema/table identities; samples and layout metadata are labeled"
@@ -796,15 +833,14 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"
     },
     {
-      "contract_sha256": "0F1D298F8F103BB87CC95930B8AD5E4BE2CEBC434F3638AF9B60578D1C164B9B",
-      "files_root": "sectors/power_bi/files",
-      "folder": "sectors/power_bi",
+      "contract_sha256": "34CB10EB7389304AF58E482E2E40F04C8BB2B8CEACA5D1C6D5073021EC0D6149",
+      "folder": "power_bi",
       "graph_exports": {
         "both_required": false,
         "condition": "declared_consumer_requested_view",
@@ -825,6 +861,7 @@
           ".zip"
         ]
       },
+      "objects_root": "power_bi/objects",
       "pointer": {
         "condition": "declared_view_consumer",
         "meaning": "Exact snapshot and report/model locators; source JSON versus native canonical model metadata and bounded stored rows are distinguished."
@@ -842,7 +879,7 @@
       "schema": "evidence-lane.lane-artifact-role-registry.v4",
       "schema_history": {
         "condition": "migration_applied",
-        "path": "schema-history"
+        "path": "schema-history.v4.json"
       },
       "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
       "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only"

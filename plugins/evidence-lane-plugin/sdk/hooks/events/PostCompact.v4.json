@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/PostCompact/handler.py",
   "event": "PostCompact",
   "event_contract": "hooks/events/PostCompact/event.v4.json",
-  "event_contract_sha256": "c2f46725c58f5377a08c7342ec5f6c17adb4961b8d773bf5ec784262dd2de88d",
+  "event_contract_sha256": "7627f610f5020504fcd9bbce9220af1927f184dc31ae02e49a6ecb7350198c4e",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostCompactHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/PostCompact.v4.schema.json",
   "input_schema_sha256": "3c3ffa019b10443f727e0ba9c22f06b50756a1861bff68dba8425612025b4a71",
   "installed_execution_claimed": false,

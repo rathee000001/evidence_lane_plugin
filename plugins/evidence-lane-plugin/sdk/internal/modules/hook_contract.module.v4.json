@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "execution_logic_duplicated_in_binding": false,
   "installed_execution_claimed": false,
@@ -9,9 +9,9 @@
   "role": "CANONICAL_PLUGIN_IMPLEMENTATION",
   "schema": "evidence-lane.sdk-internal-module-binding.v4",
   "source": {
-    "bytes": 8689,
+    "bytes": 10064,
     "path": "src/evidence_lane_plugin/hook_contract.py",
-    "sha256": "daeea450050942f8d398443eed04200df15e8c45e1210c711c42e4612c3ca3ff"
+    "sha256": "ddb5f042d1163ba276bcca2d9d7549130b8fa28aad9ca34b896806fe52a0c38f"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

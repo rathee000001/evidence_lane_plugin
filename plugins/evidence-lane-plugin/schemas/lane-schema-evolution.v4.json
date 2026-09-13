@@ -1,8 +1,8 @@
 {
   "lanes": [
     {
-      "database": "authorities/plan/plan_authority_v001.sqlite",
-      "history": "authorities/plan/schema-history",
+      "database": "plan/plan_authority_v001.sqlite",
+      "history": "plan/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "plan",
@@ -11,8 +11,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
-      "history": "authorities/chat_lineage/schema-history",
+      "database": "chat_lineage/chat_lineage_authority_v001.sqlite",
+      "history": "chat_lineage/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "chat_lineage",
@@ -21,8 +21,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/canon/canon_authority_v001.sqlite",
-      "history": "authorities/canon/schema-history",
+      "database": "canon/canon_authority_v001.sqlite",
+      "history": "canon/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "canon",
@@ -31,8 +31,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/memory/memory_authority_v001.sqlite",
-      "history": "authorities/memory/schema-history",
+      "database": "memory/memory_authority_v001.sqlite",
+      "history": "memory/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "memory",
@@ -41,8 +41,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/learning/learning_authority_v001.sqlite",
-      "history": "authorities/learning/schema-history",
+      "database": "learning/learning_authority_v001.sqlite",
+      "history": "learning/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "learning",
@@ -51,8 +51,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/sources/sources_authority_v001.sqlite",
-      "history": "authorities/sources/schema-history",
+      "database": "sources/sources_authority_v001.sqlite",
+      "history": "sources/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "sources",
@@ -61,8 +61,18 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/receipts/receipts_authority_v001.sqlite",
-      "history": "authorities/receipts/schema-history",
+      "database": "sessions/sessions_authority_v001.sqlite",
+      "history": "sessions/schema-history.v4.json",
+      "immutable_applied_migrations": true,
+      "implicit_legacy_migration": false,
+      "lane_id": "sessions",
+      "publication": "project evidence head coordinator selects verified heads after the coordinated commit",
+      "schema": "evidence-lane.lane-schema-evolution-policy.v4",
+      "source_preserving_migration": true
+    },
+    {
+      "database": "receipts/receipts_authority_v001.sqlite",
+      "history": "receipts/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "receipts",
@@ -71,8 +81,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "authorities/universe/universe_authority_v001.sqlite",
-      "history": "authorities/universe/schema-history",
+      "database": "universe/universe_authority_v001.sqlite",
+      "history": "universe/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "universe",
@@ -81,8 +91,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/github_code/github_code_sector_v001.sqlite",
-      "history": "sectors/github_code/schema-history",
+      "database": "github_code/github_code_sector_v001.sqlite",
+      "history": "github_code/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "github_code",
@@ -91,8 +101,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/local_code/local_code_sector_v001.sqlite",
-      "history": "sectors/local_code/schema-history",
+      "database": "local_code/local_code_sector_v001.sqlite",
+      "history": "local_code/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "local_code",
@@ -101,8 +111,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/docs/docs_sector_v001.sqlite",
-      "history": "sectors/docs/schema-history",
+      "database": "docs/docs_sector_v001.sqlite",
+      "history": "docs/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "docs",
@@ -111,8 +121,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
-      "history": "sectors/data_excel/schema-history",
+      "database": "data_excel/data_excel_sector_v001.sqlite",
+      "history": "data_excel/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "data_excel",
@@ -121,8 +131,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/ppt/ppt_sector_v001.sqlite",
-      "history": "sectors/ppt/schema-history",
+      "database": "ppt/ppt_sector_v001.sqlite",
+      "history": "ppt/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "ppt",
@@ -131,8 +141,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
-      "history": "sectors/pdf_ocr/schema-history",
+      "database": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "history": "pdf_ocr/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "pdf_ocr",
@@ -141,8 +151,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
-      "history": "sectors/images_ocr/schema-history",
+      "database": "images_ocr/images_ocr_sector_v001.sqlite",
+      "history": "images_ocr/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "images_ocr",
@@ -151,8 +161,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/artifacts/artifacts_sector_v001.sqlite",
-      "history": "sectors/artifacts/schema-history",
+      "database": "artifacts/artifacts_sector_v001.sqlite",
+      "history": "artifacts/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "artifacts",
@@ -161,8 +171,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/custom/custom_sector_v001.sqlite",
-      "history": "sectors/custom/schema-history",
+      "database": "custom/custom_sector_v001.sqlite",
+      "history": "custom/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "custom",
@@ -171,8 +181,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/research/research_sector_v001.sqlite",
-      "history": "sectors/research/schema-history",
+      "database": "research/research_sector_v001.sqlite",
+      "history": "research/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "research",
@@ -181,8 +191,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/data/data_sector_v001.sqlite",
-      "history": "sectors/data/schema-history",
+      "database": "data/data_sector_v001.sqlite",
+      "history": "data/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "data",
@@ -191,8 +201,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/tableau/tableau_sector_v001.sqlite",
-      "history": "sectors/tableau/schema-history",
+      "database": "tableau/tableau_sector_v001.sqlite",
+      "history": "tableau/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "tableau",
@@ -201,8 +211,8 @@
       "source_preserving_migration": true
     },
     {
-      "database": "sectors/power_bi/power_bi_sector_v001.sqlite",
-      "history": "sectors/power_bi/schema-history",
+      "database": "power_bi/power_bi_sector_v001.sqlite",
+      "history": "power_bi/schema-history.v4.json",
       "immutable_applied_migrations": true,
       "implicit_legacy_migration": false,
       "lane_id": "power_bi",

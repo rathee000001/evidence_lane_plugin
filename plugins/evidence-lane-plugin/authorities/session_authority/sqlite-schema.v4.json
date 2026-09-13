@@ -1,11 +1,11 @@
 {
-  "schema": "evidence-lane.empty-session-owner-subset-schema.v4",
-  "lane_id": "session_authority",
+  "schema": "evidence-lane.empty-authority-schema.v4",
+  "lane_id": "sessions",
   "database_role": "unbound_schema_template",
   "business_rows": 0,
   "project_identity_rows": 0,
   "sqlite_version": "3.50.4",
-  "sqlite_sha256": "29e1fa3ebf221171a19d0f1e5c9f934db69853ecbd04782811c0f0c011c0096f",
+  "sqlite_sha256": "5a631336df7c8092b7acfd510286abaa1a02ff4edf35ead9a852fe8077b8c458",
   "tables": [
     {
       "name": "lane_identity",
@@ -66,38 +66,6 @@
         {
           "name": "size_bytes",
           "type": "INTEGER",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "created_at",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        }
-      ]
-    },
-    {
-      "name": "receipts",
-      "type": "table",
-      "sql": "CREATE TABLE receipts (\n    receipt_id TEXT PRIMARY KEY, kind TEXT NOT NULL,\n    body_json TEXT NOT NULL CHECK(json_valid(body_json)), created_at TEXT NOT NULL)",
-      "rows": 0,
-      "columns": [
-        {
-          "name": "receipt_id",
-          "type": "TEXT",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "name": "kind",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "body_json",
-          "type": "TEXT",
           "not_null": true,
           "primary_key": 0
         },
@@ -356,8 +324,5 @@
       "target_column": "session_id"
     }
   ],
-  "runtime_initialization_performed": false,
-  "template_file_packaged": false,
-  "owning_lane": "receipts",
-  "separate_database": false
+  "runtime_initialization_performed": false
 }

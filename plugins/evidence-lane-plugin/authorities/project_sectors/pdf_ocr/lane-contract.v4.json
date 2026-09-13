@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "pdf_ocr",
   "source_package_folder": "authorities/project_sectors/pdf_ocr",
-  "project_state_folder": "sectors/pdf_ocr",
-  "database": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
-  "files": "sectors/pdf_ocr/files",
-  "schema_history": "sectors/pdf_ocr/schema-history",
+  "project_state_folder": "pdf_ocr",
+  "database": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
+  "files": "pdf_ocr/objects",
+  "schema_history": "pdf_ocr/schema-history.v4.json",
   "migrations": [
     {
       "owner": "pdfocr",
@@ -26,8 +26,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "pdf_ocr",
-    "folder": "sectors/pdf_ocr",
-    "files_root": "sectors/pdf_ocr/files",
+    "folder": "pdf_ocr",
+    "objects_root": "pdf_ocr/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -35,7 +35,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -62,7 +62,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "3DA21A7786678DB2791F4A00881015D2618BDA872002315E5B7E2906FDC78856"
+    "contract_sha256": "EE394F5C646F915B1307D2648CAC57DC8EF8955C64E826EBA96C7CF983A96D2A"
   },
   "actions": [
     "pdf_current",

@@ -31,7 +31,7 @@
       "const": "authorities/chat_lineage"
     },
     "project_state_folder": {
-      "const": "authorities/chat_lineage"
+      "const": "chat_lineage"
     },
     "runtime_database_packaged": {
       "const": false

@@ -1,8 +1,6 @@
 interface:
   display_name: "Exchange task evidence"
   short_description: "Exchange attributed evidence between project tasks"
-  icon_small: "./assets/evidence-lane-skill.png"
-  icon_large: "./assets/evidence-lane-skill.png"
   brand_color: "#18A9C8"
   default_prompt: "Use $exchange-task-evidence to inspect or send the selected task exchange."
 dependencies:

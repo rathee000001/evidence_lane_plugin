@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 519,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 5068,
     "path": "sdk/workflows/skills/link-project-evidence-network/workflow.v4.json",
-    "sha256": "b17a0810fd6942a31ca130fe512299ffe584ddbfa5e23b2947205d2d70efe6a0"
+    "sha256": "b137e8f4dd78e1dc046c87910481e4bc365782af55cdaaa33c4d71d0c365553b"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "link-project-evidence-network",

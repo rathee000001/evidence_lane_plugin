@@ -4,8 +4,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "learning",
-    "folder": "authorities/learning",
-    "files_root": "authorities/learning/files",
+    "folder": "learning",
+    "objects_root": "learning/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -13,7 +13,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -36,17 +36,17 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "B8DD42EBF2DCB973F7FBD5E0BA55F328800B0911B1496740AB731EC29CEAECBE"
+    "contract_sha256": "63EBF148738D5BEE712FF0019F3F8A151330D5139AF1368B754CABB7B32E3139"
   },
   "views": [
     {
       "view_id": "learning.provenance",
       "lane_id": "learning",
-      "folder": "authorities/learning",
+      "folder": "learning",
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
+      "implementation_digest": "49c999dce780a669d4e970b3ca47fd0b4efc0de9ee1ad0ecb3af8df97c58e89e",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"

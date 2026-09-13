@@ -301,6 +301,14 @@
       "route": "/v4/capture"
     }
   ],
+  "host_pipeline": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
   "lifecycle_boundary_owner": "src/evidence_lane_plugin/hook_lifecycle_boundary.py",
   "native_installation_verified": false,
   "pipeline": [
@@ -313,6 +321,7 @@
   ],
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.native-hook-contract.v4",
+  "separate_host_process_per_stage": true,
   "source": "capture_routing.HOOK_EVENT_ORDER",
   "stage_owners": {
     "authenticate_and_deliver_once": "hook_transport.deliver_hook",

@@ -2,10 +2,10 @@
   "schema": "evidence-lane.installed-lane-contract.v4",
   "lane_id": "tableau",
   "source_package_folder": "authorities/project_sectors/tableau",
-  "project_state_folder": "sectors/tableau",
-  "database": "sectors/tableau/tableau_sector_v001.sqlite",
-  "files": "sectors/tableau/files",
-  "schema_history": "sectors/tableau/schema-history",
+  "project_state_folder": "tableau",
+  "database": "tableau/tableau_sector_v001.sqlite",
+  "files": "tableau/objects",
+  "schema_history": "tableau/schema-history.v4.json",
   "migrations": [
     {
       "owner": "tableau",
@@ -21,8 +21,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "tableau",
-    "folder": "sectors/tableau",
-    "files_root": "sectors/tableau/files",
+    "folder": "tableau",
+    "objects_root": "tableau/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -30,7 +30,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -60,7 +60,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "352BBD720CCABF81FD53241D00C0BDB511298811C939A54B90D656A0765C52C7"
+    "contract_sha256": "CA7B2147C468112F68D5688371459FDE98F3D2DA6AA49795DD117C8E539CB96E"
   },
   "actions": [
     "source_snapshot_retire",

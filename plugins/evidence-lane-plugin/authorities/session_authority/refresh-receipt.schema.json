@@ -189,6 +189,6 @@
     "action",
     "status"
   ],
-  "title": "session_authority attributed response",
+  "title": "sessions attributed response",
   "type": "object"
 }

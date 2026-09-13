@@ -1,11 +1,11 @@
 {
   "action": "git_restore_preview",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/git_restore_preview.v4.schema.json",
-  "contract_sha256": "691725ff402b8e21bdca9c01247ae1d5b36959db26e19413a18e3e3fd6c089c1",
+  "contract_sha256": "661885b4ff881e4d4d8b750840fde24f16f05c65a5a48f0394de03d4fcf58b2e",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

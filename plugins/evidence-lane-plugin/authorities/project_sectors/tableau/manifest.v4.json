@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "tableau",
-  "folder": "sectors/tableau",
+  "folder": "tableau",
   "source_package_folder": "authorities/project_sectors/tableau",
   "folder_role": "external_project_state",
-  "database": "sectors/tableau/tableau_sector_v001.sqlite",
-  "files": "sectors/tableau/files",
-  "schema_history": "sectors/tableau/schema-history",
+  "database": "tableau/tableau_sector_v001.sqlite",
+  "files": "tableau/objects",
+  "schema_history": "tableau/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.tableau_profile",
   "parser_modules": [
     "evidence_lane_plugin.tableau_parsers",
@@ -1816,8 +1816,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "tableau",
-    "folder": "sectors/tableau",
-    "files_root": "sectors/tableau/files",
+    "folder": "tableau",
+    "objects_root": "tableau/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -1825,7 +1825,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -1855,7 +1855,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "352BBD720CCABF81FD53241D00C0BDB511298811C939A54B90D656A0765C52C7"
+    "contract_sha256": "CA7B2147C468112F68D5688371459FDE98F3D2DA6AA49795DD117C8E539CB96E"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -1988,11 +1988,11 @@
     },
     {
       "path": "authorities/project_sectors/tableau/workflow.v4.json",
-      "sha256": "d8aaf4ae3dc51f77badce1a6639e3979688f5a4ccacb50a385cec53759954ee1"
+      "sha256": "b2c6dc6d71a7c7e978ae1b6746d0659a84c71dd992024ed0f1eda623ffcf1a91"
     },
     {
       "path": "authorities/project_sectors/tableau/tools.json",
-      "sha256": "7391a6f98d349019abeeaf4b56636ddcb2b0a50e0de8f9cd32acd31d9d02f853"
+      "sha256": "91f9d1de4c5f946d88b05c831afd47f3be0cd696da500ec8f69d74b645a5cf39"
     },
     {
       "path": "authorities/project_sectors/tableau/tools.schema.json",
@@ -2000,15 +2000,15 @@
     },
     {
       "path": "authorities/project_sectors/tableau/README.md",
-      "sha256": "319f30b87f60c9b46a1e43e0e008dcabaf6d604cd95a08c39248e815679e79b5"
+      "sha256": "569abaaa523e567ac128699e4e23d09e94e828640862547977372fa7b02e28f5"
     },
     {
       "path": "authorities/project_sectors/tableau/lane-contract.v4.json",
-      "sha256": "05a1a076c0713568214732101d48a3593e24e879fe18d017e4bbe03975b34bb7"
+      "sha256": "5bcd7fd202326896aff5b8cf6faac4aaf151ad3b6db54608089b24b0aab32b42"
     },
     {
       "path": "authorities/project_sectors/tableau/manifest.schema.json",
-      "sha256": "6c326320ce921d1079889ec5ec154b33597d4d348802bbbae78a09680eb3b9dc"
+      "sha256": "c56320d456b6db7422a716a11512838163d7e8eff2520ea614b076c4f36059d2"
     }
   ]
 }

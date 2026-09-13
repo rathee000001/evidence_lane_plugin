@@ -68,9 +68,10 @@ def test_plan_dependencies_select_only_requested_files_and_exact_replay(views):
     result = publish(call, request)
     assert result['state'] == 'published' and result['generation'] == 1
     assert [Path(item['path']).name for item in result['files']] == ['plan.mmd']
-    assert all(Path(item['path']).is_relative_to(store.root / 'authorities/plan') for item in result['files'])
-    assert not list(store.root.rglob('*.dot')) and not list(store.root.rglob('*pointer.json'))
-    assert len(store.lane_catalog()) == 8
+    assert all(Path(item['path']).is_relative_to(store.root / 'plan') for item in result['files'])
+    assert not any(Path(item['path']).suffix == '.dot' for item in result['files'])
+    assert not list(store.root.rglob('plan-pointer.json'))
+    assert len(store.lane_catalog()) == 9
     assert all((store.root / lane['database_path']).read_bytes().startswith(b'SQLite format 3') for lane in store.lane_catalog())
     assert publish(call, request) == result
     assert PlanStore(store).snapshot().model_dump() == source_state
@@ -120,7 +121,7 @@ def test_pointer_only_empty_owner_and_unsupported_scope_do_not_invent_graphs(vie
     assert [item['role'] for item in result['files']] == ['pointer']
     _, empty = prepare(call, view='chat_lineage.ancestry')
     assert publish(call, empty)['state'] == 'empty'
-    assert not list((store.root / 'authorities/chat_lineage').rglob('*.mmd'))
+    assert not list((store.root / 'chat_lineage' / 'ancestry').rglob('*.mmd'))
     bad = empty.model_copy(update={'include_pointer': True})
     assert call('lane_view_refresh', bad.model_dump()).error.code == 'VIEW_FORMAT_UNSUPPORTED'
     assert call('lane_view_preview', {'view_id':'plan.dependencies','scope':{'query':'unsupported'}}).error.code == 'VIEW_SCOPE_UNSUPPORTED'
@@ -272,7 +273,7 @@ def test_wrong_worker_input_does_not_publish_or_change_source(views, monkeypatch
     monkeypatch.setattr(engine.workers, 'submit', wrong)
     result = call('lane_view_refresh', request.model_dump())
     assert result.error.code == 'VIEW_WORKER_BINDING'
-    assert not list((store.root / 'authorities/plan').rglob('*.mmd'))
+    assert not list((store.root / 'plan' / 'dependencies').rglob('*.mmd'))
     assert PlanStore(store).snapshot().model_dump() == before
 
 

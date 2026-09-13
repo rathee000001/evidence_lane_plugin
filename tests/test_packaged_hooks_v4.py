@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+from itertools import pairwise
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,7 @@ from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.hook_contract import (
+    HOOK_PIPELINE,
     hook_event_contract,
     hook_event_handler_path,
     hook_event_input_schema,
@@ -92,7 +94,9 @@ def test_unbound_hook_does_not_pick_a_project_and_delivery_identity_is_idempoten
     raw = event('UserPromptSubmit')
     raw['session_id'] = 'not-bound'
     skipped = submit_hook(prepare_hook(json.dumps(raw).encode(), 'UserPromptSubmit'), engine.root)
-    assert skipped == {'captured': False, 'reason': 'project_session_not_bound'}
+    assert skipped['captured'] is False and skipped['reason'] == 'project_session_not_bound'
+    assert skipped['handler_id'] == 'user-prompt.capture'
+    assert skipped['transport'] == 'local_authenticated_capture'
     assert store.database.read_bytes() == before
     envelope = prepare_hook(json.dumps(event('UserPromptSubmit')).encode(), 'UserPromptSubmit')
     first = submit_hook(envelope, engine.root)
@@ -115,26 +119,106 @@ def test_hook_contract_rejects_mismatch_private_contents_and_excessive_payload()
     assert error.value.code == 'VISIBLE_CONTENT_ONLY'
 
 
-def test_generated_hook_manifest_uses_only_current_events_and_one_handler():
+def test_generated_hook_manifest_uses_current_events_and_four_visible_stage_handlers():
     assert json.loads((PLUGIN / 'hooks/hooks.json').read_text()) == hook_manifest()
     assert json.loads((PLUGIN / 'hooks/hook-event-registry.v4.json').read_text()) == hook_registry()
     assert tuple(hook_manifest()['hooks']) == HOOK_EVENT_ORDER
     assert {path.name for path in (PLUGIN / 'hooks/events').iterdir() if path.is_dir()} == set(HOOK_EVENT_ORDER)
     package_registry = json.loads((PLUGIN / 'hooks/events/event-package-registry.v4.json').read_text())
     assert package_registry['event_count'] == len(HOOK_EVENT_ORDER)
+    visible_stages = ('VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT')
     for name, definition in hook_manifest()['hooks'].items():
-        assert len(definition) == len(definition[0]['hooks']) == 1
-        command = definition[0]['hooks'][0]
-        assert hook_event_handler_path(name).replace('/', '\\') in command['commandWindows']
-        assert 'subhook_' not in command['commandWindows'] and '.exe' not in command['commandWindows']
+        assert len(definition) == 1 and len(definition[0]['hooks']) == 4
+        for stage, command in zip(visible_stages, definition[0]['hooks'], strict=True):
+            assert command['command'].endswith(f'hooks/runner.mjs" {name} {stage}')
+            assert command['commandWindows'].endswith(f'hooks\\runner.mjs" {name} {stage}')
+            assert 'subhook_' not in command['commandWindows'] and '.exe' not in command['commandWindows']
         folder = PLUGIN / 'hooks/events' / name
-        assert {path.name for path in folder.iterdir()} == {
-            'README.md', 'event.schema.json', 'event.v4.json', 'handler.py', 'pipeline.v4.json'}
+        stage_names = {f'{index:02d}-{stage["id"]}.stage.v4.json'
+            for index, stage in enumerate(HOOK_PIPELINE, 1)}
+        assert {path.name for path in folder.iterdir() if path.name != '__pycache__'} == {
+            'README.md', 'event.schema.json', 'event.v4.json', 'handler.py', 'pipeline.v4.json', *stage_names}
         assert json.loads((folder / 'event.schema.json').read_text()) == hook_event_input_schema(name)
         contract = json.loads((folder / 'event.v4.json').read_text())
         assert all((PLUGIN / member['path']).is_file() for member in contract['members'])
         expected = hook_event_contract(name)
         assert all(contract[key] == value for key, value in expected.items())
+
+
+def test_actual_host_visible_stage_processes_coordinate_one_delivery(capture, tmp_path):
+    _engine, store = capture
+    raw = json.dumps(event('UserPromptSubmit')).encode()
+    environment = os.environ.copy()
+    environment['EVIDENCE_LANE_RUNTIME_ROOT'] = str(_engine.root)
+    environment['EVIDENCE_LANE_HOOK_PIPELINE_ROOT'] = str(tmp_path / 'hook-pipeline')
+    stages = ('EMIT', 'TRANSPORT', 'SEAL', 'VALIDATE')
+    processes = [subprocess.Popen(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'UserPromptSubmit', stage],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment)
+        for stage in stages]
+    for process in processes:
+        process.stdin.write(raw)
+        process.stdin.close()
+    outputs = {}
+    for stage, process in zip(stages, processes, strict=True):
+        assert process.wait(timeout=12) == 0, process.stderr.read().decode(errors='replace')
+        outputs[stage] = json.loads(process.stdout.read())
+    assert outputs['VALIDATE'] == outputs['SEAL'] == outputs['TRANSPORT'] == {}
+    assert isinstance(outputs['EMIT'], dict)
+    assert ChatLineage(store).read(LineageRead()).total_events == 1
+    occurrence = next((tmp_path / 'hook-pipeline' / 'UserPromptSubmit').iterdir())
+    receipts = [json.loads(path.read_text(encoding='utf-8')) for path in sorted(occurrence.glob('*.json'))]
+    assert [row['stage'] for row in receipts] == ['VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT']
+    assert receipts[0]['previous_receipt_sha256'] is None
+    assert all('raw_input_sha256' not in row and row['admitted_event_sha256'] for row in receipts)
+    assert all(current['previous_receipt_sha256'] == prior['receipt_sha256']
+        for prior, current in pairwise(receipts))
+    for stage in ('VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT'):
+        replay = subprocess.run(['node', str(PLUGIN / 'hooks/runner.mjs'), 'UserPromptSubmit', stage],
+            input=raw, capture_output=True, env=environment, timeout=12, check=False)
+        assert replay.returncode == 0
+    assert ChatLineage(store).read(LineageRead()).total_events == 1
+
+
+def test_stage_identity_uses_redacted_event_and_handler_runs_once(tmp_path, monkeypatch):
+    import evidence_lane_plugin.hook_stage_runtime as runtime
+    from evidence_lane_plugin.hook_event_handlers import PreToolUseHandler
+
+    control = tmp_path / 'hook-pipeline'
+    monkeypatch.setenv('EVIDENCE_LANE_HOOK_PIPELINE_ROOT', str(control))
+    calls = []
+    original = PreToolUseHandler.handle.__func__
+
+    def counted(cls, envelope, classification):
+        calls.append(envelope.event_id)
+        return original(cls, envelope, classification)
+
+    monkeypatch.setattr(PreToolUseHandler, 'handle', classmethod(counted))
+    monkeypatch.setattr(runtime, 'deliver_hook', lambda handled: {
+        'captured': False, 'reason': 'project_session_not_bound',
+        'transport': 'local_authenticated_capture', 'handler_id': handled.handler_id})
+    first = event('PreToolUse')
+    first['undocumented'] = 'private-one'
+    first['tool_input']['api_key'] = 'secret-one'
+    raw = json.dumps(first).encode()
+    for stage in ('VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT'):
+        runtime.run_host_hook_stage(raw, 'PreToolUse', stage)
+    assert len(calls) == 1
+    occurrence_root = control / 'PreToolUse'
+    assert len(list(occurrence_root.iterdir())) == 1
+    receipts = [json.loads(path.read_text(encoding='utf-8'))
+        for path in sorted(next(occurrence_root.iterdir()).glob('*.json'))]
+    assert all('raw_input_sha256' not in row and row['admitted_event_sha256'] for row in receipts)
+
+    same_admitted_event = event('PreToolUse')
+    same_admitted_event['undocumented'] = 'private-two'
+    same_admitted_event['tool_input']['api_key'] = 'secret-two'
+    runtime.run_host_hook_stage(json.dumps(same_admitted_event).encode(), 'PreToolUse', 'VALIDATE')
+    assert len(list(occurrence_root.iterdir())) == 1
+    changed_visible_event = event('PreToolUse')
+    changed_visible_event['tool_input']['command'] = 'different visible command'
+    runtime.run_host_hook_stage(json.dumps(changed_visible_event).encode(), 'PreToolUse', 'VALIDATE')
+    assert len(list(occurrence_root.iterdir())) == 2
 
 
 @pytest.mark.parametrize('name', ['Stop', 'SubagentStart', 'SubagentStop', 'Interrupt', 'SessionEnd'])

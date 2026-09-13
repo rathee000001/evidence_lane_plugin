@@ -113,6 +113,6 @@ def test_media_cpu_ocr_has_actual_model_evidence_in_own_lane(media_system):
     assert '4827' in ' '.join(line['text'] for line in value['lines'])
     assert value['compute']['selected_provider'] == 'CPU'
     assert value['compute']['execution_state'] == 'executed'
-    assert store.lane('images_ocr').database.is_relative_to(store.root / 'sectors/images_ocr')
-    assert not (store.root / 'sectors/pdf_ocr').exists()
+    assert store.lane('images_ocr').database.is_relative_to(store.root / 'images_ocr')
+    assert not (store.root / 'pdf_ocr').exists()
     assert source.read_bytes() == raw

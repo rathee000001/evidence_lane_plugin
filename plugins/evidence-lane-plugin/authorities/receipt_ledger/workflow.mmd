@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=4FDDCEF9DDF2EC3DAAA7C9A44C20595350646D30E739DFE4EF083B625EC0599C
+%% LANGGRAPH_EXPORT_SHA256=749B02F56D0D67E54FDD8AFFF4AE21FCE2D750B5E3535CE6F4C07636A4EDAE63
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -29,12 +29,7 @@ flowchart TB
   action_remote_git_action_read["remote_git_action_read"]:::default
   action_remote_git_execute_push["remote_git_execute_push"]:::default
   action_remote_git_prepare_push["remote_git_prepare_push"]:::default
-  action_session_boot["session_boot"]:::default
-  action_session_context["session_context"]:::default
-  action_session_exit["session_exit"]:::default
   action_session_exit_boundary["session_exit_boundary"]:::default
-  action_session_resume["session_resume"]:::default
-  action_session_status["session_status"]:::default
   action_storage_connector_inspect["storage_connector_inspect"]:::default
   action_storage_connector_select["storage_connector_select"]:::default
   sdk -->|"admin"| action_accelerator_configure
@@ -57,18 +52,8 @@ flowchart TB
   sdk -->|"publish"| action_remote_git_prepare_push
   delta -->|"required current operation contract"| action_remote_git_prepare_push
   action_remote_git_prepare_push -->|"run-project-lifecycle"| writer
-  sdk -->|"write"| action_session_boot
-  action_session_boot -->|"open-project-session"| writer
-  sdk -->|"read"| action_session_context
-  action_session_context -->|"open-project-session"| read
-  sdk -->|"write"| action_session_exit
-  action_session_exit -->|"close-project-session"| writer
   sdk -->|"read"| action_session_exit_boundary
   action_session_exit_boundary -->|"close-project-session"| read
-  sdk -->|"write"| action_session_resume
-  action_session_resume -->|"open-project-session"| writer
-  sdk -->|"read"| action_session_status
-  action_session_status -->|"open-project-session"| read
   sdk -->|"read"| action_storage_connector_inspect
   action_storage_connector_inspect -->|"select-project-storage"| read
   sdk -->|"admin"| action_storage_connector_select
@@ -77,8 +62,8 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_accelerator_configure ~~~ action_accelerator_read
-  action_connector_configure ~~~ action_connector_read
-  action_remote_git_execute_push ~~~ action_remote_git_prepare_push
-  action_session_exit ~~~ action_session_exit_boundary
+  action_capture_bind ~~~ action_connector_configure
+  action_connector_revoke ~~~ action_remote_git_action_read
+  action_remote_git_prepare_push ~~~ action_session_exit_boundary
   action_storage_connector_inspect ~~~ action_storage_connector_select
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

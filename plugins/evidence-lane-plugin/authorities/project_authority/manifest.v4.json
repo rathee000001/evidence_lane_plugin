@@ -32,11 +32,11 @@
     },
     {
       "path": "authorities/project_authority/live-root-layout.schema.json",
-      "sha256": "00d2a32be6dd019a3d4f3644da9e1eaec2909dd7edca06125c7f87bb32d03f27"
+      "sha256": "7b16428c1c5c3de2ff80b12a855078fd2c04a4c6bcb4fcdce30cdc47a65a1eef"
     },
     {
       "path": "authorities/project_authority/live-root-layout.v4.json",
-      "sha256": "2049f15663c89a3b833dcf1e4618dce57af150161e6d3cfa81c2c0209a6435d4"
+      "sha256": "8b815059a9d27433654095f9d7aa71975dd40aa25424f75adc1df40a25ecde97"
     },
     {
       "path": "authorities/project_authority/manifest.schema.json",
@@ -104,7 +104,7 @@
     },
     {
       "path": "authorities/project_authority/workflow.v4.json",
-      "sha256": "f8ee95eb6104cff15f0b8b55d12d445437940e5f33ee43134d8937913f379655"
+      "sha256": "0c2af20634e205631efa3d868ddf511e2814e6f32c575b555cf09fccd899afb1"
     }
   ]
 }

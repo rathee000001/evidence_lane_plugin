@@ -1,13 +1,13 @@
 {
   "action": "document_export",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/document_export.action.v4.json",
-  "sdk_binding_sha256": "4ead8bdb713d6c9b067b29ec2a795fa2ece925d2dc96e64a18f107eb8a314d2a",
+  "sdk_binding_sha256": "5378f25d556a30decfb9047fc6e148d954489bb54696dd9bd9b022c67f218be5",
   "tool": {
     "annotations": {
       "destructiveHint": true,

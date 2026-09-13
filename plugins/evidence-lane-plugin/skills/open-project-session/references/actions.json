@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "4251bae5e563236cd002a938af05a8a5247f96bb84ab9d129e6a8d1394a3ec76",
+  "action_set_digest": "e67f380d1233840164d3e43de3ee1e9ca6987c08c20b6434e74e452e883e2ac0",
   "actions": [
     {
       "cross_project_read": false,
@@ -49,7 +49,7 @@
       "input_schema_digest": "4dde91aa7d69d99d8e69b94efb7078f5a1d1a35dcecc1bad173ae4862b940459",
       "mutates": true,
       "name": "project_select",
-      "output_schema_digest": "448550ab02f9b64ddc75f4cc82dad617941d30fc885f86fa456a7453e807b1a0",
+      "output_schema_digest": "1da560dbb2e29e09b9326c8f229ab00dceac670421979034086f608b19f48bb0",
       "permission": "project_admin",
       "profile": "core",
       "project_required": false,
@@ -105,7 +105,7 @@
       "input_schema_digest": "425782d79ec4a480fc46c97f08d88efc41eaddfb4ac98e82b6fdfa90ffafe245",
       "mutates": true,
       "name": "session_boot",
-      "output_schema_digest": "779c512de19ecc5fa7cb72114092e4c9d1ce54730309b0f2cddbbd04a63c38ec",
+      "output_schema_digest": "1cacda003c1b76d523f804a36481e04b11dd1e99020fe2c2df913362af21ae14",
       "permission": "write",
       "profile": "sessions",
       "project_required": true,
@@ -147,7 +147,7 @@
       "input_schema_digest": "b936ff4376d3dd4d4616828b7ca36fb220baffe9d8ee97a255e15f674f6e8f08",
       "mutates": true,
       "name": "session_resume",
-      "output_schema_digest": "779c512de19ecc5fa7cb72114092e4c9d1ce54730309b0f2cddbbd04a63c38ec",
+      "output_schema_digest": "1cacda003c1b76d523f804a36481e04b11dd1e99020fe2c2df913362af21ae14",
       "permission": "write",
       "profile": "sessions",
       "project_required": true,
@@ -161,7 +161,7 @@
       "input_schema_digest": "0d2b9980f276fb21b29ea2c0fed3396bfdb00319e05de1df46cb2dc96c099c23",
       "mutates": false,
       "name": "session_status",
-      "output_schema_digest": "779c512de19ecc5fa7cb72114092e4c9d1ce54730309b0f2cddbbd04a63c38ec",
+      "output_schema_digest": "1cacda003c1b76d523f804a36481e04b11dd1e99020fe2c2df913362af21ae14",
       "permission": "read",
       "profile": "sessions",
       "project_required": true,

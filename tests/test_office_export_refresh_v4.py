@@ -66,6 +66,9 @@ def wait(office, admission, expected='verified'):
             continue
         if row['state'] in {'verified', 'blocked'}:
             assert row['state'] == expected, row
+            office['system'][0].delta.owned_completion(admission.job_id).result(
+                timeout=max(1, deadline - time.monotonic())
+            )
             return row if expected == 'blocked' else json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
         time.sleep(.03)
     pytest.fail('Office export did not reach a terminal state within 90 seconds')

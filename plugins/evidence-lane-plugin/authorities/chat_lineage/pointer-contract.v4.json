@@ -4,8 +4,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "chat_lineage",
-    "folder": "authorities/chat_lineage",
-    "files_root": "authorities/chat_lineage/files",
+    "folder": "chat_lineage",
+    "objects_root": "chat_lineage/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -13,7 +13,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -36,17 +36,17 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "D8E6973B64B9370AFAEE35A0CE21426B8F2FD642D21EF3566B35E5C8A5F52511"
+    "contract_sha256": "E3EAE71EB94F54890F5512C051885442065873E90A71C30B8A33343835C04122"
   },
   "views": [
     {
       "view_id": "chat_lineage.ancestry",
       "lane_id": "chat_lineage",
-      "folder": "authorities/chat_lineage",
+      "folder": "chat_lineage",
       "version": 1,
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "consumer": "artifact_export",
-      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
+      "implementation_digest": "4e2924d44ac93230c707fde0295396e1fb76286c9b73f086e038cb52660625a9",
       "files": {
         "mmd": "chat_lineage.mmd",
         "dot": "chat_lineage.dot"

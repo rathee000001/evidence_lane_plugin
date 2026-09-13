@@ -38,7 +38,7 @@
       "requires_verified_remote_route": true
     }
   },
-  "project_state": "separate authority/sector SQLite databases and files coordinated by project evidence head coordinator",
+  "project_state": "direct flat-PV lane SQLite databases, objects and projections coordinated by the root-PV head",
   "remote_api": {
     "authorization": "exact parent grant plus a unique engine-issued child connection",
     "automatic_mutation_retry": false,
@@ -62,7 +62,7 @@
   },
   "retained_provisioning_source": "scripts/first_detection.py",
   "schema": "evidence-lane.engine-connection-contract.v4",
-  "session_state_owner": "receipts lane",
+  "session_state_owner": "sessions lane",
   "source_members": [
     {
       "path": ".mcp.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/projects.py",
-      "sha256": "F5F400E43CFC7D6D081CF6896905B4A6FD64CDD62E34ACDA77406172490CF18F"
+      "sha256": "AC0B225B40E3D03011F39E955AC9B0A632F07E46068EDA7B634B168912FB2462"
     },
     {
       "path": "src/evidence_lane_plugin/remote_api.py",
@@ -110,7 +110,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/mcp_adapter.py",
-      "sha256": "17564247AE0A34209C2B63960A7AD7C3FFF537A25A055715CC48F9E3D449A531"
+      "sha256": "FBD3FBC87BEA8B2168F4A16B115867AD9CB851D562AF1CFDE855F19D13894F0D"
     },
     {
       "path": "src/evidence_lane_plugin/capture_routing.py",
@@ -118,19 +118,19 @@
     },
     {
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "sha256": "DAEEA450050942F8D398443EED04200DF15E8C45E1210C711C42E4612C3CA3FF"
+      "sha256": "DDB5F042D1163BA276BCCA2D9D7549130B8FA28AAD9CA34B896806FE52A0C38F"
     },
     {
       "path": "src/evidence_lane_plugin/session.py",
-      "sha256": "4A2C01A5A05BFCF0CF4035D5B4E5645A3AACF50B1E6ACE2F0F08B291EFB0E9EC"
+      "sha256": "9A0CAFD31CE5996622DE091EE9E5D3FF367AC5877DBECD247BD3589C6D4EF06E"
     },
     {
       "path": "src/evidence_lane_plugin/session_authority.py",
-      "sha256": "7A329D92C4130793BD8C8D140CC8527A5044169D5B4D6F44F740D07FC754A1B4"
+      "sha256": "190F5CE061F46EA185CE7B4B39C72406EA2419708BED46AE8F0EA4CA040AA27B"
     },
     {
       "path": "src/evidence_lane_plugin/flash_authority.py",
-      "sha256": "019E39D9B65AD3ED5CE0C1DA7623D7B304FE935E7A36D5E5BEB300FD59DDEC53"
+      "sha256": "D7D42C487E6D05BB5BECF28AB1756C222E675E37488F467EE6FC26AF257FCE79"
     },
     {
       "path": "src/evidence_lane_plugin/host_routing.py",

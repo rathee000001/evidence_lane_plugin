@@ -7,7 +7,7 @@ def test_final_workspace_has_one_current_owner_for_every_executable_surface():
     assert result["counts"] == {
         "actions": 297,
         "skills": 24,
-        "authorities": 8,
+        "authorities": 9,
         "sectors": 13,
         "tools": 103,
         "license_records": 103,

@@ -4,8 +4,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "canon",
-    "folder": "authorities/canon",
-    "files_root": "authorities/canon/files",
+    "folder": "canon",
+    "objects_root": "canon/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -13,7 +13,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -36,17 +36,17 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "7C4C7CABD05FD386123871B81250E297786AE0F6CE351EFE1E5E71ECA8342B56"
+    "contract_sha256": "E33CBF5356358C74F314AB8213D769C1C542CD536029F4B3F2DD4A047292CC52"
   },
   "views": [
     {
       "view_id": "canon.consequences",
       "lane_id": "canon",
-      "folder": "authorities/canon",
+      "folder": "canon",
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
+      "implementation_digest": "6f62295af1d29605e41ba1ecbc33af9668c4d57e2c9c0bbba84c5cc24efdbb3b",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",

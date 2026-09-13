@@ -1,28 +1,28 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 4,
   "members": [
     {
-      "bytes": 726,
+      "bytes": 727,
       "path": "sdk/transports/hook-capture.transport.v4.json",
-      "sha256": "864dddd5e77e809d6a5286b64fa274f1beacd298101a58eeb20d89a8f2a1f13a"
+      "sha256": "a3c670969962a78e6803a38d6f74e8118cf79f0b54262536edc9bad8e9c8c6e4"
     },
     {
       "bytes": 754,
       "path": "sdk/transports/local-api.transport.v4.json",
-      "sha256": "5becda8699582bfeb9a7810297aaaccf4f60d09bbef8e406452226892c1db22b"
+      "sha256": "52725091899a7fe433a282b047b68095296838f351650c705f3df0bbbe9b0236"
     },
     {
-      "bytes": 882,
+      "bytes": 883,
       "path": "sdk/transports/mcp-stdio.transport.v4.json",
-      "sha256": "1e83b10024814d8016f920af6e5ae9f87e1d648e088953d198fe5191fda63752"
+      "sha256": "0ad31b3059e391baf1610a7abc06cbd02611a94d756f075cd0ba8aa2f10fad24"
     },
     {
       "bytes": 748,
       "path": "sdk/transports/remote-api.transport.v4.json",
-      "sha256": "4ba56996f821ef702aa50dbe906931e36b64089c2868f3347d265e0176879a11"
+      "sha256": "2a31e122febbd9d7440f4e1cc5eaf68c2f7a01d89baa06a1ab93fcb2f3e893ed"
     }
   ],
   "schema": "evidence-lane.sdk-transport-registry.v4",

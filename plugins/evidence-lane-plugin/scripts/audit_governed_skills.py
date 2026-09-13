@@ -74,23 +74,16 @@ def audit(plugin_root=PLUGIN_ROOT, *, registry=None, active_surface=False):
                 issue(name, 'ui-metadata-mismatch')
             if not 25 <= len(ui['interface']['short_description']) <= 64:
                 issue(name, 'ui-description-length')
-            icon_relative = ui['interface'].get('icon_small')
-            if (icon_relative != './assets/evidence-lane-skill.png'
-                    or ui['interface'].get('icon_large') != icon_relative
+            if ('icon_small' in ui['interface'] or 'icon_large' in ui['interface']
                     or ui['interface'].get('brand_color') != '#18A9C8'):
-                issue(name, 'ui-icon-metadata-mismatch')
-            icon_path = (folder / str(icon_relative)).resolve()
-            product_icon = plugin_root / 'assets/evidence-lane-icon.png'
-            if (not icon_path.is_file() or not icon_path.is_relative_to(folder.resolve())
-                    or hashlib.sha256(icon_path.read_bytes()).digest()
-                    != hashlib.sha256(product_icon.read_bytes()).digest()):
-                issue(name, 'ui-icon-byte-mismatch')
+                issue(name, 'ui-native-icon-metadata-mismatch')
+            if (folder / 'assets').exists():
+                issue(name, 'custom-skill-assets-present')
             actual = json.loads((folder / 'references/actions.json').read_text(encoding='utf-8'))
             if actual != skill_action_reference(registry, definition.name):
                 issue(name, 'live-action-reference-mismatch')
             mandatory = {f'skills/{name}/{value}' for value in (
-                'SKILL.md', 'references/actions.json', 'agents/openai.yaml',
-                'assets/evidence-lane-skill.png')}
+                'SKILL.md', 'references/actions.json', 'agents/openai.yaml')}
             if definition.name == 'run-project-lifecycle':
                 mandatory.add(f'skills/{name}/references/shared-boundaries.md')
             selected = records[name]['members']
@@ -139,7 +132,6 @@ def audit(plugin_root=PLUGIN_ROOT, *, registry=None, active_surface=False):
                         pending.append(target)
             non_procedure = {
                 f'skills/{name}/agents/openai.yaml',
-                f'skills/{name}/assets/evidence-lane-skill.png',
             }
             if (required - non_procedure) - reachable:
                 issue(name, 'unreachable-procedure-member')

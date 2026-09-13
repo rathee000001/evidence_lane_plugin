@@ -61,7 +61,7 @@ def test_studio_snapshot_uses_current_registry_and_open_only_control(studio, tmp
     )
     assert snapshot.status_code == 200
     body = snapshot.json()
-    assert len(body["actions"]) == len(engine.registry.schemas()) == 294
+    assert len(body["actions"]) == len(engine.registry.schemas()) == 297
     assert body["engine"]["runtime_identity"] == engine.runtime_identity
     assert body["engine"]["native_task_attestation"] == "not_provided"
     # The browser Studio exposes no control route. Window open/reopen remains

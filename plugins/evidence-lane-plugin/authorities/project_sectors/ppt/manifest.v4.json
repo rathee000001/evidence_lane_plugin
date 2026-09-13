@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "ppt",
-  "folder": "sectors/ppt",
+  "folder": "ppt",
   "source_package_folder": "authorities/project_sectors/ppt",
   "folder_role": "external_project_state",
-  "database": "sectors/ppt/ppt_sector_v001.sqlite",
-  "files": "sectors/ppt/files",
-  "schema_history": "sectors/ppt/schema-history",
+  "database": "ppt/ppt_sector_v001.sqlite",
+  "files": "ppt/objects",
+  "schema_history": "ppt/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.presentation_profile",
   "parser_modules": [
     "evidence_lane_plugin.presentation_parsers",
@@ -2526,8 +2526,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "ppt",
-    "folder": "sectors/ppt",
-    "files_root": "sectors/ppt/files",
+    "folder": "ppt",
+    "objects_root": "ppt/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -2535,7 +2535,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -2567,7 +2567,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "F3E85A0F941B60A5CBCDB490AF88DE7EE8C81AC083E2F68E27FB763EEB577B57"
+    "contract_sha256": "FDB572E39ACCEC42A52C92FE5809083A0D3C1EAEEEBDF543940B563E1152008A"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2739,11 +2739,11 @@
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.v4.json",
-      "sha256": "15c28f2fd1e007122a7e0cee8db410ebd207b7fad33cf80d5deda8ef7113413a"
+      "sha256": "b41643b369a0f2e7193525f27eebed62fff38733c3aa2d416b3494e56f32f891"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.json",
-      "sha256": "c1c710f9872fef6cb5fd0188166bf3fc12e13f1ed43246ceaaec65828bbf460a"
+      "sha256": "2212cd94cde25483b64d71c7ce8030f559ed8eb9d0eb4fa500cd8f57ff88501f"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",
@@ -2751,15 +2751,15 @@
     },
     {
       "path": "authorities/project_sectors/ppt/README.md",
-      "sha256": "16a8a08fe8deb125b488b07952e32f4aecaa26ffdc9ce064f99b6ebbe873e30a"
+      "sha256": "f27a4a0ab5c29674dcb3149c044c7600128467f773de9aec764f1aa5b83285cb"
     },
     {
       "path": "authorities/project_sectors/ppt/lane-contract.v4.json",
-      "sha256": "24d67841c76df61f06a70881364f658a02123f692ad9afe7889b32aafc5f9a37"
+      "sha256": "32a9a061bf9f08817bbea5d6ac22388c6e590ad182b113153e7f41d389db0a81"
     },
     {
       "path": "authorities/project_sectors/ppt/manifest.schema.json",
-      "sha256": "9fab943e8cac3c1dfb5af7e9bcace63eb2940e5b117d240b8cb50fad599522ed"
+      "sha256": "2718848adcbfdad370c8adc3954607da55c15e1729686146e2c68be7850199d3"
     }
   ]
 }

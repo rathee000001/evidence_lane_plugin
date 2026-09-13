@@ -244,7 +244,8 @@ class StorageSelection:
                     return history[-1][1]
                 if len(history) >= 4096:
                     raise LaneError('STORAGE_HISTORY_BUDGET', 'The storage ledger reached its bounded event capacity.')
-                from .session_authority import SessionAuthority
+            from .session_authority import SessionAuthority
+            with self.project.lane('sessions').connection(read_only=True) as connection:
                 current = SessionAuthority.current(connection)
                 if current and current['state'] == 'active' and (current['owner_client_id'], current['owner_engine_id']) != (
                         context.client_id, self.engine.instance_id):

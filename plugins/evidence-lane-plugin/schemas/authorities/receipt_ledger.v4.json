@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "authorities/receipt_ledger/build-refresh-contract.schema.json",
-      "sha256": "c1b36f1531769690c1acdc0df4eab588666cb8791705c4570cf23c4370d71c1f"
+      "sha256": "727b379da87bdeea542d859271a654aba862c5c6e7a3be0163154fe211d9c67e"
     },
     {
       "path": "authorities/receipt_ledger/dot-artifact.schema.json",
@@ -12,15 +12,15 @@
     },
     {
       "path": "authorities/receipt_ledger/manifest.schema.json",
-      "sha256": "096d54b7176749337561268944f6b312bea269169b3556d8b1658e0bc4d3ee52"
+      "sha256": "b5f381003b781b5a14335bad9cfe52e788099bc1b5307c82796058f0a24dc5b0"
     },
     {
       "path": "authorities/receipt_ledger/manifest.v4.json",
-      "sha256": "0b66123d5d365bfdafc07822dbd3e6dc76748bbb954f5bf30792b69edd4c0e4f"
+      "sha256": "f98bea08058ec4aad981f7e7a09c51ab665900403bf90588c9e830c8e92b7fa4"
     },
     {
       "path": "authorities/receipt_ledger/migration-history.json",
-      "sha256": "3a430780d4f9f8158637cbdbf4d5626cee2fe9eb3d84ac157fc96350afb13dc4"
+      "sha256": "b79d1b54c43970f686f2c08d19ae9ef8f77868e956facb7eb190f1906657c1f3"
     },
     {
       "path": "authorities/receipt_ledger/mmd-artifact.schema.json",
@@ -32,11 +32,11 @@
     },
     {
       "path": "authorities/receipt_ledger/pointer-contract.v4.json",
-      "sha256": "c0130f0efdf6a09295adee39184d7f063214f482f340820e0c171c52626be688"
+      "sha256": "de148e0679670dd04e19256ca2c418c20273a9d1b4908f8eee6c8ce494fbda77"
     },
     {
       "path": "authorities/receipt_ledger/reader-contract.schema.json",
-      "sha256": "59e29db7e257aacf23d48dc1f8ee215e47da0025a9260a6e174162e34e5cd5fc"
+      "sha256": "8abd0594d1adef5b26f4b5802541ebef35f8f451a9b766ffefdc1e92ec7cba01"
     },
     {
       "path": "authorities/receipt_ledger/refresh-receipt.schema.json",
@@ -44,15 +44,15 @@
     },
     {
       "path": "authorities/receipt_ledger/runtime-binding.schema.json",
-      "sha256": "32713a648761ee8c8006f7a4e2d15ce93322b889aedd0346af050e45757649e4"
+      "sha256": "542174704a17dbb1ad8f5f58b86abd29d8f454c7b264a96be17b9990b8b92005"
     },
     {
       "path": "authorities/receipt_ledger/runtime-binding.v4.json",
-      "sha256": "a6071be6e398ef858a359404a311a472f93e8d2905099d7ca75c0090e8001f5e"
+      "sha256": "a558ab0560f4bdf3e793c4040c2ff4f7348ee8e4bc6aeb7cacee26e630e1c80c"
     },
     {
       "path": "authorities/receipt_ledger/schema.sql",
-      "sha256": "ca6ad30be2d57a89a03a026f50e5df5ffecdec8ada3dde7979a97c177da27611"
+      "sha256": "475b0d8e842af9d4714888903da6cff6f537133a7251d6eb7e00caaa33eb5dc5"
     },
     {
       "path": "authorities/receipt_ledger/sqlite-artifact.schema.json",
@@ -60,7 +60,7 @@
     },
     {
       "path": "authorities/receipt_ledger/sqlite-schema.v4.json",
-      "sha256": "de255e14e682dab385ca352e0b4650668f93f39f020776615fbba9215efec901"
+      "sha256": "c1b43ba2fd04ab8eae9278c1d6cc7ab279c9124c5657d1c9123456642cc42be0"
     },
     {
       "path": "authorities/receipt_ledger/tools.schema.json",

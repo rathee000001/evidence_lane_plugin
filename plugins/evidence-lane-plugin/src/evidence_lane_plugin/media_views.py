@@ -156,7 +156,7 @@ def register_media_views(engine):
         LaneView(
             "images_ocr.structure",
             "images_ocr",
-            "sectors/images_ocr",
+            "images_ocr",
             "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
             media_graph,
             ("media",),

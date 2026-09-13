@@ -139,11 +139,11 @@
     {
       "view_id": "learning.provenance",
       "lane_id": "learning",
-      "folder": "authorities/learning",
+      "folder": "learning",
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
+      "implementation_digest": "49c999dce780a669d4e970b3ca47fd0b4efc0de9ee1ad0ecb3af8df97c58e89e",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"

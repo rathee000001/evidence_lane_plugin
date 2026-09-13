@@ -242,7 +242,8 @@ def _copy(source, source_root, target_root, database, metadata, objects, object_
                 else:
                     connection.execute('''CREATE TABLE IF NOT EXISTS schema_history_files (
                         owner TEXT NOT NULL, version INTEGER NOT NULL, filename TEXT NOT NULL,
-                        digest TEXT NOT NULL, PRIMARY KEY(owner,version),
+                        digest TEXT NOT NULL, document_json TEXT NOT NULL CHECK(json_valid(document_json)),
+                        PRIMARY KEY(owner,version),
                         FOREIGN KEY(owner,version) REFERENCES schema_migrations(owner,version))''')
                 for owner, selected in owner_targets.items():
                     if selected == lane and 'schema_migrations' in tables:

@@ -46,6 +46,12 @@ class Execution:
                 try:
                     self.lease.heartbeat()
                 except LaneError as error:
+                    if error.code == "PROJECT_COMMIT_BUSY":
+                        # A long operation may still be publishing under this
+                        # exact writer. The active commit rechecks the fence and
+                        # lease before publication; retry the heartbeat after
+                        # the normal interval instead of poisoning the job.
+                        continue
                     self._heartbeat_error = error.code
                     return
 

@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostCompactHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/PostCompact/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/PostCompact/pipeline.v4.json",
-      "sha256": "c52535d61b56be76347490d6a406c3245315db34496bedecb4c10aa28eb67b0d"
+      "sha256": "47860db5116a2b6a3a0f192879353e200d6e2c644b4d10dac0684775bf4b25a5"
     },
     {
       "path": "hooks/events/PostCompact/README.md",
-      "sha256": "4ae70caa5152b05ee5178a40a801f73336e3e85b7dab7f8fa581b5e1b606b182"
+      "sha256": "7ac9db960bcb37887b037eb4c231e9b1f3f4faa3fc86524034cd6bd020092a77"
     }
   ],
   "native_installation_verified": false,

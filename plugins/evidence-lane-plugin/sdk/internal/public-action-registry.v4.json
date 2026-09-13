@@ -1,6 +1,6 @@
 {
   "action_count": 297,
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "actions": [
     {
       "automatic_retry": false,
@@ -3407,7 +3407,7 @@
     {
       "automatic_retry": false,
       "cross_project_read": false,
-      "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+      "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
       "mcp_binding": "mcp/actions/project_register.binding.v4.json",
       "mutates": true,
       "name": "project_register",

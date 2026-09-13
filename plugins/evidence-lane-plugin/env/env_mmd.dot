@@ -395,9 +395,10 @@ digraph env_operating_framework {
     ROW_env_lane_binding_v4_16 [label="ppt\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     ROW_env_lane_binding_v4_17 [label="receipts\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     ROW_env_lane_binding_v4_18 [label="research\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_lane_binding_v4_19 [label="sources\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_lane_binding_v4_20 [label="tableau\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_lane_binding_v4_21 [label="universe\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_lane_binding_v4_19 [label="sessions\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_lane_binding_v4_20 [label="sources\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_lane_binding_v4_21 [label="tableau\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_lane_binding_v4_22 [label="universe\nDECLARED_OWNING_LANE" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
   subgraph cluster_group_env_mcp_action_binding_v4 {
     label="env mcp action binding" rankdir=TB
@@ -1500,9 +1501,10 @@ digraph env_operating_framework {
     ROW_env_source_lane_classification_v4_16 [label="ppt\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     ROW_env_source_lane_classification_v4_17 [label="receipts\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
     ROW_env_source_lane_classification_v4_18 [label="research\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_source_lane_classification_v4_19 [label="sources\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_source_lane_classification_v4_20 [label="tableau\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-    ROW_env_source_lane_classification_v4_21 [label="universe\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_source_lane_classification_v4_19 [label="sessions\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_source_lane_classification_v4_20 [label="sources\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_source_lane_classification_v4_21 [label="tableau\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
+    ROW_env_source_lane_classification_v4_22 [label="universe\nCURRENT_OWNER" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   }
   subgraph cluster_group_env_studio_binding_v4 {
     label="env studio binding" rankdir=TB
@@ -2053,6 +2055,7 @@ digraph env_operating_framework {
   TABLE_env_lane_binding_v4 -> ROW_env_lane_binding_v4_19 [label=declares]
   TABLE_env_lane_binding_v4 -> ROW_env_lane_binding_v4_20 [label=declares]
   TABLE_env_lane_binding_v4 -> ROW_env_lane_binding_v4_21 [label=declares]
+  TABLE_env_lane_binding_v4 -> ROW_env_lane_binding_v4_22 [label=declares]
   ROOT -> TABLE_env_mcp_action_binding_v4 [label="owns policy rows"]
   TABLE_env_mcp_action_binding_v4 -> ROW_env_mcp_action_binding_v4_1 [label=declares]
   TABLE_env_mcp_action_binding_v4 -> ROW_env_mcp_action_binding_v4_2 [label=declares]
@@ -3134,6 +3137,7 @@ digraph env_operating_framework {
   TABLE_env_source_lane_classification_v4 -> ROW_env_source_lane_classification_v4_19 [label=declares]
   TABLE_env_source_lane_classification_v4 -> ROW_env_source_lane_classification_v4_20 [label=declares]
   TABLE_env_source_lane_classification_v4 -> ROW_env_source_lane_classification_v4_21 [label=declares]
+  TABLE_env_source_lane_classification_v4 -> ROW_env_source_lane_classification_v4_22 [label=declares]
   ROOT -> TABLE_env_studio_binding_v4 [label="owns policy rows"]
   TABLE_env_studio_binding_v4 -> ROW_env_studio_binding_v4_1 [label=declares]
   ROOT -> TABLE_env_tool_registry_v4 [label="owns policy rows"]
@@ -3302,7 +3306,7 @@ digraph env_operating_framework {
   ROW_env_operation_pipeline_v4_113 -> ROW_env_operation_pipeline_v4_114 [constraint=true style=invis weight=100]
   ROW_env_operation_pipeline_v4_265 -> ROW_env_operation_pipeline_v4_266 [constraint=true style=invis weight=100]
   ROW_env_sdk_action_binding_v4_4 -> ROW_env_sdk_action_binding_v4_5 [constraint=true style=invis weight=100]
-  ROW_env_sdk_action_binding_v4_157 -> ROW_env_sdk_action_binding_v4_158 [constraint=true style=invis weight=100]
-  ROW_env_skill_binding_v4_16 -> ROW_env_skill_binding_v4_17 [constraint=true style=invis weight=100]
+  ROW_env_sdk_action_binding_v4_158 -> ROW_env_sdk_action_binding_v4_159 [constraint=true style=invis weight=100]
+  ROW_env_skill_binding_v4_17 -> ROW_env_skill_binding_v4_18 [constraint=true style=invis weight=100]
   ROW_env_workflow_policy_v4_23 -> ROW_env_workflow_policy_v4_24 [constraint=true style=invis weight=100]
 }

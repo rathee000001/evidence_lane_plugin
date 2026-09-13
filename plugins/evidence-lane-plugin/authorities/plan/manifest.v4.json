@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "plan",
   "source_package_folder": "authorities/plan",
-  "project_state_folder": "authorities/plan",
+  "project_state_folder": "plan",
   "runtime_module": "evidence_lane_plugin.plan_runtime",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.plan.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/plan/plan_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/plan/schema-history",
+    "database_relative_path": "plan/plan_authority_v001.sqlite",
+    "schema_history_relative_path": "plan/schema-history.v4.json",
     "owners": [
       "plan",
       "steer",
@@ -55,13 +55,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "D1A71E52959811A133B28549C96F104CC11A44A0E2832EE7DAF82AE82588EC10"
+    "contract_sha256": "7F48FA4424AA970F31AD230915EB8A14D02F3AFA9B571372E41CE4FF6515597E"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "plan",
-    "folder": "authorities/plan",
-    "files_root": "authorities/plan/files",
+    "folder": "plan",
+    "objects_root": "plan/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -69,7 +69,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -92,7 +92,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "B1CA88D292F8192F87B03E5406A0F2BF37E725E599FBA781A80B90FE8F69DF61"
+    "contract_sha256": "60CA0D0EFF54E8A0FDC30DCD4EE0E7035EC1AED09A8F3B55D13BAC1A280F70C3"
   },
   "migration_bindings": [
     {
@@ -6746,11 +6746,11 @@
     {
       "view_id": "plan.dependencies",
       "lane_id": "plan",
-      "folder": "authorities/plan",
+      "folder": "plan",
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
+      "implementation_digest": "8d4c72ccc0e27c99a4036e16da642d2447cfd860da12aff564c3cb0c7d49cadb",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",
@@ -6826,7 +6826,7 @@
   "members": [
     {
       "path": "authorities/plan/README.md",
-      "sha256": "46e9a376524da71c95152166d0e48f911bec63815fe137caeced13df10285128"
+      "sha256": "6108045c998dedcd0ebd1712839295f71692ba54d068730944dc1db51575db36"
     },
     {
       "path": "authorities/plan/build-refresh-contract.schema.json",
@@ -6838,15 +6838,15 @@
     },
     {
       "path": "authorities/plan/dot-artifact.schema.json",
-      "sha256": "a3129cd11de68c54e715e52eb1eb3a883bc36c202c1b4d3a0d7be9856538d632"
+      "sha256": "1e38d72af21bad16304d40195dec4ec3f787981aa43b310882fbe1cd6de83e82"
     },
     {
       "path": "authorities/plan/law.v4.json",
-      "sha256": "f8bb97f3f68d5caa342c79141c8b70c5b75bfef27152bfb1d29a203f7c5f4c43"
+      "sha256": "d951f12762a2a05b168a46b29c3c8e822610b281a537b7c232da70de78601b35"
     },
     {
       "path": "authorities/plan/manifest.schema.json",
-      "sha256": "c7ccee9c1eb70d8ee811b71be7297eb937013e54d7ecdbe2b36c6c172db3e086"
+      "sha256": "f1d304ba15af2df1b2d767ad7d7d7b486308ca0d1ab11bae65025c2ff1ffdc1d"
     },
     {
       "path": "authorities/plan/migration-history.json",
@@ -6854,7 +6854,7 @@
     },
     {
       "path": "authorities/plan/mmd-artifact.schema.json",
-      "sha256": "db2f09b6178f30c273e95a263fa9704fd3a5477d97bdb0f0d7c715efd558b53a"
+      "sha256": "aae2b02b48c7705e6ad7c3a07fc25f82467e45b7e5e047ac223ea7054a83e7dc"
     },
     {
       "path": "authorities/plan/plan.dot",
@@ -6870,7 +6870,7 @@
     },
     {
       "path": "authorities/plan/plan.tools.json",
-      "sha256": "356d195bb9279d18cef9ae7f1397101a477bc33034ef1f99d7491752d63e4224"
+      "sha256": "5353ed5f8fb933f7dc61f54a0f8a0435bac4849f4cb9c4d0cfba18bd6b662f66"
     },
     {
       "path": "authorities/plan/pointer-contract.schema.json",
@@ -6878,7 +6878,7 @@
     },
     {
       "path": "authorities/plan/pointer-contract.v4.json",
-      "sha256": "cfcc9e2dba370450ff8287127c5e3344094812803e2deec57dcf82df3cd7f6ed"
+      "sha256": "80fa58c83d9771016c5c9dd852f2ffc5c30d6b0f42761dccc2897f39bb13a5d1"
     },
     {
       "path": "authorities/plan/reader-contract.schema.json",
@@ -6894,11 +6894,11 @@
     },
     {
       "path": "authorities/plan/runtime-binding.schema.json",
-      "sha256": "6cfb7737d92137d082df0bf13714e90a2697d4f8187c2a2cff410461915ac1fa"
+      "sha256": "6eb4d5f563d4d42342227b90b18528260169b7296e9789314e42ab3570a15abc"
     },
     {
       "path": "authorities/plan/runtime-binding.v4.json",
-      "sha256": "e526b9ebbc41b42e4bd453892fe9d15195dcfd368b5aae5dc156c127908fa4bf"
+      "sha256": "4dbd1a3c1642116f2745cd69a1e0830dab5412a7a0ee034d25e78e19a6c601ce"
     },
     {
       "path": "authorities/plan/runtime.py",
@@ -6930,7 +6930,7 @@
     },
     {
       "path": "authorities/plan/workflow.v4.json",
-      "sha256": "9e43b1f86073970b3637f630493d1ae8a9cd0917da3aa46b25b65ea1879407bb"
+      "sha256": "d9e14d8465fcac92330ccd11202797ba496b3e985cbc70967e82f22824e79f79"
     }
   ]
 }

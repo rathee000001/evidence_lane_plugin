@@ -87,6 +87,10 @@ def execute(system, action, arguments, *, index=0, timeout=60):
     else:
         pytest.fail('Document operation did not reach a readable terminal state within its deadline')
     assert row['state'] == 'verified', {key: row[key] for key in ('state', 'error_code', 'result_object')}
+    engine = system[0]
+    with engine._admission:
+        assert engine._admission.wait_for(lambda: engine._background_jobs == 0,
+            timeout=max(0, deadline - time.monotonic())), 'Document driver did not finish after its terminal row.'
     return json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
 
 
@@ -96,7 +100,7 @@ def test_native_intake_queries_original_bytes_and_separate_docs_store(document_s
     original = (store.source_root / 'fixture.docx').read_bytes()
     indexed = execute(document_system, 'document_index', {'filename': 'fixture.docx'})
     assert indexed['sha256'] == hashlib.sha256(original).hexdigest()
-    assert '/sectors/docs/files/natural/' in indexed['natural_path'].replace('\\', '/')
+    assert '/docs/objects/natural/' in indexed['natural_path'].replace('\\', '/')
     assert not indexed['source_bytes_mutated'] and indexed['fidelity']['layout'] == 'not_rendered'
     args = {'snapshot_id': indexed['snapshot_id']}
     before = {p: p.read_bytes() for p in store.root.rglob('*.sqlite*') if p.is_file()}

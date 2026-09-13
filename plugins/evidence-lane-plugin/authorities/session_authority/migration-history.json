@@ -1,0 +1,18 @@
+{
+  "schema": "evidence-lane.packaged-migration-history.v4",
+  "authority_id": "sessions",
+  "migrations": [
+    {
+      "owner": "sessions",
+      "version": 1,
+      "digest": "f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb",
+      "description": "Project session head and immutable attributed transitions",
+      "statements": [
+        "CREATE TABLE sessions_records (session_id TEXT PRIMARY KEY,\n       state TEXT NOT NULL CHECK(state IN ('active','closed')), generation INTEGER NOT NULL CHECK(generation>=1),\n       owner_client_id TEXT NOT NULL, owner_engine_id TEXT NOT NULL, reported_session_id TEXT NOT NULL,\n       flash_digest TEXT NOT NULL, runtime_package_digest TEXT NOT NULL, event_digest TEXT NOT NULL,\n       created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        "CREATE UNIQUE INDEX sessions_one_active ON sessions_records(state) WHERE state='active'",
+        "CREATE TABLE sessions_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id))",
+        "CREATE TABLE sessions_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,\n       session_id TEXT NOT NULL REFERENCES sessions_records(session_id) DEFERRABLE INITIALLY DEFERRED,\n       generation INTEGER NOT NULL, action TEXT NOT NULL, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       body_json TEXT NOT NULL CHECK(json_valid(body_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE,\n       created_at TEXT NOT NULL, UNIQUE(session_id,generation))"
+      ]
+    }
+  ]
+}

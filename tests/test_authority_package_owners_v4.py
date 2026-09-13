@@ -51,7 +51,7 @@ def client_for(engine, session):
 
 def test_owner_templates_preserve_separate_lane_identity_and_actual_schema():
     registry = json.loads((PLUGIN / 'authorities/authority-surface-registry.v4.json').read_bytes())
-    assert registry['authority_count'] == 8
+    assert registry['authority_count'] == 9
     assert {row['authority_id'] for row in registry['authorities']} == set(AUTHORITY_LANE_IDS)
     assert registry['root_pv'] == 'authorities/project_authority/manifest.v4.json'
     for row in registry['authorities']:
@@ -118,8 +118,8 @@ def test_original_plan_and_session_builders_use_real_sdk_and_preserve_read_bound
         reader.read_authority(client, action='plan_read')
     assert caught.value.code == 'PROJECT_REQUIRED'
     assert hashes(project.root) == before
-    assert {path.name for path in (project.root / 'authorities').iterdir()} == set(AUTHORITY_LANE_IDS)
-    assert not (project.root / 'authorities/session_authority').exists()
+    assert {path.name for path in project.root.iterdir() if path.is_dir() and path.name in AUTHORITY_LANE_IDS} == set(AUTHORITY_LANE_IDS)
+    assert not (project.root / 'authorities').exists()
 
 
 def test_source_builder_cannot_skip_planned_admission_and_sdk_grants_still_apply(selected):
@@ -161,7 +161,7 @@ def test_root_session_instruction_and_canon_graph_owners_bind_existing_engine(se
     assert hashes(project.root) == before
     architecture = build_universal_plugin_architecture(PLUGIN, registry=engine.registry)
     assert architecture['root_pv']['folder'] == 'authorities/project_authority'
-    assert len(architecture['surfaces']) == 21
+    assert len(architecture['surfaces']) == 22
     for owner in architecture['workflow_owners']:
         assert owner['actions'] == authority_actions(engine.registry, owner['owner_id'])
         assert owner['logical_authority_added'] is False
@@ -207,7 +207,7 @@ def test_retired_source_packages_have_no_members_and_retained_owners_are_closed(
     )
     assert runtime_status['outputSchema']['title'] == 'RuntimeStatus'
     for folder in [*(authority_package_folder(lane) for lane in AUTHORITY_LANE_IDS),
-                   'authorities/project_authority', 'authorities/session_authority', 'authorities/instructions']:
+                   'authorities/project_authority', 'authorities/instructions']:
         manifest = json.loads((PLUGIN / folder / 'manifest.v4.json').read_bytes())
         declared = {row['path'] for row in manifest['members']} | {folder + '/manifest.v4.json'}
         actual = {path.relative_to(PLUGIN).as_posix() for path in (PLUGIN / folder).rglob('*')

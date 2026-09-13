@@ -12,7 +12,7 @@ IMPLEMENTED_SECTORS = ('local_code', 'github_code', 'docs', 'data_excel', 'data'
 
 
 def sector_package_folder(lane_id):
-    """Source ownership is separate from a project's sectors/<lane> state."""
+    """Source ownership is separate from a project's direct lane state."""
     if lane_family(lane_id) not in IMPLEMENTED_SECTORS or get_lane(lane_id).kind != 'sector':
         raise LaneError('SECTOR_RUNTIME_NOT_IMPLEMENTED', 'Select a retained implemented sector.')
     return 'authorities/project_sectors/' + lane_family(lane_id)

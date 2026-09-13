@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 503,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 4825,
     "path": "sdk/workflows/skills/manage-project-memory/workflow.v4.json",
-    "sha256": "5b439963d7b33910ae38230e05b907721015728e05c6d9f99038872b2a7c1c76"
+    "sha256": "6a0108c5ac92c8cb6eb13f58b0ec8be74fa8ab59cb0210c4e9c4844b27c6bd89"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "manage-project-memory",

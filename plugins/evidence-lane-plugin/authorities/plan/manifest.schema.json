@@ -31,7 +31,7 @@
       "const": "authorities/plan"
     },
     "project_state_folder": {
-      "const": "authorities/plan"
+      "const": "plan"
     },
     "runtime_database_packaged": {
       "const": false

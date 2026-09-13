@@ -1,6 +1,6 @@
 # memory source owner
 
-Current executable source package: `authorities/project_memory`. Storage: authorities/memory/memory_authority_v001.sqlite with files and schema history in authorities/memory. The package binds the canonical engine implementations listed in `runtime-binding.v4.json`.
+Current executable source package: `authorities/project_memory`. Storage: memory/memory_authority_v001.sqlite with files and schema history in memory. The package binds the canonical engine implementations listed in `runtime-binding.v4.json`.
 
 `builder.py` and `reader.py` use the same authenticated SDK and engine registry as skills and native MCP. Builders admit only their named ordinary mutations; planned operations retain normal stored-Plan Delta admission. Engine grants, task bindings, writer ownership, stale-contract checks and acceptance rules still apply. Queued responses are not verified completion. Instructions and Studio reads do not gain mutation privileges.
 

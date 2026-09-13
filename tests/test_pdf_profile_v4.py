@@ -66,7 +66,7 @@ def test_page_form_widget_and_ocr_graphs_have_separate_locators(pdf_system):
         "pdf.pointer.json",
     }
     assert all(
-        "/sectors/pdf_ocr/" in row["path"].replace("\\", "/") for row in published.result["files"]
+        "/pdf_ocr/" in row["path"].replace("\\", "/") for row in published.result["files"]
     )
     read = call(
         pdf_system,
@@ -237,6 +237,11 @@ def execute(system, action, arguments, *, index=0, failure=None, transport=None)
     assert row["state"] == "verified", {
         key: row[key] for key in ("state", "error_code", "result_object")
     }
+    while time.monotonic() < deadline and any(
+        item["project_id"] == store.project_id for item in system[0].project_work.status()
+    ):
+        time.sleep(0.01)
+    assert not any(item["project_id"] == store.project_id for item in system[0].project_work.status())
     return json.loads(store.lane("plan").read_object(row["result_object"]))["result"]["result"]
 
 
@@ -245,7 +250,7 @@ def test_index_query_forms_and_byte_reads_are_in_own_pdf_lane(pdf_system):
     store = pdf_system[1]
     raw = (store.source_root / "fixture.pdf").read_bytes()
     indexed = execute(pdf_system, "pdf_index", {"filename": "fixture.pdf"})
-    assert "/sectors/pdf_ocr/files/natural/" in indexed["natural_path"].replace("\\", "/")
+    assert "/pdf_ocr/objects/natural/" in indexed["natural_path"].replace("\\", "/")
     before = {path: path.read_bytes() for path in store.root.rglob("*.sqlite*") if path.is_file()}
     for collection, count in [("page", 2), ("form_field", 3), ("widget", 3), ("table", 1)]:
         response = call(

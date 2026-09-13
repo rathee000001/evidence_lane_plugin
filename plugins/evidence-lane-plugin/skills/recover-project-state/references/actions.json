@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "8386fee15085deb61db66807a95455917c81d773056c0294df09f279639e9366",
+  "action_set_digest": "dbb989f606bd3f4d4ada5d257ca38b1f8295eeafdcf4350ba0e7b5701432ee79",
   "actions": [
     {
       "cross_project_read": false,
@@ -119,7 +119,7 @@
       "input_schema_digest": "52070982c5d0ab4cb98b80ad68a67b07ed823687abcdee7c67c4489a69e948dc",
       "mutates": true,
       "name": "project_backup",
-      "output_schema_digest": "0558eb0eb7e886ae192b1963a6f0746ead3ab8699ad1ad2c7b6a60dcd1a0aeea",
+      "output_schema_digest": "7190fa2ef45c181a557b816e45d5053c81345562d85c1c2c031f880742986123",
       "permission": "admin",
       "profile": "recovery",
       "project_required": true,

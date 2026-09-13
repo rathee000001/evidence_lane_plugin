@@ -1,13 +1,13 @@
 {
   "action": "source_crosswalk",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/source_crosswalk.action.v4.json",
-  "sdk_binding_sha256": "d66b65a9d63070f3a1d85802dc0acb7f0316342d82a7d3819a1049da818d19b1",
+  "sdk_binding_sha256": "d3cd55197eb480bd360d1429d4389dad806916d20f306fc2f079e9ed9e57151e",
   "tool": {
     "annotations": {
       "destructiveHint": true,

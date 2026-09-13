@@ -56,7 +56,10 @@ class LaneDefinition:
 
     @property
     def folder(self) -> str:
-        return f'{"authorities" if self.kind == "authority" else "sectors"}/{self.canonical_lane_id}'
+        # A selected project directory is already the complete PV root.  Every
+        # initialized lane is therefore a direct child; kind remains a catalog
+        # and permission distinction rather than another filesystem wrapper.
+        return self.canonical_lane_id
 
     @property
     def database_relative_path(self) -> str:
@@ -64,11 +67,17 @@ class LaneDefinition:
 
     @property
     def files_relative_path(self) -> str:
-        return f'{self.folder}/files'
+        # Keep the historical property name for internal API compatibility,
+        # while the physical directory says what it actually owns.  It is
+        # created lazily on the first content-addressed write.
+        return f'{self.folder}/objects'
 
     @property
     def schema_history_relative_path(self) -> str:
-        return f'{self.folder}/schema-history'
+        # Migration history is projected as one direct lane file.  The SQLite
+        # tables remain authoritative; identical empty schema folders are not
+        # stamped into every lane.
+        return f'{self.folder}/schema-history.v4.json'
 
     @property
     def mmd_filename(self) -> str:
@@ -87,6 +96,7 @@ class LaneDefinition:
         result.update(folder=self.folder, sqlite_filename=self.sqlite_filename,
                       database_relative_path=self.database_relative_path,
                       files_relative_path=self.files_relative_path,
+                      objects_relative_path=self.files_relative_path,
                       schema_history_relative_path=self.schema_history_relative_path,
                       mmd_filename=self.mmd_filename, dot_filename=self.dot_filename,
                       mmd_node_id=self.mmd_node_id,
@@ -648,7 +658,11 @@ _AUTHORITIES = (
     _authority('sources', 'Sources', ('sources', 'restoration', 'gitbranch', 'sourceroutes', 'sourcematerialization', 'customlanes'), ('customlanes_contracts', 'customlanes_current', 'sourceroutes_receipts', 'sourceroutes_requests', 'sourceroutes_preparations', 'sourcematerialization_runs', 'gitbranch_history', 'gitbranch_current', 'gitbranch_sync', 'gitbranch_enrollment', 'registry_meta', 'intake_batch', 'source_object', 'source_occurrence', 'source_member', 'source_relation', 'source_policy_receipt', 'source_exclusion_summary', 'source_archive_receipt', 'source_provenance', 'source_assertion_set', 'source_sqlite_asset', 'source_sqlite_schema_object', 'source_sqlite_table_stat', 'source_sqlite_receipt', 'source_sqlite_foreign_key', 'source_custom_schema', 'source_custom_schema_mapping', 'source_custom_schema_receipt', 'source_identity_entity', 'source_identity_assertion', 'source_identity_relation', 'source_identity_receipt', 'source_graph_snapshot', 'source_graph_node', 'source_graph_edge', 'source_graph_file_coverage', 'source_graph_diff', 'source_graph_impact', 'source_git_snapshot', 'source_git_ref', 'source_git_commit', 'source_git_parent', 'source_git_object', 'source_git_object_path', 'source_git_tree_entry', 'source_git_file_change', 'source_git_rename', 'source_git_hunk', 'source_git_changed_line', 'source_git_impact', 'registry_event', 'source_authority_fts'),
                ('register', 'resolve', 'verify', 'refresh_provenance'), 'source_identities_versions_locators_and_sector_references',
                'src/evidence_lane_plugin/source_authority.py', aliases=('source_authority',)),
-    _authority('receipts', 'Receipts', ('receipts', 'access', 'extensions', 'accelerator', 'recovery', 'remote', 'sessions', 'hostmemory', 'gitpush', 'capture', 'storage'),
+    _authority('sessions', 'Sessions', ('sessions',), ('sessions_records', 'sessions_current', 'sessions_events'),
+               ('boot', 'resume', 'status', 'close', 'verify'), 'session_heads_transitions_and_reported_host_bindings',
+               'src/evidence_lane_plugin/session_authority.py', aliases=('session_authority',),
+               pointer='Exact authenticated engine session head and reported host binding'),
+    _authority('receipts', 'Receipts', ('receipts', 'access', 'extensions', 'accelerator', 'recovery', 'remote', 'hostmemory', 'gitpush', 'capture', 'storage'),
                ('receipts', 'gitpush_events', 'gitpush_current'), ('append', 'query', 'verify'), 'operations_results_grants_runtime_evidence_and_commit_references',
                'authorities/receipt_ledger/schema.sql', aliases=('receipt_ledger',)),
     _authority('universe', 'Universe', ('universe', 'federation'), ('universe_link_events', 'universe_links',
@@ -836,9 +850,9 @@ def lane_schema_asset(lane_id: str) -> dict[str, Any]:
 def lane_artifact_contract(lane_id: str) -> dict[str, Any]:
     lane = get_lane(lane_id)
     result = {'schema': LANE_ARTIFACT_ROLE_REGISTRY_SCHEMA, 'lane_id': lane.canonical_lane_id,
-                  'folder': lane.folder, 'files_root': lane.files_relative_path,
+                  'folder': lane.folder, 'objects_root': lane.files_relative_path,
                   'required_roles': [{'role_id': 'sqlite_authority', 'path': lane.sqlite_filename}],
-                  'schema_history': {'path': 'schema-history', 'condition': 'migration_applied'},
+                  'schema_history': {'path': 'schema-history.v4.json', 'condition': 'migration_applied'},
                   'natural_artifacts': {'extensions': list(lane.natural_extensions), 'condition': 'declared_operation_produced_output'},
                   'relationship_views': list(lane.relationship_views),
                   'graph_exports': {'condition': 'declared_consumer_requested_view', 'mmd': lane.mmd_filename,
@@ -867,7 +881,7 @@ def lane_schema_registry_contract() -> dict[str, Any]:
                     'max_instances_per_project': MAX_CUSTOM_INSTANCES, 'registration_authority': 'sources',
                     'registration_owner': 'customlanes', 'global_catalog_mutated': False,
                     'schema_owner_requires_explicit_instance_store': True,
-                    'storage': 'sectors/<instance_id>/<instance_id>_sector_v001.sqlite with separate files and schema-history'}},
+                    'storage': '<instance_id>/<instance_id>_sector_v001.sqlite with lazy objects and direct schema-history.v4.json'}},
                 'root_pv': 'Project identity and exact lane-head references only; no universal business database',
                 'coordination': {'writer_scope': 'one_project', 'schema_owners': ['writer'],
                                  'shared_lane_mechanisms': ['views'],

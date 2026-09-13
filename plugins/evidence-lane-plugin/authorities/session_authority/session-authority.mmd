@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B72693320CDBFDE0BE1318CC32767827C75C649B0FF53D70FFBBCF3FC42AE656
+%% LANGGRAPH_EXPORT_SHA256=96A790E389CCF8BB5522573CEECDFD90E38B6D44A0A92DAEC65EDAD73F932946
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -17,7 +17,6 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
-  t_receipts["receipts<br/>receipt_id, kind, body_json, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_sessions_current["sessions_current<br/>singleton, session_id"]:::table

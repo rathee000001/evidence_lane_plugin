@@ -101,6 +101,9 @@ def execute(system, action, arguments, *, index=0, expected='verified'):
             break
         time.sleep(.02)
     assert row['state'] == expected, {key: row[key] for key in ('state', 'error_code', 'result_object')}
+    system[0].delta.owned_completion(admitted.job_id).result(
+        timeout=max(1, deadline - time.monotonic())
+    )
     if expected == 'blocked':
         return row
     return json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
@@ -117,8 +120,8 @@ def test_native_workbook_facts_and_data_are_in_separate_databases(tabular_system
     workbook = execute(tabular_system, 'spreadsheet_index', {'filename': 'fixture.xlsx'})
     data = execute(tabular_system, 'data_index', {'filename': 'values.json'}, index=1)
     store = tabular_system[1]
-    assert '/sectors/data_excel/' in workbook['natural_path'].replace('\\', '/')
-    assert '/sectors/data/' in data['natural_path'].replace('\\', '/')
+    assert '/data_excel/' in workbook['natural_path'].replace('\\', '/')
+    assert '/data/' in data['natural_path'].replace('\\', '/')
     formulas = query(tabular_system, 'spreadsheet', workbook['snapshot_id'], collection='formula')['rows']
     summary = next(row for row in formulas if row['sheet'] == 'Summary')
     assert summary['formula'] == "SUM('Inputs'!D2:D3)"

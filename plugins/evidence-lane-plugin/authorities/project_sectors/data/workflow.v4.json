@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sector-workflow.v4",
   "lane_id": "data",
   "source_package_folder": "authorities/project_sectors/data",
-  "external_project_folder": "sectors/data",
+  "external_project_folder": "data",
   "actions": [
     {
       "name": "data_current",
@@ -966,11 +966,11 @@
     {
       "view_id": "data.structure",
       "lane_id": "data",
-      "folder": "sectors/data",
+      "folder": "data",
       "version": 1,
       "meaning": "Dataset schema, columns and recorded transformation input snapshots in the separate structured-data lane.",
       "consumer": "artifact_export",
-      "implementation_digest": "2ab170a9dfdbaa61af10e18b0b55a8bf55301b23c1a229ec38fc520a126e54e9",
+      "implementation_digest": "4b8b91ccfd9b44ac95dc5b140981bfb4b98c5f16f3be98057da8479ff3e51fa9",
       "files": {
         "mmd": "data.mmd",
         "dot": "data.dot",

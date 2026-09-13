@@ -23,7 +23,7 @@ def test_every_lane_has_independent_sqlite_files_and_schema_history(separate_pro
     for lane_id in CANONICAL_LANE_IDS:
         lane = project.lane(lane_id, create=True)
         assert lane.database.parent == lane.folder
-        assert lane.files.is_dir() and lane.schema_history.is_dir()
+        assert not lane.files.exists() and lane.schema_history.is_file()
         assert lane.database not in databases
         databases.add(lane.database)
         with lane.transaction() as connection:
@@ -65,7 +65,7 @@ def test_content_and_receipts_have_explicit_owners(separate_project):
 def test_wrong_lane_identity_and_missing_lane_do_not_fallback(separate_project):
     project = separate_project
     assert {row['lane_id'] for row in project.lane_catalog()} == {
-        'plan', 'chat_lineage', 'canon', 'memory', 'learning', 'sources', 'receipts', 'universe'}
+        'plan', 'chat_lineage', 'canon', 'memory', 'learning', 'sources', 'sessions', 'receipts', 'universe'}
     with pytest.raises(LaneError, match='no initialized'):
         project.lane('docs')
     one = project.lane('memory', create=True)
@@ -124,7 +124,7 @@ def test_legacy_database_and_nonempty_target_are_preserved(tmp_path):
 
 def test_unregistered_database_collision_is_not_overwritten(separate_project):
     project = separate_project
-    target = project.root / 'sectors/docs/docs_sector_v001.sqlite'
+    target = project.root / 'docs/docs_sector_v001.sqlite'
     target.parent.mkdir(parents=True)
     target.write_bytes(b'preserve collision')
     with pytest.raises(LaneError, match='unregistered database'):

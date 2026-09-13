@@ -1,13 +1,13 @@
 {
   "action": "source_routes_read",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/source_routes_read.action.v4.json",
-  "sdk_binding_sha256": "d6b2b5ae80c205408006416117c3dd6e72fad5772ab32e993c9d01b1f3e41869",
+  "sdk_binding_sha256": "3d76e16eb1048fdd805b203761643aa2153c3919ec08450fc790ed7154147be9",
   "tool": {
     "annotations": {
       "destructiveHint": false,

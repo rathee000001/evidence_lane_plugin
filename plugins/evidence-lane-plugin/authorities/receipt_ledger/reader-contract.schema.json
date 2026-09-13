@@ -154,55 +154,6 @@
       "title": "AuthorityRequest_remote_git_action_read",
       "type": "object"
     },
-    "AuthorityRequest_session_context": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "session_context",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/SessionStatusRequest"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_session_context",
-      "type": "object"
-    },
     "AuthorityRequest_session_exit_boundary": {
       "additionalProperties": false,
       "properties": {
@@ -250,55 +201,6 @@
         "arguments"
       ],
       "title": "AuthorityRequest_session_exit_boundary",
-      "type": "object"
-    },
-    "AuthorityRequest_session_status": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "session_status",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/SessionStatusRequest"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_session_status",
       "type": "object"
     },
     "AuthorityRequest_storage_connector_inspect": {
@@ -465,12 +367,6 @@
       "title": "SessionBoundaryRead",
       "type": "object"
     },
-    "SessionStatusRequest": {
-      "additionalProperties": false,
-      "properties": {},
-      "title": "SessionStatusRequest",
-      "type": "object"
-    },
     "StorageInspect": {
       "additionalProperties": false,
       "properties": {
@@ -491,9 +387,7 @@
       "accelerator_read": "#/$defs/AuthorityRequest_accelerator_read",
       "connector_read": "#/$defs/AuthorityRequest_connector_read",
       "remote_git_action_read": "#/$defs/AuthorityRequest_remote_git_action_read",
-      "session_context": "#/$defs/AuthorityRequest_session_context",
       "session_exit_boundary": "#/$defs/AuthorityRequest_session_exit_boundary",
-      "session_status": "#/$defs/AuthorityRequest_session_status",
       "storage_connector_inspect": "#/$defs/AuthorityRequest_storage_connector_inspect"
     },
     "propertyName": "action"
@@ -509,13 +403,7 @@
       "$ref": "#/$defs/AuthorityRequest_remote_git_action_read"
     },
     {
-      "$ref": "#/$defs/AuthorityRequest_session_context"
-    },
-    {
       "$ref": "#/$defs/AuthorityRequest_session_exit_boundary"
-    },
-    {
-      "$ref": "#/$defs/AuthorityRequest_session_status"
     },
     {
       "$ref": "#/$defs/AuthorityRequest_storage_connector_inspect"

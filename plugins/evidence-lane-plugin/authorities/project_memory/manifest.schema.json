@@ -31,7 +31,7 @@
       "const": "authorities/project_memory"
     },
     "project_state_folder": {
-      "const": "authorities/memory"
+      "const": "memory"
     },
     "runtime_database_packaged": {
       "const": false

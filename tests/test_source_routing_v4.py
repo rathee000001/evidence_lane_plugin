@@ -142,7 +142,7 @@ def test_new_directory_file_requires_new_registration(code_system):
             break
         time.sleep(.03)
     assert tuple(row) == ('blocked', 'SOURCE_ROUTE_SOURCE_CHANGED')
-    assert not (store.root / 'sectors/local_code/local_code_sector_v001.sqlite').exists()
+    assert not (store.root / 'local_code/local_code_sector_v001.sqlite').exists()
 
 
 def test_failed_route_publication_rolls_back_registered_batch_schema_and_receipts(code_system, monkeypatch):

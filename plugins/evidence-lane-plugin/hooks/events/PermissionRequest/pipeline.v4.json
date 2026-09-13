@@ -2,8 +2,41 @@
   "automatic_retry": false,
   "distinct_executable_owners": true,
   "event": "PermissionRequest",
+  "host_stages": [
+    {
+      "id": "VALIDATE",
+      "owners": [
+        "hook_admission"
+      ],
+      "status": "Validating and redacting Evidence Lane {event}"
+    },
+    {
+      "id": "SEAL",
+      "owners": [
+        "hook_classification",
+        "hook_lifecycle_boundary"
+      ],
+      "status": "Classifying and sealing Evidence Lane {event}"
+    },
+    {
+      "id": "TRANSPORT",
+      "owners": [
+        "event_specific_handler",
+        "hook_transport"
+      ],
+      "status": "Handling and delivering Evidence Lane {event}"
+    },
+    {
+      "id": "EMIT",
+      "owners": [
+        "hook_receipts",
+        "hook_output"
+      ],
+      "status": "Verifying and emitting Evidence Lane {event}"
+    }
+  ],
   "schema": "evidence-lane.native-hook-pipeline.v4",
-  "separate_process_per_stage": false,
+  "separate_process_per_host_stage": true,
   "stage_contracts": [
     "hooks/events/PermissionRequest/01-validate_and_redact_input.stage.v4.json",
     "hooks/events/PermissionRequest/02-classify_event.stage.v4.json",

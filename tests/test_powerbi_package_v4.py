@@ -34,7 +34,7 @@ def test_package_owns_powerbi_schema_and_registered_actions(powerbi_system):
     }
     assert not module.inspect(store)["initialized"]
     contract = sector_package_contract("power_bi", engine.registry)
-    assert contract["database"] == "sectors/power_bi/power_bi_sector_v001.sqlite"
+    assert contract["database"] == "power_bi/power_bi_sector_v001.sqlite"
     assert contract["runtime_module"] == "evidence_lane_plugin.powerbi_profile"
     assert {item["name"] for item in contract["actions"]} == {
         "powerbi_index",
@@ -81,7 +81,7 @@ def test_graph_files_preserve_locators_without_rendering_claim(powerbi_system):
         "powerbi.pointer.json",
     }
     assert all(
-        "/sectors/power_bi/" in row["path"].replace("\\", "/") for row in published.result["files"]
+        "/power_bi/" in row["path"].replace("\\", "/") for row in published.result["files"]
     )
     read = call(
         powerbi_system,

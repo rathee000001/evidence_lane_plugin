@@ -3957,7 +3957,7 @@
       "actions": [
         {
           "cross_project_read": false,
-          "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+          "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
           "mutates": true,
           "name": "project_register",
           "permission": "project_admin",

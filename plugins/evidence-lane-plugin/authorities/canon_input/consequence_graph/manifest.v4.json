@@ -1,7 +1,7 @@
 {
   "schema": "evidence-lane.canon-consequence-package.v4",
   "owner": "canon",
-  "database": "authorities/canon/canon_authority_v001.sqlite",
+  "database": "canon/canon_authority_v001.sqlite",
   "separate_graph_database": false,
   "runtime": [
     "evidence_lane_plugin.canon_consequence_graph",
@@ -51,7 +51,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "e5bef3aa4f63b8fe0c4b0c7a170018f1995ba40cdef69692c72ad63dad93dd3a"
+      "sha256": "ec6fbbb9a3ec86220f274c7a16e0e16df6cbc79a24d60cbdaaa63999de18c2e7"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "78a1e56590e6d8ca96c157cdf2794f0654d952f2d26c84f6ac6704a6447bcc88"
+      "sha256": "6e4c5fdf586f3aeeca41a45e367c73b2bab66aeaf908e1519be7faa37b1575e3"
     }
   ]
 }

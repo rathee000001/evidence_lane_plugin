@@ -7,6 +7,14 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
   "host_control_output": false,
+  "host_stage_count": 4,
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "hooks/events/PreToolUse/event.schema.json",
   "members": [
     {
@@ -43,11 +51,11 @@
     },
     {
       "path": "hooks/events/PreToolUse/pipeline.v4.json",
-      "sha256": "70121f987ffbd094aafa18537ea8c7c54f8790085d23f6116fd4f0d0bc7a20ac"
+      "sha256": "af10c3f8c696f5e797f7b5158aaee3689650871f9bfe83bb719e622bb320e4a0"
     },
     {
       "path": "hooks/events/PreToolUse/README.md",
-      "sha256": "55c2e81a6b9db021b1c86c1d7266edca1e9c602fdcec3a0b568bf75e9e103849"
+      "sha256": "1990fbba01be3ca38c94dfff2c0f6993563b7735b869e8083c6cc06961dd04c9"
     }
   ],
   "native_installation_verified": false,

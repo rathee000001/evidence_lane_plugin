@@ -55,8 +55,6 @@ def generate(registry, plugin, *, check=False):
         metadata = 'interface:\n' + ''.join('  ' + key + ': ' + json.dumps(value) + '\n'
             for key, value in {'display_name': workflow.title,
                                'short_description': workflow.short_description,
-                               'icon_small': './assets/evidence-lane-skill.png',
-                               'icon_large': './assets/evidence-lane-skill.png',
                                'brand_color': '#18A9C8',
                                'default_prompt': workflow.default_prompt}.items())
         metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
@@ -81,9 +79,7 @@ def generate(registry, plugin, *, check=False):
                     metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
                 metadata += ''.join(preserved)
         write_bytes(meta_path, metadata.encode(), check=check)
-        icon_path = folder / 'assets/evidence-lane-skill.png'
-        write_bytes(icon_path, (plugin / 'assets/evidence-lane-icon.png').read_bytes(), check=check)
-        active_members = [entry, action_path, meta_path, icon_path]
+        active_members = [entry, action_path, meta_path]
         for key, content in sorted(REFERENCES.items()):
             owner, filename = key.split('/', 1)
             if owner == workflow.name:

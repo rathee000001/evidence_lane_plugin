@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-workflow.v4",
   "owner_id": "chat_lineage",
   "source_package_folder": "authorities/chat_lineage",
-  "storage": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite with files and schema history in authorities/chat_lineage",
+  "storage": "chat_lineage/chat_lineage_authority_v001.sqlite with files and schema history in chat_lineage",
   "actions": [
     {
       "name": "capture_bind",
@@ -1616,11 +1616,11 @@
     {
       "view_id": "chat_lineage.ancestry",
       "lane_id": "chat_lineage",
-      "folder": "authorities/chat_lineage",
+      "folder": "chat_lineage",
       "version": 1,
       "meaning": "Visible conversation events and their recorded parent ancestry.",
       "consumer": "artifact_export",
-      "implementation_digest": "0eafbd277cfccc74a250bc22328ef0bded41da58c986817f2131867fa22524ca",
+      "implementation_digest": "4e2924d44ac93230c707fde0295396e1fb76286c9b73f086e038cb52660625a9",
       "files": {
         "mmd": "chat_lineage.mmd",
         "dot": "chat_lineage.dot"

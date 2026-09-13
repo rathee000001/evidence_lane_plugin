@@ -6,63 +6,70 @@
     {
       "event": "SessionStart",
       "path": "hooks/events/SessionStart/event.v4.json",
-      "sha256": "82be3d4f2b3260b97bd963e63b3bc8ccfead1114e078a6adb3485d905b8cf73b"
+      "sha256": "bf398f23b35f5aa55adef8692d83a9cf0b9118d39c2366f632ff1d93ec34160f"
     },
     {
       "event": "SubagentStart",
       "path": "hooks/events/SubagentStart/event.v4.json",
-      "sha256": "08ea448744d81c9e5314ebd58a4497de3238451024111866141e3b94bf11895f"
+      "sha256": "b8e4eab494004e8ca62d7460e07f8e7a1090abe5ac896ecccab4751ad857ff92"
     },
     {
       "event": "UserPromptSubmit",
       "path": "hooks/events/UserPromptSubmit/event.v4.json",
-      "sha256": "9febfcc96a774c378eefba7a67e7173e16a4b4b4b9dcea3ff7f317c75bc059e6"
+      "sha256": "c59a88857a377f6fee81d7cd5232200ec144b8cab2e1262c89451b0c06933634"
     },
     {
       "event": "PreToolUse",
       "path": "hooks/events/PreToolUse/event.v4.json",
-      "sha256": "3f5967ebb1cbd3938399e179195e38087c5c17d35c3d81e725c83fdeb1016541"
+      "sha256": "23fef87ee2705844893ad2094e5d395d64d49c379eb08c95a17052ec37371641"
     },
     {
       "event": "PermissionRequest",
       "path": "hooks/events/PermissionRequest/event.v4.json",
-      "sha256": "0ee39a4725ea56ae8b704ad20acd9dae61af10c0c4c990a64f4bcabc16cfa8ab"
+      "sha256": "2cb121f92dcbe7ab267e2545c21aa6edbe57b4caaa03dd35e6f01aeb73d9f693"
     },
     {
       "event": "PostToolUse",
       "path": "hooks/events/PostToolUse/event.v4.json",
-      "sha256": "00d569decfe932e90965c1a5640eb357d8fa1986ff97d13411a1e3b0c33afcbc"
+      "sha256": "3920dfb5f3ef4500837ffd74ce26910e10c29359625f2553d0e8f9bd6761590e"
     },
     {
       "event": "PreCompact",
       "path": "hooks/events/PreCompact/event.v4.json",
-      "sha256": "2c0d5e457fc53400a77a561386033f13da429f8f6410b40eabe67e80ae095975"
+      "sha256": "302d24e6192e321fc036007099f34f8662ec0afccb651ae3e66add2c479ada5e"
     },
     {
       "event": "PostCompact",
       "path": "hooks/events/PostCompact/event.v4.json",
-      "sha256": "c2f46725c58f5377a08c7342ec5f6c17adb4961b8d773bf5ec784262dd2de88d"
+      "sha256": "7627f610f5020504fcd9bbce9220af1927f184dc31ae02e49a6ecb7350198c4e"
     },
     {
       "event": "Stop",
       "path": "hooks/events/Stop/event.v4.json",
-      "sha256": "1f275b2973b2d6c69134bc48f445b285386892e583d048ac7e86337c6cef745d"
+      "sha256": "0cc917330353d27d7f7fb6720b5f7962840f63c04a8ad5cec9d2b0e7910ec2e4"
     },
     {
       "event": "SubagentStop",
       "path": "hooks/events/SubagentStop/event.v4.json",
-      "sha256": "865eb97917e476e9329f6519bdefc27a9c9eb29ddf9f3ce853cbb51932196c51"
+      "sha256": "eef330636785f667bdf5116c83956fb29cd2737bd33d47f9df1f9a12f0eedeb2"
     },
     {
       "event": "Interrupt",
       "path": "hooks/events/Interrupt/event.v4.json",
-      "sha256": "af2796d9205f4f88f033353d521025784696cd116d9f67405541f957de0a9772"
+      "sha256": "e368eace7e59802106935c3f6e59a48772937af21bd9d232e458bfb1893c3107"
     },
     {
       "event": "SessionEnd",
       "path": "hooks/events/SessionEnd/event.v4.json",
-      "sha256": "d3c420542ea48f1d52f7a5c51a2654fe8dcffbd0c92249d2e83ce313998b5a22"
+      "sha256": "611f5eec95578f69ead7521b15e016738f94db47bc9bc33bd0266c9cf4469618"
     }
+  ],
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
   ],
   "native_installation_verified": false,
   "old_tunnel_host_required": false,

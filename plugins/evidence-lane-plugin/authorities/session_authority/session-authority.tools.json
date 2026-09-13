@@ -1,6 +1,6 @@
 {
   "schema": "evidence-lane.authority-tooling.v4",
-  "owner_id": "session_authority",
+  "owner_id": "sessions",
   "runtime": "runtime.py",
   "builder": "builder.py:build_authority",
   "reader": "reader.py:read_authority",

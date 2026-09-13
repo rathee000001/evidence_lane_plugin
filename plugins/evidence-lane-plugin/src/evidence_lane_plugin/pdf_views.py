@@ -139,7 +139,7 @@ def register_pdf_views(engine):
         LaneView(
             "pdf_ocr.structure",
             "pdf_ocr",
-            "sectors/pdf_ocr",
+            "pdf_ocr",
             "Page, native form/widget and separate OCR evidence locators.",
             pdf_graph,
             ("pdfocr",),

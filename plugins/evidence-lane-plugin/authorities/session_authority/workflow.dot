@@ -1,4 +1,4 @@
-digraph workflow_session_authority {
+digraph workflow_sessions {
   // EVIDENCE_LANE_GRAPH_ENGINE=PYTHON_GRAPHVIZ
   // PYTHON_GRAPHVIZ_VERSION=0.21
   bgcolor=white compound=true fontname=Arial newrank=true nodesep=0.35 rankdir=TB ranksep=0.65 splines=polyline
@@ -8,7 +8,7 @@ digraph workflow_session_authority {
   read [label="Exact selected scope and bounded recorded evidence" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   writer [label="Engine coordinator and owning project writer" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   delta [label="Current stored Plan operation and Delta admission" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
-  owner [label="session_authority current executable owner" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
+  owner [label="sessions current executable owner" color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   action_env_uop_inspect [label=env_uop_inspect color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   action_session_boot [label=session_boot color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]
   action_session_context [label=session_context color="#667085" fillcolor="#f7f9fc" shape=box style="rounded,filled"]

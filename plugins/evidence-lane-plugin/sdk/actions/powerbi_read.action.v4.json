@@ -1,11 +1,11 @@
 {
   "action": "powerbi_read",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/powerbi_read.v4.schema.json",
-  "contract_sha256": "fe21bd833afe8919014dbefde973b65e6617d7ba30433d7a9f0a192f64ed2e20",
+  "contract_sha256": "f75b1ce7cf0f45fe80fe3caeff80ff0c8d002143567b73d6bf4a60b019726ef1",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

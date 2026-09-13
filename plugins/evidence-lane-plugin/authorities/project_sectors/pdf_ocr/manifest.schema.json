@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/pdf_ocr"
     },
     "folder": {
-      "const": "sectors/pdf_ocr"
+      "const": "pdf_ocr"
     },
     "folder_role": {
       "const": "external_project_state"

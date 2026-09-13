@@ -8,13 +8,12 @@
       "evidence_lane_plugin.accelerators",
       "evidence_lane_plugin.remote_api",
       "evidence_lane_plugin.database_recovery",
-      "evidence_lane_plugin.session_authority",
       "evidence_lane_plugin.remote_git",
       "evidence_lane_plugin.capture_routing",
       "evidence_lane_plugin.agent_learning",
       "evidence_lane_plugin.storage_selection"
     ],
-    "storage": "authorities/receipts/receipts_authority_v001.sqlite with files and schema history in authorities/receipts",
+    "storage": "receipts/receipts_authority_v001.sqlite with files and schema history in receipts",
     "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
     "alternate_writer": false
   },

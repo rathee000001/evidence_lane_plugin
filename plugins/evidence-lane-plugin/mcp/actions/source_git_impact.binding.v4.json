@@ -1,13 +1,13 @@
 {
   "action": "source_git_impact",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/source_git_impact.action.v4.json",
-  "sdk_binding_sha256": "4e9ad240914b23f3a63d4391571ddd22f60812d2d569cd6ff34749afd98fe00c",
+  "sdk_binding_sha256": "9c1cd253c3672fff573652199de953ae09e190f0ef6722b91ce67e6650e02ec4",
   "tool": {
     "annotations": {
       "destructiveHint": true,

@@ -31,7 +31,7 @@
       "const": "authorities/source_authority"
     },
     "project_state_folder": {
-      "const": "authorities/sources"
+      "const": "sources"
     },
     "runtime_database_packaged": {
       "const": false

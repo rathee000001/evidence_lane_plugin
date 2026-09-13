@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 507,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 62182,
     "path": "sdk/workflows/skills/manage-project-sources/workflow.v4.json",
-    "sha256": "07f41c491673f725dca6423c9d01b42267560bd05fe753aa5e23733682adee22"
+    "sha256": "183921dc8901ac458695c60464ed6fdfe74f8a79b4944ae5a5af8f4eaf5a38cb"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "manage-project-sources",

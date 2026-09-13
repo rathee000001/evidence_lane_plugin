@@ -1,13 +1,13 @@
 {
   "action": "spreadsheet_index",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/spreadsheet_index.action.v4.json",
-  "sdk_binding_sha256": "00acc13468878468eac90995d0e5a13f0502ba1a8da6fa65f5b2e1e7b7c272b6",
+  "sdk_binding_sha256": "d6c780966e10a2d0c3d7efa443387058d3b71dafc91e15b8a5a54d22b89247b7",
   "tool": {
     "annotations": {
       "destructiveHint": true,

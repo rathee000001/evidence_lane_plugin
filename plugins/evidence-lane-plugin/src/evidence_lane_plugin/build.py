@@ -44,7 +44,7 @@ def package_contents(root: Path) -> dict:
     metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
     if (
         metadata.get("name") != "evidence-lane-plugin"
-        or metadata.get("version", "").split("+")[0] != "4.0.3"
+        or metadata.get("version", "").split("+")[0] != "4.0.4"
     ):
         raise LaneError("PACKAGE_IDENTITY_INVALID", "A canonical v4 plugin manifest is required.")
     files: list[dict] = []

@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/PreToolUse/handler.py",
   "event": "PreToolUse",
   "event_contract": "hooks/events/PreToolUse/event.v4.json",
-  "event_contract_sha256": "3f5967ebb1cbd3938399e179195e38087c5c17d35c3d81e725c83fdeb1016541",
+  "event_contract_sha256": "23fef87ee2705844893ad2094e5d395d64d49c379eb08c95a17052ec37371641",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/PreToolUse.v4.schema.json",
   "input_schema_sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312",
   "installed_execution_claimed": false,

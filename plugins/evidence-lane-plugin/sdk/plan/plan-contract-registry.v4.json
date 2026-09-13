@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 3,
@@ -7,17 +7,17 @@
     {
       "bytes": 762,
       "path": "sdk/plan/host-projection.v4.json",
-      "sha256": "b9708406a6ac345852d922230e9a1774904f8a0c200551063e9e302cafbefbea"
+      "sha256": "c55e621faeb457790150c71fd932d5a50c59b7fed7bccfb4531684f34cf04c05"
     },
     {
       "bytes": 751,
       "path": "sdk/plan/plan-contracts.v4.json",
-      "sha256": "9b9242759c060726c3068d5c17ce8ade25ab8eba4410ff7e29f343e1b883418a"
+      "sha256": "b6f2fa4174d71e3724753f44aaf8f3c3a54d07d19834025db11b5a3fd0cac78d"
     },
     {
       "bytes": 756,
       "path": "sdk/plan/semantic-steer.v4.json",
-      "sha256": "58ded230cce5d5cbd5a69d8ca16e864df5419e0b4761880ce3db465773253bcf"
+      "sha256": "9375f522673ad4f4e0af9271a1363a1265a58aebec1b03700bc9adc27107345c"
     }
   ],
   "schema": "evidence-lane.sdk-plan-contract-registry.v4",

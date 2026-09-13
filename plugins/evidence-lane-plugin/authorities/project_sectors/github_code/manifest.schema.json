@@ -25,7 +25,7 @@
       "const": "authorities/project_sectors/github_code"
     },
     "folder": {
-      "const": "sectors/github_code"
+      "const": "github_code"
     },
     "folder_role": {
       "const": "external_project_state"

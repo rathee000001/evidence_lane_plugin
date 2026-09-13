@@ -1,9 +1,10 @@
 # SessionStart
 
 This directory owns the packaged Evidence Lane handler for the documented
-`SessionStart` event. Its fixed handler class runs the distinct admission,
-classification, event handling, authenticated transport, receipt sealing and
-bounded-output owners, and may return bounded additional context.
+`SessionStart` event. Codex displays four separate Host Hook rows for validate, seal,
+transport and emit. Those rows run the current admission, classification,
+event handling, authenticated transport, receipt sealing and bounded-output
+owners through dependency-safe stage receipts, and the final row may return bounded additional context.
 
 The handler never selects a project from a title or path, starts lifecycle work,
 controls a subagent, changes a Goal, retries an uncertain delivery, or reads a

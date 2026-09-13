@@ -25,7 +25,7 @@ from evidence_lane_plugin.storage import LANE_SCHEMA, RECEIPTS_SCHEMA
 ASSET_STEMS = {
     'plan': 'plan', 'chat_lineage': 'chat_lineage', 'canon': 'canon-input',
     'memory': 'memory', 'learning': 'agent-learning', 'sources': 'source_authority',
-    'receipts': 'receipt-ledger', 'universe': 'project_universe',
+    'sessions': 'session-authority', 'receipts': 'receipt-ledger', 'universe': 'project_universe',
     'project_authority': 'project_authority', 'session_authority': 'session-authority',
     'instructions': 'instructions',
 }

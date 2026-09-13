@@ -2,7 +2,7 @@
   "schema": "evidence-lane.sector-workflow.v4",
   "lane_id": "docs",
   "source_package_folder": "authorities/project_sectors/docs",
-  "external_project_folder": "sectors/docs",
+  "external_project_folder": "docs",
   "actions": [
     {
       "name": "document_convert",
@@ -843,11 +843,11 @@
     {
       "view_id": "docs.structure",
       "lane_id": "docs",
-      "folder": "sectors/docs",
+      "folder": "docs",
       "version": 1,
       "meaning": "Exact document versions and native headings, tables, images and content-control locators; independent of page rendering.",
       "consumer": "artifact_export",
-      "implementation_digest": "324516aca0f6295c86c5ed4326bd9f0309dd6c2b9bd93f164820ab763946e22a",
+      "implementation_digest": "5c0e2752ed197470638639ac87691debe2f6dcb11e11d7360cb6729ce067aeb0",
       "files": {
         "mmd": "docs.mmd",
         "dot": "docs.dot",

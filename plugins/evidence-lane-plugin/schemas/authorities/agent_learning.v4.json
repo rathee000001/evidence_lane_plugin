@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/agent_learning/dot-artifact.schema.json",
-      "sha256": "4bfd22dde6a8c38bf5603970d695d22c258b7d5fb8f4d64d44920e4892034e67"
+      "sha256": "aae646b5e7a41fff66f05b6295c522d2ce92a62e696a75409a878793cbf2354f"
     },
     {
       "path": "authorities/agent_learning/manifest.schema.json",
-      "sha256": "49204ce3f0234a14953bf7966b1a1d6f591303e290e2e6b137de40984e36b06f"
+      "sha256": "aef2347843d582cc2dd4b1df004c518d859a56b0489fedda5889ac62026fd244"
     },
     {
       "path": "authorities/agent_learning/manifest.v4.json",
-      "sha256": "907216183dac0470255615a287fad7b2ad3912be7a93235549645b98478e2cf2"
+      "sha256": "b473ed5a5d6fce2e617da169b52aa392aadb0eb7e6c6e5404bf167e8f424b19a"
     },
     {
       "path": "authorities/agent_learning/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/agent_learning/mmd-artifact.schema.json",
-      "sha256": "f379b5445f8d1cab085367babc8fa217a2490574fb4f655b13479fcc5b9276d6"
+      "sha256": "b8be4536db85b2e314a83060a50f2132cef01769d1a7dd31649581e71cce8816"
     },
     {
       "path": "authorities/agent_learning/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/agent_learning/pointer-contract.v4.json",
-      "sha256": "ecd4ee9914e4dd4f3942ec11ebbf1deeecec6ec1b56f3887fefcfbd324f4262e"
+      "sha256": "0dc7a563fd2778eedf9373e6820e46bb86e138afcff4e0340260d77a84d59bdb"
     },
     {
       "path": "authorities/agent_learning/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/agent_learning/runtime-binding.schema.json",
-      "sha256": "207ae404ff515a3a22875763e0510a48b3ea5b7e1727db167bc2656549d5a45a"
+      "sha256": "65e55bef436817f2399628e37b1f14edf768c33c284dc61bea50057a3d95494b"
     },
     {
       "path": "authorities/agent_learning/runtime-binding.v4.json",
-      "sha256": "d641463b79f9e05581df40e85c4f440bd2948ea34cc38bae7793d9fcebdd02b0"
+      "sha256": "ee5ccd5a7e759b0f408109032109fc018f025da4eab241340ec34a3b35fefb08"
     },
     {
       "path": "authorities/agent_learning/schema.sql",

@@ -1,13 +1,13 @@
 {
   "action": "pdf_edit",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/pdf_edit.action.v4.json",
-  "sdk_binding_sha256": "1439769cc2888dc4ca9ee001b7d5b4694487a898bbc958442cf44585327dacbd",
+  "sdk_binding_sha256": "788de6cb053a9809eaddec7b845a7c17fed634bfcb1cbf70a5140d1367aa4367",
   "tool": {
     "annotations": {
       "destructiveHint": true,

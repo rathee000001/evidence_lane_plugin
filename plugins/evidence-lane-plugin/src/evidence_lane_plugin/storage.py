@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID, uuid4
 
 from .errors import LaneError
-from .lanes import LANE_REGISTRY, LaneDefinition, get_lane
+from .lanes import AUTHORITY_LANE_IDS, LaneDefinition, get_lane
 
 if TYPE_CHECKING:
     from .lane_transactions import LaneCommit
@@ -31,7 +31,7 @@ LEGACY_DATABASE_NAME = 'project.sqlite3'
 APPLICATION_ID = 0x45564C34
 LANE_APPLICATION_ID = 0x45564C4E
 FORMAT_VERSION = 4
-STORAGE_LAYOUT = 'separate_lanes_v1'
+STORAGE_LAYOUT = 'direct_flat_pv_lanes_v2'
 MAX_OBJECT_BYTES = 64 * 1024 * 1024
 _read_scope: ContextVar[tuple[Path, float] | None] = ContextVar('project_read_scope', default=None)
 _snapshot_scope: ContextVar[tuple[Path, _PinnedReadConnection] | None] = ContextVar('root_pv_snapshot', default=None)
@@ -592,7 +592,8 @@ class ProjectStore(_SqliteStorage):
     @classmethod
     def create(cls, root: Path, source_root: Path, *, project_id: str | None = None,
                display_name: str | None = None, sensitivity: str = 'PRIVATE',
-               capture_route: str = 'GOVERNED_PROJECT_FULL') -> ProjectStore:
+               capture_route: str = 'GOVERNED_PROJECT_FULL',
+               initial_lane_ids: tuple[str, ...] | None = None) -> ProjectStore:
         if _read_scope.get() is not None:
             raise LaneError('QUERY_PROJECT_SCOPE', 'Queries cannot create project storage.')
         root = Path(os.path.abspath(root.expanduser()))
@@ -618,11 +619,18 @@ class ProjectStore(_SqliteStorage):
         except FileExistsError:
             raise LaneError('PROJECT_ALREADY_EXISTS', 'Open the existing project instead of replacing it.') from None
         project = cls(root)
-        # Authorities are always present, even before their first business
-        # migration. Reading an empty authority never needs to create storage.
-        for definition in LANE_REGISTRY.values():
-            if definition.kind == 'authority':
-                project._initialize_lane(definition)
+        # Direct construction keeps the retained authorities available.  The
+        # product registration workflow supplies an explicit Code-first order
+        # for a classified code project.
+        selected = AUTHORITY_LANE_IDS if initial_lane_ids is None else initial_lane_ids
+        if len(set(selected)) != len(selected):
+            raise LaneError('INITIAL_LANE_ORDER_INVALID', 'Initialize each selected lane once.')
+        for lane_id in selected:
+            project._initialize_lane(get_lane(lane_id))
+        from .lane_artifacts import refresh_lane_artifacts, refresh_project_artifacts
+        for lane_id in selected:
+            refresh_lane_artifacts(project.lane(lane_id))
+        refresh_project_artifacts(project)
         return project
 
     def assert_current_binding(self) -> None:
@@ -640,7 +648,13 @@ class ProjectStore(_SqliteStorage):
             if active is not None:
                 active.connection(definition.canonical_lane_id)
             else:
-                self._initialize_lane(definition)
+                created = self._initialize_lane(definition)
+                if created:
+                    lane = LaneStore(self, definition)
+                    from .lane_artifacts import refresh_lane_artifacts, refresh_project_artifacts
+                    refresh_lane_artifacts(lane)
+                    refresh_project_artifacts(self)
+                    return lane
         return LaneStore(self, definition)
 
     def coordinated_transaction(self, lanes, *, writer=None, expected_revision=None, fault=None):
@@ -656,7 +670,7 @@ class ProjectStore(_SqliteStorage):
         with self.connection(read_only=True) as connection:
             return dict(connection.execute('SELECT * FROM root_pv_head WHERE singleton=1').fetchone())
 
-    def _initialize_lane(self, definition: LaneDefinition) -> None:
+    def _initialize_lane(self, definition: LaneDefinition) -> bool:
         if self.read_only or _read_scope.get() is not None:
             raise LaneError('READ_ONLY_PROJECT', 'Read-only project access cannot initialize lanes.')
         self.assert_current_binding()
@@ -666,7 +680,7 @@ class ProjectStore(_SqliteStorage):
             if found:
                 if found['database_path'] != definition.database_relative_path or found['kind'] != definition.kind:
                     raise LaneError('LANE_BINDING_MISMATCH', 'The lane catalog differs from its canonical layout.')
-                return
+                return False
             folder = self.root / definition.folder
             database = self.root / definition.database_relative_path
             reject_links(database, self.root)
@@ -676,18 +690,15 @@ class ProjectStore(_SqliteStorage):
             _new_database(database, LANE_SCHEMA + (RECEIPTS_SCHEMA if lane_id == 'receipts' else ''),
                           ('INSERT INTO lane_identity VALUES(1,?,?,?,?,?)',
                            (self.project_id, lane_id, definition.kind, STORAGE_LAYOUT, now())), LANE_APPLICATION_ID)
-            for relative in (definition.files_relative_path, definition.schema_history_relative_path):
-                path = self.root / relative
-                reject_links(path, self.root)
-                path.mkdir(parents=True, exist_ok=True)
             root_connection.execute('INSERT INTO root_lane_catalog VALUES(?,?,?,?)',
                                     (lane_id, definition.kind, definition.database_relative_path, now()))
+        return True
 
     def lane_catalog(self) -> list[dict]:
         with self.connection(read_only=True) as connection:
             return [dict(row) for row in connection.execute(
                 'SELECT c.*,h.revision,h.head_digest,h.commit_id FROM root_lane_catalog c '
-                'LEFT JOIN root_lane_heads h USING(lane_id) ORDER BY c.lane_id')]
+                'LEFT JOIN root_lane_heads h USING(lane_id) ORDER BY c.initialized_at,c.rowid')]
 
     def object_path(self, digest: str) -> Path:
         raise LaneError('EXPLICIT_LANE_REQUIRED', 'Select the owning lane before accessing project content.')

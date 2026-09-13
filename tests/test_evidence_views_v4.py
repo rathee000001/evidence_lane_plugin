@@ -77,7 +77,7 @@ def test_owned_views_export_exact_source_locators_and_keep_read_bytes(system, la
         assert assertion['state'] == 'source_assertion_unvalidated'
     exported = publish(system, lane_id, selected)
     assert {Path(row['path']).name for row in exported['files']} == {lane_id + '.mmd', lane_id + '.dot', 'lane_pointer.json'}
-    assert all('/sectors/' + lane_id + '/' in row['path'].replace('\\', '/') for row in exported['files'])
+    assert all('/' + lane_id + '/' in row['path'].replace('\\', '/') for row in exported['files'])
     before = bytes_at(store.root)
     read = call(system, 'lane_view_read', {'view_id': lane_id + '.structure', 'include_content': True})
     assert read.status == 'ok' and read.result['state'] == 'fresh', read.error

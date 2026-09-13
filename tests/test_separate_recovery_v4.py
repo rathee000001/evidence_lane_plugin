@@ -42,7 +42,7 @@ def test_all_lane_databases_and_registered_bytes_survive_fresh_root_recovery(pro
                 store.lane(lane_id).put_object(('Evidence owned only by '+lane_id).encode())
     _, saved = backup(project, tmp_path)
     manifest = verify_backup(saved.backup_root, saved.manifest_digest, store.project_id)
-    assert saved.lane_count == len(CANONICAL_LANE_IDS) == 21
+    assert saved.lane_count == len(CANONICAL_LANE_IDS) == 22
     assert {item['lane_id'] for item in manifest['lanes']} == set(CANONICAL_LANE_IDS)
     for item in store.lane_catalog():
         relative = item['database_path']
@@ -50,12 +50,12 @@ def test_all_lane_databases_and_registered_bytes_survive_fresh_root_recovery(pro
     assert engine.stop()
     original = {item['path']:(store.root/item['path']).read_bytes() for item in manifest['files']}
     restored = restore_backup_offline(engine.root, store.project_id, saved.backup_root, saved.manifest_digest, tmp_path/'recovered')
-    assert restored['backup_root_pv'] == saved.root_pv and restored['restored_lane_count'] == 21
+    assert restored['backup_root_pv'] == saved.root_pv and restored['restored_lane_count'] == 22
     recovered = ProjectStore(tmp_path/'recovered', read_only=True)
     for lane_id in SECTOR_LANE_IDS:
         payload = ('Evidence owned only by '+lane_id).encode()
         assert recovered.lane(lane_id).read_object(hashlib.sha256(payload).hexdigest()) == payload
-        assert recovered.lane(lane_id).schema_history.is_dir()
+        assert recovered.lane(lane_id).schema_history.is_file()
     assert all((store.root/path).read_bytes() == value for path,value in original.items())
 
 
@@ -78,7 +78,7 @@ def test_historical_natural_views_and_schema_files_are_required(project, tmp_pat
     (Path(saved.backup_root)/'payload'/historical['path']).write_bytes(b'Changed historical view')
     with pytest.raises(LaneError, match='recorded digest or size'):
         verify_backup(saved.backup_root, saved.manifest_digest, store.project_id)
-    assert any('/schema_history/' in item['path'] or '/schema-history/' in item['path'] for item in manifest['files'])
+    assert any(item['path'].endswith('/schema-history.v4.json') for item in manifest['files'])
 
 
 def test_copy_interruption_preserves_incomplete_output_and_never_seals_it(project, tmp_path, monkeypatch):
@@ -222,7 +222,7 @@ def test_manifest_cannot_omit_lane_database_or_schema_history(project, tmp_path,
     root = Path(saved.backup_root)
     manifest = json.loads((root/'backup.json').read_text())
     omitted = store.lane('chat_lineage').definition.database_relative_path if omitted_kind == 'lane' else next(
-        item['path'] for item in manifest['files'] if '/schema-history/' in item['path'])
+        item['path'] for item in manifest['files'] if item['path'].endswith('/schema-history.v4.json'))
     manifest['files'] = [item for item in manifest['files'] if item['path'] != omitted]
     from evidence_lane_plugin.plan_runtime import content_digest
     from evidence_lane_plugin.storage import json_text
@@ -264,7 +264,7 @@ def test_packaged_mcp_backup_and_offline_cli_restore_real_separate_state(project
                 return value['result']
             saved = await call('project_backup', {'destination_root':str(tmp_path/'mcp-backup')})
             verified = await call('project_backup_verify', {key:saved[key] for key in ('backup_root','manifest_digest')})
-            assert verified['lane_count'] == 8 and verified['root_pv'] == saved['root_pv']
+            assert verified['lane_count'] == 9 and verified['root_pv'] == saved['root_pv']
             inspected = await call('project_recovery_inspect', {})
             assert inspected['unregistered_file_count'] == 0
             return saved
@@ -278,7 +278,7 @@ def test_packaged_mcp_backup_and_offline_cli_restore_real_separate_state(project
         creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     assert restored.returncode == 0, restored.stdout + restored.stderr
     result = json.loads(restored.stdout)['result']
-    assert result['original_state_preserved'] and result['restored_lane_count'] == 8
+    assert result['original_state_preserved'] and result['restored_lane_count'] == 9
     assert ProjectStore(tmp_path/'cli-recovered',read_only=True).project_id == store.project_id
 
 

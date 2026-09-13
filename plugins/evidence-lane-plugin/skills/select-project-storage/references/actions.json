@@ -1,13 +1,13 @@
 {
-  "action_set_digest": "42d028c630fa6e2b9d8bb3b5f6bbbd674927c412fcbc5ea1bbd11b5d6f8183e4",
+  "action_set_digest": "fa96a1596953559a73bef961eae93cb95ce4248b7ec5e6218cbce43e7486230c",
   "actions": [
     {
       "cross_project_read": false,
-      "description": "Register or create an explicitly selected external project root; preserve existing project bytes.",
+      "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
       "input_schema_digest": "1c8973b43bcdb4e8dd6408fc74666806c7f782bc18c40a19e25145b211d38bd3",
       "mutates": true,
       "name": "project_register",
-      "output_schema_digest": "dbad735885bbcd32f2d878f85e9bc583f206d317dcd8d6a1e2e46d6c49b0c266",
+      "output_schema_digest": "a7069dcb21f985e833abeda35402e29055a2acfb93bf7b18459e00a1dbca07bf",
       "permission": "project_admin",
       "profile": "core",
       "project_required": false,
@@ -49,7 +49,7 @@
       "input_schema_digest": "8ebe8a86d34d557faa8a3c6a403356792a18cfbf6f2a27cae2f20c535e869086",
       "mutates": false,
       "name": "storage_status",
-      "output_schema_digest": "eb90a3ebb254bccb69233fdc7c07c85dc3e4c08125061ee61aadd3a706027b84",
+      "output_schema_digest": "bbc300278989cfe3256497ce9459fae59757403b7fbc53c791d1976a7be3e583",
       "permission": "read",
       "profile": "core",
       "project_required": true,

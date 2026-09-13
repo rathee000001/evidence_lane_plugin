@@ -2,7 +2,7 @@
 from evidence_lane_plugin.authority_support import call_authority_action
 
 OWNER_ID = 'receipts'
-ACTIONS = {'accelerator_read': True, 'connector_read': True, 'remote_git_action_read': True, 'session_context': True, 'session_exit_boundary': True, 'session_status': True, 'storage_connector_inspect': True}
+ACTIONS = {'accelerator_read': True, 'connector_read': True, 'remote_git_action_read': True, 'session_exit_boundary': True, 'storage_connector_inspect': True}
 
 
 def read_authority(client, **request):

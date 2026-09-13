@@ -308,7 +308,7 @@ def _authority_outputs(
             **envelope,
             **row,
             "manifest": _ref(root, row["manifest"]["path"], outputs),
-            "project_state": "separate_lane_sqlite_and_files",
+            "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
             "root_pv_role": "coordinate_published_lane_head",
             "runtime_execution_inferred": False,
         }
@@ -334,7 +334,7 @@ def _authority_outputs(
             **envelope,
             **row,
             "manifest": _ref(root, row["manifest"], outputs),
-            "project_state": "separate_lane_sqlite_and_files",
+            "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
             "runtime_execution_inferred": False,
         }
         sector_members.append(target)

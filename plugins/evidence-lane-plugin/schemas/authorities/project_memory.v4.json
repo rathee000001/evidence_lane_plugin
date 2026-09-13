@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/project_memory/dot-artifact.schema.json",
-      "sha256": "6382925994eb6d9a5017fe729aa2eb3334af0e29c33b1c6531c2d5435601ab47"
+      "sha256": "a479f07781ff1889e2ecaa5e706f5dc1f8f601c7f13f5bba8926a4b918601283"
     },
     {
       "path": "authorities/project_memory/manifest.schema.json",
-      "sha256": "e132efb21c58b54f0a396116ed792f61e49a700c23392255339914f171833090"
+      "sha256": "f6428f281f86aec9e74a8d7ed4f5513564f03e9f3215ce709a08f3352eec374e"
     },
     {
       "path": "authorities/project_memory/manifest.v4.json",
-      "sha256": "e595c81cb2a1493a954e986c24cfa1c3bd0ace5edaab72e23ea830fb57279bc9"
+      "sha256": "34585843d74cbd55b6fc2067981abeb53c2fe22f151543e74b07086cf1e6fa36"
     },
     {
       "path": "authorities/project_memory/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
-      "sha256": "56680157390a38367ef849544fe891b0fb5516011c69cd4e928363ffbb5f3b9d"
+      "sha256": "12c9e38c5350e4883bb656596485c72579b9e072c20d8ce62a018dee46b97aab"
     },
     {
       "path": "authorities/project_memory/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/project_memory/pointer-contract.v4.json",
-      "sha256": "ed84a502914cb3dfff10a69ef5863271cd5b8773fe36616f0c6a37cc4fbf969c"
+      "sha256": "c4e5ad8e21acfe4273c00ce3b1c6e84815492c823e30ce11c757b58272706a09"
     },
     {
       "path": "authorities/project_memory/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/project_memory/runtime-binding.schema.json",
-      "sha256": "b38fda91fbb35fcdd2690ee2c4367ddd29b5d18ad2ac71a85761808514eb2b6a"
+      "sha256": "4db17170ffbb030606decd5ab503a0d5f24fcc4dbd251780c40f611a3881f744"
     },
     {
       "path": "authorities/project_memory/runtime-binding.v4.json",
-      "sha256": "94e782dcd4c459d5f1faf58f4e29104a72401b532b0db45d5f4d1e82154fb367"
+      "sha256": "aa8c06dad41069ece77bccc1e6e077f0b21b6cef134f20e3b9466e9089cc6929"
     },
     {
       "path": "authorities/project_memory/schema.sql",

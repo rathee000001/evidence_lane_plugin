@@ -1,14 +1,14 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "docs",
   "manifest": {
-    "bytes": 77425,
+    "bytes": 77399,
     "path": "authorities/project_sectors/docs/manifest.v4.json",
-    "sha256": "0f2daf931b1c2e39cc89b44017e3e0c3f0705e2e062e68b2d1c2a80096f1f7b2"
+    "sha256": "7e0715e7aa0573b098daa356d5a3dc785db3f5a4467d9a383e7300ab57c2de0a"
   },
-  "project_state": "separate_lane_sqlite_and_files",
+  "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,
   "schema": "evidence-lane.sdk-project-sector-binding.v4",
   "status": "PASS"

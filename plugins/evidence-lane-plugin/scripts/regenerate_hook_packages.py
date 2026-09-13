@@ -21,6 +21,7 @@ from evidence_lane_plugin.hook_contract import (
     hook_registry,
 )
 from evidence_lane_plugin.hook_event_handlers import handler_class_for_event
+from evidence_lane_plugin.hook_stage_runtime import HOST_HOOK_STAGES
 
 
 def encoded(value) -> bytes:
@@ -61,14 +62,35 @@ if __name__ == "__main__":
 '''
 
 
+def stage_runner_source() -> str:
+    return '''"""Host-visible staged Hook launcher; generated from the v4 Hook contract."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+if __name__ == "__main__":
+    from evidence_lane_plugin.hook_contract import HOOK_EVENT_NAMES
+    from evidence_lane_plugin.hook_stage_runtime import HOST_HOOK_STAGES, main
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("event", choices=HOOK_EVENT_NAMES)
+    parser.add_argument("stage", choices=[item["id"] for item in HOST_HOOK_STAGES])
+    arguments = parser.parse_args()
+    raise SystemExit(main(arguments.event, arguments.stage))
+'''
+
+
 def event_readme(name: str) -> str:
     context = "may return bounded additional context" if name in {"SessionStart", "UserPromptSubmit"} else "returns no control output"
     return f'''# {name}
 
 This directory owns the packaged Evidence Lane handler for the documented
-`{name}` event. Its fixed handler class runs the distinct admission,
-classification, event handling, authenticated transport, receipt sealing and
-bounded-output owners, and {context}.
+`{name}` event. Codex displays four separate Host Hook rows for validate, seal,
+transport and emit. Those rows run the current admission, classification,
+event handling, authenticated transport, receipt sealing and bounded-output
+owners through dependency-safe stage receipts, and the final row {context}.
 
 The handler never selects a project from a title or path, starts lifecycle work,
 controls a subagent, changes a Goal, retries an uncertain delivery, or reads a
@@ -83,10 +105,13 @@ def exports() -> dict[str, object]:
         "hooks/hooks.json": hook_manifest(),
         "hooks/hook-event-registry.v4.json": hook_registry(),
         "hooks/invoke_hook.py": invoke_source(),
+        "hooks/stage_runner.py": stage_runner_source(),
         "hooks/event-isolation.policy.v4.json": {
             "schema": "evidence-lane.hook-event-isolation-policy.v4",
             "owner": "src/evidence_lane_plugin/hook_event_isolation.py",
-            "one_process_per_occurrence": True,
+            "one_process_per_occurrence": False,
+            "one_process_per_host_stage": True,
+            "host_stage_count": len(HOST_HOOK_STAGES),
             "raw_input_persisted": False,
             "automatic_retry": False,
             "terminal_replay": False,
@@ -96,9 +121,12 @@ def exports() -> dict[str, object]:
             "schema": "evidence-lane.hook-stage-registry.v4",
             "stage_count": len(HOOK_PIPELINE),
             "stages": list(HOOK_PIPELINE),
+            "host_stage_count": len(HOST_HOOK_STAGES),
+            "host_stages": list(HOST_HOOK_STAGES),
             "event_specific_handler_classes": True,
             "monolithic_hook_implementation": False,
             "runtime_bridge": "hooks/runner.mjs",
+            "host_stage_runner": "hooks/stage_runner.py",
             "ambient_python_required": False,
         },
     }
@@ -140,7 +168,8 @@ def exports() -> dict[str, object]:
             "stages": list(HOOK_PIPELINE),
             "stage_contracts": stage_paths,
             "distinct_executable_owners": True,
-            "separate_process_per_stage": False,
+            "host_stages": list(HOST_HOOK_STAGES),
+            "separate_process_per_host_stage": True,
             "automatic_retry": False,
         }
         outputs[readme_path] = event_readme(name)
@@ -163,6 +192,8 @@ def exports() -> dict[str, object]:
             "execution_owner": "evidence_lane_plugin.hook_pipeline",
             "handler_class": f"evidence_lane_plugin.hook_event_handlers.{handler_class.__name__}",
             "runtime_bridge": "hooks/runner.mjs",
+            "host_stage_runner": "hooks/stage_runner.py",
+            "host_stages": [stage["id"] for stage in HOST_HOOK_STAGES],
             "ambient_python_required": False,
             "stage_contracts": stage_paths,
             "automatic_retry": False,
@@ -179,6 +210,8 @@ def exports() -> dict[str, object]:
         "stage_registry": "hooks/hook-stage-registry.v4.json",
         "event_handler_owner": "src/evidence_lane_plugin/hook_event_handlers.py",
         "runtime_bridge": "hooks/runner.mjs",
+        "host_stage_runner": "hooks/stage_runner.py",
+        "host_stages": [stage["id"] for stage in HOST_HOOK_STAGES],
         "ambient_python_required": False,
         "old_tunnel_host_required": False,
         "native_installation_verified": False,

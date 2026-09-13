@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "actions": [
     "continuation_offer",
     "continuation_accept",
@@ -19,7 +19,7 @@
     {
       "bytes": 13507,
       "path": "src/evidence_lane_plugin/session_authority.py",
-      "sha256": "7a329d92c4130793bd8c8d140cc8527a5044169d5b4d6f44f740d07fc754a1b4"
+      "sha256": "190f5ce061f46ea185ce7b4b39c72406ea2419708bed46ae8f0ea4ca040aa27b"
     }
   ],
   "plan_owned": true,

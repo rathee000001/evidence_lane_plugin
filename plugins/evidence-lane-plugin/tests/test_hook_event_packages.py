@@ -32,7 +32,7 @@ def test_every_registered_hook_has_one_executable_owned_event_package():
             f"{index:02d}-{stage['id']}.stage.v4.json"
             for index, stage in enumerate(HOOK_PIPELINE, 1)
         }
-        assert {path.name for path in folder.iterdir()} == {
+        assert {path.name for path in folder.iterdir() if path.name != '__pycache__'} == {
             "README.md", "event.schema.json", "event.v4.json", "handler.py",
             "pipeline.v4.json", *stage_names}
         contract = json.loads((folder / "event.v4.json").read_text(encoding="utf-8"))
@@ -45,7 +45,7 @@ def test_every_registered_hook_has_one_executable_owned_event_package():
             f"hooks/events/{name}/{stage}" for stage in sorted(stage_names)
         ]
         assert pipeline["distinct_executable_owners"]
-        assert not pipeline["separate_process_per_stage"] and not pipeline["automatic_retry"]
+        assert pipeline["separate_process_per_host_stage"] and not pipeline["automatic_retry"]
 
     assert len(HOOK_HANDLER_CLASSES) == len(HOOK_EVENT_NAMES) == 12
     assert {handler.event_name for handler in HOOK_HANDLER_CLASSES} == set(HOOK_EVENT_NAMES)

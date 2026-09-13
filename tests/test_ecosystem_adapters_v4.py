@@ -76,19 +76,19 @@ def test_function_tool_reuses_current_schema_and_current_client_authorization(pa
     assert not tool._is_agent_tool and not tool._is_codex_tool
     assert not tool._evidence_lane_contract['construction_authorizes_execution']
     assert invoke(tool, {'arguments': {}})['status'] == 'ok'
-    before = hashes(store.root / 'authorities/plan')
+    before = hashes(store.root / 'plan')
     denied = build_openai_agents_function_tool(action=action(reader, 'plan_create'), client=EvidenceLaneClient(reader))
     result = invoke(denied, create_arguments(store.project_id))
     assert result['status'] == 'error' and result['error']['code'] == 'PROJECT_NOT_SELECTED'
-    assert hashes(store.root / 'authorities/plan') == before
+    assert hashes(store.root / 'plan') == before
     allowed = build_openai_agents_function_tool(action=action(writer, 'plan_create'), client=EvidenceLaneClient(writer))
     assert invoke(allowed, create_arguments(store.project_id))['status'] == 'ok'
-    before = hashes(store.root / 'authorities/plan')
+    before = hashes(store.root / 'plan')
     read = build_openai_agents_function_tool(action=action(reader, 'plan_read'), client=EvidenceLaneClient(reader))
     assert invoke(read, {'project_id': store.project_id, 'arguments': {}})['status'] == 'ok'
     result = invoke(read, {'project_id': '00000000-0000-0000-0000-000000000001', 'arguments': {}})
     assert result['status'] == 'error' and result['error']['code'] == 'PROJECT_NOT_SELECTED'
-    assert hashes(store.root / 'authorities/plan') == before
+    assert hashes(store.root / 'plan') == before
 
 
 @pytest.mark.parametrize('raw', [
@@ -183,7 +183,7 @@ def backend_transport(engine, project_id):
 def test_fastmcp_preserves_every_native_schema_and_read_only_client_scope(pair):
     engine, store, writer, reader = pair
     assert EvidenceLaneClient(writer).call('plan_create', **create_arguments(store.project_id)).status == 'ok'
-    before = hashes(store.root / 'authorities/plan')
+    before = hashes(store.root / 'plan')
     gateway = build_fastmcp_gateway(backend_transport(engine, store.project_id))
     assert gateway._evidence_lane_contract['status'] == 'COMPOSED_NOT_CONTACTED'
     assert gateway._evidence_lane_contract['native_action_schemas_unchanged'] is None
@@ -202,7 +202,7 @@ def test_fastmcp_preserves_every_native_schema_and_read_only_client_scope(pair):
             assert denied.is_error and denied.structured_content['error']['code'] == 'PROJECT_NOT_SELECTED'
 
     asyncio.run(exercise())
-    assert hashes(store.root / 'authorities/plan') == before
+    assert hashes(store.root / 'plan') == before
 
 
 def test_connected_fastmcp_client_cannot_be_reused_across_proxy_sessions():

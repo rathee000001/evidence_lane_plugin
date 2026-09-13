@@ -31,7 +31,7 @@ def test_tableau_package_has_own_database_and_reader(tableau_system):
     assert not module.inspect(store)['initialized']
     manifest = sector_package_contract('tableau', engine.registry)
     assert len(manifest['actions']) == 10
-    assert manifest['database'] == 'sectors/tableau/tableau_sector_v001.sqlite'
+    assert manifest['database'] == 'tableau/tableau_sector_v001.sqlite'
     assert manifest['runtime_module'] == 'evidence_lane_plugin.tableau_profile'
     assert {item['name'] for item in manifest['actions']} == {
         'tableau_index', 'tableau_refresh', 'tableau_current', 'tableau_query',
@@ -58,7 +58,7 @@ def test_tableau_graph_preserves_exact_xml_locators(tableau_system):
     assert {Path(row['path']).name for row in published.result['files']} == {
         'tableau.mmd', 'tableau.dot', 'tableau.pointer.json',
     }
-    assert all('/sectors/tableau/' in row['path'].replace('\\', '/') for row in published.result['files'])
+    assert all('/tableau/' in row['path'].replace('\\', '/') for row in published.result['files'])
     read = call(tableau_system, 'lane_view_read', {'view_id': arguments['view_id'],
         'snapshot_digest': published.result['snapshot_digest'], 'include_content': True})
     assert read.status == 'ok', read.error

@@ -698,11 +698,11 @@
     {
       "view_id": "canon.consequences",
       "lane_id": "canon",
-      "folder": "authorities/canon",
+      "folder": "canon",
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "fe318d50867df3813ef0633d6be3d5d66576a9a5ac5938fe11a207baaa42f5dc",
+      "implementation_digest": "6f62295af1d29605e41ba1ecbc33af9668c4d57e2c9c0bbba84c5cc24efdbb3b",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",

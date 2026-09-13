@@ -23,7 +23,7 @@ from evidence_lane_plugin.authority_support import (
 )
 from evidence_lane_plugin.hook_contract import hook_registry
 from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, get_lane
-from evidence_lane_plugin.session_authority import SESSION_MIGRATIONS, SessionResult
+from evidence_lane_plugin.session_authority import SessionResult
 from evidence_lane_plugin.storage import APPLICATION_ID, CORE_SCHEMA, LANE_SCHEMA, RECEIPTS_SCHEMA
 from evidence_lane_plugin.writers import WRITER_MIGRATIONS
 
@@ -105,6 +105,40 @@ def inspect(project):
                 'database': get_lane(lane_id).database_relative_path, 'separate_graph_database': False,
                 'runtime': ['evidence_lane_plugin.canon_consequence_graph', 'evidence_lane_plugin.canon_task_graph'],
                 'installed_execution_claimed': False})
+        if lane_id == 'sessions':
+            outputs[folder + '/runtime.py'] = b'''"""Sessions: exact Boot, Resume, locked Flash and host binding authority."""
+from evidence_lane_plugin.authority_support import (
+    refresh_authority_support,
+    validate_authority_support,
+)
+from evidence_lane_plugin.session_authority import SESSION_MIGRATIONS, SessionAuthority
+
+AUTHORITY_ID = 'sessions'
+
+
+def initialize(project, *, writer):
+    return refresh_authority_support(project, AUTHORITY_ID, writer=writer)
+
+
+def inspect(project):
+    return validate_authority_support(project, AUTHORITY_ID)
+
+
+__all__ = ['AUTHORITY_ID', 'SESSION_MIGRATIONS', 'SessionAuthority', 'initialize', 'inspect']
+'''
+            outputs[folder + '/pointer-contract.schema.json'] = schema_bytes(
+                SessionResult.model_json_schema(), 'Exact session head, locked Flash and owner attribution')
+            outputs[folder + '/pointer-contract.v4.json'] = encode({
+                'schema': 'evidence-lane.session-pointer-contract.v4',
+                'state_authority': 'sessions_lane_sqlite',
+                'reference': 'session_id, generation, event_digest and locked Flash',
+                'separate_current_file': False,
+                'native_task_attestation_inferred': False,
+            })
+            installation_policy = PLUGIN / folder / 'installation-layout.v4.json'
+            if not installation_policy.is_file():
+                raise RuntimeError('The Session authority installation policy is missing')
+            outputs[folder + '/installation-layout.v4.json'] = installation_policy.read_bytes()
         outputs[folder + '/manifest.schema.json'] = schema_bytes({'type': 'object',
             'required': [*contract, 'members', 'runtime_binding'],
             'properties': {'schema': {'const': contract['schema']}, 'authority_id': {'const': lane_id},
@@ -144,7 +178,7 @@ __all__ = ['ProjectCoordinator', 'ProjectStore', 'WriterLease', 'coordinated_tra
 '''
     layout = {'schema': 'evidence-lane.live-project-root-layout.v4', 'source_package_folder': folder,
         'root_database': 'root-pv.sqlite3', 'root_business_records': False,
-        'authority_count': 8, 'lanes': [{'lane_id': name, 'kind': get_lane(name).kind,
+        'authority_count': len(authorities), 'lanes': [{'lane_id': name, 'kind': get_lane(name).kind,
             'folder': get_lane(name).folder, 'database': get_lane(name).database_relative_path,
             'files': get_lane(name).files_relative_path, 'schema_history': get_lane(name).schema_history_relative_path}
             for name in CANONICAL_LANE_IDS],
@@ -162,33 +196,12 @@ __all__ = ['ProjectCoordinator', 'ProjectStore', 'WriterLease', 'coordinated_tra
 
     auxiliaries = []
     for owner, modules, storage in (
-        ('session_authority', ['evidence_lane_plugin.session_authority'], get_lane('receipts').database_relative_path + ' sessions schema owner'),
         ('instructions', ['evidence_lane_plugin.agent_configuration'], 'Scoped instruction and separate workspace/host recall files; no database'),
     ):
         folder = 'authorities/' + owner
         extras, _ = compile_workflow_assets(registry, owner, folder, storage=storage, runtime_modules=modules)
         outputs.update(extras)
-        if owner == 'session_authority':
-            outputs[folder + '/runtime.py'] = b'''"""Boot, Resume and locked Flash retain the owning session implementation."""
-from evidence_lane_plugin.session_authority import SESSION_MIGRATIONS, SessionAuthority
-
-__all__ = ['SESSION_MIGRATIONS', 'SessionAuthority']
-'''
-            outputs[folder + '/schema.sql'] = sql_bytes(SESSION_MIGRATIONS)
-            _, schema = empty_schema_from_migrations(owner, SESSION_MIGRATIONS,
-                foundation=LANE_SCHEMA + RECEIPTS_SCHEMA, kind='session-owner-subset')
-            outputs[folder + '/sqlite-schema.v4.json'] = encode(schema | {'template_file_packaged': False,
-                'owning_lane': 'receipts', 'separate_database': False})
-            mmd, dot, _ = schema_graph(owner, schema)
-            outputs[folder + '/session-authority.mmd'] = mmd.encode()
-            outputs[folder + '/session-authority.dot'] = dot.encode()
-            outputs[folder + '/pointer-contract.schema.json'] = schema_bytes(
-                SessionResult.model_json_schema(), 'Exact session head, locked Flash and owner attribution')
-            outputs[folder + '/pointer-contract.v4.json'] = encode({'schema': 'evidence-lane.session-pointer-contract.v4',
-                'state_authority': 'receipts_lane_sqlite', 'reference': 'session_id, generation, event_digest and locked Flash',
-                'separate_current_file': False, 'native_task_attestation_inferred': False})
-        else:
-            outputs[folder + '/runtime.py'] = b'''"""Scoped AGENTS instructions and separate recall without import or mutation."""
+        outputs[folder + '/runtime.py'] = b'''"""Scoped AGENTS instructions and separate recall without import or mutation."""
 from evidence_lane_plugin.agent_configuration import (
     InstructionRequest,
     InstructionResult,
@@ -197,17 +210,12 @@ from evidence_lane_plugin.agent_configuration import (
 
 __all__ = ['InstructionRequest', 'InstructionResult', 'resolve_agent_configuration']
 '''
-            contract = {'schema': 'evidence-lane.instruction-arms-contract.v4',
-                'agents_md_role': 'scoped_instruction_authority', 'workspace_and_host_memory_role': 'separate_non_authoritative_recall',
-                'project_memory_database_role': 'separate_authority', 'automatic_host_memory_import': False,
-                'raw_chat_history_loaded': False, 'sqlite_authority_owned': False}
-            outputs[folder + '/authority-contract.v4.json'] = encode(contract)
-            outputs[folder + '/authority-contract.schema.json'] = schema_bytes({'const': contract}, 'Separate instruction and recall arms')
-        if owner == 'session_authority':
-            installation_policy = PLUGIN / folder / 'installation-layout.v4.json'
-            if not installation_policy.is_file():
-                raise RuntimeError('The Session authority installation policy is missing')
-            outputs[folder + '/installation-layout.v4.json'] = installation_policy.read_bytes()
+        contract = {'schema': 'evidence-lane.instruction-arms-contract.v4',
+            'agents_md_role': 'scoped_instruction_authority', 'workspace_and_host_memory_role': 'separate_non_authoritative_recall',
+            'project_memory_database_role': 'separate_authority', 'automatic_host_memory_import': False,
+            'raw_chat_history_loaded': False, 'sqlite_authority_owned': False}
+        outputs[folder + '/authority-contract.v4.json'] = encode(contract)
+        outputs[folder + '/authority-contract.schema.json'] = schema_bytes({'const': contract}, 'Separate instruction and recall arms')
         package_contract = {'schema': 'evidence-lane.authority-workflow-package.v4',
             'owner_id': owner, 'source_package_folder': folder, 'modules': modules,
             'storage': storage, 'separate_database': False, 'installed_execution_claimed': False}

@@ -101,7 +101,7 @@ def test_packaged_stdio_custom_registration_intake_refresh_and_exact_history(tmp
                     'formats': ['mmd', 'dot'], 'include_pointer': True})
                 assert {Path(row['path']).name for row in view['files']} == {
                     'custom__measurements.mmd', 'custom__measurements.dot', 'lane_pointer.json'}
-                assert all('/sectors/custom__measurements/' in row['path'].replace('\\', '/') for row in view['files'])
+                assert all('/custom__measurements/' in row['path'].replace('\\', '/') for row in view['files'])
                 measurements_before = store.lane('custom__measurements').database.read_bytes()
                 (source / 'notes.json').write_bytes(b'{"decision":"beta","measurement":2.500}\n')
                 contract = adapters['custom__notes']
@@ -145,7 +145,7 @@ def test_packaged_stdio_custom_registration_intake_refresh_and_exact_history(tmp
                 assert (await call('plan_read'))['counts'] == {'completed': 3}
                 assert database_bytes(store) == before
                 assert (source / 'measurements.sqlite').read_bytes() == source_bytes['measurements.sqlite']
-                assert not (store.root / 'sectors/custom').exists()
+                assert not (store.root / 'custom').exists()
         with LocalEndpoint(engine, studio_enabled=False):
             asyncio.run(run())
         assert engine.workers.status()['succeeded_operations'] >= 3

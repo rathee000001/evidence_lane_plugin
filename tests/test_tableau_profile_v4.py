@@ -74,6 +74,11 @@ def execute(system, action, arguments, *, index=0, timeout=60, failure=None):
         assert row['state'] == 'blocked' and row['error_code'] == failure, row
         return row
     assert row['state'] == 'verified', {key: row[key] for key in ('state', 'error_code', 'result_object')}
+    while time.monotonic() < deadline and any(
+        item['project_id'] == store.project_id for item in system[0].project_work.status()
+    ):
+        time.sleep(0.01)
+    assert not any(item['project_id'] == store.project_id for item in system[0].project_work.status())
     return json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
 
 
@@ -82,7 +87,7 @@ def test_native_workbook_snapshot_retrieval_and_read_only_queries(tableau_system
     store = tableau_system[1]
     raw = (store.source_root / 'datasource_test.twb').read_bytes()
     indexed = execute(tableau_system, 'tableau_index', {'filename': 'datasource_test.twb'})
-    assert indexed['sha256'] == digest(raw) and '/sectors/tableau/files/natural/' in indexed['natural_path'].replace('\\', '/')
+    assert indexed['sha256'] == digest(raw) and '/tableau/objects/natural/' in indexed['natural_path'].replace('\\', '/')
     assert not indexed['fidelity']['layout_verified']
     arguments = {'snapshot_id': indexed['snapshot_id']}
     before = {p: p.read_bytes() for p in store.root.rglob('*.sqlite*') if p.is_file()}

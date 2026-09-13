@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 import copy
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 from mcp.server.lowlevel import Server
 from mcp.server.lowlevel.helper_types import ReadResourceContents
 from mcp.server.stdio import stdio_server
-from mcp.types import CallToolResult, Resource, TextContent, Tool, ToolAnnotations
+from mcp.types import CallToolResult, Icon, Resource, TextContent, Tool, ToolAnnotations
 
 from . import __version__
 from .connections import ConnectRequest, ProjectSelection
@@ -27,6 +28,24 @@ from .mcp_apps import (
 )
 from .remote_transport import RemoteClientConfig, RemoteTransport
 from .sdk import ActionResponse, EvidenceLaneClient
+
+
+def server_identity() -> dict:
+    """Visible MCP implementation identity, separate from the plugin slug."""
+
+    icon_path = Path(__file__).resolve().parents[2] / "assets" / "evidence-lane-icon.png"
+    icons = []
+    if icon_path.is_file():
+        icons.append(Icon(
+            src="data:image/png;base64," + base64.b64encode(icon_path.read_bytes()).decode("ascii"),
+            mimeType="image/png",
+        ))
+    return {
+        "name": "Evidence Lane",
+        "version": __version__,
+        "website_url": "https://evidencelane.org",
+        "icons": icons,
+    }
 
 
 def tool_from_action(action: dict) -> Tool:
@@ -66,7 +85,13 @@ async def serve(runtime_root: Path | None, *, host_profile: str = "unknown",
         raise LaneError('LOCAL_SELECTION_ONLY', 'Remote access follows its configured OAuth grants, not local owner selections.')
     if len(project_selections) > 32 or len({item.project_id for item in project_selections}) != len(project_selections):
         raise LaneError('INVALID_SELECTION', 'Configure at most 32 distinct project selections.')
-    server = Server("evidence-lane-plugin", version=__version__)
+    identity = server_identity()
+    server = Server(
+        identity["name"],
+        version=identity["version"],
+        website_url=identity["website_url"],
+        icons=identity["icons"],
+    )
     transport: LocalTransport | RemoteTransport | None = None
     connect_lock = asyncio.Lock()
 

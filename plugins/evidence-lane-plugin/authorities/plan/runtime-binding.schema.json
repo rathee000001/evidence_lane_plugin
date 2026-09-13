@@ -9,7 +9,7 @@
       "evidence_lane_plugin.jobs",
       "evidence_lane_plugin.adaptive_delta_entry"
     ],
-    "storage": "authorities/plan/plan_authority_v001.sqlite with files and schema history in authorities/plan",
+    "storage": "plan/plan_authority_v001.sqlite with files and schema history in plan",
     "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
     "alternate_writer": false
   },

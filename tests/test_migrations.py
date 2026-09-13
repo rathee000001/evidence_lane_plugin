@@ -190,7 +190,8 @@ def test_owner_routes_to_its_own_lane_with_durable_schema_history(store):
     with memory.connection(read_only=True) as connection:
         row = connection.execute('SELECT * FROM schema_history_files').fetchone()
         assert row['owner'] == 'memory'
-        assert (memory.schema_history / row['filename']).is_file()
+        assert row['filename'] == 'schema-history.v4.json'
+        assert memory.schema_history.is_file()
     before = {path: path.read_bytes() for path in (project.database, memory.database)}
     assert read_compatibility(project, [change])[0]['status'] == 'compatible'
     assert all(path.read_bytes() == content for path, content in before.items())
@@ -222,12 +223,13 @@ def test_changed_schema_history_blocks_read_compatibility_and_publication(store)
     apply_migrations(store, [migration()])
     with store.connection(read_only=True) as connection:
         filename = connection.execute('SELECT filename FROM schema_history_files').fetchone()[0]
-    path = store.schema_history / filename
+    assert filename == 'schema-history.v4.json'
+    path = store.schema_history
     path.write_bytes(b'changed immutable history')
     before = store.project.pv_head()
-    with pytest.raises(LaneError, match='migration file changed'):
+    with pytest.raises(LaneError, match='direct schema-history projection'):
         read_compatibility(store, [migration()])
-    with pytest.raises(LaneError, match='migration file changed'), store.transaction() as connection:
+    with pytest.raises(LaneError, match='direct schema-history projection'), store.transaction() as connection:
         connection.execute("INSERT INTO doc_documents VALUES('lost','never published')")
     assert store.project.pv_head() == before
     with store.connection(read_only=True) as connection:

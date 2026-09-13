@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "memory",
   "source_package_folder": "authorities/project_memory",
-  "project_state_folder": "authorities/memory",
+  "project_state_folder": "memory",
   "runtime_module": "evidence_lane_plugin.project_memory",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.memory.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/memory/memory_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/memory/schema-history",
+    "database_relative_path": "memory/memory_authority_v001.sqlite",
+    "schema_history_relative_path": "memory/schema-history.v4.json",
     "owners": [
       "memory"
     ],
@@ -32,13 +32,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "1A3A21F3CBBE8020F76685DF6166A6C85C23B5D6F43C310A9D0FC6D5A08AA8CD"
+    "contract_sha256": "4A3413CEBE07B73E5F5900982EFAB685A9F43544BA34BA47687A5DD57D660474"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "memory",
-    "folder": "authorities/memory",
-    "files_root": "authorities/memory/files",
+    "folder": "memory",
+    "objects_root": "memory/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -46,7 +46,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -69,7 +69,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "166FCEE43DF23C3A11496D723A181FF23B78C27147EF2CC323914CF8211B69D3"
+    "contract_sha256": "7F80D4DCAE4E08D88BC654E95BC0ADCFBDC0907DBF72FF97F3CCD23173E76452"
   },
   "migration_bindings": [
     {
@@ -1924,11 +1924,11 @@
     {
       "view_id": "memory.links",
       "lane_id": "memory",
-      "folder": "authorities/memory",
+      "folder": "memory",
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "61971c417578291ca3c276f12f88008762c0caca7e3826e1063bfc4095ad30ae",
+      "implementation_digest": "360bb288f886cd3ae5815e4e34326165bc96320880c5b0959887dd0e85a170a6",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",
@@ -2054,7 +2054,7 @@
   "members": [
     {
       "path": "authorities/project_memory/README.md",
-      "sha256": "785683636707f3fb0106b187245114f41081d1c3cf1b55df7bafe03f38f671fa"
+      "sha256": "efdfbfcdf30bb09e381e08a18b62a521cd784a44edb13a5287a95bb93c52a2c3"
     },
     {
       "path": "authorities/project_memory/build-refresh-contract.schema.json",
@@ -2066,11 +2066,11 @@
     },
     {
       "path": "authorities/project_memory/dot-artifact.schema.json",
-      "sha256": "6382925994eb6d9a5017fe729aa2eb3334af0e29c33b1c6531c2d5435601ab47"
+      "sha256": "a479f07781ff1889e2ecaa5e706f5dc1f8f601c7f13f5bba8926a4b918601283"
     },
     {
       "path": "authorities/project_memory/manifest.schema.json",
-      "sha256": "e132efb21c58b54f0a396116ed792f61e49a700c23392255339914f171833090"
+      "sha256": "f6428f281f86aec9e74a8d7ed4f5513564f03e9f3215ce709a08f3352eec374e"
     },
     {
       "path": "authorities/project_memory/memory.dot",
@@ -2086,7 +2086,7 @@
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
-      "sha256": "20d125bca8c52df37c1da5b70cf27bd3d42ddcd36cb04e54a58fe1a1ed7fd041"
+      "sha256": "682986b60a4d81ddecaf71c2ef711489071f25f81018a34558625132d72bb95c"
     },
     {
       "path": "authorities/project_memory/migration-history.json",
@@ -2094,7 +2094,7 @@
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
-      "sha256": "56680157390a38367ef849544fe891b0fb5516011c69cd4e928363ffbb5f3b9d"
+      "sha256": "12c9e38c5350e4883bb656596485c72579b9e072c20d8ce62a018dee46b97aab"
     },
     {
       "path": "authorities/project_memory/pointer-contract.schema.json",
@@ -2102,7 +2102,7 @@
     },
     {
       "path": "authorities/project_memory/pointer-contract.v4.json",
-      "sha256": "ed84a502914cb3dfff10a69ef5863271cd5b8773fe36616f0c6a37cc4fbf969c"
+      "sha256": "c4e5ad8e21acfe4273c00ce3b1c6e84815492c823e30ce11c757b58272706a09"
     },
     {
       "path": "authorities/project_memory/reader-contract.schema.json",
@@ -2118,11 +2118,11 @@
     },
     {
       "path": "authorities/project_memory/runtime-binding.schema.json",
-      "sha256": "b38fda91fbb35fcdd2690ee2c4367ddd29b5d18ad2ac71a85761808514eb2b6a"
+      "sha256": "4db17170ffbb030606decd5ab503a0d5f24fcc4dbd251780c40f611a3881f744"
     },
     {
       "path": "authorities/project_memory/runtime-binding.v4.json",
-      "sha256": "94e782dcd4c459d5f1faf58f4e29104a72401b532b0db45d5f4d1e82154fb367"
+      "sha256": "aa8c06dad41069ece77bccc1e6e077f0b21b6cef134f20e3b9466e9089cc6929"
     },
     {
       "path": "authorities/project_memory/runtime.py",
@@ -2154,7 +2154,7 @@
     },
     {
       "path": "authorities/project_memory/workflow.v4.json",
-      "sha256": "fe44a9fa373b603198d81ebcd84f3eb2796367e64eef9252b7279a8cbf812418"
+      "sha256": "62fe4ba481b01a8bde2159a27b5b35df639a8996015df9cf42ef94a57e97591f"
     }
   ]
 }

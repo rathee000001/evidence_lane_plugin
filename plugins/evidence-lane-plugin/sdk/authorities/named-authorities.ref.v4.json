@@ -1,49 +1,54 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
-  "authority_count": 8,
+  "authority_count": 9,
   "installed_execution_claimed": false,
-  "member_count": 8,
+  "member_count": 9,
   "members": [
     {
-      "bytes": 703,
+      "bytes": 713,
       "path": "sdk/authorities/named/canon.authority.v4.json",
-      "sha256": "95d280314695a895c830ca486fe28a00a5c0f2180fc0ec6221aa177500e57e6a"
+      "sha256": "22824d25faf48037e93c004df635549ac87d68734a0f734ccb8d0cb0136bfa3a"
     },
     {
-      "bytes": 702,
+      "bytes": 712,
       "path": "sdk/authorities/named/chat_lineage.authority.v4.json",
-      "sha256": "9c5b08e0c36cb8f546580af934a3764a4e817138f182690b560326dc948705f4"
+      "sha256": "542eea6c2d08ddb4c2a4c8909038d14b319a22b209fe0a4f03d05442ed3f50e6"
     },
     {
-      "bytes": 709,
+      "bytes": 719,
       "path": "sdk/authorities/named/learning.authority.v4.json",
-      "sha256": "b19315d7f39a1967681f5b73824306d68948770fec1c212dfb64fca5d928334a"
+      "sha256": "4fcf6145182bd990124a18c30b84745acf01b04b6df8a1570ea5e5e1411ac125"
     },
     {
-      "bytes": 707,
+      "bytes": 717,
       "path": "sdk/authorities/named/memory.authority.v4.json",
-      "sha256": "b563bcd19e14389f2182f84a910cbcc5a6298f0a5accfc50caea5461b6326adf"
+      "sha256": "5f8e82dff4d197aa49e327aa4f454d60ba852ba602c861f3b274c1141f8aaaad"
     },
     {
-      "bytes": 684,
+      "bytes": 694,
       "path": "sdk/authorities/named/plan.authority.v4.json",
-      "sha256": "8f1020c066a0acf18e0877168d0b4cb939fb5d897cae0e892a8f4c1fecbd3da3"
+      "sha256": "c051b7ea23b40f19a0385b2964f90ff5cfacdf0890e5a4ca7537f35f34f8b2e5"
     },
     {
-      "bytes": 704,
+      "bytes": 713,
       "path": "sdk/authorities/named/receipts.authority.v4.json",
-      "sha256": "167a852bac5ff5205c2435522b56b5a4b9be1aca08039e3afd00581d405b11c3"
+      "sha256": "2fd0d4f619c9a68068f4b8839e61894c026509a8a87c29f7185af4be708126c4"
     },
     {
-      "bytes": 715,
+      "bytes": 728,
+      "path": "sdk/authorities/named/sessions.authority.v4.json",
+      "sha256": "56f9caeba2cb80d0cd210f964596135356e510f6bde1c7a2163578ef1948ca40"
+    },
+    {
+      "bytes": 725,
       "path": "sdk/authorities/named/sources.authority.v4.json",
-      "sha256": "558167d02cf27c86c27d08925062c0e1c61fdb5cb3ff2b8c562caaa9b77b22d5"
+      "sha256": "4f26189a66ed88b1b712d45e4ed0aaf39bbc9eacce84a4b897549d91bbfc4824"
     },
     {
-      "bytes": 715,
+      "bytes": 725,
       "path": "sdk/authorities/named/universe.authority.v4.json",
-      "sha256": "c1368fd3d2ef72bcc7d192dbf4efeaea609118a6bc8c06d69c2188d177d00ce5"
+      "sha256": "e2983dbd9effac14b05423e00ded04fde3b0eb0c168bf26c2840cdf96837cad2"
     }
   ],
   "schema": "evidence-lane.sdk-named-authorities.v4",

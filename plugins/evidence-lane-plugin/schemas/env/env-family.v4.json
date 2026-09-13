@@ -4,11 +4,11 @@
   "members": [
     {
       "path": "env/SESSION_FLASH_MANIFEST.json",
-      "sha256": "c82882cf898dbf243a9b39b975db0d9031a16ac81bcea494205b4bfd3eb10bac"
+      "sha256": "496a1c52805c3dbcc437260287e00d3084891deceaaf10a08abe889cfec8a6f2"
     },
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
-      "sha256": "bdfe71a677261f370b05cebe425fa0942b5b967f5866c9653fe36d0c0b6cf792"
+      "sha256": "93dc2dc713e3a884073ff7f5c9381eeaade807892061ce71926e8c466b6951f2"
     },
     {
       "path": "env/codex-environment-policy.v4.json",

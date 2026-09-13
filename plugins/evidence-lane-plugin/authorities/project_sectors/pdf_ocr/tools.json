@@ -1423,11 +1423,11 @@
     {
       "view_id": "pdf_ocr.structure",
       "lane_id": "pdf_ocr",
-      "folder": "sectors/pdf_ocr",
+      "folder": "pdf_ocr",
       "version": 1,
       "meaning": "Page, native form/widget and separate OCR evidence locators.",
       "consumer": "artifact_export",
-      "implementation_digest": "82b32a5c057310dd63b9c581488338fede19ad500a08e06424ff7a26b1368814",
+      "implementation_digest": "2384068c5afb8289dfa9d4d6cbf88c51f5ec24e2ba624c0f7db1e74f9784350a",
       "files": {
         "mmd": "pdf.mmd",
         "dot": "pdf.dot",
@@ -1510,6 +1510,6 @@
   "workflow_mmd": "workflow.mmd",
   "workflow_dot": "workflow.dot",
   "dependency_installation_inferred": false,
-  "runtime_state_folder": "sectors/pdf_ocr",
+  "runtime_state_folder": "pdf_ocr",
   "source_package_folder": "authorities/project_sectors/pdf_ocr"
 }

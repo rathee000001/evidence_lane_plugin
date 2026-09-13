@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "configured_state_is_runtime_activation": false,
   "contract": "public-backend-readiness.v4",
@@ -9,9 +9,9 @@
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 6754,
+      "bytes": 6746,
       "path": "manifests/engine-connection.v4.json",
-      "sha256": "bd97682ec32b6d4c4abe10e08fcc414ada45d5d39bda47e9d05afdc1903aa50d"
+      "sha256": "3b665486ab44e9ba2df22354393117e38f52148747dbbea4aef00fae2805873c"
     },
     {
       "bytes": 12700,

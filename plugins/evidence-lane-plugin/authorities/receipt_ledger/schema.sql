@@ -46,20 +46,6 @@ CREATE TABLE recovery_history (sequence INTEGER PRIMARY KEY, digest TEXT NOT NUL
        body_json TEXT NOT NULL CHECK(json_valid(body_json)));
 CREATE TABLE recovery_control (singleton INTEGER PRIMARY KEY CHECK(singleton=1),
        recovery_digest TEXT NOT NULL, required_after_revision INTEGER NOT NULL, cleared_by_revision INTEGER);
--- sessions v1, digest f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb
-CREATE TABLE sessions_records (session_id TEXT PRIMARY KEY,
-       state TEXT NOT NULL CHECK(state IN ('active','closed')), generation INTEGER NOT NULL CHECK(generation>=1),
-       owner_client_id TEXT NOT NULL, owner_engine_id TEXT NOT NULL, reported_session_id TEXT NOT NULL,
-       flash_digest TEXT NOT NULL, runtime_package_digest TEXT NOT NULL, event_digest TEXT NOT NULL,
-       created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
-CREATE UNIQUE INDEX sessions_one_active ON sessions_records(state) WHERE state='active';
-CREATE TABLE sessions_current (singleton INTEGER PRIMARY KEY CHECK(singleton=1),
-       session_id TEXT NOT NULL REFERENCES sessions_records(session_id));
-CREATE TABLE sessions_events (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
-       session_id TEXT NOT NULL REFERENCES sessions_records(session_id) DEFERRABLE INITIALLY DEFERRED,
-       generation INTEGER NOT NULL, action TEXT NOT NULL, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,
-       body_json TEXT NOT NULL CHECK(json_valid(body_json)), previous_digest TEXT, digest TEXT NOT NULL UNIQUE,
-       created_at TEXT NOT NULL, UNIQUE(session_id,generation));
 -- gitpush v1, digest 64c9cf8ea51ac372041060d68f94f0745d06c76ca1bd14eeef873eac24554705
 CREATE TABLE gitpush_events (action_id TEXT NOT NULL, sequence INTEGER NOT NULL,
        digest TEXT NOT NULL UNIQUE, body_json TEXT NOT NULL CHECK(json_valid(body_json)),

@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/PreCompact/handler.py",
   "event": "PreCompact",
   "event_contract": "hooks/events/PreCompact/event.v4.json",
-  "event_contract_sha256": "2c0d5e457fc53400a77a561386033f13da429f8f6410b40eabe67e80ae095975",
+  "event_contract_sha256": "302d24e6192e321fc036007099f34f8662ec0afccb651ae3e66add2c479ada5e",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/PreCompact.v4.schema.json",
   "input_schema_sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a",
   "installed_execution_claimed": false,

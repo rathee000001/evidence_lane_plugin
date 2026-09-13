@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "canonical_registry": "sdk/routing/current-route-registry.v4.json",
   "installed_execution_claimed": false,
@@ -8,1487 +8,1487 @@
     {
       "bytes": 1388,
       "path": "sdk/routing/actions/accelerator_configure.route.v4.json",
-      "sha256": "7ce001f904c934a19b04fc4259fb828170e233fdc3d62e9854a3b7574f9181c0"
+      "sha256": "54789e5f6ff7669a702060fae3b88d74359a937ebaf129802a72b087a2ffef28"
     },
     {
       "bytes": 1353,
       "path": "sdk/routing/actions/accelerator_read.route.v4.json",
-      "sha256": "d70cc50f5796a223c153e52ea8df07f9d24ab5d513fb3d2a9dac44471dabc052"
+      "sha256": "a56d1eec5db1304f6edb9d924d38dfa2070d5e9951c696294eacc9eef9a3c800"
     },
     {
       "bytes": 1397,
       "path": "sdk/routing/actions/artifacts_current.route.v4.json",
-      "sha256": "22185ae19b64e9ac6572231ba54497a63543169d7321b6267cb9c0bfecabef15"
+      "sha256": "b1c11f4419036cff34cef2a236892c5bb5142a09574fc36c6a45b736acae28e9"
     },
     {
       "bytes": 6007,
       "path": "sdk/routing/actions/artifacts_index.route.v4.json",
-      "sha256": "74d1646fda66bd9741778b4ac8f416ae42d613eb541a401b56dc5ac55b18950f"
+      "sha256": "bbe66911571ddfaae95fd99e3871e58130d1d1b2b1e1803ffda67f8e54517f90"
     },
     {
       "bytes": 2802,
       "path": "sdk/routing/actions/artifacts_index_media.route.v4.json",
-      "sha256": "b91eb219c383ff0e57896e961339a6a84907650eb0ccedb09c6416ae6e366d28"
+      "sha256": "782d5fecf582a5e37f3735edf2f4d2301d846d7e0a5ee6fc0d9bafd1f25e28e5"
     },
     {
       "bytes": 1385,
       "path": "sdk/routing/actions/artifacts_query.route.v4.json",
-      "sha256": "b26b56f83e7561cd6d5cb2072ecfc5ed7c35c0c985729e612b80009a89514d97"
+      "sha256": "373f53ec85934ca4bf086dd553610f97a21a249eb670af3963d03d81b1eb664a"
     },
     {
       "bytes": 1379,
       "path": "sdk/routing/actions/artifacts_read.route.v4.json",
-      "sha256": "45bd50f32c9233021b47e718faff69b6026f11483693805e93650caabc62af7e"
+      "sha256": "da89afe8d0b2225ceac6bf1c2d9359883dd5b45a27ac6b3742b2562ce7fd71f7"
     },
     {
       "bytes": 6035,
       "path": "sdk/routing/actions/artifacts_refresh.route.v4.json",
-      "sha256": "2288a1b8869d33fdc93f6d358253d89e74a4e2a2b3ff8a68287c2425b53b318f"
+      "sha256": "5f26e7a9edfb87f202e79e997b1984884fb119857dcd016766b63c244c69c2ab"
     },
     {
       "bytes": 2820,
       "path": "sdk/routing/actions/artifacts_refresh_media.route.v4.json",
-      "sha256": "dfc004d7e8fabbfdc4cc84839dcf593b719b86276fa88dabf176229bedb3c85a"
+      "sha256": "dc19694713d737be095cd27bc0ada4ad16b20c0f575aebfa7c85966bdf867fdd"
     },
     {
       "bytes": 1312,
       "path": "sdk/routing/actions/capture_bind.route.v4.json",
-      "sha256": "126332c0cd05c1c4bfff395c31e0eb1a59605de5e6b22b174ebec2a38ae8b511"
+      "sha256": "f703e7cd00fc08a616fd04d6e22bd9d8400e52ea8a1ab4c6cd1f37d08836eda4"
     },
     {
       "bytes": 1333,
       "path": "sdk/routing/actions/client_context.route.v4.json",
-      "sha256": "7c3480a48019208b744de580c192a0ca238b332551a877232019850580b43350"
+      "sha256": "354451b27db189a6bfb1a839e98ca4388bf378ca2669c37d57f3d31b8c40ea1e"
     },
     {
       "bytes": 6150,
       "path": "sdk/routing/actions/code_apply.route.v4.json",
-      "sha256": "d3bc681643108becc88aa9b1c438a72de8e5c6e0e6bce765950688babca132e3"
+      "sha256": "c3be303dfa10d9712e399a3e8ac88b9f2f6da874870ee95841971dc7bcf60e0b"
     },
     {
       "bytes": 1347,
       "path": "sdk/routing/actions/code_current.route.v4.json",
-      "sha256": "7b5e3e1b00919ba28bc0a353df4a6ac4d8bce34e28e6167a108f8d854b395885"
+      "sha256": "d33f2450f6f2c45470f6ac412f3918ec10fc291ea63b47e02943fba8ef00f9ed"
     },
     {
       "bytes": 1341,
       "path": "sdk/routing/actions/code_impact.route.v4.json",
-      "sha256": "8533b0b7795e38be4a955723d63203837487559de40338c1b6b363500d05e827"
+      "sha256": "bf7ccb1bfca70d3a81350ec9f7b3752272e5aab43ab771ba31be25856caf3d87"
     },
     {
       "bytes": 1387,
       "path": "sdk/routing/actions/code_index.route.v4.json",
-      "sha256": "da0a7d2a97dafc491246a01f1a8bed1c198666d547ad0bed877f78e6cf4237d0"
+      "sha256": "8c7fa443be501d839e114a6c2e460b0e9220cff381e8c42b5f485110d5a75e4d"
     },
     {
       "bytes": 1419,
       "path": "sdk/routing/actions/code_index_git.route.v4.json",
-      "sha256": "8b72658cc9822b25cfd3775be48a3cdae11bff43e44ca173597f9df5edb3a898"
+      "sha256": "3f0fa433807256150cc1e6449399ee29849b1b79add2553bec4a101b53b64bc7"
     },
     {
       "bytes": 1392,
       "path": "sdk/routing/actions/code_index_syntax.route.v4.json",
-      "sha256": "6d3c8e506e0b1cfcfc98a30cb2b63a14945ed7cc1cb7a0930cc72369204c08cb"
+      "sha256": "9cb7418d39323650be304e3a0407ffee06a189b291ce7c44156201e952bd5555"
     },
     {
       "bytes": 1335,
       "path": "sdk/routing/actions/code_query.route.v4.json",
-      "sha256": "0ee8966f7e9be9b9b84fd0e3c79eecbf1141f944d07663e55088065280dd4ded"
+      "sha256": "2e3c3ea1c5f8acea927f75de3e5b89672da702ae06f5adb79e9e2ace782accc2"
     },
     {
       "bytes": 1329,
       "path": "sdk/routing/actions/code_read.route.v4.json",
-      "sha256": "84f790cf1356c4d9648fd88786a2f903027207b2c5272a5c53a3713f06695fa3"
+      "sha256": "d1fb4fe02d83bde82d652833cd797677201612b389444802c2a8e3dfb0c25d75"
     },
     {
       "bytes": 1401,
       "path": "sdk/routing/actions/code_refresh.route.v4.json",
-      "sha256": "03d03997b0c0295956ca041c6f996a0a9af4674e4b36b07b4656dea70543868a"
+      "sha256": "4d57875f50aa70dda750451da87696e4bac9a5d9c7d6334038dab43f6826bc34"
     },
     {
       "bytes": 1433,
       "path": "sdk/routing/actions/code_refresh_git.route.v4.json",
-      "sha256": "9159bf691b6147c9c00cff581df2d156b656fdd25cc210ce184a23953c76257b"
+      "sha256": "ccb5ba10d0625a27be141096384e2b4e3c1c5bd13c0f6ceb33107b0199f688fe"
     },
     {
       "bytes": 1784,
       "path": "sdk/routing/actions/code_semantic_index.route.v4.json",
-      "sha256": "c4ad12e2c11c50b0ee60b446afdffd8738c9014b09015d3388bda78a4c27e647"
+      "sha256": "0148816d9872b617b6141fe3f65e6f5bf72cc79e8150f0f41901789d8d099378"
     },
     {
       "bytes": 1816,
       "path": "sdk/routing/actions/code_semantic_query.route.v4.json",
-      "sha256": "06f68adcf96aa7318dee43641b2cd0846c609e51f9868be9b63549a6998231ec"
+      "sha256": "7847f08f7c167d9f6e82a2a91be6f61ba107389acf01d51b78d0100cc856d258"
     },
     {
       "bytes": 1872,
       "path": "sdk/routing/actions/code_semantic_query_faiss.route.v4.json",
-      "sha256": "125e7a2406bd71018ae84189c8e392c7b46945405a8262b2fba11064713346d8"
+      "sha256": "bc4c35bb8a8cb447d12d48b8b5b6fed42c25e0fe4a0aa84a2c97ebca401c4dcc"
     },
     {
       "bytes": 1862,
       "path": "sdk/routing/actions/code_semantic_query_vec.route.v4.json",
-      "sha256": "7b746b17a83e958e9a8fedc133bf6988928ab294dc99f730271a7a3adb2095e5"
+      "sha256": "79630476fc63ab223fcd9ae926e205ac9646114ea0109c6752c7256227c1ae28"
     },
     {
       "bytes": 1388,
       "path": "sdk/routing/actions/code_snapshot_summary.route.v4.json",
-      "sha256": "39788f197e0af355e3216c70c47fc9cf7fff2c154243d0a8257c25e9f7a40d61"
+      "sha256": "59b3a596abd4cc0070830b8c124cb8097630c2f061c354983021363953592c9d"
     },
     {
       "bytes": 1392,
       "path": "sdk/routing/actions/connector_configure.route.v4.json",
-      "sha256": "071e8957d5cf7774b8d2ecc247edef43688d3eee858ead9cc3d55b83048ee507"
+      "sha256": "ec2d20402ff724502b6af91505f65703eebcadec65504ae3207106193ef2a055"
     },
     {
       "bytes": 1356,
       "path": "sdk/routing/actions/connector_read.route.v4.json",
-      "sha256": "425991b8c94858dc0304fb748ab2f9c1d2e9549997526932af239afe2c74eb07"
+      "sha256": "cc187d39a66b867ed3cb0003e5f4cdb301041fd6c5b48e8bdad21f581b963cf9"
     },
     {
       "bytes": 1368,
       "path": "sdk/routing/actions/connector_revoke.route.v4.json",
-      "sha256": "d0db99aa19e3a980754ed25d7f0eaa29095c4eccf23d04e7d4fd4622ba1a343f"
+      "sha256": "0615a227c07d1c9f3ac76b3840587696aa77fd94fb979a8649282b769d8af9ef"
     },
     {
       "bytes": 6119,
       "path": "sdk/routing/actions/context_index_query.route.v4.json",
-      "sha256": "74fed419dd41b06e9214f0df3eaa6637f52a85599ba21640de10a9cef67b593d"
+      "sha256": "fb5739fb5525341fdbdf2fd211355313c24d4332d6a8e14ea1d021603c101009"
     },
     {
       "bytes": 6111,
       "path": "sdk/routing/actions/context_index_sync.route.v4.json",
-      "sha256": "6317477ad044b3a7429f383934448dc15993a02cd88e3d1cba7aacbb9dafbfd2"
+      "sha256": "430472f0f3186e5c9b016e0a2b675e3c5a8080f84aad7e9d284a6cf643a190d9"
     },
     {
       "bytes": 1401,
       "path": "sdk/routing/actions/continuation_accept.route.v4.json",
-      "sha256": "2063402a5a99bad4ef0551c015ced82e9b518a6bad11d018a35a0059fc404729"
+      "sha256": "c8cb64ead81282eb481c1ff988e1f21609f30fac3f496074023d7cfa4c358eee"
     },
     {
       "bytes": 1401,
       "path": "sdk/routing/actions/continuation_cancel.route.v4.json",
-      "sha256": "3fec971bf97ed1464e21e00a608b76938eed4712132d0d3c4dab90198c66ff23"
+      "sha256": "5ecabc86849aea6d2d91808f2894e9bb3667984fcf395cd36aaf0b84000e1178"
     },
     {
       "bytes": 1397,
       "path": "sdk/routing/actions/continuation_context.route.v4.json",
-      "sha256": "28001a24f54f6599178a01900bd528a517e6f04f8415b4d6b063ffe7a0462786"
+      "sha256": "216a28159b9c791383a41fce6881de733499732c1e6110504f32003d91778785"
     },
     {
       "bytes": 1395,
       "path": "sdk/routing/actions/continuation_offer.route.v4.json",
-      "sha256": "1db937c3701edc8dd3e3d0ad74713e6fe45373d2b01889b401b26bacd13c3e3e"
+      "sha256": "724bcb162c95fdf30dc7359be3c8c8bce33c9531e1988a0832aaaed9e5f43eb9"
     },
     {
       "bytes": 1376,
       "path": "sdk/routing/actions/continuation_read.route.v4.json",
-      "sha256": "2c482f65213c0432c846ce254b54d03dcce55df98431d021b1c3c7378afb84fd"
+      "sha256": "913f00baf70b8eed5a4cb981ca1d597a56496576e420092606082292036fd107"
     },
     {
       "bytes": 1448,
       "path": "sdk/routing/actions/continuation_recovery_cancel.route.v4.json",
-      "sha256": "7aa3601e0f4e0670bffaa4b35dad75575a3238c29c9dae780e040e0e4bc66f25"
+      "sha256": "91b93b608544d591b6897ae4efd5fcdf7de29338d3207a7bac4787016a51f812"
     },
     {
       "bytes": 1434,
       "path": "sdk/routing/actions/continuation_recovery_offer.route.v4.json",
-      "sha256": "bff2c293d4f4577189a5ff2ed68b43ad2d53486ee2e4b603eba860e791cf0763"
+      "sha256": "7b96e5be6524216c81377d412b0f5c44a4b234002db95806c391965aafe877c6"
     },
     {
       "bytes": 1376,
       "path": "sdk/routing/actions/custom_current.route.v4.json",
-      "sha256": "e60ecb25f48803558dfa9535a7c01b83e623ccd8f777bc18dd35932bd5967e11"
+      "sha256": "5e01d3ec03606f5362074e946774cb8c8575334368c9f5b43e3099f61f025d73"
     },
     {
       "bytes": 5965,
       "path": "sdk/routing/actions/custom_index.route.v4.json",
-      "sha256": "f63505dfe0f7abaca6de932d5f0b4946f1839ed666004d5921dbc0c7fcf01e34"
+      "sha256": "35129cdf503ab86572207e19d39d15798bfb88bb74f17567c16218c274a9f71e"
     },
     {
       "bytes": 2775,
       "path": "sdk/routing/actions/custom_index_media.route.v4.json",
-      "sha256": "628182a3a6f98a32410c02a28d246eb5c690440fa519dd27314dbecd5358ae5a"
+      "sha256": "7d79f6a543ad51ea63547a02a3be0a1fd443eec38c0f26a4f27f5410f90feb82"
     },
     {
       "bytes": 1390,
       "path": "sdk/routing/actions/custom_lane_configure.route.v4.json",
-      "sha256": "8caf1971d3b0ba542d2c39491b90a44731e7d06ae4ca3b06d5b52d602b6ac271"
+      "sha256": "b50374a8f48a34f8e1e6a4d71ded737bcf272e831fe2b589cb9e49552b630dbc"
     },
     {
       "bytes": 1361,
       "path": "sdk/routing/actions/custom_lanes_read.route.v4.json",
-      "sha256": "98f28f150b890048cb23b7eb295784c1c197153b0096f4f2f416bfb19a3c19b5"
+      "sha256": "2f5d0127783cc01362cc7f8d33bff1679351e8ebe6c717c9339bcc6e7506ebfe"
     },
     {
       "bytes": 1364,
       "path": "sdk/routing/actions/custom_query.route.v4.json",
-      "sha256": "c37e8dbfee50118a9ba96f16f8ee7749c4c4e4510cd0c115b9dfec47e7fff05d"
+      "sha256": "607f3fef4416fa6985737929e7c808f7a56fb03e296d74e85914c39f38d69dc2"
     },
     {
       "bytes": 1358,
       "path": "sdk/routing/actions/custom_read.route.v4.json",
-      "sha256": "1de1c81fbed515de10a60a5face71f1b86d1fc74477c9a616ba81c461c9bb8a5"
+      "sha256": "3ef987528b737fe4299d7a2500560dbda87501ae6fe5bdbe33efb28772136a09"
     },
     {
       "bytes": 5993,
       "path": "sdk/routing/actions/custom_refresh.route.v4.json",
-      "sha256": "843acf21340be2f248dce5801499dad4533c35999872da6cf87b2c55536228b4"
+      "sha256": "0c493500118dec6d501fe553bf2c88daa63f161391d01b108fbd84293ba0c682"
     },
     {
       "bytes": 2793,
       "path": "sdk/routing/actions/custom_refresh_media.route.v4.json",
-      "sha256": "23ee5a09ac27b43fdbfdda2cebb5bb91c61b6d7aafd0868e21ec08281a1a4b1a"
+      "sha256": "8587f92bf80aa44a21175efcead18e2e225c034a9109eda70ac5db32676c3e9a"
     },
     {
       "bytes": 1353,
       "path": "sdk/routing/actions/data_current.route.v4.json",
-      "sha256": "9a079f26731a4bc0dbff5037ce0d5684a466339e1bda1765a1573848302d43cc"
+      "sha256": "75960d22e6f152c76cf62dcb8faf345a4842dd49645efe0bb3eb1bb3012fe069"
     },
     {
       "bytes": 5941,
       "path": "sdk/routing/actions/data_export.route.v4.json",
-      "sha256": "a4411dd44cbf0774108e78c485f2164ed36663fa7d78799d24395257d87905e2"
+      "sha256": "01039a9769332bef52d4c67ea0e84fcfc42396745f407d1d1e8ce0abac0a4052"
     },
     {
       "bytes": 1301,
       "path": "sdk/routing/actions/data_generate.route.v4.json",
-      "sha256": "b655bc54adff87188561664e775f65673e1c8ba059784b935d13b8bec4f23026"
+      "sha256": "072bbb9348dec36a29550311fc5c885bf2f41465142e8c62793908309d7efa2c"
     },
     {
       "bytes": 1282,
       "path": "sdk/routing/actions/data_index.route.v4.json",
-      "sha256": "1e40ac35c0e35ca91313ab517f61b77a0ee4669fcf67ac754a6ad0ea23513598"
+      "sha256": "0b7452c7a2bd47d5db4c56dd0010efa2c237680fc978b6a92dd3c3a1d83eccda"
     },
     {
       "bytes": 1337,
       "path": "sdk/routing/actions/data_index_arrow.route.v4.json",
-      "sha256": "c5a0d21f0d0a537f1ea7e06459e963570f18295823fa5e904a70027da677db93"
+      "sha256": "21ffcd167846e2ceef76a6dec9752140c00e224538f4ea08a7a1a8f8f99989ec"
     },
     {
       "bytes": 1388,
       "path": "sdk/routing/actions/data_inspect_duckdb.route.v4.json",
-      "sha256": "72f19c110d3229900a0aa8c96e831cbf001d20db594edc8054f6355ed10ddc7c"
+      "sha256": "0141ba87b574b57499d400a5a48baae18f57141ad165497e70085b18dd6562a7"
     },
     {
       "bytes": 1369,
       "path": "sdk/routing/actions/data_inspect_pandas.route.v4.json",
-      "sha256": "87930a77846d5a0bc4da8112a50e8efe5c10b1d2e507b72db5399b036baf8f70"
+      "sha256": "1f13d150b7741b970340e03918428d4504b5cbd9653ab6ea85bb9aadf0ab583d"
     },
     {
       "bytes": 1369,
       "path": "sdk/routing/actions/data_inspect_polars.route.v4.json",
-      "sha256": "98eb28d50ebb6f915346b538ab0bc476a2281362b758914b8eb25c1f5d9678c6"
+      "sha256": "dce7485b62f5c811f10aca93e6dd9ec388f928a3a7d2eb4224398332011b7f2e"
     },
     {
       "bytes": 1376,
       "path": "sdk/routing/actions/data_inspection_read.route.v4.json",
-      "sha256": "3df41df2804f9ee75da1c6104d383463cdf278943cd6e89eea977de5e7f3d98c"
+      "sha256": "4cb4b4423e8192ea44b7cb3255032a6f01b71fceee9e7c67679c8a8a64438712"
     },
     {
       "bytes": 1341,
       "path": "sdk/routing/actions/data_query.route.v4.json",
-      "sha256": "5277b3f9a5474c2a9fb89d13a03faa95dfb0fd9dd90a6586f43771f266c7c5ce"
+      "sha256": "dc63cae018bd04c8ed057c708d536475805ec92bfd606c8a207126b8699bd0ed"
     },
     {
       "bytes": 1335,
       "path": "sdk/routing/actions/data_read.route.v4.json",
-      "sha256": "072b2b51161eb96fed06ef13b5c899b3cfba43b6c8e6f96851485cb45a408ed3"
+      "sha256": "d010d4cc01e8d42f783d09c05b28586134b9f72f87ab094b6e3cbae17fd7d912"
     },
     {
       "bytes": 1296,
       "path": "sdk/routing/actions/data_refresh.route.v4.json",
-      "sha256": "37550f56adeb32a0ce323ff54077e1ccbf83a7c5f47f5ab09ab467776d02c930"
+      "sha256": "ba702c6713f3909fe767176a00b2113ce9045e7f096b6ac4696fa283f6839521"
     },
     {
       "bytes": 1351,
       "path": "sdk/routing/actions/data_refresh_arrow.route.v4.json",
-      "sha256": "e382d37894ce125974936dd386a90d25b7f7a5fcd012f103ff15ff11493b3086"
+      "sha256": "a5aded931fd182a4224f8ff80039134a19cc140d7d3b5b49bb0afe1dc4b296a0"
     },
     {
       "bytes": 1313,
       "path": "sdk/routing/actions/data_transform.route.v4.json",
-      "sha256": "596cf63da29716e2776a982690365f4cbeff102a206350f3e03997d408a99996"
+      "sha256": "8d8617b5a51ebad58eb667ac06e34b35da8a437a6fed0d03c348d8ba4565095b"
     },
     {
       "bytes": 1305,
       "path": "sdk/routing/actions/delta_enter.route.v4.json",
-      "sha256": "b0a6a4be964f3913554c4417131549d76f39373b93e27d41bbb4fa3bbc1bd277"
+      "sha256": "a50612dff03e47c460af290cda6b0d73bf9236ea4cc2291e98abaebace99c6d6"
     },
     {
       "bytes": 1361,
       "path": "sdk/routing/actions/delta_enter_planned.route.v4.json",
-      "sha256": "2eb3ebcfb44944a45241058734712d3e95b4e2fdb0022847d54bbf579efb2cfa"
+      "sha256": "7300af4cfadd08af00abb36617fb71ee7567ee55d2a565a1be44deb9bb485d20"
     },
     {
       "bytes": 1317,
       "path": "sdk/routing/actions/delta_query.route.v4.json",
-      "sha256": "565adb15bc1134b0b1c27f493e1918d1f6e25f45b7d9f98c6b1ee0707afafaa0"
+      "sha256": "ab93ca13ca0dfb795c2b5a71a50890c81cd6c26c9fc2e120e1b5433ff2f63d80"
     },
     {
       "bytes": 1331,
       "path": "sdk/routing/actions/delta_status.route.v4.json",
-      "sha256": "ce649bce3be5d53f6053eb0740249e835a4cc81fda201b68c05895bbb1db1108"
+      "sha256": "719266212b16f13954fcb7f69457c94504f0fd5aae5835edcd890c3d126ea53f"
     },
     {
       "bytes": 1356,
       "path": "sdk/routing/actions/document_convert.route.v4.json",
-      "sha256": "ef3a95ac2e756ffac86f95e782bb3c3363fcbe7c1932fe2dbd378265a3093a59"
+      "sha256": "c7f4f67806b308b846195e9782c8ff2bce398c017c387fb7143839cffe53aa17"
     },
     {
       "bytes": 1383,
       "path": "sdk/routing/actions/document_current.route.v4.json",
-      "sha256": "4093d4a2bc2a4d8c3c5e5c313af5ae6d113b0267fcaaab2b69100a68b352f67d"
+      "sha256": "0c7a46a166e4e3328799e7de8630d324099b95209d442b38db371fab0e269ef4"
     },
     {
       "bytes": 1336,
       "path": "sdk/routing/actions/document_edit.route.v4.json",
-      "sha256": "24b04ca664a5532d1a3dd219d62b0609570f8d6d066ffadd4af195dd510e2312"
+      "sha256": "ff9c9085c478d4b09b9c8c45fc639648ca1eeec1283b204c6999a1e35613901e"
     },
     {
       "bytes": 1306,
       "path": "sdk/routing/actions/document_enrich.route.v4.json",
-      "sha256": "c78ceff7de8362c844a378ef4e29871fdbc59e36fb2b724f578fa90503102571"
+      "sha256": "8eee7c56614aea8cc53a296d85dfa04c22be9e9328ef8c89ccb0b39675e19d06"
     },
     {
       "bytes": 1410,
       "path": "sdk/routing/actions/document_enrichment_read.route.v4.json",
-      "sha256": "9d974eb9ead7dc705cb7066e4ebfc4dfffb59443ec0b7ab4ff74338e36acbb12"
+      "sha256": "172f605ef09c3ed05fa549febebd893af651379020ff28ad4a8eed5352d559b7"
     },
     {
       "bytes": 3413,
       "path": "sdk/routing/actions/document_export.route.v4.json",
-      "sha256": "caedcb6a4af22524481ffdb03c99cb1a8c9b328987c1a25aef24128443fbb4fb"
+      "sha256": "1555e5616f64ec9af2106d24ba5834d0a8c3db3768b7550d0318da639a3fcf49"
     },
     {
       "bytes": 1372,
       "path": "sdk/routing/actions/document_generate.route.v4.json",
-      "sha256": "aaea5d31a0ebc9a6e7ad3ad874fad864279519a9e4a7407a6d84ba23fa303395"
+      "sha256": "580aa4c9b7d19772eec25e9a99e4c5bece326afe7bfc71458198e980aaec1851"
     },
     {
       "bytes": 1320,
       "path": "sdk/routing/actions/document_index.route.v4.json",
-      "sha256": "e231853d5874f0d568761d0349e4827e8709634b4917c549a5501e053207682e"
+      "sha256": "da2fbcf736c4bb52b5c535bbbe2c917658b1f3d53a3e65282be5e67089f7eb81"
     },
     {
       "bytes": 1371,
       "path": "sdk/routing/actions/document_query.route.v4.json",
-      "sha256": "921adff78931b047be03fe7e1db427f329467f52480d0f930a5ffbe75d05b95d"
+      "sha256": "6bd9779ea7cfe4e2e835e0e602dfb0996489f4b161a660d32324c5def2d76af1"
     },
     {
       "bytes": 1365,
       "path": "sdk/routing/actions/document_read.route.v4.json",
-      "sha256": "67e64fd4e70c0e55a672c460b09e00a9ccdf3ba3bbe2cd622aa53b4d18d70dc3"
+      "sha256": "0e5c6748bfdff04375cf64562d1cada5312e67b9587c20bbcc66720b2b19d279"
     },
     {
       "bytes": 1334,
       "path": "sdk/routing/actions/document_refresh.route.v4.json",
-      "sha256": "7a8a6fe8e1a3b64232db9d826a12d2c241833d055f30b7a82b96f9d0c0f945c2"
+      "sha256": "7ca5de70480c10dec2906dc744da3a892857f8a49369c940c3c39a093de8bab8"
     },
     {
       "bytes": 1343,
       "path": "sdk/routing/actions/document_render.route.v4.json",
-      "sha256": "f53b494256480e0eb83863cb16f234c7cee0516e91b3fc6c6a9d193513bfe1a1"
+      "sha256": "bd92208c24f4c98fcea098a50d7007b5de2e17741437e94ba8ea3c913ff5e39e"
     },
     {
       "bytes": 1381,
       "path": "sdk/routing/actions/document_render_read.route.v4.json",
-      "sha256": "6bf9c3b0f5493fa7e8ac26f270013fa1b0b3d01c3ecc5cfce256e7c71bb808b8"
+      "sha256": "e1fe494d5b52366f8d077e09772431bb59d581bb08e38cfa570c39fb4055ee73"
     },
     {
       "bytes": 1318,
       "path": "sdk/routing/actions/engine_health.route.v4.json",
-      "sha256": "abcb81745750104fc1a781e1b82ba645d61962a7098133a1bb5f09fc92261394"
+      "sha256": "5ab37c74ee6e5acf1dc5f2ad691c27b0c3b15a74d4882a853ee7fc48830cb593"
     },
     {
       "bytes": 1355,
       "path": "sdk/routing/actions/enroll_project.route.v4.json",
-      "sha256": "4c03983c28b1ed8ea4e2897bc501b9c9a8070ad38e44c13ec4aec8f0295fef83"
+      "sha256": "7850439a8526979e6d9c92bfd9e6106cdf34d86842697f3dc2cada2f6df2e4cc"
     },
     {
       "bytes": 1386,
       "path": "sdk/routing/actions/env_uop_inspect.route.v4.json",
-      "sha256": "8d32b6f7bb58f92488bac548c20a8e91b694e937150869566a26e916198f7bab"
+      "sha256": "b376a39842044e0464466f2da9a17e24c5f596b92df174a7d1efb4627da645a9"
     },
     {
       "bytes": 2230,
       "path": "sdk/routing/actions/evaluation_feedback_export.route.v4.json",
-      "sha256": "7cecb73977c982cde6357e79909872c9292d19e212f27bba0d726ec460bd8298"
+      "sha256": "830e8645da64caf04654e5d49f63394c1532a16a3c4631be2666c9af242b1ecf"
     },
     {
       "bytes": 1292,
       "path": "sdk/routing/actions/fetch.route.v4.json",
-      "sha256": "46baef80c3d3ba9d3592340f8c3bdb72ec1ec981b944e538c6460ef700174453"
+      "sha256": "2d5211ceea0fdc9f59337bfa60df7056845228a5c46891d97adea8ee45e4b157"
     },
     {
       "bytes": 1370,
       "path": "sdk/routing/actions/git_branch_authority.route.v4.json",
-      "sha256": "28ab2352b4696880be74ba6a27e00e3cabbe1e8d8f0ad941fe993d4ff6a7b837"
+      "sha256": "809763a4e8ef36a9c4da150aca89385c2c1aab199dd4545f4cb0d6515b1c204b"
     },
     {
       "bytes": 1353,
       "path": "sdk/routing/actions/git_restore.route.v4.json",
-      "sha256": "d05cc5cea18889b1fe21594aa8c299f381a6581d750a68feded4d865746a1ecd"
+      "sha256": "66e5596cf1931b6bd6b605f673718faf317693de3368ee1849eea91290b4d031"
     },
     {
       "bytes": 1369,
       "path": "sdk/routing/actions/git_restore_abandon.route.v4.json",
-      "sha256": "4f9c9a7931d9aaf92e1198754aed0e11b17a5e8920bf074798e80b9fe28193e6"
+      "sha256": "599f625edeee52e76e92b0814193e06cc294311b178a287c4d3697c6acff8c5b"
     },
     {
       "bytes": 1384,
       "path": "sdk/routing/actions/git_restore_preview.route.v4.json",
-      "sha256": "313d250348d32234aa4a595b2ac08a5162afcd4948561e890ed91eb85eb36254"
+      "sha256": "6c50247622e725775cdec82c30bab2ae3140882dd81325d34248a941a148c6aa"
     },
     {
       "bytes": 1413,
       "path": "sdk/routing/actions/git_restore_reconcile.route.v4.json",
-      "sha256": "f5f62bc4424fb4f975a80ea966a64e43b1c854bf62c5e56992953fb2526f5987"
+      "sha256": "d9191a4fb7db833a70f63890e2484df7e2252687f2dbc1359aa4b1988bee164b"
     },
     {
       "bytes": 1379,
       "path": "sdk/routing/actions/git_sync_selected.route.v4.json",
-      "sha256": "aa109f0defe524aa5c95c97ded4a3ffd164e16900ca98be8fc6502ff5a2e1c69"
+      "sha256": "e4652c597da92b6dca55dd849ebdcc855f4b9f54f90c8117aa3e25ce8e4d858e"
     },
     {
       "bytes": 2110,
       "path": "sdk/routing/actions/github_repository_inspect.route.v4.json",
-      "sha256": "9afc92c3e00cbfb306b1d8846f27c98a235023969d807ed8227d7154bdf462cc"
+      "sha256": "f50b736bea60a2f2be94f5e3d063c848c40989ccd94d91e90f7e393b270100d7"
     },
     {
       "bytes": 1393,
       "path": "sdk/routing/actions/instructions_inspect.route.v4.json",
-      "sha256": "d98047e9a8ecaf7424f86518400b7bbd151698a544652cdd932634ea54ef6dc4"
+      "sha256": "076bb9bbc9d6d41c8de5c13f45c4fdf42f8ae13833f4aafecc50133ab52eb2f8"
     },
     {
       "bytes": 2080,
       "path": "sdk/routing/actions/job_reconcile_effect.route.v4.json",
-      "sha256": "96e3098cfff4d75b3d9bf077922d91644d2916d22795ef132166d0533852d714"
+      "sha256": "af8234b5445950de939a02e9f16ee8adc0a279a86e910ffd488aede4f1c0eef6"
     },
     {
       "bytes": 1379,
       "path": "sdk/routing/actions/job_recovery_inspect.route.v4.json",
-      "sha256": "5e8c3d616927d75ed0e75c3bc1fc336cadda3577cbd932f3106e348e82fe8668"
+      "sha256": "3a656c16e4ed3c1d63521812fd4d4970bb174337f4a932f6b90fbe3f6a5252bb"
     },
     {
       "bytes": 1304,
       "path": "sdk/routing/actions/lane_catalog.route.v4.json",
-      "sha256": "f6a7a49272ca43f5aca8d881f786572ff3890bff8213b9bccfe5feb5e10231b5"
+      "sha256": "42c71c4f646b461ea47d7077d7aa778572c1aaae5d19eacfff1851fd208c1717"
     },
     {
       "bytes": 1385,
       "path": "sdk/routing/actions/lane_configure_routes.route.v4.json",
-      "sha256": "886108cea9033395b81fc836841b2fedf39ec24504f4f477c674ca5f4fc2c77f"
+      "sha256": "3e00faf816e6de465855b723561774e0d74a6091a771827eb8ddbd79c072e334"
     },
     {
       "bytes": 1300,
       "path": "sdk/routing/actions/lane_fetch.route.v4.json",
-      "sha256": "4fcea26b482d38a6b2869032e65d3881797ea672070d3c3aeefc91f20e8a30c3"
+      "sha256": "d9ac3a7fe0a106bc7a9bc360a2fb593514d2d12468f5be683d482fad86fd2270"
     },
     {
       "bytes": 2030,
       "path": "sdk/routing/actions/lane_search.route.v4.json",
-      "sha256": "cc3d970106011839c54bffc48324899ebadff26879f438d42521ca3c4cc4b288"
+      "sha256": "104edd21bcd67c36678e0c7baeeee4d82cd580bd0b90a3d06b6fa505bae10ed7"
     },
     {
       "bytes": 1296,
       "path": "sdk/routing/actions/lane_status.route.v4.json",
-      "sha256": "332f39a4f7d5d756163ab6eeff0eb07314b1a304b7f104bd4428f2097810d34a"
+      "sha256": "09494c7f11bc3a9878123e4790b53d3e2718a84756c0293f356eaf30d0edba8b"
     },
     {
       "bytes": 1355,
       "path": "sdk/routing/actions/lane_view_catalog.route.v4.json",
-      "sha256": "c5a7ece01cf48b5329fac4ccd1e1eb7f46e130435eda2868db62351cc5874e6c"
+      "sha256": "772b45caedd7896ed080c8e51bf670938af183047e2657616d1666f0ddce1268"
     },
     {
       "bytes": 1360,
       "path": "sdk/routing/actions/lane_view_preview.route.v4.json",
-      "sha256": "8662f9694d1285a85aa7f0b5a6295ddadf57476ceb094caaf96f00246a122ec0"
+      "sha256": "8c3628d27029f0dbd9137e9ab1ea0f253baf006694bb78088e8fe04dc8b946d1"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/lane_view_read.route.v4.json",
-      "sha256": "7b9ba9328f53590b2fad1ba0e8d2bf0bd626315719f919296f03733a63d2dc52"
+      "sha256": "26745423aeec0bfb531eb5ccdcb22ae74996ff0807e05a09fdf6983209d413de"
     },
     {
       "bytes": 3333,
       "path": "sdk/routing/actions/lane_view_refresh.route.v4.json",
-      "sha256": "87401886093f9610b2de525bcab7b6141359808607f0256100aaf58d06e13e71"
+      "sha256": "e1bcbb4113414ddbe24d3295665bf846878e8a9394d29b7f73a4a06be33c5910"
     },
     {
       "bytes": 1341,
       "path": "sdk/routing/actions/learning_read.route.v4.json",
-      "sha256": "0860bafa692aec3276c398e183e14e49d5ba6beca2595d9e6fa3f2d92ff5466a"
+      "sha256": "a974b510ab045185cf0b6adffa2127855b6cbd4e207fd30c7a43c3a18f85241d"
     },
     {
       "bytes": 1476,
       "path": "sdk/routing/actions/learning_record_host_memory_import.route.v4.json",
-      "sha256": "078e92636623def9ef93822f19cfa0eb51465e2d6f2800a91a4956b4d69034a5"
+      "sha256": "7a08e324a75d8f00139dd04439a1c7270d0e144e3c8b1944adfbfde0656580a7"
     },
     {
       "bytes": 1351,
       "path": "sdk/routing/actions/learning_revoke.route.v4.json",
-      "sha256": "169a0452939a48c2cfc971b439c27f1dbba4ed685b9d53d78cd10ca44895d5a7"
+      "sha256": "9877d749e7a0eb9e36007b070f73aa5b4d9dcaf2b4c73cc9141354d69e56d453"
     },
     {
       "bytes": 1384,
       "path": "sdk/routing/actions/lifecycle_transition_law.route.v4.json",
-      "sha256": "bb4f759f8d4da054781d282939aefc3b74d1f68e3a188e14b5a9b49a87afccab"
+      "sha256": "90bb1e06187b4dfcaf9946b3d04963b6d79b6566cea1071f1a108b3ebfe4de9a"
     },
     {
       "bytes": 1329,
       "path": "sdk/routing/actions/lineage_read.route.v4.json",
-      "sha256": "f46f7d17ed0c8ca4ae1830246fa74bf18c776ed37a7345af0dad69b3f5409b8a"
+      "sha256": "5c59306bdbbc02b90e0b86281c3534dbdcbe4dfbb313d73fde028b91cb4b6605"
     },
     {
       "bytes": 1339,
       "path": "sdk/routing/actions/lineage_record.route.v4.json",
-      "sha256": "8a87e13e56538df7d536851f26c5794bbeabc3c83451b40bf52d671beeaa3dcc"
+      "sha256": "d19f49bc40af4c6052f4ee696d606dfa311eca9f628a725b53fec844504a44d6"
     },
     {
       "bytes": 1428,
       "path": "sdk/routing/actions/linked_project_evidence_query.route.v4.json",
-      "sha256": "b2de9caf427b63b034f3a78ae32d478d9d518c4d87b5c0cdb023c9b8f3873257"
+      "sha256": "941db7d04bedfa0b01d9ca2e2ad6dac42f31d19ecc6b22913e7fe1c218bd1f23"
     },
     {
       "bytes": 1354,
       "path": "sdk/routing/actions/media_current.route.v4.json",
-      "sha256": "5d76828090ea5d511fea13fafef798c857f5505cd3805b18260636899106c7cc"
+      "sha256": "067e3b2315c5abd2228f39051736b04f8ef27e67b244ff41300f7559286d9503"
     },
     {
       "bytes": 9430,
       "path": "sdk/routing/actions/media_export.route.v4.json",
-      "sha256": "b36e6398a446212cf9a793b4bde0a5f232cfa164e35b62978793891a9ffca8a8"
+      "sha256": "5b8fe189712a8f0d7086a4c8136ba22e35ca4e1aebad533222c58f2ec0ff22dd"
     },
     {
       "bytes": 1899,
       "path": "sdk/routing/actions/media_extract.route.v4.json",
-      "sha256": "4384ef8da0a77563b5ed52087d3e5de741b6a7a08ac3b5f64bb0088d659e0ed1"
+      "sha256": "30e2011f6d04b11735bb7d9e49c9ecf316a27804797524d866ff07cdf8763972"
     },
     {
       "bytes": 1410,
       "path": "sdk/routing/actions/media_extraction_read.route.v4.json",
-      "sha256": "ff37ad4ce22498c84d4633d3fc3a3f4827a3b2d81e8d23191b9ce82a131b1e63"
+      "sha256": "bbadeddaf86d1ad90721fddbb9672ac4b8475315bc32eb95bf43a1744e0265cd"
     },
     {
       "bytes": 2727,
       "path": "sdk/routing/actions/media_index.route.v4.json",
-      "sha256": "7c8b737ec9c7cb90cbde9ed7b8a8f376728217beaeb1b7e80841f0f66acfde01"
+      "sha256": "fe322625fa1ca621aaf73796ff56a21472feb6d262ab40d73f21fe18b29eaca4"
     },
     {
       "bytes": 2321,
       "path": "sdk/routing/actions/media_ocr.route.v4.json",
-      "sha256": "d7da9380d4c087ca947e5d265db7e8d7095d6d4caf57f82b1bb6ae96a2f3edec"
+      "sha256": "9bf8bd0a48c2ad07f7c2c2be91c7d86e92ae2d5a9e563036e8ef4be94ac09bb2"
     },
     {
       "bytes": 1368,
       "path": "sdk/routing/actions/media_ocr_read.route.v4.json",
-      "sha256": "8e4986628fcc2b46ee9cb2f1d7b68db00d75df0847ba322876750434b628d3f7"
+      "sha256": "5a3541b090faa3f9dc2092133b8f33d8d8bbbd76e20721fa2ffb9de53a41a324"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/media_query.route.v4.json",
-      "sha256": "534d4ca6d19f737dff81d383b498c340b773c19ca70d982f75478dbf94c23389"
+      "sha256": "473902a3bd89b9e6f8523d80d422e74ed9ab6e7d915ee78446e9f619513db808"
     },
     {
       "bytes": 1336,
       "path": "sdk/routing/actions/media_read.route.v4.json",
-      "sha256": "1e47407692a64a350b3c1bda0522501d9b03ebece545763a847fd4ab3fa118a8"
+      "sha256": "e5f65c0364007b2d65ce6a767609a7b1590677ad5dd9dd68dde4a14fb6d33626"
     },
     {
       "bytes": 2745,
       "path": "sdk/routing/actions/media_refresh.route.v4.json",
-      "sha256": "50592af4381106c195978141cc9e0c71b27f4d69d50943dd9bf6bbbb17acd976"
+      "sha256": "ca5488d875babe7657c06692c8d24eb1341f2707ec19da4be1da9f9826a57486"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/media_transform.route.v4.json",
-      "sha256": "adfb96e612071e08268db8f4c6c0d2ca1e1e0067639f2e4316cd8adb8db01597"
+      "sha256": "bc925c13334e008dfc02e67fdba02f7ff4e0d4220537faea9a6171559d0673b2"
     },
     {
       "bytes": 1362,
       "path": "sdk/routing/actions/memory_checkpoint.route.v4.json",
-      "sha256": "ff56e93c73a0f2cd275125a63e80ac30d83487780fb3589143ebdaec0a7df6cf"
+      "sha256": "f60be17dd49681275e0b39944220babae3be975930e9a1eb61b906b22ffb02aa"
     },
     {
       "bytes": 1334,
       "path": "sdk/routing/actions/memory_ingest.route.v4.json",
-      "sha256": "241da0b8b801862b967da4311f3014cd2b90cc9b8d9e3b08ee8b45d5a2f073ed"
+      "sha256": "2758e8a8c4314b36863ae66e012b1367fbdafb073f3dd9428686506f3e61db01"
     },
     {
       "bytes": 1324,
       "path": "sdk/routing/actions/memory_read.route.v4.json",
-      "sha256": "fd9987a7eed73a295552a0537c6531aa2259e752a09e29012ec001a0997be4c7"
+      "sha256": "795517a6d27558915ea48eb4848b0fd799710aa0878239e0fe04271b31a015bd"
     },
     {
       "bytes": 1354,
       "path": "sdk/routing/actions/memory_rehydrate.route.v4.json",
-      "sha256": "250a1e15aa4c8a3ed5425c43117478acf9d4d1f66c7ffad72b4d9191596c6650"
+      "sha256": "42434652f41350c6df2a3cd207ef03c6f9bdb261c81e9e32a67af221dc91cbbc"
     },
     {
       "bytes": 4880,
       "path": "sdk/routing/actions/observability_export.route.v4.json",
-      "sha256": "0268e0b45ae286c9622d2e2195981553e2731eedb867cab04d4f57b61826a4d3"
+      "sha256": "13cc7d145b42fbb1d14181618886af049cdb8ca128713dc6cf5f0451c506a885"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/pdf_current.route.v4.json",
-      "sha256": "2f5bd3497a426fe8f6754e1db933a9bc8f85ec8a7bb1993100a7c5242536ad23"
+      "sha256": "c82689e992895d1c11e602acf6b75f4c42b0cd6215162ef5a2b1cd09bb68c1fa"
     },
     {
       "bytes": 1332,
       "path": "sdk/routing/actions/pdf_edit.route.v4.json",
-      "sha256": "570d467d6aeaf71aa0936a3318091c808f79a576dba4e67976bcf650562911a0"
+      "sha256": "5eee860e649799f90868128dbef6a761199782206f593e68fc51c37bfe9c737e"
     },
     {
       "bytes": 1343,
       "path": "sdk/routing/actions/pdf_enrich.route.v4.json",
-      "sha256": "56c987a3e911c6d7a69bd7a7a2edcb92cfacc04da139222c0bd8dd16560c73c5"
+      "sha256": "0825e431a434789308c87466449318263d7c67d3126307a29e34ce8c8da97752"
     },
     {
       "bytes": 1378,
       "path": "sdk/routing/actions/pdf_enrichment_read.route.v4.json",
-      "sha256": "a9ae4cff0d611112941831a92f865ddeb5010ac6a51112e442ccb89400701576"
+      "sha256": "bccad3d5d30c651118cd38c6ccb8cc072c57243a94a72a1c93a2f56b6dcb331c"
     },
     {
       "bytes": 11229,
       "path": "sdk/routing/actions/pdf_export.route.v4.json",
-      "sha256": "aa2e82b38584ff69d9a29500b32f0d8fd64ab7a1a1d1d88ea6673a131a23801a"
+      "sha256": "77a53c7c3620bf9d67a0f609726c177e02513ef8ad7de305c214d9a14d1e680a"
     },
     {
       "bytes": 1399,
       "path": "sdk/routing/actions/pdf_generate.route.v4.json",
-      "sha256": "16565bedc93c4a907f43ecd2bf1ce64a88af5094925848ce4be775fc1b4dc7ea"
+      "sha256": "1e90aeb6659418975331eefdef53db439a5a49d3339e63ce61c4dddfad3f4f4e"
     },
     {
       "bytes": 3289,
       "path": "sdk/routing/actions/pdf_index.route.v4.json",
-      "sha256": "ea283823ac1d42b2fbf2360c664528524378ea60a49b3cca8516a35bb1c2c862"
+      "sha256": "0b1fb00beffbe367de52a64a28d31f433c248921c8b752eee3f632105945bd2b"
     },
     {
       "bytes": 2374,
       "path": "sdk/routing/actions/pdf_ocr.route.v4.json",
-      "sha256": "0f47c5878683fa3872d01a995da5ed54434ed4774321fb4fb043ee2965e10b46"
+      "sha256": "89d5add401c11f42351ef2effe1baef70dd288658d77131fcd40a1bbe1a09d54"
     },
     {
       "bytes": 1355,
       "path": "sdk/routing/actions/pdf_ocr_read.route.v4.json",
-      "sha256": "593dfe9806aae7280ee9289489eb5764aad46828cb6dd45f5911f3f4bf5d0c85"
+      "sha256": "a906aa36575f4aaa209d174a9bfa8fb56393ccc146685dfe47e637463494672e"
     },
     {
       "bytes": 1330,
       "path": "sdk/routing/actions/pdf_query.route.v4.json",
-      "sha256": "4804ae1f8c73db81bc430708728809403825d598f5dc52a46decb435d2af08fa"
+      "sha256": "7d16f54eab00da46cf39042ab572d1246239e7743c69faf1d3ec7eea2f4c4f62"
     },
     {
       "bytes": 1324,
       "path": "sdk/routing/actions/pdf_read.route.v4.json",
-      "sha256": "b55fa23b9a07cc7ad21b2acf54fbff9d3df0348cfc92361fc7bb342200be931f"
+      "sha256": "a2f57ea0241cec0a1674801f472cf9bfee58660f77a5ccc7ee8a575fecbe8abc"
     },
     {
       "bytes": 3309,
       "path": "sdk/routing/actions/pdf_refresh.route.v4.json",
-      "sha256": "989ff27d2ec2d36664e3b4e46bae80c008b781db05fa9e548658270b588e47a8"
+      "sha256": "2b5bc1724736cd2421b7fb36f94ecc674ec10faaac9fa5fdfbb276ce589dbb0f"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/pdf_render.route.v4.json",
-      "sha256": "e60fc9cddb53d47baee50938ed9ceb6f3c8217e50a6a0ef654858940f76bfa0c"
+      "sha256": "52f308f30e8c033168f8c86805e26a12dc0faad5cc0cb4759bfc881c44f106bf"
     },
     {
       "bytes": 1373,
       "path": "sdk/routing/actions/pdf_render_read.route.v4.json",
-      "sha256": "c0b92eb5b09c18d2cce04738154cbd4ee465ae86464fe9aced8b153a5630b5a5"
+      "sha256": "031c79bd5156b57298e8353b1a9900294f61c02763902b748c7ae3f8973567dc"
     },
     {
       "bytes": 1314,
       "path": "sdk/routing/actions/plan_create.route.v4.json",
-      "sha256": "d8fa428e430844cc3649a4492aedad48005abe58f247cba2c0b90ae28dbf3b26"
+      "sha256": "00253286e0b0ea345ea82debb7c0bbaa0fd428ed43a03660c50aca9b9b37618f"
     },
     {
       "bytes": 1335,
       "path": "sdk/routing/actions/plan_host_bind.route.v4.json",
-      "sha256": "44228799c7a873bb6143254ee181b895d7784dc692023ebf3989a347ef2ca632"
+      "sha256": "c5f2ce5be821bc155b400a8f6876c138302e62d1a07a3fa26982a45effc4a052"
     },
     {
       "bytes": 1346,
       "path": "sdk/routing/actions/plan_host_status.route.v4.json",
-      "sha256": "94e3e7d6f558ce79c2339ee8765533b982119f08157c375e8c1e8111c49bce33"
+      "sha256": "204450ceb314f9add50a5163b4021950aeebd540e54099b1a4ca6742237c939a"
     },
     {
       "bytes": 1335,
       "path": "sdk/routing/actions/plan_host_sync.route.v4.json",
-      "sha256": "0e72ba9bdba64876e1009fcf3ee2211b2598ae977bfbd13e6ec41c70ee0ee1bb"
+      "sha256": "dd04ca74f9355d51334420d54a02d1436894fe0396a17550b1cdb4264be22e6b"
     },
     {
       "bytes": 1304,
       "path": "sdk/routing/actions/plan_read.route.v4.json",
-      "sha256": "cb22d4c02a6800bbf98be35ac1acbacf21b1f4516f682ad6f75eaebab0260f73"
+      "sha256": "cfd5613b32f6ea8e928515d579db8c0c49c70392fe14f995c92734657966ac7a"
     },
     {
       "bytes": 1321,
       "path": "sdk/routing/actions/plan_refresh.route.v4.json",
-      "sha256": "c06d09e04f78189273345adc77f9e836ff384b8ae577b2ab7d2bc6af6ab62a03"
+      "sha256": "052be292041b1d775032d4d640083a9a6a1c2fe3632d23bbafc204b86fe5fcc2"
     },
     {
       "bytes": 1375,
       "path": "sdk/routing/actions/powerbi_current.route.v4.json",
-      "sha256": "8b3c221720ab69ed919206eede7e76430e460084164115c0819090fdd73a9de2"
+      "sha256": "83d16018a6f9f1e1df16de37901f9af395515b616a6db7baf773885840a237e8"
     },
     {
       "bytes": 1313,
       "path": "sdk/routing/actions/powerbi_edit.route.v4.json",
-      "sha256": "b23aceca41b1814dbb1c53270ff0921b0ba6cfa838d73cae110a1277db2c6eec"
+      "sha256": "8851c7b8367e07d0493682cfb197b2e65a96d8e5a2d625e6197d722452026111"
     },
     {
       "bytes": 3455,
       "path": "sdk/routing/actions/powerbi_export.route.v4.json",
-      "sha256": "a2a63bb9244ef0391123c62e1e0f5452e1470f9ca9b0033bacaeab56acd4e3a7"
+      "sha256": "2dd6f2dcf63551abc6302703ea00e9dbe844fc820d01c92bcc03ded650e895e2"
     },
     {
       "bytes": 1341,
       "path": "sdk/routing/actions/powerbi_generate.route.v4.json",
-      "sha256": "58c085c92b193c709293660294e65755ba4770fa711396782c7f9ead630b23df"
+      "sha256": "e0c23e36d242cc9698093aeac3c3f91dec108baedeae1e67724b0594d91c63de"
     },
     {
       "bytes": 1439,
       "path": "sdk/routing/actions/powerbi_index.route.v4.json",
-      "sha256": "069fc94e178cd9bab998bdff275d00a0843a1c04a644a41d9b24c076ae2c301f"
+      "sha256": "2a1f3bbc7afcb92ecf4f519abd5d2a5d5cfb185ecea70768197dca3458207d1b"
     },
     {
       "bytes": 1363,
       "path": "sdk/routing/actions/powerbi_query.route.v4.json",
-      "sha256": "d49f0f9d3b91a4c3e7a971581cdfcc08833c012a34939a203a4baf73ebf5798c"
+      "sha256": "7dfd01f9158c1fef49885a143777ede2b9c38b2d8c5869679f23e743e85667b9"
     },
     {
       "bytes": 1357,
       "path": "sdk/routing/actions/powerbi_read.route.v4.json",
-      "sha256": "82ec8f5bd64752fc1c8dea0fd114891bc6a8ae9b5c557457a66b151584644bf3"
+      "sha256": "3116bf8794aa1a05dd0c513a3f3c0811f80a412b1d79d1a2c853330338ee374e"
     },
     {
       "bytes": 1453,
       "path": "sdk/routing/actions/powerbi_refresh.route.v4.json",
-      "sha256": "ba06f7633d56480422a11d729bc045e40ad45c990796b81f56e497c399601e49"
+      "sha256": "bb865a1f05cf9e4822578afbab005db26978ea5833bf4d63477163601ac1dd83"
     },
     {
       "bytes": 1369,
       "path": "sdk/routing/actions/powerbi_schema.route.v4.json",
-      "sha256": "6f5f532fcbf9f75166b5f712a97270085bc98cc2c68a486419fc9ed20c4eeb0c"
+      "sha256": "179c189405d45e93673d490b06a9eca8b77dab54d792cc3882b17a551af0fc81"
     },
     {
       "bytes": 1392,
       "path": "sdk/routing/actions/presentation_convert.route.v4.json",
-      "sha256": "5ccd8cab3237723f664887ad8da8904c45ee0f954f153688aaec73a52b67cd61"
+      "sha256": "ff3e23487be82de79b2688420721824cebcd88c05f452857f351d4b773d757e1"
     },
     {
       "bytes": 1419,
       "path": "sdk/routing/actions/presentation_current.route.v4.json",
-      "sha256": "a71cb39e5a9ed44c40a9427499632478f01ab42097b1ddd1e746949b8373d114"
+      "sha256": "89c7c8a27705c5e910f608209babc8c63feae905eae65811869f19475c2da0aa"
     },
     {
       "bytes": 1376,
       "path": "sdk/routing/actions/presentation_edit.route.v4.json",
-      "sha256": "1aae057dac0b32b5f8c0c41115d34a17ac99ab532419a68abb84b317c1e666d6"
+      "sha256": "de22c3511021c7e4380a21452239dc0c9609ebaef708dd39e1969e2c491104e5"
     },
     {
       "bytes": 1338,
       "path": "sdk/routing/actions/presentation_enrich.route.v4.json",
-      "sha256": "43ac51cf19642c8abafd157b6d62393ee2a30313142dda36677dcc643836afb0"
+      "sha256": "47d15374465903767cf06f18bac313a0e1e3922c8c54f9cd7e79264206402d24"
     },
     {
       "bytes": 1442,
       "path": "sdk/routing/actions/presentation_enrichment_read.route.v4.json",
-      "sha256": "a8c0a70205ecc25f91e2d603b27f219340a7e3db77d3ef6bf18e44e1fb42adb8"
+      "sha256": "d6e6c0f0b86a68aa6b7e2cabbef075f41dba73ae6ff07d3b47848e9cc0fb4aa1"
     },
     {
       "bytes": 3483,
       "path": "sdk/routing/actions/presentation_export.route.v4.json",
-      "sha256": "166ada94ec808db1339f54501f7bd47bd3654eddaefc6c0b0b5d5a77785f23e7"
+      "sha256": "6278eb0f6bf38c4ac8e9837ac6ef50e1d347cdd5981e20bd957f23566f4edfc8"
     },
     {
       "bytes": 1446,
       "path": "sdk/routing/actions/presentation_generate.route.v4.json",
-      "sha256": "3552e9547d699334bedd740c69a7552b6685ae1424eea874bb91a0e4cb14d376"
+      "sha256": "46cf5360eb2202e78a257b2747aa2f9aec6d3a8e44b1d0022957796785858330"
     },
     {
       "bytes": 1356,
       "path": "sdk/routing/actions/presentation_index.route.v4.json",
-      "sha256": "95e58741721008ae3aee03c8201ef9c8aa5b265bb8c00e2f59931eeb1c88b86e"
+      "sha256": "09061b16550dd9bf14eb3fbb4d8eb700bae89ffe999d7aa9a770413eb11a9320"
     },
     {
       "bytes": 1407,
       "path": "sdk/routing/actions/presentation_query.route.v4.json",
-      "sha256": "e129072112099d823955f98e2e2af8c8961d3743b9b9718a768eb8a14fa84f6d"
+      "sha256": "8cf948e44088ea5a567353e0e48aaf8e325128fdc6c757744ae1b829527aa41f"
     },
     {
       "bytes": 1401,
       "path": "sdk/routing/actions/presentation_read.route.v4.json",
-      "sha256": "ae194bfb6fa788d54ba8f9500cb20d826f188d02b9f29f63ae4703f3d3f4743c"
+      "sha256": "666380b5ef8b6139415d1248efc0058d2e8b41a06569c2f2fc3e687d5fc1031b"
     },
     {
       "bytes": 1370,
       "path": "sdk/routing/actions/presentation_refresh.route.v4.json",
-      "sha256": "ff3a592e214f0ab3fb925609c674988e61949bd78760b601604036eb6d4bb3bd"
+      "sha256": "b12b30ef79ea6eb98601eba72af8001612544d26bb3ae1026cb9634eb4873b21"
     },
     {
       "bytes": 1379,
       "path": "sdk/routing/actions/presentation_render.route.v4.json",
-      "sha256": "9c093d60a98af4463e347906e1421680ab3365a6f116e6e6080a5931bf11780b"
+      "sha256": "cec64ec107b9bbf68618ff633a0dc9d81a229fd85713e1aea821ddb66f406a1c"
     },
     {
       "bytes": 1413,
       "path": "sdk/routing/actions/presentation_render_read.route.v4.json",
-      "sha256": "c0ac8561f8714e448d6892a98f140f7638d6a111060ca0e360d62fd9bca6eb2a"
+      "sha256": "4d22319bec7ec80b0c5cbf2b1df0a7a241891d5ef0f65de623ad96d9713916af"
     },
     {
       "bytes": 1347,
       "path": "sdk/routing/actions/project_backup.route.v4.json",
-      "sha256": "82e6ef8460a23f4302b960f4c2c854f0124ae031e416f8d72dd16504ca410c1e"
+      "sha256": "8d3c8533d320806fd6c03a124ac315da2d2668ce260f92d1500d4b8c4cbde13f"
     },
     {
       "bytes": 1390,
       "path": "sdk/routing/actions/project_backup_verify.route.v4.json",
-      "sha256": "7bab41a40995c2f1c98ef4b6e027916544da4e187712fd3b4ef91bc19e95c3fe"
+      "sha256": "0780ec4a7854e301d3a8c5199efe734fc9fbe7da9784ca6bf42b32e98f0ae64d"
     },
     {
       "bytes": 1346,
       "path": "sdk/routing/actions/project_catalog.route.v4.json",
-      "sha256": "cbe8c3ce31b78a090e6214c59868b386dbad30c82ccfe8ef0fe9632ec7209747"
+      "sha256": "b921a1dc71ce73a4863f864c95f20a599f4cb9f3719e39c1ea3f081a967f377a"
     },
     {
       "bytes": 1363,
       "path": "sdk/routing/actions/project_deselect.route.v4.json",
-      "sha256": "4800c7c28920e8c7ebef87c552467b7260a30826581c144934c5c75ab75b83b5"
+      "sha256": "5c94e9bfa55e3e59141c9e5cad878e6bd5c8c75dc733a8deed62b045b21fccf1"
     },
     {
       "bytes": 1437,
       "path": "sdk/routing/actions/project_evidence_heads_compare.route.v4.json",
-      "sha256": "dd868dd7556bea66c2565f470084183a14551dd5f87eb992b91ce256935116e5"
+      "sha256": "d48c9e6dd41323c0fd85aeb515a9ed36a4781156bc5b037a2fc4320aaaeaa52c"
     },
     {
       "bytes": 1401,
       "path": "sdk/routing/actions/project_evidence_history.route.v4.json",
-      "sha256": "acaca0ad6895fc1b9facef7445635c0698a320960c9df472abfd2373c67a13bb"
+      "sha256": "9b1ecbb67a3d345aa2a8474030a8299adc3960920b1a278eaaa9249e0d9dfc76"
     },
     {
       "bytes": 1397,
       "path": "sdk/routing/actions/project_evidence_link.route.v4.json",
-      "sha256": "021e833e674d9985c113fa7087e7a9d970cb78a1a00b2e770aacfa408118e870"
+      "sha256": "236f618bf48690ff76f32d58d68dcecc17801d4e75f21eb2cbb267cc5c7cc130"
     },
     {
       "bytes": 1437,
       "path": "sdk/routing/actions/project_evidence_links_read.route.v4.json",
-      "sha256": "e1d92a5fab39bd866734a6009d1ae73e1898c29753b8dfaea9253cdb4717bcc8"
+      "sha256": "0fb5c4a6fb094b6d0e85f9846959fb10005ee067534dc035d90e835a2a3bebe3"
     },
     {
       "bytes": 1449,
       "path": "sdk/routing/actions/project_evidence_links_verify.route.v4.json",
-      "sha256": "c58021784fba1cfdcc3ff67156add3a551b0c794c78cf03e486f714ddeb0f754"
+      "sha256": "bcaf1a7eb3d7a28a22793a350297f6f0939523ebfdb4d3230a94c7f1a328b099"
     },
     {
       "bytes": 1449,
       "path": "sdk/routing/actions/project_evidence_map_inspect.route.v4.json",
-      "sha256": "8bb6bb0490c0b7af6e26d2cde4355da947c07b365a3c79b1ecc0299c7e3bb013"
+      "sha256": "250aff842c13d9db55b49c45b80624a05a12b90ee429a827b36fd7a76e46968f"
     },
     {
       "bytes": 1437,
       "path": "sdk/routing/actions/project_evidence_map_query.route.v4.json",
-      "sha256": "962abb659b512e298111d3782e9f9c2dc1632359814fbfda03638955b9906846"
+      "sha256": "50a6b98b99bb470836f8fedc33e805872c7019b7b4beff07257a184ec8bbf3de"
     },
     {
       "bytes": 1461,
       "path": "sdk/routing/actions/project_evidence_network_create.route.v4.json",
-      "sha256": "f8f1962de6aae7d8329066c806cedd7f7e30a7f983fe1caae264ac42d52fefbc"
+      "sha256": "844f49c1bc100d976917121e2dac7bbe949078c1f2ecd8dab611e140acbd0546"
     },
     {
       "bytes": 1454,
       "path": "sdk/routing/actions/project_evidence_network_grant.route.v4.json",
-      "sha256": "eefc179ad58332353462242c2900b24485f02711cdcebb97a7fb8343f633fc15"
+      "sha256": "4d3e04ce8783fdaec1a560c14f3e7fe326a0787bf702d4a4fbb0259838881d80"
     },
     {
       "bytes": 1447,
       "path": "sdk/routing/actions/project_evidence_network_link.route.v4.json",
-      "sha256": "0e4dc720152c34966a83f222fd6f1e944bacffc5c971fc5c4411b75717b5e38b"
+      "sha256": "8e203badbdd3dc200c44b4393201ba2ac10038f648dde309d63b92c0d339fa9b"
     },
     {
       "bytes": 1451,
       "path": "sdk/routing/actions/project_evidence_network_read.route.v4.json",
-      "sha256": "f924b08b8392058bb08ba3eb60240caa3d58906c4a7f80deb15e18622165e2e2"
+      "sha256": "9acfd7bcf28d6725a7d1e6dd8f7c71fe6aa7fd63f31802acf3db3c07878ca4d5"
     },
     {
       "bytes": 1475,
       "path": "sdk/routing/actions/project_evidence_network_register.route.v4.json",
-      "sha256": "5ad71cb1fe5e3fc2681be908c1f4d38115b333c4a8a8678c6c27fcc2be359cb6"
+      "sha256": "a0b640f9a0d65f44041c8d79ed995dea759c1a9820ffcbee817af6001fe63864"
     },
     {
       "bytes": 1461,
       "path": "sdk/routing/actions/project_evidence_network_revoke.route.v4.json",
-      "sha256": "d668d7fa0721528b11bf34aa8596659cdfaa17c509bcd27f8b8c9c3339ac6187"
+      "sha256": "46c564907166c3bef5c192d8743575d4ee2877c76442cd787bb0a1e827073d92"
     },
     {
       "bytes": 1463,
       "path": "sdk/routing/actions/project_evidence_network_verify.route.v4.json",
-      "sha256": "48077b4c988f4baea88c1a749a03e84fac51c7b9d6310f68bef7c0eae94590ef"
+      "sha256": "95f41607b89d54d042465cdb255089cbe85f0fbbeed436b91a151070ac8c4ef3"
     },
     {
       "bytes": 1410,
       "path": "sdk/routing/actions/project_evidence_select.route.v4.json",
-      "sha256": "1087492ab76f3e329c2bd3ce318b0352d6c700eaee335543409166f04d282a77"
+      "sha256": "8c8636fd8ef71b435adef0dc31a856af09253d99da9a19996134e65583689feb"
     },
     {
       "bytes": 1411,
       "path": "sdk/routing/actions/project_evidence_unlink.route.v4.json",
-      "sha256": "866064bac015a8081c1bbcc21fdbd7da64545aec0cf21b50b837ad556e8a989d"
+      "sha256": "5d2b477ef6022adbef2c3e6f1c0f9562cf8eff8c8c5ff12574515a2f1cec3682"
     },
     {
       "bytes": 1417,
       "path": "sdk/routing/actions/project_memory_record_link.route.v4.json",
-      "sha256": "2821b8047ff18ac4793e8c4e91fb464bae09f2057d83d1f91d6d80acb1a63cd2"
+      "sha256": "eddc5dd7ebec0e9e1a1ea370ceefc4c4a4685d86e79d06baf7123e57ff508cc5"
     },
     {
       "bytes": 1409,
       "path": "sdk/routing/actions/project_recovery_inspect.route.v4.json",
-      "sha256": "86e8119100d7c9362408c786c44faed61b6c5774abf363348996068ae7747a24"
+      "sha256": "d060758e82b5e617f129856ed43a95192103b9c3c345c283bbd88ad408f4eaa6"
     },
     {
       "bytes": 1364,
       "path": "sdk/routing/actions/project_register.route.v4.json",
-      "sha256": "c5dd1d514f50d07b5d651894357035fcdd8889f276dce85207b3b8587a55a7ae"
+      "sha256": "14a6f9ae1c8318934a44d430ed26c59f1e98856da25c8f346957fe986d061b56"
     },
     {
       "bytes": 1348,
       "path": "sdk/routing/actions/project_select.route.v4.json",
-      "sha256": "010b229681c3647dfc793268086b112fc9535f754b97a8aa7f5d3c80c5121dd6"
+      "sha256": "ad995f55ca90bd081b433893c98dfdbc3744a1502394f1938c5a135bfb5b4236"
     },
     {
       "bytes": 1311,
       "path": "sdk/routing/actions/project_status.route.v4.json",
-      "sha256": "36e5c07d9011543bbf7f0f13ec541938fbf43252349df405ff87bc511af91e7b"
+      "sha256": "19bc7bd2857301cced109b6ac65c50ed4044a42a192c30d44d945535340f8de8"
     },
     {
       "bytes": 1412,
       "path": "sdk/routing/actions/project_work_classify.route.v4.json",
-      "sha256": "8f73712c0ee2453ce796c373a913c7f8192675c048d1e710fddd8fe05d33f092"
+      "sha256": "e98bb2339bd90acebeb9410fd75b3cabc5a662835a69b55a0991b4201d1ab654"
     },
     {
       "bytes": 2231,
       "path": "sdk/routing/actions/project_workflow_configure.route.v4.json",
-      "sha256": "20a395c50d9a3e5761e6da38f8fb6a5595df8d97b3a607ea82dc351f864f25a1"
+      "sha256": "5da00e7ec24aade18eaf357250d92b84fbf8339b72ce99c3e38eadcceabe1256"
     },
     {
       "bytes": 1377,
       "path": "sdk/routing/actions/prompt_index_status.route.v4.json",
-      "sha256": "51ce9cd5c48715d795f531b6fcf2dea4903862e487c587088945e7489e5c0d98"
+      "sha256": "ce3598c79c9d3d26bb2b02274f505d0bdb80db05572cc10370d234a3748a4b51"
     },
     {
       "bytes": 1384,
       "path": "sdk/routing/actions/remote_git_action_read.route.v4.json",
-      "sha256": "3359a4775066640b444ab8358331b77094f3f25370288026620afbaa6f14d05d"
+      "sha256": "867919aafcbd888ab03a8dff88f3532c7a33c961c9165b7b32fb3f6d7624b981"
     },
     {
       "bytes": 1441,
       "path": "sdk/routing/actions/remote_git_execute_push.route.v4.json",
-      "sha256": "156ed62e77e3230f7bdd08225be50d736c07feb2ead8e225e3f9045123bb529c"
+      "sha256": "4bf6415ce9cd6cb7b787117752c0b131fa1fe90477a9b01355cb9959c1ce2823"
     },
     {
       "bytes": 1441,
       "path": "sdk/routing/actions/remote_git_prepare_push.route.v4.json",
-      "sha256": "0810dffe372620cfa5499247f5e3204eba1da095e7eecf8a6e1ced5af6229a75"
+      "sha256": "225358b934b5dd9c39480b58a86a39d0373da8c7a1b442569174857d1382884e"
     },
     {
       "bytes": 1361,
       "path": "sdk/routing/actions/render_project_panel.route.v4.json",
-      "sha256": "50f660094ef1375a9e747d59ef6f4f5ee8cf47b39f7d68c292b2cdd2d35c2532"
+      "sha256": "f2d18a3bf94789817ab528e2025943fd0c924c0d1a59f978e0d05b0c22660963"
     },
     {
       "bytes": 1369,
       "path": "sdk/routing/actions/render_runtime_panel.route.v4.json",
-      "sha256": "ef3020fa96449b805b7dbaed6bd65298d68fa5722f7fd9f832fd57fac2469680"
+      "sha256": "27beb260368c9dc3154aac064af25159c7306b54d4ef085c6479905c0bcdf548"
     },
     {
       "bytes": 1390,
       "path": "sdk/routing/actions/research_current.route.v4.json",
-      "sha256": "a26983797141219a93947ef318b5153d02454a12fb8b7e148663d192df5895de"
+      "sha256": "46c462a869c843649cb2bef142f418a7862c73c614605b4020f84c9e99e760e2"
     },
     {
       "bytes": 5993,
       "path": "sdk/routing/actions/research_index.route.v4.json",
-      "sha256": "8d9756a5308147e51795ead5d9e8f38384123e8a5e4bcd160d3e1eed2838b099"
+      "sha256": "27e9d61798c69c8af96f4ebc26a562d45c35a59643fcfa408a253efc1da336ab"
     },
     {
       "bytes": 2793,
       "path": "sdk/routing/actions/research_index_media.route.v4.json",
-      "sha256": "a9f721e7aa4c08a95fafdaf04fb405819f20d4e168286e06b5eac6c64d55d5e5"
+      "sha256": "57253c7a60e205bd7d68631433e47467fb44edf60abd6faf19db1810266c09c9"
     },
     {
       "bytes": 1378,
       "path": "sdk/routing/actions/research_query.route.v4.json",
-      "sha256": "fb000874c3b04fbed14504cca79a3141191994c294816132a21e9dc61e7a0e59"
+      "sha256": "a046ff32ba74ae3757c6c3856cfb294416ba0dada237867b9e08d249d412d357"
     },
     {
       "bytes": 1372,
       "path": "sdk/routing/actions/research_read.route.v4.json",
-      "sha256": "a9ae7345e074bdae6f6e4cc27a56b7277fcbc2d0ce3188600eda33ae883c6973"
+      "sha256": "14452855263bf2e6acced2d7a657e0e11af5e12ee1d89435d8ae28d0bfe4f815"
     },
     {
       "bytes": 6021,
       "path": "sdk/routing/actions/research_refresh.route.v4.json",
-      "sha256": "4d4447b7490f54cfbe1311f62f06ba8caa8a11132081c9d855aca6e190730e25"
+      "sha256": "48990d0a3889df6a10d41ecb1cc511b55bb3bac90115925f8feddfb4ddd2702b"
     },
     {
       "bytes": 2811,
       "path": "sdk/routing/actions/research_refresh_media.route.v4.json",
-      "sha256": "29923dec0d99caac33b44e34f5e17f45556ae7d4cddf7b00589a32f508c50a6e"
+      "sha256": "85dd7a652c974a4885a226277fa790fbfc6bacf775d7952979b8e0beeee6ef71"
     },
     {
       "bytes": 2132,
       "path": "sdk/routing/actions/research_web_capture.route.v4.json",
-      "sha256": "5bd7284b378ec0f312da3599cd452c72efa1cd2b1bf9c348f667d555da48a947"
+      "sha256": "a57544a428dcead21b59140ef87c671d19dbe65a20b2d0bd6a92dcc252ea0942"
     },
     {
       "bytes": 1483,
       "path": "sdk/routing/actions/research_web_discover.route.v4.json",
-      "sha256": "479ab2df56bf86769c64732f6ea68dd16ac685a2368d9739a267e5d0e9783338"
+      "sha256": "a483346756c9dfc0f9201256fc0596aebc063f3285b09e9021a09df33adaf4c2"
     },
     {
       "bytes": 5108,
       "path": "sdk/routing/actions/research_web_extract.route.v4.json",
-      "sha256": "7f6ba3491246f68f048658d12912678bea6bc03de612d5797c35e7b70ceb0aae"
+      "sha256": "35845333320d18d44951e8b8d1e8edb6f45bde3e049fb4d03e4ec05b184efa24"
     },
     {
       "bytes": 1352,
       "path": "sdk/routing/actions/restoration_read.route.v4.json",
-      "sha256": "7e32f90702ac3e666c806b30e15b2a441b60b40e18abdc68d030bb9681c9b46e"
+      "sha256": "ac3ddc4a4b7106897f96f2c44db34584ef206e956e9c9bb4556b8d230f905989"
     },
     {
       "bytes": 1384,
       "path": "sdk/routing/actions/restoration_reindex.route.v4.json",
-      "sha256": "d530bceae2daae7ef5d45c3c063fc8553ad7cbfa6ec0209b5d16dd0f1c2cdbec"
+      "sha256": "be243bde3fb09a1616ee2202b2c733eca90a6573fc5fe104c0a22f13c1308906"
     },
     {
       "bytes": 1313,
       "path": "sdk/routing/actions/runtime_doctor.route.v4.json",
-      "sha256": "16bbbde427266280d9cf635157d6e683262d716f21abf9820c64eacaff1e34c9"
+      "sha256": "3941f3c031b7fcf4d78bbb0f9dae9e3ddc3d2d6ea97c81334b83c36126d220d8"
     },
     {
       "bytes": 1324,
       "path": "sdk/routing/actions/runtime_status.route.v4.json",
-      "sha256": "56a9da3c27c219d2b7e88a8b55a0f4e5c9705cbced6ee62fd46163ec69122e0a"
+      "sha256": "6b10c0c0edfca4ac76e2ba71856b33dd61229a6205693463cc3ff47490251d2b"
     },
     {
       "bytes": 2055,
       "path": "sdk/routing/actions/search.route.v4.json",
-      "sha256": "cbadb2eb00b5216751c49e9fb55dc6a9cceccd6fc11787634f6a166c8e9cfab1"
+      "sha256": "97d76cb3a69e4fc4a4dccb08611bdc08f3bace0df4aeb187147bdcf16e7427c0"
     },
     {
       "bytes": 1325,
       "path": "sdk/routing/actions/session_boot.route.v4.json",
-      "sha256": "640d1ba648509e2c4efc94475d01fa868b165ada3bf4e253ea7060069a5cdf29"
+      "sha256": "2fe363c6f66faea223e17819b3a5befab540f66f1f1a0aafb14143cd1e0ac7e4"
     },
     {
       "bytes": 1323,
       "path": "sdk/routing/actions/session_context.route.v4.json",
-      "sha256": "7548c14caa0d1f39a967af18837d83f984318eaa42e85864ae18844a136ab222"
+      "sha256": "73d8f14a118f7443d013182aa6642132ffc4aa455ee3a3015381b2e450fb0318"
     },
     {
       "bytes": 1326,
       "path": "sdk/routing/actions/session_exit.route.v4.json",
-      "sha256": "c875c8aecdfbec09d7458848b1504f196ad9ca456e05a4f6a923703625545f57"
+      "sha256": "6c802e2e7e4ee0e45ba51d0217536c2c7225fe98c902218ba4564bc382428171"
     },
     {
       "bytes": 1361,
       "path": "sdk/routing/actions/session_exit_boundary.route.v4.json",
-      "sha256": "0c8237886e387e9019542224bd308133500ce45d3a15d24030f37770ae5c0182"
+      "sha256": "a59994954695d61c3266611e38e08c146cc8ca3bb15f2a0dd012a93b055e6008"
     },
     {
       "bytes": 1370,
       "path": "sdk/routing/actions/session_flash_status.route.v4.json",
-      "sha256": "89363a1a33a4691c2c2e34e8b7935e917dd7750b483df9eeb759215052b50d7d"
+      "sha256": "88323eb80fe1796e6ca9d8215096753b76e77fa9bb11f56ab7b334ea3acee23a"
     },
     {
       "bytes": 1337,
       "path": "sdk/routing/actions/session_resume.route.v4.json",
-      "sha256": "3a1176500cfce74ca8c4f2fe890b69f1e10e28c56330cd14dd8eb6053f3c07db"
+      "sha256": "e5168dc97868b8dd1bbf03698adc8152f1ab04eddea607ac1306dd449eac77d2"
     },
     {
       "bytes": 1316,
       "path": "sdk/routing/actions/session_status.route.v4.json",
-      "sha256": "24f7d3ce16a8270bbda6680a9d44ea74d543f9117b28abce07545159e034eb1e"
+      "sha256": "c3b8af73568bded0a280f7e8ad8213c4e822fd19b70d71ab2d87d14d8ba4ba73"
     },
     {
       "bytes": 1349,
       "path": "sdk/routing/actions/source_classify.route.v4.json",
-      "sha256": "7ee5153fce04c153d5f694e867db12e8293589f950a4bd7058fe8d10fb82fd19"
+      "sha256": "cc6dce75279d962decdb6f889edec5265b2918f27c4531cabc465f73d043266a"
     },
     {
       "bytes": 1368,
       "path": "sdk/routing/actions/source_crosswalk.route.v4.json",
-      "sha256": "da3e92543f7b7f1cc6ab22de52613fdcae51c17749095901550704c35e3e1f4c"
+      "sha256": "c3a6d9a437ead4335c1f5c32feff6aaf82bed0f4c7a0668d21fddedae3114f85"
     },
     {
       "bytes": 1380,
       "path": "sdk/routing/actions/source_git_history.route.v4.json",
-      "sha256": "fa79254dbea9790e252fd208f518bc46f502ea5bf70ce4c5a3905838c211534c"
+      "sha256": "fea44a002f34f17f4844a898e36f0f32004c75d166201a93e878ee012702de96"
     },
     {
       "bytes": 1374,
       "path": "sdk/routing/actions/source_git_impact.route.v4.json",
-      "sha256": "74f7bc6e64a6c380accfa9fab0157fd438156f099d8e34041bcaeab01d346049"
+      "sha256": "16bcfad4230c5cb449aa08275a7a5a79a8267774e7f0ead232be3e59bde828fa"
     },
     {
       "bytes": 1344,
       "path": "sdk/routing/actions/source_graph.route.v4.json",
-      "sha256": "d25b7002ea4d98ba831241a8c826d2cc9c0ee6514a4fbf296ac36f8a1721763e"
+      "sha256": "2afe35d0c52a78b3c5671a88675acceb4132e593b99f3c7dcb79f0489c7d8b4d"
     },
     {
       "bytes": 1374,
       "path": "sdk/routing/actions/source_graph_diff.route.v4.json",
-      "sha256": "c868dc652d977f17f96c9546f6b9d98982bd3cc1985e9bf35a103d1c9f3201ba"
+      "sha256": "a2f2df7d2582ea5b13fa57d95fe80c43a5ae66570d7d1c0181248055ea7e47f5"
     },
     {
       "bytes": 1386,
       "path": "sdk/routing/actions/source_graph_impact.route.v4.json",
-      "sha256": "5fe0c17e269704ae344cb5548e80a7683ecc98dddaa67b6c3c412870ea312550"
+      "sha256": "9e94b50ea8062e0de4c068c94916b277f0667b32ccb25849decd296e139b9ace"
     },
     {
       "bytes": 1362,
       "path": "sdk/routing/actions/source_identity.route.v4.json",
-      "sha256": "7d5e56d71821be661d4ed64ee552b5545d1aafb721be59b6c73e8ac9d84c130a"
+      "sha256": "08074c2d5d5ed3d718901f904a6ffc49ce207a87d05005c86a4bf5046504ede8"
     },
     {
       "bytes": 1398,
       "path": "sdk/routing/actions/source_inspect_sqlite.route.v4.json",
-      "sha256": "ee5bb9765d3b150b8d5f5df1f5a6646de6cebf4b37b7eb1772157b79847e95a7"
+      "sha256": "4de9edf0f69c312959095184e6cf821fc7e6311837bfe49cd32e58c50bf644a6"
     },
     {
       "bytes": 1415,
       "path": "sdk/routing/actions/source_materialization_read.route.v4.json",
-      "sha256": "1d1a8f8df190cb9e50817769a457a37503168e1fdb02db5167d42093f074aa69"
+      "sha256": "82ca7a75d906a435c52b7ae49649e0265266a46b805658146c0df3e6f3683c3e"
     },
     {
       "bytes": 1450,
       "path": "sdk/routing/actions/source_materialization_reconcile.route.v4.json",
-      "sha256": "e7dc22a735dc57b6171012814d14c81624a33c8051cf5a0c62567c9ec4848f7b"
+      "sha256": "2814dd7af4af4a977c7594e89c13d5e18e0a779709b5cd46309793a26fc772bf"
     },
     {
       "bytes": 1362,
       "path": "sdk/routing/actions/source_materialize.route.v4.json",
-      "sha256": "e73dce9dba75c3e070a6709d46c3d3499a1e9d0f947fb4d86d7898aabe754c3b"
+      "sha256": "8bd9b9cdff0f19736c0ddb48621f3e99ace2a1e98a8246d1671f202ebf9a21d0"
     },
     {
       "bytes": 1407,
       "path": "sdk/routing/actions/source_preparation_read.route.v4.json",
-      "sha256": "dffe37d8cf9cb8b6dbab406d369f2f6b4c3aa149f9d80d38e5741e178914df4d"
+      "sha256": "ff838d1838bddce72e4467519787b85ebfe8769dc51102396d30a68578f2e189"
     },
     {
       "bytes": 1402,
       "path": "sdk/routing/actions/source_prepare_refresh.route.v4.json",
-      "sha256": "d30854bdbc5bd405b37abf12ca623bce6b8abbd70f9e972c630fc664207f1c70"
+      "sha256": "7a49b68e2e245e6502706227bab2f56d88a0579e30e274f73f3a799e331d1684"
     },
     {
       "bytes": 1388,
       "path": "sdk/routing/actions/source_prepare_tasks.route.v4.json",
-      "sha256": "a5c0c072836ed767921dbf9595c9c9195c4b1afb4669b332d30204dc3508c2bc"
+      "sha256": "b4ee25cebabbca24885ff96a9e510f7127f84299f524d0af12e2d18ccb0baf7b"
     },
     {
       "bytes": 1325,
       "path": "sdk/routing/actions/source_read.route.v4.json",
-      "sha256": "e481c08f38571c2d303e5bff7b6b7fa513479f1b7df02e844ee962a7a25eefc2"
+      "sha256": "48b88391c322e323a7e4d681a113d807fb1d6bec2de4a6bbff3574ea3581526d"
     },
     {
       "bytes": 1422,
       "path": "sdk/routing/actions/source_reconcile_archives.route.v4.json",
-      "sha256": "6d7a8a3a2764bf0b90f59ab041b2076d81da798bd4bb6d7dae06b6432d3ceec7"
+      "sha256": "8dd4684676fe571e6f71a42d1c997b74f6671b27140266173913a06166088cc7"
     },
     {
       "bytes": 1349,
       "path": "sdk/routing/actions/source_register.route.v4.json",
-      "sha256": "07b08b407dc8205c1b0960e04e61946c75a15c503dbcc4bcbb310338036f5051"
+      "sha256": "145e784a9aff23e72d21b77a1dcade2c01fae14e4429d05865d89785ee481769"
     },
     {
       "bytes": 1367,
       "path": "sdk/routing/actions/source_routes_read.route.v4.json",
-      "sha256": "699d1c5780363486db26221f7c68ea47e5230e50f414ca9f951ac115e1fe2818"
+      "sha256": "6f2c632e914770f98c99a995280da23d81f0e2482d9733e3b66257fc308b6d35"
     },
     {
       "bytes": 1410,
       "path": "sdk/routing/actions/source_schema_configure.route.v4.json",
-      "sha256": "5dfe902f2ec7a2535a03c6a8c091cefed7ad041d52e5c09370283b94ffdd6d1c"
+      "sha256": "dd527e137623da6ebf2e7d4e6acc8c904481af38a1bda7e743c1e23be2a23da6"
     },
     {
       "bytes": 1374,
       "path": "sdk/routing/actions/source_schema_map.route.v4.json",
-      "sha256": "0cdb04a5524303acf88fab65fedcf3961fa6c23e8dab40dd38dca89728eebbea"
+      "sha256": "d8db1d3bc30c4eecd1a41c459585888c78e104552c57bfc5a4b6ef242f61cc9d"
     },
     {
       "bytes": 2191,
       "path": "sdk/routing/actions/source_snapshot_retire.route.v4.json",
-      "sha256": "3fc13639894f8993f33f6536cb8ea873f2f98f7b21e7606c43bdfc3c487c8b48"
+      "sha256": "0786c92b40625595741ccc3e69592b4cf0af3502a929263032ccb791d4b5a02b"
     },
     {
       "bytes": 1388,
       "path": "sdk/routing/actions/source_snapshot_state.route.v4.json",
-      "sha256": "5f5dd3ea5924317a7cd08a9b491000d56c25f82b04f5ee50d39dea1f84be7ad2"
+      "sha256": "42d897045eab44f1f21852fa12832a4133a26dc431e9e755d797e60e3aeb5149"
     },
     {
       "bytes": 1350,
       "path": "sdk/routing/actions/source_verify.route.v4.json",
-      "sha256": "8a98ca1568a247e4662cd56e826643e6157b584319846857790cf2d823fee913"
+      "sha256": "18f70605f304690b66d0ff86b798063bfa7069dfc2b82a444f0f99feff45088d"
     },
     {
       "bytes": 1402,
       "path": "sdk/routing/actions/spreadsheet_current.route.v4.json",
-      "sha256": "f2a5c2730cb717f16cba7ffbf68fd640bcd11ebb79e2d52e294d6022c5f884cd"
+      "sha256": "caefc2ece0167e67488ca07e6a79c02b009d6bc6f0f0cb35b25e326bee72417e"
     },
     {
       "bytes": 1338,
       "path": "sdk/routing/actions/spreadsheet_edit.route.v4.json",
-      "sha256": "07588662a6888b9b50b9cfeea1817b66525f87c3492d3e4d1ac4e6b59b0f25da"
+      "sha256": "66765f95b7a9b57ff7e5358de38c2326d0200c8b09028c5f2f95ae48095b43a2"
     },
     {
       "bytes": 6053,
       "path": "sdk/routing/actions/spreadsheet_export.route.v4.json",
-      "sha256": "f96e85f833792e9322196bc53264e0e17a98a03fd18b7630414ee2cdd98ddf58"
+      "sha256": "b3918425a226d0477b7b89c2e1d24869b8de00a4d18aab4a45d650175b1f2e5a"
     },
     {
       "bytes": 1370,
       "path": "sdk/routing/actions/spreadsheet_generate.route.v4.json",
-      "sha256": "9530afd175a91d0757ad98fb1a7dc72e927756f174f618fa23840917390c72be"
+      "sha256": "50aa05f89c3c177cbf92c8a6264836be0caa2942a1ca344727ed886f39dbe8a6"
     },
     {
       "bytes": 1331,
       "path": "sdk/routing/actions/spreadsheet_index.route.v4.json",
-      "sha256": "33c304cce4e22c04f3c595eb667fa7f06e6202d8599ea15e01c37faa914f14bc"
+      "sha256": "6cfe914b51fb673154ad8601e3e39ee6ddf852c70e3c2ca623d5565d580740a7"
     },
     {
       "bytes": 1400,
       "path": "sdk/routing/actions/spreadsheet_index_values.route.v4.json",
-      "sha256": "e28344df41e33de9c83cbaa8e9e05a12b50e4e01dddf8fe583a4576f6a4900a2"
+      "sha256": "0fa5c45ae39911eaa91946b8b53e3e16650dc70e8841152fee2f5f8a8bc496b6"
     },
     {
       "bytes": 1432,
       "path": "sdk/routing/actions/spreadsheet_inspect_openpyxl.route.v4.json",
-      "sha256": "980f04f127ca940d7aa7b9c7f8b2870ba30ca26aa7d74c23ef1fdcf14c5133d4"
+      "sha256": "3bad361dabf25d6736722b12c236ddb7c71ffbb1d9b25f43d5843895c312cb0d"
     },
     {
       "bytes": 1418,
       "path": "sdk/routing/actions/spreadsheet_inspect_pandas.route.v4.json",
-      "sha256": "26c9e2e5b44d4d20f398d962467261bbb65dca5359526272d405308170a328f7"
+      "sha256": "44b2f4344519cfb6ce6ed8a4a763b4565447e28699f28d42e88582d96b76219c"
     },
     {
       "bytes": 1425,
       "path": "sdk/routing/actions/spreadsheet_inspection_read.route.v4.json",
-      "sha256": "97c6aea6d31d15d1756adbb787a8d65ba2e8725217ee88afdb59eea2c429198a"
+      "sha256": "8130bb605d0c31a25913c0a5f9a99d2db461390176d774a377b9e3bb8c43b77f"
     },
     {
       "bytes": 1390,
       "path": "sdk/routing/actions/spreadsheet_query.route.v4.json",
-      "sha256": "6e68955015a028d00595cd2f8dc5c83ac3a78bdf876a8d56d12ae9a2f3e8eaf1"
+      "sha256": "007185dd9a2221bc2a7a11a2be5fc300cca59a2f1fa475fb2ae9e4d1766fa467"
     },
     {
       "bytes": 1384,
       "path": "sdk/routing/actions/spreadsheet_read.route.v4.json",
-      "sha256": "34576d33d33db971c25f42c3b174c4420dcb16cedbb9660e327b20c388422860"
+      "sha256": "842ced9d6876d34126690ff30a09140644684d2c2a1c085102f6f31fe39ebb64"
     },
     {
       "bytes": 1363,
       "path": "sdk/routing/actions/spreadsheet_recalculate.route.v4.json",
-      "sha256": "572f9b9cab19cc7bd19f799267bdc975d4211872cf8b182209f13c5d5c32461c"
+      "sha256": "832c54f886ec1728d41eae3b9778ee27af64362e7f276bcaa808bfb12e34feef"
     },
     {
       "bytes": 1345,
       "path": "sdk/routing/actions/spreadsheet_refresh.route.v4.json",
-      "sha256": "7823499b8d0f0c445fdae3bab4b70da23f253f52fa9b2c5f06a4dec2aeb97d2d"
+      "sha256": "e836fafc866d8840ca768c2f4ac5ef0efd3804f71e0f79fab0ddab841f64e9d2"
     },
     {
       "bytes": 1414,
       "path": "sdk/routing/actions/spreadsheet_refresh_values.route.v4.json",
-      "sha256": "a9edb3fb3c86783597f0d4f94d93c97a3af10a64ae9f376f08bc246f8bf5eb1a"
+      "sha256": "caafe3496a0bafa6e6fecea661e5394ffd0ac07fd70f4bd1d4dbf98a32d94de4"
     },
     {
       "bytes": 1349,
       "path": "sdk/routing/actions/spreadsheet_render.route.v4.json",
-      "sha256": "093711226c211dac4530fe5e54f23665287c889a29ab6f35d8ffbe2b64527c2c"
+      "sha256": "9440ba36d21b28e75331c83fcd876f7e180e462dc34e27f722dd9ffe133ea1e3"
     },
     {
       "bytes": 1412,
       "path": "sdk/routing/actions/spreadsheet_render_read.route.v4.json",
-      "sha256": "16ffd375394ead8c01f6ede9fafc1408e95a3e24b15832ec13a16d166230cafe"
+      "sha256": "613c7f8e578456643aaf0b795b53bfd67561ea4608259f07b9632a8c32394b87"
     },
     {
       "bytes": 1325,
       "path": "sdk/routing/actions/steer_preview.route.v4.json",
-      "sha256": "c637a67f98c37f2b86592f08b578c93ee2541452223809630f731c891d6f070b"
+      "sha256": "30d734967404599826de7f2b1a204d4abd66cb659e8ef571806a7adfa8e3bb00"
     },
     {
       "bytes": 1317,
       "path": "sdk/routing/actions/steer_submit.route.v4.json",
-      "sha256": "e1312fff7da9b54c0f5c8efbdd9b645b5628b6270da1d0b015ee8f09281ba2a3"
+      "sha256": "fae0cae15d5b40e7144b38bc7bbb665c3eaa315226382f2673bfadce76e2a75a"
     },
     {
       "bytes": 1415,
       "path": "sdk/routing/actions/storage_connector_inspect.route.v4.json",
-      "sha256": "ccb6b765540dcee05502f9c91befd3ed734aa68bf5284dea84c34ba54468d70c"
+      "sha256": "87bdacd7a200c3e9dd28a2ab4ccbcc27e9ae10147beab163d65c9dd0d668be4c"
     },
     {
       "bytes": 1409,
       "path": "sdk/routing/actions/storage_connector_select.route.v4.json",
-      "sha256": "b4bf9a8b67a45c7ebb037d4066474da5d90bd9764ea5f932449d9eecdd178d60"
+      "sha256": "47c84eac593493562dc60b84e8ca0399eabe585732c272445cb9cc95790bdae9"
     },
     {
       "bytes": 1342,
       "path": "sdk/routing/actions/storage_status.route.v4.json",
-      "sha256": "c0274250c4cc2f7aa8408a570525b6a97a5120aea23734b2e1f7a268b9abaa33"
+      "sha256": "0c531f3b96f85ae398ff599b69d7f799e16e6c0ff4c585ed483eef283322bf4a"
     },
     {
       "bytes": 1374,
       "path": "sdk/routing/actions/tableau_current.route.v4.json",
-      "sha256": "7b89bdbbe0824eb6c712968623fe6adebb0f6d1ce27b34cdb5d157a46616c853"
+      "sha256": "9806484d149a259bd397f755efec89be33210a91d844c12248f08be2152b9c5c"
     },
     {
       "bytes": 1312,
       "path": "sdk/routing/actions/tableau_edit.route.v4.json",
-      "sha256": "10ccd087c759571268c4ad743b1f86e9306525ad92c8126daaad108eada57242"
+      "sha256": "495898d6e9db5ed305166e48e789ebc77319bf783f9caa36c50ef8a74ed54b2c"
     },
     {
       "bytes": 3414,
       "path": "sdk/routing/actions/tableau_export.route.v4.json",
-      "sha256": "f220422b1d0618221b37c1fe9f4c9811369ca10eb8b1018a001ed522b2451285"
+      "sha256": "1961de1767aa26c2a07b73b779f8bd627c888f41a15bde2c8c518f5a05fe6847"
     },
     {
       "bytes": 1340,
       "path": "sdk/routing/actions/tableau_generate.route.v4.json",
-      "sha256": "28cd4aa4f1183de04233932e449c2174cf8775173c9dafe12c17f39085147281"
+      "sha256": "f42d6512fa0d92896d1122bdd26da333187b89e321ab2ea5220565565132f856"
     },
     {
       "bytes": 1321,
       "path": "sdk/routing/actions/tableau_index.route.v4.json",
-      "sha256": "671e5071d9e4e8d54a3e31c408c0fb1aef6ece235a4da7771d7d61b040fd989d"
+      "sha256": "bed68399ec5d37e71b20330b3fa23e34ee10b614a3f77e94b448740ea2a8fede"
     },
     {
       "bytes": 1362,
       "path": "sdk/routing/actions/tableau_query.route.v4.json",
-      "sha256": "88bc21cbe41f2e2c43ed27abc43505cdf0e9c0d6d74cec74f9deedd1967f9fcf"
+      "sha256": "87988550083b4f642d0b0b897b1d8eac4cb39d561f0fdc0eabacb484310bc9e1"
     },
     {
       "bytes": 1356,
       "path": "sdk/routing/actions/tableau_read.route.v4.json",
-      "sha256": "c8b30629fcfbe67c14d1bd84d5bfd7ce7006498c6ac8e4e058426291d9ee1b8e"
+      "sha256": "df339ec5bdc49ad8c87e352e49587f6264a8aa0d60621fafe946f0b6cc5f4e84"
     },
     {
       "bytes": 1335,
       "path": "sdk/routing/actions/tableau_refresh.route.v4.json",
-      "sha256": "ea5c521b292b8764c60a142e7ac95e7ba288ca6553cf1cf035d1e348cbebda68"
+      "sha256": "d5e9a5ca5df4eadb05033e77727989014a9a0f4f18f615ffbdb1325f029a6d50"
     },
     {
       "bytes": 1340,
       "path": "sdk/routing/actions/task_classify.route.v4.json",
-      "sha256": "2aed10c17dc72f38888357205c7225f8f0f76289881ba43c5df26c26534c9f3a"
+      "sha256": "6d78e93b104b7799f0db4e7c63f5ffba15ba5f7dbc042b49f8baed70a11982c4"
     },
     {
       "bytes": 1391,
       "path": "sdk/routing/actions/task_evidence_classify.route.v4.json",
-      "sha256": "3c1a19db661715717773295982b112ca56625ceb1edd49366b3fe2bfff49ef4c"
+      "sha256": "85eea36fee6482ca79bf77435b669ad2d3201130948c8fd1748d06b98ae0c6aa"
     },
     {
       "bytes": 1399,
       "path": "sdk/routing/actions/task_evidence_decide.route.v4.json",
-      "sha256": "a981a35c708be8b68d4294defe1a80021c79e9db7a226156e1fd919fe4047b8d"
+      "sha256": "922ea8ff73be7431afe1695d398f31dda5cd30981246d1e5f81061d011351f82"
     },
     {
       "bytes": 1403,
       "path": "sdk/routing/actions/task_evidence_edge_bind.route.v4.json",
-      "sha256": "8d134150c72c8919e815affbaeba8636d57b31e07c3e76fd7ec1ef87050fdc95"
+      "sha256": "143687827cc6de50d3df5084cec222077b6daeda03960c53e16d62547d60c75d"
     },
     {
       "bytes": 1431,
       "path": "sdk/routing/actions/task_evidence_edge_register.route.v4.json",
-      "sha256": "110ff40155db181ef9667ad5132ecc0b3a31bbe0464def49460f5afee6342ad3"
+      "sha256": "5c71341ce40086f8fea13437ac5a1e17de236e0e64d27ff04e6643f334a366ad"
     },
     {
       "bytes": 1399,
       "path": "sdk/routing/actions/task_evidence_expect.route.v4.json",
-      "sha256": "3b568c4e75be0360f6cdb8b28397356c65ffe52d75cb7cac5ac04a7049036ca7"
+      "sha256": "921076800791cc8af207f6d17dc8d9945856ca93bcb5182df540e3e01b16e052"
     },
     {
       "bytes": 1373,
       "path": "sdk/routing/actions/task_evidence_graph.route.v4.json",
-      "sha256": "091bfd009ba74ff97c0554bc9b5c9b2a2ca4e3b280025503938336b8608390bd"
+      "sha256": "0c4b7863032660ad91c2002e0266b87edb06872ba3aa21f86d673d70eb74731f"
     },
     {
       "bytes": 1373,
       "path": "sdk/routing/actions/task_evidence_inbox.route.v4.json",
-      "sha256": "337d31083c93bfbefc98cb7a9fb641ff782f37778109d8d1bcca23b6041a63c0"
+      "sha256": "325166683dc9e7da7bf72e17e72827654848e756dc89f742448c9160fcf17581"
     },
     {
       "bytes": 1441,
       "path": "sdk/routing/actions/task_evidence_input_request.route.v4.json",
-      "sha256": "ebd93bedaa0e91ccfac99b0509dc4fc08bdfb31d986bcad7d9f0b0773d0b5cfa"
+      "sha256": "4adcfd7e39645f315f0cc3de4fb1d35b5ca287aa15c1bd2229db6a3578b74db6"
     },
     {
       "bytes": 1385,
       "path": "sdk/routing/actions/task_evidence_inspect.route.v4.json",
-      "sha256": "6af8f0008f89e0bfffca77228f9495fa20e8c3a3e235cd8b33709b545bb7fa93"
+      "sha256": "246098ce133aa94a4619d34127438cffa2d48b824b2053dc2d92a5aabb481653"
     },
     {
       "bytes": 1440,
       "path": "sdk/routing/actions/task_evidence_packet_classify.route.v4.json",
-      "sha256": "e57d6b9b6f4e9c475f29ced412f695e585cba1f5d4fb539655b1f9817accac59"
+      "sha256": "859104c322dd62efea71740a6042596d644273d762310f4be498c508458418a4"
     },
     {
       "bytes": 1476,
       "path": "sdk/routing/actions/task_evidence_participant_register.route.v4.json",
-      "sha256": "b10ed4dcf7442030b551a5031f20d63e2984c2523e6fdbdd984f033bc28ea26d"
+      "sha256": "2d93e0763f311e4ad4794a80a2aacc44dd718b0e10e9a724e00e87b740c24b0b"
     },
     {
       "bytes": 1367,
       "path": "sdk/routing/actions/task_evidence_read.route.v4.json",
-      "sha256": "08610a7214e13321ec5ac0ad3249a8f50b0cd030a3c3656cb2327b5a59d52551"
+      "sha256": "7dd807d3dde4b1c285fdc042beb2feccb5bd851556c71f128420409c0b508877"
     },
     {
       "bytes": 1405,
       "path": "sdk/routing/actions/task_evidence_receive.route.v4.json",
-      "sha256": "072e69858781abd09c01a78c48aae565de6beb238eb0dd63f56c532848d3ac7f"
+      "sha256": "e652437b33193decc8aad8b568d2bcfc5fedde49edef71ad64f92dba981adc0c"
     },
     {
       "bytes": 1399,
       "path": "sdk/routing/actions/task_evidence_result.route.v4.json",
-      "sha256": "cde99181a846c85e37ff327eb32c506451af709b250780f0c8798feabe02de5c"
+      "sha256": "2eca386212e964f2b3b510b04790f7d09e16e6b626c650594b0956db60cca517"
     },
     {
       "bytes": 1387,
       "path": "sdk/routing/actions/task_evidence_send.route.v4.json",
-      "sha256": "2fb2d85bab4a578f465d9f10d6dd09bc226c02e7d4542552647228e75cb93e12"
+      "sha256": "47ff93215274854221a3c13e9ec6bd4542633771365c7a1f0d0121e881ecc4fb"
     },
     {
       "bytes": 1410,
       "path": "sdk/routing/actions/task_evidence_supersede.route.v4.json",
-      "sha256": "8b843f56d355eb22d01af5c5bb84ee14424566f9e5ac6860a3442c3b950d498d"
+      "sha256": "1506e60be0bd29b27e2becb2c74f8a12f6487c5476b15ef0e22303a4f5aa1732"
     },
     {
       "bytes": 1357,
       "path": "sdk/routing/actions/toolchain_catalog.route.v4.json",
-      "sha256": "b8f3b8481524ffdd2d21083652a7f4f68ea0829ca99de22d059e02fa46578d3a"
+      "sha256": "88c0426d2aba8f68bd5a4f82d715d4d6f1e699352f403ec1e1e8b04693f3ce84"
     },
     {
       "bytes": 1357,
       "path": "sdk/routing/actions/toolchain_resolve.route.v4.json",
-      "sha256": "2e363d0aea64bad45da1628dfa3642341300c8f314c4011fbd800b25bb1604e2"
+      "sha256": "86a5a131d65e912671251fa03bb2123806808b3832fd5d9715705b5aad4ac9fa"
     },
     {
       "bytes": 1386,
       "path": "sdk/routing/actions/validation_policy_read.route.v4.json",
-      "sha256": "b26dd28ce5a03689869b45d713ae0ebeb4321eb24e7a72e6a607b165b83cf0e7"
+      "sha256": "8de54dc7a5468d5165377dfc659595eaa75af596c03110e7a6e41ef4bf8ac49f"
     },
     {
       "bytes": 1381,
       "path": "sdk/routing/actions/validation_policy_set.route.v4.json",
-      "sha256": "0e3aa4b0cbbfb137f217758c5d3fd172999d96f01a6df22c524cbef50f75675d"
+      "sha256": "ecc6ae38cb095494a408dc3fbae10796beb1612df609671f8e7d2d67d9bf0c59"
     },
     {
       "bytes": 1349,
       "path": "sdk/routing/actions/workflow_catalog.route.v4.json",
-      "sha256": "c77bae81dc44bfdb4dd83280773d34a58ac58299bbaf5b16f56ed0c2dda9fc23"
+      "sha256": "717ba78c5843cf44439c2ef689d0658969b7f72f0e00c049332f2ce5c75c26b3"
     }
   ],
   "route_count": 297,

@@ -77,6 +77,7 @@ def execute(system, action='code_index', arguments=None, index=0, timeout=25):
         time.sleep(.02)
     assert row is not None, 'Code worker did not publish a bounded terminal observation'
     assert row['state'] == 'verified', {key: row[key] for key in ('state', 'error_code', 'result_object')}
+    system[0].delta.owned_completion(admitted.job_id).result(timeout=timeout)
     return json.loads(store.lane('plan').read_object(row['result_object']))['result']['result']
 
 
@@ -106,7 +107,7 @@ def test_index_queries_and_impact_use_separate_lane_and_actual_worker(code_syste
         assert db.execute('SELECT count(*) FROM code_file_version').fetchone()[0] == 3
     with store.connection(read_only=True) as db:
         assert db.execute("SELECT count(*) FROM sqlite_schema WHERE name GLOB 'code_*'").fetchone()[0] == 0
-    assert not (store.root / 'sectors/github_code/github_code_sector_v001.sqlite').exists()
+    assert not (store.root / 'github_code/github_code_sector_v001.sqlite').exists()
 
 
 def test_exact_replacement_retains_history_then_refreshes_changed_file(code_system):

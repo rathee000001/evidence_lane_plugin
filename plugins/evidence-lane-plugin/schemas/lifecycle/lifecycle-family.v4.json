@@ -16,7 +16,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/session.py",
-      "sha256": "4a2c01a5a05bfcf0cf4035d5b4e5645a3aacf50b1e6ace2f0f08b291efb0e9ec"
+      "sha256": "9a0cafd31ce5996622de091ee9e5d3ff367ac5877dbecd247bd3589c6d4ef06e"
     }
   ],
   "purpose": "Session, project Plan and bounded work lifecycle owners",

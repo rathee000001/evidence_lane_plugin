@@ -1,13 +1,13 @@
 {
   "action": "project_evidence_map_query",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/project_evidence_map_query.action.v4.json",
-  "sdk_binding_sha256": "0426b57244e6c30e5f9b0be2400fc0d54e18ce8137e80f8a57c0dc1ea6892450",
+  "sdk_binding_sha256": "89851c6f58da558b2657e138ee70e03581df22f31fede4f1c229c151f2267e0c",
   "tool": {
     "annotations": {
       "destructiveHint": false,

@@ -1,13 +1,13 @@
 {
   "action": "project_backup_verify",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/project_backup_verify.action.v4.json",
-  "sdk_binding_sha256": "01c96d1cbc299ed5688332d85a203a3c5e5e9e183545169c38cb90789cdd8221",
+  "sdk_binding_sha256": "205c761f4bafb086337695b56b3885eb862f7a728f7869d4d1c44e9c8f1bfc3e",
   "tool": {
     "annotations": {
       "destructiveHint": false,

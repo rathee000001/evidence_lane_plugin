@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "configured_state_is_runtime_activation": false,
   "contract": "hook-control.contract.v4",
@@ -9,14 +9,14 @@
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 5085,
+      "bytes": 17814,
       "path": "hooks/hooks.json",
-      "sha256": "c27286f3d37ef5594f4fe73ab5c9e25d43b68161f0acb5f745c75a50f6a3dec7"
+      "sha256": "eeaea0bc18e6ebec60d45e38b1de3fd252cb662a71859fe1ee74d0b88f5eaff1"
     },
     {
-      "bytes": 8689,
+      "bytes": 10064,
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "sha256": "daeea450050942f8d398443eed04200df15e8c45e1210c711c42e4612c3ca3ff"
+      "sha256": "ddb5f042d1163ba276bcca2d9d7549130b8fa28aad9ca34b896806fe52a0c38f"
     }
   ],
   "status": "PASS"

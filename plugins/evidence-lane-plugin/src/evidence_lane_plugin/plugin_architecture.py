@@ -109,8 +109,8 @@ def build_engine_connection_contract(plugin_root, *, registry):
         'studio': {'owner_source': 'apps/evidence-lane-studio', 'human_access': 'visible_read_only',
             'windows_pc_only': True,
             'shared_installation': 'authorities/session_authority/installation-layout.v4.json'},
-        'project_state': 'separate authority/sector SQLite databases and files coordinated by project evidence head coordinator',
-        'session_state_owner': 'receipts lane', 'workflow_count': len(registry.workflow_schemas()),
+        'project_state': 'direct flat-PV lane SQLite databases, objects and projections coordinated by the root-PV head',
+        'session_state_owner': 'sessions lane', 'workflow_count': len(registry.workflow_schemas()),
         'action_count': len(registry.schemas()),
         'source_members': [{'path': path, 'sha256': sha256_file(root / path)} for path in owners],
         'installed': False, 'native_task_attestation': 'not_provided', 'hook_trust_attested': False,
@@ -196,7 +196,7 @@ def build_universal_plugin_architecture(plugin_root, *, registry=None):
             item['manifest'] = {'path': relative, 'sha256': sha256_file(root / relative)}
         owners.append(item)
     workflow_owners = []
-    for owner_id in ('project_authority', 'session_authority', 'instructions'):
+    for owner_id in ('project_authority', 'instructions'):
         folder = 'authorities/' + owner_id
         manifest = _validated_owner_package(root, folder)
         workflow = _read_json(root / folder / 'workflow.v4.json')

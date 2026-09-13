@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 72,
@@ -17,7 +17,7 @@
     {
       "bytes": 1754,
       "path": "sdk/workflows/skills/classify-project-work/workflow.v4.json",
-      "sha256": "20fd561709df8469d4d9d0b64252ec0c9067b349bbcfb1f168ab590b453a3443"
+      "sha256": "0ba14d5b89a36190ebaaf4eb9f57b05d27df67d12e04677e93ed7d7b8dd49633"
     },
     {
       "bytes": 505,
@@ -32,7 +32,7 @@
     {
       "bytes": 2752,
       "path": "sdk/workflows/skills/close-project-session/workflow.v4.json",
-      "sha256": "172e6e30dba25d16bd953ed3f4cb6d4eaa7f528a932a63c32bc0f2dcaf162111"
+      "sha256": "21b377d9a4a8ebef1131b8738d89217f26a4783186f88e26dbb819b6e4b4f6c6"
     },
     {
       "bytes": 515,
@@ -47,7 +47,7 @@
     {
       "bytes": 1689,
       "path": "sdk/workflows/skills/configure-project-connector/workflow.v4.json",
-      "sha256": "c7e8d08ff2a17ed4653240285c8724a12534f03bec501fb8f801cab511c0b132"
+      "sha256": "3cb967c4a222228474d0510906f76516d982fad15be9d7cb3c6a809037d1ed2d"
     },
     {
       "bytes": 513,
@@ -62,7 +62,7 @@
     {
       "bytes": 1799,
       "path": "sdk/workflows/skills/configure-project-workflow/workflow.v4.json",
-      "sha256": "6ebdf4143b9cd17cff523ce5d8b213275621ff902af375822071bd9291ec0f81"
+      "sha256": "672bd165ebcfb15e18831abbbd9a566440185eac189aeefd27eebd2347cbfd40"
     },
     {
       "bytes": 488,
@@ -77,7 +77,7 @@
     {
       "bytes": 8827,
       "path": "sdk/workflows/skills/evidence-lane/workflow.v4.json",
-      "sha256": "cc4381af39b22832523edb54fed0af00220967fc7647af5685f0bf9805883071"
+      "sha256": "14274c2a8a2c6e8335294d89eb79d7665bd16a4d9db993e81a2a014d5ca8e681"
     },
     {
       "bytes": 506,
@@ -92,7 +92,7 @@
     {
       "bytes": 9809,
       "path": "sdk/workflows/skills/exchange-task-evidence/workflow.v4.json",
-      "sha256": "6b1c933c9d5cd540440adf21b3d6486552809f9d7286669eceabf022904fc367"
+      "sha256": "103d7e8d6adf6ea2b223d240247d0477ffc36edabb710883dea2ca6e0e85b907"
     },
     {
       "bytes": 502,
@@ -107,7 +107,7 @@
     {
       "bytes": 17551,
       "path": "sdk/workflows/skills/execute-project-plan/workflow.v4.json",
-      "sha256": "d9aed42eb04903a26e9f91f3d4622ea60781ffba484c2b90c3e881214470453c"
+      "sha256": "7c9faf5ab7450955fe5ce7932d25de1be217e34dfabce42a77fd71e433189b36"
     },
     {
       "bytes": 501,
@@ -122,7 +122,7 @@
     {
       "bytes": 3792,
       "path": "sdk/workflows/skills/handoff-project-work/workflow.v4.json",
-      "sha256": "29caf68d88da5e346164369bad41426797d989fe5527fe05c2e3e719bc0391cd"
+      "sha256": "cc9f10e67072c9ccb8db41d3e2628deb68ece5096035da2f2a89f93160b690a8"
     },
     {
       "bytes": 513,
@@ -137,7 +137,7 @@
     {
       "bytes": 1734,
       "path": "sdk/workflows/skills/inspect-project-connectors/workflow.v4.json",
-      "sha256": "af4dd36c9db9f4a8afe773dbe0f0ae044caac479ecceb0aab62e83484d789457"
+      "sha256": "1cd942253ce2b5c40098489630676aa2674867decbcf953dbf94a0329d2f9cc0"
     },
     {
       "bytes": 517,
@@ -152,7 +152,7 @@
     {
       "bytes": 5078,
       "path": "sdk/workflows/skills/inspect-project-evidence-map/workflow.v4.json",
-      "sha256": "d26b648afdb18ab30d2976ea9a16fe2a1d0328bf85858a502a3c23e6969e8e5f"
+      "sha256": "3035a6431c7e690593c5b94760d0fb7cda7350c2fc3525c65dc1f8a033b9e806"
     },
     {
       "bytes": 517,
@@ -167,7 +167,7 @@
     {
       "bytes": 1768,
       "path": "sdk/workflows/skills/inspect-project-instructions/workflow.v4.json",
-      "sha256": "a579a28dea73b38b178540434411b846037e0b30b752b05a0033923958c8d242"
+      "sha256": "07e87ddd76fb37f2d48921cb5df4f0fccb2f74fa24805913a2c739a5027709c6"
     },
     {
       "bytes": 519,
@@ -182,7 +182,7 @@
     {
       "bytes": 5068,
       "path": "sdk/workflows/skills/link-project-evidence-network/workflow.v4.json",
-      "sha256": "b17a0810fd6942a31ca130fe512299ffe584ddbfa5e23b2947205d2d70efe6a0"
+      "sha256": "b137e8f4dd78e1dc046c87910481e4bc365782af55cdaaa33c4d71d0c365553b"
     },
     {
       "bytes": 505,
@@ -197,7 +197,7 @@
     {
       "bytes": 2818,
       "path": "sdk/workflows/skills/manage-project-lessons/workflow.v4.json",
-      "sha256": "efcffc0288543502a20d582bda058b018c6cf4613cd7a957c66fa2ddce32e151"
+      "sha256": "8a81c7c5c2f4a4e48747e00c2a0b3b780f405f508e17164276c26703d872514d"
     },
     {
       "bytes": 503,
@@ -212,7 +212,7 @@
     {
       "bytes": 4825,
       "path": "sdk/workflows/skills/manage-project-memory/workflow.v4.json",
-      "sha256": "5b439963d7b33910ae38230e05b907721015728e05c6d9f99038872b2a7c1c76"
+      "sha256": "6a0108c5ac92c8cb6eb13f58b0ec8be74fa8ab59cb0210c4e9c4844b27c6bd89"
     },
     {
       "bytes": 500,
@@ -227,7 +227,7 @@
     {
       "bytes": 6212,
       "path": "sdk/workflows/skills/manage-project-plan/workflow.v4.json",
-      "sha256": "f01f756b1f3373d86cb887044d78418d5e245afddbcca23cc97361b0d67e6b0a"
+      "sha256": "0378c40af15fcf4dac828af52311e7d5b374ab4ba351ef5849ba21c196cd7aac"
     },
     {
       "bytes": 507,
@@ -242,7 +242,7 @@
     {
       "bytes": 62182,
       "path": "sdk/workflows/skills/manage-project-sources/workflow.v4.json",
-      "sha256": "07f41c491673f725dca6423c9d01b42267560bd05fe753aa5e23733682adee22"
+      "sha256": "183921dc8901ac458695c60464ed6fdfe74f8a79b4944ae5a5af8f4eaf5a38cb"
     },
     {
       "bytes": 502,
@@ -257,7 +257,7 @@
     {
       "bytes": 7272,
       "path": "sdk/workflows/skills/open-project-session/workflow.v4.json",
-      "sha256": "ee565a7ee66da30bfe4bf307483d725102063d5faa60f7bb58996dec808586e3"
+      "sha256": "f467c578c9321751d3ee708a450161d7fabb40f6fe010db481b1d6400139e9fc"
     },
     {
       "bytes": 504,
@@ -272,7 +272,7 @@
     {
       "bytes": 7947,
       "path": "sdk/workflows/skills/recover-project-state/workflow.v4.json",
-      "sha256": "dfb96f68aee1630cb36bf3f436e7d1314a83fadbf983838ed28bb3ade86f5f2c"
+      "sha256": "92fc0ac18096a3b1bfe721ddbf5fcd7d31486f746860b09f22c6e544eeefdd81"
     },
     {
       "bytes": 510,
@@ -287,7 +287,7 @@
     {
       "bytes": 12778,
       "path": "sdk/workflows/skills/refresh-project-evidence/workflow.v4.json",
-      "sha256": "facfab7b3bd22d9f15e6045a01a4049fe085f38fe3d0573963838b8b38ca9360"
+      "sha256": "007e4df13b2a98a33f548fba9d112426b53f654f9e528df6fdc484ad30ce83e7"
     },
     {
       "bytes": 511,
@@ -302,7 +302,7 @@
     {
       "bytes": 1757,
       "path": "sdk/workflows/skills/retrieve-project-evidence/workflow.v4.json",
-      "sha256": "6b57c224625bc48173eda84914f51a173eeb0414bb146c6de85adf067927fdd7"
+      "sha256": "1dcbdb3361b3d6d8d29af05e42e22c9778dd9993565c5d2cfe83c25a78ebced6"
     },
     {
       "bytes": 509,
@@ -317,7 +317,7 @@
     {
       "bytes": 1663,
       "path": "sdk/workflows/skills/revoke-project-connector/workflow.v4.json",
-      "sha256": "b27734a232a62423bc0829eba8172a41581db4769ee699a88a742388052f6d4d"
+      "sha256": "fded8a065bedabb7044d1631338ae51ce8548840369310a1930a73368bb19007"
     },
     {
       "bytes": 503,
@@ -332,7 +332,7 @@
     {
       "bytes": 5910,
       "path": "sdk/workflows/skills/run-project-lifecycle/workflow.v4.json",
-      "sha256": "9a500fb80e12d604ebf68cc49c84c99116c1b8a042e5f95ac8ce7921e6c2f193"
+      "sha256": "bc78e8cba1c8f6df961beef056096bda1970eee5599d34ba04ecaa0e7cd2397c"
     },
     {
       "bytes": 505,
@@ -345,9 +345,9 @@
       "sha256": "86bcfbbc524ae1f73a1a41f4be2b4eaf1044c69aa0f13c2ecda2377e0449efb1"
     },
     {
-      "bytes": 3297,
+      "bytes": 3371,
       "path": "sdk/workflows/skills/select-project-storage/workflow.v4.json",
-      "sha256": "6835b91e37cbe9af5b714f02e864f714674dd30d2f45ff649558b798056f4276"
+      "sha256": "09558ae742837557c51f565e39820d62901933ff7da0ed72be40c2fff6cbc210"
     },
     {
       "bytes": 501,
@@ -362,7 +362,7 @@
     {
       "bytes": 4852,
       "path": "sdk/workflows/skills/select-project-tools/workflow.v4.json",
-      "sha256": "4383c30c2cd5dad63268b9532c4fa7292e12223ea23355805f52675137b856e4"
+      "sha256": "59f6e8d0758b427905e49e9becee762467166c970ffcc687d2399f9717ddde8c"
     }
   ],
   "per_skill_json_mmd_dot": true,

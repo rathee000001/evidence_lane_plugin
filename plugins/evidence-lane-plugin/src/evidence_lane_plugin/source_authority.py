@@ -237,7 +237,7 @@ def source_authority_write(function):
     @wraps(function)
     def mutate(registry_path, *args, writer=None, **kwargs):
         store = _source_store(registry_path)
-        with store.project.coordinated_transaction(['sources'], writer=writer):
+        with store.project.coordinated_transaction(['sources', 'receipts'], writer=writer):
             initialize_source_authority_registry(store)
             result = function(store, *args, **kwargs)
             if result.get('append_status') != 'IDEMPOTENT_REUSE':

@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "5c5ef7dd051d722dc4f99c5bdc3912c17657b3676b3490aa2613e9b112540bde",
+  "action_set_digest": "fbde52c926604cb9532080a8edc8b8f8fd6f97ce8fa76992aaf52ce2cc717680",
   "actions": [
     {
       "cross_project_read": false,
@@ -21,7 +21,7 @@
       "input_schema_digest": "c0296d4dbd821d96c68905afb13831f0ba5da1c43586b5c1a3cba76bacd38d53",
       "mutates": true,
       "name": "session_exit",
-      "output_schema_digest": "779c512de19ecc5fa7cb72114092e4c9d1ce54730309b0f2cddbbd04a63c38ec",
+      "output_schema_digest": "1cacda003c1b76d523f804a36481e04b11dd1e99020fe2c2df913362af21ae14",
       "permission": "write",
       "profile": "sessions",
       "project_required": true,

@@ -4,8 +4,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "plan",
-    "folder": "authorities/plan",
-    "files_root": "authorities/plan/files",
+    "folder": "plan",
+    "objects_root": "plan/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -13,7 +13,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -36,17 +36,17 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "B1CA88D292F8192F87B03E5406A0F2BF37E725E599FBA781A80B90FE8F69DF61"
+    "contract_sha256": "60CA0D0EFF54E8A0FDC30DCD4EE0E7035EC1AED09A8F3B55D13BAC1A280F70C3"
   },
   "views": [
     {
       "view_id": "plan.dependencies",
       "lane_id": "plan",
-      "folder": "authorities/plan",
+      "folder": "plan",
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "c73fe681b5c5b128574c881e2ab201cba2c7deecc8e14712c060436a3a4fd177",
+      "implementation_digest": "8d4c72ccc0e27c99a4036e16da642d2447cfd860da12aff564c3cb0c7d49cadb",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",

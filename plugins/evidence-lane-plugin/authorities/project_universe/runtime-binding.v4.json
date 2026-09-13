@@ -4,7 +4,7 @@
     "evidence_lane_plugin.project_universe",
     "evidence_lane_plugin.universe_federation"
   ],
-  "storage": "authorities/universe/universe_authority_v001.sqlite with files and schema history in authorities/universe",
+  "storage": "universe/universe_authority_v001.sqlite with files and schema history in universe",
   "public_dispatch": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "alternate_writer": false
 }

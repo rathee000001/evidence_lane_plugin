@@ -19,7 +19,7 @@
       "const": "evidence-lane.authority-tooling.v4"
     },
     "owner_id": {
-      "const": "session_authority"
+      "const": "sessions"
     },
     "dependency_installation_inferred": {
       "const": false
@@ -28,5 +28,5 @@
       "type": "array"
     }
   },
-  "title": "session_authority tooling"
+  "title": "sessions tooling"
 }

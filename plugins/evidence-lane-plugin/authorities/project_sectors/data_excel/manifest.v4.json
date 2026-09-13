@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "data_excel",
-  "folder": "sectors/data_excel",
+  "folder": "data_excel",
   "source_package_folder": "authorities/project_sectors/data_excel",
   "folder_role": "external_project_state",
-  "database": "sectors/data_excel/data_excel_sector_v001.sqlite",
-  "files": "sectors/data_excel/files",
-  "schema_history": "sectors/data_excel/schema-history",
+  "database": "data_excel/data_excel_sector_v001.sqlite",
+  "files": "data_excel/objects",
+  "schema_history": "data_excel/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.tabular_profile",
   "parser_modules": [
     "evidence_lane_plugin.spreadsheet_parsers",
@@ -3087,8 +3087,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "data_excel",
-    "folder": "sectors/data_excel",
-    "files_root": "sectors/data_excel/files",
+    "folder": "data_excel",
+    "objects_root": "data_excel/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -3096,7 +3096,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -3129,7 +3129,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "4DF014A5B52ECD281DC3982C5C8B141846DF4944E8431940AC833853482EAA2C"
+    "contract_sha256": "3282CE1037D03D7B1E7F038E5A9493FD6A701916A447C34D510965E78FF79B27"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -3359,11 +3359,11 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.v4.json",
-      "sha256": "71c14de98a0b101f0f6545afb643c6258faf0513690150a4901c8c48ee7d44b7"
+      "sha256": "ed9d8e2c3560fac932bb868b95e7c0be94d317f14eae78ee2f7eddd1dd460b08"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
-      "sha256": "515ce1cceca941b6e100b6466bbe437e2cef537be9cf5b49b5623b812c49025d"
+      "sha256": "c32c568aa347e7c4fc37c2fb15055b0440ff285e0a19d61241d83ae3fb901f7a"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",
@@ -3371,15 +3371,15 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/README.md",
-      "sha256": "4e053230f7abc654293e1a28ca853178a88b091aae6427ac8fad4953574923c8"
+      "sha256": "f5f90d7499a6005754891dcc7593147c8a21121b0a7836cbf2da3d6652932df4"
     },
     {
       "path": "authorities/project_sectors/data_excel/lane-contract.v4.json",
-      "sha256": "5dc8a48bc55af5570bd2ef0f38abc0581bcd5cf51e950502de9497f840c203c5"
+      "sha256": "9da9f1caa57bf84551de5b2cdca9b51f9935730e2a9213c07db2e4aabfa9376f"
     },
     {
       "path": "authorities/project_sectors/data_excel/manifest.schema.json",
-      "sha256": "b89223b5c189a6fccb58dbadc43525f24c5ed065a0fbccf22c3f640d17828c77"
+      "sha256": "d9121e921358ac2a1ad027a452247d5480b6a645299fb6c42fe77a57d870af35"
     }
   ]
 }

@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "manifests/plugin-architecture.v4.json",
-      "sha256": "35551d5475b396704ecdef2c808fdb8e68736d8243e29911d70ad0a47f6374ec"
+      "sha256": "30f7b49b52255e1d0a8b4cecffa16bbd414b54fbe7ca15bae9aab4e7e65c828f"
     },
     {
       "path": "src/evidence_lane_plugin/studio_gateway.py",

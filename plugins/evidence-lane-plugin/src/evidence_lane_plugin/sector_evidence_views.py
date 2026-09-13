@@ -242,7 +242,7 @@ def named_custom_view(template, lane_id):
     if not is_named_custom_lane(lane_id) or template.view_id != 'custom.structure':
         raise LaneError('INVALID_VIEW_CONTRACT', 'A named Custom view derives from its exact retained template.')
     spec = replace(template, view_id=lane_id + '.structure', lane_id=lane_id,
-        folder='sectors/' + lane_id, mmd_filename=lane_id + '.mmd', dot_filename=lane_id + '.dot',
+        folder=lane_id, mmd_filename=lane_id + '.mmd', dot_filename=lane_id + '.dot',
         head_owners=(lane_id,), producer=lambda store, scope: custom_graph(store, scope, lane_id=lane_id),
         head_reader=lambda store: source_heads(store, lane_id))
     spec.validate()
@@ -265,7 +265,7 @@ def register_evidence_views(engine):
     def heads(lane_id):
         return lambda store: source_heads(store, lane_id)
     for lane_id, producer, pointer, meaning, nodes, edges in definitions:
-        engine.registry.register_view(LaneView(lane_id + '.structure', lane_id, 'sectors/' + lane_id,
+        engine.registry.register_view(LaneView(lane_id + '.structure', lane_id, lane_id,
             meaning, producer, (lane_id,), migrations(lane_id),
             mmd_filename=lane_id + '.mmd', dot_filename=lane_id + '.dot', pointer_filename='lane_pointer.json',
             pointer=pointer, supports_query=True, head_reader=heads(lane_id),

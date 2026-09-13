@@ -90,7 +90,7 @@ class SessionManager:
     def status(self, context, request):
         from .storage_selection import StorageInspect, StorageSelection
         project = self.engine.directory.open(context.project_id)
-        with project_snapshot(project.root), project.lane('receipts').connection(read_only=True) as connection:
+        with project_snapshot(project.root), project.lane('sessions').connection(read_only=True) as connection:
             result = self._read_result(project, SessionAuthority.current(connection), flash=self.flash.verify(registry=self.engine.registry))
             return result.model_copy(update={'storage_route': StorageSelection(self.engine, project).inspect(
                 context, StorageInspect()).model_dump(mode='json')})
@@ -224,7 +224,7 @@ class SessionManager:
             with self.engine.capture.session_transition(client_id=context.client_id, project_id=project.project_id,  # noqa: SIM117 - capture publishes only after the durable commit context exits
                     reported_session_id=reported, previous_client_id=previous['owner_client_id'] if previous else None,
                     previous_session_id=previous['reported_session_id'] if previous else None, close=closed):
-                with lease.coordinated_transaction(['receipts']):
+                with lease.coordinated_transaction(['sessions', 'receipts']):
                     authority.initialize(lease)
                     with authority.store.transaction() as connection:
                         record = {'session_id': session_id, 'generation': generation, 'state': 'closed' if closed else 'active',

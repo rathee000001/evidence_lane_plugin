@@ -89,6 +89,8 @@ class ProjectDirectory:
         display_name: str | None = None,
         sensitivity: str | None = None,
         capture_route: str | None = None,
+        initial_lane_ids: tuple[str, ...] | None = None,
+        initializer: Callable[[ProjectStore], None] | None = None,
     ) -> dict:
         if create:
             if source_root is None or read_only:
@@ -98,8 +100,13 @@ class ProjectDirectory:
                 )
             store = ProjectStore.create(state_root, source_root, display_name=display_name,
                 sensitivity=sensitivity if sensitivity is not None else 'PRIVATE',
-                capture_route=capture_route if capture_route is not None else 'GOVERNED_PROJECT_FULL')
+                capture_route=capture_route if capture_route is not None else 'GOVERNED_PROJECT_FULL',
+                initial_lane_ids=initial_lane_ids)
+            if initializer is not None:
+                initializer(store)
         else:
+            if initializer is not None:
+                raise LaneError('PROJECT_INITIALIZER_CREATE_ONLY', 'Project initialization applies only to a fresh project root.')
             store = ProjectStore(state_root, read_only=True)
             if source_root is not None and source_root.resolve() != store.source_root:
                 raise LaneError('PROJECT_SOURCE_MISMATCH', 'Open the selected project with its registered source root.')
@@ -154,8 +161,23 @@ class ProjectDirectory:
 
     def record(self, project_id: str) -> dict:
         store = self.open(project_id)
-        return {'project_id': store.project_id, 'state_root': str(store.root), 'source_root': str(store.source_root),
-                'read_only': self.entries()[project_id]['read_only'], **store.registration}
+        initial_source_intake = None
+        try:
+            with store.lane('receipts').connection(read_only=True) as connection:
+                if connection.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='receipts'").fetchone():
+                    row = connection.execute(
+                        "SELECT body_json FROM receipts WHERE kind='project_initial_source_intake' ORDER BY rowid DESC LIMIT 1"
+                    ).fetchone()
+                    initial_source_intake = json.loads(row[0]) if row else None
+        except LaneError as error:
+            if error.code != 'LANE_NOT_INITIALIZED':
+                raise
+        record = {'project_id': store.project_id, 'state_root': str(store.root),
+                  'source_root': str(store.source_root),
+                  'read_only': self.entries()[project_id]['read_only'], **store.registration}
+        if initial_source_intake is not None:
+            record['initial_source_intake'] = initial_source_intake
+        return record
 
     def refresh_source_locator(self, project_id: str) -> None:
         """Refresh an advisory path only after validating its authority history."""

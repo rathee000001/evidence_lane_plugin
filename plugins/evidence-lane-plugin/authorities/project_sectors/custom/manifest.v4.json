@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "custom",
-  "folder": "sectors/custom",
+  "folder": "custom",
   "source_package_folder": "authorities/project_sectors/custom",
   "folder_role": "external_project_state",
-  "database": "sectors/custom/custom_sector_v001.sqlite",
-  "files": "sectors/custom/files",
-  "schema_history": "sectors/custom/schema-history",
+  "database": "custom/custom_sector_v001.sqlite",
+  "files": "custom/objects",
+  "schema_history": "custom/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.sector_evidence_profile",
   "parser_modules": [
     "evidence_lane_plugin.sector_evidence_parsers",
@@ -2012,8 +2012,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "custom",
-    "folder": "sectors/custom",
-    "files_root": "sectors/custom/files",
+    "folder": "custom",
+    "objects_root": "custom/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -2021,7 +2021,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -2046,7 +2046,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "F600829AC08FCDE33E83C382D4B5F31E592419AE687BBB5078711B3E11351BFA"
+    "contract_sha256": "33F1C2D86DBFF938951912B4BC855976DDD5C0E9C3B6C8E7BD88CDE55482772E"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2176,11 +2176,11 @@
     {
       "view_id": "custom.structure",
       "lane_id": "custom",
-      "folder": "sectors/custom",
+      "folder": "custom",
       "version": 1,
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "consumer": "artifact_export",
-      "implementation_digest": "b25c5737402596b404f89dad85c94e9d75b4345a747b40f790500178096cf4d2",
+      "implementation_digest": "1508ff156f588b5a0304e2aaa8897948d11d2a3c1ca4c62000d854cb8ec20914",
       "files": {
         "mmd": "custom.mmd",
         "dot": "custom.dot",
@@ -2333,11 +2333,11 @@
     },
     {
       "path": "authorities/project_sectors/custom/workflow.v4.json",
-      "sha256": "aa22a3e406a62a84409f9f1a3b0de65b9b623e368399e55789aeb61a52fa2e46"
+      "sha256": "b0bcaf81573e7ad048cc5c324e10f268bdfcaa854d17cb8374fbedace9f20344"
     },
     {
       "path": "authorities/project_sectors/custom/tools.json",
-      "sha256": "c6d7d88afaef2271f64f387c0f3a6545af215bba1222d2d754c04d9c6b9c0eb0"
+      "sha256": "61e01eb55ed8b794dd355fa8ff328acfa09816b544acdadbbe7a49b4188a3b4b"
     },
     {
       "path": "authorities/project_sectors/custom/tools.schema.json",
@@ -2345,15 +2345,15 @@
     },
     {
       "path": "authorities/project_sectors/custom/README.md",
-      "sha256": "de2e35ce816c41b77b6099124b8df3c8dd708837138bc8f63f8665a2f9c1a697"
+      "sha256": "904a848059fbf9aba8941ae3ceb45dd86f3180cc2633152d645fb13198e64694"
     },
     {
       "path": "authorities/project_sectors/custom/lane-contract.v4.json",
-      "sha256": "7ad6ecac8d4964c34cc5f04ec2747fddc6a2b9270708b8aa9027890970b68efb"
+      "sha256": "75fb152aea1b1297c2d6f313ae478c7f10e268191a702b935f1691960dbfc419"
     },
     {
       "path": "authorities/project_sectors/custom/manifest.schema.json",
-      "sha256": "a034513cbb12a1f2c16257267390070ba16faf3b63e0966466ad4a6f6e58ef52"
+      "sha256": "47f1907570e39053fe220b1ae15fa3ea4fb46b23d2cb00fc60e7e3c3b184b4aa"
     }
   ]
 }

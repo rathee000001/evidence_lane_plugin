@@ -7,7 +7,7 @@
       "path": "authorities/plan",
       "manifest": {
         "path": "authorities/plan/manifest.v4.json",
-        "sha256": "10b51643e9ec71712132501a9ba4b31a6cc4b3c5c23b77eee0b4683593bf1a44"
+        "sha256": "c9a95228fb0dc6981ccc7c36b160b12d18db1e0fb1e96089305b2b256f6151fe"
       }
     },
     {
@@ -16,7 +16,7 @@
       "path": "authorities/chat_lineage",
       "manifest": {
         "path": "authorities/chat_lineage/manifest.v4.json",
-        "sha256": "386e629119c8fe2577496a077bc29656b78e92fc34f6a37b0a02a9a3124c75a6"
+        "sha256": "4391641c253c699f4ca5cdcf711bd2d03749d3185171658d4ca10c384501ec22"
       }
     },
     {
@@ -25,7 +25,7 @@
       "path": "authorities/canon_input",
       "manifest": {
         "path": "authorities/canon_input/manifest.v4.json",
-        "sha256": "3839564d048750115bb703ebc5183a19738fc48df89dc31b6331bc62d980e4cf"
+        "sha256": "79cea030f518efe1c8298189043b99e2280af34e535e8f66c949f8fa1ed79ca5"
       }
     },
     {
@@ -34,7 +34,7 @@
       "path": "authorities/project_memory",
       "manifest": {
         "path": "authorities/project_memory/manifest.v4.json",
-        "sha256": "e595c81cb2a1493a954e986c24cfa1c3bd0ace5edaab72e23ea830fb57279bc9"
+        "sha256": "34585843d74cbd55b6fc2067981abeb53c2fe22f151543e74b07086cf1e6fa36"
       }
     },
     {
@@ -43,7 +43,7 @@
       "path": "authorities/agent_learning",
       "manifest": {
         "path": "authorities/agent_learning/manifest.v4.json",
-        "sha256": "907216183dac0470255615a287fad7b2ad3912be7a93235549645b98478e2cf2"
+        "sha256": "b473ed5a5d6fce2e617da169b52aa392aadb0eb7e6c6e5404bf167e8f424b19a"
       }
     },
     {
@@ -52,7 +52,16 @@
       "path": "authorities/source_authority",
       "manifest": {
         "path": "authorities/source_authority/manifest.v4.json",
-        "sha256": "9d0989eb6efd823e88e0c15a7ad21e42b337b28406f8b4064a83ed10252535e4"
+        "sha256": "ac05cbb88339ff0ccb648183099008622cca7fcde52beb85cc9b2cddd52f8b85"
+      }
+    },
+    {
+      "authority_id": "sessions",
+      "runtime_module": "evidence_lane_plugin.session_authority",
+      "path": "authorities/session_authority",
+      "manifest": {
+        "path": "authorities/session_authority/manifest.v4.json",
+        "sha256": "637df12f35745bc1dbd157e56e712761318a8a3d53bd4064343923fa56469134"
       }
     },
     {
@@ -61,7 +70,7 @@
       "path": "authorities/receipt_ledger",
       "manifest": {
         "path": "authorities/receipt_ledger/manifest.v4.json",
-        "sha256": "0b66123d5d365bfdafc07822dbd3e6dc76748bbb954f5bf30792b69edd4c0e4f"
+        "sha256": "f98bea08058ec4aad981f7e7a09c51ab665900403bf90588c9e830c8e92b7fa4"
       }
     },
     {
@@ -70,21 +79,14 @@
       "path": "authorities/project_universe",
       "manifest": {
         "path": "authorities/project_universe/manifest.v4.json",
-        "sha256": "f4ac594ef9009df4e16dd381e9851a93086b86fc42cbbf7df1453fb13da35d6e"
+        "sha256": "da4f4179b0b284a3c909ddc1404edf1f702af43f691ad063c6504b63cf49f8a9"
       }
     }
   ],
   "source": "evidence_lane_plugin.authority_support.AUTHORITY_SUPPORT_PROFILES",
-  "authority_count": 8,
+  "authority_count": 9,
   "project_databases_packaged": false,
   "workflow_owners": [
-    {
-      "owner_id": "session_authority",
-      "manifest": {
-        "path": "authorities/session_authority/manifest.v4.json",
-        "sha256": "a683ae934be97b1f92ae81106206caab5b0dd65070a511939bf903e30b9ab860"
-      }
-    },
     {
       "owner_id": "instructions",
       "manifest": {

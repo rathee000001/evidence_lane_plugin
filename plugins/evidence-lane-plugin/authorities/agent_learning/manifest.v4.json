@@ -2,7 +2,7 @@
   "schema": "evidence-lane.authority-package.v4",
   "authority_id": "learning",
   "source_package_folder": "authorities/agent_learning",
-  "project_state_folder": "authorities/learning",
+  "project_state_folder": "learning",
   "runtime_module": "evidence_lane_plugin.agent_learning",
   "schema_contract": {
     "schema": "evidence-lane.lane-schema-registry.v4",
@@ -10,8 +10,8 @@
     "kind": "authority",
     "schema_id": "evidence-lane.authority.learning.v4",
     "schema_version": 4,
-    "database_relative_path": "authorities/learning/learning_authority_v001.sqlite",
-    "schema_history_relative_path": "authorities/learning/schema-history",
+    "database_relative_path": "learning/learning_authority_v001.sqlite",
+    "schema_history_relative_path": "learning/schema-history.v4.json",
     "owners": [
       "learning"
     ],
@@ -32,13 +32,13 @@
     ],
     "qualification": "definition_only_until_owning_workflow_verified",
     "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
-    "contract_sha256": "F693B139511785A8A8F26B1949AF892AFD5DB2AE011F8AF903A5D8B9125C6FA5"
+    "contract_sha256": "69A2C19D05331A8AE18D352B6DB38F681470AE15C0A72D411A8DA968EFA8D59E"
   },
   "artifacts": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "learning",
-    "folder": "authorities/learning",
-    "files_root": "authorities/learning/files",
+    "folder": "learning",
+    "objects_root": "learning/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -46,7 +46,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -69,7 +69,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "B8DD42EBF2DCB973F7FBD5E0BA55F328800B0911B1496740AB731EC29CEAECBE"
+    "contract_sha256": "63EBF148738D5BEE712FF0019F3F8A151330D5139AF1368B754CABB7B32E3139"
   },
   "migration_bindings": [
     {
@@ -612,11 +612,11 @@
     {
       "view_id": "learning.provenance",
       "lane_id": "learning",
-      "folder": "authorities/learning",
+      "folder": "learning",
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "5fa8a57a0f32ad1bc25128db8b0426d2feea89fbd60d53bc32243d82d8790980",
+      "implementation_digest": "49c999dce780a669d4e970b3ca47fd0b4efc0de9ee1ad0ecb3af8df97c58e89e",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"
@@ -683,7 +683,7 @@
   "members": [
     {
       "path": "authorities/agent_learning/README.md",
-      "sha256": "fe5e0d7ac082706b2501374c233ede37ce133f297bb0fcbb713e2489218815be"
+      "sha256": "ce0ea7577ccbdac01fb957bb8cdbfb9c7e0683e77bc6a0ac0843de2d215f71c9"
     },
     {
       "path": "authorities/agent_learning/agent-learning.dot",
@@ -699,7 +699,7 @@
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
-      "sha256": "1ddc2d92342e9d6bbc161abb88af8a51f245a44305ba2ff43734860d7f51db0b"
+      "sha256": "92346f4716d5643bdff7406a8d5186bb2489d5c7d15c591dcf1c7fbe664889f1"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -711,11 +711,11 @@
     },
     {
       "path": "authorities/agent_learning/dot-artifact.schema.json",
-      "sha256": "4bfd22dde6a8c38bf5603970d695d22c258b7d5fb8f4d64d44920e4892034e67"
+      "sha256": "aae646b5e7a41fff66f05b6295c522d2ce92a62e696a75409a878793cbf2354f"
     },
     {
       "path": "authorities/agent_learning/manifest.schema.json",
-      "sha256": "49204ce3f0234a14953bf7966b1a1d6f591303e290e2e6b137de40984e36b06f"
+      "sha256": "aef2347843d582cc2dd4b1df004c518d859a56b0489fedda5889ac62026fd244"
     },
     {
       "path": "authorities/agent_learning/migration-history.json",
@@ -723,7 +723,7 @@
     },
     {
       "path": "authorities/agent_learning/mmd-artifact.schema.json",
-      "sha256": "f379b5445f8d1cab085367babc8fa217a2490574fb4f655b13479fcc5b9276d6"
+      "sha256": "b8be4536db85b2e314a83060a50f2132cef01769d1a7dd31649581e71cce8816"
     },
     {
       "path": "authorities/agent_learning/pointer-contract.schema.json",
@@ -731,7 +731,7 @@
     },
     {
       "path": "authorities/agent_learning/pointer-contract.v4.json",
-      "sha256": "ecd4ee9914e4dd4f3942ec11ebbf1deeecec6ec1b56f3887fefcfbd324f4262e"
+      "sha256": "0dc7a563fd2778eedf9373e6820e46bb86e138afcff4e0340260d77a84d59bdb"
     },
     {
       "path": "authorities/agent_learning/reader-contract.schema.json",
@@ -747,11 +747,11 @@
     },
     {
       "path": "authorities/agent_learning/runtime-binding.schema.json",
-      "sha256": "207ae404ff515a3a22875763e0510a48b3ea5b7e1727db167bc2656549d5a45a"
+      "sha256": "65e55bef436817f2399628e37b1f14edf768c33c284dc61bea50057a3d95494b"
     },
     {
       "path": "authorities/agent_learning/runtime-binding.v4.json",
-      "sha256": "d641463b79f9e05581df40e85c4f440bd2948ea34cc38bae7793d9fcebdd02b0"
+      "sha256": "ee5ccd5a7e759b0f408109032109fc018f025da4eab241340ec34a3b35fefb08"
     },
     {
       "path": "authorities/agent_learning/runtime.py",
@@ -783,7 +783,7 @@
     },
     {
       "path": "authorities/agent_learning/workflow.v4.json",
-      "sha256": "0bce133a01b654d1a2044f5955d6b63848684383fd7286c7e7341f79d81f9108"
+      "sha256": "a620b2041475e6120d8efcc4d96e26cad549b493891e3a7869caf52f9a796d02"
     }
   ]
 }

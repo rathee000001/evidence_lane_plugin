@@ -1,13 +1,13 @@
 {
   "action": "memory_ingest",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/memory_ingest.action.v4.json",
-  "sdk_binding_sha256": "70ba4b4ea1cc6700cf98de781c3a3c2ecae8a1452a12c3a689a1dc6254a0a11f",
+  "sdk_binding_sha256": "4860af9175e97ae8e769d7e6d61e474546949b41b30dd9d7246e8fe27f37cf04",
   "tool": {
     "annotations": {
       "destructiveHint": true,

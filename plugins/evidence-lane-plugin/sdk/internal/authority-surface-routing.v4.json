@@ -1,10 +1,10 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "authority_registry": {
-    "bytes": 3374,
+    "bytes": 3482,
     "path": "authorities/authority-surface-registry.v4.json",
-    "sha256": "c43037beff0d58e5fc393e930a9d3351af1a2c9a7c9ac99e70a8b39b022e3ac6"
+    "sha256": "acd4d40a1df3310f03c67a0386858cd34b8743c0de1e15515ec0d2550d362845"
   },
   "env_policy": {
     "bytes": 29281,

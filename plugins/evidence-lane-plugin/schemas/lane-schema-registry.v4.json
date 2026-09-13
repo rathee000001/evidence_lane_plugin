@@ -6,6 +6,7 @@
     "memory",
     "learning",
     "sources",
+    "sessions",
     "receipts",
     "universe"
   ],
@@ -29,13 +30,13 @@
       "registration_authority": "sources",
       "registration_owner": "customlanes",
       "schema_owner_requires_explicit_instance_store": true,
-      "storage": "sectors/<instance_id>/<instance_id>_sector_v001.sqlite with separate files and schema-history"
+      "storage": "<instance_id>/<instance_id>_sector_v001.sqlite with lazy objects and direct schema-history.v4.json"
     }
   },
   "lanes": [
     {
-      "contract_sha256": "D1A71E52959811A133B28549C96F104CC11A44A0E2832EE7DAF82AE82588EC10",
-      "database_relative_path": "authorities/plan/plan_authority_v001.sqlite",
+      "contract_sha256": "7F48FA4424AA970F31AD230915EB8A14D02F3AFA9B571372E41CE4FF6515597E",
+      "database_relative_path": "plan/plan_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "plan",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -72,7 +73,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/plan/schema-history",
+      "schema_history_relative_path": "plan/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.plan.v4",
       "schema_version": 4,
       "tables": [
@@ -87,8 +88,8 @@
       ]
     },
     {
-      "contract_sha256": "660B8839D8C3B689F46F43AA0F2F3823BE861B419705DCA5F2DBA9F7041F130E",
-      "database_relative_path": "authorities/chat_lineage/chat_lineage_authority_v001.sqlite",
+      "contract_sha256": "46F6B623ABD767CC6EDFB3988C8FA3F3BE22CE036C8F00669766739007B59EFF",
+      "database_relative_path": "chat_lineage/chat_lineage_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "chat_lineage",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -117,7 +118,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/chat_lineage/schema-history",
+      "schema_history_relative_path": "chat_lineage/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.chat_lineage.v4",
       "schema_version": 4,
       "tables": [
@@ -127,8 +128,8 @@
       ]
     },
     {
-      "contract_sha256": "CFFF8D3B1C9D8F3F81EA7ADF4850A46968852E1BF173B8F0A6FFDD601B768055",
-      "database_relative_path": "authorities/canon/canon_authority_v001.sqlite",
+      "contract_sha256": "96AB3A2EB007BD0F23E817D3808F0A0CA18883CA408635B0B28DCFC709F1675B",
+      "database_relative_path": "canon/canon_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "canon",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -145,7 +146,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/canon/schema-history",
+      "schema_history_relative_path": "canon/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.canon.v4",
       "schema_version": 4,
       "tables": [
@@ -160,8 +161,8 @@
       ]
     },
     {
-      "contract_sha256": "1A3A21F3CBBE8020F76685DF6166A6C85C23B5D6F43C310A9D0FC6D5A08AA8CD",
-      "database_relative_path": "authorities/memory/memory_authority_v001.sqlite",
+      "contract_sha256": "4A3413CEBE07B73E5F5900982EFAB685A9F43544BA34BA47687A5DD57D660474",
+      "database_relative_path": "memory/memory_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "memory",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -178,7 +179,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/memory/schema-history",
+      "schema_history_relative_path": "memory/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.memory.v4",
       "schema_version": 4,
       "tables": [
@@ -190,8 +191,8 @@
       ]
     },
     {
-      "contract_sha256": "F693B139511785A8A8F26B1949AF892AFD5DB2AE011F8AF903A5D8B9125C6FA5",
-      "database_relative_path": "authorities/learning/learning_authority_v001.sqlite",
+      "contract_sha256": "69A2C19D05331A8AE18D352B6DB38F681470AE15C0A72D411A8DA968EFA8D59E",
+      "database_relative_path": "learning/learning_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "learning",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -208,7 +209,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/learning/schema-history",
+      "schema_history_relative_path": "learning/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.learning.v4",
       "schema_version": 4,
       "tables": [
@@ -220,8 +221,8 @@
       ]
     },
     {
-      "contract_sha256": "2219A0783014607A2260C520E61261A37B5961A0D2FE9B7CC6AF30F30A301B87",
-      "database_relative_path": "authorities/sources/sources_authority_v001.sqlite",
+      "contract_sha256": "E7DB5D85FAECDBB022F003AF52E2BA355246297279668867C6B1186812D1897D",
+      "database_relative_path": "sources/sources_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "sources",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -261,7 +262,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/sources/schema-history",
+      "schema_history_relative_path": "sources/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.sources.v4",
       "schema_version": 4,
       "tables": [
@@ -321,8 +322,36 @@
       ]
     },
     {
-      "contract_sha256": "5F4A912F9DD326FFC95143AF7E7BF58DE94575A3E241C6AB7038391ABEF27BEF",
-      "database_relative_path": "authorities/receipts/receipts_authority_v001.sqlite",
+      "contract_sha256": "F5D2B614E56D2A1873E5DF1AA2610932BD729F1EA01186980B60EA458B8A152E",
+      "database_relative_path": "sessions/sessions_authority_v001.sqlite",
+      "kind": "authority",
+      "lane_id": "sessions",
+      "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
+      "original_schema_sources": [
+        "src/evidence_lane_plugin/session_authority.py"
+      ],
+      "owners": [
+        "sessions"
+      ],
+      "prefixes_by_owner": {
+        "sessions": [
+          "sessions_"
+        ]
+      },
+      "qualification": "definition_only_until_owning_workflow_verified",
+      "schema": "evidence-lane.lane-schema-registry.v4",
+      "schema_history_relative_path": "sessions/schema-history.v4.json",
+      "schema_id": "evidence-lane.authority.sessions.v4",
+      "schema_version": 4,
+      "tables": [
+        "sessions_records",
+        "sessions_current",
+        "sessions_events"
+      ]
+    },
+    {
+      "contract_sha256": "79B9E3DCDA9C2A495755B2233C1EF2021E6D95FC6F93723FBB01B8A760EC36DC",
+      "database_relative_path": "receipts/receipts_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "receipts",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -336,7 +365,6 @@
         "accelerator",
         "recovery",
         "remote",
-        "sessions",
         "hostmemory",
         "gitpush",
         "capture",
@@ -370,16 +398,13 @@
         "remote": [
           "remote_"
         ],
-        "sessions": [
-          "sessions_"
-        ],
         "storage": [
           "storage_"
         ]
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/receipts/schema-history",
+      "schema_history_relative_path": "receipts/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.receipts.v4",
       "schema_version": 4,
       "tables": [
@@ -389,8 +414,8 @@
       ]
     },
     {
-      "contract_sha256": "C0EAA654E17D243600C6E392C3F0E7CCF74A6F99F631D663C899B8167EDFD50D",
-      "database_relative_path": "authorities/universe/universe_authority_v001.sqlite",
+      "contract_sha256": "4ADB7F225C1E9386F126513BF99F76C6F73C2432A54B4E75566934B31642437D",
+      "database_relative_path": "universe/universe_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "universe",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -411,7 +436,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "authorities/universe/schema-history",
+      "schema_history_relative_path": "universe/schema-history.v4.json",
       "schema_id": "evidence-lane.authority.universe.v4",
       "schema_version": 4,
       "tables": [
@@ -428,8 +453,8 @@
       ]
     },
     {
-      "contract_sha256": "2C9C47877EC77593891A737525C590CBD7ACB37DBDE2F28B8D89758775EAB0BC",
-      "database_relative_path": "sectors/github_code/github_code_sector_v001.sqlite",
+      "contract_sha256": "487D9751EF0B74909E2EBCF634131C6F8EF415703EA4D6B5D8F906A707CBC203",
+      "database_relative_path": "github_code/github_code_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "github_code",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -450,7 +475,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/github_code/schema-history",
+      "schema_history_relative_path": "github_code/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.github_code.v4",
       "schema_version": 4,
       "tables": [
@@ -479,8 +504,8 @@
       ]
     },
     {
-      "contract_sha256": "6210AE6BD1320D4CF0ED582BFFBE0102CCB7477155AA0333067CD77308B627DA",
-      "database_relative_path": "sectors/local_code/local_code_sector_v001.sqlite",
+      "contract_sha256": "4C0CEE440A1875FF67B73C65D3354B1332B0000E2EB52B223E18257469E2AA5B",
+      "database_relative_path": "local_code/local_code_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "local_code",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -501,7 +526,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/local_code/schema-history",
+      "schema_history_relative_path": "local_code/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.local_code.v4",
       "schema_version": 4,
       "tables": [
@@ -530,8 +555,8 @@
       ]
     },
     {
-      "contract_sha256": "7E3837C4A42907B0B9C1109C861C655D899F07A910936E10AC7180C5F05644CB",
-      "database_relative_path": "sectors/docs/docs_sector_v001.sqlite",
+      "contract_sha256": "7A78B775D1868FCDB590979AEDDFAFDBA3311D3638315CCBA79DDCDA6FB5E2F4",
+      "database_relative_path": "docs/docs_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "docs",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -553,7 +578,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/docs/schema-history",
+      "schema_history_relative_path": "docs/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.docs.v4",
       "schema_version": 4,
       "tables": [
@@ -581,8 +606,8 @@
       ]
     },
     {
-      "contract_sha256": "A66C4B96A8BD053A93C54F63794621B0D44A4F6A0825EF6CFB46017A4F7C8AE8",
-      "database_relative_path": "sectors/data_excel/data_excel_sector_v001.sqlite",
+      "contract_sha256": "ECC342DBDA09E32792A0116FB4A21E4D58A985B81F1B384644CAB3B13AFE2DEE",
+      "database_relative_path": "data_excel/data_excel_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "data_excel",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -603,7 +628,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/data_excel/schema-history",
+      "schema_history_relative_path": "data_excel/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.data_excel.v4",
       "schema_version": 4,
       "tables": [
@@ -629,8 +654,8 @@
       ]
     },
     {
-      "contract_sha256": "5FB8D315D4142D7CE76E117C78C63BF7C9B2C8FDE75E0498B8E5688D97778839",
-      "database_relative_path": "sectors/ppt/ppt_sector_v001.sqlite",
+      "contract_sha256": "796E0BB8E876E61D07027FAD1A7F12318F7810D1C81B3341723B5E74194B71AB",
+      "database_relative_path": "ppt/ppt_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "ppt",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -651,7 +676,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/ppt/schema-history",
+      "schema_history_relative_path": "ppt/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.ppt.v4",
       "schema_version": 4,
       "tables": [
@@ -676,8 +701,8 @@
       ]
     },
     {
-      "contract_sha256": "2DFF7B85B418DECD1D691E3B5DEDED0F234DEAF8B5D1C0760D03EAAECBDAA883",
-      "database_relative_path": "sectors/pdf_ocr/pdf_ocr_sector_v001.sqlite",
+      "contract_sha256": "39F5B92F94F448248B5B2C5925F03A02FB88B4A1C4A0B000C64AC8AF06773001",
+      "database_relative_path": "pdf_ocr/pdf_ocr_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "pdf_ocr",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -699,7 +724,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/pdf_ocr/schema-history",
+      "schema_history_relative_path": "pdf_ocr/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.pdf_ocr.v4",
       "schema_version": 4,
       "tables": [
@@ -730,8 +755,8 @@
       ]
     },
     {
-      "contract_sha256": "7FD72417839138783E7CA5D262EBE4EFE9FBE4141685BD64D678113138D6A0E1",
-      "database_relative_path": "sectors/images_ocr/images_ocr_sector_v001.sqlite",
+      "contract_sha256": "101E23A1D247E4122B20DDAA203E5FF83244EA2DD3CF9ECD3E1374DA5106D1B6",
+      "database_relative_path": "images_ocr/images_ocr_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "images_ocr",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -752,7 +777,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/images_ocr/schema-history",
+      "schema_history_relative_path": "images_ocr/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.images_ocr.v4",
       "schema_version": 4,
       "tables": [
@@ -787,8 +812,8 @@
       ]
     },
     {
-      "contract_sha256": "7D3319448D0BC523E3DCA9106B51FE4CCEC2F3113224D962C6BBF4EFFCC09AAA",
-      "database_relative_path": "sectors/artifacts/artifacts_sector_v001.sqlite",
+      "contract_sha256": "1189C62DCEB964623A46DF52AFCF5A82EAEEC4115F996F6377AF94FECCEA0E31",
+      "database_relative_path": "artifacts/artifacts_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "artifacts",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -810,7 +835,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/artifacts/schema-history",
+      "schema_history_relative_path": "artifacts/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.artifacts.v4",
       "schema_version": 4,
       "tables": [
@@ -845,8 +870,8 @@
       ]
     },
     {
-      "contract_sha256": "C2C64D439BA56425A6A32F27DA6451C1B4C455596A2D88605E6A64D376BC7094",
-      "database_relative_path": "sectors/custom/custom_sector_v001.sqlite",
+      "contract_sha256": "BEB25780774BF5E2E157722E4C20CBDA8DC42A0CD6A724E84D809FF9AC91A317",
+      "database_relative_path": "custom/custom_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "custom",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -867,7 +892,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/custom/schema-history",
+      "schema_history_relative_path": "custom/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.custom.v4",
       "schema_version": 4,
       "tables": [
@@ -901,8 +926,8 @@
       ]
     },
     {
-      "contract_sha256": "86AEEAEE6AFE899368C6D38E68389945CD04B5DBE3AFC2D34ED1252815045913",
-      "database_relative_path": "sectors/research/research_sector_v001.sqlite",
+      "contract_sha256": "7B775884474D7BB622AF5391B7BB45EE9165F0A868265BE8DDD8BDE7401E177B",
+      "database_relative_path": "research/research_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "research",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -923,7 +948,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/research/schema-history",
+      "schema_history_relative_path": "research/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.research.v4",
       "schema_version": 4,
       "tables": [
@@ -962,8 +987,8 @@
       ]
     },
     {
-      "contract_sha256": "9CF514C7C0C0784BA3BF3458F74B33D5544AE629410A649A45ECBC6AA587966B",
-      "database_relative_path": "sectors/data/data_sector_v001.sqlite",
+      "contract_sha256": "BE7C2E7112D1B5C16BD3FEBAD587C320431AC12CAD3B67E76502834FFFFA29FE",
+      "database_relative_path": "data/data_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "data",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -984,7 +1009,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/data/schema-history",
+      "schema_history_relative_path": "data/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.data.v4",
       "schema_version": 4,
       "tables": [
@@ -1003,8 +1028,8 @@
       ]
     },
     {
-      "contract_sha256": "8E12750FF15E4F2056E33607DD59882DB28E6B53AC89D50015FC36AD6B05E74C",
-      "database_relative_path": "sectors/tableau/tableau_sector_v001.sqlite",
+      "contract_sha256": "7B46C3637935222037132F2C321D4EFB8B3C4AF7B0449DA6CEB6126EE1DD2387",
+      "database_relative_path": "tableau/tableau_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "tableau",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -1025,7 +1050,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/tableau/schema-history",
+      "schema_history_relative_path": "tableau/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.tableau.v4",
       "schema_version": 4,
       "tables": [
@@ -1059,8 +1084,8 @@
       ]
     },
     {
-      "contract_sha256": "38520E6F83C0144B0E6A11906B0E97B4F9192FE6FC7DE9A9EE823EA00479A4CA",
-      "database_relative_path": "sectors/power_bi/power_bi_sector_v001.sqlite",
+      "contract_sha256": "A95D0422B8D52316EA0BEF5CF0AB6EBC21AC69073131E979D8AFC14DE2AAFF20",
+      "database_relative_path": "power_bi/power_bi_sector_v001.sqlite",
       "kind": "sector",
       "lane_id": "power_bi",
       "migration_rule": "Lane-owned ordered digest-verified history; explicit migration preserves source state",
@@ -1081,7 +1106,7 @@
       },
       "qualification": "definition_only_until_owning_workflow_verified",
       "schema": "evidence-lane.lane-schema-registry.v4",
-      "schema_history_relative_path": "sectors/power_bi/schema-history",
+      "schema_history_relative_path": "power_bi/schema-history.v4.json",
       "schema_id": "evidence-lane.sector.power_bi.v4",
       "schema_version": 4,
       "tables": [

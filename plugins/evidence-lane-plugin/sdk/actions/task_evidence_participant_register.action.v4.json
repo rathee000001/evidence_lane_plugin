@@ -1,11 +1,11 @@
 {
   "action": "task_evidence_participant_register",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/task_evidence_participant_register.v4.schema.json",
-  "contract_sha256": "c09ffd4b53728d2e16372c1cc10d52d11f9a8802e4116b175421a284e6332fb9",
+  "contract_sha256": "f75bb7e1d7c808c087e6563e4df68542a2a94e9923903b33350386f7677c1dbb",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

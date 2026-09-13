@@ -8,7 +8,7 @@
     },
     {
       "path": "toolchains/operation-toolchains.v4.json",
-      "sha256": "0dcdb0786883578245b8ce7e547f7d4b7342ad25b19fa45dd2c36a04916874e9"
+      "sha256": "2263ceb583303afd8428dda4fb3ffed9a29cb12c3bb7406533751904301d8754"
     },
     {
       "path": "toolchains/tool-catalog.v4.json",

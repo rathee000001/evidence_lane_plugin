@@ -8,15 +8,15 @@
     },
     {
       "path": "authorities/chat_lineage/dot-artifact.schema.json",
-      "sha256": "689e5a22c0601018c5fbae87e89fc1e20eb4bb7548d9c61d47d90b920f6d34d3"
+      "sha256": "a9017312c5ea23a5752d753ca8c971e333ec6d3b8cafa054c8a509dc757f9402"
     },
     {
       "path": "authorities/chat_lineage/manifest.schema.json",
-      "sha256": "7aa64555c1a81a438330bac2691028430bfce3945d103287dac8640b8fe707ab"
+      "sha256": "ecaf3beeb949432494fafedf08b4ea2ea0f0ef04d2385bb71679c62b4a7f3f27"
     },
     {
       "path": "authorities/chat_lineage/manifest.v4.json",
-      "sha256": "386e629119c8fe2577496a077bc29656b78e92fc34f6a37b0a02a9a3124c75a6"
+      "sha256": "4391641c253c699f4ca5cdcf711bd2d03749d3185171658d4ca10c384501ec22"
     },
     {
       "path": "authorities/chat_lineage/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/chat_lineage/mmd-artifact.schema.json",
-      "sha256": "3a0f3508c9b07ccf403784f38cb8c528d9528bc05b9ae36f464b0a7973158b3e"
+      "sha256": "2f0db54c3d2601a142f3c8726e044591aeb1c569a45bf51145fc59db922dbf87"
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/chat_lineage/pointer-contract.v4.json",
-      "sha256": "dd51574d336576a512ec0307a9bba74e7235dc40a25d01eed111e87a82526955"
+      "sha256": "cd30e52987eae4699c1b4d9f18e68fc3ba239c82a7123349ea52e3d6a9b8e53b"
     },
     {
       "path": "authorities/chat_lineage/reader-contract.schema.json",
@@ -44,11 +44,11 @@
     },
     {
       "path": "authorities/chat_lineage/runtime-binding.schema.json",
-      "sha256": "39540b44316b760f0563f75b6abaaff760a528fa5be6502855692be7b018de42"
+      "sha256": "0c081f5a43baf84728bd42d02eedeb8b1904676d04112361c276fa985eaf8ab5"
     },
     {
       "path": "authorities/chat_lineage/runtime-binding.v4.json",
-      "sha256": "6645b48b7cbf739dc4940ec54a30b1be1c610b147c6b338aa15669324638884a"
+      "sha256": "769e5cc3c4ae3dc06d2885eba2e6f4b7f300d5114c485bd4a9b8f03ef66dce9c"
     },
     {
       "path": "authorities/chat_lineage/schema.sql",

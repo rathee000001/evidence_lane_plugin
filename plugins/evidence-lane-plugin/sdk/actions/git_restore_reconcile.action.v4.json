@@ -1,11 +1,11 @@
 {
   "action": "git_restore_reconcile",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/git_restore_reconcile.v4.schema.json",
-  "contract_sha256": "63e2e4d83ed185e70fe7b5de8ac4746bdf6c7b19d9e1cf0bd2979f9581cb7bee",
+  "contract_sha256": "25be94233b24a8f3e5915ee7abd844f44f1f3224a87655c5fde03f0f534d8057",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

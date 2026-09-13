@@ -1,12 +1,12 @@
 {
   "schema": "evidence-lane.sector-package.v4",
   "lane_id": "github_code",
-  "folder": "sectors/github_code",
+  "folder": "github_code",
   "source_package_folder": "authorities/project_sectors/github_code",
   "folder_role": "external_project_state",
-  "database": "sectors/github_code/github_code_sector_v001.sqlite",
-  "files": "sectors/github_code/files",
-  "schema_history": "sectors/github_code/schema-history",
+  "database": "github_code/github_code_sector_v001.sqlite",
+  "files": "github_code/objects",
+  "schema_history": "github_code/schema-history.v4.json",
   "runtime_module": "evidence_lane_plugin.code_profile",
   "parser_modules": [
     "evidence_lane_plugin.code_parsers",
@@ -2586,8 +2586,8 @@
   "artifact_contract": {
     "schema": "evidence-lane.lane-artifact-role-registry.v4",
     "lane_id": "github_code",
-    "folder": "sectors/github_code",
-    "files_root": "sectors/github_code/files",
+    "folder": "github_code",
+    "objects_root": "github_code/objects",
     "required_roles": [
       {
         "role_id": "sqlite_authority",
@@ -2595,7 +2595,7 @@
       }
     ],
     "schema_history": {
-      "path": "schema-history",
+      "path": "schema-history.v4.json",
       "condition": "migration_applied"
     },
     "natural_artifacts": {
@@ -2618,7 +2618,7 @@
     "refresh": "Invalidate the affected lane view when its source or contract changes; publish only at its verified lane head",
     "validation": "Bind project/lane/head/contract/hash/scope; enforce semantic agreement for equivalent views only",
     "toolchain": "Shared installations selected by operation; no mandatory tools.json per lane",
-    "contract_sha256": "775887863E941C5E595A76816FCFE5D24515B9DA5BCB8BCA1586A671FBB78630"
+    "contract_sha256": "39D8A445AAC6A0FBDBB8C999B908ED85B5AF2CC5FD92DEF44C102BD06E3FC41F"
   },
   "toolchain": "toolchains/operation-toolchains.v4.json",
   "source_byte_store": "owning_lane_files",
@@ -2700,11 +2700,11 @@
     },
     {
       "path": "authorities/project_sectors/github_code/workflow.v4.json",
-      "sha256": "a1ea4bdddc85b6f8629e8815876acc9957e5835a6058f6c765d7c2ded82d4bac"
+      "sha256": "30b641eec423a4f5226daa7286c56f7b24997502a1f0c0d8a7687434ecf48f78"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.json",
-      "sha256": "c6ff0405e14ece5ad9ac077993caad605caf3218e1ed83476ffb710ab54fb1d9"
+      "sha256": "c2f13b645d878043c82f4baceb2b025dfe614a85999f5726c5f9a5fa5f2d40a9"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.schema.json",
@@ -2712,15 +2712,15 @@
     },
     {
       "path": "authorities/project_sectors/github_code/README.md",
-      "sha256": "0dc25ea2de8b6f528b9496a094de1ced127b42ecaa8ddc3bd4511838d12a5450"
+      "sha256": "b311839c48f67212adc918a9fb811a4835dc1e5097e0a3e72614d17d62364f41"
     },
     {
       "path": "authorities/project_sectors/github_code/lane-contract.v4.json",
-      "sha256": "27135be54360b4b5e3e10364de34aac54439da1fe5d0a829745d8a8e63b48fca"
+      "sha256": "cc72377faf99ef933f26942882e0304cb627c45f800d7155dd98109228a28710"
     },
     {
       "path": "authorities/project_sectors/github_code/manifest.schema.json",
-      "sha256": "6df322631fc370028415aa8f2ff8f15f6e1a2016948dc080eb93c3cd07b58098"
+      "sha256": "15d5832bfe66f93dc81a55562b3fe7ba8e96265ffa4e15ef02504736cc83f553"
     }
   ]
 }

@@ -4,9 +4,16 @@
   "entrypoint": "hooks/events/PostToolUse/handler.py",
   "event": "PostToolUse",
   "event_contract": "hooks/events/PostToolUse/event.v4.json",
-  "event_contract_sha256": "00d569decfe932e90965c1a5640eb357d8fa1986ff97d13411a1e3b0c33afcbc",
+  "event_contract_sha256": "3920dfb5f3ef4500837ffd74ce26910e10c29359625f2553d0e8f9bd6761590e",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
+  "host_stage_runner": "hooks/stage_runner.py",
+  "host_stages": [
+    "VALIDATE",
+    "SEAL",
+    "TRANSPORT",
+    "EMIT"
+  ],
   "input_schema": "schemas/hooks/PostToolUse.v4.schema.json",
   "input_schema_sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4",
   "installed_execution_claimed": false,

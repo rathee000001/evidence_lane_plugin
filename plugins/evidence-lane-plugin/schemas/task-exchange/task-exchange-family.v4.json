@@ -12,7 +12,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/canon_task_graph.py",
-      "sha256": "8a551f4afd2c22cbcc63d918b8eca7c54045688366be76824ca3e8e6824aa9cb"
+      "sha256": "2b101dcd1c6fa9c18fb00ef5555e9b5c01f1ab52c4011ca22b4833d85df33f62"
     }
   ],
   "purpose": "Typed task evidence exchange contracts",

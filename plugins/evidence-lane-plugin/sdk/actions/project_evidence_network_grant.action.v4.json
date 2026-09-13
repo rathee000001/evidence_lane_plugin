@@ -1,11 +1,11 @@
 {
   "action": "project_evidence_network_grant",
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/project_evidence_network_grant.v4.schema.json",
-  "contract_sha256": "2e4cc2bec56456c4bcf76c55184b3f0453ee8e47e2ccf254da8a32a2cf275012",
+  "contract_sha256": "a18b28a633c6352ba1c40039457f1ad74995734119bc6fba87a9b0b5749517dd",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

@@ -1,11 +1,11 @@
 {
-  "action_set_sha256": "aaf5bcde49b099d6bfedea0a0057f49ddca2624e26e8327d285bf62585bfd44a",
+  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "manifest": {
     "bytes": 4227,
     "path": "authorities/project_authority/manifest.v4.json",
-    "sha256": "53649c7662a3416eb92473f97e6ed4103e37177318b000ab520495527ea22896"
+    "sha256": "e530625431e00bbc4f60c9e3c8c07cb30de78465ff41cab078e0abe5ceb21d0e"
   },
   "role": "coordinate_exact_separate_lane_heads_and_receipts",
   "schema": "evidence-lane.sdk-root-pv-ref.v4",
