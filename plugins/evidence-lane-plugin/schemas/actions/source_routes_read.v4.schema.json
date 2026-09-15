@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Inspect an exact immutable source-routing receipt and its source identities.",
@@ -103,7 +103,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "a841a8852691a755c45e4b5e7a467999f17966a42d019bc10269f32e00e91cc6",
+    "contract_digest": "b0a7c8d2e5492cdc53a42b8ff5bb212435462ffe95c154d386b81e8c84386a16",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -122,9 +122,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_routes_read.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

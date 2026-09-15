@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "fixed_count_ceiling": false,
   "installed_execution_claimed": false,
@@ -470,26 +470,24 @@
       ],
       "skill": "select-project-tools",
       "skill_source": {
-        "bytes": 1991,
+        "bytes": 1996,
         "path": "skills/select-project-tools/SKILL.md",
-        "sha256": "a33f79186a0f8a235ed39831b19708cb2095ef22f33837b5afbd3c837913ed8c"
+        "sha256": "594b81ffdd41439d1a3b645338a0faff035ada44be3d64dd4a0df9c4f69a92f8"
       },
       "workflow": "select-project-tools",
       "workflow_package": "sdk/workflows/skills/select-project-tools/workflow.v4.json"
     },
     {
-      "action_count": 4,
+      "action_count": 2,
       "actions": [
         "project_register",
-        "storage_connector_inspect",
-        "storage_connector_select",
         "storage_status"
       ],
       "skill": "select-project-storage",
       "skill_source": {
-        "bytes": 3056,
+        "bytes": 2394,
         "path": "skills/select-project-storage/SKILL.md",
-        "sha256": "8a56b24d073d0f7a7e937c17ef15548bfebefe79272a821c4e7032a98045fdd7"
+        "sha256": "810b698c6d05c7f719b5b287418586494859f3a6aa429de841f6e1e8700c1264"
       },
       "workflow": "select-project-storage",
       "workflow_package": "sdk/workflows/skills/select-project-storage/workflow.v4.json"

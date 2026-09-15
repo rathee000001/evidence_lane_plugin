@@ -118,8 +118,6 @@ class ClientRouter:
 
     def connect(self, request: ConnectRequest) -> tuple[str, Session]:
         """Only called after the current-user bootstrap credential is authenticated."""
-        if request.hello.configured_profile in {'codex_vm_persistent', 'codex_vm_ephemeral'}:
-            raise LaneError('REMOTE_DURABILITY_UNVERIFIED', 'This configured VM profile requires a verified remote connection.')
         with self._lock:
             expired = [value for value in self._sessions.values() if value.expires_at <= self.clock()]
             self._pending_revocations.update((session.client_id, session) for session in expired)

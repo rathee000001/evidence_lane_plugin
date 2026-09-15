@@ -250,7 +250,7 @@ def test_packaged_mcp_backup_and_offline_cli_restore_real_separate_state(project
     # engine so CI never downloads the multi-part production runtime bundle.
     parameters = StdioServerParameters(command=sys.executable, args=['-B', '-m',
         'evidence_lane_plugin.mcp_adapter', '--runtime-root', str(engine.root),
-        '--host-profile','codex_desktop', '--project-id',store.project_id,
+        '--host-profile','codex_desktop_beta', '--project-id',store.project_id,
         '--permission','read','--permission','write','--permission','admin'],
         env={'PYTHONPATH':str(plugin/'src'), 'EVIDENCE_LANE_STUDIO_ROOT':str(tmp_path/'uninstalled-studio')})
     async def exercise():

@@ -11,18 +11,12 @@ from .errors import EvidenceLaneError
 
 class HostKind(StrEnum):
     CODEX_DESKTOP = "CODEX_DESKTOP"
-    CODEX_CLI = "CODEX_CLI"
-    CODEX_VM = "CODEX_VM"
-    PUBLIC_AI = "PUBLIC_AI"
 
 
 _HOST_KIND_ALIASES = {
     "CODEX": HostKind.CODEX_DESKTOP,
     "CODEX_APP": HostKind.CODEX_DESKTOP,
     "CODEX_DESKTOP": HostKind.CODEX_DESKTOP,
-    "CODEX_CLI": HostKind.CODEX_CLI,
-    "CODEX_VM": HostKind.CODEX_VM,
-    "PUBLIC_AI": HostKind.PUBLIC_AI,
 }
 
 

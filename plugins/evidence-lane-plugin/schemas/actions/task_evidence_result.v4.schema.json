@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.",
@@ -284,7 +284,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "dfb3a869634142f5a4a221144c93192d2e91f0a693e0b2ad28eab274b4206745",
+    "contract_digest": "6fe02def70e62de39a6df78d5116665ff77e9b36dcd1ac5910cba129d863805b",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -303,9 +303,7 @@
         "reason": "Registered engine adapter",
         "route_id": "task_evidence_result.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

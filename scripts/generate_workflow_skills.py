@@ -19,6 +19,9 @@ from evidence_lane_plugin.workflow_surface import digest
 from evidence_lane_plugin.workflow_surface import skill_action_reference as reference
 from workflow_skill_bodies import REFERENCES, SHARED, body
 
+SKILL_ICON_SOURCE = ROOT / 'scripts/assets/skill-cube.svg'
+SKILL_ICON_RELATIVE = Path('assets/skill-cube.svg')
+
 
 def write_bytes(path, content, *, check=False):
     if path.is_file() and path.read_bytes() == content:
@@ -40,6 +43,9 @@ def generate(registry, plugin, *, check=False):
     if {'start', 'work', 'query', 'connect', 'continue'} & {row.name for row in WORKFLOWS}:
         raise RuntimeError('The six-workflow prototype cannot generate the product skill tree.')
     lifecycle_skill = next(item.skill for item in WORKFLOWS if item.name == 'run-project-lifecycle')
+    icon_bytes = SKILL_ICON_SOURCE.read_bytes()
+    if b'<svg' not in icon_bytes or b'EVIDENCE' in icon_bytes.upper():
+        raise RuntimeError('The shared skill icon must be a product-neutral SVG cube.')
     shared_path = plugin / 'skills' / lifecycle_skill / 'references/shared-boundaries.md'
     write_bytes(shared_path, SHARED.encode(), check=check)
     skills = []
@@ -50,11 +56,15 @@ def generate(registry, plugin, *, check=False):
                     + json.dumps(workflow.description) + '\n---\n' + body(workflow, lifecycle_skill=lifecycle_skill)).encode(), check=check)
         action_path = folder / 'references/actions.json'
         write_json(action_path, reference(registry, workflow.name), check=check)
+        icon_path = folder / SKILL_ICON_RELATIVE
+        write_bytes(icon_path, icon_bytes, check=check)
         # These are new interface-only files. No existing policy or dependency
         # overrides are replaced; later standalone install uses the same name.
         metadata = 'interface:\n' + ''.join('  ' + key + ': ' + json.dumps(value) + '\n'
             for key, value in {'display_name': workflow.title,
                                'short_description': workflow.short_description,
+                               'icon_small': './assets/skill-cube.svg',
+                               'icon_large': './assets/skill-cube.svg',
                                'brand_color': '#18A9C8',
                                'default_prompt': workflow.default_prompt}.items())
         metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
@@ -79,7 +89,7 @@ def generate(registry, plugin, *, check=False):
                     metadata += 'dependencies:\n  tools:\n    - type: "mcp"\n      value: "evidence-lane"\n      description: "Evidence Lane v4 engine connection"\n'
                 metadata += ''.join(preserved)
         write_bytes(meta_path, metadata.encode(), check=check)
-        active_members = [entry, action_path, meta_path]
+        active_members = [entry, action_path, meta_path, icon_path]
         for key, content in sorted(REFERENCES.items()):
             owner, filename = key.split('/', 1)
             if owner == workflow.name:

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 504,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 7947,
     "path": "sdk/workflows/skills/recover-project-state/workflow.v4.json",
-    "sha256": "92fc0ac18096a3b1bfe721ddbf5fcd7d31486f746860b09f22c6e544eeefdd81"
+    "sha256": "fa201aacdb88df2715425a372404a67f377428c318ce0ebaee6fea97f4817b77"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "recover-project-state",

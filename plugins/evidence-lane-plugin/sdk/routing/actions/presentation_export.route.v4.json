@@ -1,6 +1,6 @@
 {
   "action": "presentation_export",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_retry": false,
   "contract_schema": "schemas/actions/presentation_export.v4.schema.json",
@@ -32,9 +32,7 @@
       "reason": "Registered engine adapter",
       "route_id": "presentation_export.native",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python"
@@ -42,9 +40,7 @@
       "view_refresh": {
         "native_dot": {
           "client_families": [
-            "codex_desktop",
-            "codex_cli",
-            "codex_vm"
+            "codex_desktop"
           ],
           "engine_systems": [
             "Windows"
@@ -78,9 +74,7 @@
       "reason": "Registered engine adapter",
       "route_id": "presentation_export.native_view",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -91,9 +85,7 @@
       "view_refresh": {
         "native_dot": {
           "client_families": [
-            "codex_desktop",
-            "codex_cli",
-            "codex_vm"
+            "codex_desktop"
           ],
           "engine_systems": [
             "Windows"

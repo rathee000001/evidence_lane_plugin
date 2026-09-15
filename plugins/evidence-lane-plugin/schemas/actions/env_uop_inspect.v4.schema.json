@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Retrieve bounded current ENV/UOP policy from its own locked SQLite/FTS index.",
@@ -94,7 +94,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "169b156eb6ecf0d31262a547510d70a220a3becd6c5efce4269562c71a429eb9",
+    "contract_digest": "eeeb585c01bb2fa4d90ce5a6ba82e5c68429869f865b95a374b9879f4564fdde",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -113,9 +113,7 @@
         "reason": "Registered engine adapter",
         "route_id": "env_uop_inspect.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

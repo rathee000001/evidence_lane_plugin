@@ -21,6 +21,23 @@ def _canonical(value: dict[str, Any]) -> bytes:
     ).encode("utf-8")
 
 
+def windows_desktop_root() -> Path:
+    import winreg
+
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ) as key:
+            value, kind = winreg.QueryValueEx(key, "Desktop")
+    except OSError as exc:
+        raise RuntimeError("WINDOWS_DESKTOP_FOLDER_UNAVAILABLE") from exc
+    if kind not in {winreg.REG_SZ, winreg.REG_EXPAND_SZ} or not isinstance(value, str):
+        raise RuntimeError("WINDOWS_DESKTOP_FOLDER_INVALID")
+    selected = Path(os.path.expandvars(value)).absolute()
+    if not selected.is_absolute() or any(character in str(selected) for character in "\r\n\0"):
+        raise RuntimeError("WINDOWS_DESKTOP_FOLDER_INVALID")
+    return selected
+
+
 def register(
     installation_root: Path,
     release_root: Path,
@@ -54,12 +71,12 @@ def register(
         or not launcher.is_file()
     ):
         raise RuntimeError("INSTALLED_ENTRYPOINT_MISSING")
-    start_menu = appdata or Path(
+    programs = Path(
         os.environ.get("APPDATA", str(Path.home() / "AppData/Roaming"))
-    ) / "Microsoft/Windows/Start Menu/Programs/Evidence Lane"
-    desktop_root = desktop or Path(
-        os.environ.get("OneDrive", str(Path.home()))
-    ) / "Desktop"
+    ) / "Microsoft/Windows/Start Menu/Programs"
+    start_menu = appdata or programs
+    legacy_start_menu = None if appdata is not None else programs / "Evidence Lane"
+    desktop_root = desktop or windows_desktop_root()
     startup_owner = LoginStartup(
         pythonw,
         runtime_root,
@@ -86,10 +103,27 @@ def register(
     startup_before = startup_owner.status()
     start_menu_shortcut = None
     desktop_shortcut = None
+    legacy_shortcut = None
     try:
         startup = startup_owner.install()
         start_menu_shortcut = start_menu_owner.install()
         desktop_shortcut = desktop_owner.install()
+        if legacy_start_menu is not None:
+            legacy_owner = StudioShortcut(
+                pythonw,
+                runtime_root,
+                legacy_start_menu,
+                plugin_root=plugin_root,
+                launcher_executable=launcher,
+                backend=shortcut_backend,
+            )
+            if legacy_owner.path.exists():
+                legacy_shortcut = legacy_owner.uninstall()
+            else:
+                legacy_shortcut = {
+                    "registered": False,
+                    "path": str(legacy_owner.path),
+                }
     except Exception as reason:
         rollback_errors = []
         for owner, result in (
@@ -118,7 +152,10 @@ def register(
         "shortcuts": {
             "start_menu": start_menu_shortcut,
             "desktop": desktop_shortcut,
+            "legacy_nested_start_menu": legacy_shortcut,
         },
+        "start_menu_scope": "direct_programs_root",
+        "desktop_resolution": "windows_user_shell_folder",
         "current_windows_user": True,
         "studio_visible": True,
         "engine_console_hidden": True,

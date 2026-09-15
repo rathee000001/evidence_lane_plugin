@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read explicit authorized projects in place with bounded attributed owner views.",
@@ -187,7 +187,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "b24f5106d47604b73d4ff55ee9f2327b4bbd75d80cf22b593f29bca75b8cab20",
+    "contract_digest": "965b80eb3476a63849e57e3be808a7c9e21908d686ef9ff91480e3722d4725cb",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -206,9 +206,7 @@
         "reason": "Registered engine adapter",
         "route_id": "linked_project_evidence_query.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

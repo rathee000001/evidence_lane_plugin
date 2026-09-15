@@ -3,7 +3,7 @@
   "status": "COMPLETE_PREINSTALL_SOURCE_EVIDENCE",
   "retained_tool_count": 103,
   "retained_license_index": "toolchains/licenses/retained-install-license-index.v4.json",
-  "retained_license_index_sha256": "50291cfbc9563aa07ea7667dddace6975a2f2b4aa9e15d0618d56d477c6e3d2d",
+  "retained_license_index_sha256": "76b30e48f189a6ff064cd80baa929bcd220a57fe72a272de7dcf4fee0e0e3a80",
   "runtime_lock_receipt": "requirements.runtime-lock.v4.json",
   "runtime_lock_receipt_sha256": "ce8d83bf59523c4d06d4fcf9f9e9835224e7961d4f310dd97bd6d461e4617aee",
   "runtime_wheel_license_index_required": true,
@@ -43,5 +43,5 @@
   ],
   "removed_tool_license_records_packaged": false,
   "installed_execution_claimed": false,
-  "receipt_sha256": "1aec3214499db33022b94e53901d6e342bd85f4f5a3d7a2163c3428861451593"
+  "receipt_sha256": "5329a66939b242e6d253314177234e4e40b9c88ed3dbfd92431f4bf2219c264a"
 }

@@ -30,7 +30,7 @@ def state(tmp_path):
     grant = access.issue("client", permissions, [source])
     context = ActionContext("client", store.project_id, permissions)
     governance = ConnectorGovernance(store, lanes={"code", "research"},
-                                     hosts={"codex_cli", "codex_desktop"}, actions={"source_read", "source_write"})
+                                     hosts={"codex_desktop_stable", "codex_desktop_beta"}, actions={"source_read", "source_write"})
     with WriterLease(store, "engine") as lease:
         governance.initialize(lease)
         yield governance, context, lease, access, grant
@@ -44,20 +44,20 @@ def registration(governance, **changes):
         "allowed_lanes": ["research"], "allowed_actions": ["source_read", "source_write"],
         "write_roots": [str(governance.store.source_root / "allowed")],
         "expires_at": "NO_EXPIRY", "role": "source_reader", "role_schema": {"source_hash": "blob_hash"},
-        "host_profiles": ["codex_cli"], "backend_runtime": "external_mcp",
+        "host_profiles": ["codex_desktop_stable"], "backend_runtime": "external_mcp",
     } | changes)
 
 
 def route(governance, **changes):
     return governance.route(**{"capability": "source_read", "action": "source_read",
-                               "lane": "research", "host": "codex_cli"} | changes)
+                               "lane": "research", "host": "codex_desktop_stable"} | changes)
 
 
 def authorize(governance, context, lease, **changes):
     return governance.authorize_execution(**{
         "context": context, "lease": lease, "plugin_id": "alpha-research", "version": 1,
         "capability": "source_read", "action": "source_read", "lane": "research",
-        "host": "codex_cli", "permission": "read", "runtime_ready": True,
+        "host": "codex_desktop_stable", "permission": "read", "runtime_ready": True,
     } | changes)
 
 
@@ -101,7 +101,7 @@ def test_revocation_survives_reopen_and_prevents_reactivation(state):
     governance.configure(value, context, lease)
     governance.revoke(value.plugin_id, context, lease)
     reopened = ConnectorGovernance(ProjectStore(governance.project.root, read_only=True),
-                                   lanes={"research"}, hosts={"codex_cli"}, actions={"source_read"})
+                                   lanes={"research"}, hosts={"codex_desktop_stable"}, actions={"source_read"})
     assert route(reopened)["decision"] == "unavailable"
     with pytest.raises(LaneError) as error:
         governance.configure(value, context, lease, expected_version=1)
@@ -182,7 +182,7 @@ def test_expiry_host_lane_action_and_runtime_fail_closed(state):
     governance.clock = lambda: current
     governance.configure(registration(governance, expires_at=(current + timedelta(seconds=10)).isoformat()), context, lease)
     assert route(governance)["backend_execution_authorized"] is False
-    for values in ({"host": "codex_desktop"}, {"lane": "code"}, {"action": "unknown"}):
+    for values in ({"host": "codex_desktop_beta"}, {"lane": "code"}, {"action": "unknown"}):
         assert route(governance, **values)["decision"] == "unavailable"
     with pytest.raises(LaneError) as error:
         authorize(governance, context, lease, runtime_ready=False)

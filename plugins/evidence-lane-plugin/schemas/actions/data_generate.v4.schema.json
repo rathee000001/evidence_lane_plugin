@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Generate a new immutable lane-owned file under the format-specific contract.",
@@ -163,7 +163,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "66fba8f1f8f1927ddcafd4ee5f927b0eb7cd3d9cedc4c5f855a171e72f109d32",
+    "contract_digest": "0b579f703051f5d86a04bac4cc06f3d0b8509ce5919fa93d744ddf54a4cd1ad3",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -182,9 +182,7 @@
         "reason": "Registered engine adapter",
         "route_id": "data_generate.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

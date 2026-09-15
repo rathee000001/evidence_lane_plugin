@@ -1,12 +1,10 @@
 {
   "action_bindings": [
     "sdk/actions/project_register.action.v4.json",
-    "sdk/actions/storage_connector_inspect.action.v4.json",
-    "sdk/actions/storage_connector_select.action.v4.json",
     "sdk/actions/storage_status.action.v4.json"
   ],
-  "action_count": 4,
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_count": 2,
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "actions": [
     {
       "cross_project_read": false,
@@ -16,34 +14,6 @@
       "permission": "project_admin",
       "profile": "core",
       "project_required": false,
-      "queryable_in_delta": false,
-      "queued": false,
-      "requires_delta": false,
-      "studio_read": false,
-      "workflow": "select-project-storage"
-    },
-    {
-      "cross_project_read": false,
-      "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
-      "mutates": false,
-      "name": "storage_connector_inspect",
-      "permission": "read",
-      "profile": "receipts",
-      "project_required": true,
-      "queryable_in_delta": true,
-      "queued": false,
-      "requires_delta": false,
-      "studio_read": true,
-      "workflow": "select-project-storage"
-    },
-    {
-      "cross_project_read": false,
-      "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
-      "mutates": true,
-      "name": "storage_connector_select",
-      "permission": "admin",
-      "profile": "receipts",
-      "project_required": true,
       "queryable_in_delta": false,
       "queued": false,
       "requires_delta": false,
@@ -66,8 +36,8 @@
     }
   ],
   "authority": "engine_typed_action_registry",
-  "default_prompt": "Use $select-project-storage to inspect or select my project storage root.",
-  "description": "Inspect or explicitly select durable project state and its separate lane databases. Use for storage routing and project root selection.",
+  "default_prompt": "Use $select-project-storage to register or inspect my persistent local project root.",
+  "description": "Register or inspect persistent local project state and its separate lane databases. Use for local project root selection.",
   "dot": "sdk/workflows/skills/select-project-storage/workflow.dot",
   "installation_verified": false,
   "installed_execution_claimed": false,

@@ -45,15 +45,15 @@ def test_canonical_skill_action_and_sdk_closure(tmp_path: Path) -> None:
     assert len(names) == len(set(names)) == 24
     assert not OLD_WORKFLOWS.intersection(names)
     actions = {row["name"] for row in schemas}
-    assert len(actions) == 297
+    assert len(actions) == 295
     architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
-    assert "typed engine registry exposes 297 operations" in architecture
+    assert "typed engine registry exposes 295 operations" in architecture
     assert "typed engine registry exposes 294 operations" not in architecture
     assert not OLD_ACTIONS.intersection(actions)
     assert {row["name"] for row in workflows} == set(names)
     assert all(row["actions"] for row in workflows)
     assert len(list((PLUGIN / "sdk/internal/modules").glob("*.module.v4.json"))) >= 275
-    assert len(list((PLUGIN / "sdk/routing/actions").glob("*.route.v4.json"))) == 297
+    assert len(list((PLUGIN / "sdk/routing/actions").glob("*.route.v4.json"))) == 295
     assert len([path for path in (PLUGIN / "sdk/workflows/skills").iterdir() if path.is_dir()]) == 24
     for old in OLD_ACTIONS:
         assert not (PLUGIN / f"sdk/actions/{old}.action.v4.json").exists()
@@ -109,7 +109,7 @@ def test_env_uop_mode_policies_are_complete_and_nonempty() -> None:
 
 def test_schema_names_and_dialects_are_unambiguous() -> None:
     named = list((PLUGIN / "schemas").rglob("*.schema.json"))
-    assert len(named) == 331
+    assert len(named) == 329
     assert all(json.loads(path.read_text(encoding="utf-8"))["$schema"] == DIALECT for path in named)
     for path in (PLUGIN / "schemas").rglob("*.json"):
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -126,12 +126,18 @@ def test_skill_icons_and_mcp_bridge_are_deterministic() -> None:
     assert plugin_icon.is_file() and hashlib.sha256(plugin_icon.read_bytes()).hexdigest()
     skill_dirs = [path for path in (PLUGIN / "skills").iterdir() if (path / "SKILL.md").is_file()]
     assert len(skill_dirs) == 24
+    skill_icon_hashes = set()
     for folder in skill_dirs:
         metadata = yaml.safe_load((folder / "agents/openai.yaml").read_text(encoding="utf-8"))["interface"]
-        assert "icon_small" not in metadata and "icon_large" not in metadata
+        assert metadata["icon_small"] == metadata["icon_large"] == "./assets/skill-cube.svg"
         assert metadata["brand_color"] == "#18A9C8"
-        if (folder / "assets").exists():
-            assert not list((folder / "assets").glob("*"))
+        icon = folder / "assets/skill-cube.svg"
+        assert icon.is_file() and b"<svg" in icon.read_bytes()
+        skill_icon_hashes.add(hashlib.sha256(icon.read_bytes()).hexdigest())
+    assert len(skill_icon_hashes) == 1
+    for name in ("execute-project-plan", "manage-project-plan"):
+        metadata = yaml.safe_load((PLUGIN / "skills" / name / "agents/openai.yaml").read_text(encoding="utf-8"))["interface"]
+        assert metadata["icon_small"] == "./assets/skill-cube.svg"
     manifest = json.loads((PLUGIN / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
     assert manifest["interface"]["displayName"] == "Evidence Lane"
     assert manifest["interface"]["logo"] == manifest["interface"]["composerIcon"] == "./assets/evidence-lane-icon.png"

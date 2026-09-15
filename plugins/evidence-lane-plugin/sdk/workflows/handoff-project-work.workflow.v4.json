@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 501,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 3792,
     "path": "sdk/workflows/skills/handoff-project-work/workflow.v4.json",
-    "sha256": "cc9f10e67072c9ccb8db41d3e2628deb68ece5096035da2f2a89f93160b690a8"
+    "sha256": "d5eb22a820a2e056facfc712fed78f4b14d1ce5f9c7c207efb0a10cf49d44152"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "handoff-project-work",

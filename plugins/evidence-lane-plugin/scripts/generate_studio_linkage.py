@@ -60,6 +60,7 @@ def outputs() -> dict[str, object]:
         "windows_installation_root": "C:/Apps/EvidenceLaneStudio",
         "stable_direct_folders": ["app", "plugin", "engine", "toolchains"],
         "canonical_installer": ref("scripts/first_detection.py"),
+        "upgrade_quiescence": ref("scripts/quiesce_installed_release.py"),
         "explicit_bootstrap": ref("scripts/bootstrap.py"),
         "discoverable_alias": "studio/install.py",
         "bundle_plan": ref("provisioning/full-bundle-plan.v4.json"),
@@ -104,12 +105,18 @@ def outputs() -> dict[str, object]:
         "registration": ref("scripts/register_installed_runtime.py"),
         "shortcut_owner": ref("src/evidence_lane_plugin/shortcuts.py"),
         "startup_owner": ref("src/evidence_lane_plugin/startup.py"),
+        "service_owner": ref("src/evidence_lane_plugin/service.py"),
+        "window_owner": ref("src/evidence_lane_plugin/studio_window.py"),
         "launcher_source": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs"),
         "launcher_binary": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe"),
         "launcher_build": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json"),
         "desktop_shortcut_count": 1,
         "start_menu_shortcut_count": 1,
         "studio_visible": True,
+        "background_engine_opens_studio": False,
+        "exact_profile_single_window": True,
+        "existing_window_restored_on_reopen": True,
+        "upgrade_closes_exact_profile_before_preservation": True,
         "engine_console_hidden": True,
         "installed_verification": ref("scripts/verify_installed_runtime.py"),
         "native_installation_verified": False,
@@ -129,6 +136,12 @@ installed Windows Studio, persistent engine and complete shared local toolchain.
 provisioning, release verification and stable-root publication remain in the
 canonical first-detection installer. MCP startup may start that installer in a
 detached process, then returns without blocking an unrelated Codex task.
+
+Background engine discovery does not open Studio. The installed launcher opens
+one exact private-profile window; a later open request restores that window.
+Before a flat-root upgrade, the installer closes only that exact Studio profile,
+requests owner-authenticated engine shutdown and confirms lock release before
+preserving the previous release.
 
 Studio is a visible read-only observer. Codex calls the engine through the
 plugin MCP/SDK routes. The Studio bundle installs local dependencies once under

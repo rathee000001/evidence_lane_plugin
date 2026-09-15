@@ -25,7 +25,7 @@ def hashes(root):
 
 
 def request(path, **values):
-    return DataInspectionRequest(source_path=path, host_profile='CODEX_CLI', **values)
+    return DataInspectionRequest(source_path=path, host_profile='CODEX_DESKTOP', **values)
 
 
 def test_expected_hash_and_byte_bound_are_checked_before_sqlalchemy_opens(tmp_path, monkeypatch):

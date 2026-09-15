@@ -3,7 +3,7 @@ digraph evidence_lane_workflow {
   user [label="User intent: Select project storage"];
   skill [label="$select-project-storage"];
   registry [label="Typed registries"];
-  sdk [label="SDK/MCP: 4 actions"];
+  sdk [label="SDK/MCP: 2 actions"];
   engine [label="Persistent engine API"];
   owner [label="Authority or sector owner"];
   worker [label="Bounded worker"];

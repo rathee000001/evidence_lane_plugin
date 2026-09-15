@@ -1,6 +1,8 @@
 interface:
   display_name: "Open project session"
   short_description: "Start or resume a verified project session"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $open-project-session to start or resume my selected project session."
 dependencies:

@@ -1,6 +1,6 @@
 {
   "action": "lane_view_refresh",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_retry": false,
   "contract_schema": "schemas/actions/lane_view_refresh.v4.schema.json",
@@ -32,9 +32,7 @@
       "reason": "Registered engine adapter",
       "route_id": "lane_view_refresh.pointer",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python"
@@ -53,9 +51,7 @@
       "reason": "Selected source export with bounded graph analysis; native DOT is not requested.",
       "route_id": "lane_view_refresh.source",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -76,11 +72,7 @@
       "fidelity": "exact_contract",
       "host_profiles": [
         "codex_desktop_stable",
-        "codex_desktop_beta",
-        "codex_desktop",
-        "codex_cli",
-        "codex_vm_persistent",
-        "codex_vm_ephemeral"
+        "codex_desktop_beta"
       ],
       "provider": "engine_cpu",
       "reason": "Explicit native DOT validation using the configured client profile and verified shared binary.",

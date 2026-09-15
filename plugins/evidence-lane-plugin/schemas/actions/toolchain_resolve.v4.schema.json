@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
@@ -62,7 +62,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7c6988430e5ba2649828b03e2063742c7c3a6f52fb33fb6617149abe81d1b3a6",
+    "contract_digest": "9fb39e1b25c42e02022f6ae4b7fc2c54c440212d7fcbed05a3eb91fac775e690",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -81,9 +81,7 @@
         "reason": "Registered engine adapter",
         "route_id": "toolchain_resolve.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

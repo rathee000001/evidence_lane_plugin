@@ -176,7 +176,7 @@ def backend_transport(engine, project_id):
     environment.update(PYTHONPATH=str(ROOT / 'plugins/evidence-lane-plugin/src'),
                        PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1', FASTMCP_CHECK_FOR_UPDATES='off')
     return StdioTransport(command=sys.executable, args=['-B', '-m', 'evidence_lane_plugin.mcp_adapter',
-        '--runtime-root', str(engine.root), '--host-profile', 'codex_cli', '--project-id', project_id],
+        '--runtime-root', str(engine.root), '--host-profile', 'codex_desktop_stable', '--project-id', project_id],
         env=environment, cwd=str(ROOT), keep_alive=False)
 
 

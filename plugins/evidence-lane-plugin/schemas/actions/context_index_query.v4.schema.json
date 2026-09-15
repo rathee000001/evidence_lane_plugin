@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Query one exact rebuildable remote context index while retaining SQLite and source-hash authority.",
@@ -167,7 +167,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "77b0f39c01fe31b909f525d80ffb0a1f09367df0ba6874c1a7a4188b55f7b3a9",
+    "contract_digest": "65dbbc5b577017cfca45d0e134f9bdda5638860d63d59d4c530da863e3d7fcba",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -212,9 +212,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.pinecone",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -259,9 +257,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.weaviate",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -306,9 +302,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.milvus",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -353,9 +347,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.opensearch",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

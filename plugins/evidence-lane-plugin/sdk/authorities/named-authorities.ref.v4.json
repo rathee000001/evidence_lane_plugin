@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_count": 9,
   "installed_execution_claimed": false,
@@ -8,47 +8,47 @@
     {
       "bytes": 713,
       "path": "sdk/authorities/named/canon.authority.v4.json",
-      "sha256": "22824d25faf48037e93c004df635549ac87d68734a0f734ccb8d0cb0136bfa3a"
+      "sha256": "265c415f3ddc7e6de702ad845600da100c65e32c9bd1c171f431e6ba408c3e1c"
     },
     {
       "bytes": 712,
       "path": "sdk/authorities/named/chat_lineage.authority.v4.json",
-      "sha256": "542eea6c2d08ddb4c2a4c8909038d14b319a22b209fe0a4f03d05442ed3f50e6"
+      "sha256": "5c6020c023bf9858ab33b5f26fdd3aad62bb8cc4519265cb94e6f147cc4e0371"
     },
     {
       "bytes": 719,
       "path": "sdk/authorities/named/learning.authority.v4.json",
-      "sha256": "4fcf6145182bd990124a18c30b84745acf01b04b6df8a1570ea5e5e1411ac125"
+      "sha256": "3f26c4cf2928f7295406852d78e25846766baba496be846594411d3c2585a35d"
     },
     {
       "bytes": 717,
       "path": "sdk/authorities/named/memory.authority.v4.json",
-      "sha256": "5f8e82dff4d197aa49e327aa4f454d60ba852ba602c861f3b274c1141f8aaaad"
+      "sha256": "ab623f390e044254fccd41b98f0d9a04c829066efc4344773770d4b69e7de133"
     },
     {
       "bytes": 694,
       "path": "sdk/authorities/named/plan.authority.v4.json",
-      "sha256": "c051b7ea23b40f19a0385b2964f90ff5cfacdf0890e5a4ca7537f35f34f8b2e5"
+      "sha256": "c64f220dd0a9e176d82b13f590989e4b0d26cab618e4b5310d8365064a91dbf3"
     },
     {
       "bytes": 713,
       "path": "sdk/authorities/named/receipts.authority.v4.json",
-      "sha256": "2fd0d4f619c9a68068f4b8839e61894c026509a8a87c29f7185af4be708126c4"
+      "sha256": "ca0f72709501750b17387ded1181121e0677c1cc674ed5c19576cb82964bb52f"
     },
     {
       "bytes": 728,
       "path": "sdk/authorities/named/sessions.authority.v4.json",
-      "sha256": "56f9caeba2cb80d0cd210f964596135356e510f6bde1c7a2163578ef1948ca40"
+      "sha256": "04d8b4226c148bf2ae4a479335b0c815e3083b225892dfff34e9f6ee368e0aa7"
     },
     {
       "bytes": 725,
       "path": "sdk/authorities/named/sources.authority.v4.json",
-      "sha256": "4f26189a66ed88b1b712d45e4ed0aaf39bbc9eacce84a4b897549d91bbfc4824"
+      "sha256": "e59b43a32ad6f5e2e023aa2cbc63a56475d841e54e3b4ca1fe388df4d890fc56"
     },
     {
       "bytes": 725,
       "path": "sdk/authorities/named/universe.authority.v4.json",
-      "sha256": "e2983dbd9effac14b05423e00ded04fde3b0eb0c168bf26c2840cdf96837cad2"
+      "sha256": "7cf5fb36643b768b50638b572b023f7b9a401d95f62661899c343280a843bb4c"
     }
   ],
   "schema": "evidence-lane.sdk-named-authorities.v4",

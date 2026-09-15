@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read an exact immutable PowerBi file or package member by byte range.",
@@ -133,7 +133,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "507a9d2c571386dbbfbd43cf24ec33612d94733937d3dc31a54876c42830c6ae",
+    "contract_digest": "8be2061424e90684fad1331061250656c3d60ebfc66eb69b318efb64d816e879",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -152,9 +152,7 @@
         "reason": "Registered engine adapter",
         "route_id": "powerbi_read.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

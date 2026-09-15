@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "configured_state_is_runtime_activation": false,
   "contract": "mcp-startup-isolation.contract.v4",
@@ -9,19 +9,24 @@
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 786,
+      "bytes": 760,
       "path": ".mcp.json",
-      "sha256": "b84cca8132921ca5973a51eecb498b63112552e02518400c31fbc1f36b87e916"
+      "sha256": "24bf2b098562512b8555cc1c8ceaf109a94329c6c413ad81621ce21ce199a00f"
     },
     {
-      "bytes": 4439,
+      "bytes": 4263,
       "path": "scripts/run_mcp.py",
-      "sha256": "7ac1f50924fee654350d12b7010b8e64107b122194905e4207ab0a256f50e44f"
+      "sha256": "26e35e1b89afb71309b43fa4a01249f7caa60f70511aa28f9256b7bd80d95533"
     },
     {
-      "bytes": 6969,
+      "bytes": 6707,
       "path": "src/evidence_lane_plugin/launcher.py",
-      "sha256": "dd3b524bc01d898ead43c3911d99cfa8d4945d56393eee264758b614859aaa1d"
+      "sha256": "0bf5a1b778f2269b1695edcbb4c7a62ae1f40ef1c543fcfc18493513bc92f420"
+    },
+    {
+      "bytes": 5647,
+      "path": "src/evidence_lane_plugin/service.py",
+      "sha256": "de3ae623d89e6754696bc7c71b0a700c95d295a1176be219d032a94b9bec5413"
     }
   ],
   "status": "PASS"

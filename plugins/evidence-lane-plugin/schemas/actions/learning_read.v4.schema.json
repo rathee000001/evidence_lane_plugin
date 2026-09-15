@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Retrieve a bounded project-local slice of verified execution observations.",
@@ -139,7 +139,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a",
+    "contract_digest": "d19749aba1563e9d83300028c928817536c79e723750096c02e8197c3ec201d7",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -158,9 +158,7 @@
         "reason": "Registered engine adapter",
         "route_id": "learning_read.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

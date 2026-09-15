@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Index exact selected source bytes and attributed bounded facts in the separate custom lane.",
@@ -166,7 +166,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "b9bbba3f50ca214e28d9db132423ebda805900daf4d0520c07ae0db855314dd5",
+    "contract_digest": "e2d80571cefc8ec8560ae1d4e0c62daa0de876468a901ea70a3721164336ef01",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -186,9 +186,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.sqlite_sqlalchemy",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -207,9 +205,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"
@@ -227,9 +223,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.calamine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -248,9 +242,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.presentation",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -269,9 +261,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.arrow",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -290,9 +280,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.pdf_pymupdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -312,9 +300,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.pdf_pypdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -333,9 +319,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_index.pdf_pdfplumber",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

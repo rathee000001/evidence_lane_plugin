@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "power_bi",
   "manifest": {
-    "bytes": 64230,
+    "bytes": 63779,
     "path": "authorities/project_sectors/power_bi/manifest.v4.json",
-    "sha256": "e626bfbcd92b1fc7292dcde1a28c5c374d02324db608f9ce382a3413687e0211"
+    "sha256": "dbf29558bf29f61e65c16762e302a0a7d64256cafa2b924b16e7168e5f2cf9c4"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

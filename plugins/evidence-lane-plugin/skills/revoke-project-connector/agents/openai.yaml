@@ -1,6 +1,8 @@
 interface:
   display_name: "Revoke project connector"
   short_description: "Revoke project connector access with history"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $revoke-project-connector to revoke the selected connector grant."
 dependencies:

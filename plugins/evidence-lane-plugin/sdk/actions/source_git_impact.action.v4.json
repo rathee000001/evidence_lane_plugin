@@ -1,11 +1,11 @@
 {
   "action": "source_git_impact",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/source_git_impact.v4.schema.json",
-  "contract_sha256": "3cfde4de582b9a5bb93cc5ce21eeb1f8102c0904c926edf64095d51d67e626f7",
+  "contract_sha256": "88b6f8e77a621fce871dc1b247f45269eb92db923b64af2856053235cc03a422",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

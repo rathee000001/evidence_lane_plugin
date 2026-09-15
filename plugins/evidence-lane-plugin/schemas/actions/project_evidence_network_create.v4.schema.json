@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Create an explicitly selected federation in a separate coordinator project.",
@@ -93,7 +93,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "4e265019ada5b0ad70199eb3bcdb617a445dc66b32f6182507a6e733be1f7d79",
+    "contract_digest": "cdfdfcefad6f785b0ee38e35d1d51d3cfe6f769f120ea8322fc31704820a45b6",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -112,9 +112,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_evidence_network_create.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read the full project Plan projection and its exact bound Codex PLAN.md status.",
@@ -234,7 +234,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "a3a05a2c5be56b354a993340c358220dd1daa46e9b9a17a12d947054a0dbbe41",
+    "contract_digest": "9e56f6c0f1836a72d969ac1dea6902000af2d29a16933a02d6111fbfaccecefc",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -253,9 +253,7 @@
         "reason": "Registered engine adapter",
         "route_id": "plan_host_status.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

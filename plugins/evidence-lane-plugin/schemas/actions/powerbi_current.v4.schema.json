@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read current PowerBi identities without refreshing sources.",
@@ -74,7 +74,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "7126f8e6045472ead59dcd750aa49719ec7f15cdc2921963cf4105e90844178c",
+    "contract_digest": "65baa3baf2f2223317b43f711e724601c6679d2d3ab33d182b9b02d749633b80",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -93,9 +93,7 @@
         "reason": "Registered engine adapter",
         "route_id": "powerbi_current.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

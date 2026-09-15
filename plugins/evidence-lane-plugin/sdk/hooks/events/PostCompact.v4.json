@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PostCompact/handler.py",
   "event": "PostCompact",
   "event_contract": "hooks/events/PostCompact/event.v4.json",
-  "event_contract_sha256": "7627f610f5020504fcd9bbce9220af1927f184dc31ae02e49a6ecb7350198c4e",
+  "event_contract_sha256": "79f5082dba1b415a692c5486671fcf85e66f94f8b9317223a46f637436df5cc9",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostCompactHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/PostCompact.v4.schema.json",
   "input_schema_sha256": "3c3ffa019b10443f727e0ba9c22f06b50756a1861bff68dba8425612025b4a71",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

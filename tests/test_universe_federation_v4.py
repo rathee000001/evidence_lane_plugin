@@ -279,7 +279,7 @@ def test_packaged_mcp_routes_real_federation_and_universe_actions(federation, tm
     engine, projects, _, _ = federation
     plugin = Path(__file__).resolve().parents[1] / 'plugins/evidence-lane-plugin'
     arguments = ['-m', 'evidence_lane_plugin.mcp_adapter', '--runtime-root', str(engine.root),
-                 '--host-profile', 'codex_desktop', '--permission', 'read', '--permission', 'write']
+                 '--host-profile', 'codex_desktop_beta', '--permission', 'read', '--permission', 'write']
     for project in projects:
         arguments += ['--project-id', project.project_id]
     parameters = StdioServerParameters(command=sys.executable, args=arguments,

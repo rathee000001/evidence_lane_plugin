@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Upsert changed records or delete one SQLite identity from an exact rebuildable remote context index.",
@@ -188,7 +188,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7e4f066ca005d1d48e5467a83caad9d5a068b7f606265f3801ddd4ef9cf8ae56",
+    "contract_digest": "f2d42cad714e4c21af772dd963e931531f735adcb99fa935f069219244c5aced",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -233,9 +233,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.pinecone",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -280,9 +278,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.weaviate",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -327,9 +323,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.milvus",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -374,9 +368,7 @@
         "reason": "Registered engine adapter",
         "route_id": "context_index.opensearch",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

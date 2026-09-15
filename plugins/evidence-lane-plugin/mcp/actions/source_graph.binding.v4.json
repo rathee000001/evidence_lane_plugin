@@ -1,13 +1,13 @@
 {
   "action": "source_graph",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/source_graph.action.v4.json",
-  "sdk_binding_sha256": "5132e0d9ff6d6d55560eb1851b16a6b5bc923efbbdf10f11499f34f293282d45",
+  "sdk_binding_sha256": "3b878d13e1e9e55b690c6e0599e927319005ef6e8a96ada87ab92a1d5cd009d2",
   "tool": {
     "annotations": {
       "destructiveHint": true,

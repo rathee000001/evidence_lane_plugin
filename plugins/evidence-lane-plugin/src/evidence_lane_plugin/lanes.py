@@ -662,7 +662,7 @@ _AUTHORITIES = (
                ('boot', 'resume', 'status', 'close', 'verify'), 'session_heads_transitions_and_reported_host_bindings',
                'src/evidence_lane_plugin/session_authority.py', aliases=('session_authority',),
                pointer='Exact authenticated engine session head and reported host binding'),
-    _authority('receipts', 'Receipts', ('receipts', 'access', 'extensions', 'accelerator', 'recovery', 'remote', 'hostmemory', 'gitpush', 'capture', 'storage'),
+    _authority('receipts', 'Receipts', ('receipts', 'access', 'extensions', 'accelerator', 'recovery', 'remote', 'hostmemory', 'gitpush', 'capture'),
                ('receipts', 'gitpush_events', 'gitpush_current'), ('append', 'query', 'verify'), 'operations_results_grants_runtime_evidence_and_commit_references',
                'authorities/receipt_ledger/schema.sql', aliases=('receipt_ledger',)),
     _authority('universe', 'Universe', ('universe', 'federation'), ('universe_link_events', 'universe_links',

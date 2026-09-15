@@ -36,7 +36,7 @@ def test_inspection_uses_exact_filename_and_preserves_every_source_file(tmp_path
     database(selected)
     before = snapshot(source)
     if owner == 'sqlalchemy':
-        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_CLI'))
+        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_DESKTOP'))
         assert result['status'] == 'PASS' and result['read_only_uri']
         assert [row['name'] for row in result['tables']] == ['expected_table']
         assert not result['source_mutated']
@@ -63,7 +63,7 @@ def test_existing_decoy_cannot_supply_schema_for_the_selected_byte_identity(tmp_
     database(source / decoy, 'wrong_database_table')
     before = snapshot(source)
     if owner == 'sqlalchemy':
-        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_CLI'))
+        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_DESKTOP'))
         names = [row['name'] for row in result['tables']]
         assert result['source_sha256'] == sha256_file(selected).lower()
     else:
@@ -118,7 +118,7 @@ def test_sqlalchemy_private_connection_is_native_read_only_even_without_query_on
         return engine
 
     monkeypatch.setattr(sqlalchemy, 'create_engine', checked_engine)
-    result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_CLI'))
+    result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=selected, host_profile='CODEX_DESKTOP'))
     assert observed and [row['name'] for row in result['tables']] == ['expected_table']
     assert result['source_hash_verified_before_and_after']
     assert all(not Path(path).exists() for path in observed)

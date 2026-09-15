@@ -91,7 +91,7 @@ class StorageStatus(Contract):
     root_pv: dict[str, JsonValue]
     lanes: list[dict[str, JsonValue]]
     registration: dict[str, JsonValue]
-    storage_selection: dict[str, JsonValue]
+    storage_persistence: dict[str, JsonValue]
     storage_layout: str = STORAGE_LAYOUT
     physical_durability_attested: bool = False
     project_migrated: bool = False
@@ -162,7 +162,7 @@ def register_project_actions(engine):
             return StorageStatus(project_id=store.project_id, source_root=str(store.source_root), state_root=str(store.root),
                 runtime_root=str(engine.root), package_root=engine.runtime_identity['package_root'],
                 root_pv=store.pv_head(), lanes=store.lane_catalog(), registration=store.registration,
-                storage_selection=StorageSelection(engine, store).inspect(context, StorageInspect()).model_dump(mode='json'))
+                storage_persistence=StorageSelection(engine, store).inspect(context, StorageInspect()).model_dump(mode='json'))
 
     engine.registry.register(ActionSpec('project_catalog', 'Read registered project roots through the owner-granted native administration channel.',
         ProjectCatalogRequest, ProjectCatalog, read, permission='project_admin', workflow='evidence-lane', project_required=False))

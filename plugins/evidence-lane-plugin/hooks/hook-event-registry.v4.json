@@ -309,6 +309,14 @@
   ],
   "host_stage_count": 4,
   "host_stage_runner": "hooks/stage_runner.py",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "lifecycle_boundary_owner": "src/evidence_lane_plugin/hook_lifecycle_boundary.py",
   "native_installation_verified": false,
   "pipeline": [

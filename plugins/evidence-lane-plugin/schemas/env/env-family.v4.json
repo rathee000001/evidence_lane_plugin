@@ -4,23 +4,23 @@
   "members": [
     {
       "path": "env/SESSION_FLASH_MANIFEST.json",
-      "sha256": "496a1c52805c3dbcc437260287e00d3084891deceaaf10a08abe889cfec8a6f2"
+      "sha256": "96ffae3eff853635ae14748eadcea7bb2e8e84bed1357a5e0933732bbbf76d1b"
     },
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
-      "sha256": "93dc2dc713e3a884073ff7f5c9381eeaade807892061ce71926e8c466b6951f2"
+      "sha256": "723a3b3743c33653ca43e8005a16bc3764a96441e5d043a7a1800071103ebb35"
     },
     {
       "path": "env/codex-environment-policy.v4.json",
-      "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+      "sha256": "608c988d17b55e66953e93d7ebcd8f1ca985a5fc9af5a3bc87522b70aafe6c9a"
     },
     {
       "path": "src/evidence_lane_plugin/codex_action_plane.py",
-      "sha256": "22826eeb0997a12824103e79fa3514c103c08d041c825b89bb637c9d9649c92a"
+      "sha256": "357a00913976dbe7beb8a805c5fec558ab7c73a6a359a5bf54a6843544c35297"
     },
     {
       "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
-      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+      "sha256": "8019286e2a0c33bd293e9a44594493126e9df4969802ca3ae6b16ccf19350fd0"
     }
   ],
   "purpose": "Locked environment policy and current executable bindings",

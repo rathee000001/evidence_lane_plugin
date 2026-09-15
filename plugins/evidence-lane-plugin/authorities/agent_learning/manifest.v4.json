@@ -212,9 +212,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -231,7 +229,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a"
+        "contract_digest": "d19749aba1563e9d83300028c928817536c79e723750096c02e8197c3ec201d7"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -464,9 +462,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -483,7 +479,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "b72a8be78377c67a0177ed641dfff56fb7e0babca24d02d717960cd4a82b1c50"
+        "contract_digest": "d74f8be6ed61dcd20e5b4bac4fa0b13d3e93ed2070c12e33ccd4252554b6764c"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -577,9 +573,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -596,7 +590,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46"
+        "contract_digest": "7cdc5de2877fb6300157cc501e5cd1ae05437af571b3def44900063b1303bdb3"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -616,7 +610,7 @@
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "49c999dce780a669d4e970b3ca47fd0b4efc0de9ee1ad0ecb3af8df97c58e89e",
+      "implementation_digest": "63209a611b1c2aaccd78dbd014e5e0850eda0d136af47f60b9287a851c06d4f4",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"
@@ -699,7 +693,7 @@
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
-      "sha256": "92346f4716d5643bdff7406a8d5186bb2489d5c7d15c591dcf1c7fbe664889f1"
+      "sha256": "6e77c2be32c43c024fb71c046ccc3c95cdb1a53d97078aecf1bbe8b959b37adb"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -711,7 +705,7 @@
     },
     {
       "path": "authorities/agent_learning/dot-artifact.schema.json",
-      "sha256": "aae646b5e7a41fff66f05b6295c522d2ce92a62e696a75409a878793cbf2354f"
+      "sha256": "9aa6950d2862f45bd3da009a95f5e0655c1b943a978b0c4c2e4aa2bfbe3f0852"
     },
     {
       "path": "authorities/agent_learning/manifest.schema.json",
@@ -723,7 +717,7 @@
     },
     {
       "path": "authorities/agent_learning/mmd-artifact.schema.json",
-      "sha256": "b8be4536db85b2e314a83060a50f2132cef01769d1a7dd31649581e71cce8816"
+      "sha256": "beb99ccea6ecab091521b34c96e899108b608d9dc99a9bc31b17dad830391bf8"
     },
     {
       "path": "authorities/agent_learning/pointer-contract.schema.json",
@@ -731,7 +725,7 @@
     },
     {
       "path": "authorities/agent_learning/pointer-contract.v4.json",
-      "sha256": "0dc7a563fd2778eedf9373e6820e46bb86e138afcff4e0340260d77a84d59bdb"
+      "sha256": "5f0058de392f6261aff14ad254ba6e220cb2633cb2a9dc8f34f1be8bc53c776c"
     },
     {
       "path": "authorities/agent_learning/reader-contract.schema.json",
@@ -783,7 +777,7 @@
     },
     {
       "path": "authorities/agent_learning/workflow.v4.json",
-      "sha256": "a620b2041475e6120d8efcc4d96e26cad549b493891e3a7869caf52f9a796d02"
+      "sha256": "63043c8e0e8ae256d48bcdf5e037f48ffce866cc8718fb56278ded1450691851"
     }
   ]
 }

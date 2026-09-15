@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Append bounded impact evidence from selected source graph nodes.",
@@ -140,7 +140,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "0bc19538d35a1f5f434e367df49f21aad1ffc6419b417daabb76fd1f7a03459e",
+    "contract_digest": "7d1d23d244dde043de681079e22d2cba778ca256af88b8f44beb6ada461f2598",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -159,9 +159,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_graph_impact.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

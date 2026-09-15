@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
   "event": "UserPromptSubmit",
   "event_contract": "hooks/events/UserPromptSubmit/event.v4.json",
-  "event_contract_sha256": "c59a88857a377f6fee81d7cd5232200ec144b8cab2e1262c89451b0c06933634",
+  "event_contract_sha256": "2c6dd17c55a681fa6842242f9986359c9a68a2dd5e5669b7f24541dd58db2624",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/UserPromptSubmit.v4.schema.json",
   "input_schema_sha256": "1dc23f18e332d9ee1073f521a512084b3db9eb88238a9e236c62582f8740741f",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

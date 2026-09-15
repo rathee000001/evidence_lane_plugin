@@ -20,18 +20,23 @@ from .errors import LaneError
 from .registry import Contract
 
 HOST_MATRIX = {
-    "codex_desktop_stable": {"family": "codex_desktop", "channel": "stable", "storage_policy": "selected_local_or_remote"},
-    "codex_desktop_beta": {"family": "codex_desktop", "channel": "beta", "storage_policy": "selected_local_or_remote"},
-    "codex_desktop": {"family": "codex_desktop", "channel": "unverified", "storage_policy": "selected_local_or_remote"},
-    "codex_cli": {"family": "codex_cli", "channel": "cli", "storage_policy": "selected_local_or_remote"},
-    "codex_vm_persistent": {"family": "codex_vm", "channel": "persistent", "storage_policy": "durability_verification_required"},
-    "codex_vm_ephemeral": {"family": "codex_vm", "channel": "ephemeral", "storage_policy": "durable_remote_required"},
-    "unknown": {"family": "unknown", "channel": "unverified", "storage_policy": "explicit_selection_required"},
+    "codex_desktop_stable": {
+        "family": "codex_desktop",
+        "channel": "stable",
+        "platform": "Windows",
+        "persistence": "local_persistent_system",
+    },
+    "codex_desktop_beta": {
+        "family": "codex_desktop",
+        "channel": "beta",
+        "platform": "Windows",
+        "persistence": "local_persistent_system",
+    },
 }
 
 
 class ClientHello(Contract):
-    configured_profile: str = "unknown"
+    configured_profile: str = "codex_desktop_stable"
     protocol: Literal["local_api", "mcp_stdio"] = "local_api"
     peer_name: str | None = Field(default=None, max_length=128)
     peer_version: str | None = Field(default=None, max_length=128)
@@ -65,8 +70,8 @@ class HostObservation(Contract):
     local_measurement_basis: Literal["engine_os_and_path_probe"] = "engine_os_and_path_probe"
     client: ClientHello
     client_evidence_basis: Literal["authenticated_client_report"] = "authenticated_client_report"
-    local_transport: Literal["windows_current_user_loopback", "posix_current_user_loopback", "unavailable"]
-    configured_storage_policy: str
+    local_transport: Literal["windows_current_user_loopback", "unavailable"]
+    configured_persistence: Literal["local_persistent_system"] = "local_persistent_system"
     host_profile_attestation: Literal["unavailable"] = "unavailable"
     native_task_attestation: Literal["unavailable"] = "unavailable"
     native_hooks: Literal["unavailable"] = "unavailable"
@@ -100,32 +105,21 @@ class HostDetector:
             operating_system=system, architecture=self.machine(),
             python_version=".".join(str(item) for item in sys.version_info[:3]),
             cpu_count=self.cpu_count() or 1, available_commands=commands, client=hello,
-            local_transport=("windows_current_user_loopback" if system == "Windows" else
-                             "posix_current_user_loopback" if system in {'Darwin', 'Linux'} else 'unavailable'),
-            configured_storage_policy=HOST_MATRIX[hello.configured_profile]["storage_policy"],
+            local_transport="windows_current_user_loopback" if system == "Windows" else "unavailable",
             engine_studio_platform_supported=system == 'Windows',
             managed_toolchain_readiness='requires_windows_studio_probe' if system == 'Windows' else 'not_supported_on_this_platform',
         )
 
 
 def select_host_route(observation: HostObservation, *, remote_ready: bool = False,
-                      durable_remote_verified: bool = False, exact_task_required: bool = False,
-                      prefer_remote: bool = False) -> dict:
+                      exact_task_required: bool = False, prefer_remote: bool = False) -> dict:
     """Read-only route planning using current probes; it grants no action permissions."""
     if exact_task_required:
         raise LaneError("NATIVE_TASK_ATTESTATION_UNAVAILABLE", "The host has not provided a verified native task binding.")
-    profile = observation.client.configured_profile
-    if prefer_remote or profile in {"codex_vm_ephemeral", "codex_vm_persistent"}:
-        if not durable_remote_verified:
-            return {"route": None, "reason": "durable_storage_verification_required", "execution_authorized": False}
+    if prefer_remote:
         if remote_ready:
-            return {"route": "remote_api", "reason": "verified_remote_route", "execution_authorized": False}
+            return {"route": "remote_api", "reason": "explicit_desktop_api_route", "execution_authorized": False}
         return {"route": None, "reason": "remote_api_unavailable", "execution_authorized": False}
     if observation.local_transport == "windows_current_user_loopback":
         return {"route": "local_loopback", "reason": "measured_windows_transport", "execution_authorized": False}
-    if observation.local_transport == 'posix_current_user_loopback':
-        return {'route': 'local_loopback', 'reason': 'reduced_current_user_transport', 'execution_authorized': False,
-                'studio_supported': False, 'managed_windows_toolchain': False}
-    if remote_ready and durable_remote_verified:
-        return {"route": "remote_api", "reason": "verified_remote_route", "execution_authorized": False}
-    return {"route": None, "reason": "local_transport_unavailable_remote_required", "execution_authorized": False}
+    return {"route": None, "reason": "persistent_windows_desktop_required", "execution_authorized": False}

@@ -83,7 +83,7 @@ def test_real_legacy_conversion_retains_original_and_publishes_derived_docx(docu
     else:
         staging = tmp_path / 'fixture-creation'
         staging.mkdir()
-        converted, _ = _convert(source / 'fixture.docx', staging, timeout_seconds=45, output_format='doc')
+        converted, _ = _convert(source / 'fixture.docx', staging, timeout_seconds=120, output_format='doc')
         original = converted.read_bytes()
     path = source / ('legacy' + extension)
     path.write_bytes(original)

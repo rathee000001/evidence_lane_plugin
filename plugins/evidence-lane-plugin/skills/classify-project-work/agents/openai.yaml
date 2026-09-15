@@ -1,6 +1,8 @@
 interface:
   display_name: "Classify project work"
   short_description: "Classify a request and its relevant work lanes"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $classify-project-work to classify my current request and relevant source lanes."
 dependencies:

@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_id": "receipts",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 81095,
+    "bytes": 60423,
     "path": "authorities/receipt_ledger/manifest.v4.json",
-    "sha256": "f98bea08058ec4aad981f7e7a09c51ab665900403bf90588c9e830c8e92b7fa4"
+    "sha256": "72c9e0022388cdeecaf9b9e403ba17af987a32f30f1081369bbb70e35b9c8399"
   },
   "path": "authorities/receipt_ledger",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

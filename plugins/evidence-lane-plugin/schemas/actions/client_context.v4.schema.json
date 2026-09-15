@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read this authenticated engine client and its explicitly configured project selections.",
@@ -19,7 +19,7 @@
         "additionalProperties": false,
         "properties": {
           "configured_profile": {
-            "default": "unknown",
+            "default": "codex_desktop_stable",
             "title": "Configured Profile",
             "type": "string"
           },
@@ -106,8 +106,10 @@
             "title": "Client Evidence Basis",
             "type": "string"
           },
-          "configured_storage_policy": {
-            "title": "Configured Storage Policy",
+          "configured_persistence": {
+            "const": "local_persistent_system",
+            "default": "local_persistent_system",
+            "title": "Configured Persistence",
             "type": "string"
           },
           "cpu_count": {
@@ -134,7 +136,6 @@
           "local_transport": {
             "enum": [
               "windows_current_user_loopback",
-              "posix_current_user_loopback",
               "unavailable"
             ],
             "title": "Local Transport",
@@ -220,8 +221,7 @@
           "cpu_count",
           "available_commands",
           "client",
-          "local_transport",
-          "configured_storage_policy"
+          "local_transport"
         ],
         "title": "HostObservation",
         "type": "object"
@@ -290,7 +290,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7199a68e593cd3f298d33448713eb4c8ea6898536e691f0b28e165ab6c1dacaf",
+    "contract_digest": "60a18ff5c54afa6f3e0ea6d01a8f45be7a225d06a6087db7ec4d3db7f5301d8a",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -309,9 +309,7 @@
         "reason": "Registered engine adapter",
         "route_id": "client_context.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

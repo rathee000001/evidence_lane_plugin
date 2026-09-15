@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Search one separate lane through its current registered owner and disclose snapshot coverage.",
@@ -213,7 +213,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "db2ae67fc4d212183f69f0e8f58f5894473caa81bbec58637677dba045f85087",
+    "contract_digest": "dc49cc779bb305a6e12d62174f7a3079804fc62d95a0b7bdaeaff2f2ec23511c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -239,9 +239,7 @@
         "reason": "Registered engine adapter",
         "route_id": "lane_search.sqlite_lexical",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -263,9 +261,7 @@
         "reason": "Registered engine adapter",
         "route_id": "lane_search.rank_bm25",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

@@ -189,9 +189,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -211,9 +209,7 @@
               "Git"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -239,7 +235,7 @@
           "code_git_checkpoint"
         ],
         "installation_implied": false,
-        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+        "contract_digest": "082d051730a98b56a0b4a1f445551d9993b9a5bd93783f30dc803342fa61d349"
       },
       "worker_operations": [
         "code_git_checkpoint"
@@ -345,9 +341,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -364,7 +358,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+        "contract_digest": "7d899b0eec8382e764a0657ccb14d18ed30781ade37c78091561666c68af459b"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -448,9 +442,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -467,7 +459,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "f01bad1fcd2e75d2b10eccecd05389a97d94365e795af92c9d9554c8bfe3a004"
+        "contract_digest": "f4a0301ec8aae8d4e204fcfcf58445c64faf888f00038f9305b5c7752e82cf22"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -686,9 +678,7 @@
               "lxml"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -707,7 +697,7 @@
           "spreadsheet_edit"
         ],
         "installation_implied": false,
-        "contract_digest": "d571acc6238c27ee0c52de60a63b54cf0fbc0217218ade31159f2f3fefca41a4"
+        "contract_digest": "f6f4df043b865a9a96dd2bb6202ee15b33d8b1591a41d6a5d070878a23dccdd7"
       },
       "worker_operations": [
         "spreadsheet_edit"
@@ -823,9 +813,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -855,9 +843,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -872,9 +858,7 @@
               "rustworkx"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -905,9 +889,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -920,9 +902,7 @@
               "python_calamine"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -952,9 +932,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -970,9 +948,7 @@
               "rustworkx"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1003,9 +979,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -1020,7 +994,7 @@
           "render_lane_view"
         ],
         "installation_implied": false,
-        "contract_digest": "e7ebc696c555b5525e973af0c729364c2ffb056558c66e0fb4f2d484061fe096"
+        "contract_digest": "94830bc9cfddbc7c0d7f8760745bfdba26ef5b70580c3aedd370fd457360f58e"
       },
       "worker_operations": [
         "tabular_parse_content",
@@ -1292,9 +1266,7 @@
               "openpyxl"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1313,7 +1285,7 @@
           "spreadsheet_generate"
         ],
         "installation_implied": false,
-        "contract_digest": "3d73845dd9d8945f10a5ec1d1bc0ffe30068ddf1fdb7715b1c3b6622dcbd862b"
+        "contract_digest": "7b1d95fc5bd15ef622ff96ce6732ec20ef11f18d142a067be8ab1c8465e9b513"
       },
       "worker_operations": [
         "spreadsheet_generate"
@@ -1431,9 +1403,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1452,7 +1422,7 @@
           "tabular_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "d90fd37e2876e5b91eb41ee0c860bada233578f08c5d2499f95e6f7c05f245a1"
+        "contract_digest": "2761f3c95f31d3c667b81de708e7548c5c00d255ff32b5b10a622929206b99c8"
       },
       "worker_operations": [
         "tabular_parse_file"
@@ -1591,9 +1561,7 @@
               "python_calamine"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1612,7 +1580,7 @@
           "tabular_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "5e921f6c397e8a74affd3315a3fcfc761e54b22e6ffb1d4a12280fd8b28c6109"
+        "contract_digest": "61d57cb8bc30094ed592a3f75ee49df7e85486c1b660f28bee789837cc5e2ba3"
       },
       "worker_operations": [
         "tabular_parse_file"
@@ -1736,9 +1704,7 @@
               "openpyxl"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1757,7 +1723,7 @@
           "tabular_inspect"
         ],
         "installation_implied": false,
-        "contract_digest": "5f6fa0cf9494d58b18b4fd69eeb2a72336155a201054ffae278cb24a5f3fb7eb"
+        "contract_digest": "eca732723de463d7f2f1f46cbdca81a2e8a034e9e5ad0c460b0e43c57386a917"
       },
       "worker_operations": [
         "tabular_inspect"
@@ -1868,9 +1834,7 @@
               "pandas"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1889,7 +1853,7 @@
           "tabular_inspect"
         ],
         "installation_implied": false,
-        "contract_digest": "9164260da1b100fde3a868ffe73dd11cf72fd45ca1718bb02100664a6a1c00e9"
+        "contract_digest": "858de862fd093afdad18bd72ff69dddfcb79ee3cc0cbe1d3a52a2e38aaee7722"
       },
       "worker_operations": [
         "tabular_inspect"
@@ -1985,9 +1949,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2004,7 +1966,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "22fba0536fa1802b33284f35985ea022acda0dc6cc806f522bd10901be290964"
+        "contract_digest": "071a43f7c4158151fb987134ba3e7000ea0425e8f469f13e80a495b8eae0f3ee"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -2179,9 +2141,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2198,7 +2158,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "4a9b6707e37afe59e2b014491239c7f504306f42f72d78ec7223c08a78f2ba1a"
+        "contract_digest": "b52e4c8fc3c97900c44a12496599ceb5b6d62f3682968f68fd3ff87a783086f2"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -2331,9 +2291,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2350,7 +2308,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "9b1ad0ad7618ad5874a1bf8621311248a966bd27567ea232255174271e32db58"
+        "contract_digest": "6b1f6d3fd2c7e0dac2e11af88ea5d5d933cb6d63638697e7e66008754ba78412"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -2402,8 +2360,8 @@
             "type": "string"
           },
           "timeout_seconds": {
-            "default": 45,
-            "maximum": 120,
+            "default": 120,
+            "maximum": 180,
             "minimum": 5,
             "title": "Timeout Seconds",
             "type": "integer"
@@ -2611,9 +2569,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2632,7 +2588,7 @@
           "tabular_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "bb64a6aa57a41e523884516d76a6b8af3939e3b2b8cdc9cf3749a441e851cefb"
+        "contract_digest": "93e3bf766a9d1556930688c361b2cbe6f39afb8f3a6d57dd5e42d33b89c72e09"
       },
       "worker_operations": [
         "tabular_parse_file"
@@ -2764,9 +2720,7 @@
               "python_calamine"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2785,7 +2739,7 @@
           "tabular_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "1d8d9d9f901a0f89b526add6c1dd804a235ba99c2050b4382909a2549646c153"
+        "contract_digest": "bde54296c0f9040f19dcee74fabe61ee9ca79944498d91484200a6018900e820"
       },
       "worker_operations": [
         "tabular_parse_file"
@@ -2845,8 +2799,8 @@
             "type": "integer"
           },
           "timeout_seconds": {
-            "default": 45,
-            "maximum": 120,
+            "default": 120,
+            "maximum": 180,
             "minimum": 5,
             "title": "Timeout Seconds",
             "type": "integer"
@@ -3039,9 +2993,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -3058,7 +3010,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "3a55261bb63a752112d34b6df98d7a73de6c335a99ff4382ce6cee81b9d723cc"
+        "contract_digest": "5c428e4f02aebd3ae1e3597a7b1d69cbdcf75247cffe797bce3ab973eb8dd6e9"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -3359,11 +3311,11 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.v4.json",
-      "sha256": "ed9d8e2c3560fac932bb868b95e7c0be94d317f14eae78ee2f7eddd1dd460b08"
+      "sha256": "9f8547db95a255536b9827a29c2ab05b454f12cf9bb3d40fb1b095268446954e"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
-      "sha256": "c32c568aa347e7c4fc37c2fb15055b0440ff285e0a19d61241d83ae3fb901f7a"
+      "sha256": "71df5da1df37f9609856f21cf57c66ef017c610cda0cce2eebdb0c4f8772de61"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "contract_count": 12,
   "installed_execution_claimed": false,
@@ -8,62 +8,62 @@
     {
       "bytes": 866,
       "path": "sdk/host/client-context.contract.v4.json",
-      "sha256": "5859ed508e3e2488d299745325c4c96d148033c4af734569e1581a96e5b14d72"
+      "sha256": "a70e088d13824a43277d3e449f600aae09b162d04518be01b9e3a8aa76a6247a"
     },
     {
       "bytes": 696,
       "path": "sdk/host/github-app-connection.contract.v4.json",
-      "sha256": "ad2a7d336894ac1c1e978e8c52e0cf267b2395944158753fde3b26ee9e62825a"
+      "sha256": "071945c9a36b12fe1d3fa518fcb80bfec710b8d256698b239f1e77af7785a634"
     },
     {
       "bytes": 654,
       "path": "sdk/host/goal-metrics.contract.v4.json",
-      "sha256": "3104deff9f15928f84b787ac1234f5e21b041ff346f999e707a2ef533befceea"
+      "sha256": "917ba2113b2dcc7f10313a43118770772aa033a23959916847d07abdf76f4be6"
     },
     {
       "bytes": 844,
       "path": "sdk/host/hook-control.contract.v4.json",
-      "sha256": "76d1deebabab8d1d722fdd33f65dd2374de6b7bdaabd48719eb1a766d9f7b8bd"
+      "sha256": "ebbab7763f399c86fa9be644c2c16ea7c2483e182b7532e1ea3521725ea2b32c"
     },
     {
-      "bytes": 865,
+      "bytes": 1086,
       "path": "sdk/host/local-install.contract.v4.json",
-      "sha256": "28894b36b35c2b0f749ef836dd67b0bde7eeb49b56b1a79ed2b06b53b904efe9"
+      "sha256": "8f33b003dd6e27a9d66a8df860f669b05a30676bab45e2a28346accd017410fd"
     },
     {
-      "bytes": 1004,
+      "bytes": 1174,
       "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
-      "sha256": "c5cc16501a2bdba09574e987aa4b6c62b31ca480da02ef9e7b0aef059546b7d2"
+      "sha256": "6d6bfac2c409b8858e58c3e4a8b897a38ae64eae5845c48777d8980171cd3ae9"
     },
     {
       "bytes": 717,
       "path": "sdk/host/plan-relock.contract.v4.json",
-      "sha256": "a6241372c511a347102068156d0b80f36762e3a9e7dae40728df0735c66a851c"
+      "sha256": "3f3849dc9130dda0d88f1cfa7e16de860521e1f54892f329fa83b1b07587f83c"
     },
     {
       "bytes": 847,
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "67ea8feaa13503b49e9822674ad201ae559dba48a8801d899f3db247fee79038"
+      "sha256": "58476830214edd2b90971fc03e14a1c3b3c2d0c693e073d389202f36f0a46b03"
     },
     {
-      "bytes": 1019,
+      "bytes": 1536,
       "path": "sdk/host/runtime-install-restart.contract.v4.json",
-      "sha256": "0ac725df2bf3616fa9b6ea59d5be237383ffe3106789af9f6ba5cd3e0516f7a8"
+      "sha256": "1dcdef80b1a8ed0207c626bf3167faec846f8a8cc976b080b897d966f737f045"
     },
     {
-      "bytes": 868,
+      "bytes": 911,
       "path": "sdk/host/studio-window.contract.v4.json",
-      "sha256": "2c6821fc205024f0d65c1d965fe0883af12d824f8191734d083264c3d8fd0495"
+      "sha256": "d9373dbf3cb5e85a688d788f54256ea7f92abe71f6178653eae89b8716bcdd5c"
     },
     {
-      "bytes": 689,
+      "bytes": 683,
       "path": "sdk/host/supported-hosts.v4.json",
-      "sha256": "5d012a99d977b62a0a85333580ee3557802ccdd3b633f3fc488c127e5c469233"
+      "sha256": "99863b9546ecfff2ff4e69e4c1977bda4bc7f781277626f23f5b52008e740580"
     },
     {
       "bytes": 875,
       "path": "sdk/host/work-handoff.contract.v4.json",
-      "sha256": "ccaef3bebb9f3e949642fc295f2e87b818a62f32a7e9b18b1c7a264eac2edf54"
+      "sha256": "a827d7807fc411a3b8e95a82bc07a151ef0598d85eb744a4d383bab096dbf1c6"
     }
   ],
   "schema": "evidence-lane.sdk-host-contract-registry.v4",

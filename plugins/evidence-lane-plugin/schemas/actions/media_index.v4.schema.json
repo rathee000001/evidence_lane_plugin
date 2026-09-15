@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Snapshot exact image/media bytes and bounded raster, vector or container facts.",
@@ -130,7 +130,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "318a7804b554f2d4ac795b6e1713cc9387f54530bb0e5e41379e47aca4d6ad69",
+    "contract_digest": "dbbe557d05a261aeeee5e964be7808732d1ef153cf7016422f6e29d4bb2a371d",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -160,9 +160,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_index.raster",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -184,9 +182,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_index.vector",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

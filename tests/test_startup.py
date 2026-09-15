@@ -82,7 +82,7 @@ def test_service_reconciles_uncertain_jobs_and_keeps_studio_launch_explicit(tmp_
         claim = queue.claim(job, lease)
         queue.prepare_effect(job, "once", "Uncertain external effect fixture", lease, execution_id=claim.execution_id)
     try:
-        service.start()
+        service.start(open_studio=True)
         assert queue.get(job)["state"] == "uncertain"
         assert service.recovery[0]["automatic_replay"] is False
         assert len(opened) == 1 and urlsplit(opened[0]).path == "/studio/"

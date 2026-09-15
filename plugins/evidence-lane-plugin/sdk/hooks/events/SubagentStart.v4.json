@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/SubagentStart/handler.py",
   "event": "SubagentStart",
   "event_contract": "hooks/events/SubagentStart/event.v4.json",
-  "event_contract_sha256": "b8e4eab494004e8ca62d7460e07f8e7a1090abe5ac896ecccab4751ad857ff92",
+  "event_contract_sha256": "8acb6fb4020c6290d131ea35d95088a50f4241b587b35cf749e99db5243fcdda",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/SubagentStart.v4.schema.json",
   "input_schema_sha256": "a2a30ca71e2c449a4c178017d877957d33bcc808ff14e703345f1c9e6652406a",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

@@ -1,6 +1,8 @@
 interface:
   display_name: "Inspect project connectors"
   short_description: "Inspect project connector grants and readiness"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $inspect-project-connectors to inspect the selected project connector grants."
 dependencies:

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read exact job effect heads and available observation routes without replaying work.",
@@ -101,7 +101,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "2610a2ee442aae628401b2073c776a5e33dc554923ff66cdea8c3c5e674e1689",
+    "contract_digest": "bd4855c213acbd583cf066d7c9c3921d25d04d1bb65bb0e1e7b32902e531ffb8",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -120,9 +120,7 @@
         "reason": "Registered engine adapter",
         "route_id": "job_recovery_inspect.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

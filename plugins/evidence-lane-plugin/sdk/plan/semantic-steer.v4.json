@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "contract": "semantic-steer.v4",
   "database_first": true,
@@ -14,9 +14,9 @@
       "sha256": "cee2064e2aac8872b8aebe45c70d4373339d12ade8cba3f711cf62c248c0e9af"
     },
     {
-      "bytes": 32147,
+      "bytes": 32108,
       "path": "schemas/actions/plan_refresh.v4.schema.json",
-      "sha256": "4718ec728ec8b128b7162bed4053612e99e5a8fbdf9c3cbf2afe55d9f799197a"
+      "sha256": "e297136e4c453ba13ccd973ad726287d61fd3702fe586c0c6180f253b17e0b58"
     }
   ],
   "status": "PASS"

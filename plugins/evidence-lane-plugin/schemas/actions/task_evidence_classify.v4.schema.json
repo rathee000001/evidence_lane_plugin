@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Classify a proposed task exchange authority message against the current receiver contract without storing or admitting it.",
@@ -487,7 +487,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "f4abbf2beb178d2545b5ca7377fe40105ca77b26081b5a9358696d35c83d8765",
+    "contract_digest": "87bbdb4574ff8c62242bd23571c67ca7aff56a4bd4445282cd6a27575a7f91cf",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -506,9 +506,7 @@
         "reason": "Registered engine adapter",
         "route_id": "task_evidence_classify.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

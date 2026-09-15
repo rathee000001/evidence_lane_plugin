@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Clone an exact selected branch into this project's empty source folder with journaled effects and preserved partial output.",
@@ -99,7 +99,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "4fa9530742884d7f1f76ef586ad7d121558258e9233fb2352c9af92b1eb708da",
+    "contract_digest": "eaf6f1b5eb9b01c39b9e94b565e5087b50b86256014e54f9efdae88ae9afb088",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -118,9 +118,7 @@
         "reason": "Registered engine adapter",
         "route_id": "enroll_project.exact_git",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

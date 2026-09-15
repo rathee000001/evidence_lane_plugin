@@ -13,6 +13,7 @@ sys.path.insert(0, str(PLUGIN_ROOT / "src"))
 
 from evidence_lane_plugin.hook_contract import (
     HOOK_EVENT_NAMES,
+    HOOK_INSTALLATION_POLICY,
     HOOK_PIPELINE,
     hook_event_contract,
     hook_event_handler_path,
@@ -128,6 +129,7 @@ def exports() -> dict[str, object]:
             "runtime_bridge": "hooks/runner.mjs",
             "host_stage_runner": "hooks/stage_runner.py",
             "ambient_python_required": False,
+            "installation_policy": HOOK_INSTALLATION_POLICY,
         },
     }
     hook_events = []
@@ -197,6 +199,7 @@ def exports() -> dict[str, object]:
             "ambient_python_required": False,
             "stage_contracts": stage_paths,
             "automatic_retry": False,
+            "installation_policy": HOOK_INSTALLATION_POLICY,
             "installed_execution_claimed": False,
         }
         hook_events.append({"event": name, "path": contract_path, "sha256": digest(contract)})
@@ -215,6 +218,7 @@ def exports() -> dict[str, object]:
         "ambient_python_required": False,
         "old_tunnel_host_required": False,
         "native_installation_verified": False,
+        "installation_policy": HOOK_INSTALLATION_POLICY,
     }
     outputs["sdk/hooks/hook-runtime.v4.json"] = {
         "schema": "evidence-lane.sdk-hook-runtime.v4",
@@ -226,6 +230,7 @@ def exports() -> dict[str, object]:
         "runtime_bridge": "hooks/runner.mjs",
         "ambient_python_required": False,
         "native_installation_verified": False,
+        "installation_policy": HOOK_INSTALLATION_POLICY,
     }
     outputs["schemas/hooks/hook-family.v4.json"] = {
         "schema": "evidence-lane.hook-schema-family.v4",
@@ -234,6 +239,7 @@ def exports() -> dict[str, object]:
         "admission_owner": "evidence_lane_plugin.hook_admission.admit_hook",
         "classification_owner": "evidence_lane_plugin.hook_classification.classify_hook",
         "native_installation_verified": False,
+        "installation_policy": HOOK_INSTALLATION_POLICY,
     }
     return outputs
 

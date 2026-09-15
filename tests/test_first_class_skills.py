@@ -159,7 +159,7 @@ def test_resealed_skill_catalog_cannot_change_original_workflow_provenance(tmp_p
 def test_current_mcp_protocol_exposes_workflow_discovery_without_project_access(tmp_path):
     async def exercise(engine):
         params = StdioServerParameters(command=sys.executable,
-            args=['-m','evidence_lane_plugin.mcp_adapter','--runtime-root',str(tmp_path), '--host-profile','codex_cli'],
+            args=['-m','evidence_lane_plugin.mcp_adapter','--runtime-root',str(tmp_path), '--host-profile','codex_desktop_stable'],
             env={'PYTHONPATH':str(PLUGIN / 'src')})
         async with (stdio_client(params) as (read, write),
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session):

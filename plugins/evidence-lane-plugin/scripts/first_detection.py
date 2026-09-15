@@ -55,6 +55,13 @@ class FirstDetectionError(RuntimeError):
         super().__init__(message)
 
 
+def semantic_version(value: object, *, code: str) -> tuple[int, int, int]:
+    match = re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", str(value))
+    if match is None:
+        raise FirstDetectionError(code, "The exact release version is not a supported semantic version.")
+    return tuple(int(part) for part in match.groups())
+
+
 def canonical(value: Any) -> bytes:
     return json.dumps(
         value,
@@ -1249,6 +1256,11 @@ def finalize_installation_records(
                     "SHARED_ASSET_SOURCE_MISMATCH",
                     f"The {group['asset_id']} asset differs from its source manifest.",
                 )
+        asset_metadata = {
+            key: group[key]
+            for key in ("repository", "revision", "dimension", "distribution", "version", "languages")
+            if key in group
+        }
         asset_rows.append(
             {
                 "asset_id": group["asset_id"],
@@ -1257,6 +1269,7 @@ def finalize_installation_records(
                 "files": files,
                 "files_sha256": hashlib.sha256(canonical(files) + b"\n").hexdigest(),
                 "source_manifest_sha256": source_sha,
+                **asset_metadata,
             }
         )
     if len({row["asset_id"] for row in asset_rows}) != len(asset_rows):
@@ -1717,7 +1730,11 @@ def validate_active_installation_quick(
     if (
         pointer.get("release_binding_sha256") != expected
         or receipt.get("release_binding_sha256") != expected
+        or receipt.get("schema") != RELEASE_RECEIPT_SCHEMA
         or receipt.get("status") != "MATERIALIZED_AND_SELF_TESTED"
+        or receipt.get("plugin_id") != "evidence-lane-plugin"
+        or receipt.get("repository") != REPOSITORY
+        or receipt.get("sparse_root") != SPARSE_ROOT
         or receipt.get("shared_once_across_projects") is not True
         or not isinstance(critical, dict)
         or not 1 <= len(critical) <= 128
@@ -1802,25 +1819,47 @@ class FirstDetectionInstaller:
         )
         with InstallationLock(self.root / "installation.lock"):
             pointer_path = self.root / "installation.json"
+            previous = None
+            preservation = None
             if pointer_path.exists():
                 active = validate_active_installation_quick(
-                    self.root, expected_binding_sha256=binding_sha
+                    self.root
                 )
-                self._write_status(
-                    "ACTIVE_EXACT_RELEASE",
-                    binding,
-                    active["release_receipt"]["selected_components"],
-                )
-                return {**active, "installation_state": "REUSED_EXACT_RELEASE"}
+                if active["pointer"]["release_binding_sha256"] == binding_sha:
+                    self._write_status(
+                        "ACTIVE_EXACT_RELEASE",
+                        binding,
+                        active["release_receipt"]["selected_components"],
+                    )
+                    self._start_release(self.root, plan)
+                    return {**active, "installation_state": "REUSED_EXACT_RELEASE"}
+                self._validate_upgrade(active, binding)
+                previous = active
             gpu = dict(self.gpu_probe())
             selected, skipped = selected_assets(
                 binding, gpu=gpu, license_grants=self.license_grants
             )
             self._write_status(
-                "ACQUIRING_RELEASE_ASSETS",
+                "UPGRADING_RELEASE" if previous is not None else "ACQUIRING_RELEASE_ASSETS",
                 binding,
                 sorted({row["component_id"] for row in selected}),
             )
+            if previous is not None:
+                try:
+                    self._quiesce_active_release(previous)
+                    preservation = self._preserve_active_release(previous, binding)
+                except Exception as reason:
+                    self._write_status(
+                        "ACTIVE_EXACT_RELEASE",
+                        self._binding_from_active(previous),
+                        previous["release_receipt"]["selected_components"],
+                        error_code=(
+                            reason.code
+                            if isinstance(reason, FirstDetectionError)
+                            else "UNEXPECTED_INSTALLATION_FAILURE"
+                        ),
+                    )
+                    raise
             release_root = self.root
             occupied = {
                 path.name for path in self.root.iterdir()
@@ -1832,6 +1871,8 @@ class FirstDetectionInstaller:
                 }
             }
             if occupied:
+                if previous is not None and preservation is not None:
+                    self._restore_active_release(previous, preservation)
                 self._write_status(
                     "FAILED",
                     binding,
@@ -1859,37 +1900,277 @@ class FirstDetectionInstaller:
                     sorted({row["component_id"] for row in selected}),
                 )
                 self._verify_release_final(release_root, plan)
-                self._register_release(release_root, plan)
                 pointer = self._publish_pointer(
                     release_root, binding_sha=binding_sha, plan=plan
                 )
+                active = validate_active_installation(
+                    self.root, expected_binding_sha256=binding_sha
+                )
+                self._register_release(release_root, plan)
+                self._start_release(release_root, plan)
                 self._write_status(
                     "ACTIVE_EXACT_RELEASE",
                     binding,
                     sorted({row["component_id"] for row in selected}),
                 )
-                active = validate_active_installation(
-                    self.root, expected_binding_sha256=binding_sha
-                )
             except Exception as reason:
                 if published:
                     self._quarantine_failed_release()
+                if previous is not None and preservation is not None:
+                    self._restore_active_release(previous, preservation)
                 self._write_status(
-                    "FAILED",
-                    binding,
-                    sorted({row["component_id"] for row in selected}),
-                    error_code=(
-                        reason.code
-                        if isinstance(reason, FirstDetectionError)
+                    (
+                        "ACTIVE_EXACT_RELEASE"
+                        if previous is not None
+                        else "FAILED"
+                    ),
+                    (
+                        self._binding_from_active(previous)
+                        if previous is not None
+                        else binding
+                    ),
+                    (
+                        previous["release_receipt"]["selected_components"]
+                        if previous is not None
+                        else sorted({row["component_id"] for row in selected})
+                    ),
+                    error_code=None if previous is not None else (
+                        reason.code if isinstance(reason, FirstDetectionError)
                         else "UNEXPECTED_INSTALLATION_FAILURE"
                     ),
                 )
+                if previous is not None and preservation is not None:
+                    self._write_upgrade_receipt(
+                        previous,
+                        binding,
+                        preservation,
+                        status="FAILED_RESTORED_PREVIOUS_RELEASE",
+                        error_code=(
+                            reason.code
+                            if isinstance(reason, FirstDetectionError)
+                            else "UNEXPECTED_INSTALLATION_FAILURE"
+                        ),
+                    )
                 raise
+            if previous is not None and preservation is not None:
+                self._write_upgrade_receipt(
+                    previous,
+                    binding,
+                    preservation,
+                    status="UPGRADED_EXACT_RELEASE",
+                )
             return {
                 **active,
-                "installation_state": "INSTALLED_EXACT_RELEASE",
+                "installation_state": (
+                    "UPGRADED_EXACT_RELEASE"
+                    if previous is not None
+                    else "INSTALLED_EXACT_RELEASE"
+                ),
                 "installation_pointer": pointer,
+                **(
+                    {"previous_release_root": preservation}
+                    if preservation is not None
+                    else {}
+                ),
             }
+
+    @staticmethod
+    def _binding_from_active(active: Mapping[str, Any]) -> dict[str, Any]:
+        receipt = active["release_receipt"]
+        return {
+            "plugin_version": receipt["plugin_version"],
+            "release_ref": receipt["release_ref"],
+        }
+
+    def _validate_upgrade(
+        self, active: Mapping[str, Any], binding: Mapping[str, Any]
+    ) -> None:
+        receipt = active["release_receipt"]
+        if (
+            receipt.get("plugin_id") != binding.get("plugin_id")
+            or receipt.get("repository") != binding.get("repository")
+            or receipt.get("sparse_root") != binding.get("sparse_root")
+        ):
+            raise FirstDetectionError(
+                "INSTALLATION_OWNER_DIFFERENT",
+                "The stable installation belongs to another product or repository.",
+            )
+        current = semantic_version(
+            receipt.get("plugin_version"), code="INSTALLED_RELEASE_VERSION_INVALID"
+        )
+        selected = semantic_version(
+            binding.get("plugin_version"), code="RELEASE_BINDING_VERSION_INVALID"
+        )
+        if selected == current:
+            raise FirstDetectionError(
+                "INSTALLED_RELEASE_DIFFERENT",
+                "The same release version cannot be rebound to different immutable bytes.",
+            )
+        if selected < current:
+            raise FirstDetectionError(
+                "INSTALLATION_DOWNGRADE_BLOCKED",
+                "The stable installation cannot be replaced by an older release.",
+            )
+
+    def _quiesce_active_release(self, active: Mapping[str, Any]) -> None:
+        script = self.plugin_root / "scripts/quiesce_installed_release.py"
+        if not script.is_file():
+            raise FirstDetectionError(
+                "INSTALLATION_QUIESCENCE_HELPER_MISSING",
+                "The selected plugin release cannot quiesce the active Studio safely.",
+            )
+        reject_links(script, self.plugin_root)
+        environment = installed_process_environment(
+            self.root,
+            {
+                **{
+                    key: value
+                    for key, value in os.environ.items()
+                    if not key.upper().startswith("PYTHON")
+                },
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "EVIDENCE_LANE_PLUGIN_ROOT": str(self.plugin_root),
+                "EVIDENCE_LANE_STUDIO_ROOT": str(self.root),
+                "EVIDENCE_LANE_RUNTIME_ROOT": str(self.root / "engine"),
+            },
+        )
+        run_checked(
+            self.runner,
+            [
+                str(active["runtime_python"]),
+                "-I",
+                "-B",
+                str(script),
+                "--runtime-root",
+                str(self.root / "engine"),
+                "--browser-profile",
+                str(self.root / "engine/studio-browser"),
+                "--timeout-seconds",
+                "60",
+            ],
+            self.root,
+            environment,
+            code="INSTALLATION_QUIESCENCE_FAILED",
+        )
+
+    def _preserve_active_release(
+        self,
+        active: Mapping[str, Any],
+        binding: Mapping[str, Any],
+    ) -> Path:
+        receipt = active["release_receipt"]
+        previous_binding = str(active["pointer"]["release_binding_sha256"])
+        parent = self.root.parent / ".EvidenceLaneStudio-previous"
+        parent.mkdir(parents=True, exist_ok=True)
+        reject_links(parent, Path(parent.anchor))
+        destination = parent / (
+            f"{receipt['plugin_version']}-{previous_binding[:16]}-{uuid4()}"
+        )
+        destination.mkdir()
+        controls = {
+            "installation.lock",
+            "installation-status.json",
+            ".installation-started.json",
+            ".staging",
+        }
+        moved = []
+        try:
+            for child in sorted(self.root.iterdir(), key=lambda value: value.name):
+                if child.name not in controls:
+                    os.replace(child, destination / child.name)
+                    moved.append(child.name)
+            if "installation.json" not in moved or ".evidence-lane-release.json" not in moved:
+                raise FirstDetectionError(
+                    "INSTALLATION_PRESERVATION_INVALID",
+                    "The previous release preservation is incomplete.",
+                )
+            self._write_upgrade_receipt(
+                active,
+                binding,
+                destination,
+                status="PREVIOUS_RELEASE_PRESERVED",
+            )
+        except Exception as reason:
+            try:
+                for name in reversed(moved):
+                    source = destination / name
+                    target = self.root / name
+                    if source.exists():
+                        if target.exists():
+                            raise FileExistsError(target)
+                        os.replace(source, target)
+                if destination.exists():
+                    destination.rmdir()
+            except Exception as rollback_reason:
+                raise FirstDetectionError(
+                    "INSTALLATION_ROLLBACK_FAILED",
+                    "The previous release could not be restored after preservation failed.",
+                ) from rollback_reason
+            raise FirstDetectionError(
+                "INSTALLATION_PRESERVATION_FAILED",
+                "The exact previous release could not be preserved for upgrade rollback.",
+            ) from reason
+        return destination
+
+    def _restore_active_release(
+        self, active: Mapping[str, Any], preservation: Path
+    ) -> None:
+        controls = {
+            "installation.lock",
+            "installation-status.json",
+            ".installation-started.json",
+            ".staging",
+        }
+        unexpected = [
+            path for path in self.root.iterdir() if path.name not in controls
+        ]
+        if unexpected:
+            self._quarantine_failed_release()
+        try:
+            for child in sorted(preservation.iterdir(), key=lambda value: value.name):
+                target = self.root / child.name
+                if target.exists():
+                    raise FileExistsError(target)
+                os.replace(child, target)
+            preservation.rmdir()
+            validate_active_installation_quick(
+                self.root,
+                expected_binding_sha256=active["pointer"]["release_binding_sha256"],
+            )
+        except Exception as reason:
+            raise FirstDetectionError(
+                "INSTALLATION_ROLLBACK_FAILED",
+                "The exact previous release could not be restored after upgrade failure.",
+            ) from reason
+
+    def _write_upgrade_receipt(
+        self,
+        active: Mapping[str, Any],
+        binding: Mapping[str, Any],
+        preservation: Path,
+        *,
+        status: str,
+        error_code: str | None = None,
+    ) -> None:
+        root = self.root.parent / ".EvidenceLaneStudio-upgrade-receipts"
+        root.mkdir(parents=True, exist_ok=True)
+        body = {
+            "schema": "evidence-lane.stable-root-upgrade.v4",
+            "status": status,
+            "installation_root": str(self.root),
+            "previous_version": active["release_receipt"]["plugin_version"],
+            "previous_binding_sha256": active["pointer"]["release_binding_sha256"],
+            "selected_version": binding["plugin_version"],
+            "selected_release_ref": binding["release_ref"],
+            "preservation_root": str(preservation),
+            "error_code": error_code,
+            "project_state_changed": False,
+        }
+        path = root / (
+            f"{active['release_receipt']['plugin_version']}-to-"
+            f"{binding['plugin_version']}-{status.casefold()}-{uuid4()}.json"
+        )
+        atomic_json(path, sealed(body))
 
     def _materialize_release(
         self,
@@ -2083,6 +2364,36 @@ class FirstDetectionInstaller:
             release_root,
             environment,
             code="INSTALLATION_REGISTRATION_FAILED",
+        )
+
+    def _start_release(
+        self, release_root: Path, plan: Mapping[str, Any]
+    ) -> None:
+        entrypoints = _entrypoints(release_root, plan)
+        environment = installed_process_environment(
+            release_root,
+            {
+                **{key: value for key, value in os.environ.items()
+                   if not key.upper().startswith("PYTHON")},
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "EVIDENCE_LANE_PLUGIN_ROOT": str(entrypoints["plugin_root"]),
+                "EVIDENCE_LANE_STUDIO_ROOT": str(self.root),
+                "EVIDENCE_LANE_RUNTIME_ROOT": str(release_root / "engine"),
+            },
+        )
+        run_checked(
+            self.runner,
+            [
+                str(entrypoints["runtime_python"]),
+                "-I",
+                "-B",
+                str(entrypoints["plugin_root"] / "scripts/launch_studio.py"),
+                "--runtime-root",
+                str(release_root / "engine"),
+            ],
+            release_root,
+            environment,
+            code="STUDIO_START_FAILED",
         )
 
     def _verify_release_final(
@@ -2341,12 +2652,10 @@ def prepare_mcp(
     current_system = platform.system() if system is None else system
     current_machine = platform.machine() if machine is None else machine
     if current_system != "Windows":
-        return {
-            "mode": "REDUCED_NON_WINDOWS_HOST",
-            "reexec": False,
-            "environment": values,
-            "studio_installed": False,
-        }
+        raise FirstDetectionError(
+            "WINDOWS_HOST_REQUIRED",
+            "Evidence Lane supports persistent local Windows Codex Desktop hosts.",
+        )
     install_root = installation_root(values)
     binding_sha = sha256(root / "provisioning/release-binding.v4.json")
     if values.get("EVIDENCE_LANE_INSTALLED_RUNTIME_ACTIVE") == "1":

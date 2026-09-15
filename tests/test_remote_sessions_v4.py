@@ -97,9 +97,9 @@ def test_same_grant_connections_cannot_take_over_or_capture_each_other(prepared,
     runtime, policy, config, environment = prepared
     with Engine(runtime) as engine, listening(RemoteGateway(engine, policy, environment=environment), tls):  # noqa: SIM117 - keep the server and client scopes explicit
         with (RemoteTransport(config, environment=environment,
-                hello=ClientHello(configured_profile='codex_vm_ephemeral')) as first,
+                hello=ClientHello(configured_profile='codex_desktop_stable')) as first,
               RemoteTransport(config, environment=environment,
-                hello=ClientHello(configured_profile='codex_vm_persistent')) as second):
+                hello=ClientHello(configured_profile='codex_desktop_beta')) as second):
             first.catalog()
             second.catalog()
             assert first.connection['client_id'] != second.connection['client_id'] != policy.grants[0].principal_id
@@ -196,7 +196,7 @@ def test_packaged_manifest_selects_remote_without_local_administration(prepared,
     async def exercise():
         parameters = StdioServerParameters(command=sys.executable,
             args=['-B', '-m', 'evidence_lane_plugin.mcp_adapter',
-                  '--remote-config', str(selected), '--host-profile', 'codex_desktop'],
+                  '--remote-config', str(selected), '--host-profile', 'codex_desktop_beta'],
             env={**environment, 'EVIDENCE_LANE_REMOTE_CONFIG': str(selected),
                  'EVIDENCE_LANE_STUDIO_ROOT': str(unused_studio),
                  'PYTHONPATH': str(plugin / 'src')})
@@ -236,7 +236,7 @@ def test_read_only_client_can_verify_owner_prepared_probe_without_write_grant(pr
         ticket = gateway.prepare_probe(grant.principal_id)
         atomic_json(Path(config.probe_file), ticket.model_dump())
         with listening(gateway, tls), RemoteTransport(config, environment=environment) as client:
-            assert client.route()['route'] is None
+            assert client.route()['route'] == 'remote_api'
             with pytest.raises(LaneError):
                 client.seed_probe()
     with (Engine(runtime) as engine,

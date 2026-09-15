@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Project saved HTML bytes through the first ready or explicitly selected extractor without network access.",
@@ -108,7 +108,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "d643f58265100df773e6b1772cdbef6273b37021e5ec62109c09022e0f970901",
+    "contract_digest": "ba7f4e040896d0af71252b25851903b8df8cb65939e4eaa174ca259677e264a0",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -132,9 +132,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.trafilatura",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -159,9 +157,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.readability",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -186,9 +182,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.beautifulsoup",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -212,9 +206,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.markdownify",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -239,9 +231,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.html2text",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -266,9 +256,7 @@
         "reason": "Ordered readiness selects a disclosed algorithm before invocation; an explicit selection stays exact.",
         "route_id": "research_web_extract.stdlib",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

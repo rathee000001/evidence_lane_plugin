@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read the project compute preference without claiming a successful backend selection.",
@@ -162,7 +162,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "626023f8ae6fc6892fd0afc73750a52dec70edfe92bafff393c0320519caf8e1",
+    "contract_digest": "63c463255bd30d92d76bf12ee913dc22b4e486da0cbf7d3682edc219055ef14f",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -181,9 +181,7 @@
         "reason": "Registered engine adapter",
         "route_id": "accelerator_read.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

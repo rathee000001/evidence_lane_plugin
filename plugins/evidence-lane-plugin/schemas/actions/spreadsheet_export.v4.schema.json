@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
@@ -101,7 +101,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "e7ebc696c555b5525e973af0c729364c2ffb056558c66e0fb4f2d484061fe096",
+    "contract_digest": "94830bc9cfddbc7c0d7f8760745bfdba26ef5b70580c3aedd370fd457360f58e",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -121,9 +121,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_export.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"
@@ -131,9 +129,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -167,9 +163,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_export.native_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -180,9 +174,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -217,9 +209,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_export.native_values",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -228,9 +218,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -264,9 +252,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_export.native_values_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -278,9 +264,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"

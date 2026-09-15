@@ -1286,7 +1286,7 @@ def register_code_actions(engine):
             materialization=SourceMaterialization('paths', 32) if action == 'code_index' else None, worker_operations=('code_parse_file',),
             verification_checks=('code_snapshot_integrity', 'code_source_hashes_unchanged'), verifier=verify_code_index,
             tool_routes=(ToolRoute(action + '.registered_parser', handler, tools,
-                systems=('Windows',) if action == 'code_index_syntax' else ('Windows', 'Darwin', 'Linux')),)))
+                systems=('Windows',)),)))
     for action, workflow in (('code_index_git', 'manage-project-sources'), ('code_refresh_git', 'refresh-project-evidence')):
         engine.registry.register(ActionSpec(action, 'Index exact granted local bytes at the selected clean Sources Git checkpoint.',
             CodeGitIndex, CodeResult, git, permission='write', mutates=True, profile='code', workflow=workflow,
@@ -1322,7 +1322,7 @@ def register_code_actions(engine):
     edit_routes = tuple(ToolRoute('code_apply.' + ('syntax' if syntax else 'structural') + ('_export' if render else ''),
         apply_code, ('Python', 'SQLite_FTS5_BM25', 'Python_structural_parser', *(('TreeSitter_LanguagePack',) if syntax else ()),
             *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),
-        view_refresh=SelectedViewRefresh(engine, 'local_code.relationships'), systems=('Windows',) if syntax else ('Windows', 'Darwin', 'Linux'), applicable=edit_route(syntax, render),
+        view_refresh=SelectedViewRefresh(engine, 'local_code.relationships'), systems=('Windows',), applicable=edit_route(syntax, render),
         worker_operations=('code_parse_content', *(('render_lane_view',) if render else ())))
         for syntax, render in ((False, False), (False, True), (True, False), (True, True)))
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Register typed identity entities, attributed assertions and evidence relationships.",
@@ -123,7 +123,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "2a312bad269750ce6c645ee5e85148e691e489e2fee809d30fd739b4825b27b7",
+    "contract_digest": "c092fc17bf7934178049bff42b8b5a9b4eb13c9471a7e7c71cf8a60bb048dc76",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -142,9 +142,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_identity.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

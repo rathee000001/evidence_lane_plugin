@@ -59,7 +59,7 @@ def render() -> bytes:
     if (
         not isinstance(operation_rows, list)
         or len(operation_rows) != operations.get("operation_count")
-        or len(operation_rows) != 297
+        or len(operation_rows) != 295
         or not isinstance(tool_rows, list)
         or len(tool_rows) != shared.get("retained_tool_count")
         or len(tool_rows) != 103
@@ -242,7 +242,7 @@ def generate(*, check: bool = False) -> dict[str, object]:
         raise RuntimeError("Toolchain execution matrix requires regeneration: " + ", ".join(changed))
     return {
         "status": "PASS",
-        "operation_count": 297,
+        "operation_count": 295,
         "tool_count": 103,
         "outputs": [path.relative_to(REPOSITORY).as_posix() for path in OUTPUTS],
         "sha256": hashlib.sha256(content).hexdigest(),

@@ -1,13 +1,13 @@
 {
   "action": "connector_revoke",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/connector_revoke.action.v4.json",
-  "sdk_binding_sha256": "faa401b36d3ec469431431ae7f30307204b95cf3b0ea6a28372b413c666505e1",
+  "sdk_binding_sha256": "1a48971c5c97021c8649eb082554d69db3fba268e494e4bd6b5681929aa6f2b8",
   "tool": {
     "annotations": {
       "destructiveHint": true,

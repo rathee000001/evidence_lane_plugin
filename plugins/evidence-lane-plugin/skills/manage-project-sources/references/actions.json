@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "013f5139d5fe0f0e8a16726c919fdc3ce75267c6bf20be0f9f9ac8cfe37fe810",
+  "action_set_digest": "859513d184b9c644f6887ec57dbef06fc52194baa91100ae4adc4c41dc3833bf",
   "actions": [
     {
       "cross_project_read": true,
@@ -466,7 +466,7 @@
     {
       "cross_project_read": false,
       "description": "Convert exact legacy DOC/RTF bytes into a separate versioned DOCX while retaining the original.",
-      "input_schema_digest": "171d11f61681b21917e22e89c799b1acb4edcbb9e8fcdcce7012c7c3c3fe7fe9",
+      "input_schema_digest": "f9b9003bc947b41ee6c60ce2c871b0c9263b8b6300b182958daadd5736e4ae9d",
       "mutates": true,
       "name": "document_convert",
       "output_schema_digest": "3f839316ae1bed531aaa105ed7a0a61ab4020179b43f97ed7052b9daf92fcc30",
@@ -956,7 +956,7 @@
     {
       "cross_project_read": false,
       "description": "Convert exact legacy PPT/ODP bytes into a separate versioned PPTX while retaining the original.",
-      "input_schema_digest": "b8410a66d6ef6b1d82adeccacbeb17bce7640af4b7574031e4b1384773aa773a",
+      "input_schema_digest": "a51ebb7c2b7df5cb7b40f456ba9b9f3e5da2d36e4ff210b96cc0d0156c3e9f6f",
       "mutates": true,
       "name": "presentation_convert",
       "output_schema_digest": "ff364e5641ea0c6a6db6f816281374971ee3978e77f1d1c7a252b0dcb80db9f3",

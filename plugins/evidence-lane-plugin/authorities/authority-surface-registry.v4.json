@@ -7,7 +7,7 @@
       "path": "authorities/plan",
       "manifest": {
         "path": "authorities/plan/manifest.v4.json",
-        "sha256": "c9a95228fb0dc6981ccc7c36b160b12d18db1e0fb1e96089305b2b256f6151fe"
+        "sha256": "7e76ea8ed509e4e787c503f9a286706e1e738168f7c481e19831cd7bf124390e"
       }
     },
     {
@@ -16,7 +16,7 @@
       "path": "authorities/chat_lineage",
       "manifest": {
         "path": "authorities/chat_lineage/manifest.v4.json",
-        "sha256": "4391641c253c699f4ca5cdcf711bd2d03749d3185171658d4ca10c384501ec22"
+        "sha256": "62716d3660b3fa6e4f98373ff4203b95c91baa171f61d38c22478da5e37fc687"
       }
     },
     {
@@ -25,7 +25,7 @@
       "path": "authorities/canon_input",
       "manifest": {
         "path": "authorities/canon_input/manifest.v4.json",
-        "sha256": "79cea030f518efe1c8298189043b99e2280af34e535e8f66c949f8fa1ed79ca5"
+        "sha256": "0b33e4f62105147e76dd564137260263ef6551ab504481c5fb3f64dae5abb21c"
       }
     },
     {
@@ -34,7 +34,7 @@
       "path": "authorities/project_memory",
       "manifest": {
         "path": "authorities/project_memory/manifest.v4.json",
-        "sha256": "34585843d74cbd55b6fc2067981abeb53c2fe22f151543e74b07086cf1e6fa36"
+        "sha256": "dcc37874c8c38e4f08aae98cb54e8e5fc8f5c8a2239c05e9305701e93969a587"
       }
     },
     {
@@ -43,7 +43,7 @@
       "path": "authorities/agent_learning",
       "manifest": {
         "path": "authorities/agent_learning/manifest.v4.json",
-        "sha256": "b473ed5a5d6fce2e617da169b52aa392aadb0eb7e6c6e5404bf167e8f424b19a"
+        "sha256": "bca748f86b26bbf233011f175cccb7d585e2931bf2f3c578bbb223108393594c"
       }
     },
     {
@@ -52,7 +52,7 @@
       "path": "authorities/source_authority",
       "manifest": {
         "path": "authorities/source_authority/manifest.v4.json",
-        "sha256": "ac05cbb88339ff0ccb648183099008622cca7fcde52beb85cc9b2cddd52f8b85"
+        "sha256": "ff594e003a5090e6fc88d5ee267501c7e0dc51dcff1ab89e297a62cfb45cc007"
       }
     },
     {
@@ -61,7 +61,7 @@
       "path": "authorities/session_authority",
       "manifest": {
         "path": "authorities/session_authority/manifest.v4.json",
-        "sha256": "637df12f35745bc1dbd157e56e712761318a8a3d53bd4064343923fa56469134"
+        "sha256": "f3031233e5794c624c60e05510024834801c5e86c519636f4cd841a0d133b6c2"
       }
     },
     {
@@ -70,7 +70,7 @@
       "path": "authorities/receipt_ledger",
       "manifest": {
         "path": "authorities/receipt_ledger/manifest.v4.json",
-        "sha256": "f98bea08058ec4aad981f7e7a09c51ab665900403bf90588c9e830c8e92b7fa4"
+        "sha256": "72c9e0022388cdeecaf9b9e403ba17af987a32f30f1081369bbb70e35b9c8399"
       }
     },
     {
@@ -79,7 +79,7 @@
       "path": "authorities/project_universe",
       "manifest": {
         "path": "authorities/project_universe/manifest.v4.json",
-        "sha256": "da4f4179b0b284a3c909ddc1404edf1f702af43f691ad063c6504b63cf49f8a9"
+        "sha256": "c3307245df6e1fc30de633692b229a4f3e0b6318cfa1893a8bd56ebb0e0e7ff4"
       }
     }
   ],
@@ -91,7 +91,7 @@
       "owner_id": "instructions",
       "manifest": {
         "path": "authorities/instructions/manifest.v4.json",
-        "sha256": "92d46ecec02766392b3b48a1a186a0d8bfdcea87a0d43d85245e41be669970ab"
+        "sha256": "43d13dba9716a59dcf5a57139c0658c40604f44656a29a49bb6cc48e6a4b82b7"
       }
     }
   ],

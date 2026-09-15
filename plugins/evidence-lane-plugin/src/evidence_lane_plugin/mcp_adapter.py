@@ -76,7 +76,7 @@ def tool_from_action(action: dict) -> Tool:
     )
 
 
-async def serve(runtime_root: Path | None, *, host_profile: str = "unknown",
+async def serve(runtime_root: Path | None, *, host_profile: str = "codex_desktop_stable",
                 remote_config: Path | None = None,
                 project_selections: tuple[ProjectSelection, ...] = (), manage_projects: bool = False) -> None:
     if manage_projects and remote_config is not None:
@@ -187,7 +187,7 @@ def main() -> None:
     location = parser.add_mutually_exclusive_group(required=True)
     location.add_argument("--runtime-root", type=Path)
     location.add_argument("--remote-config", type=Path)
-    parser.add_argument("--host-profile", choices=sorted(HOST_MATRIX), default="unknown")
+    parser.add_argument("--host-profile", choices=sorted(HOST_MATRIX), default="codex_desktop_stable")
     add_selection_arguments(parser)
     arguments = parser.parse_args()
     asyncio.run(serve(arguments.runtime_root, host_profile=arguments.host_profile,

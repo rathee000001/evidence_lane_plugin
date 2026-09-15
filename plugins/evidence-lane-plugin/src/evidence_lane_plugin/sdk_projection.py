@@ -603,15 +603,21 @@ def _host_outputs(
             ["hooks/hooks.json", "src/evidence_lane_plugin/hook_contract.py"],
         ),
         "local-install.contract.v4.json": (
-            "Install one exact side-by-side Windows release and publish its pointer only after validation.",
+            "Upgrade one flat stable Windows root transactionally after exact engine and Studio quiescence, then publish its pointer only after validation.",
             [
                 "authorities/session_authority/installation-layout.v4.json",
                 "scripts/first_detection.py",
+                "scripts/quiesce_installed_release.py",
             ],
         ),
         "mcp-startup-isolation.contract.v4.json": (
             "Keep unrelated Codex task startup independent from Evidence Lane availability and bound initialization latency.",
-            [".mcp.json", "scripts/run_mcp.py", "src/evidence_lane_plugin/launcher.py"],
+            [
+                ".mcp.json",
+                "scripts/run_mcp.py",
+                "src/evidence_lane_plugin/launcher.py",
+                "src/evidence_lane_plugin/service.py",
+            ],
         ),
         "plan-relock.contract.v4.json": (
             "Commit the project Plan database first, atomically project every row to the exact bound PLAN.md, then update the native list.",
@@ -625,8 +631,11 @@ def _host_outputs(
             "Separate plugin installation, engine activation, Studio visibility and later Codex restart proof.",
             [
                 "scripts/run_mcp.py",
+                "scripts/quiesce_installed_release.py",
                 "src/evidence_lane_plugin/launcher.py",
+                "src/evidence_lane_plugin/service.py",
                 "src/evidence_lane_plugin/startup.py",
+                "src/evidence_lane_plugin/studio_window.py",
             ],
         ),
         "work-handoff.contract.v4.json": (
@@ -637,11 +646,11 @@ def _host_outputs(
             ],
         ),
         "studio-window.contract.v4.json": (
-            "Keep Studio visible and read-only while the engine remains independent of window close/minimize.",
+            "Keep one exact-profile Studio window visible and read-only, restore it on reopen, and keep the engine independent of window close/minimize.",
             ["src/evidence_lane_plugin/studio_window.py", "src/evidence_lane_plugin/studio_gateway.py"],
         ),
         "supported-hosts.v4.json": (
-            "Select Windows Studio/local engine or reduced Mac/Linux and explicit remote routes from measured facts.",
+            "Select persistent local Windows Codex Desktop Stable or Beta and reject every other host profile.",
             ["src/evidence_lane_plugin/host_routing.py"],
         ),
         "client-context.contract.v4.json": (

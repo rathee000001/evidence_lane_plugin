@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Prepare complete bounded selected-source file routes and owning Plan tasks; does not adopt a Plan or run parsers.",
@@ -204,7 +204,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "9276481d9598df83e57acc6886a2ed357855a78172ffd22b97b9ff3df70da3c9",
+    "contract_digest": "ee573f64b77be4f2d56f0ca57a4b43ce2b5d788c929fe83779f068156c499e65",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -223,9 +223,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_prepare_tasks.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

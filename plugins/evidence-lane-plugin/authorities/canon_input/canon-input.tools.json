@@ -25,9 +25,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -44,7 +42,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "f4abbf2beb178d2545b5ca7377fe40105ca77b26081b5a9358696d35c83d8765"
+        "contract_digest": "87bbdb4574ff8c62242bd23571c67ca7aff56a4bd4445282cd6a27575a7f91cf"
       },
       "verification_checks": []
     },
@@ -68,9 +66,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -87,7 +83,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "ca8fc53d0a3a5ca38a6b4d674bb1937ab4ca2c7daa3a7233ab2c5956f1e389bc"
+        "contract_digest": "4046b0a702b549d297c47417c2094e827c0f97c9947ae1e89cb5695fa9339530"
       },
       "verification_checks": []
     },
@@ -111,9 +107,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -130,7 +124,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "82b1b7b68e32631d1d8a0b25b2b9652f5ead18bb9784ed8e1c457f6f471fcc58"
+        "contract_digest": "c326db65821bb086ebb0ace57f5d191a5a9c4e65d0eb8c473d76a99aef2e1876"
       },
       "verification_checks": []
     },
@@ -154,9 +148,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -173,7 +165,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "e4eb894bfb89815b89e3d0833e5b0f6e6f28d351afda9d64f386cf6b62dde2a4"
+        "contract_digest": "97f6fed24d44cddba031d5ceb6fac950b0f806fc46826d95ff77385c0b388bf2"
       },
       "verification_checks": []
     },
@@ -197,9 +189,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -216,7 +206,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "db1c5ffb8ab6520c7bf65ac01a34b36daee72bd0e5f91422300d98afa11c8eb6"
+        "contract_digest": "1b26e6b00a32f02c65ee87e31ef09fa3962807c46d934961e3c04c9d8f5690ac"
       },
       "verification_checks": []
     },
@@ -240,9 +230,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -259,7 +247,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7786edf00d8e3599f00a16d1fa39ff327243fd6b112ad2288f25254bad04fa3b"
+        "contract_digest": "e68e49ba0d6edcafcec70a77983d0e15edd54a49ebfde694507c0f188f114208"
       },
       "verification_checks": []
     },
@@ -283,9 +271,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -302,7 +288,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "6e20ab13d14ed60a2117445223046dcd9fa82f824cc8096dc2278822fe4751c6"
+        "contract_digest": "af9b19c68c9bbef9f36dff5312c8a5fb61dc63f87bd2797fdd14d4a098cb5b4a"
       },
       "verification_checks": []
     },
@@ -326,9 +312,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -345,7 +329,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "90b49a224b14ffc8b776185020ed7dd3bd006a6e638b2b103e6096fd61f1f4a0"
+        "contract_digest": "fb1c481718bd5617795e765d3914c63a6ecd5c88b0e58b399b51ff12e4edc922"
       },
       "verification_checks": []
     },
@@ -369,9 +353,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -388,7 +370,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "341034f503ef89e82e81839d1cff378fa3b218ceb568353b2e0395bc539fd222"
+        "contract_digest": "e92a81b33d343d4dac3feddece408a18aba42cf5e6b4ef5a861055c691e90c56"
       },
       "verification_checks": []
     },
@@ -412,9 +394,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -431,7 +411,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "cc2585d7f3b8488be63def945b6c4a6bf37275c87ecb3a1246fa46ba39e67633"
+        "contract_digest": "a466348cd013e6080702f428d1a8806368c6a27f9dad107630cc9ac9811a9f99"
       },
       "verification_checks": []
     },
@@ -455,9 +435,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -474,7 +452,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "5a96717d15dcbea92098fa8a9c3d8f3965c823a8c2c8c5818fcadabe1d3a0778"
+        "contract_digest": "06235e3c61584c8ea713f27a09e3761572b9525df1b61bb0cb3b9dc10e2d5ac3"
       },
       "verification_checks": []
     },
@@ -498,9 +476,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -517,7 +493,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "350d5d9dae49f1dd170574282d20c82fc5cfbaf6938f9bd311259ae63b7864a1"
+        "contract_digest": "1a4aa91ebc1ee86cfa7ae95813e450034c2d2174b4ca9d4cf646016b5ffba8f7"
       },
       "verification_checks": []
     },
@@ -541,9 +517,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -560,7 +534,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "c529665ebda6afec54856eaa632a8978b102a26a2657f7c9de0075b43f13b6f6"
+        "contract_digest": "2e44fc17c3327eff7e3d38915b1ec318bc43f3b99f1f3956b976760763a8aaa0"
       },
       "verification_checks": []
     },
@@ -584,9 +558,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -603,7 +575,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "dfb3a869634142f5a4a221144c93192d2e91f0a693e0b2ad28eab274b4206745"
+        "contract_digest": "6fe02def70e62de39a6df78d5116665ff77e9b36dcd1ac5910cba129d863805b"
       },
       "verification_checks": []
     },
@@ -627,9 +599,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -646,7 +616,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "ea7ad2ce8db9624122f26b425f5c54d425c9508a382937e96befd930c5b8a59c"
+        "contract_digest": "30420d8181676f5f5e4490d770e26cd755b72c4aa0e10f6d867054390b653bb2"
       },
       "verification_checks": []
     },
@@ -670,9 +640,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -689,7 +657,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "17bed192fb2a656f115d2730a89e95c837762858b056946f446a9fbb88e5bc58"
+        "contract_digest": "a6b566c87506dd30ce0099a12477690f027da86d37386d8fdd9da8af5581d7ea"
       },
       "verification_checks": []
     }
@@ -702,7 +670,7 @@
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "6f62295af1d29605e41ba1ecbc33af9668c4d57e2c9c0bbba84c5cc24efdbb3b",
+      "implementation_digest": "2fce26732b0a96d83f7bce58019ecca80ca0697408b620ee7c7bbe7169646d08",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",

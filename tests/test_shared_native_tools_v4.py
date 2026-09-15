@@ -41,7 +41,7 @@ def write_pointer(root, body):
 def test_real_verified_shared_binary_consumes_stdin_and_returns_attributed_output(bundle):
     root, _, _ = bundle
     result = run_native_tool(NativeInvocationRequest(tool_id='ripgrep', arguments=['--no-config', '-F', 'needle', '-'],
-        input_bytes=b'needle\nother\nneedle two\n', host_profile='CODEX_CLI'), runtime_root=root)
+        input_bytes=b'needle\nother\nneedle two\n', host_profile='CODEX_DESKTOP'), runtime_root=root)
     assert result['status'] == 'PASS'
     assert result['stdout'] == 'needle\nneedle two\n'
     assert result['host_profile_basis'] == 'configured_not_attested'
@@ -80,5 +80,5 @@ def test_process_output_is_stopped_at_its_byte_budget(bundle):
     root, _, _ = bundle
     with pytest.raises(LaneError) as failure:
         run_native_tool(NativeInvocationRequest(tool_id='ripgrep', arguments=['--no-config', '-F', 'x', '-'],
-            input_bytes=b'x\n' * 6000, host_profile='CODEX_CLI', max_output_bytes=1024), runtime_root=root)
+            input_bytes=b'x\n' * 6000, host_profile='CODEX_DESKTOP', max_output_bytes=1024), runtime_root=root)
     assert failure.value.code == 'NATIVE_TOOL_OUTPUT_BOUND_EXCEEDED'

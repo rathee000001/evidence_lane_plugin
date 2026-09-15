@@ -36,6 +36,14 @@
       "status": "Verifying and emitting Evidence Lane {event}"
     }
   ],
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "monolithic_hook_implementation": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.hook-stage-registry.v4",

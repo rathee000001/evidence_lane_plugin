@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
@@ -81,7 +81,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46",
+    "contract_digest": "7cdc5de2877fb6300157cc501e5cd1ae05437af571b3def44900063b1303bdb3",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -100,9 +100,7 @@
         "reason": "Registered engine adapter",
         "route_id": "learning_revoke.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

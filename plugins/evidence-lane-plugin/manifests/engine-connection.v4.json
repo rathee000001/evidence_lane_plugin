@@ -1,5 +1,5 @@
 {
-  "action_count": 297,
+  "action_count": 295,
   "bootstrap_dependency": "Python 3.14 command and pinned core environment; complete first-detection installer is a separate qualification",
   "entrypoint": "scripts/run_mcp.py",
   "full_toolchain_readiness": "not_established_by_this_contract",
@@ -13,42 +13,30 @@
     "connection_route": "/v4/connect",
     "origin": "current-user loopback only",
     "owner": "local_transport.LocalEndpoint",
-    "posix_credentials": "owned private file with no-follow checks",
     "project_admin": "separate local-owner bootstrap grant",
     "windows_credentials": "current-user DPAPI"
   },
   "native_task_attestation": "not_provided",
   "platforms": {
-    "Darwin": {
-      "runtime": "~/Library/Application Support/EvidenceLane/runtime",
-      "studio": false
-    },
-    "Linux": {
-      "runtime": "~/.local/share/EvidenceLane/runtime",
-      "studio": false
-    },
     "Windows": {
+      "host_profiles": [
+        "codex_desktop_stable",
+        "codex_desktop_beta"
+      ],
+      "persistence": "local_persistent_system",
       "runtime": "C:/Apps/EvidenceLaneStudio/engine",
       "studio": true
-    },
-    "codex_vm_ephemeral": {
-      "requires_verified_remote_route": true
-    },
-    "codex_vm_persistent": {
-      "requires_verified_remote_route": true
     }
   },
   "project_state": "direct flat-PV lane SQLite databases, objects and projections coordinated by the root-PV head",
   "remote_api": {
     "authorization": "exact parent grant plus a unique engine-issued child connection",
     "automatic_mutation_retry": false,
-    "durability": "server-enforced recent SQLite/object read after engine restart and operator persistent declaration",
     "hook_provenance": "authenticated_remote_hook_report",
+    "host_profile_role": "explicit API capability, not an additional supported host profile",
     "origin": "explicit HTTPS with verified TLS",
     "owner": "remote_api.RemoteGateway",
-    "physical_volume_durability": "operator_declaration_only",
     "project_admin": false,
-    "read_only_setup": "server owner may prepare the exact grant-bound restart probe; the client can verify it without probe-write permission",
     "route_prefix": "/remote/v4/",
     "routes": [
       "discover",
@@ -58,6 +46,10 @@
       "action",
       "capture",
       "disconnect"
+    ],
+    "supported_client_profiles": [
+      "codex_desktop_stable",
+      "codex_desktop_beta"
     ]
   },
   "retained_provisioning_source": "scripts/first_detection.py",
@@ -66,11 +58,11 @@
   "source_members": [
     {
       "path": ".mcp.json",
-      "sha256": "B84CCA8132921CA5973A51EECB498B63112552E02518400C31FBC1F36B87E916"
+      "sha256": "24BF2B098562512B8555CC1C8CEAF109A94329C6C413AD81621CE21CE199A00F"
     },
     {
       "path": "scripts/run_mcp.py",
-      "sha256": "7AC1F50924FEE654350D12B7010B8E64107B122194905E4207AB0A256F50E44F"
+      "sha256": "26E35E1B89AFB71309B43FA4A01249F7CAA60F70511AA28F9256B7BD80D95533"
     },
     {
       "path": "scripts/run_engine.py",
@@ -78,15 +70,15 @@
     },
     {
       "path": "src/evidence_lane_plugin/launcher.py",
-      "sha256": "DD3B524BC01D898EAD43C3911D99CFA8D4945D56393EEE264758B614859AAA1D"
+      "sha256": "0BF5A1B778F2269B1695EDCBB4C7A62AE1F40EF1C543FCFC18493513BC92F420"
     },
     {
       "path": "src/evidence_lane_plugin/service.py",
-      "sha256": "C8CA0D33DE41304F080E1D9D904089B3E52D49DB72C434A08A28C6B76E785E3C"
+      "sha256": "DE3AE623D89E6754696BC7C71B0A700C95D295A1176BE219D032A94B9BEC5413"
     },
     {
       "path": "src/evidence_lane_plugin/connections.py",
-      "sha256": "4678BD33F293FDD1976A218DDBE442B25F93857F76A2415941378A9E752EE59B"
+      "sha256": "4E2BEDEEE8972FC21A9148FB3AF8D02E442265663A173D9B219E0D919D813A68"
     },
     {
       "path": "src/evidence_lane_plugin/local_transport.py",
@@ -98,19 +90,19 @@
     },
     {
       "path": "src/evidence_lane_plugin/remote_api.py",
-      "sha256": "F3B8F6FAA7FE49CA4944F5C509B5F03F9D97C6D759195FAA138DFE629F217525"
+      "sha256": "0BD820A2BF1A2EEA00E44248F0D8E6DDF826BB7E3EEEC0ACCAD2E81EF62055DE"
     },
     {
       "path": "src/evidence_lane_plugin/remote_transport.py",
-      "sha256": "47C4788775E3543586B7082CB3AD65016161D533612F0D67A57B1B4BBAF0336D"
+      "sha256": "6C14BAD0CED1488D0E505D2014E18C34EABFEF5523C6DFD77B4990D211275096"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_server.py",
-      "sha256": "7F8E10787F5C2897EA867770E23FE646DF25EBCCCA982D6C91F3E18E1F4107E6"
+      "sha256": "498E74E8601F413F0D99C07601D37677C635395A07E4CFD9D8A9F4866A2976AC"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_adapter.py",
-      "sha256": "FBD3FBC87BEA8B2168F4A16B115867AD9CB851D562AF1CFDE855F19D13894F0D"
+      "sha256": "5273F2BF0013F7DC23F8843958542F732F354AC0B89B946514AEC59E00EEC348"
     },
     {
       "path": "src/evidence_lane_plugin/capture_routing.py",
@@ -118,7 +110,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "sha256": "DDB5F042D1163BA276BCCA2D9D7549130B8FA28AAD9CA34B896806FE52A0C38F"
+      "sha256": "AE5D32C5DB8B65D57B9E350B8DFDF99B78C738DE0EC0352465AEE261312F3D7B"
     },
     {
       "path": "src/evidence_lane_plugin/session.py",
@@ -130,15 +122,15 @@
     },
     {
       "path": "src/evidence_lane_plugin/flash_authority.py",
-      "sha256": "D7D42C487E6D05BB5BECF28AB1756C222E675E37488F467EE6FC26AF257FCE79"
+      "sha256": "6A66AD1182CEA21CD3434AA75028B4333EE9187FF92A56A3159B2FF2B0F55AF4"
     },
     {
       "path": "src/evidence_lane_plugin/host_routing.py",
-      "sha256": "931DE6FFAD66787D474AF5D6CB3937CBF70A55197BB69F5FD5450C0A787F0BF4"
+      "sha256": "2F7E25280F00BDC6F97947D1526452C2B4B6B80482ACDC0245338BF4051467CD"
     },
     {
       "path": "src/evidence_lane_plugin/endpoint_credentials.py",
-      "sha256": "985EC0BBE267AFB3036544AC89919EAF77BE5AB7D70695416E79339F5CA1C2CB"
+      "sha256": "80E0D5703737135258C70E6D4928E45151DEF83CA24C8095673F91195FD4ACB8"
     },
     {
       "path": "authorities/session_authority/installation-layout.v4.json",
@@ -168,7 +160,6 @@
           "CODEX_MCP_NODE_PATH",
           "CODEX_BROWSER_USE_NODE_PATH",
           "CODEX_ELECTRON_RESOURCES_PATH",
-          "CODEX_CLI_PATH",
           "XDG_CACHE_HOME"
         ],
         "required": false,

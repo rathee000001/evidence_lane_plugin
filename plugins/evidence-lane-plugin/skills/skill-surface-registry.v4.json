@@ -1,6 +1,6 @@
 {
   "authority": "engine_typed_action_registry",
-  "digest": "0fa76d47615a263477a9b7cca8a9de8b8a3aee0907643366a19daebd4163bc96",
+  "digest": "faabce299ee76f8ba7f51dc52ef4042f1bff8f53dfe0dba50091f8a4c83a07ac",
   "native_installation_verified": false,
   "schema": "evidence-lane.skill-surface-registry.v4",
   "skill_count": 24,
@@ -26,14 +26,19 @@
       "description": "Explore Evidence Lane, inspect the selected project and its evidence, and find the workflow that matches the request. Use for orientation or a read-only project question.",
       "members": [
         {
-          "bytes": 363,
+          "bytes": 443,
           "path": "skills/evidence-lane/agents/openai.yaml",
-          "sha256": "8000780d7334965a6601ffee272483caf9b1636efaf8b36f117698f5471e3fbb"
+          "sha256": "0019aac8abfd49d4ca4579ceee61257594c0a0cf98390b116ce95adacb475e0b"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/evidence-lane/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 9353,
           "path": "skills/evidence-lane/references/actions.json",
-          "sha256": "55daf8c78406a417359b48a55ba61709edd5effcf50c220f4ce11f9dc75b130c"
+          "sha256": "975dc694654a326c4fe49ca8b1954991bba099f74f5cc5566eeb16874ccebc1b"
         },
         {
           "bytes": 3519,
@@ -63,14 +68,19 @@
       "description": "Verify the runtime and locked operating-policy package, then start or resume one explicitly selected project session. Use for project entry or client reconnection.",
       "members": [
         {
-          "bytes": 358,
+          "bytes": 438,
           "path": "skills/open-project-session/agents/openai.yaml",
-          "sha256": "309cf35e5dd1c41d7c5a46ed54d41c1e62ceee2249c896fa0b5fcc9c8f9f38ed"
+          "sha256": "87605fb9cce63998a3f8887d6b600c54422a9049730a759b83f41069e3777456"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/open-project-session/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 7461,
           "path": "skills/open-project-session/references/actions.json",
-          "sha256": "580e86e1b79ee8ae74c4b67c51e2b03e720fc3c5a24ff1407b7e6b3a4e7b1489"
+          "sha256": "85c061f6f6aacea5c2f83d10698b864d063ec8bbdb4ced736f47afd7aa742227"
         },
         {
           "bytes": 2173,
@@ -119,14 +129,19 @@
       "description": "Execute the next eligible project-plan task through bounded work, selected lane operations and verified completion. Use when carrying out project implementation.",
       "members": [
         {
-          "bytes": 361,
+          "bytes": 441,
           "path": "skills/execute-project-plan/agents/openai.yaml",
-          "sha256": "4cffb3dd04da393253b6eda8042d1eafd43d2ece366339569f8f5294b084130c"
+          "sha256": "0ed7192765d4a2b5eb30ae2bdaad3454e7d7abffc7626bdb13a20989ca8b0c07"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/execute-project-plan/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 19261,
           "path": "skills/execute-project-plan/references/actions.json",
-          "sha256": "8512b55fbfa41f796d1f3ee05dfb9ba127a46b0fead5c8e6cc2fcb31ed66e750"
+          "sha256": "3f7225c97b815daf15396d010e3768de2d2a010421a9a315c54210fe2228e9da"
         },
         {
           "bytes": 2228,
@@ -154,14 +169,19 @@
       "description": "Create, inspect or safely steer the current project plan while preserving completed history and replacing only affected work. Use for planning and semantic changes.",
       "members": [
         {
-          "bytes": 350,
+          "bytes": 430,
           "path": "skills/manage-project-plan/agents/openai.yaml",
-          "sha256": "159b2fcb32a47b508502c8a850430c6e51a477fef7a838ec07ba35fcbcc0fd58"
+          "sha256": "48efa5fb04ab37ea80a251c006c7b1a4ee68af06a947585bd0c4b0878f31a7e3"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/manage-project-plan/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 6267,
           "path": "skills/manage-project-plan/references/actions.json",
-          "sha256": "92ff7588dd8e7f6f6985fae0275088de20fa5da43b698b1bdf5849e89ad458a2"
+          "sha256": "f31d66a46d54649e6495a8aa818856cc6f505b70fefb62a6417934b6e413ba2e"
         },
         {
           "bytes": 5869,
@@ -298,14 +318,19 @@
       "description": "Classify, register, inspect and refresh ordered project sources with exact attribution. Use for files, selected SQLite, source identity, source graphs and authorized Git history.",
       "members": [
         {
-          "bytes": 369,
+          "bytes": 449,
           "path": "skills/manage-project-sources/agents/openai.yaml",
-          "sha256": "3ac2981dd7ac3c35d146a79f43f858dd9deb583b0a1bbbb4e69288c64d3d7373"
+          "sha256": "1f9a1d84236d785afd163fedb4c2965a41d36422e0a1b48bf7c0d32c1ce01f4d"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/manage-project-sources/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 70498,
           "path": "skills/manage-project-sources/references/actions.json",
-          "sha256": "0d8092bd6474aa7fbb91271e55e3c910c8372d99667c09467e7b7426e4740299"
+          "sha256": "f180a69cda522d4824516098ef053294f885bbd2ab5b3c297a8e496f570f1e39"
         },
         {
           "bytes": 3606,
@@ -384,14 +409,19 @@
       "description": "Exchange typed requirements, evidence and results between explicitly selected project tasks while preserving sender and receiver ownership. Use for a governed task exchange.",
       "members": [
         {
-          "bytes": 369,
+          "bytes": 449,
           "path": "skills/exchange-task-evidence/agents/openai.yaml",
-          "sha256": "bf6451e8e607007cec07693f0de3b2f00f7b7b22caab8b6c900ebce78238fdb9"
+          "sha256": "a2c10219cca667c80cf6da4ce1a7a20ad078116ff733ea72262f8483303ff5da"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/exchange-task-evidence/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 10142,
           "path": "skills/exchange-task-evidence/references/actions.json",
-          "sha256": "9e46427f60f4531f2da76ad1d6397786f054398b11db0113689ee6910d47f19b"
+          "sha256": "0b03237ff8f08fdf2877c3823267e0cafe11fd401a96b2d99d74b83ab4e2c81c"
         },
         {
           "bytes": 5356,
@@ -416,14 +446,19 @@
       "description": "Ingest, query and checkpoint bounded project memory with source attribution. Use for project recall while keeping host recall, instructions, task exchanges and procedural lessons separate.",
       "members": [
         {
-          "bytes": 369,
+          "bytes": 449,
           "path": "skills/manage-project-memory/agents/openai.yaml",
-          "sha256": "30a28fd9252f4ea3df88fc469481e659a3a60fcbbc50a850e98d5b24bf6409e4"
+          "sha256": "e5971314fa889e07d4951698cf172d6b6e4ae0db516a9363c4af16974f1b717c"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/manage-project-memory/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 4557,
           "path": "skills/manage-project-memory/references/actions.json",
-          "sha256": "1872fde1bf73c541f1d339c131bda11ee5132d01b4aec7d76cb0c37c4cc0a85c"
+          "sha256": "a629a829e1c8616a134b8fb5e3bf048d6eea03170f013c381802a9b7119712d5"
         },
         {
           "bytes": 1847,
@@ -444,14 +479,19 @@
       "description": "Inspect and revoke project-isolated procedural lessons recorded after verified work, or record an explicit host-memory provenance reference without creating a lesson. Use for lesson retrieval, correction or provenance.",
       "members": [
         {
-          "bytes": 363,
+          "bytes": 443,
           "path": "skills/manage-project-lessons/agents/openai.yaml",
-          "sha256": "cc4a042fc98d577d43e9f24953ff58cfd5e7508735c097bdae46e400745e8332"
+          "sha256": "711e7de48d8c9f095890891de341cd7bb78f5cbd4cabc49e135fca4ab3711d29"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/manage-project-lessons/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 2195,
           "path": "skills/manage-project-lessons/references/actions.json",
-          "sha256": "71b9353ba86589326b945407888c851a637c36571ff696f053691bccf92b55e0"
+          "sha256": "ce96f635000bb2963dacf38532be5045e26361c32ee967ad3d3b8acefbaa9513"
         },
         {
           "bytes": 1403,
@@ -470,14 +510,19 @@
       "description": "Inspect the selected instruction chain and explicitly selected host recall without merging either into project evidence. Use for instruction provenance and recall boundaries.",
       "members": [
         {
-          "bytes": 375,
+          "bytes": 455,
           "path": "skills/inspect-project-instructions/agents/openai.yaml",
-          "sha256": "c1ef565447eb50b7354af38e12f613fae95af4f5750169918307a66bd92caa91"
+          "sha256": "9343adbb3c968fc33a9108fe033cf5d17caa3afded9f05e9067389ed442ae203"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/inspect-project-instructions/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 1013,
           "path": "skills/inspect-project-instructions/references/actions.json",
-          "sha256": "06ee09e46babc3184193a0e84523fe83463b768f41019691aa873269fad31d06"
+          "sha256": "14be49c8f3168f76f0dde7ce21ad9e222b79fca0c6ef87fed07f39ad6d67792c"
         },
         {
           "bytes": 1085,
@@ -496,14 +541,19 @@
       "description": "Derive or change the project workflow from explicitly selected sources and the requested outcome. Use during initial project classification or an explicit workflow change.",
       "members": [
         {
-          "bytes": 425,
+          "bytes": 505,
           "path": "skills/configure-project-workflow/agents/openai.yaml",
-          "sha256": "76c3370405acd1293efdd3170642ade97c76e74b2012bf93fd89a773d349a6b9"
+          "sha256": "eb166856c3cdde13b8163882006c8ef3c907fd404e5ca8b67b0ee7d847abba76"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/configure-project-workflow/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 1042,
           "path": "skills/configure-project-workflow/references/actions.json",
-          "sha256": "be0d151d861c63ee889d74f24ac067eb7b078824c72f1e0124f9a5e7ba4b2d18"
+          "sha256": "7196d75498a3d4aac661297c94cbacbe61d30c0306aca0e3ae4259bf263ef98d"
         },
         {
           "bytes": 2850,
@@ -522,14 +572,19 @@
       "description": "Classify the requested work, relevant source lanes, action classes and required gates. Use for known work patterns or an explicit custom classification; classification does not authorize execution.",
       "members": [
         {
-          "bytes": 374,
+          "bytes": 454,
           "path": "skills/classify-project-work/agents/openai.yaml",
-          "sha256": "9791a0bbeb86f174f5cb9451837d49ab13222128a4572f528457a9be0e7412f3"
+          "sha256": "ab5fe9bab3e719638d7af0c500105790c8c3fc265163a1af4925c79450adb3d1"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/classify-project-work/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 1004,
           "path": "skills/classify-project-work/references/actions.json",
-          "sha256": "e5dd760e2e446598093da1ddcf613b6ba6d866efcf34c9d7eecd427dfc3092f1"
+          "sha256": "c37a8e2bdcabbb8cbecd4da263ce2ba1d31f02ae774a1c1b2f354bb34add09b6"
         },
         {
           "bytes": 3214,
@@ -548,14 +603,19 @@
       "description": "Select attributed project evidence within explicit item and estimated-token budgets. Use to fit the relevant evidence into context without merging its owning stores.",
       "members": [
         {
-          "bytes": 409,
+          "bytes": 489,
           "path": "skills/retrieve-project-evidence/agents/openai.yaml",
-          "sha256": "80ddf16933a92803de2650634e13a961664898f90b80115ba2d9285a13567e40"
+          "sha256": "09e707d567c15add31ef87d4a2c9568a0f1adbaf20bbfb8627da339da59d413f"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/retrieve-project-evidence/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 1029,
           "path": "skills/retrieve-project-evidence/references/actions.json",
-          "sha256": "b82fc3361afb8f17580e4c3689e6b01bcb5db9cebfae4f3b1475c7ba214c3437"
+          "sha256": "5d0050a0ac6dbaf8086c88f7b4310d6df33ce81372d77d43150025d26a366c91"
         },
         {
           "bytes": 989,
@@ -595,14 +655,19 @@
       "description": "Refresh selected sources, lane views and changed authority references after a steer or verified work. Use for explicit evidence refresh and stale view repair.",
       "members": [
         {
-          "bytes": 365,
+          "bytes": 445,
           "path": "skills/refresh-project-evidence/agents/openai.yaml",
-          "sha256": "e4b0b144693d9c21b61b0e20a20efaa70eaa015eaec660d10befbebe6732d85e"
+          "sha256": "caedc735f9e85b8a24901a1ca3a1362b68513d7f7faef1a93a07adb361311d16"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/refresh-project-evidence/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 13601,
           "path": "skills/refresh-project-evidence/references/actions.json",
-          "sha256": "3d96409b505e0d67681d4a9c1245930c229dac36a69eae2be897eda9155f8ecf"
+          "sha256": "a77f7a7bfe697075be303300d4792badd50853535c8b6d3f04cb98b97f05e81d"
         },
         {
           "bytes": 3816,
@@ -621,14 +686,19 @@
       "description": "Inspect connector grants and their runtime readiness within an Evidence Lane project. Use for connector orientation; configuration and revocation have separate workflows.",
       "members": [
         {
-          "bytes": 376,
+          "bytes": 456,
           "path": "skills/inspect-project-connectors/agents/openai.yaml",
-          "sha256": "628ec3da69dfcde7d8b8143208d87618f53f72f6810f6056d4a5a5c94770fe45"
+          "sha256": "2665d68b2da38b6ca50bbc4045fbc9a2ecd010c6fb3153166232e2a19831f7ff"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/inspect-project-connectors/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 996,
           "path": "skills/inspect-project-connectors/references/actions.json",
-          "sha256": "281196dab2818aa31a577b99159a9afadadd67338401738555705f32c12a4e3a"
+          "sha256": "f95e0392307ee1d33cf3299976419a470fa5279f73f58b621409c14f09165b3a"
         },
         {
           "bytes": 1140,
@@ -647,14 +717,19 @@
       "description": "Configure an Evidence Lane project connector and its bounded grant. Use to add or change connector access within that project.",
       "members": [
         {
-          "bytes": 370,
+          "bytes": 450,
           "path": "skills/configure-project-connector/agents/openai.yaml",
-          "sha256": "2f524705a72c42b1e337a1b9f42ea3b82def04d74f801541024dc01e69dd6843"
+          "sha256": "aedf30d3c09f6224ca1d201154de37bca0371b418016166e02b7d8b8d1f373a0"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/configure-project-connector/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 989,
           "path": "skills/configure-project-connector/references/actions.json",
-          "sha256": "1bf63cc33008dd3fefebbd88f914b9f02e97c4b6577d99ef6a32d1dc1e12a520"
+          "sha256": "bbe5f3dbe5b523ca7ea2c46dbbb0a36475db870d296b12ffbc63fe498131db9b"
         },
         {
           "bytes": 1145,
@@ -673,14 +748,19 @@
       "description": "Revoke one Evidence Lane project connector grant while preserving its recorded history. Use for explicit withdrawal of connector access.",
       "members": [
         {
-          "bytes": 360,
+          "bytes": 440,
           "path": "skills/revoke-project-connector/agents/openai.yaml",
-          "sha256": "38c0dd0c3e7028224b53599587d84934c1135ba5438548806783e9fd54623f8a"
+          "sha256": "e7483bab1ac64296c4602117318c90eccb0a8ac565511dc8dd6bb469ad7ec2ec"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/revoke-project-connector/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 979,
           "path": "skills/revoke-project-connector/references/actions.json",
-          "sha256": "d0e36b508ada05baa53eec8f1ea83334c7fdd5d0259612940c269c95d8cffcee"
+          "sha256": "519f30eaccaf96b237612a3732ab700bfbabfe57c2f519c3789259847f32aef6"
         },
         {
           "bytes": 761,
@@ -705,19 +785,24 @@
       "description": "Inspect and select lane operation tools, ordered fallbacks and measured compute readiness. Use for toolchain resolution or project accelerator configuration.",
       "members": [
         {
-          "bytes": 417,
+          "bytes": 497,
           "path": "skills/select-project-tools/agents/openai.yaml",
-          "sha256": "c91d5f9f65bf47f02486f079277def8a1e7840c783600c3529e9b0267eff5456"
+          "sha256": "5c46f226c17e9b73575740e4afa0f9f269ba7749eb0e253541054ab8052bf14a"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/select-project-tools/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 4608,
           "path": "skills/select-project-tools/references/actions.json",
-          "sha256": "31edaf080261d031c31add97f0841649d804f1251def12b96cf19eb79ec2c60c"
+          "sha256": "cbc86f92483464c2c37424802c04d9765811b5be59d37e20d98ada099d6b84b4"
         },
         {
-          "bytes": 1991,
+          "bytes": 1996,
           "path": "skills/select-project-tools/SKILL.md",
-          "sha256": "a33f79186a0f8a235ed39831b19708cb2095ef22f33837b5afbd3c837913ed8c"
+          "sha256": "594b81ffdd41439d1a3b645338a0faff035ada44be3d64dd4a0df9c4f69a92f8"
         }
       ],
       "name": "select-project-tools",
@@ -727,26 +812,29 @@
     {
       "actions": [
         "project_register",
-        "storage_connector_inspect",
-        "storage_connector_select",
         "storage_status"
       ],
-      "description": "Inspect or explicitly select durable project state and its separate lane databases. Use for storage routing and project root selection.",
+      "description": "Register or inspect persistent local project state and its separate lane databases. Use for local project root selection.",
       "members": [
         {
-          "bytes": 366,
+          "bytes": 461,
           "path": "skills/select-project-storage/agents/openai.yaml",
-          "sha256": "b603f5663c444193e0501f7d3193b5f982c065883bb0da11e91035bff58e42e1"
+          "sha256": "c1bf003d8f07c700438654c2c7cd2cd4d558f460db35add17fad1c3133fc35e0"
         },
         {
-          "bytes": 2910,
+          "bytes": 505,
+          "path": "skills/select-project-storage/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
+        },
+        {
+          "bytes": 1663,
           "path": "skills/select-project-storage/references/actions.json",
-          "sha256": "ab1ce1a3e560c14b7231d4c8fee5e85bb3429006165281d5884080e9ca178a06"
+          "sha256": "9288db03353c6a6f3fef175e08435d4ff0bbdb6dfc1c2c4736d954feaaac17d0"
         },
         {
-          "bytes": 3056,
+          "bytes": 2394,
           "path": "skills/select-project-storage/SKILL.md",
-          "sha256": "8a56b24d073d0f7a7e937c17ef15548bfebefe79272a821c4e7032a98045fdd7"
+          "sha256": "810b698c6d05c7f719b5b287418586494859f3a6aa429de841f6e1e8700c1264"
         }
       ],
       "name": "select-project-storage",
@@ -766,14 +854,19 @@
       "description": "Inspect and maintain one project's explicitly linked evidence and project references with attributed read-only queries. Use for integrity checks and selected project links.",
       "members": [
         {
-          "bytes": 380,
+          "bytes": 460,
           "path": "skills/inspect-project-evidence-map/agents/openai.yaml",
-          "sha256": "8680bfe8e1f104384b0d14293648b4811ee97eed5818572f318711c81ac1ff8d"
+          "sha256": "d06537aa5fcf9f0897e8d0a5be6bedc5ad425909b51d87e2222d72019b9d2dc3"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/inspect-project-evidence-map/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 4674,
           "path": "skills/inspect-project-evidence-map/references/actions.json",
-          "sha256": "2c779f0271be5f8b09435bfe1f2237c4163e0f4e391087a1bb34655b72555993"
+          "sha256": "4ccc093d7d53e12368d840a03a8871df7394106790007d81a059fcffaa28acbe"
         },
         {
           "bytes": 1740,
@@ -798,14 +891,19 @@
       "description": "Register and link hash-only project summaries in a separate cross-project network without merging project data. Use only for an explicitly selected network.",
       "members": [
         {
-          "bytes": 425,
+          "bytes": 505,
           "path": "skills/link-project-evidence-network/agents/openai.yaml",
-          "sha256": "3306b6df92c538ca334f7d5935765fc3270b48a478508828bb3ee39e72a1e65e"
+          "sha256": "0f073a2a96447e5b33b37b8dfe283a26946049c5c8136f9f27ecbd2e10e7c6b1"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/link-project-evidence-network/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 4635,
           "path": "skills/link-project-evidence-network/references/actions.json",
-          "sha256": "31a8b28e8b9270e6f072adf70ec0e78815b19ee940b583417e481f77cd96eb75"
+          "sha256": "21a0c4720440a4b892fb26753b9e338b6d610308718a8b302eaf5300cd85521e"
         },
         {
           "bytes": 1986,
@@ -828,14 +926,19 @@
       "description": "Transfer current project work between explicitly selected clients with exact ownership checks and attributed continuation context. Use for a requested task handoff.",
       "members": [
         {
-          "bytes": 378,
+          "bytes": 458,
           "path": "skills/handoff-project-work/agents/openai.yaml",
-          "sha256": "6fbd78af106bc5acc55647c9d2e3deca5cdb02e7d17db2b9292b097c4bcbeb82"
+          "sha256": "2ab21dfdea3c212ce30cd9a40e59ad7bdaa0eb7dd1fa72ed1d861377383022e9"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/handoff-project-work/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 3389,
           "path": "skills/handoff-project-work/references/actions.json",
-          "sha256": "7cfb4bc30908c9dbd0616eb1bcaa493e7602b7a6aff9201b8f84a76a0a1e33e8"
+          "sha256": "3554e80993a3013c5fe00b98df90aa68462aaecf2a4961be0c9c898b556ec37e"
         },
         {
           "bytes": 1825,
@@ -866,14 +969,19 @@
       "description": "Back up separate project lanes coherently, restore selected Git history to a fresh folder, or recover after client loss. Use for explicit recovery; accepted-PV rollback is removed.",
       "members": [
         {
-          "bytes": 354,
+          "bytes": 434,
           "path": "skills/recover-project-state/agents/openai.yaml",
-          "sha256": "e65904ba17c7f635d663b57907fa0ca6b8fca723e93c4c515fb7f61e2c7db2a5"
+          "sha256": "aadc90f9eb4bf6dac6394dd8546cd0cca309a7a3b35bec0564ff6be7ba010f9c"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/recover-project-state/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 8121,
           "path": "skills/recover-project-state/references/actions.json",
-          "sha256": "94a21d9f626af4538d02d0cc8642adaaee706829a479e54694a2b54d9cdf357a"
+          "sha256": "609c54b43be5c036a159f63dbb5344b4169604ae6026d20f1346b2059da2cfad"
         },
         {
           "bytes": 3027,
@@ -894,14 +1002,19 @@
       "description": "Close the selected Evidence Lane project session at a safe work boundary and detach its Flash and capture. Use when explicitly ending that session.",
       "members": [
         {
-          "bytes": 362,
+          "bytes": 442,
           "path": "skills/close-project-session/agents/openai.yaml",
-          "sha256": "e6e852e5d4c1d97826a8f84d50ec449d895876df2da5dc09ec35604cb8b2fbf8"
+          "sha256": "cfc76340773151e15e86bf8679ddc97ba5ac974887e6f693953799173ff8d911"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/close-project-session/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 2224,
           "path": "skills/close-project-session/references/actions.json",
-          "sha256": "e380adbfdc597b7dafa49062ad1180e01dd2ca2d7eb3fc33c5053cc35a68ef56"
+          "sha256": "0bdd8b444017626190731ac49eb67e0401ecb856f73c4ef84151c9566d589f00"
         },
         {
           "bytes": 1174,
@@ -928,14 +1041,19 @@
       "description": "Coordinate project entry, planning, bounded implementation, evidence refresh and session closure across the owning first-class workflows. Use for the complete Evidence Lane project lifecycle.",
       "members": [
         {
-          "bytes": 369,
+          "bytes": 449,
           "path": "skills/run-project-lifecycle/agents/openai.yaml",
-          "sha256": "6ab5295f54eb45bd4d444194fa93a80182391be06c8297ab1a24abe787b1e913"
+          "sha256": "41b91c8b1de552291106795a6c10518e85d5f13d4ecde6d9d137f12f32f7b58e"
+        },
+        {
+          "bytes": 505,
+          "path": "skills/run-project-lifecycle/assets/skill-cube.svg",
+          "sha256": "b94d2766d2735021b339c0e675f787718945b4d480e92d1bd76ca8d72d47ff70"
         },
         {
           "bytes": 5786,
           "path": "skills/run-project-lifecycle/references/actions.json",
-          "sha256": "facac0304c948898b2e25e696c111fb644319b1548b9ae884877d2a2efb71558"
+          "sha256": "328d67354a64a52c659a9ffc2660746dcc506d5e876a4676ecc5000d2662cfb0"
         },
         {
           "bytes": 4059,
@@ -943,9 +1061,9 @@
           "sha256": "1553015a6c05cf0e577ae17206a0fae0b64d90032b080e94bbd3642b508df9a3"
         },
         {
-          "bytes": 3153,
+          "bytes": 3188,
           "path": "skills/run-project-lifecycle/references/shared-boundaries.md",
-          "sha256": "d0a7f592886e9876e2e2d8d6f1a10ae5e7732308cf16df5dbe012f83d3de83cc"
+          "sha256": "ef7bade93043685f1c5a844176b5960660422c3f5c3162ab3a7b73ce9b8b042c"
         },
         {
           "bytes": 3235,

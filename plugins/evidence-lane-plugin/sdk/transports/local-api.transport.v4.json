@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "credentials_recorded": false,
   "installed_execution_claimed": false,
@@ -12,9 +12,9 @@
       "sha256": "5868d3e8cbe56dac2b590f47074d9d818a1e2eac05875f7f8291b7c7ab627b97"
     },
     {
-      "bytes": 2988,
+      "bytes": 3001,
       "path": "schemas/transports/local-connect.v4.schema.json",
-      "sha256": "d41cc2cdc595060e0ad297100b406c385c8f42e5490133f924881d7051bc23f4"
+      "sha256": "52ac9206062d4366a1052af886ac84f029f4ddbd977b7625d4fc83061ce5cdbd"
     }
   ],
   "status": "PASS",

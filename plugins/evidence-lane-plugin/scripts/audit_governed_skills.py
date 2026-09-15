@@ -17,6 +17,7 @@ import yaml
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SOURCE = PLUGIN_ROOT / 'src'
+EXPECTED_SKILL_ICON = 'assets/skill-cube.svg'
 sys.path.insert(0, str(SOURCE))
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.registry import WORKFLOWS
@@ -74,16 +75,21 @@ def audit(plugin_root=PLUGIN_ROOT, *, registry=None, active_surface=False):
                 issue(name, 'ui-metadata-mismatch')
             if not 25 <= len(ui['interface']['short_description']) <= 64:
                 issue(name, 'ui-description-length')
-            if ('icon_small' in ui['interface'] or 'icon_large' in ui['interface']
+            expected_icon_ref = './' + EXPECTED_SKILL_ICON
+            if (ui['interface'].get('icon_small') != expected_icon_ref
+                    or ui['interface'].get('icon_large') != expected_icon_ref
                     or ui['interface'].get('brand_color') != '#18A9C8'):
-                issue(name, 'ui-native-icon-metadata-mismatch')
-            if (folder / 'assets').exists():
-                issue(name, 'custom-skill-assets-present')
+                issue(name, 'ui-explicit-cube-icon-metadata-mismatch')
+            icon_path = folder / EXPECTED_SKILL_ICON
+            if (not icon_path.is_file()
+                    or hashlib.sha256(icon_path.read_bytes()).hexdigest()
+                    != hashlib.sha256((plugin_root / 'skills' / next(iter(expected_names)) / EXPECTED_SKILL_ICON).read_bytes()).hexdigest()):
+                issue(name, 'ui-explicit-cube-icon-bytes-mismatch')
             actual = json.loads((folder / 'references/actions.json').read_text(encoding='utf-8'))
             if actual != skill_action_reference(registry, definition.name):
                 issue(name, 'live-action-reference-mismatch')
             mandatory = {f'skills/{name}/{value}' for value in (
-                'SKILL.md', 'references/actions.json', 'agents/openai.yaml')}
+                'SKILL.md', 'references/actions.json', 'agents/openai.yaml', EXPECTED_SKILL_ICON)}
             if definition.name == 'run-project-lifecycle':
                 mandatory.add(f'skills/{name}/references/shared-boundaries.md')
             selected = records[name]['members']
@@ -132,6 +138,7 @@ def audit(plugin_root=PLUGIN_ROOT, *, registry=None, active_surface=False):
                         pending.append(target)
             non_procedure = {
                 f'skills/{name}/agents/openai.yaml',
+                f'skills/{name}/{EXPECTED_SKILL_ICON}',
             }
             if (required - non_procedure) - reachable:
                 issue(name, 'unreachable-procedure-member')

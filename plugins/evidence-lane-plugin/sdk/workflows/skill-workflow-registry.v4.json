@@ -1,7 +1,7 @@
 {
   "authority": "engine_typed_action_registry",
   "schema": "evidence-lane.skill-workflow-registry.v4",
-  "skill_surface_digest": "0fa76d47615a263477a9b7cca8a9de8b8a3aee0907643366a19daebd4163bc96",
+  "skill_surface_digest": "faabce299ee76f8ba7f51dc52ef4042f1bff8f53dfe0dba50091f8a4c83a07ac",
   "workflows": [
     {
       "actions": [
@@ -3410,32 +3410,6 @@
         },
         {
           "cross_project_read": false,
-          "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
-          "mutates": false,
-          "name": "storage_connector_inspect",
-          "permission": "read",
-          "profile": "receipts",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": true
-        },
-        {
-          "cross_project_read": false,
-          "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
-          "mutates": true,
-          "name": "storage_connector_select",
-          "permission": "admin",
-          "profile": "receipts",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
           "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
           "mutates": false,
           "name": "storage_status",
@@ -3449,7 +3423,7 @@
         }
       ],
       "availability": "registered_actions",
-      "description": "Inspect or explicitly select durable project state and its separate lane databases. Use for storage routing and project root selection.",
+      "description": "Register or inspect persistent local project state and its separate lane databases. Use for local project root selection.",
       "name": "select-project-storage",
       "skill": "select-project-storage",
       "title": "Select project storage"

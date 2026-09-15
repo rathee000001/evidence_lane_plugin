@@ -10,7 +10,7 @@ from .mcp_adapter import serve
 
 
 def run_server(*, runtime_root: Path | None = None, remote_config: Path | None = None,
-               host_profile: str = "unknown", transport: str = "stdio",
+               host_profile: str = "codex_desktop_stable", transport: str = "stdio",
                project_selections: tuple[ProjectSelection, ...] = (), manage_projects: bool = False) -> None:
     if transport != "stdio" or (runtime_root is None) == (remote_config is None):
         raise LaneError("MCP_CONNECTION_REQUIRED", "Select one local runtime or remote configuration for native stdio MCP.")

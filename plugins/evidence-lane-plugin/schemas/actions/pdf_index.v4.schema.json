@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Snapshot exact PDF bytes, page text, geometry and separate form/widget evidence.",
@@ -140,7 +140,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "6158d8aa179a42e9272b5791baf0b4e8c10b22d4d04220a42ae18472ff0fba07",
+    "contract_digest": "67995d05a294300a3fa5ef5438663afc50de0b3f8e9f672faa10ea277a87513c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -164,9 +164,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_index.native_pdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -191,9 +189,7 @@
         "reason": "Attributed pdfplumber text and tables.",
         "route_id": "pdf_index.pdfplumber",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -217,9 +213,7 @@
         "reason": "Retained pypdf text backend with separate geometric tables.",
         "route_id": "pdf_index.pypdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

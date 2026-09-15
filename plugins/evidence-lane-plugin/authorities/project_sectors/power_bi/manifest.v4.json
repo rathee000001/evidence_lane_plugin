@@ -101,9 +101,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -120,7 +118,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7126f8e6045472ead59dcd750aa49719ec7f15cdc2921963cf4105e90844178c"
+        "contract_digest": "65baa3baf2f2223317b43f711e724601c6679d2d3ab33d182b9b02d749633b80"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -457,9 +455,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -508,9 +504,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -525,7 +519,7 @@
           "render_lane_view"
         ],
         "installation_implied": false,
-        "contract_digest": "e4ffd78cff7ffa7af54a91f53aa213227ce7af9da0bb01833742be5d293efdbd"
+        "contract_digest": "bd3301a30730f3fef69f763e553ee1225ef0bf33ea0add368cb21bc95462ccb6"
       },
       "worker_operations": [
         "powerbi_parse_content",
@@ -1060,9 +1054,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1079,7 +1071,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "adb670c3c516a5f4b43f0cea4f5d11c6e40e3631199e651cbccd3ceed2d61224"
+        "contract_digest": "5bc61456cc29906ed6ecf2f4701db876833ccd94acc7ccdb60542da026442f9f"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1225,9 +1217,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1244,7 +1234,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "507a9d2c571386dbbfbd43cf24ec33612d94733937d3dc31a54876c42830c6ae"
+        "contract_digest": "8be2061424e90684fad1331061250656c3d60ebfc66eb69b318efb64d816e879"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1533,9 +1523,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1552,7 +1540,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "09fe8484728782c6f6976715a31b8d27fd5e9801c32ac511b952d240adc7296e"
+        "contract_digest": "4173c49300c18da7be18635e077c17b23ee4c61671d279a23580644364dbb815"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1732,9 +1720,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1754,9 +1740,7 @@
               "Git"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1782,7 +1766,7 @@
           "code_git_checkpoint"
         ],
         "installation_implied": false,
-        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+        "contract_digest": "082d051730a98b56a0b4a1f445551d9993b9a5bd93783f30dc803342fa61d349"
       },
       "worker_operations": [
         "code_git_checkpoint"
@@ -1888,9 +1872,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1907,7 +1889,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+        "contract_digest": "7d899b0eec8382e764a0657ccb14d18ed30781ade37c78091561666c68af459b"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -2115,11 +2097,11 @@
     },
     {
       "path": "authorities/project_sectors/power_bi/workflow.v4.json",
-      "sha256": "fc1ca86abca227163fea525422d4cdd01261d4c6466d307ccd9b4a598e4d5829"
+      "sha256": "263da9c159465d4df020681411a3f6c043abf5e59610736924fc674b9f861dca"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.json",
-      "sha256": "b13835290974433a70f6484ed1134cce09d1f0209206fb604d9158d0ce8e3833"
+      "sha256": "f816606a781be48c7c208cde43da69c53eefce2eb8866787842281a66213acf9"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.schema.json",

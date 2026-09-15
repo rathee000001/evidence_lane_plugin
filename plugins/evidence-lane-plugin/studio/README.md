@@ -7,6 +7,12 @@ provisioning, release verification and stable-root publication remain in the
 canonical first-detection installer. MCP startup may start that installer in a
 detached process, then returns without blocking an unrelated Codex task.
 
+Background engine discovery does not open Studio. The installed launcher opens
+one exact private-profile window; a later open request restores that window.
+Before a flat-root upgrade, the installer closes only that exact Studio profile,
+requests owner-authenticated engine shutdown and confirms lock release before
+preserving the previous release.
+
 Studio is a visible read-only observer. Codex calls the engine through the
 plugin MCP/SDK routes. The Studio bundle installs local dependencies once under
 `C:/Apps/EvidenceLaneStudio`; external services still require explicit

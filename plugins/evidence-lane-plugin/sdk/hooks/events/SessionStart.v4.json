@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/SessionStart/handler.py",
   "event": "SessionStart",
   "event_contract": "hooks/events/SessionStart/event.v4.json",
-  "event_contract_sha256": "bf398f23b35f5aa55adef8692d83a9cf0b9118d39c2366f632ff1d93ec34160f",
+  "event_contract_sha256": "e25ad3a82709282ed3ed3c8743d7f8f0236e878027ed4454b4c101b202f9c2cf",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/SessionStart.v4.schema.json",
   "input_schema_sha256": "543596dc2b3dad5a2fdc929da107c8dcb26f22670ef8667dbf7e786bf7104747",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

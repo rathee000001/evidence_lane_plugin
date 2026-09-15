@@ -120,7 +120,7 @@ class PresentationEdit(PresentationSnapshot):
 class PresentationRender(PresentationSnapshot):
     max_pages: int = Field(default=20, ge=1, le=100)
     dpi: int = Field(default=110, ge=72, le=150)
-    timeout_seconds: int = Field(default=45, ge=5, le=120)
+    timeout_seconds: int = Field(default=120, ge=5, le=180)
     max_output_bytes: int = Field(default=8_388_608, ge=65_536, le=16_777_216)
 
 

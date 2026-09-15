@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 509,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 1663,
     "path": "sdk/workflows/skills/revoke-project-connector/workflow.v4.json",
-    "sha256": "fded8a065bedabb7044d1631338ae51ce8548840369310a1930a73368bb19007"
+    "sha256": "bb82d0a8294bfdf9de50257cbc01c9b8d58a0f086c91861609dccef33d7bff10"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "revoke-project-connector",

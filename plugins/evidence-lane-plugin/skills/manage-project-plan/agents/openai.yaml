@@ -1,6 +1,8 @@
 interface:
   display_name: "Manage project plan"
   short_description: "Create, inspect or safely steer a project plan"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $manage-project-plan to inspect or update my project plan."
 dependencies:

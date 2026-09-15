@@ -749,7 +749,7 @@ def register_pdf_actions(engine):
             verifier=verify_exported, worker_operations=("pdf_parse_bytes", "render_lane_view"),
             tool_routes=tuple(ToolRoute('pdf_export.' + backend + ('_view' if render else ''), export_pdf,
                 (*tools, *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),
-                view_refresh=SelectedViewRefresh(engine, 'pdf_ocr.structure'), systems=('Windows',) if backend == 'poppler' else ('Windows', 'Darwin', 'Linux'), applicable=export_route(render, backend),
+                view_refresh=SelectedViewRefresh(engine, 'pdf_ocr.structure'), systems=('Windows',), applicable=export_route(render, backend),
                 worker_operations=('pdf_parse_bytes', *(('render_lane_view',) if render else ())))
                 for render in (False, True) for backend, tools in (
                     ('pymupdf', ('Python', 'pypdf', 'PyMuPDF', 'pdfplumber')),

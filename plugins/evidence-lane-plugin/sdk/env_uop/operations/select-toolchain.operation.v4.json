@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "contract": "select-toolchain.operation.v4",
   "formula_engine": false,
@@ -15,9 +15,9 @@
       "sha256": "d5bdc6b92029822852adfec41ff224519bfa7c096f4b144c7159d929b8eec5e1"
     },
     {
-      "bytes": 464313,
+      "bytes": 444205,
       "path": "toolchains/operation-toolchains.v4.json",
-      "sha256": "2263ceb583303afd8428dda4fb3ffed9a29cb12c3bb7406533751904301d8754"
+      "sha256": "ae010074ad75f450261d4770ecec39239622bec91885b1fe23e6bcd5c12e3579"
     }
   ],
   "status": "PASS"

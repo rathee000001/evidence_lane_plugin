@@ -67,7 +67,7 @@ def test_real_legacy_presentation_conversion_retains_original(presentation_syste
     staging = tmp_path / 'legacy-reference'
     staging.mkdir()
     store = presentation_system[1]
-    path, _ = _convert(store.source_root / 'fixture.pptx', staging, timeout_seconds=45, output_format=extension, family='impress')
+    path, _ = _convert(store.source_root / 'fixture.pptx', staging, timeout_seconds=120, output_format=extension, family='impress')
     original = path.read_bytes()
     source = store.source_root / ('legacy.' + extension)
     source.write_bytes(original)

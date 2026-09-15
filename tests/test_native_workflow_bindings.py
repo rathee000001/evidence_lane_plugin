@@ -30,7 +30,7 @@ async def native(runtime, project, *, permissions=('read',), entrypoint='adapter
         'package':['-B','-m','evidence_lane_plugin.mcp_adapter'],
     }
     arguments = commands[entrypoint] + ['--runtime-root', str(runtime), '--project-id',project,
-                                      '--host-profile','codex_desktop']
+                                      '--host-profile','codex_desktop_beta']
     for permission in permissions:
         arguments += ['--permission',permission]
     parameters = StdioServerParameters(command=sys.executable, args=arguments, env={'PYTHONPATH':str(PLUGIN / 'src')})
@@ -68,7 +68,7 @@ def test_explicit_native_selection_is_readonly_and_does_not_select_another_proje
                 assert info['native_task_attestation'] == 'not_provided'
                 assert info['projects'] == [{'project_id':selected.project_id, 'permissions':['read'],
                     'source_root':str(selected.source_root),'state_root':str(selected.root),'authorization':'current'}]
-                assert info['host_observation']['client']['configured_profile'] == 'codex_desktop'
+                assert info['host_observation']['client']['configured_profile'] == 'codex_desktop_beta'
                 assert (await call(session,'project_status',selected.project_id))['status'] == 'ok'
                 assert (await call(session,'project_status',other.project_id))['error']['code'] == 'PROJECT_NOT_SELECTED'
                 denied = await call(session,'plan_create',selected.project_id,title='Denied',
@@ -103,7 +103,7 @@ def registration():
         'description':'Read a selected fixture.','purpose':'Test an explicit metadata grant.',
         'config_env_keys':['FIXTURE_API_TOKEN'],'capabilities':['fixture_read'], 'allowed_lanes':['sources'],
         'allowed_actions':['project_status'],'write_roots':[],'expires_at':'NO_EXPIRY',
-        'role':'fixture_reader','role_schema':{'source_hash':'blob_hash'},'host_profiles':['codex_desktop'],
+        'role':'fixture_reader','role_schema':{'source_hash':'blob_hash'},'host_profiles':['codex_desktop_beta'],
         'backend_runtime':'external_mcp'}
 
 

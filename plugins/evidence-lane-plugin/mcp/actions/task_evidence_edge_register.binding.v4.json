@@ -1,13 +1,13 @@
 {
   "action": "task_evidence_edge_register",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/task_evidence_edge_register.action.v4.json",
-  "sdk_binding_sha256": "4d32db4380ef5e85232dad282b86a42d6f540eb9285e1060d850cb3778e480f8",
+  "sdk_binding_sha256": "8fa05d9bffcca9c89a0c2ae11ddf4d06662040fd63e6ce720144d7e46e94298a",
   "tool": {
     "annotations": {
       "destructiveHint": true,

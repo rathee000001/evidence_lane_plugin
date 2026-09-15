@@ -5,7 +5,7 @@ def test_final_workspace_has_one_current_owner_for_every_executable_surface():
     result = audit()
     assert result["status"] == "PASS", result["violations"]
     assert result["counts"] == {
-        "actions": 297,
+        "actions": 295,
         "skills": 24,
         "authorities": 9,
         "sectors": 13,

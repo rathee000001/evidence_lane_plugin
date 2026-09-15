@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Snapshot exact file bytes and bounded facts in the separate data_excel lane.",
@@ -113,7 +113,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "5e921f6c397e8a74affd3315a3fcfc761e54b22e6ffb1d4a12280fd8b28c6109",
+    "contract_digest": "61d57cb8bc30094ed592a3f75ee49df7e85486c1b660f28bee789837cc5e2ba3",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -132,9 +132,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_index_values.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

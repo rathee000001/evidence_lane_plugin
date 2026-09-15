@@ -10,6 +10,7 @@ sys.path.insert(0, str(PLUGIN / "src"))
 
 from evidence_lane_plugin.hook_contract import (
     HOOK_EVENT_NAMES,
+    HOOK_INSTALLATION_POLICY,
     HOOK_PIPELINE,
     hook_event_handler_path,
     hook_manifest,
@@ -24,6 +25,9 @@ def test_every_registered_hook_has_one_executable_owned_event_package():
     assert manifest == hook_manifest()
     assert registry == hook_registry()
     assert tuple(row["name"] for row in registry["events"]) == HOOK_EVENT_NAMES
+    assert registry["installation_policy"] == HOOK_INSTALLATION_POLICY
+    assert registry["installation_policy"]["trusted_after_supported_install_required"]
+    assert registry["installation_policy"]["enabled_by_default"] is False
     for event in registry["events"]:
         name = event["name"]
         folder = PLUGIN / "hooks/events" / name

@@ -6,9 +6,9 @@ a separately built, visible read-only observer served by that same engine.
 Studio cannot create projects, change Plans, submit work, configure tools,
 mutate connectors, select compute or perform recovery.
 
-The current typed engine registry exposes 297 operations through one generated
+The current typed engine registry exposes 295 operations through one generated
 schema, SDK and MCP set. Twenty-four first-class skills route user intent into
-those operations. The tool catalog contains 104 retained declarations. Catalog
+those operations. The tool catalog contains 103 retained declarations. Catalog
 membership never proves installation, readiness or execution; each selected
 operation records its actual route, tool result and verification evidence.
 
@@ -52,7 +52,9 @@ not an Office application or sector.
 ## Runtime and installation
 
 The engine owns one writer per project and bounded worker processes shared by
-multiple clients. Windows first detection validates the exact sparse plugin
+multiple clients. Supported hosts are persistent local Windows Codex Desktop
+Stable and Codex Desktop Beta. Codex CLI, VM/sandbox and Mac/reduced host routes
+are not part of the product. Windows first detection validates the exact sparse plugin
 source and SHA-256-bound component assets from one immutable release tag,
 materializes offline environments under `C:/Apps/EvidenceLaneStudio` (or the
 explicit `EVIDENCE_LANE_STUDIO_ROOT`), verifies every immutable installed file,

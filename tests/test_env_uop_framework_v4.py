@@ -54,7 +54,7 @@ def captured_prompt(selected,text='Analyze the source evidence.',*,event_id=None
 
 def test_full_policy_keeps_current_codex_action_workflow_and_project_class_families():
     runtime=load_env_uop_runtime_authority()
-    assert len(runtime['action_policies'])==297
+    assert len(runtime['action_policies'])==295
     assert len(runtime['work_policies'])==16
     assert len(runtime['env']['env_project_class_policy_v4'])==7
     assert len(runtime['env']['env_codex_workflow_stage_v4'])==13

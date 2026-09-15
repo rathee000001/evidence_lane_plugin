@@ -133,19 +133,22 @@ def validate_installed_hook_inventory(
     plugin_selector: str,
     workspace: str | Path,
     required_events: Iterable[str] | None = None,
+    expected_enabled: bool | None = False,
 ) -> dict[str, Any]:
     """Validate one warning-free installed selector from ``hooks/list``.
 
-    The default remains the release boundary: every canonical hook must be
-    enabled.  A progressive verifier may name a non-empty subset; those hooks
-    must be enabled while the trusted state of unrelated hooks is preserved in
-    the receipt without relabelling them as invoked.
+    The post-install default requires every canonical Hook member to be trusted
+    and disabled.  Passing ``expected_enabled=True`` supports later explicit
+    user-enabled qualification; a progressive verifier may then name a
+    non-empty subset. ``None`` validates trust without asserting enablement.
     """
 
     if not plugin_selector.startswith("evidence-lane-plugin@"):
         raise InstalledHookReceiptError("PLUGIN_SELECTOR_INVALID")
     required_order = _required_event_order(required_events)
     required = set(required_order)
+    if expected_enabled not in {True, False, None}:
+        raise InstalledHookReceiptError("EXPECTED_HOOK_ENABLEMENT_INVALID")
     expected_workspace = _workspace_key(workspace)
     entries = [
         row
@@ -200,7 +203,8 @@ def validate_installed_hook_inventory(
             row.get("source") != "plugin"
             or row.get("isManaged") is not False
             or not isinstance(row.get("enabled"), bool)
-            or (event_name in required and row.get("enabled") is not True)
+            or (expected_enabled is False and row.get("enabled") is not False)
+            or (expected_enabled is True and event_name in required and row.get("enabled") is not True)
             or row.get("trustStatus") != "trusted"
             or row.get("handlerType") != "command"
             or not source_path
@@ -270,6 +274,11 @@ def validate_installed_hook_inventory(
         ),
         "required_event_order": list(required_order),
         "progressive_subset": required_order != HOOK_EVENT_NAMES,
+        "expected_enablement": (
+            "disabled" if expected_enabled is False else
+            "enabled_for_required_events" if expected_enabled is True else
+            "unasserted"
+        ),
         "records": records,
         "warnings": [],
         "errors": [],

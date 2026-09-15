@@ -1,7 +1,7 @@
 flowchart LR
   user["User intent: Select project storage"] --> skill["$select-project-storage"]
   skill --> registry["Typed action and workflow registries"]
-  registry --> sdk["SDK/MCP selection: 4 eligible actions"]
+  registry --> sdk["SDK/MCP selection: 2 eligible actions"]
   sdk --> engine["Persistent engine API"]
   engine --> owner["Owning authority or sector lane"]
   owner --> worker["Bounded tool worker when required"]

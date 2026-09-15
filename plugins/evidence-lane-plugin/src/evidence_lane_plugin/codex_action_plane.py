@@ -168,10 +168,10 @@ def _populate(plugin_root, env, uop, registry):
     for host_id, host in sorted(HOST_MATRIX.items()):
         _insert(env, 'codex_host_variant_v4', {'host_id': host_id, 'host_profile': host['family'],
             'app_variant': host['channel'], 'application_id': 'not_attested_by_policy',
-            'lifetime': 'ephemeral' if host_id == 'codex_vm_ephemeral' else 'configured_profile',
-            'native_mcp': int(host_id != 'unknown'), 'tunnel_policy': host['storage_policy'], 'status': 'DECLARED_PROFILE'})
+            'lifetime': 'persistent_local_windows_profile',
+            'native_mcp': 1, 'persistence_policy': host['persistence'], 'status': 'DECLARED_PROFILE'})
         _insert(uop, 'uop_host_policy_v4', {'host_id': host_id, 'host_profile': host['family'],
-            'execution_allowed': int(host_id != 'unknown'), 'reason': host['storage_policy'], 'status': 'REQUIRES_MEASURED_ROUTE'})
+            'execution_allowed': 1, 'reason': host['persistence'], 'status': 'REQUIRES_MEASURED_ROUTE'})
     for provider, vendor, runtime in [('CPU', 'NONE', 'current CPU engine'), ('NVIDIA_CUDA', 'NVIDIA', 'compatible pinned CUDA runtime'),
             ('AMD_ROCM', 'AMD', 'compatible pinned HIP runtime'),
             ('DIRECTML', 'CROSS_VENDOR', 'compatible pinned Windows DirectML runtime')]:

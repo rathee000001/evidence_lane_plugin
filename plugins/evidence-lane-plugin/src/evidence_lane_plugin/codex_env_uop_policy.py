@@ -52,7 +52,7 @@ PROJECT_CLASSES = (
 WORKFLOW_STAGES = (
     ("USER_INTENT", 1, "User request and current instructions", "Codex host", "attributed intent"),
     ("HOST_CONTEXT", 2, "Measured host and client context", "host_routing and connections", "host observation"),
-    ("PROJECT_BINDING", 3, "Explicit project and storage selection", "projects and storage_selection", "project binding"),
+    ("PROJECT_BINDING", 3, "Explicit project and local persistence binding", "projects and local persistence policy", "project binding"),
     ("SKILL_RESOLUTION", 4, "Business-intent skill selection", "registry.WORKFLOWS", "selected workflow"),
     ("ACTION_CONTRACT", 5, "Typed action and lane contract", "registry.ActionRegistry", "validated request"),
     ("PLAN_STATE", 6, "Current Plan revision and task contract", "plan_runtime", "pinned work state"),
@@ -101,7 +101,7 @@ WORKFLOW_EVENTS = (
 def env_catalog():
     columns = {
         "env_authority_meta": [_column("key", primary_key=1), _column("value")],
-        "codex_host_variant_v4": [_column("host_id", primary_key=1), _column("host_profile"), _column("app_variant"), _column("application_id"), _column("lifetime"), _column("native_mcp", "INTEGER"), _column("tunnel_policy"), _column("status")],
+        "codex_host_variant_v4": [_column("host_id", primary_key=1), _column("host_profile"), _column("app_variant"), _column("application_id"), _column("lifetime"), _column("native_mcp", "INTEGER"), _column("persistence_policy"), _column("status")],
         "env_accelerator_profile_v4": [_column("provider_id", primary_key=1), _column("vendor_plugin"), _column("runtime"), _column("eligible_action_classes_json"), _column("default_memory_budget_percent", "INTEGER"), _column("selection_rule"), _column("provider_is_tool", "INTEGER"), _column("provider_is_agent", "INTEGER"), _column("status")],
         "env_tool_registry_v4": [_column("tool_id", primary_key=1), _column("requirement"), _column("surfaces_json"), _column("role"), _column("agent_authority", "INTEGER"), _column("status")],
         "env_action_binding_v4": [_column("action_name", primary_key=1), _column("workflow_classes_json"), _column("owner_skill"), _column("internal_sdk_json"), _column("mcp_json"), _column("skill_workflows_json"), _column("entry_event"), _column("ordered_tools_json"), _column("schema_sha256"), _column("binding_sha256"), _column("status")],

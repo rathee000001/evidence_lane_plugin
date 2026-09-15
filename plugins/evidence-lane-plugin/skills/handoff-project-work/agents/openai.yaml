@@ -1,6 +1,8 @@
 interface:
   display_name: "Handoff project work"
   short_description: "Transfer exact project work between selected clients"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $handoff-project-work to inspect or accept the exact offered task continuation."
 dependencies:

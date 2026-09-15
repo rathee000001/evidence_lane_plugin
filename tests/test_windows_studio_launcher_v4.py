@@ -104,6 +104,7 @@ def test_login_and_shortcut_target_the_stable_launcher(tmp_path: Path) -> None:
     specification = shortcut.specification()
     assert specification["target"] == str(launcher)
     assert specification["arguments"] == "--open"
+    assert specification["icon_location"] == f"{launcher},0"
     default_launcher = Path(
         "C:/Apps/EvidenceLaneStudio/app/EvidenceLaneStudio.exe"
     )
@@ -183,6 +184,125 @@ def test_stable_installation_registration_is_read_back_and_idempotent(tmp_path: 
     ).encode()
     assert receipt == hashlib.sha256(encoded).hexdigest()
     assert persisted["project_state_changed"] is False
+
+
+def test_owned_pre_icon_shortcut_is_atomically_upgraded(tmp_path: Path) -> None:
+    runtime = tmp_path / "engine"
+    pythonw = runtime / "venv/Scripts/pythonw.exe"
+    launcher = tmp_path / "app/EvidenceLaneStudio.exe"
+    pythonw.parent.mkdir(parents=True)
+    launcher.parent.mkdir(parents=True)
+    pythonw.write_bytes(b"fixture")
+    launcher.write_bytes(b"fixture")
+
+    def shortcut_backend(path, *, specification=None):
+        if specification is not None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(specification), encoding="utf-8")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    owner = StudioShortcut(
+        pythonw,
+        runtime,
+        tmp_path / "desktop",
+        launcher_executable=launcher,
+        backend=shortcut_backend,
+    )
+    old_specification = dict(owner.specification())
+    old_specification.pop("icon_location")
+    owner.path.parent.mkdir(parents=True)
+    owner.path.write_text(json.dumps(old_specification), encoding="utf-8")
+    owner.receipt.write_text(
+        json.dumps(
+            {
+                "sha256": hashlib.sha256(owner.path.read_bytes()).hexdigest(),
+                "specification": old_specification,
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = owner.install()
+    assert result["updated_owned_shortcut"] is True
+    assert shortcut_backend(owner.path) == owner.specification()
+    receipt = json.loads(owner.receipt.read_text(encoding="utf-8"))
+    assert receipt["specification"]["icon_location"] == f"{launcher},0"
+
+
+def test_default_registration_uses_direct_start_menu_and_retires_owned_nested_link(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = load_registration_script()
+    installation = tmp_path / "shared"
+    runtime = installation / "engine"
+    pythonw = runtime / "venv/Scripts/pythonw.exe"
+    launcher = installation / "app/EvidenceLaneStudio.exe"
+    plugin = installation / "plugin"
+    pythonw.parent.mkdir(parents=True)
+    launcher.parent.mkdir(parents=True)
+    (plugin / "scripts").mkdir(parents=True)
+    pythonw.write_bytes(b"fixture")
+    launcher.write_bytes(b"fixture")
+    (plugin / "scripts/run_engine.py").write_text("# fixture\n", encoding="utf-8")
+
+    class RunValue:
+        value = None
+
+        def read(self):
+            return self.value
+
+        def write(self, value):
+            self.value = value
+
+        def remove(self):
+            self.value = None
+
+    def shortcut_backend(path, *, specification=None):
+        if specification is not None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(specification), encoding="utf-8")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    roaming = tmp_path / "roaming"
+    programs = roaming / "Microsoft/Windows/Start Menu/Programs"
+    desktop = tmp_path / "redirected-desktop"
+    monkeypatch.setenv("APPDATA", str(roaming))
+    monkeypatch.setattr(module, "windows_desktop_root", lambda: desktop)
+    legacy = StudioShortcut(
+        pythonw,
+        runtime,
+        programs / "Evidence Lane",
+        plugin_root=plugin,
+        launcher_executable=launcher,
+        backend=shortcut_backend,
+    )
+    legacy_specification = dict(legacy.specification())
+    legacy_specification.pop("icon_location")
+    legacy.path.parent.mkdir(parents=True)
+    legacy.path.write_text(json.dumps(legacy_specification), encoding="utf-8")
+    legacy.receipt.write_text(
+        json.dumps(
+            {
+                "sha256": hashlib.sha256(legacy.path.read_bytes()).hexdigest(),
+                "specification": legacy_specification,
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = module.register(
+        installation,
+        installation,
+        startup_backend=RunValue(),
+        shortcut_backend=shortcut_backend,
+        system="Windows",
+    )
+    direct = programs / "Evidence Lane Studio.lnk"
+    assert result["start_menu_scope"] == "direct_programs_root"
+    assert result["desktop_resolution"] == "windows_user_shell_folder"
+    assert direct.is_file()
+    assert json.loads(direct.read_text())["icon_location"] == f"{launcher},0"
+    assert (desktop / "Evidence Lane Studio.lnk").is_file()
+    assert not legacy.path.exists()
+    assert not legacy.receipt.exists()
 
 
 def test_registration_failure_rolls_back_new_login_and_shortcut_entries(tmp_path: Path) -> None:

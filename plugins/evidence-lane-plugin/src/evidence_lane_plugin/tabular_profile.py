@@ -622,7 +622,7 @@ def register_tabular_actions(engine):
                 materialization=SourceMaterialization() if action == prefix + '_index' else None, worker_operations=('tabular_parse_file',),
                 verification_checks=('tabular_snapshot_integrity', 'tabular_source_hash_unchanged'), verifier=verify_snapshot,
                 tool_routes=(ToolRoute(action + '.native', index, tools,
-                    systems=('Windows', 'Darwin', 'Linux')),)))
+                    systems=('Windows',)),)))
         def query_handler(function, operation):
             def handler(context, request):
                 store = engine.directory.open(context.project_id)
@@ -652,7 +652,7 @@ def register_tabular_actions(engine):
             contracts.model_for(lane_id, model), TabularResult, generate, permission='write', mutates=True, requires_delta=True,
             profile=prefix, workflow='execute-project-plan', worker_operations=(prefix + '_generate',),
             tool_routes=(ToolRoute(prefix + '_generate.native', generate, tool_ids,
-                systems=('Windows', 'Darwin', 'Linux')),),
+                systems=('Windows',)),),
             verification_checks=('tabular_snapshot_integrity',), verifier=verify_snapshot))
     engine.registry.register(ActionSpec('spreadsheet_edit', 'Replace exact existing OpenXML cells while preserving other package members and invalidating stale formula caches.',
         contracts.model_for('data_excel', contracts.SpreadsheetEdit), TabularResult, edit, permission='write', mutates=True, requires_delta=True,

@@ -8,7 +8,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/project_actions.py",
-      "sha256": "abd8e1375596929ad7d4a2c8a94ed668bce572a00edc669641b7ecc43d69e457"
+      "sha256": "3f0615122ab72bad64afcffa7c3bd27387e0b467ee6932039794cddea6a1c244"
     },
     {
       "path": "src/evidence_lane_plugin/projects.py",

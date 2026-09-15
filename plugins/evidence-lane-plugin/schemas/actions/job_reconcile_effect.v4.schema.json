@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Reconcile one uncertain effect using committed confirmation, local prepared bytes or exact Git readback; require a fresh Plan afterward.",
@@ -135,7 +135,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "dfab46da8328fd41b64cae92b51e8ae6d90fff58719be6151edde78b4a6098a3",
+    "contract_digest": "ae0015578e13879bd74a8b8c520a38d1984e7bbd3f0e486f91f2bcf79e710e44",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -158,9 +158,7 @@
         "reason": "Registered engine adapter",
         "route_id": "job_reconcile_effect.local_or_recorded",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"
@@ -181,9 +179,7 @@
         "reason": "Registered engine adapter",
         "route_id": "job_reconcile_effect.git_readback",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

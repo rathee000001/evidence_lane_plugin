@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Record two locators and one evidence-backed Project Memory link atomically; derive endpoint identities inside the engine.",
@@ -223,7 +223,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "13da279160386b197c81d191d49c4360a73a2c716f6331f4b1172fd3689143e6",
+    "contract_digest": "99b269bfbcea91cfacd8e67a88a1f00b3e1c5b7e9433fa1550b11dab01e1bc2c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -242,9 +242,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_memory_record_link.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

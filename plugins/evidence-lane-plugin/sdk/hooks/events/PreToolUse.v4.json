@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PreToolUse/handler.py",
   "event": "PreToolUse",
   "event_contract": "hooks/events/PreToolUse/event.v4.json",
-  "event_contract_sha256": "23fef87ee2705844893ad2094e5d395d64d49c379eb08c95a17052ec37371641",
+  "event_contract_sha256": "07766160c6f53d5b59b0aafa765b3d6dbb5fd726c61be893f4c7030942b322a9",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/PreToolUse.v4.schema.json",
   "input_schema_sha256": "4be9602fed0fa1b6b6fec6e6dc2b0b73fd024ce0dcb9835725e8c03394caf312",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

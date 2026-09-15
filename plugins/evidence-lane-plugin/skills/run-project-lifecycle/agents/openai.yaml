@@ -1,6 +1,8 @@
 interface:
   display_name: "Run project lifecycle"
   short_description: "Coordinate the complete project work lifecycle"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $run-project-lifecycle to continue my project through its current workflow."
 dependencies:

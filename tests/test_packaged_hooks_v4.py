@@ -14,6 +14,7 @@ from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.hook_contract import (
+    HOOK_INSTALLATION_POLICY,
     HOOK_PIPELINE,
     hook_event_contract,
     hook_event_handler_path,
@@ -22,6 +23,10 @@ from evidence_lane_plugin.hook_contract import (
     hook_registry,
     prepare_hook,
     submit_hook,
+)
+from evidence_lane_plugin.installed_hook_receipts import (
+    InstalledHookReceiptError,
+    validate_installed_hook_inventory,
 )
 from evidence_lane_plugin.lineage import ChatLineage, LineageRead
 from evidence_lane_plugin.local_transport import LocalEndpoint, LocalTransport
@@ -123,6 +128,14 @@ def test_generated_hook_manifest_uses_current_events_and_four_visible_stage_hand
     assert json.loads((PLUGIN / 'hooks/hooks.json').read_text()) == hook_manifest()
     assert json.loads((PLUGIN / 'hooks/hook-event-registry.v4.json').read_text()) == hook_registry()
     assert tuple(hook_manifest()['hooks']) == HOOK_EVENT_ORDER
+    assert hook_registry()['installation_policy'] == HOOK_INSTALLATION_POLICY == {
+        'trust_owner': 'codex_plugin_manager',
+        'source': 'plugin',
+        'trusted_after_supported_install_required': True,
+        'enabled_by_default': False,
+        'enablement_owner': 'user',
+        'plugin_mutates_host_hook_state': False,
+    }
     assert {path.name for path in (PLUGIN / 'hooks/events').iterdir() if path.is_dir()} == set(HOOK_EVENT_ORDER)
     package_registry = json.loads((PLUGIN / 'hooks/events/event-package-registry.v4.json').read_text())
     assert package_registry['event_count'] == len(HOOK_EVENT_ORDER)
@@ -143,6 +156,39 @@ def test_generated_hook_manifest_uses_current_events_and_four_visible_stage_hand
         assert all((PLUGIN / member['path']).is_file() for member in contract['members'])
         expected = hook_event_contract(name)
         assert all(contract[key] == value for key, value in expected.items())
+
+
+def test_supported_install_inventory_is_trusted_and_off_by_default(tmp_path):
+    selector = 'evidence-lane-plugin@evidence-lane-github'
+    rows = []
+    for event in HOOK_EVENT_ORDER:
+        host_event = event[0].lower() + event[1:]
+        for index in range(4):
+            rows.append({
+                'pluginId': selector,
+                'key': f'{selector}:hooks/hooks.json:{host_event}:0:{index}',
+                'eventName': host_event,
+                'currentHash': 'sha256:' + f'{len(rows) + 1:064x}',
+                'sourcePath': str(tmp_path / 'hooks.json'),
+                'source': 'plugin',
+                'isManaged': False,
+                'enabled': False,
+                'trustStatus': 'trusted',
+                'handlerType': 'command',
+            })
+    reply = {'result': {'data': [{
+        'cwd': str(tmp_path), 'errors': [], 'warnings': [], 'hooks': rows,
+    }]}}
+    receipt = validate_installed_hook_inventory(
+        reply, plugin_selector=selector, workspace=tmp_path,
+    )
+    assert receipt['status'] == 'PASS'
+    assert receipt['handler_action_count'] == 48
+    assert receipt['expected_enablement'] == 'disabled'
+    assert all(row['trust_status'] == 'trusted' and row['enabled'] is False for row in receipt['records'])
+    rows[0]['enabled'] = True
+    with pytest.raises(InstalledHookReceiptError, match='INSTALLED_HOOK_AUTHORITY_MISMATCH'):
+        validate_installed_hook_inventory(reply, plugin_selector=selector, workspace=tmp_path)
 
 
 def test_actual_host_visible_stage_processes_coordinate_one_delivery(capture, tmp_path):

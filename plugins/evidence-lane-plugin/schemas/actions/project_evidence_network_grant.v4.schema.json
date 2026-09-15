@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Issue an explicit expiring grant for one relation between two authorized member references.",
@@ -111,7 +111,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "d094427509099202ad6a7d01672beaf8fa3baf01f0c1523a9bb7402ceee7e8c6",
+    "contract_digest": "5fb0d2849bbd8d0add7227b2fc59774e41c67f9d8821296736fa8e23a4255048",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -130,9 +130,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_evidence_network_grant.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

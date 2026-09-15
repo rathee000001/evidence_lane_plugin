@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Render the selected project registration, current Plan page, session and exact published lane references without changing work.",
@@ -306,7 +306,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "97f186e4ab9f649db43e79a6a63be1bca9bcf533f649e660218146a5f9fa3070",
+    "contract_digest": "62d4ddb33f5bc5b5ed1eac4dd571be73c9d3ab5babc806755b37a47060547b24",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -325,9 +325,7 @@
         "reason": "Registered engine adapter",
         "route_id": "render_project_panel.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

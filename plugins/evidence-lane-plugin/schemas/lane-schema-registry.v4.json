@@ -350,7 +350,7 @@
       ]
     },
     {
-      "contract_sha256": "79B9E3DCDA9C2A495755B2233C1EF2021E6D95FC6F93723FBB01B8A760EC36DC",
+      "contract_sha256": "93C89EA5F848BF7920ABC1503A62F5823B506BD8AD83C626893E6151BA2D6607",
       "database_relative_path": "receipts/receipts_authority_v001.sqlite",
       "kind": "authority",
       "lane_id": "receipts",
@@ -367,8 +367,7 @@
         "remote",
         "hostmemory",
         "gitpush",
-        "capture",
-        "storage"
+        "capture"
       ],
       "prefixes_by_owner": {
         "accelerator": [
@@ -397,9 +396,6 @@
         ],
         "remote": [
           "remote_"
-        ],
-        "storage": [
-          "storage_"
         ]
       },
       "qualification": "definition_only_until_owning_workflow_verified",

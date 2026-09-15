@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Compile a declarative custom schema and append its source mappings.",
@@ -95,7 +95,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "8aa553e6792b797ebfd1e5ffa1b2b3b203a3c964b68281c7bfd345d2fc350bc3",
+    "contract_digest": "3da89f9859ad1322d8fc1da42a23b74a43b286181fd3fa6a091d93f09b02a29d",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -114,9 +114,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_schema_map.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

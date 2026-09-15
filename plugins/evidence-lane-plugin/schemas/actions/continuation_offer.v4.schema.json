@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Offer exact project-participant continuity to another registered client at a safe work boundary.",
@@ -155,7 +155,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "1ed02188041722ee5b130c59a80b636fe98912a7ebf8e38a1d8c1e719427a732",
+    "contract_digest": "52e9a41c1f25a2bbfe2932640dc73e9f31275f16015be8e9fb20fc3b5435c60a",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -174,9 +174,7 @@
         "reason": "Registered engine adapter",
         "route_id": "continuation_offer.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

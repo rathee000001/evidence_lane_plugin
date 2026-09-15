@@ -1,6 +1,6 @@
 {
   "authority": "engine_typed_action_registry",
-  "digest": "1314d1795613202f8fcbe34a0632be1837fa7940a49d6e5ac72e57d80cc9ce1c",
+  "digest": "5990b438b616bd2e8b8367634fc33da7820d639080cb564322038e84ea1fb3ac",
   "removed_routes_have_fallback": false,
   "routes": [
     {
@@ -2378,24 +2378,6 @@
       "permission": "write",
       "project_required": true,
       "workflow": "manage-project-plan"
-    },
-    {
-      "action": "storage_connector_inspect",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": false,
-      "owner": "receipts",
-      "permission": "read",
-      "project_required": true,
-      "workflow": "select-project-storage"
-    },
-    {
-      "action": "storage_connector_select",
-      "implementation": "evidence_lane_plugin.sdk.dispatch",
-      "mutates": true,
-      "owner": "receipts",
-      "permission": "admin",
-      "project_required": true,
-      "workflow": "select-project-storage"
     },
     {
       "action": "storage_status",

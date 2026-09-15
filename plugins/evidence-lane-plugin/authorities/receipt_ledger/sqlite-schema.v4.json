@@ -5,7 +5,7 @@
   "business_rows": 0,
   "project_identity_rows": 0,
   "sqlite_version": "3.50.4",
-  "sqlite_sha256": "3382fd512b2ce2af4e2ee5f0879d9d6b0cd9236a962427584b30a77adf452b13",
+  "sqlite_sha256": "6b22af96fac8cf62626f845094039bb972a2a431bf436400886598fcc47c850b",
   "tables": [
     {
       "name": "accelerator_settings",
@@ -673,62 +673,6 @@
         },
         {
           "name": "object_type",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        }
-      ]
-    },
-    {
-      "name": "storage_selection_events",
-      "type": "table",
-      "sql": "CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,\n       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)",
-      "rows": 0,
-      "columns": [
-        {
-          "name": "sequence",
-          "type": "INTEGER",
-          "not_null": false,
-          "primary_key": 1
-        },
-        {
-          "name": "request_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "client_id",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "input_digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "previous_digest",
-          "type": "TEXT",
-          "not_null": false,
-          "primary_key": 0
-        },
-        {
-          "name": "body_json",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "digest",
-          "type": "TEXT",
-          "not_null": true,
-          "primary_key": 0
-        },
-        {
-          "name": "created_at",
           "type": "TEXT",
           "not_null": true,
           "primary_key": 0

@@ -1,8 +1,8 @@
 {
   "connection_manifest": {
-    "bytes": 6746,
+    "bytes": 6281,
     "path": "manifests/engine-connection.v4.json",
-    "sha256": "3b665486ab44e9ba2df22354393117e38f52148747dbbea4aef00fae2805873c"
+    "sha256": "990f283da79a2b5e003bed6abda92e58c0b44c63ac56a8ca391a6c62bad7fa80"
   },
   "engine_launcher": {
     "bytes": 275,
@@ -11,9 +11,9 @@
   },
   "engine_owns_operations": true,
   "engine_service": {
-    "bytes": 6437,
+    "bytes": 5647,
     "path": "src/evidence_lane_plugin/service.py",
-    "sha256": "c8ca0d33de41304f080e1d9d904089b3e52d49db72c434a08a28c6b76e785e3c"
+    "sha256": "de3ae623d89e6754696bc7c71b0a700c95d295a1176be219d032a94b9bec5413"
   },
   "human_mutation_routes": [],
   "installed_execution_claimed": false,
@@ -28,9 +28,9 @@
     "sha256": "d1b916977409def01ac91cf98c090aecb1f946d895cf6046c2ac1ba545ccd025"
   },
   "mcp_manifest": {
-    "bytes": 786,
+    "bytes": 760,
     "path": ".mcp.json",
-    "sha256": "b84cca8132921ca5973a51eecb498b63112552e02518400c31fbc1f36b87e916"
+    "sha256": "24bf2b098562512b8555cc1c8ceaf109a94329c6c413ad81621ce21ce199a00f"
   },
   "schema": "evidence-lane.studio-engine-api-link.v4",
   "studio_boundary": "visible_read_only_observer",

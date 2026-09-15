@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 505,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 2752,
     "path": "sdk/workflows/skills/close-project-session/workflow.v4.json",
-    "sha256": "21b377d9a4a8ebef1131b8738d89217f26a4783186f88e26dbb819b6e4b4f6c6"
+    "sha256": "acb42a1abeff82f89ea7839a769f8a69d56dc28deaa4647e5e908a5c3efd9709"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "close-project-session",

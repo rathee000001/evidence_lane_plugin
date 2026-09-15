@@ -1,6 +1,8 @@
 interface:
   display_name: "Configure project workflow"
   short_description: "Configure project work from sources and outcome"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $configure-project-workflow to configure work for my sources and requested outcome."
 dependencies:

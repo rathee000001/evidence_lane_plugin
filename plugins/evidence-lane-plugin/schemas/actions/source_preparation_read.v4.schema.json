@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read an exact historical source task preparation with its immutable parent and child route bindings.",
@@ -103,7 +103,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "897f522229af13c5bf46e555271c66ff7256c297285feedd0d4e39b34173707c",
+    "contract_digest": "bead23bb8860c66e40ff756adf0b5fbf5832aa416c8d02bc3f51dd8230fd2383",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -122,9 +122,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_preparation_read.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

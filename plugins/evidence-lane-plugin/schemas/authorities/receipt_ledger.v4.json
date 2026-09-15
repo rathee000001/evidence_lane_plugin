@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "authorities/receipt_ledger/build-refresh-contract.schema.json",
-      "sha256": "727b379da87bdeea542d859271a654aba862c5c6e7a3be0163154fe211d9c67e"
+      "sha256": "742c594563edcd555693c572f9fc921e6f1f3fd7fa4380e53100bff31f4d8485"
     },
     {
       "path": "authorities/receipt_ledger/dot-artifact.schema.json",
@@ -16,11 +16,11 @@
     },
     {
       "path": "authorities/receipt_ledger/manifest.v4.json",
-      "sha256": "f98bea08058ec4aad981f7e7a09c51ab665900403bf90588c9e830c8e92b7fa4"
+      "sha256": "72c9e0022388cdeecaf9b9e403ba17af987a32f30f1081369bbb70e35b9c8399"
     },
     {
       "path": "authorities/receipt_ledger/migration-history.json",
-      "sha256": "b79d1b54c43970f686f2c08d19ae9ef8f77868e956facb7eb190f1906657c1f3"
+      "sha256": "a7d62199bad0ac6855a38576fcfedf6565181cb40ae56b9408e14ba9eedd6468"
     },
     {
       "path": "authorities/receipt_ledger/mmd-artifact.schema.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "authorities/receipt_ledger/reader-contract.schema.json",
-      "sha256": "8abd0594d1adef5b26f4b5802541ebef35f8f451a9b766ffefdc1e92ec7cba01"
+      "sha256": "259fdfa5b674a301a458e8ba2927495ec8b463a96bb03f6a1a7712d86429a186"
     },
     {
       "path": "authorities/receipt_ledger/refresh-receipt.schema.json",
@@ -44,15 +44,15 @@
     },
     {
       "path": "authorities/receipt_ledger/runtime-binding.schema.json",
-      "sha256": "542174704a17dbb1ad8f5f58b86abd29d8f454c7b264a96be17b9990b8b92005"
+      "sha256": "ca21b34930ee52e5e236391cfe3ed7a4e6802d81f6ae3c59a3c66dcc676fe000"
     },
     {
       "path": "authorities/receipt_ledger/runtime-binding.v4.json",
-      "sha256": "a558ab0560f4bdf3e793c4040c2ff4f7348ee8e4bc6aeb7cacee26e630e1c80c"
+      "sha256": "db9388afb5af06ff2c412afbf4cb513f93fd1dee7e03e5e348a996aff22abed4"
     },
     {
       "path": "authorities/receipt_ledger/schema.sql",
-      "sha256": "475b0d8e842af9d4714888903da6cff6f537133a7251d6eb7e00caaa33eb5dc5"
+      "sha256": "dea7eb95345b1818fafbb818de8e20ec00671183cf4d4f407a052471d69d1a7d"
     },
     {
       "path": "authorities/receipt_ledger/sqlite-artifact.schema.json",
@@ -60,7 +60,7 @@
     },
     {
       "path": "authorities/receipt_ledger/sqlite-schema.v4.json",
-      "sha256": "c1b43ba2fd04ab8eae9278c1d6cc7ab279c9124c5657d1c9123456642cc42be0"
+      "sha256": "f3f9fbb9d246f255fb1c84a0fce8cac46940935173255af0ecac0801f7bf72cd"
     },
     {
       "path": "authorities/receipt_ledger/tools.schema.json",

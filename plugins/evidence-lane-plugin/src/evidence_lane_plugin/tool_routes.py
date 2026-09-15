@@ -34,7 +34,7 @@ class ToolRoute:
     route_id: str
     handler: Callable
     tool_ids: tuple[str, ...] = ('Python',)
-    systems: tuple[str, ...] = ('Windows', 'Darwin', 'Linux')
+    systems: tuple[str, ...] = ('Windows',)
     fidelity: str = 'exact_contract'
     provider: str = 'engine_cpu'
     reason: str = 'Registered engine adapter'
@@ -133,7 +133,7 @@ def validate_routes(spec):
         if (not route.route_id or len(route.route_id) > 128 or not callable(route.handler)
                 or not hasattr(route.handler, '__code__')
                 or not 1 <= len(route.tool_ids) <= 32 or len(set(route.tool_ids)) != len(route.tool_ids)
-                or not set(route.systems) <= {'Windows', 'Darwin', 'Linux'} or not route.systems
+                or not set(route.systems) <= {'Windows'} or not route.systems
                 or route.fidelity != 'exact_contract' or route.provider != 'engine_cpu'):
             raise LaneError('TOOL_ROUTE_INVALID', 'Adapters require explicit tools, platforms and exact output fidelity.')
         if route.extension is not None:

@@ -23,7 +23,7 @@ def shared_graph_assets(monkeypatch):
     monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', os.environ['EVI_GRAPH_QUALIFICATION_ASSETS'])
 
 
-def configured(system, profile='codex_cli'):
+def configured(system, profile='codex_desktop_stable'):
     engine, store, _ = system
     _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile=profile),
         projects=[ProjectSelection(project_id=store.project_id, permissions=['read', 'write', 'tools', 'admin'])]))
@@ -51,7 +51,7 @@ def export(system, first, *, native=True, formats=None, node_limit=40):
     return publish(invoke, request)
 
 
-@pytest.mark.parametrize('failure', ['tool_scope', 'binary', 'client', 'worker', 'dependency'])
+@pytest.mark.parametrize('failure', ['tool_scope', 'binary', 'worker', 'dependency'])
 def test_native_refresh_prerequisites_fail_before_source_or_lane_effects(code_system, monkeypatch, tmp_path, failure):
     system = configured(code_system)
     engine, store, _ = system
@@ -60,8 +60,6 @@ def test_native_refresh_prerequisites_fail_before_source_or_lane_effects(code_sy
     export(system, first)
     if failure == 'binary':
         monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', str(tmp_path / 'missing-native-root'))
-    elif failure == 'client':
-        system = code_system  # The original connection explicitly has profile unknown.
     elif failure == 'worker':
         engine.workers.operations.pop('render_lane_view')
     elif failure == 'dependency':
@@ -114,7 +112,7 @@ def test_edit_preserves_exact_consumer_and_records_selected_tool_admission(code_
         native = manifest['tool_evidence']['dot']['native_graphviz_validation']
         assert (native is not None) == (mode == 'native')
         if native is not None:
-            assert native['status'] == 'PASS' and native['host_profile'] == 'CODEX_CLI'
+            assert native['status'] == 'PASS' and native['host_profile'] == 'CODEX_DESKTOP'
     assert all(Path(row['path']).is_relative_to(store.lane('local_code').folder) for row in refreshed['files'])
     assert files(store.root / 'github_code') == source_before
 

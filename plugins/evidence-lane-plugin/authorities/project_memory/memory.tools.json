@@ -30,9 +30,7 @@
               "Pinecone"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -77,9 +75,7 @@
               "Weaviate"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -124,9 +120,7 @@
               "Milvus"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -171,9 +165,7 @@
               "OpenSearch"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -216,7 +208,7 @@
         "no_fallback_reason": null,
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "77b0f39c01fe31b909f525d80ffb0a1f09367df0ba6874c1a7a4188b55f7b3a9"
+        "contract_digest": "65dbbc5b577017cfca45d0e134f9bdda5638860d63d59d4c530da863e3d7fcba"
       },
       "verification_checks": [
         "context_index_result_binding"
@@ -247,9 +239,7 @@
               "Pinecone"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -294,9 +284,7 @@
               "Weaviate"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -341,9 +329,7 @@
               "Milvus"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -388,9 +374,7 @@
               "OpenSearch"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -433,7 +417,7 @@
         "no_fallback_reason": null,
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7e4f066ca005d1d48e5467a83caad9d5a068b7f606265f3801ddd4ef9cf8ae56"
+        "contract_digest": "f2d42cad714e4c21af772dd963e931531f735adcb99fa935f069219244c5aced"
       },
       "verification_checks": [
         "context_index_result_binding"
@@ -459,9 +443,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -478,7 +460,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "c404f1300b32501bbfe6beb558efe4541c9d9a6a67ae5d56810fb5ca72878e98"
+        "contract_digest": "5963425a3a4eb61c9bb52ba194b38d51c467e1aae896f52743d36e8ad49ae853"
       },
       "verification_checks": []
     },
@@ -502,9 +484,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -521,7 +501,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7ca3a34e16f65051a08d8da7cdbd67fa85cc4b03efb80a6aa69bab0b17fd31c8"
+        "contract_digest": "4e685afc95cdaaa9ab257e120df7407a3fc894ffc81fb80ca1aea8a7557fbfe8"
       },
       "verification_checks": []
     },
@@ -545,9 +525,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -564,7 +542,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "482b2df25bd30134a6cb7080c2c3f1a106dda1f170d5d89f56f551f4a4f757f5"
+        "contract_digest": "3330940a05cd48f2ff706641bade44489dcec99426c97352484e820913f8a5a0"
       },
       "verification_checks": []
     },
@@ -588,9 +566,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -607,7 +583,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7db5a17a2a6091444bbf8450ac67a9be479e86779cadbbe38b12d4cf6ce51bb2"
+        "contract_digest": "6c8e61d5d46bc1d64ab82366e3ecf193d1efc239aa42110246e7b37541ee8912"
       },
       "verification_checks": []
     },
@@ -631,9 +607,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -650,7 +624,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "13da279160386b197c81d191d49c4360a73a2c716f6331f4b1172fd3689143e6"
+        "contract_digest": "99b269bfbcea91cfacd8e67a88a1f00b3e1c5b7e9433fa1550b11dab01e1bc2c"
       },
       "verification_checks": []
     }
@@ -663,7 +637,7 @@
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "360bb288f886cd3ae5815e4e34326165bc96320880c5b0959887dd0e85a170a6",
+      "implementation_digest": "dc28be26672ea9d6f2a8c84e5d0240b5027168beae0bdd91c5e92139e9df123e",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",

@@ -22,8 +22,8 @@ Read `accelerator_read` before an authorized
 operation's primary and ordered fallback tools from current contracts and
 recheck readiness, grant, device and budgets before execution.
 Distinguish internal code, local dependencies/models, native host tools and
-configured external services. The Windows bundle is shared once; the reduced
-Mac route cannot claim that bundle. Missing providers remain unavailable.
+configured external services. The Windows bundle is shared once across the two
+supported persistent Desktop profiles. Missing providers remain unavailable.
 The engine selects an equivalent fallback before invocation only. A failed or
 uncertain operation is not automatically retried. SDK responses and Delta
 results include adapter execution evidence and observed dependencies; package

@@ -3,7 +3,7 @@
   "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
   "plugin": {
     "id": "evidence-lane-plugin",
-    "version": "4.0.4",
+    "version": "4.0.5",
     "repository": "https://github.com/rathee000001/evidence_lane_plugin",
     "sparse_root": "plugins/evidence-lane-plugin"
   },
@@ -2185,7 +2185,10 @@
       "asset_id": "embedding_snapshot",
       "component_id": "model-assets",
       "path": "toolchains/models/embedding_snapshot",
-      "source_manifest": "toolchains/embedding-model.v4.json"
+      "source_manifest": "toolchains/embedding-model.v4.json",
+      "repository": "BAAI/bge-small-en-v1.5",
+      "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "dimension": 384
     },
     {
       "asset_id": "rapidocr_models",
@@ -2209,7 +2212,45 @@
       "asset_id": "parser_grammars",
       "component_id": "model-assets",
       "path": "toolchains/models/parser_grammars",
-      "source_manifest": null
+      "source_manifest": null,
+      "distribution": "tree-sitter-language-pack",
+      "version": "1.14.3",
+      "languages": [
+        "astro",
+        "bash",
+        "c",
+        "c_sharp",
+        "cmake",
+        "cpp",
+        "css",
+        "dockerfile",
+        "go",
+        "hcl",
+        "html",
+        "ini",
+        "java",
+        "javascript",
+        "json",
+        "kotlin",
+        "lua",
+        "make",
+        "markdown",
+        "php",
+        "powershell",
+        "python",
+        "ruby",
+        "rust",
+        "scss",
+        "sql",
+        "svelte",
+        "swift",
+        "toml",
+        "tsx",
+        "typescript",
+        "vue",
+        "xml",
+        "yaml"
+      ]
     },
     {
       "asset_id": "poppler_runtime",
@@ -10133,8 +10174,8 @@
   "source_inputs": [
     {
       "path": "toolchains/shared-toolchain.v4.json",
-      "sha256": "34f9a2a5300424498083f30ab3d2c1bfe7833f63e7b8fb6107ccf027fa59d542",
-      "bytes": 111628
+      "sha256": "a4a5c029f473885941c2541e3c45256e81fd6fe92824e0cafe3a8256155e2274",
+      "bytes": 111621
     },
     {
       "path": "toolchains/tool-catalog.v4.json",
@@ -10173,7 +10214,7 @@
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "dcd1fdf6fa863ba9dfe00d60d3ff5ce0572ce68c97ad1762c88a318f6d522f9d",
+      "sha256": "368d4ffbff14d9f0e583ff61da99be939c075aebac997fbea3a68440294e9124",
       "bytes": 1842
     },
     {
@@ -10188,8 +10229,8 @@
     },
     {
       "path": ".mcp.json",
-      "sha256": "b84cca8132921ca5973a51eecb498b63112552e02518400c31fbc1f36b87e916",
-      "bytes": 786
+      "sha256": "24bf2b098562512b8555cc1c8ceaf109a94329c6c413ad81621ce21ce199a00f",
+      "bytes": 760
     },
     {
       "path": "authorities/session_authority/installation-layout.v4.json",
@@ -10198,7 +10239,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "96c22a579bb7e85ef801c466080177dd8a8d9f88ff476c7c8cbd9bc1168d2e1f",
+      "sha256": "b51a8910e4493c00b2bda1eec93f98310215ef91dbcb613fb20ecf0dae226e76",
       "bytes": 3996
     },
     {
@@ -10248,22 +10289,22 @@
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-      "sha256": "dd08405c0f6e921b36ff0da1513197f34a5d9e50d352ebd503cd3115e011357c",
+      "sha256": "16f51d1c8f8a5801d31319333172fe6e1a13145f961e1d224cc4f2c55c7a816f",
       "bytes": 8132
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-      "sha256": "7ce438633c6fae23635065856919343a296359e1e49e977aad52ea5f5bd3d2a5",
+      "sha256": "4cff5ca1448dc29f63d7f4fb658c751d2c32bb8929aef4616aad6c8129d4845a",
       "bytes": 9216
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-      "sha256": "f3e0f4090c256bb5356c0aeb5c8d64ca8b8676ade436218f1d479076118c76bc",
+      "sha256": "ff65f4d84848686a521205c36563217b5ff7ebc38d485824f6ec0ef2051ce317",
       "bytes": 502
     },
     {
       "path": "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
-      "sha256": "2acd26aed4411827080b4536a80fe578c2e5ba678c521faf06aee201e06b72d3",
+      "sha256": "ff476d5c66f115f51e6f05914deb8c3d4ddb87312ff35ef514030519aeffb369",
       "bytes": 2093
     },
     {
@@ -10328,18 +10369,18 @@
     },
     {
       "path": "toolchains/licenses/retained-install-license-index.v4.json",
-      "sha256": "50291cfbc9563aa07ea7667dddace6975a2f2b4aa9e15d0618d56d477c6e3d2d",
+      "sha256": "76b30e48f189a6ff064cd80baa929bcd220a57fe72a272de7dcf4fee0e0e3a80",
       "bytes": 78870
     },
     {
       "path": "toolchains/license-policy.v4.json",
-      "sha256": "63cf8f0415c269fa7ab367a2e9469efa7a5c57303391b0ef10ea60dd7830df39",
+      "sha256": "d7da6a7e270dc6d005aef38ebca709acd50db7d001d46b9b5eb9c0f46de05452",
       "bytes": 1624
     }
   ],
   "license_index": {
     "path": "toolchains/licenses/retained-install-license-index.v4.json",
-    "sha256": "50291cfbc9563aa07ea7667dddace6975a2f2b4aa9e15d0618d56d477c6e3d2d",
+    "sha256": "76b30e48f189a6ff064cd80baa929bcd220a57fe72a272de7dcf4fee0e0e3a80",
     "record_count": 103
   },
   "excluded_office": {
@@ -10365,5 +10406,5 @@
   },
   "installation_state": "not_installed",
   "installed_native_execution_claimed": false,
-  "receipt_sha256": "3448acbe8d8796f8d23de1f71e936d89112e5e6567060415d6f4726cd98efcb2"
+  "receipt_sha256": "ac9b7783481baf4c090fb48f8761ef4849efa91b37b8b5d325412de6c31b85f8"
 }

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "actions": [
     {
       "cross_project_read": true,
@@ -137,7 +137,7 @@
       "requires_delta": false,
       "studio_read": false,
       "toolchain": {
-        "contract_digest": "46d36e968e96c4d34e1e574a49a7c24752c3f01cf2b0f5bde2254ab6dcde032a",
+        "contract_digest": "d19749aba1563e9d83300028c928817536c79e723750096c02e8197c3ec201d7",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -156,9 +156,7 @@
             "reason": "Registered engine adapter",
             "route_id": "learning_read.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"
@@ -371,7 +369,7 @@
       "requires_delta": false,
       "studio_read": false,
       "toolchain": {
-        "contract_digest": "b72a8be78377c67a0177ed641dfff56fb7e0babca24d02d717960cd4a82b1c50",
+        "contract_digest": "d74f8be6ed61dcd20e5b4bac4fa0b13d3e93ed2070c12e33ccd4252554b6764c",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -390,9 +388,7 @@
             "reason": "Registered engine adapter",
             "route_id": "learning_record_host_memory_import.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"
@@ -484,7 +480,7 @@
       "requires_delta": false,
       "studio_read": false,
       "toolchain": {
-        "contract_digest": "4f11ef4abf5f47628b0121b0791737bc7bc64d43de33499c02d18a176cb33b46",
+        "contract_digest": "7cdc5de2877fb6300157cc501e5cd1ae05437af571b3def44900063b1303bdb3",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -503,9 +499,7 @@
             "reason": "Registered engine adapter",
             "route_id": "learning_revoke.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"

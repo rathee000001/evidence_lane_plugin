@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
@@ -90,7 +90,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "613c5c265feec345e29f2e9258b676b3d02edd4090c774a18e7aacb5ed4fd872",
+    "contract_digest": "20bc8b83666bdb6801d31d98f821a08626c650761f34b999dcc39c571410a2ef",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -109,9 +109,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_work_classify.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

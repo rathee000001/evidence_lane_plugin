@@ -1,11 +1,11 @@
 {
   "action": "delta_query",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/delta_query.v4.schema.json",
-  "contract_sha256": "d7d591dfb4c17795b03617ffffeea0abc0df048d5dea36f869f70a2566932138",
+  "contract_sha256": "b70dfc52e63eb969919c6a24b0c7e1d58f63d7cd92178e021e3008bddb9ad495",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

@@ -1,13 +1,13 @@
 {
   "action": "spreadsheet_inspect_openpyxl",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/spreadsheet_inspect_openpyxl.action.v4.json",
-  "sdk_binding_sha256": "b5a8244c0c34f312702a92f2c4883086ad8f80811df152acdc22e6007dcee643",
+  "sdk_binding_sha256": "2e4a75ac7c63e2f779a7e8e5c4067dcc7ee9dd9bc950f199f4f6e72050cc8ded",
   "tool": {
     "annotations": {
       "destructiveHint": true,

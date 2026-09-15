@@ -270,9 +270,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -289,7 +287,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "8c77aa8434f23a2984a7a5e843e4d90cd0fc60527864a2fa31885738b93636d6"
+        "contract_digest": "bca452f31306d8c8b95824c26d9449fbe8929c39289d812e7683e6714fd196cf"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -464,9 +462,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -483,7 +479,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "626023f8ae6fc6892fd0afc73750a52dec70edfe92bafff393c0320519caf8e1"
+        "contract_digest": "63c463255bd30d92d76bf12ee913dc22b4e486da0cbf7d3682edc219055ef14f"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -572,9 +568,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -591,7 +585,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "2edf8b24abefa7d7d770cb575a765c73bfbe1ae3dc5932a19a0096b128f68cdf"
+        "contract_digest": "133c6bf64d0dd44663998d810b73f3f43eb45545b71ed0fe7736be1c95ac8091"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -862,9 +856,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -881,7 +873,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "a028dacb8a3438202159d2a7e2681988260ec1f79567dd64035fcdc4e51a55b7"
+        "contract_digest": "fe46649af715d3dfd08ba04999284f56d822cb8c268512f59aadb53bd8cf7cc3"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -999,9 +991,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1018,7 +1008,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "0067319fb14f2b6edfc9d98b269bd6ffd789b14c62d1705ca328ef1afe5c75ab"
+        "contract_digest": "45f0b1724bb4977d22199301d5b8813650db07b1b4ef10d3140972b19a43aa49"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1112,9 +1102,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1131,7 +1119,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7d5800defde0a63b2c5c4723d52d6fe19e59bd54f44df2bdb4588f4506b363f9"
+        "contract_digest": "2884ff2f4cfbe8038f60d080ddf28f26336d65acc137dc23639f90282ebfc2c5"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1210,9 +1198,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1229,7 +1215,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "1f7a3e8a6b6839f3afa299d2bad767510cc4a14ff9eb99c4aad3fd9ed1db9616"
+        "contract_digest": "8e27e8a4cddd46ba6045860f1e53b87422e6423946e161169f26ed7b429dc530"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1331,9 +1317,7 @@
               "Git"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1350,7 +1334,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "dc83d8c288cdb7cd2e75b59cd0e51ef5d81d5f2d0b551f3f241868f89fcf8e6f"
+        "contract_digest": "207c6bbbd5617779665695b964571d909bcf8863d65f79efdbc1100acd96e24f"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1485,9 +1469,7 @@
               "Git"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1504,7 +1486,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "409308f57cedc426dd495593bf930b4ae8a6e148dfe21afd5f84da569cbd8c24"
+        "contract_digest": "bec57e48e3230597d76b35f29783f84485f7ac20a9eaed16f405a57e59daeeb4"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1712,9 +1694,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1731,698 +1711,12 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "4570b723432e785020abff068cae6cb6b6e9699fcef570ce80c0c35f8ee3eb30"
+        "contract_digest": "1f5e2cf2352633553b3179c5aeda430faf8f247db45d97962697107ac65b6b5b"
       },
       "worker_operations": [],
       "path_fields": [],
       "queued": false,
       "queryable_in_delta": true,
-      "studio_read": false,
-      "verification_checks": [],
-      "cross_project_read": false,
-      "read_schemas": []
-    },
-    {
-      "name": "storage_connector_inspect",
-      "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "history_limit": {
-            "default": 4096,
-            "maximum": 4096,
-            "minimum": 1,
-            "title": "History Limit",
-            "type": "integer"
-          }
-        },
-        "title": "StorageInspect",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "StorageBackend": {
-            "additionalProperties": false,
-            "properties": {
-              "project_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Project Id",
-                "type": "string"
-              },
-              "engine_instance_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Engine Instance Id",
-                "type": "string"
-              },
-              "connection": {
-                "enum": [
-                  "local_api",
-                  "remote_api",
-                  "unavailable"
-                ],
-                "title": "Connection",
-                "type": "string"
-              },
-              "evidence_basis": {
-                "title": "Evidence Basis",
-                "type": "string"
-              },
-              "storage_class": {
-                "default": "unverified",
-                "enum": [
-                  "persistent_operator_declared",
-                  "ephemeral",
-                  "unverified"
-                ],
-                "title": "Storage Class",
-                "type": "string"
-              },
-              "volume_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Volume Id"
-              },
-              "policy_digest": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{64}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Policy Digest"
-              },
-              "connector_id": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Connector Id"
-              },
-              "restart_recovery_verified": {
-                "default": false,
-                "title": "Restart Recovery Verified",
-                "type": "boolean"
-              },
-              "restart_verified_at": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Restart Verified At"
-              },
-              "observed_at": {
-                "title": "Observed At",
-                "type": "string"
-              },
-              "physical_durability_attested": {
-                "const": false,
-                "default": false,
-                "title": "Physical Durability Attested",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "engine_instance_id",
-              "connection",
-              "evidence_basis",
-              "observed_at"
-            ],
-            "title": "StorageBackend",
-            "type": "object"
-          }
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "mode": {
-            "default": "AUTO",
-            "enum": [
-              "AUTO",
-              "LOCAL_SQLITE",
-              "CONFIGURED_DURABLE_CONNECTOR"
-            ],
-            "title": "Mode",
-            "type": "string"
-          },
-          "connector_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Connector Id"
-          },
-          "selection_recorded": {
-            "default": false,
-            "title": "Selection Recorded",
-            "type": "boolean"
-          },
-          "event_digest": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Event Digest"
-          },
-          "history_count": {
-            "default": 0,
-            "title": "History Count",
-            "type": "integer"
-          },
-          "selected_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Selected By"
-          },
-          "selected_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Selected At"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Reason"
-          },
-          "backend": {
-            "$ref": "#/$defs/StorageBackend"
-          },
-          "policy_satisfied": {
-            "title": "Policy Satisfied",
-            "type": "boolean"
-          },
-          "availability_reason": {
-            "title": "Availability Reason",
-            "type": "string"
-          },
-          "observation_scope": {
-            "default": "current_read",
-            "enum": [
-              "current_read",
-              "at_selection_commit"
-            ],
-            "title": "Observation Scope",
-            "type": "string"
-          },
-          "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
-            "title": "State Authority",
-            "type": "string"
-          },
-          "project_migrated": {
-            "const": false,
-            "default": false,
-            "title": "Project Migrated",
-            "type": "boolean"
-          },
-          "connection_redirected": {
-            "const": false,
-            "default": false,
-            "title": "Connection Redirected",
-            "type": "boolean"
-          },
-          "blob_mirror_primary_allowed": {
-            "const": false,
-            "default": false,
-            "title": "Blob Mirror Primary Allowed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "backend",
-          "policy_satisfied",
-          "availability_reason"
-        ],
-        "title": "StorageSelectionResult",
-        "type": "object"
-      },
-      "permission": "read",
-      "profile": "receipts",
-      "workflow": "select-project-storage",
-      "mutates": false,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "storage_connector_inspect",
-        "profile": "receipts",
-        "routes": [
-          {
-            "route_id": "storage_connector_inspect.engine",
-            "adapter": "evidence_lane_plugin.storage_selection:register_storage_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "d4414137503ca35a6278d50c266f972780e62f272d7090e59d5595d25686d17c"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": true,
-      "studio_read": true,
-      "verification_checks": [],
-      "cross_project_read": false,
-      "read_schemas": []
-    },
-    {
-      "name": "storage_connector_select",
-      "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
-      "inputSchema": {
-        "additionalProperties": false,
-        "properties": {
-          "mode": {
-            "enum": [
-              "AUTO",
-              "LOCAL_SQLITE",
-              "CONFIGURED_DURABLE_CONNECTOR"
-            ],
-            "title": "Mode",
-            "type": "string"
-          },
-          "connector_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "pattern": "^[A-Za-z0-9._-]+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Connector Id"
-          },
-          "expected_event_digest": {
-            "anyOf": [
-              {
-                "pattern": "^[0-9a-f]{64}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Expected Event Digest"
-          },
-          "reason": {
-            "maxLength": 1000,
-            "minLength": 1,
-            "title": "Reason",
-            "type": "string"
-          },
-          "confirmation": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Confirmation",
-            "type": "string"
-          }
-        },
-        "required": [
-          "mode",
-          "reason",
-          "confirmation"
-        ],
-        "title": "StorageSelect",
-        "type": "object"
-      },
-      "outputSchema": {
-        "$defs": {
-          "StorageBackend": {
-            "additionalProperties": false,
-            "properties": {
-              "project_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Project Id",
-                "type": "string"
-              },
-              "engine_instance_id": {
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "title": "Engine Instance Id",
-                "type": "string"
-              },
-              "connection": {
-                "enum": [
-                  "local_api",
-                  "remote_api",
-                  "unavailable"
-                ],
-                "title": "Connection",
-                "type": "string"
-              },
-              "evidence_basis": {
-                "title": "Evidence Basis",
-                "type": "string"
-              },
-              "storage_class": {
-                "default": "unverified",
-                "enum": [
-                  "persistent_operator_declared",
-                  "ephemeral",
-                  "unverified"
-                ],
-                "title": "Storage Class",
-                "type": "string"
-              },
-              "volume_id": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Volume Id"
-              },
-              "policy_digest": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{64}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Policy Digest"
-              },
-              "connector_id": {
-                "anyOf": [
-                  {
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Connector Id"
-              },
-              "restart_recovery_verified": {
-                "default": false,
-                "title": "Restart Recovery Verified",
-                "type": "boolean"
-              },
-              "restart_verified_at": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Restart Verified At"
-              },
-              "observed_at": {
-                "title": "Observed At",
-                "type": "string"
-              },
-              "physical_durability_attested": {
-                "const": false,
-                "default": false,
-                "title": "Physical Durability Attested",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "project_id",
-              "engine_instance_id",
-              "connection",
-              "evidence_basis",
-              "observed_at"
-            ],
-            "title": "StorageBackend",
-            "type": "object"
-          }
-        },
-        "additionalProperties": false,
-        "properties": {
-          "project_id": {
-            "title": "Project Id",
-            "type": "string"
-          },
-          "mode": {
-            "default": "AUTO",
-            "enum": [
-              "AUTO",
-              "LOCAL_SQLITE",
-              "CONFIGURED_DURABLE_CONNECTOR"
-            ],
-            "title": "Mode",
-            "type": "string"
-          },
-          "connector_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Connector Id"
-          },
-          "selection_recorded": {
-            "default": false,
-            "title": "Selection Recorded",
-            "type": "boolean"
-          },
-          "event_digest": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Event Digest"
-          },
-          "history_count": {
-            "default": 0,
-            "title": "History Count",
-            "type": "integer"
-          },
-          "selected_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Selected By"
-          },
-          "selected_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Selected At"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Reason"
-          },
-          "backend": {
-            "$ref": "#/$defs/StorageBackend"
-          },
-          "policy_satisfied": {
-            "title": "Policy Satisfied",
-            "type": "boolean"
-          },
-          "availability_reason": {
-            "title": "Availability Reason",
-            "type": "string"
-          },
-          "observation_scope": {
-            "default": "current_read",
-            "enum": [
-              "current_read",
-              "at_selection_commit"
-            ],
-            "title": "Observation Scope",
-            "type": "string"
-          },
-          "state_authority": {
-            "const": "receipts_lane_sqlite",
-            "default": "receipts_lane_sqlite",
-            "title": "State Authority",
-            "type": "string"
-          },
-          "project_migrated": {
-            "const": false,
-            "default": false,
-            "title": "Project Migrated",
-            "type": "boolean"
-          },
-          "connection_redirected": {
-            "const": false,
-            "default": false,
-            "title": "Connection Redirected",
-            "type": "boolean"
-          },
-          "blob_mirror_primary_allowed": {
-            "const": false,
-            "default": false,
-            "title": "Blob Mirror Primary Allowed",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "project_id",
-          "backend",
-          "policy_satisfied",
-          "availability_reason"
-        ],
-        "title": "StorageSelectionResult",
-        "type": "object"
-      },
-      "permission": "admin",
-      "profile": "receipts",
-      "workflow": "select-project-storage",
-      "mutates": true,
-      "project_required": true,
-      "requires_delta": false,
-      "required_tools": [],
-      "toolchain": {
-        "operation": "storage_connector_select",
-        "profile": "receipts",
-        "routes": [
-          {
-            "route_id": "storage_connector_select.engine",
-            "adapter": "evidence_lane_plugin.storage_selection:register_storage_actions.<locals>.<lambda>",
-            "tool_ids": [
-              "Python"
-            ],
-            "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
-            ],
-            "fidelity": "exact_contract",
-            "provider": "engine_cpu",
-            "reason": "Registered engine adapter",
-            "host_profiles": [],
-            "extension": null,
-            "argument_values": {},
-            "argument_suffixes": {}
-          }
-        ],
-        "installation_matrix": "toolchains/shared-toolchain.v4.json",
-        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
-        "fallback_after_invocation": false,
-        "no_fallback_reason": "No equivalent alternate adapter is registered.",
-        "worker_operations": [],
-        "installation_implied": false,
-        "contract_digest": "e0cb623f499d5e15003e3cb6c238cb2b85076f68177c9029859dac74b0dfd8f4"
-      },
-      "worker_operations": [],
-      "path_fields": [],
-      "queued": false,
-      "queryable_in_delta": false,
       "studio_read": false,
       "verification_checks": [],
       "cross_project_read": false,
@@ -2438,24 +1732,23 @@
     "evidence_lane_plugin.database_recovery",
     "evidence_lane_plugin.remote_git",
     "evidence_lane_plugin.capture_routing",
-    "evidence_lane_plugin.agent_learning",
-    "evidence_lane_plugin.storage_selection"
+    "evidence_lane_plugin.agent_learning"
   ],
   "topology": {
     "schema": "evidence-lane.semantic-graph-pipeline.v1",
     "status": "PASS",
     "graph": "workflow_receipts",
     "graph_role": "EXECUTABLE_WORKFLOW",
-    "node_count": 17,
-    "edge_count": 28,
+    "node_count": 15,
+    "edge_count": 24,
     "group_count": 0,
-    "semantic_topology_sha256": "B2BC922DCC035FCA6037CBFB342C5784BA99BAD76F69ACD10B92E70343F23E1A",
-    "mmd_sha256": "5645DC3F03A12EDB72773E2851CAF3A7E4CE90A8521E557E195EBC033058BB3E",
-    "dot_sha256": "7F8367AAEF8CBD797AE27178732647F899ADB271B75055A608DA32E1D065B7B5",
+    "semantic_topology_sha256": "E97B154E105B6B756DB494ABAFE062F12B28EE82793B5C39E5C256818F2E9C74",
+    "mmd_sha256": "F80520FB60D9E0A3FEF9635B4F8676FFD6119454507A48F308C447625447730F",
+    "dot_sha256": "EBAA288272BE66F2747F80771364D4B1C7D61E95F22EA02AF53A47E2740C4384",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "749B02F56D0D67E54FDD8AFFF4AE21FCE2D750B5E3535CE6F4C07636A4EDAE63",
+    "langgraph_export_sha256": "EF5D0D734696B6F806543F777159CFE8B71E4A3C1B2211FDA70B4241EE7FE746",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -2471,13 +1764,13 @@
     "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 5,
+    "layout_constraint_count": 4,
     "balanced_two_dimensional_projection": true,
     "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "229238700D4E59AD8DD67539845933C387F66DC6CEE236C2A7B5342CE2E3EA7A"
+    "receipt_sha256": "37C8CF90521B93B5DF35A1BF71B126C49494D517B976362B339C794BC089F99D"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false,
@@ -2486,16 +1779,16 @@
     "status": "PASS",
     "graph": "schema_receipts",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 19,
+    "node_count": 18,
     "edge_count": 6,
     "group_count": 0,
-    "semantic_topology_sha256": "C3AA7FBF9D4D9E9ABBB1D6BC425F679B785A964432DF845D0E19D61AE21270F8",
-    "mmd_sha256": "861A9D692AFAD4271E97EBB7D0F21B80C361FA007ADF6B2EC3E52E635D0CFFFD",
-    "dot_sha256": "EE46776BCBEEB113C09A052FA008692B3446CF7AC1E84D089B7B70426EC24BEE",
+    "semantic_topology_sha256": "07C526169A94CBC8B6CB37A39BEA98EF742F861831EAEAB535A1E8770F6371AA",
+    "mmd_sha256": "EDDE45E12C0F8EB75E6042855151D7ED1F3729AD5D3A8E07BF8CD14D7B1A6188",
+    "dot_sha256": "841E6080F9BF8FF62D88729DD10D44FE6D206FF0F288FE263427B807BE70F5BB",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "E10FB9CC37E8198631EEAD7304816D008E7ED025BE1A245195C24EB47DF06AA2",
+    "langgraph_export_sha256": "E0B05BB1540B3940F923D40DBD17DA9B59B53FEDDA63824F542C8A1B8CA7A906",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -2517,6 +1810,6 @@
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "1D300FE7E64D5F06EA2EBD22EE81D33F383EE18CC0806447F50ADEEA37776FFF"
+    "receipt_sha256": "06764F0093A845951BAFD899B041C1FC2D6EC884B5AA9CD3692E6BFAFE0C8BAD"
   }
 }

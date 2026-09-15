@@ -3970,32 +3970,6 @@
         },
         {
           "cross_project_read": false,
-          "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
-          "mutates": false,
-          "name": "storage_connector_inspect",
-          "permission": "read",
-          "profile": "receipts",
-          "project_required": true,
-          "queryable_in_delta": true,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": true
-        },
-        {
-          "cross_project_read": false,
-          "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
-          "mutates": true,
-          "name": "storage_connector_select",
-          "permission": "admin",
-          "profile": "receipts",
-          "project_required": true,
-          "queryable_in_delta": false,
-          "queued": false,
-          "requires_delta": false,
-          "studio_read": false
-        },
-        {
-          "cross_project_read": false,
           "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
           "mutates": false,
           "name": "storage_status",

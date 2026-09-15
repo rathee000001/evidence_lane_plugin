@@ -39,4 +39,4 @@ def test_pygithub_network_gate_is_explicit() -> None:
         inspect_github_repository(GitHubInspectionRequest(repository='owner/repository'))
     assert failure.value.code == 'DELTA_REQUIRED'
     with pytest.raises(ValueError):
-        GitHubInspectionRequest(repository='owner/repository', network_allowed=True, host_profile='CODEX_CLI')
+        GitHubInspectionRequest(repository='owner/repository', network_allowed=True, host_profile='CODEX_DESKTOP')

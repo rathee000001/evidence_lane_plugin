@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "53ae2b696a2b452247182245aa3f7a0d8200f6431fca24727210965de7e24359",
+  "action_set_digest": "78b79c6d62a2611a8c16bbab44ccb0ce20edc18167fb456f61864bef1de7881e",
   "actions": [
     {
       "cross_project_read": false,
@@ -144,7 +144,7 @@
     {
       "cross_project_read": false,
       "description": "Render exact document bytes to PDF and page PNGs using the verified shared office runtime.",
-      "input_schema_digest": "967fa1894d51e3fc6c9db2f0ac902fec277e6b8647550464f78409c3e89a41ed",
+      "input_schema_digest": "4b73a2d81c2a13abe45e0712216edee89f75d93fb724a2ce160148288fcaca41",
       "mutates": true,
       "name": "document_render",
       "output_schema_digest": "3f839316ae1bed531aaa105ed7a0a61ab4020179b43f97ed7052b9daf92fcc30",
@@ -312,7 +312,7 @@
     {
       "cross_project_read": false,
       "description": "Render exact presentation bytes to PDF and page PNGs using the verified shared office runtime.",
-      "input_schema_digest": "4e23260a162396cc213247f59c187464c99efec7b7291f4b6484e708088d3e00",
+      "input_schema_digest": "59d4256403603622f7c9130dd7d01912f600dc4110b174545fc7abc5f0ca15cf",
       "mutates": true,
       "name": "presentation_render",
       "output_schema_digest": "ff364e5641ea0c6a6db6f816281374971ee3978e77f1d1c7a252b0dcb80db9f3",
@@ -368,7 +368,7 @@
     {
       "cross_project_read": false,
       "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
-      "input_schema_digest": "b07fbc7fa721a6a8dba23261e225c63532a4f8ad21cd7c9a78c98de57919bae1",
+      "input_schema_digest": "03f50a7cd6707963171cde339f96c96746665bfe28031578b8e77d783d357154",
       "mutates": true,
       "name": "spreadsheet_recalculate",
       "output_schema_digest": "fd9eba8ae270407d83f5b26ca1e796bf689e1dacba134975bc167d4fb1a646e8",
@@ -382,7 +382,7 @@
     {
       "cross_project_read": false,
       "description": "Use the verified shared Calc runtime on exact inspected workbook bytes with explicit formula and fidelity limits.",
-      "input_schema_digest": "6490a2a2def12a78785876dd9df65a50c792fa2f18126e7f6494afc64e548eb6",
+      "input_schema_digest": "560bc17acd94a13fd2a964310594991d7d173f790b1d8e425dd11b598899c532",
       "mutates": true,
       "name": "spreadsheet_render",
       "output_schema_digest": "fd9eba8ae270407d83f5b26ca1e796bf689e1dacba134975bc167d4fb1a646e8",

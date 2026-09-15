@@ -11,7 +11,12 @@ from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.service import Service, request_owner_control
 from evidence_lane_plugin.shortcuts import StudioShortcut, shell_link
 from evidence_lane_plugin.studio_gateway import StudioGateway
-from evidence_lane_plugin.studio_window import StudioWindow, installed_browser
+from evidence_lane_plugin.studio_window import (
+    StudioWindow,
+    close_dedicated_browser_processes,
+    dedicated_browser_processes,
+    installed_browser,
+)
 
 
 def test_window_uses_visible_app_frame_and_private_profile_without_debug_port(tmp_path):
@@ -23,7 +28,12 @@ def test_window_uses_visible_app_frame_and_private_profile_without_debug_port(tm
         calls.append((arguments, options))
         return SimpleNamespace(poll=lambda: None)
 
-    window = StudioWindow(tmp_path / "runtime", browser=browser, spawn=spawn)
+    window = StudioWindow(
+        tmp_path / "runtime",
+        browser=browser,
+        spawn=spawn,
+        existing=lambda _profile: (),
+    )
     url = "http://127.0.0.1:12345/studio/#ticket=" + "x" * 64
     assert window(url)
     command, options = calls[0]
@@ -41,6 +51,68 @@ def test_window_uses_visible_app_frame_and_private_profile_without_debug_port(tm
         with pytest.raises(LaneError):
             window(invalid)
     assert len(calls) == 1
+
+
+def test_existing_private_profile_window_is_restored_without_spawning(tmp_path):
+    browser = tmp_path / "chrome.exe"
+    browser.touch()
+    existing = SimpleNamespace(pid=42)
+    spawned = []
+    restored = []
+    window = StudioWindow(
+        tmp_path / "runtime",
+        browser=browser,
+        spawn=lambda *args, **kwargs: spawned.append((args, kwargs)),
+        existing=lambda profile: [existing]
+        if profile == tmp_path / "runtime/studio-browser"
+        else [],
+        restore=lambda processes: restored.append(processes) or True,
+    )
+    url = "http://127.0.0.1:12345/studio/#ticket=" + "x" * 64
+    assert window(url)
+    assert spawned == []
+    assert restored == [(existing,)]
+    assert window.last_launch["mode"] == "existing_dedicated_browser_window"
+    assert window.last_launch["visible_window_verified"] is True
+    assert window.last_launch["existing_profile_process_count"] == 1
+
+
+def test_private_profile_process_selection_and_close_never_touch_other_browser(tmp_path):
+    profile = tmp_path / "runtime/studio-browser"
+
+    class Process:
+        def __init__(self, pid, name, selected_profile):
+            self.pid = pid
+            self.info = {
+                "name": name,
+                "exe": str(tmp_path / name),
+                "cmdline": [str(tmp_path / name), "--user-data-dir=" + str(selected_profile)],
+            }
+            self.terminated = False
+
+        def terminate(self):
+            self.terminated = True
+
+        def kill(self):
+            raise AssertionError("A graceful exact-profile close should finish before kill")
+
+    owned = Process(41, "msedge.exe", profile)
+    unrelated = Process(42, "msedge.exe", tmp_path / "normal-browser")
+    wrong_program = Process(43, "notepad.exe", profile)
+
+    def processes(_attributes):
+        return [owned, unrelated, wrong_program]
+
+    assert dedicated_browser_processes(profile, process_iter=processes) == (owned,)
+    result = close_dedicated_browser_processes(
+        profile,
+        process_iter=processes,
+        waiter=lambda selected, timeout: (selected, []),
+    )
+    assert result == {"matched": 1, "closed": 1}
+    assert owned.terminated is True
+    assert unrelated.terminated is False
+    assert wrong_program.terminated is False
 
 
 def test_reopening_uses_existing_browser_session_without_extending_expiry(tmp_path):
@@ -73,14 +145,15 @@ def test_real_windows_shortcut_create_readback_and_collision_preservation(tmp_pa
     assert shortcut.path.read_bytes() == before
 
 
-def test_reopen_does_not_replace_or_stop_engine(tmp_path):
+def test_background_start_is_windowless_and_explicit_reopen_keeps_engine(tmp_path):
     opened = []
     service = Service(tmp_path / "runtime", workers=1, studio_launcher=lambda url: opened.append(url) or True)
     try:
         service.start()
         instance = service.engine.instance_id
+        assert opened == []
         assert request_owner_control(service.engine.root, "open_studio")["studio_launch"] == "requested"
-        assert len(opened) == 2 and opened[0] != opened[1]
+        assert len(opened) == 1
         assert service.engine.instance_id == instance
         assert service.engine.phase == "running"
         assert service.engine.workers.status()["state"] == "ready"

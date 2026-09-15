@@ -21,7 +21,7 @@ def test_stdio_toolchain_catalog_and_selection_keep_attributed_host_context(tmp_
         async def exercise():
             parameters = StdioServerParameters(command=sys.executable, args=[
                 '-m', 'evidence_lane_plugin.mcp_adapter', '--runtime-root', str(engine.root),
-                '--host-profile', 'codex_cli', '--project-id', project.project_id, '--permission', 'read'],
+                '--host-profile', 'codex_desktop_stable', '--project-id', project.project_id, '--permission', 'read'],
                 env={'PYTHONPATH': str(plugin / 'src')})
             async with (stdio_client(parameters) as (read, write),
                         ClientSession(read, write, read_timeout_seconds=timedelta(seconds=30)) as session):
@@ -36,7 +36,7 @@ def test_stdio_toolchain_catalog_and_selection_keep_attributed_host_context(tmp_
                 assert resolved['status'] == 'ok', resolved
                 selection = resolved['result']['resolution']
                 assert selection['selected_route'] == 'project_status.engine'
-                assert selection['context']['configured_host_profile'] == 'codex_cli'
+                assert selection['context']['configured_host_profile'] == 'codex_desktop_stable'
                 assert selection['context']['host_profile_basis'] == 'authenticated_client_report'
                 assert selection['context']['native_task_attestation'] == 'unavailable'
                 spoof = (await session.call_tool('toolchain_resolve', {'project_id': project.project_id,

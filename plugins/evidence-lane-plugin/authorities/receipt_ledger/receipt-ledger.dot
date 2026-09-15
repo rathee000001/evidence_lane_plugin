@@ -22,7 +22,6 @@ digraph schema_receipts {
   t_remote_probe [label="remote_probe\nprincipal_id, policy_digest, nonce_digest, object_digest, engine_id, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_migrations [label="schema_migrations\nowner, version, digest, description, applied_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_schema_ownership [label="schema_ownership\nobject_name, owner, object_type" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
-  t_storage_selection_events [label="storage_selection_events\nsequence, request_id, client_id, input_digest, previous_digest, body_json, digest, created_at" color="#7147c7" fillcolor="#f0ebff" shape=box style="rounded,filled"]
   t_access_grants -> t_access_grants [label=parent_grant_id]
   t_extensions_events -> t_extensions_registration [label=plugin_id]
   t_extensions_versions -> t_extensions_registration [label=plugin_id]

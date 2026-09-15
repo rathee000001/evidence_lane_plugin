@@ -84,7 +84,7 @@ def test_real_hot_journal_returns_committed_state_and_preserves_source(tmp_path,
             assert recovery['recovered_sha256'] == sha256_file(image).lower()
         assert not image.exists()
     elif owner == 'sqlalchemy':
-        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=path, host_profile='CODEX_CLI', max_file_bytes=8_388_608))
+        result = inspect_sqlalchemy_sqlite(DataInspectionRequest(source_path=path, host_profile='CODEX_DESKTOP', max_file_bytes=8_388_608))
         assert result['status'] == 'PASS'
         assert [table['name'] for table in result['tables']] == ['committed_payload']
         recovery = result['private_recovery']

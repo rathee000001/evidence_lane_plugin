@@ -1,17 +1,17 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "configured_state_is_runtime_activation": false,
   "contract": "supported-hosts.v4",
   "installed_execution_claimed": false,
   "native_identity_inferred": false,
-  "purpose": "Select Windows Studio/local engine or reduced Mac/Linux and explicit remote routes from measured facts.",
+  "purpose": "Select persistent local Windows Codex Desktop Stable or Beta and reject every other host profile.",
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 7139,
+      "bytes": 5758,
       "path": "src/evidence_lane_plugin/host_routing.py",
-      "sha256": "931de6ffad66787d474af5d6cb3937cbf70a55197bb69f5fd5450c0a787f0bf4"
+      "sha256": "2f7e25280f00bdc6f97947d1526452c2b4b6b80482acdc0245338bf4051467cd"
     }
   ],
   "status": "PASS"

@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "schemas/actions/action-manifest.v4.json",
-      "sha256": "2dd27202490ff377672f03b7b1ac235380cfabdc68ce7482d11a10e2348d7bf7"
+      "sha256": "495bbb8a80f83801809cde90d2f8fe3c9b280a31a338bbeecafcb0f3f03f68cf"
     },
     {
       "path": "scripts/generate_public_schema_catalog.py",

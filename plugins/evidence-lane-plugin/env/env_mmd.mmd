@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=2B4579C9096F6F20C97B663C1EE1964735B405BD7427DFA638A09F2DA004E9E3
+%% LANGGRAPH_EXPORT_SHA256=C8099ABB9B4DABF07E20F3B3DC7FC8B9D1EBB52C37EC7238B95388D88EC99856
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=11
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -19,13 +19,8 @@ flowchart TB
   subgraph GROUP_codex_host_variant_v4["codex host variant"]
     direction TB
     TABLE_codex_host_variant_v4["codex_host_variant_v4"]:::semantic
-    ROW_codex_host_variant_v4_1["codex_cli<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_2["codex_desktop<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_3["codex_desktop_beta<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_4["codex_desktop_stable<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_5["codex_vm_ephemeral<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_6["codex_vm_persistent<br/>DECLARED_PROFILE"]:::semantic
-    ROW_codex_host_variant_v4_7["unknown<br/>DECLARED_PROFILE"]:::semantic
+    ROW_codex_host_variant_v4_1["codex_desktop_beta<br/>DECLARED_PROFILE"]:::semantic
+    ROW_codex_host_variant_v4_2["codex_desktop_stable<br/>DECLARED_PROFILE"]:::semantic
   end
   subgraph GROUP_env_accelerator_profile_v4["env accelerator profile"]
     direction TB
@@ -302,39 +297,37 @@ flowchart TB
     ROW_env_action_binding_v4_262["spreadsheet_render_read<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_action_binding_v4_263["steer_preview<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_action_binding_v4_264["steer_submit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_265["storage_connector_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_266["storage_connector_select<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_267["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_268["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_269["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_270["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_271["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_272["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_273["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_274["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_275["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_276["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_277["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_278["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_279["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_280["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_281["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_282["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_283["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_284["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_285["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_286["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_287["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_288["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_289["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_290["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_291["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_292["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_293["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_294["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_295["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_296["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_action_binding_v4_297["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_265["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_266["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_267["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_268["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_269["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_270["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_271["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_272["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_273["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_274["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_275["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_276["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_277["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_278["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_279["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_280["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_281["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_282["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_283["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_284["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_285["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_286["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_287["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_288["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_289["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_290["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_291["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_292["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_293["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_294["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_action_binding_v4_295["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
   end
   subgraph GROUP_env_codex_workflow_edge_v4["env codex workflow edge"]
     direction TB
@@ -357,7 +350,7 @@ flowchart TB
     TABLE_env_codex_workflow_stage_v4["env_codex_workflow_stage_v4"]:::semantic
     ROW_env_codex_workflow_stage_v4_1["USER_INTENT<br/>User request and current instructions"]:::semantic
     ROW_env_codex_workflow_stage_v4_2["HOST_CONTEXT<br/>Measured host and client context"]:::semantic
-    ROW_env_codex_workflow_stage_v4_3["PROJECT_BINDING<br/>Explicit project and storage selection"]:::semantic
+    ROW_env_codex_workflow_stage_v4_3["PROJECT_BINDING<br/>Explicit project and local persistence binding"]:::semantic
     ROW_env_codex_workflow_stage_v4_4["SKILL_RESOLUTION<br/>Business-intent skill selection"]:::semantic
     ROW_env_codex_workflow_stage_v4_5["ACTION_CONTRACT<br/>Typed action and lane contract"]:::semantic
     ROW_env_codex_workflow_stage_v4_6["PLAN_STATE<br/>Current Plan revision and task contract"]:::semantic
@@ -678,39 +671,37 @@ flowchart TB
     ROW_env_mcp_action_binding_v4_262["spreadsheet_render_read<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_mcp_action_binding_v4_263["steer_preview<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_mcp_action_binding_v4_264["steer_submit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_265["storage_connector_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_266["storage_connector_select<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_267["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_268["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_269["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_270["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_271["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_272["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_273["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_274["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_275["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_276["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_277["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_278["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_279["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_280["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_281["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_282["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_283["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_284["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_285["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_286["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_287["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_288["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_289["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_290["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_291["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_292["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_293["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_294["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_295["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_296["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_mcp_action_binding_v4_297["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_265["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_266["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_267["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_268["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_269["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_270["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_271["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_272["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_273["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_274["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_275["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_276["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_277["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_278["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_279["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_280["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_281["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_282["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_283["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_284["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_285["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_286["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_287["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_288["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_289["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_290["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_291["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_292["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_293["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_294["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_mcp_action_binding_v4_295["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
   end
   subgraph GROUP_env_mode_policy_v4["env mode policy"]
     direction TB
@@ -1111,40 +1102,38 @@ flowchart TB
     ROW_env_operation_pipeline_v4_374["spreadsheet_render_read<br/>spreadsheet_render_read"]:::semantic
     ROW_env_operation_pipeline_v4_375["steer_preview<br/>steer_preview"]:::semantic
     ROW_env_operation_pipeline_v4_376["steer_submit<br/>steer_submit"]:::semantic
-    ROW_env_operation_pipeline_v4_377["storage_connector_inspect<br/>storage_connector_inspect"]:::semantic
-    ROW_env_operation_pipeline_v4_378["storage_connector_select<br/>storage_connector_select"]:::semantic
-    ROW_env_operation_pipeline_v4_379["storage_status<br/>storage_status"]:::semantic
-    ROW_env_operation_pipeline_v4_380["tableau_current<br/>tableau_current"]:::semantic
-    ROW_env_operation_pipeline_v4_381["tableau_edit<br/>tableau_edit"]:::semantic
-    ROW_env_operation_pipeline_v4_382["tableau_export<br/>tableau_export"]:::semantic
-    ROW_env_operation_pipeline_v4_383["tableau_export<br/>tableau_export"]:::semantic
-    ROW_env_operation_pipeline_v4_384["tableau_generate<br/>tableau_generate"]:::semantic
-    ROW_env_operation_pipeline_v4_385["tableau_index<br/>tableau_index"]:::semantic
-    ROW_env_operation_pipeline_v4_386["tableau_query<br/>tableau_query"]:::semantic
-    ROW_env_operation_pipeline_v4_387["tableau_read<br/>tableau_read"]:::semantic
-    ROW_env_operation_pipeline_v4_388["tableau_refresh<br/>tableau_refresh"]:::semantic
-    ROW_env_operation_pipeline_v4_389["task_classify<br/>task_classify"]:::semantic
-    ROW_env_operation_pipeline_v4_390["task_evidence_classify<br/>task_evidence_classify"]:::semantic
-    ROW_env_operation_pipeline_v4_391["task_evidence_decide<br/>task_evidence_decide"]:::semantic
-    ROW_env_operation_pipeline_v4_392["task_evidence_edge_bind<br/>task_evidence_edge_bind"]:::semantic
-    ROW_env_operation_pipeline_v4_393["task_evidence_edge_register<br/>task_evidence_edge_register"]:::semantic
-    ROW_env_operation_pipeline_v4_394["task_evidence_expect<br/>task_evidence_expect"]:::semantic
-    ROW_env_operation_pipeline_v4_395["task_evidence_graph<br/>task_evidence_graph"]:::semantic
-    ROW_env_operation_pipeline_v4_396["task_evidence_inbox<br/>task_evidence_inbox"]:::semantic
-    ROW_env_operation_pipeline_v4_397["task_evidence_input_request<br/>task_evidence_input_request"]:::semantic
-    ROW_env_operation_pipeline_v4_398["task_evidence_inspect<br/>task_evidence_inspect"]:::semantic
-    ROW_env_operation_pipeline_v4_399["task_evidence_packet_classify<br/>task_evidence_packet_classify"]:::semantic
-    ROW_env_operation_pipeline_v4_400["task_evidence_participant_register<br/>task_evidence_participant_register"]:::semantic
-    ROW_env_operation_pipeline_v4_401["task_evidence_read<br/>task_evidence_read"]:::semantic
-    ROW_env_operation_pipeline_v4_402["task_evidence_receive<br/>task_evidence_receive"]:::semantic
-    ROW_env_operation_pipeline_v4_403["task_evidence_result<br/>task_evidence_result"]:::semantic
-    ROW_env_operation_pipeline_v4_404["task_evidence_send<br/>task_evidence_send"]:::semantic
-    ROW_env_operation_pipeline_v4_405["task_evidence_supersede<br/>task_evidence_supersede"]:::semantic
-    ROW_env_operation_pipeline_v4_406["toolchain_catalog<br/>toolchain_catalog"]:::semantic
-    ROW_env_operation_pipeline_v4_407["toolchain_resolve<br/>toolchain_resolve"]:::semantic
-    ROW_env_operation_pipeline_v4_408["validation_policy_read<br/>validation_policy_read"]:::semantic
-    ROW_env_operation_pipeline_v4_409["validation_policy_set<br/>validation_policy_set"]:::semantic
-    ROW_env_operation_pipeline_v4_410["workflow_catalog<br/>workflow_catalog"]:::semantic
+    ROW_env_operation_pipeline_v4_377["storage_status<br/>storage_status"]:::semantic
+    ROW_env_operation_pipeline_v4_378["tableau_current<br/>tableau_current"]:::semantic
+    ROW_env_operation_pipeline_v4_379["tableau_edit<br/>tableau_edit"]:::semantic
+    ROW_env_operation_pipeline_v4_380["tableau_export<br/>tableau_export"]:::semantic
+    ROW_env_operation_pipeline_v4_381["tableau_export<br/>tableau_export"]:::semantic
+    ROW_env_operation_pipeline_v4_382["tableau_generate<br/>tableau_generate"]:::semantic
+    ROW_env_operation_pipeline_v4_383["tableau_index<br/>tableau_index"]:::semantic
+    ROW_env_operation_pipeline_v4_384["tableau_query<br/>tableau_query"]:::semantic
+    ROW_env_operation_pipeline_v4_385["tableau_read<br/>tableau_read"]:::semantic
+    ROW_env_operation_pipeline_v4_386["tableau_refresh<br/>tableau_refresh"]:::semantic
+    ROW_env_operation_pipeline_v4_387["task_classify<br/>task_classify"]:::semantic
+    ROW_env_operation_pipeline_v4_388["task_evidence_classify<br/>task_evidence_classify"]:::semantic
+    ROW_env_operation_pipeline_v4_389["task_evidence_decide<br/>task_evidence_decide"]:::semantic
+    ROW_env_operation_pipeline_v4_390["task_evidence_edge_bind<br/>task_evidence_edge_bind"]:::semantic
+    ROW_env_operation_pipeline_v4_391["task_evidence_edge_register<br/>task_evidence_edge_register"]:::semantic
+    ROW_env_operation_pipeline_v4_392["task_evidence_expect<br/>task_evidence_expect"]:::semantic
+    ROW_env_operation_pipeline_v4_393["task_evidence_graph<br/>task_evidence_graph"]:::semantic
+    ROW_env_operation_pipeline_v4_394["task_evidence_inbox<br/>task_evidence_inbox"]:::semantic
+    ROW_env_operation_pipeline_v4_395["task_evidence_input_request<br/>task_evidence_input_request"]:::semantic
+    ROW_env_operation_pipeline_v4_396["task_evidence_inspect<br/>task_evidence_inspect"]:::semantic
+    ROW_env_operation_pipeline_v4_397["task_evidence_packet_classify<br/>task_evidence_packet_classify"]:::semantic
+    ROW_env_operation_pipeline_v4_398["task_evidence_participant_register<br/>task_evidence_participant_register"]:::semantic
+    ROW_env_operation_pipeline_v4_399["task_evidence_read<br/>task_evidence_read"]:::semantic
+    ROW_env_operation_pipeline_v4_400["task_evidence_receive<br/>task_evidence_receive"]:::semantic
+    ROW_env_operation_pipeline_v4_401["task_evidence_result<br/>task_evidence_result"]:::semantic
+    ROW_env_operation_pipeline_v4_402["task_evidence_send<br/>task_evidence_send"]:::semantic
+    ROW_env_operation_pipeline_v4_403["task_evidence_supersede<br/>task_evidence_supersede"]:::semantic
+    ROW_env_operation_pipeline_v4_404["toolchain_catalog<br/>toolchain_catalog"]:::semantic
+    ROW_env_operation_pipeline_v4_405["toolchain_resolve<br/>toolchain_resolve"]:::semantic
+    ROW_env_operation_pipeline_v4_406["validation_policy_read<br/>validation_policy_read"]:::semantic
+    ROW_env_operation_pipeline_v4_407["validation_policy_set<br/>validation_policy_set"]:::semantic
+    ROW_env_operation_pipeline_v4_408["workflow_catalog<br/>workflow_catalog"]:::semantic
   end
   subgraph GROUP_env_plan_projection_binding_v4["env plan projection binding"]
     direction TB
@@ -1429,39 +1418,37 @@ flowchart TB
     ROW_env_sdk_action_binding_v4_262["spreadsheet_render_read<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_sdk_action_binding_v4_263["steer_preview<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_env_sdk_action_binding_v4_264["steer_submit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_265["storage_connector_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_266["storage_connector_select<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_267["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_268["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_269["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_270["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_271["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_272["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_273["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_274["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_275["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_276["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_277["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_278["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_279["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_280["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_281["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_282["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_283["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_284["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_285["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_286["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_287["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_288["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_289["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_290["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_291["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_292["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_293["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_294["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_295["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_296["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_env_sdk_action_binding_v4_297["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_265["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_266["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_267["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_268["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_269["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_270["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_271["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_272["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_273["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_274["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_275["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_276["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_277["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_278["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_279["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_280["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_281["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_282["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_283["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_284["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_285["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_286["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_287["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_288["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_289["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_290["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_291["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_292["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_293["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_294["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_env_sdk_action_binding_v4_295["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
   end
   subgraph GROUP_env_skill_binding_v4["env skill binding"]
     direction TB
@@ -1681,7 +1668,7 @@ flowchart TB
     direction TB
     CODEX_USER_INTENT["User request and current instructions"]:::semantic
     CODEX_HOST_CONTEXT["Measured host and client context"]:::semantic
-    CODEX_PROJECT_BINDING["Explicit project and storage selection"]:::semantic
+    CODEX_PROJECT_BINDING["Explicit project and local persistence binding"]:::semantic
     CODEX_SKILL_RESOLUTION["Business-intent skill selection"]:::semantic
     CODEX_ACTION_CONTRACT["Typed action and lane contract"]:::semantic
     CODEX_PLAN_STATE["Current Plan revision and task contract"]:::semantic
@@ -1696,11 +1683,6 @@ flowchart TB
   ROOT -->|"owns policy rows"| TABLE_codex_host_variant_v4
   TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_1
   TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_2
-  TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_3
-  TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_4
-  TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_5
-  TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_6
-  TABLE_codex_host_variant_v4 -->|"declares"| ROW_codex_host_variant_v4_7
   ROOT -->|"owns policy rows"| TABLE_env_accelerator_profile_v4
   TABLE_env_accelerator_profile_v4 -->|"declares"| ROW_env_accelerator_profile_v4_1
   TABLE_env_accelerator_profile_v4 -->|"declares"| ROW_env_accelerator_profile_v4_2
@@ -2002,8 +1984,6 @@ flowchart TB
   TABLE_env_action_binding_v4 -->|"declares"| ROW_env_action_binding_v4_293
   TABLE_env_action_binding_v4 -->|"declares"| ROW_env_action_binding_v4_294
   TABLE_env_action_binding_v4 -->|"declares"| ROW_env_action_binding_v4_295
-  TABLE_env_action_binding_v4 -->|"declares"| ROW_env_action_binding_v4_296
-  TABLE_env_action_binding_v4 -->|"declares"| ROW_env_action_binding_v4_297
   ROOT -->|"owns policy rows"| TABLE_env_codex_workflow_edge_v4
   TABLE_env_codex_workflow_edge_v4 -->|"declares"| ROW_env_codex_workflow_edge_v4_1
   TABLE_env_codex_workflow_edge_v4 -->|"declares"| ROW_env_codex_workflow_edge_v4_2
@@ -2363,8 +2343,6 @@ flowchart TB
   TABLE_env_mcp_action_binding_v4 -->|"declares"| ROW_env_mcp_action_binding_v4_293
   TABLE_env_mcp_action_binding_v4 -->|"declares"| ROW_env_mcp_action_binding_v4_294
   TABLE_env_mcp_action_binding_v4 -->|"declares"| ROW_env_mcp_action_binding_v4_295
-  TABLE_env_mcp_action_binding_v4 -->|"declares"| ROW_env_mcp_action_binding_v4_296
-  TABLE_env_mcp_action_binding_v4 -->|"declares"| ROW_env_mcp_action_binding_v4_297
   ROOT -->|"owns policy rows"| TABLE_env_mode_policy_v4
   TABLE_env_mode_policy_v4 -->|"declares"| ROW_env_mode_policy_v4_1
   TABLE_env_mode_policy_v4 -->|"declares"| ROW_env_mode_policy_v4_2
@@ -2791,8 +2769,6 @@ flowchart TB
   TABLE_env_operation_pipeline_v4 -->|"declares"| ROW_env_operation_pipeline_v4_406
   TABLE_env_operation_pipeline_v4 -->|"declares"| ROW_env_operation_pipeline_v4_407
   TABLE_env_operation_pipeline_v4 -->|"declares"| ROW_env_operation_pipeline_v4_408
-  TABLE_env_operation_pipeline_v4 -->|"declares"| ROW_env_operation_pipeline_v4_409
-  TABLE_env_operation_pipeline_v4 -->|"declares"| ROW_env_operation_pipeline_v4_410
   ROOT -->|"owns policy rows"| TABLE_env_plan_projection_binding_v4
   TABLE_env_plan_projection_binding_v4 -->|"declares"| ROW_env_plan_projection_binding_v4_1
   ROOT -->|"owns policy rows"| TABLE_env_project_class_policy_v4
@@ -3099,8 +3075,6 @@ flowchart TB
   TABLE_env_sdk_action_binding_v4 -->|"declares"| ROW_env_sdk_action_binding_v4_293
   TABLE_env_sdk_action_binding_v4 -->|"declares"| ROW_env_sdk_action_binding_v4_294
   TABLE_env_sdk_action_binding_v4 -->|"declares"| ROW_env_sdk_action_binding_v4_295
-  TABLE_env_sdk_action_binding_v4 -->|"declares"| ROW_env_sdk_action_binding_v4_296
-  TABLE_env_sdk_action_binding_v4 -->|"declares"| ROW_env_sdk_action_binding_v4_297
   ROOT -->|"owns policy rows"| TABLE_env_skill_binding_v4
   TABLE_env_skill_binding_v4 -->|"declares"| ROW_env_skill_binding_v4_1
   TABLE_env_skill_binding_v4 -->|"declares"| ROW_env_skill_binding_v4_2
@@ -3310,15 +3284,15 @@ flowchart TB
   CODEX_PLAN_PROJECTION --> CODEX_EVIDENCE_PUBLICATION
   CODEX_EVIDENCE_PUBLICATION --> CODEX_STUDIO_OBSERVATION
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  ROW_codex_host_variant_v4_1 ~~~ ROW_codex_host_variant_v4_2
-  ROW_env_action_binding_v4_150 ~~~ ROW_env_action_binding_v4_151
-  ROW_env_codex_workflow_edge_v4_9 ~~~ ROW_env_codex_workflow_edge_v4_10
-  ROW_env_mcp_action_binding_v4_115 ~~~ ROW_env_mcp_action_binding_v4_116
-  ROW_env_mcp_action_binding_v4_268 ~~~ ROW_env_mcp_action_binding_v4_269
-  ROW_env_operation_pipeline_v4_113 ~~~ ROW_env_operation_pipeline_v4_114
-  ROW_env_operation_pipeline_v4_265 ~~~ ROW_env_operation_pipeline_v4_266
-  ROW_env_sdk_action_binding_v4_4 ~~~ ROW_env_sdk_action_binding_v4_5
+  ROW_env_action_binding_v4_1 ~~~ ROW_env_action_binding_v4_2
+  ROW_env_action_binding_v4_153 ~~~ ROW_env_action_binding_v4_154
+  ROW_env_codex_workflow_stage_v4_2 ~~~ ROW_env_codex_workflow_stage_v4_3
+  ROW_env_mcp_action_binding_v4_117 ~~~ ROW_env_mcp_action_binding_v4_118
+  ROW_env_mcp_action_binding_v4_269 ~~~ ROW_env_mcp_action_binding_v4_270
+  ROW_env_operation_pipeline_v4_115 ~~~ ROW_env_operation_pipeline_v4_116
+  ROW_env_operation_pipeline_v4_266 ~~~ ROW_env_operation_pipeline_v4_267
+  ROW_env_sdk_action_binding_v4_6 ~~~ ROW_env_sdk_action_binding_v4_7
   ROW_env_sdk_action_binding_v4_158 ~~~ ROW_env_sdk_action_binding_v4_159
-  ROW_env_skill_binding_v4_17 ~~~ ROW_env_skill_binding_v4_18
+  ROW_env_skill_binding_v4_19 ~~~ ROW_env_skill_binding_v4_20
   ROW_env_workflow_policy_v4_23 ~~~ ROW_env_workflow_policy_v4_24
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

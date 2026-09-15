@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Snapshot one exact presentation and its bounded native structure in the separate PPT lane.",
@@ -116,7 +116,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "220749f79385babb5be9ebaa27e727eb4c645e4cf8db18e6e88938ed043adf17",
+    "contract_digest": "491d20dbe19f2a9147dc771ca533ab24cc5d2aa987085a0ce4e7dfa695210dbe",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -135,9 +135,7 @@
         "reason": "Registered engine adapter",
         "route_id": "presentation_index.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

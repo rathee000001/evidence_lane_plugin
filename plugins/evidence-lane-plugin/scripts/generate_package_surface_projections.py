@@ -37,6 +37,14 @@ RETIRED_GENERATED_ALIASES = (
     "sdk/delta/lifecycle.workflow.v4.json",
     "sdk/delta/state-travel.workflow.v4.json",
     "sdk/host/state-travel.contract.v4.json",
+    "schemas/actions/storage_connector_inspect.v4.schema.json",
+    "schemas/actions/storage_connector_select.v4.schema.json",
+    "sdk/actions/storage_connector_inspect.action.v4.json",
+    "sdk/actions/storage_connector_select.action.v4.json",
+    "mcp/actions/storage_connector_inspect.binding.v4.json",
+    "mcp/actions/storage_connector_select.binding.v4.json",
+    "sdk/routing/actions/storage_connector_inspect.route.v4.json",
+    "sdk/routing/actions/storage_connector_select.route.v4.json",
 )
 
 

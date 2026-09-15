@@ -89,15 +89,6 @@
       "statements": [
         "CREATE TABLE hostmemory_imports (\n       request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       receipt_id TEXT NOT NULL UNIQUE REFERENCES receipts(receipt_id), receipt_digest TEXT NOT NULL,\n       result_json TEXT NOT NULL CHECK(json_valid(result_json)), result_digest TEXT NOT NULL)"
       ]
-    },
-    {
-      "owner": "storage",
-      "version": 1,
-      "digest": "a47bb0877ae5f3d44866e04ee05766eca59af045fb07c7618917470bd197135b",
-      "description": "Hash-linked primary storage selections in Receipts",
-      "statements": [
-        "CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,\n       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,\n       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),\n       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)"
-      ]
     }
   ]
 }

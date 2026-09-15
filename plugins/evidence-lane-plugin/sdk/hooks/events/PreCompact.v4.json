@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PreCompact/handler.py",
   "event": "PreCompact",
   "event_contract": "hooks/events/PreCompact/event.v4.json",
-  "event_contract_sha256": "302d24e6192e321fc036007099f34f8662ec0afccb651ae3e66add2c479ada5e",
+  "event_contract_sha256": "40211de6c783d47e4df426eaf940434ebd8a0d0ccd4241445697192fec9f0ebf",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/PreCompact.v4.schema.json",
   "input_schema_sha256": "eb0119efc51a4116396e4a7643803d731e963d3ac0bfe187ba51b47ea9c8553a",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

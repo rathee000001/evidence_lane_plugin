@@ -52,7 +52,7 @@ def system(tmp_path, monkeypatch):
         bind_fixture_flash(engine, tmp_path, monkeypatch)
         entry = engine.directory.register(tmp_path / 'state', source_root=source, create=True, read_only=False)
         store = engine.directory.open(entry['project_id'], write=True)
-        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_cli'),
+        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_desktop_stable'),
             projects=[ProjectSelection(project_id=store.project_id, permissions=['read', 'write', 'tools', 'admin'])]))
 
         def controlled(command, **kwargs):
@@ -117,7 +117,7 @@ def configure(system, **changes):
         'allowed_lanes': ['github_code'], 'allowed_actions': [GITHUB_OPERATION],
         'resource_ids': [REPOSITORY], 'expires_at': 'NO_EXPIRY', 'role': 'github_repository_snapshot',
         'role_schema': {'repository': 'text', 'snapshot': 'json', 'receipt_sha256': 'blob_hash'},
-        'host_profiles': ['codex_cli'], 'backend_runtime': 'python',
+        'host_profiles': ['codex_desktop_stable'], 'backend_runtime': 'python',
         'backend_id': GITHUB_BACKEND_ID, 'backend_version': GITHUB_BACKEND_VERSION,
     } | changes)
     result = invoke(system, 'connector_configure', {'registration': registration.model_dump()})
@@ -173,7 +173,7 @@ def test_actual_sdk_worker_delta_and_verification_are_bound_to_exact_grant(syste
 
 
 @pytest.mark.parametrize('changes', [{'backend_version': '2.9.0'}, {'allowed_lanes': ['local_code']},
-    {'resource_ids': ['acme/another']}, {'config_env_keys': []}, {'host_profiles': ['codex_desktop']}])
+    {'resource_ids': ['acme/another']}, {'config_env_keys': []}, {'host_profiles': ['codex_desktop_beta']}])
 def test_mismatched_or_unconfigured_grant_stops_before_worker(system, changes):
     configure(system, **changes)
     task = plan(system)
@@ -235,7 +235,7 @@ def test_invalid_worker_result_is_not_admitted_to_the_delta(system, damage):
 
 def test_packaged_mcp_advertises_exact_binding_and_runs_the_actual_sdk_worker(system):
     engine, store, _, _ = system
-    configure(system, host_profiles=['codex_cli', 'codex_desktop'])
+    configure(system, host_profiles=['codex_desktop_stable', 'codex_desktop_beta'])
     task = plan(system)
     with LocalEndpoint(engine):
         async def exercise():

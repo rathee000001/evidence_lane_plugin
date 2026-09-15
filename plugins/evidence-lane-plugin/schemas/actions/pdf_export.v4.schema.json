@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Parse exact exported bytes and renew Sources, destination facts and existing lane views with the selected native parser.",
@@ -98,7 +98,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "4c84ec23161313f5dadf6fdf878883a58caf9a3d15d7d908205a6803d1d392a5",
+    "contract_digest": "1c5f6048227a8e623ee8a8f25ca9eff183c22042d177544f96bfd81abd5af3cb",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -118,9 +118,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pymupdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -131,9 +129,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -167,9 +163,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pdfplumber",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -179,9 +173,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -215,9 +207,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pypdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -227,9 +217,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -274,9 +262,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -310,9 +296,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pymupdf_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -326,9 +310,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -363,9 +345,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pdfplumber_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -378,9 +358,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -415,9 +393,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_export.pypdf_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -430,9 +406,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -481,9 +455,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"

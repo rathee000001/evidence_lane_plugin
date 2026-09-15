@@ -78,7 +78,7 @@
       "version": 1,
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "consumer": "artifact_export",
-      "implementation_digest": "5b5a545ccce74a071370448e91be5b9b38d9a526e3c61bbc94307d663a349385",
+      "implementation_digest": "a787322ac29f25ed7f20bbba872982cb9c046d5ca19f40361089124bf7c84e53",
       "files": {
         "mmd": "project_evidence_network.mmd",
         "dot": "project_evidence_network.dot"
@@ -150,7 +150,7 @@
       "version": 1,
       "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "consumer": "artifact_export",
-      "implementation_digest": "1f62b8d23b9b2c36ef31a6a2b8545f2a5213cb4c8b06c798b09168fe5743faf3",
+      "implementation_digest": "f02bbc25688f9fe9dc6dc8635b397df284012860f5be9087b1a6fb6e27a0ed1e",
       "files": {
         "mmd": "project_universe.mmd",
         "dot": "project_universe.dot"

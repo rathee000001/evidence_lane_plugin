@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Inspect one physical lane, its published database head, schema history and stored view freshness without refresh.",
@@ -125,7 +125,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "e4bdca94382aac4196141b12c8bb3004c2617c8b36fa022a79ae90a42d12d7e9",
+    "contract_digest": "d752d078ca26c8312f56a9208095f02cb175271d7e92e56186e42095ca5a7d0f",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -144,9 +144,7 @@
         "reason": "Registered engine adapter",
         "route_id": "lane_status.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

@@ -21,9 +21,8 @@ def detector(**overrides):
     } | overrides)
 
 
-def test_host_matrix_preserves_all_five_prior_variants_without_attesting_them():
-    assert {"codex_desktop_stable", "codex_desktop_beta", "codex_cli",
-            "codex_vm_persistent", "codex_vm_ephemeral"} <= set(HOST_MATRIX)
+def test_host_matrix_exposes_only_persistent_local_windows_desktop_profiles():
+    assert set(HOST_MATRIX) == {"codex_desktop_stable", "codex_desktop_beta"}
     for profile in HOST_MATRIX:
         observation = detector().inspect(trigger="client_connect", client=ClientHello(
             configured_profile=profile, peer_name="Codex", peer_version="claimed",
@@ -35,9 +34,10 @@ def test_host_matrix_preserves_all_five_prior_variants_without_attesting_them():
         assert observation.model_identity == "unavailable"
         assert observation.available_commands == ["git"]
         assert observation.client_evidence_basis == "authenticated_client_report"
+        assert observation.configured_persistence == "local_persistent_system"
 
 
-def test_unknown_clients_keep_local_access_without_fabricating_native_identity():
+def test_default_stable_desktop_keeps_local_access_without_fabricating_native_identity():
     observation = detector().inspect(trigger="client_connect")
     assert select_host_route(observation)["route"] == "local_loopback"
     assert not select_host_route(observation)["execution_authorized"]
@@ -46,18 +46,24 @@ def test_unknown_clients_keep_local_access_without_fabricating_native_identity()
     assert error.value.code == "NATIVE_TASK_ATTESTATION_UNAVAILABLE"
 
 
-def test_ephemeral_and_persistent_vm_require_verified_durable_remote_route():
-    for profile in ("codex_vm_persistent", "codex_vm_ephemeral"):
+@pytest.mark.parametrize("profile", ["codex_desktop", "codex_cli", "codex_vm_persistent",
+                                      "codex_vm_ephemeral", "unknown"])
+def test_retired_host_profiles_are_rejected(profile):
+    with pytest.raises(ValidationError):
+        ClientHello(configured_profile=profile)
+
+
+def test_stable_and_beta_may_use_an_explicit_api_without_adding_a_host_profile():
+    for profile in HOST_MATRIX:
         observation = detector().inspect(trigger="client_connect", client=ClientHello(configured_profile=profile))
-        assert select_host_route(observation, remote_ready=True)["route"] is None
-        assert select_host_route(observation, durable_remote_verified=True)["reason"] == "remote_api_unavailable"
-        assert select_host_route(observation, remote_ready=True, durable_remote_verified=True)["route"] == "remote_api"
+        assert select_host_route(observation, prefer_remote=True)["reason"] == "remote_api_unavailable"
+        assert select_host_route(observation, prefer_remote=True, remote_ready=True)["route"] == "remote_api"
 
 
 def test_unavailable_local_transport_has_visible_reason():
     observation = detector(system=lambda: "UnimplementedOS").inspect(trigger="engine_start")
     assert observation.local_transport == "unavailable"
-    assert select_host_route(observation)["reason"] == "local_transport_unavailable_remote_required"
+    assert select_host_route(observation)["reason"] == "persistent_windows_desktop_required"
 
 
 def test_every_engine_start_and_new_client_uses_a_fresh_observation(tmp_path):
@@ -90,5 +96,5 @@ def test_public_hello_cannot_supply_attestation_or_unbounded_capabilities(tmp_pa
     with pytest.raises(ValidationError):
         ClientHello(peer_capabilities=["goal_mutation"])
     router = ClientRouter(ProjectDirectory(tmp_path), detector=detector())
-    _, session = router.connect(ConnectRequest(hello=ClientHello(configured_profile="codex_cli")))
+    _, session = router.connect(ConnectRequest(hello=ClientHello(configured_profile="codex_desktop_beta")))
     assert session.identity_evidence == "client_claim_only"

@@ -26,7 +26,7 @@ class DataInspectionRequest(BaseModel):
 
 def _codex_host(value: str) -> str:
     exact = value.strip().upper()
-    if exact not in {"CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}:
+    if exact != "CODEX_DESKTOP":
         raise ValueError("DATA_TOOLCHAIN_CODEX_HOST_PROFILE_REQUIRED")
     return exact
 

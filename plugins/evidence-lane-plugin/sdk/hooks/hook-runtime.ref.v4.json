@@ -1,74 +1,74 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "events": [
     {
-      "bytes": 1332,
+      "bytes": 1594,
       "path": "sdk/hooks/events/Interrupt.v4.json",
-      "sha256": "6958e189ced3835200a18edc05e4cb210982cf3e65c55517e3afdf72c3f956db"
+      "sha256": "27f83d81af84fda81f306027a007d8f155162f304c8e65a12767c45e58738fcb"
     },
     {
-      "bytes": 1420,
+      "bytes": 1682,
       "path": "sdk/hooks/events/PermissionRequest.v4.json",
-      "sha256": "1c203b27c481cda861713df80c002d4fe03aa192aeeb6aac2fdf40104f60a457"
+      "sha256": "db93baecd8be260ac1df96c64db547b0c615ab2650444a38e4085453cff0d39c"
     },
     {
-      "bytes": 1354,
+      "bytes": 1616,
       "path": "sdk/hooks/events/PostCompact.v4.json",
-      "sha256": "049372b09b532833a66d468d022bae8d4a00f3b4e28d51e410e44aaa6a42b155"
+      "sha256": "f8427a687a1267c666d56ac3f8e599c5994062ae93bfb25a23b8389d5c95dada"
     },
     {
-      "bytes": 1354,
+      "bytes": 1616,
       "path": "sdk/hooks/events/PostToolUse.v4.json",
-      "sha256": "21ef080d9b850aa1fc4199e4477a7067f11c1f3184b909d181a2a75bfcb4540a"
+      "sha256": "87cf76d901f045d1a9d5582febc4b1149f63e7220c8dbf96a76ecdb6b49f0589"
     },
     {
-      "bytes": 1343,
+      "bytes": 1605,
       "path": "sdk/hooks/events/PreCompact.v4.json",
-      "sha256": "8358ab8878e4fe89c27f09b82918f43a7ba78f83ee1a6501d6d2ad58e6192da6"
+      "sha256": "9589a0dced27d0b35d23a986aab84e3e898fabd8eae3de60298b14407b3ed175"
     },
     {
-      "bytes": 1343,
+      "bytes": 1605,
       "path": "sdk/hooks/events/PreToolUse.v4.json",
-      "sha256": "2aaad30f110f9ec3c0aa44af47c0447dee27b39d9436beee5e99451976c0fd49"
+      "sha256": "ecd95fc839c7575e0b7d9cfdfc5540617fc96a39b47d16d0f11730c6317aacc3"
     },
     {
-      "bytes": 1343,
+      "bytes": 1605,
       "path": "sdk/hooks/events/SessionEnd.v4.json",
-      "sha256": "bf94950dde45de534150ce209ebe9abb003208d7ed93556384b1ae36788a5c4e"
+      "sha256": "fdc883b96e6f505762ace356d5aa253da629c16c62ffd8103660448b9861c91b"
     },
     {
-      "bytes": 1365,
+      "bytes": 1627,
       "path": "sdk/hooks/events/SessionStart.v4.json",
-      "sha256": "ca8612f483b34ffe8ce737be044b5ab4564f8364be05730d7cf7038542ed3cbe"
+      "sha256": "473ebf6d023945a4e5de7ba8eed9453a9d7f02fef5592c3edb8d9fe1cb5d8cdb"
     },
     {
-      "bytes": 1277,
+      "bytes": 1539,
       "path": "sdk/hooks/events/Stop.v4.json",
-      "sha256": "8b261678c86df15bebf71c193fb77b24ce25d46be6eff8f22f4b9bc60fffa468"
+      "sha256": "827f4d6ff22092bda3804fa3b51fc03f665c5dc423d536d2c9ccc6d4c1b2d2f5"
     },
     {
-      "bytes": 1376,
+      "bytes": 1638,
       "path": "sdk/hooks/events/SubagentStart.v4.json",
-      "sha256": "f6b9bd8eba7fc538edbdea3313034b6f05615bb188424e4b6fd932019e958cf4"
+      "sha256": "cc298ab99b62bb2ed4f69c207b63114d4e1de8e4a62f8219652c24208a0f7dc7"
     },
     {
-      "bytes": 1365,
+      "bytes": 1627,
       "path": "sdk/hooks/events/SubagentStop.v4.json",
-      "sha256": "3de37cf707fe6faba98e186ce61342371a53927437c4637f6786df15c9aa6e5d"
+      "sha256": "1025cccd4fb20b915d45992d0680d19a933b3ad23dfc7728c0b5b7932e252f54"
     },
     {
-      "bytes": 1409,
+      "bytes": 1671,
       "path": "sdk/hooks/events/UserPromptSubmit.v4.json",
-      "sha256": "9f8e5602939d28ad640b1bd4518a1b1b1c81c3c47a1ace88df712de25c38830f"
+      "sha256": "f5a41c26f308572a8bd05bb29d8f480399c1de236e84578bf17db609c3ac60f5"
     }
   ],
   "hooks_are_lifecycle_engine": false,
   "installed_execution_claimed": false,
   "runtime": {
-    "bytes": 2552,
+    "bytes": 2814,
     "path": "sdk/hooks/hook-runtime.v4.json",
-    "sha256": "9ce8c71112b894948afbd414f829921d61967951b9cd4856b25555a8530ea9d9"
+    "sha256": "bd71616ce401a34f4f372cd8e6e023ca94c88bcc1aa91c8f6627272e872b405b"
   },
   "schema": "evidence-lane.sdk-hook-runtime-ref.v4",
   "status": "PASS"

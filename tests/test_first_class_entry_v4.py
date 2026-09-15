@@ -10,7 +10,6 @@ import httpx
 import pytest
 from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.engine import Engine
-from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.first_class_workflows import (
     EvidenceSlice,
     ProjectEvidenceSelectionRequest,
@@ -158,19 +157,16 @@ def test_original_deterministic_slice_selection_preserves_estimation_boundary():
 
 
 @pytest.mark.parametrize('system', ['Darwin', 'Linux'])
-def test_reduced_host_route_never_claims_windows_studio_or_managed_bundle(system):
+def test_non_windows_host_has_no_supported_local_route(system):
     observation = HostDetector(system=lambda: system, which=lambda _: None).inspect(trigger='client_connect',
-        client=ClientHello(configured_profile='codex_cli'))
+        client=ClientHello(configured_profile='codex_desktop_stable'))
     route = select_host_route(observation)
-    assert route['route'] == 'local_loopback' and not route['studio_supported']
-    assert not route['managed_windows_toolchain'] and not observation.engine_studio_platform_supported
+    assert route['route'] is None and route['reason'] == 'persistent_windows_desktop_required'
+    assert not observation.engine_studio_platform_supported
     assert observation.native_task_attestation == 'unavailable'
 
 
 @pytest.mark.parametrize('profile', ['codex_vm_persistent', 'codex_vm_ephemeral'])
-def test_explicit_vm_profile_cannot_create_a_local_owner_session(tmp_path, profile):
-    with Engine(tmp_path / 'runtime') as engine:
-        with pytest.raises(LaneError) as error:
-            engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile=profile), manage_projects=True))
-        assert error.value.code == 'REMOTE_DURABILITY_UNVERIFIED'
-        assert not engine.clients.status() and not engine.directory.entries()
+def test_retired_vm_profile_cannot_form_a_client_hello(profile):
+    with pytest.raises(ValueError):
+        ClientHello(configured_profile=profile)

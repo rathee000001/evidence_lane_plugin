@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Index bounded exact source bytes and attributed parser facts in a selected Code lane.",
@@ -143,7 +143,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "84644785d5a04013ee786394192a6de817fafa7cbe59c08901483cfa86a6cf2a",
+    "contract_digest": "8705f8c0b93f57a6ebbc44f586324913b4c05695b709829f24b11b9bb6b832c6",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -162,9 +162,7 @@
         "reason": "Registered engine adapter",
         "route_id": "code_refresh.registered_parser",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

@@ -205,18 +205,18 @@ def test_complete_pipeline_and_host_profile_are_checked_before_tool_observation(
         'ready': tool != 'HTTPX'})
     routed = replace(spec, tool_routes=(
         ToolRoute('measure.desktop', primary, ('Python', 'Pillow', 'HTTPX'),
-            host_profiles=('codex_desktop',)),
+            host_profiles=('codex_desktop_beta',)),
         ToolRoute('measure.generic', alternate)))
     host = HostDetector(which=lambda command: None).inspect(trigger='client_connect',
-        client=ClientHello(configured_profile='codex_cli'))
+        client=ClientHello(configured_profile='codex_desktop_stable'))
     cli = registry.tool_router.resolve(routed, replace(context, host_observation=host))
     assert observed == ['Python']
     assert cli['attempts'][0]['reason'] == 'HOST_PROFILE_UNSUPPORTED'
-    assert cli['context']['configured_host_profile'] == 'codex_cli'
+    assert cli['context']['configured_host_profile'] == 'codex_desktop_stable'
     assert cli['context']['host_profile_attestation'] == 'unavailable'
     assert cli['context']['host_profile_basis'] == 'authenticated_client_report'
     observed.clear()
-    desktop = host.model_copy(update={'client': ClientHello(configured_profile='codex_desktop')})
+    desktop = host.model_copy(update={'client': ClientHello(configured_profile='codex_desktop_beta')})
     selection = registry.tool_router.resolve(routed, replace(context, host_observation=desktop))
     assert observed == ['Python', 'Pillow', 'HTTPX', 'Python']
     assert selection['attempts'][0]['reason'] == 'DEPENDENCIES_UNAVAILABLE'

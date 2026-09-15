@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Revoke this client selection at a closed session boundary while preserving the project.",
@@ -73,7 +73,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "c5503e222098ac4acffc24655cd9067e0e35532f16bf165bcea0f922730df1c0",
+    "contract_digest": "3aaec28ae48980b60d38377e50c66b871630ba2fa5e83d8a4a9c52d15acd055c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -92,9 +92,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_deselect.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

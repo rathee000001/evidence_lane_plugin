@@ -13,8 +13,8 @@ itself that capability. Never infer a project or session from a title or CWD.
 
 Windows Studio is a visible read-only observer of its persistent backend and
 bounded OS workers. Codex performs administration and work through the API.
-The reduced Mac route uses MCP/SDK/skills/hooks without Windows Studio or its
-managed toolchain. Tools, dependencies and model assets belong to the shared
+Supported hosts are persistent local Windows Codex Desktop Stable and Beta.
+There is no CLI, VM/sandbox, Mac or reduced host route. Tools, dependencies and model assets belong to the shared
 installation; catalog membership does not establish installation or readiness.
 
 Every authority and sector owns its SQLite database, schema history and files.

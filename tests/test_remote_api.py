@@ -136,8 +136,8 @@ def seed(configured, tls):
     with Engine(runtime) as engine:
         gateway = gateway_for(engine, policy, environment)
         with listening(gateway, tls), RemoteTransport(config, environment=environment) as client:
-            assert client.route()["route"] is None
-            with pytest.raises(LaneError, match="restart"):
+            assert client.route()["route"] == "remote_api"
+            with pytest.raises(LaneError):
                 client.catalog()
             ticket = client.seed_probe()
             verification = client.verify_storage(ticket)
@@ -152,10 +152,10 @@ def test_https_recovery_then_project_action_and_no_global_scope(configured, tls)
     with Engine(runtime) as engine:
         gateway = gateway_for(engine, policy, environment)
         with listening(gateway, tls), RemoteTransport(config, environment=environment,
-                 hello=ClientHello(configured_profile="codex_vm_ephemeral")) as client:
+                 hello=ClientHello(configured_profile="codex_desktop_stable")) as client:
             assert client.instance_id != ticket.previous_engine_id
             assert client.route()["route"] == "remote_api"
-            assert client.route()["physical_volume_durability"] == "operator_declaration_only"
+            assert client.route()["api_configuration"] == "explicit_tls_scoped_credential"
             assert [item["name"] for item in client.catalog()] == ["plan_create", "project_status"]
             result = EvidenceLaneClient(client).call("project_status", project_id=config.project_id)
             assert result.status == "ok" and result.result["object_count"] == 1, result
@@ -282,7 +282,7 @@ def test_read_only_scope_cannot_write_or_probe(configured):
                                                     arguments={"title": "denied", "tasks": []}).model_dump()}).encode(), principal)
 
 
-def test_ephemeral_volume_and_expired_evidence_never_claim_durability(configured, tls):
+def test_api_transport_does_not_turn_ephemeral_or_expired_probe_evidence_into_durability(configured, tls):
     runtime, policy, config, environment = configured
     ephemeral = policy.model_copy(update={"storage_class": "ephemeral"})
     seed((runtime, ephemeral, config, environment), tls)
@@ -290,7 +290,8 @@ def test_ephemeral_volume_and_expired_evidence_never_claim_durability(configured
           listening(gateway_for(engine, ephemeral, environment), tls),
           RemoteTransport(config, environment=environment) as client):
         assert client._verification["restart_observed"] is True
-        assert client.route()["route"] is None
+        assert client._verification["durable_verified"] is False
+        assert client.route()["route"] == "remote_api"
     # A newly seeded probe changes the policy binding explicitly.
     Path(config.probe_file).unlink()
     seed(configured, tls)
@@ -300,7 +301,7 @@ def test_ephemeral_volume_and_expired_evidence_never_claim_durability(configured
           RemoteTransport(config, environment=environment, monotonic=lambda: moment[0]) as client):
         assert client.route()["route"] == "remote_api"
         moment[0] = 301.0
-        assert client.route()["route"] is None
+        assert client.route()["route"] == "remote_api"
         assert client.catalog()
         assert client.route()["route"] == "remote_api"
 
@@ -325,7 +326,7 @@ def test_native_mcp_adapter_calls_verified_remote_project(configured, tls, tmp_p
         source = Path(__file__).parents[1] / "plugins/evidence-lane-plugin/src"
         parameters = StdioServerParameters(command=sys.executable,
             args=["-m", "evidence_lane_plugin.mcp_adapter", "--remote-config", str(path),
-                  "--host-profile", "codex_vm_ephemeral"], env={"PYTHONPATH": str(source), **environment})
+                  "--host-profile", "codex_desktop_stable"], env={"PYTHONPATH": str(source), **environment})
         async with (stdio_client(parameters) as (read, write),
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=15)) as session):
             await session.initialize()

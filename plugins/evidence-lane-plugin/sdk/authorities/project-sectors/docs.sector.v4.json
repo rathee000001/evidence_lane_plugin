@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "docs",
   "manifest": {
-    "bytes": 77399,
+    "bytes": 76621,
     "path": "authorities/project_sectors/docs/manifest.v4.json",
-    "sha256": "7e0715e7aa0573b098daa356d5a3dc785db3f5a4467d9a383e7300ab57c2de0a"
+    "sha256": "d3474fe76d057ca1d89e61edd1fd0618aaad4b0d53b280e3f3ef8adda34c7afc"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

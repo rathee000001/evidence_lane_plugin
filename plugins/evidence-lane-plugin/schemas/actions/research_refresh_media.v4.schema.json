@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Index exact selected source bytes and attributed bounded facts in the separate research lane.",
@@ -159,7 +159,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "f72b8bad04fae4c9e5f8fd6f1ade22d9a6ea9d3d0cec791b2125086b3b469c47",
+    "contract_digest": "8513b48644a415e78a48551682eaed0b93bd18b6036d527031765098f3b61858",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -179,9 +179,7 @@
         "reason": "Registered engine adapter",
         "route_id": "research_refresh_media.raster",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -200,9 +198,7 @@
         "reason": "Registered engine adapter",
         "route_id": "research_refresh_media.vector",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -221,9 +217,7 @@
         "reason": "Registered engine adapter",
         "route_id": "research_refresh_media.media",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

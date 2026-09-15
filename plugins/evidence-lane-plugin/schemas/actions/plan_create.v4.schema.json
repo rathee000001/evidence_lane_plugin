@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Create the selected project's initial Plan with bounded task contracts.",
@@ -1171,7 +1171,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "1cb69f6d1a52e15369229763f3585401f728894c25ecaf2e8098a7d6908da387",
+    "contract_digest": "fe06b3f767a6ad46beee195ad06be685f1efb4e338e9ab83ade9b408911e55c8",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -1190,9 +1190,7 @@
         "reason": "Registered engine adapter",
         "route_id": "plan_create.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

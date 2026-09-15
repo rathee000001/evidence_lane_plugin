@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "contract": "disclose-and-verify.operation.v4",
   "formula_engine": false,
@@ -10,14 +10,14 @@
   "schema": "evidence-lane.sdk-env-uop-contract.v4",
   "sources": [
     {
-      "bytes": 25054,
+      "bytes": 25074,
       "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
-      "sha256": "1ff8442c3f72a4175f18f1763f2b70bb31d449d86a53765a01ed75b40e689470"
+      "sha256": "8019286e2a0c33bd293e9a44594493126e9df4969802ca3ae6b16ccf19350fd0"
     },
     {
-      "bytes": 32535,
+      "bytes": 32498,
       "path": "src/evidence_lane_plugin/tool_routes.py",
-      "sha256": "c8a9ac3a612f6daa4ee72161f50cf802b685b88f8b4b762eacb058da2c3366e5"
+      "sha256": "32de2776034ebc08cd0eb7a19b8dfe69a29e28c81442794c18bf5139d3bbefd9"
     }
   ],
   "status": "PASS"

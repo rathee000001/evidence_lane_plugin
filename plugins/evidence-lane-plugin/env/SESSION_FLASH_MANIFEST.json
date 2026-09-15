@@ -2,7 +2,7 @@
   "schema": "evidence-lane.session-flash-manifest.v4",
   "plugin_id": "evidence-lane-plugin",
   "authority_version": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
-  "action_set_digest": "90794aa49175fb35d6308de2170be2b0eb5349e2e49e98e73b76a924b65dd561",
+  "action_set_digest": "505f178d79a881946b10863ddd2d76ac346931d7a3e903cd958bdd80092fa4bb",
   "members": [
     {
       "path": "env/README.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
-      "bytes": 8934,
-      "sha256": "93dc2dc713e3a884073ff7f5c9381eeaade807892061ce71926e8c466b6951f2"
+      "bytes": 8933,
+      "sha256": "723a3b3743c33653ca43e8005a16bc3764a96441e5d043a7a1800071103ebb35"
     },
     {
       "path": "env/UNIVERSAL_FLASH_PROMPT.md",
@@ -26,8 +26,8 @@
     },
     {
       "path": "env/codex-environment-policy.v4.json",
-      "bytes": 29281,
-      "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+      "bytes": 29301,
+      "sha256": "608c988d17b55e66953e93d7ebcd8f1ca985a5fc9af5a3bc87522b70aafe6c9a"
     },
     {
       "path": "env/env_law.md",
@@ -36,23 +36,23 @@
     },
     {
       "path": "env/env_mmd.dot",
-      "bytes": 387044,
-      "sha256": "737f0d2351187d95f4dc197af24c8aa9ad53f2444ad3851ce26f0a831ac56584"
+      "bytes": 383956,
+      "sha256": "953ded233ecf87dd7310dc96365054bdfff07e3c5f11a800e03fb4c85e500bb0"
     },
     {
       "path": "env/env_mmd.mmd",
-      "bytes": 280261,
-      "sha256": "988aea47c1cc7b21a1072c59967739f785463eb49586a81b9cced058ca54f1b0"
+      "bytes": 278031,
+      "sha256": "fb9e3e95478492027a301f2d86757854b83a19f92de2a0f8950f408bf5510465"
     },
     {
       "path": "env/env_sqlite.sqlite",
-      "bytes": 5042176,
-      "sha256": "c8a171fb3c3263755dcd8774413bffb725d3228a8d490f74f145524a54bc9b32"
+      "bytes": 4960256,
+      "sha256": "c5dce9097c1e23b4dd57e2cb7da72954d5dc9411a2e4588d8eba51427e002ed3"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "bytes": 127,
-      "sha256": "fcf153f72db63f4fc9267be7e8f79703b938570815499b7c7727886cc5c1862e"
+      "sha256": "7f4ace6a839f6e87edcd306f4892b627b5ebc7fd9c46e054866f36c69d420b32"
     },
     {
       "path": "toolchains/tool-catalog.v4.json",
@@ -77,7 +77,7 @@
     {
       "path": "uop/locked_mmd_hash.txt",
       "bytes": 127,
-      "sha256": "4cf5c4a2a7fa45a852f29a559fafbc2e351175211c6783f667166f6b43efefd5"
+      "sha256": "2ea5c3106d1ef37e478ae6c179fb64d0fc728bc53bcad33e80830b9b2f25cf5c"
     },
     {
       "path": "uop/uop_law.md",
@@ -86,18 +86,18 @@
     },
     {
       "path": "uop/uop_mmd.dot",
-      "bytes": 119960,
-      "sha256": "3ac305d74a0569d3386ff7c11ef4b732acb02b828f6e7169e0616cdec92f6e2d"
+      "bytes": 118270,
+      "sha256": "8268477d903eac31fd10c1c54656726885161aa6d58f74b7ac88e49a02e5f562"
     },
     {
       "path": "uop/uop_mmd.mmd",
-      "bytes": 85914,
-      "sha256": "f185f3308174bfdad4d8d27a47f334e2f1d0e57f5441c25e7f4caa922e63c581"
+      "bytes": 84725,
+      "sha256": "8c6d9160af0a7a4780d26c9843853649fed7c264a08d3ec2e1204ad504ba6047"
     },
     {
       "path": "uop/uop_sqlite.sqlite",
-      "bytes": 1564672,
-      "sha256": "e9fd7c4bb2d29b67bf467c3801ebdab4e3cc05a41e4ecd59e9842a2cf6692389"
+      "bytes": 1548288,
+      "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
     }
   ]
 }

@@ -1,6 +1,8 @@
 interface:
   display_name: "Exchange task evidence"
   short_description: "Exchange attributed evidence between project tasks"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $exchange-task-evidence to inspect or send the selected task exchange."
 dependencies:

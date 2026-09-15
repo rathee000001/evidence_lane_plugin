@@ -22,7 +22,7 @@ def test_snapshot_exposes_every_current_operation_and_its_execution_contract(stu
     body = response.json()
     expected = {row["name"]: row for row in engine.registry.schemas()}
     observed = {row["name"]: row for row in body["actions"]}
-    assert len(observed) == len(expected) == 297
+    assert len(observed) == len(expected) == 295
     assert set(observed) == set(expected)
     fields = {
         "name",

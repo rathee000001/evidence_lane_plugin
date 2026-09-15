@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Publish an immutable PDF derivative and verify canonical field values and page widgets.",
@@ -154,7 +154,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7b21b9657eeff0ffb9454bf08c2b1a0bc02a860665cc4100a006076339cbac13",
+    "contract_digest": "8eee42d65f9c023e734c87c8a89cab0e58686da7998f1c40b80ed60a7609d56a",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -173,9 +173,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_edit.native_pdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

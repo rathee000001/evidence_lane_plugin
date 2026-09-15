@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Record source-bound intent, focus, owning lanes and next workflow action; classification does not apply a Plan steer or authorize work.",
@@ -204,7 +204,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "a6fc81fae848bc1057d0d719394b2f6c7cb37352dcc8daac1cd916a58b8bd614",
+    "contract_digest": "015f8a0b045cc2649b48148a0259d408f675cbbb7196818fb4915fada7702b5e",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -223,9 +223,7 @@
         "reason": "Registered engine adapter",
         "route_id": "task_classify.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

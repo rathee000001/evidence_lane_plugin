@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Index exact selected source bytes and attributed bounded facts in the separate artifacts lane.",
@@ -166,7 +166,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7ad0aa44c4397aeaa31b59c1d71cdd24a8bda617ee4fe933baf7a610594518d7",
+    "contract_digest": "6ce3118b79a7d213bd8070ab81c04841ef5ae511c380a696f2e23fbe3f8cb7ca",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -186,9 +186,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.sqlite_sqlalchemy",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -207,9 +205,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"
@@ -227,9 +223,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.calamine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -248,9 +242,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.presentation",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -269,9 +261,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.arrow",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -290,9 +280,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.pdf_pymupdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -312,9 +300,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.pdf_pypdf",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -333,9 +319,7 @@
         "reason": "Registered engine adapter",
         "route_id": "artifacts_index.pdf_pdfplumber",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

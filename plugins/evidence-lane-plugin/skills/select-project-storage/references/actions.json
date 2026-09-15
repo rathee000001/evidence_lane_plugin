@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "fa96a1596953559a73bef961eae93cb95ce4248b7ec5e6218cbce43e7486230c",
+  "action_set_digest": "131a012bcd2c36ca48f6b8652eaa3f186380deeb4ffb90a2c470b45a18cb40b6",
   "actions": [
     {
       "cross_project_read": false,
@@ -17,39 +17,11 @@
     },
     {
       "cross_project_read": false,
-      "description": "Read the verified storage selection chain and current authenticated backend evidence without changing routing.",
-      "input_schema_digest": "db53c9a3611025536a6301090bc2b91a0dc5a19fb28274609059846bbbadbccd",
-      "mutates": false,
-      "name": "storage_connector_inspect",
-      "output_schema_digest": "5cad9598397366bbd4f280e952b581b9196e3c97d287ba32b4deb310b531758a",
-      "permission": "read",
-      "profile": "receipts",
-      "project_required": true,
-      "queryable_in_delta": true,
-      "requires_delta": false,
-      "studio_read": true
-    },
-    {
-      "cross_project_read": false,
-      "description": "Append an exact primary storage preference at a safe boundary; Boot/Resume enforces its connected backend.",
-      "input_schema_digest": "04a2bb1d96b189b687f593d38832def999419874eb8fc51eaec9503d553b6776",
-      "mutates": true,
-      "name": "storage_connector_select",
-      "output_schema_digest": "5cad9598397366bbd4f280e952b581b9196e3c97d287ba32b4deb310b531758a",
-      "permission": "admin",
-      "profile": "receipts",
-      "project_required": true,
-      "queryable_in_delta": false,
-      "requires_delta": false,
-      "studio_read": false
-    },
-    {
-      "cross_project_read": false,
       "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
       "input_schema_digest": "8ebe8a86d34d557faa8a3c6a403356792a18cfbf6f2a27cae2f20c535e869086",
       "mutates": false,
       "name": "storage_status",
-      "output_schema_digest": "bbc300278989cfe3256497ce9459fae59757403b7fbc53c791d1976a7be3e583",
+      "output_schema_digest": "698d2a50068254075db55f9104a4cd74c2ff01d0956192ca6b16f50204226035",
       "permission": "read",
       "profile": "core",
       "project_required": true,

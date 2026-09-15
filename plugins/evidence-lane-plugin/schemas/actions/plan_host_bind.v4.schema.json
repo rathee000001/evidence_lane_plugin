@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Bind and immediately project the full project Plan to one exact local Codex PLAN.md.",
@@ -291,7 +291,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "02afd901f97c99bb4fcf0740610e881999ae6fd4d1299fd69444d7457cd9b8fb",
+    "contract_digest": "d44e93d554aac4a977f89471451cd353f4b9cdb3d96b412e63f71753712e40ad",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -310,9 +310,7 @@
         "reason": "Registered engine adapter",
         "route_id": "plan_host_bind.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

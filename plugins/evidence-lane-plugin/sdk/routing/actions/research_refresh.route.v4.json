@@ -1,6 +1,6 @@
 {
   "action": "research_refresh",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_retry": false,
   "contract_schema": "schemas/actions/research_refresh.v4.schema.json",
@@ -32,9 +32,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.sqlite_sqlalchemy",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -53,9 +51,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.native",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python"
@@ -73,9 +69,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.calamine",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -94,9 +88,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.presentation",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -115,9 +107,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.arrow",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -136,9 +126,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.pdf_pymupdf",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -158,9 +146,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.pdf_pypdf",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",
@@ -179,9 +165,7 @@
       "reason": "Registered engine adapter",
       "route_id": "research_refresh.pdf_pdfplumber",
       "systems": [
-        "Windows",
-        "Darwin",
-        "Linux"
+        "Windows"
       ],
       "tool_ids": [
         "Python",

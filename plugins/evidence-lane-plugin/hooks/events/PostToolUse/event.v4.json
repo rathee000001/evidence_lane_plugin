@@ -16,6 +16,14 @@
     "EMIT"
   ],
   "input_schema": "hooks/events/PostToolUse/event.schema.json",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "members": [
     {
       "path": "hooks/events/PostToolUse/handler.py",

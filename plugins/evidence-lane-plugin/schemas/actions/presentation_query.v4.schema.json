@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read bounded native structures or literal FTS5/BM25 matches from an exact presentation version.",
@@ -155,7 +155,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "02080198376c6006756d5029ebc075c6fca02b520702681b84d5cec14eed9f3a",
+    "contract_digest": "774215ae9ac5d3c96129afb2a45b5b9675d54234581b79c9f51b56bb0c242b0e",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -174,9 +174,7 @@
         "reason": "Registered engine adapter",
         "route_id": "presentation_query.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

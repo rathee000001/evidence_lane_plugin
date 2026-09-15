@@ -23,6 +23,14 @@ from .storage import json_text
 
 HOOK_CONTRACT_SCHEMA = "evidence-lane.native-hook-contract.v4"
 HOOK_EVENT_NAMES = HOOK_EVENT_ORDER
+HOOK_INSTALLATION_POLICY = {
+    "trust_owner": "codex_plugin_manager",
+    "source": "plugin",
+    "trusted_after_supported_install_required": True,
+    "enabled_by_default": False,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": False,
+}
 
 
 def hook_event_handler_path(name: str) -> str:
@@ -94,6 +102,7 @@ def hook_event_contract(name: str) -> dict:
         "bounded_context_output": name in {"SessionStart", "UserPromptSubmit"},
         "host_control_output": False,
         "subagent_control_output": False,
+        "installation_policy": HOOK_INSTALLATION_POLICY,
         "native_installation_verified": False,
     }
 
@@ -117,7 +126,7 @@ def hook_manifest() -> dict:
                     + " "
                     + stage["id"]
                 ),
-                "timeout": 3 if name in {"Interrupt", "SessionEnd"} else 10,
+                "timeout": 10,
                 "statusMessage": stage["status"].format(event=name),
             }
             if stage["id"] == "EMIT" and name in {"SessionStart", "UserPromptSubmit"}:
@@ -161,6 +170,7 @@ def hook_registry() -> dict:
         "separate_host_process_per_stage": True,
         "runtime_bridge": "hooks/runner.mjs",
         "ambient_python_required": False,
+        "installation_policy": HOOK_INSTALLATION_POLICY,
         "event_isolation_owner": "src/evidence_lane_plugin/hook_event_isolation.py",
         "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
         "lifecycle_boundary_owner": "src/evidence_lane_plugin/hook_lifecycle_boundary.py",
@@ -226,7 +236,7 @@ def main_for_event(expected_event: str) -> int:
 
 
 __all__ = [
-    "HOOK_COMMON_FIELDS", "HOOK_CONTRACT_SCHEMA", "HOOK_EVENT_FIELDS", "HOOK_EVENT_NAMES",
+    "HOOK_COMMON_FIELDS", "HOOK_CONTRACT_SCHEMA", "HOOK_EVENT_FIELDS", "HOOK_EVENT_NAMES", "HOOK_INSTALLATION_POLICY",
     "HOOK_PIPELINE", "MAX_HOOK_INPUT_BYTES", "context_hook_output", "hook_event_contract",
     "hook_event_handler_path", "hook_event_input_schema", "hook_manifest", "hook_registry",
     "main", "main_for_event", "main_for_handler", "prepare_hook", "submit_hook",

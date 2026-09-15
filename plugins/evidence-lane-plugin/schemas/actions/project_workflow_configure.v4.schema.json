@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
@@ -279,7 +279,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "49846fc421701b246826e10dee9622611d36b757180f985a06cc47b449450a0f",
+    "contract_digest": "72ec1f18d503f516d71e51de7eba409b0e08be08446866b2986dc542f1278743",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -303,9 +303,7 @@
         "reason": "Bounded read-only observation of the exact source-root repository.",
         "route_id": "project_workflow_configure.git",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -328,9 +326,7 @@
         "reason": "Content workflow with Git disabled or unavailable; repository state is not inferred.",
         "route_id": "project_workflow_configure.content",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/manifest.v4.json",
-      "sha256": "af532d887cd39024028aff4418689ea3b26502f61512203c01d08c33dcfbdabc"
+      "sha256": "238e6ad726ebb3d3e8fb401d34acb96c200efd925419dbd99d789ac8970d22c6"
     },
     {
       "path": "authorities/project_sectors/data_excel/migration-history.json",

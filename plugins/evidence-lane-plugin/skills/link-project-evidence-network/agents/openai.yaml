@@ -1,6 +1,8 @@
 interface:
   display_name: "Link project evidence network"
   short_description: "Link hash-only summaries across projects"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $link-project-evidence-network to inspect or update the selected cross-project network."
 dependencies:

@@ -1,13 +1,13 @@
 {
   "action": "remote_git_action_read",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/remote_git_action_read.action.v4.json",
-  "sdk_binding_sha256": "2ff091f3d7a0d1fc654d31c1417c755837d27a3e88702d01db6e0343aabb6f66",
+  "sdk_binding_sha256": "43a412cddef883a7e6ae804ab55a2f5ad0601c88db2b69ea5e774d27214684ed",
   "tool": {
     "annotations": {
       "destructiveHint": false,

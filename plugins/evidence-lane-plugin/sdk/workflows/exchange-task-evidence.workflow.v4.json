@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 506,
@@ -15,7 +15,7 @@
   "package": {
     "bytes": 9809,
     "path": "sdk/workflows/skills/exchange-task-evidence/workflow.v4.json",
-    "sha256": "103d7e8d6adf6ea2b223d240247d0477ffc36edabb710883dea2ca6e0e85b907"
+    "sha256": "ca761f6c227ac993ae548b7f1af26df97dcdaae5e3ce4686833c99c9471597fa"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "exchange-task-evidence",

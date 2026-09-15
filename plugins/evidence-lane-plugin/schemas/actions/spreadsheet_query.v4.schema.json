@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read bounded identities, typed facts or exact historical bytes from the data_excel lane.",
@@ -174,7 +174,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "4a9b6707e37afe59e2b014491239c7f504306f42f72d78ec7223c08a78f2ba1a",
+    "contract_digest": "b52e4c8fc3c97900c44a12496599ceb5b6d62f3682968f68fd3ff87a783086f2",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -193,9 +193,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_query.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

@@ -1,6 +1,8 @@
 interface:
   display_name: "Manage project memory"
   short_description: "Retrieve and checkpoint attributed project memory"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $manage-project-memory to find project evidence relevant to my question."
 dependencies:

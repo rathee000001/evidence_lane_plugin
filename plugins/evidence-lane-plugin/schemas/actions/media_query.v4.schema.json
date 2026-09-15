@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read bounded media facts or literal FTS5/BM25 matches.",
@@ -174,7 +174,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "ecfe6445fcaabb969f08e6e63b0c744ab0ad0e305918e3c1b7351eb97192b5ca",
+    "contract_digest": "f0b969280144fd8668866d7c9f6cd7b37da8650bd4dcea695e92854a93080f69",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -193,9 +193,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_query.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

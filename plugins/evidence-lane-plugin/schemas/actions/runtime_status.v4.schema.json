@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read measured tools/providers, worker state and selected-project job health.",
@@ -100,7 +100,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "11ab7cafbd2e7ee2eca989ed4a474f96216eb05ef3dbf1913d9268d9eb398dff",
+    "contract_digest": "808d87dcafd44f3bbd1e16428e866b015a11904d56d225837d8fdda77995482c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -119,9 +119,7 @@
         "reason": "Registered engine adapter",
         "route_id": "runtime_status.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

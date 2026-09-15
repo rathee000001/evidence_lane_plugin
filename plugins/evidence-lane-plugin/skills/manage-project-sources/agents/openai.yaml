@@ -1,6 +1,8 @@
 interface:
   display_name: "Manage project sources"
   short_description: "Register, inspect and refresh project sources"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $manage-project-sources to register or inspect my selected project sources."
 dependencies:

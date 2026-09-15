@@ -1,6 +1,8 @@
 interface:
   display_name: "Select project tools"
   short_description: "Resolve lane tools and measured compute readiness"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $select-project-tools to inspect the required tools for the selected operation."
 dependencies:

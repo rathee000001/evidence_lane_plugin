@@ -31,7 +31,7 @@ from .tool_routes import ToolRoute
 
 
 class DocumentConvert(DocumentIndex):
-    timeout_seconds: int = Field(default=45, ge=5, le=120)
+    timeout_seconds: int = Field(default=120, ge=5, le=180)
 
 
 def safe_legacy(content, extension):

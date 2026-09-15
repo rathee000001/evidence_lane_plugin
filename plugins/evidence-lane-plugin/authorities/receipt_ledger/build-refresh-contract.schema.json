@@ -303,55 +303,6 @@
       "title": "AuthorityRequest_connector_revoke",
       "type": "object"
     },
-    "AuthorityRequest_storage_connector_select": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "storage_connector_select",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/StorageSelect"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_storage_connector_select",
-      "type": "object"
-    },
     "CaptureBind": {
       "additionalProperties": false,
       "properties": {
@@ -597,66 +548,6 @@
       ],
       "title": "PluginRegistration",
       "type": "object"
-    },
-    "StorageSelect": {
-      "additionalProperties": false,
-      "properties": {
-        "mode": {
-          "enum": [
-            "AUTO",
-            "LOCAL_SQLITE",
-            "CONFIGURED_DURABLE_CONNECTOR"
-          ],
-          "title": "Mode",
-          "type": "string"
-        },
-        "connector_id": {
-          "anyOf": [
-            {
-              "maxLength": 128,
-              "pattern": "^[A-Za-z0-9._-]+$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Connector Id"
-        },
-        "expected_event_digest": {
-          "anyOf": [
-            {
-              "pattern": "^[0-9a-f]{64}$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Event Digest"
-        },
-        "reason": {
-          "maxLength": 1000,
-          "minLength": 1,
-          "title": "Reason",
-          "type": "string"
-        },
-        "confirmation": {
-          "maxLength": 200,
-          "minLength": 1,
-          "title": "Confirmation",
-          "type": "string"
-        }
-      },
-      "required": [
-        "mode",
-        "reason",
-        "confirmation"
-      ],
-      "title": "StorageSelect",
-      "type": "object"
     }
   },
   "discriminator": {
@@ -664,8 +555,7 @@
       "accelerator_configure": "#/$defs/AuthorityRequest_accelerator_configure",
       "capture_bind": "#/$defs/AuthorityRequest_capture_bind",
       "connector_configure": "#/$defs/AuthorityRequest_connector_configure",
-      "connector_revoke": "#/$defs/AuthorityRequest_connector_revoke",
-      "storage_connector_select": "#/$defs/AuthorityRequest_storage_connector_select"
+      "connector_revoke": "#/$defs/AuthorityRequest_connector_revoke"
     },
     "propertyName": "action"
   },
@@ -681,9 +571,6 @@
     },
     {
       "$ref": "#/$defs/AuthorityRequest_connector_revoke"
-    },
-    {
-      "$ref": "#/$defs/AuthorityRequest_storage_connector_select"
     }
   ],
   "title": "receipts typed SDK requests"

@@ -107,7 +107,7 @@ class NativeInvocationRequest(BaseModel):
 
 
 def run_native_tool(request, *, runtime_root):
-    if request.host_profile not in {'CODEX_DESKTOP', 'CODEX_CLI', 'CODEX_VM'}:
+    if request.host_profile != 'CODEX_DESKTOP':
         raise LaneError('NATIVE_HOST_PROFILE_INVALID', 'Select a supported configured host profile.')
     if any('\x00' in arg for arg in request.arguments) or sum(len(arg) for arg in request.arguments) > 65536:
         raise LaneError('NATIVE_ARGUMENT_BUDGET', 'The fixed adapter arguments exceed their budget.')

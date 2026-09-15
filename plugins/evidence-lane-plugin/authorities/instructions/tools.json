@@ -25,9 +25,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -44,7 +42,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "ffb6ed314bb59c33f79ac998d9b127beeec990f2a61be7e65a09200aae5f83fe"
+        "contract_digest": "2015dc4e5399a4f360e7940c4d3980f9e56011593c111dad999765b756d2e001"
       },
       "verification_checks": []
     }

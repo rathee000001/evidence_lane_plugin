@@ -1,11 +1,11 @@
 {
   "action": "memory_ingest",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "automatic_mutation_retry": false,
   "client": "evidence_lane_plugin.sdk.EvidenceLaneClient.call",
   "contract": "schemas/actions/memory_ingest.v4.schema.json",
-  "contract_sha256": "3182eefd1d0ef6fcd9f382baf6532e98c63bed9daf2ec5abaf473df9dbdc05ad",
+  "contract_sha256": "158e194de9bbe0dd73bbc98d642f3d1296d737cda1911eaf6032676c97001c11",
   "installed_execution_claimed": false,
   "request_envelope": "schemas/action-request.v4.schema.json",
   "response_envelope": "schemas/action-response.v4.schema.json",

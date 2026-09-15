@@ -26,10 +26,11 @@ if ($studioRequest.mode -eq 'write') {
     $studioLink.Arguments = [string]$studioRequest.arguments
     $studioLink.WorkingDirectory = [string]$studioRequest.working_directory
     $studioLink.Description = 'Open Evidence Lane Studio; start the local engine if needed.'
+    $studioLink.IconLocation = [string]$studioRequest.icon_location
     $studioLink.WindowStyle = 1
     $studioLink.Save()
 }
-@{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle} | ConvertTo-Json -Compress
+@{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle;icon_location=$studioLink.IconLocation} | ConvertTo-Json -Compress
 """
 
 
@@ -47,7 +48,9 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
         if completed.returncode or len(completed.stdout) > 16_384:
             raise ValueError()
         value = json.loads(completed.stdout)
-        if not isinstance(value, dict) or set(value) != {"target", "arguments", "working_directory", "window_style"}:
+        if not isinstance(value, dict) or set(value) != {
+            "target", "arguments", "working_directory", "window_style", "icon_location"
+        }:
             raise ValueError()
         return value
     except (OSError, ValueError, subprocess.TimeoutExpired):
@@ -103,8 +106,13 @@ class StudioShortcut:
                 "--runtime-root",
                 str(self.root),
             ]
-        return {"target": str(target), "working_directory": str(self.root), "window_style": 1,
-                "arguments": subprocess.list2cmdline(arguments)}
+        return {
+            "target": str(target),
+            "working_directory": str(self.root),
+            "window_style": 1,
+            "arguments": subprocess.list2cmdline(arguments),
+            "icon_location": f"{target},0",
+        }
 
     def _owned(self) -> bool:
         reject_links(self.path, Path(self.path.anchor))
@@ -117,7 +125,14 @@ class StudioShortcut:
             receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
             if receipt.get("sha256") != hashlib.sha256(self.path.read_bytes()).hexdigest():
                 raise ValueError()
-            if receipt.get("specification") != self.backend(self.path):
+            recorded = receipt.get("specification")
+            actual = self.backend(self.path)
+            if not isinstance(recorded, dict) or not isinstance(actual, dict):
+                raise TypeError()
+            # v4.0.3 receipts predate explicit icon metadata. Accept that exact
+            # owned four-field receipt once so install() can replace it with the
+            # five-field current specification.
+            if any(actual.get(key) != value for key, value in recorded.items()):
                 raise ValueError()
             return True
         except (OSError, ValueError, TypeError):
@@ -130,7 +145,32 @@ class StudioShortcut:
         with RuntimeLock(self.root / "shortcut.lock"):
             if self._owned():
                 if self.backend(self.path) != specification:
-                    raise LaneError("SHORTCUT_INSTALLATION_CHANGED", "Remove the previously selected shortcut before changing its installation.")
+                    previous_link = self.path.read_bytes()
+                    previous_receipt = self.receipt.read_bytes()
+                    temporary = self.destination / (".pending-studio-" + str(uuid4()) + ".lnk")
+                    try:
+                        if self.backend(temporary, specification=specification) != specification:
+                            raise LaneError("SHORTCUT_WRITE_UNVERIFIED", "Windows returned different shortcut settings.")
+                        os.replace(temporary, self.path)
+                        atomic_json(
+                            self.receipt,
+                            {
+                                "sha256": hashlib.sha256(self.path.read_bytes()).hexdigest(),
+                                "specification": specification,
+                            },
+                        )
+                    except Exception:
+                        self.path.write_bytes(previous_link)
+                        self.receipt.write_bytes(previous_receipt)
+                        raise
+                    finally:
+                        temporary.unlink(missing_ok=True)
+                    return {
+                        "registered": True,
+                        "path": str(self.path),
+                        "changed": True,
+                        "updated_owned_shortcut": True,
+                    }
                 return {"registered": True, "path": str(self.path), "changed": False}
             temporary = self.destination / (".pending-studio-" + str(uuid4()) + ".lnk")
             try:
@@ -148,8 +188,6 @@ class StudioShortcut:
     def uninstall(self) -> dict:
         with RuntimeLock(self.root / "shortcut.lock"):
             if self._owned():
-                if self.backend(self.path) != self.specification():
-                    raise LaneError("SHORTCUT_INSTALLATION_CHANGED", "The shortcut belongs to another installation.")
                 self.path.unlink()
                 self.receipt.unlink()
         return {"registered": False, "path": str(self.path)}

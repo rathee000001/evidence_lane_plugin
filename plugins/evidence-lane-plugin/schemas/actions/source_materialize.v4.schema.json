@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Run one exact prepared source group through its current Plan tasks and owning Delta verifiers, then verify coverage.",
@@ -108,7 +108,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "9a48a5b7182e70b6a02e4d8b8f0a5ae47b9c360494cbc217fbabd1380b471288",
+    "contract_digest": "8b3ce138798610ef71f36384dc0b2fec91e44581436ecd9764f887a4f97ab41c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -127,9 +127,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_materialize.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

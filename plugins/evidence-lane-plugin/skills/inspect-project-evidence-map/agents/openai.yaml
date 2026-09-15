@@ -1,6 +1,8 @@
 interface:
   display_name: "Inspect project evidence map"
   short_description: "Inspect one project evidence and link map"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $inspect-project-evidence-map to inspect my selected project links and evidence map."
 dependencies:

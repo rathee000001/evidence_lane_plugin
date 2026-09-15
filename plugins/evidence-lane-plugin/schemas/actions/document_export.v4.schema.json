@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Parse and export exact versioned bytes, then automatically refresh Sources, destination facts and existing lane views.",
@@ -98,7 +98,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7cf43909c9e54fbb18deca2dee84dfd942c3550bccd99d329c59cd8711742ebc",
+    "contract_digest": "ee41b28bf83512686f1da608762409401c9341d3c0d956767f9359de5def1628",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -118,9 +118,7 @@
         "reason": "Registered engine adapter",
         "route_id": "document_export.native",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"
@@ -128,9 +126,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -164,9 +160,7 @@
         "reason": "Registered engine adapter",
         "route_id": "document_export.native_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -177,9 +171,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"

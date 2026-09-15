@@ -103,7 +103,6 @@ def test_authority_initializes_complete_owning_schemas_and_packaged_sql(project,
     ('chat_lineage', ('codex_turn_control', 'TURN_MIGRATIONS')),
     ('sources', ('source_routing', 'ROUTE_MIGRATIONS')),
     ('receipts', ('agent_learning', 'HOST_MEMORY_MIGRATIONS')),
-    ('receipts', ('storage_selection', 'STORAGE_MIGRATIONS')),
 ])
 def test_missing_authority_binding_is_rejected_before_project_changes(project, monkeypatch, lane_id, omitted):
     profiles = dict(AUTHORITY_SUPPORT_PROFILES)

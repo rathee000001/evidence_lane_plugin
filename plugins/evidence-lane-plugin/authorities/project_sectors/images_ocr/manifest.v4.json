@@ -107,9 +107,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -126,7 +124,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "8d0d32b1bcb243f33ef5781cf69ce465bb4ba2fa4674a915e1b23484250a0881"
+        "contract_digest": "8503d8df75f9a6500153b4a437032d55a8fe3b04ab6298f1f2d90fb79e6d840c"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -247,9 +245,7 @@
               "Pillow"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -290,9 +286,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -305,9 +299,7 @@
               "defusedxml"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -341,9 +333,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -399,9 +389,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -417,9 +405,7 @@
               "rustworkx"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -461,9 +447,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -479,9 +463,7 @@
               "rustworkx"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -516,9 +498,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -578,9 +558,7 @@
                   "Windows"
                 ],
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ]
               }
             }
@@ -595,7 +573,7 @@
           "render_lane_view"
         ],
         "installation_implied": false,
-        "contract_digest": "ac47062eda1c4ae58ed382367618d45125cd38530808f8db102f3f66941abafb"
+        "contract_digest": "3c181327837866495bb654069dab466fd732a861b78d81500f046d8d004ff9a7"
       },
       "worker_operations": [
         "media_parse_bytes",
@@ -910,9 +888,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -929,7 +905,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "7704b89c85101948d0f3cb432b105b54a0f09e7b98ab4f6dc3be48975870467a"
+        "contract_digest": "7b7203f6ef9ed3d07a09af016bfbd696e6faebad2c353f771255b75f4b7edd47"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1065,9 +1041,7 @@
               "Pillow"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1096,9 +1070,7 @@
               "defusedxml"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1152,7 +1124,7 @@
           "media_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "318a7804b554f2d4ac795b6e1713cc9387f54530bb0e5e41379e47aca4d6ad69"
+        "contract_digest": "dbbe557d05a261aeeee5e964be7808732d1ef153cf7016422f6e29d4bb2a371d"
       },
       "worker_operations": [
         "media_parse_file"
@@ -1297,9 +1269,7 @@
               "RapidOCR_ONNX_Runtime"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1354,7 +1324,7 @@
           "media_ocr"
         ],
         "installation_implied": false,
-        "contract_digest": "39eb176daa48cf528a1d71518c2b67fb23c936cceba1ccb294d534c9bd44263d"
+        "contract_digest": "c6233aaaf6dcae260ba9dfe2f160f657ff9dff6da02eab3822a3ffcbc2e3c342"
       },
       "worker_operations": [
         "media_ocr"
@@ -1482,9 +1452,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1501,7 +1469,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "56f8a549741318bdcd1a1f50b2f8b3438318c52c2f2353f63db1292383c61cad"
+        "contract_digest": "fb21875a0d13d2f0fdacd36769f0e3fbc59cacaf3b1c1c7366ad4d35685f4cac"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1676,9 +1644,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1695,7 +1661,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "ecfe6445fcaabb969f08e6e63b0c744ab0ad0e305918e3c1b7351eb97192b5ca"
+        "contract_digest": "f0b969280144fd8668866d7c9f6cd7b37da8650bd4dcea695e92854a93080f69"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1830,9 +1796,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -1849,7 +1813,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "4a70bd7e25667932d7c53d397658dcd162395bb912a38a1ea1e4cba024342ff3"
+        "contract_digest": "cc1efbcf3a5b6c69fa40e8e44e6a88f3dd1a5b905e25a7e83e1a7bd2e1a01173"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -1997,9 +1961,7 @@
               "Pillow"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2028,9 +1990,7 @@
               "defusedxml"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2084,7 +2044,7 @@
           "media_parse_file"
         ],
         "installation_implied": false,
-        "contract_digest": "8aa2feb7cb7debf035e8f0610fd535c6b8e53a17637211b961f86e47b5aed68e"
+        "contract_digest": "2e3a03644d18967ceb8290c77ea9a2c100b1bc44ec0f88f83f294b8c08f11fdf"
       },
       "worker_operations": [
         "media_parse_file"
@@ -2385,9 +2345,7 @@
               "Pillow"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2406,7 +2364,7 @@
           "media_transform"
         ],
         "installation_implied": false,
-        "contract_digest": "7239ebd1c6b88332823bc466e74cd10a8dea47d68199f4af1d810c859f5b9d9a"
+        "contract_digest": "8bc6daf278b8cec7a822cf515f570d72f4efc6befdde0b69faf72549282cb8ef"
       },
       "worker_operations": [
         "media_transform"
@@ -2584,9 +2542,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2606,9 +2562,7 @@
               "Git"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2634,7 +2588,7 @@
           "code_git_checkpoint"
         ],
         "installation_implied": false,
-        "contract_digest": "99aa541e165f180ca7a2cb067342cac90ba32dff0659ec6c10f2ffd6f34f7d7c"
+        "contract_digest": "082d051730a98b56a0b4a1f445551d9993b9a5bd93783f30dc803342fa61d349"
       },
       "worker_operations": [
         "code_git_checkpoint"
@@ -2740,9 +2694,7 @@
               "Python"
             ],
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "fidelity": "exact_contract",
             "provider": "engine_cpu",
@@ -2759,7 +2711,7 @@
         "no_fallback_reason": "No equivalent alternate adapter is registered.",
         "worker_operations": [],
         "installation_implied": false,
-        "contract_digest": "05fbd7939c24e0873888e6b149bd0b13eb3e0ee3e5c0ea85b1d26850322cb9f4"
+        "contract_digest": "7d899b0eec8382e764a0657ccb14d18ed30781ade37c78091561666c68af459b"
       },
       "worker_operations": [],
       "path_fields": [],
@@ -2989,11 +2941,11 @@
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.v4.json",
-      "sha256": "99017a3a5b6dbc8ed3deb1c7159756334561b24ba483cc50fd167cc44a076a0e"
+      "sha256": "4b2dbaae724fa7e2674662aabc54eaef68fa00ab462d6ad8ef5f8c0b354d07c2"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.json",
-      "sha256": "14b3049063425ec7a63673dc8f5acfa82611fd359100c4432087bf398e0bcd59"
+      "sha256": "f39622738b79a3d4041523e9c4ad0525331857b8924e29e6394cf184af64e9c7"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.schema.json",

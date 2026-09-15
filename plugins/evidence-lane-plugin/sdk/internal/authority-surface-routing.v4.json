@@ -1,15 +1,15 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_registry": {
     "bytes": 3482,
     "path": "authorities/authority-surface-registry.v4.json",
-    "sha256": "acd4d40a1df3310f03c67a0386858cd34b8743c0de1e15515ec0d2550d362845"
+    "sha256": "4b55f5666f7b4a28763ba062e62c248fe197f5228d4cfc7ed8e5f2650e1024d6"
   },
   "env_policy": {
-    "bytes": 29281,
+    "bytes": 29301,
     "path": "env/codex-environment-policy.v4.json",
-    "sha256": "2dd3e1ae25b3ff0a31624c836c53dcdbf3012e0c46ceeaf4ab328cadd4fa671d"
+    "sha256": "608c988d17b55e66953e93d7ebcd8f1ca985a5fc9af5a3bc87522b70aafe6c9a"
   },
   "host_recall_merged_into_project_memory": false,
   "installed_execution_claimed": false,

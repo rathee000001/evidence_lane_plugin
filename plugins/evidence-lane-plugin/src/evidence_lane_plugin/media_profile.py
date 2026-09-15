@@ -1290,7 +1290,7 @@ def register_media_actions(engine):
             verifier=verify_exported, worker_operations=("media_parse_bytes", "render_lane_view"),
             tool_routes=tuple(ToolRoute('media_export.' + kind + ('_view' if render else ''), export_media,
                 (*tools, *(('LangGraph_Mermaid_engine', 'Python_Graphviz_DOT_engine', 'rustworkx') if render else ())),
-                argument_suffixes=(('filename', suffixes),), systems=('Windows',) if kind == 'container' else ('Windows', 'Darwin', 'Linux'),
+                argument_suffixes=(('filename', suffixes),), systems=('Windows',),
                 view_refresh=SelectedViewRefresh(engine, 'images_ocr.structure'), applicable=export_route(render), worker_operations=('media_parse_bytes', *(('render_lane_view',) if render else ())))
                 for render in (False, True) for kind, tools, suffixes in (
                     ('raster', ('Python', 'Pillow'), tuple(sorted(RASTER_EXTENSIONS))),

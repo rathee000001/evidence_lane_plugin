@@ -4,19 +4,19 @@
   "members": [
     {
       "path": ".mcp.json",
-      "sha256": "b84cca8132921ca5973a51eecb498b63112552e02518400c31fbc1f36b87e916"
+      "sha256": "24bf2b098562512b8555cc1c8ceaf109a94329c6c413ad81621ce21ce199a00f"
     },
     {
       "path": "mcp/mcp-manifest.v4.json",
-      "sha256": "17d198903841c36879f123ccc71283ca72f1f00fac62e7fbbe2e5553fc1914d2"
+      "sha256": "4868f0acc17d42845c50220ad740d83cffa43fc4c62a433488b7c3d717bb2ab3"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_adapter.py",
-      "sha256": "fbd3fbc87bea8b2168f4a16b115867ad9cb851d562af1cfde855f19d13894f0d"
+      "sha256": "5273f2bf0013f7dc23f8843958542f732f354ac0b89b946514aec59e00eec348"
     },
     {
       "path": "src/evidence_lane_plugin/mcp_server.py",
-      "sha256": "7f8e10787f5c2897ea867770e23fe646df25ebccca982d6c91f3e18e1f4107e6"
+      "sha256": "498e74e8601f413f0d99c07601d37677c635395a07e4cfd9d8a9f4866a2976ac"
     }
   ],
   "purpose": "Thin native MCP adapter over the complete generated action bindings",

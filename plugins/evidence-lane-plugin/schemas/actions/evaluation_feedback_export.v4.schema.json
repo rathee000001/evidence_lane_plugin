@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
@@ -190,7 +190,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "afa77f8340bc6bcc1174a60565140a7dd16facec31094c0e06d6d22cb88097a7",
+    "contract_digest": "9cdb142be0a2f784d3109744d52442cc4ba8b524017288dcc8046301d12e2d80",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -235,9 +235,7 @@
         "reason": "Registered engine adapter",
         "route_id": "evaluation_feedback_export.langsmith",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

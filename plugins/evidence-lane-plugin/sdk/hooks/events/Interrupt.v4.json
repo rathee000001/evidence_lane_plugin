@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/Interrupt/handler.py",
   "event": "Interrupt",
   "event_contract": "hooks/events/Interrupt/event.v4.json",
-  "event_contract_sha256": "e368eace7e59802106935c3f6e59a48772937af21bd9d232e458bfb1893c3107",
+  "event_contract_sha256": "e63c13959139db4d58ee4da4e8fca87b6706aee459dfc1b4c3d7c9376547553b",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.InterruptHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/Interrupt.v4.schema.json",
   "input_schema_sha256": "c7c50752061c12ba877a6c63bb95b7af3f54df08d3f3d81025b3f83916a7dec8",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

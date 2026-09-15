@@ -338,6 +338,14 @@
     "separate_host_process_per_stage": true,
     "runtime_bridge": "hooks/runner.mjs",
     "ambient_python_required": false,
+    "installation_policy": {
+      "trust_owner": "codex_plugin_manager",
+      "source": "plugin",
+      "trusted_after_supported_install_required": true,
+      "enabled_by_default": false,
+      "enablement_owner": "user",
+      "plugin_mutates_host_hook_state": false
+    },
     "event_isolation_owner": "src/evidence_lane_plugin/hook_event_isolation.py",
     "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
     "lifecycle_boundary_owner": "src/evidence_lane_plugin/hook_lifecycle_boundary.py",

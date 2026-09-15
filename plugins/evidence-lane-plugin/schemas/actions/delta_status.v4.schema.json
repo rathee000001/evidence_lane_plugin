@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.",
@@ -275,7 +275,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "80bba594b18782a173c1fc13a727e4990194839f21c35ddb4622cd78781bac02",
+    "contract_digest": "13eee4a61ddbcc374aa2b2a254dfdfd1937cd59338e2117ba0e6eed61389d1fe",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -294,9 +294,7 @@
         "reason": "Registered engine adapter",
         "route_id": "delta_status.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

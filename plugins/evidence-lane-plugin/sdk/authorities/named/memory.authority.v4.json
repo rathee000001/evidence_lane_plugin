@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_id": "memory",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 65761,
+    "bytes": 65150,
     "path": "authorities/project_memory/manifest.v4.json",
-    "sha256": "34585843d74cbd55b6fc2067981abeb53c2fe22f151543e74b07086cf1e6fa36"
+    "sha256": "dcc37874c8c38e4f08aae98cb54e8e5fc8f5c8a2239c05e9305701e93969a587"
   },
   "path": "authorities/project_memory",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

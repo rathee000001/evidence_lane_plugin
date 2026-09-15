@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/agent_learning/dot-artifact.schema.json",
-      "sha256": "aae646b5e7a41fff66f05b6295c522d2ce92a62e696a75409a878793cbf2354f"
+      "sha256": "9aa6950d2862f45bd3da009a95f5e0655c1b943a978b0c4c2e4aa2bfbe3f0852"
     },
     {
       "path": "authorities/agent_learning/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/agent_learning/manifest.v4.json",
-      "sha256": "b473ed5a5d6fce2e617da169b52aa392aadb0eb7e6c6e5404bf167e8f424b19a"
+      "sha256": "bca748f86b26bbf233011f175cccb7d585e2931bf2f3c578bbb223108393594c"
     },
     {
       "path": "authorities/agent_learning/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/agent_learning/mmd-artifact.schema.json",
-      "sha256": "b8be4536db85b2e314a83060a50f2132cef01769d1a7dd31649581e71cce8816"
+      "sha256": "beb99ccea6ecab091521b34c96e899108b608d9dc99a9bc31b17dad830391bf8"
     },
     {
       "path": "authorities/agent_learning/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/agent_learning/pointer-contract.v4.json",
-      "sha256": "0dc7a563fd2778eedf9373e6820e46bb86e138afcff4e0340260d77a84d59bdb"
+      "sha256": "5f0058de392f6261aff14ad254ba6e220cb2633cb2a9dc8f34f1be8bc53c776c"
     },
     {
       "path": "authorities/agent_learning/reader-contract.schema.json",

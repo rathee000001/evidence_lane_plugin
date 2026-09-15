@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Inspect a bounded immutable sample with an attributed library and reconcile its row shape and null positions.",
@@ -93,7 +93,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "5f6fa0cf9494d58b18b4fd69eeb2a72336155a201054ffae278cb24a5f3fb7eb",
+    "contract_digest": "eca732723de463d7f2f1f46cbdca81a2e8a034e9e5ad0c460b0e43c57386a917",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -112,9 +112,7 @@
         "reason": "Registered engine adapter",
         "route_id": "spreadsheet_inspect_openpyxl.library",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

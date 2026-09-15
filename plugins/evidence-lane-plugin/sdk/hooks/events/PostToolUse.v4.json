@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PostToolUse/handler.py",
   "event": "PostToolUse",
   "event_contract": "hooks/events/PostToolUse/event.v4.json",
-  "event_contract_sha256": "3920dfb5f3ef4500837ffd74ce26910e10c29359625f2553d0e8f9bd6761590e",
+  "event_contract_sha256": "d99dc7a0aa23678c6cbddf33968ff2f872dc1b551213062fc1a348feeb220e32",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/PostToolUse.v4.schema.json",
   "input_schema_sha256": "b270d300997c086e90c4450e640bc792852bddecb1203d6ecbeb111b4fa5f3c4",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

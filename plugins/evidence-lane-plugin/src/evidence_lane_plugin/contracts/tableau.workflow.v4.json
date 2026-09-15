@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "actions": [
     {
       "cross_project_read": true,
@@ -72,7 +72,7 @@
       "requires_delta": false,
       "studio_read": true,
       "toolchain": {
-        "contract_digest": "c9222d546a67960284644518ed69f5af12655d1fd3020ded5a4d32036c4953b6",
+        "contract_digest": "3ccf8af0f0eddd5947de6b79cc409380a6d31a386f2a7d1e0a4009415ba9c302",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -91,9 +91,7 @@
             "reason": "Registered engine adapter",
             "route_id": "tableau_current.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"
@@ -384,7 +382,7 @@
       "requires_delta": true,
       "studio_read": false,
       "toolchain": {
-        "contract_digest": "bf90c8b363e4bf8856ed94b3e7ad63def2a7cd87aeb6638cfa98ef87c4173d37",
+        "contract_digest": "537c9ac70ba36b9de1c979a4e8662c753b8553e4e241d5e0d9d52d5e3e4171ae",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -414,9 +412,7 @@
             "view_refresh": {
               "native_dot": {
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ],
                 "engine_systems": [
                   "Windows"
@@ -463,9 +459,7 @@
             "view_refresh": {
               "native_dot": {
                 "client_families": [
-                  "codex_desktop",
-                  "codex_cli",
-                  "codex_vm"
+                  "codex_desktop"
                 ],
                 "engine_systems": [
                   "Windows"
@@ -1068,7 +1062,7 @@
       "requires_delta": false,
       "studio_read": true,
       "toolchain": {
-        "contract_digest": "be493a7383da0278cd995d002e3c0c2a1612d10747b1a7884a7ecf3fa781255e",
+        "contract_digest": "b0c39d497e6e6bee8e89ab5bec94d6520c0ce4887981adae6db1784f0daf528c",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -1087,9 +1081,7 @@
             "reason": "Registered engine adapter",
             "route_id": "tableau_query.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"
@@ -1232,7 +1224,7 @@
       "requires_delta": false,
       "studio_read": true,
       "toolchain": {
-        "contract_digest": "bd5b287b5059869789fc2660b5718c3b5f70cc0603d21009c05b9ef97a7fae14",
+        "contract_digest": "98bf4f677e3d1e26bc30c41e451e8cccd5e203b742086bcc442e6383c3627b7d",
         "fallback_after_invocation": false,
         "installation_implied": false,
         "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -1251,9 +1243,7 @@
             "reason": "Registered engine adapter",
             "route_id": "tableau_read.engine",
             "systems": [
-              "Windows",
-              "Darwin",
-              "Linux"
+              "Windows"
             ],
             "tool_ids": [
               "Python"

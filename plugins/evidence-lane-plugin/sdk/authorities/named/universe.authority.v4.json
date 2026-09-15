@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_id": "universe",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 69028,
+    "bytes": 68417,
     "path": "authorities/project_universe/manifest.v4.json",
-    "sha256": "da4f4179b0b284a3c909ddc1404edf1f702af43f691ad063c6504b63cf49f8a9"
+    "sha256": "c3307245df6e1fc30de633692b229a4f3e0b6318cfa1893a8bd56ebb0e0e7ff4"
   },
   "path": "authorities/project_universe",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

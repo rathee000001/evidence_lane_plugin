@@ -1,13 +1,13 @@
 {
   "action": "code_semantic_query",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "adapter_executes_project_operations": false,
   "authority": "engine_typed_action_registry",
   "execution_owner": "connected_engine_registry",
   "installed_execution_claimed": false,
   "schema": "evidence-lane.mcp-binding.v4",
   "sdk_binding": "sdk/actions/code_semantic_query.action.v4.json",
-  "sdk_binding_sha256": "0a87b6cf2de71b17dfbc549441a4ab31d428d75d039a77aa9fed605eddfebb55",
+  "sdk_binding_sha256": "df19f1704464082cd35c136589b9b9480658f4366610b1cc24c89e4d230b2867",
   "tool": {
     "annotations": {
       "destructiveHint": false,

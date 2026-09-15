@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Verify bounded federation identities, historical heads and explicit grant links.",
@@ -91,7 +91,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "00b25464ec72ccc6fe4befa1c1307ebafb3d214ded2e42ca0d8232f5a6b59872",
+    "contract_digest": "e4f59e0b828c298c8cb1dc0339ef50dee3a05a6c438b47674bae983419b4054c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -110,9 +110,7 @@
         "reason": "Registered engine adapter",
         "route_id": "project_evidence_network_verify.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

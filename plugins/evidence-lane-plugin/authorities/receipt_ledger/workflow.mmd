@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=749B02F56D0D67E54FDD8AFFF4AE21FCE2D750B5E3535CE6F4C07636A4EDAE63
+%% LANGGRAPH_EXPORT_SHA256=EF5D0D734696B6F806543F777159CFE8B71E4A3C1B2211FDA70B4241EE7FE746
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -30,8 +30,6 @@ flowchart TB
   action_remote_git_execute_push["remote_git_execute_push"]:::default
   action_remote_git_prepare_push["remote_git_prepare_push"]:::default
   action_session_exit_boundary["session_exit_boundary"]:::default
-  action_storage_connector_inspect["storage_connector_inspect"]:::default
-  action_storage_connector_select["storage_connector_select"]:::default
   sdk -->|"admin"| action_accelerator_configure
   action_accelerator_configure -->|"select-project-tools"| writer
   sdk -->|"read"| action_accelerator_read
@@ -54,10 +52,6 @@ flowchart TB
   action_remote_git_prepare_push -->|"run-project-lifecycle"| writer
   sdk -->|"read"| action_session_exit_boundary
   action_session_exit_boundary -->|"close-project-session"| read
-  sdk -->|"read"| action_storage_connector_inspect
-  action_storage_connector_inspect -->|"select-project-storage"| read
-  sdk -->|"admin"| action_storage_connector_select
-  action_storage_connector_select -->|"select-project-storage"| writer
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
@@ -65,5 +59,4 @@ flowchart TB
   action_capture_bind ~~~ action_connector_configure
   action_connector_revoke ~~~ action_remote_git_action_read
   action_remote_git_prepare_push ~~~ action_session_exit_boundary
-  action_storage_connector_inspect ~~~ action_storage_connector_select
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

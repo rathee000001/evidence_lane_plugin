@@ -90,7 +90,7 @@ def system(tmp_path, monkeypatch):
         bind_fixture_flash(engine, tmp_path, monkeypatch)
         project = engine.directory.register(tmp_path / 'state', source_root=source, create=True, read_only=False)
         store = engine.directory.open(project['project_id'], write=True)
-        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_cli'),
+        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_desktop_stable'),
             projects=[ProjectSelection(project_id=store.project_id, permissions=['read', 'write', 'tools', 'admin'])]))
         yield engine, store, session, spec, runtime
 
@@ -103,7 +103,7 @@ def registration(system, **changes):
         'capabilities': ['bounded_read'], 'allowed_lanes': ['local_code'],
         'allowed_actions': ['fixture_extension_read'], 'read_roots': [str(store.source_root / 'allowed')],
         'expires_at': 'NO_EXPIRY', 'role': 'source_reader', 'role_schema': {'source_hash': 'blob_hash', 'bytes': 'integer'},
-        'host_profiles': ['codex_cli'], 'backend_runtime': 'python', 'backend_id': 'fixture.file-reader',
+        'host_profiles': ['codex_desktop_stable'], 'backend_runtime': 'python', 'backend_id': 'fixture.file-reader',
         'backend_version': '1.0.0',
     } | changes)
 
@@ -164,7 +164,7 @@ def test_real_worker_read_is_bound_to_grant_and_receipts_lane(system):
     body = json.loads(store.lane('plan').read_object(row['result_object']))
     proof = body['tool_execution']['extension_binding']
     assert proof['registration_digest'] == response.result['digest']
-    assert proof['backend_version'] == '1.0.0' and proof['configured_host'] == 'codex_cli'
+    assert proof['backend_version'] == '1.0.0' and proof['configured_host'] == 'codex_desktop_stable'
     assert body['workers'][0]['worker_pid'] > 0
     entry = json.loads(store.lane('plan').read_object(row['entry_object']))
     assert entry['tool_admission']['extension'] == proof
@@ -208,7 +208,7 @@ def test_initial_grant_event_failure_rolls_back_schema_and_registration(system, 
 @pytest.mark.parametrize('changes', [
     {'backend_id': 'absent.adapter'}, {'backend_version': '2.0.0'}, {'backend_id': None, 'backend_version': None},
     {'backend_runtime': 'external_mcp'}, {'role': 'different_role'}, {'role_schema': {'source_hash': 'text', 'bytes': 'integer'}},
-    {'allowed_lanes': ['research']}, {'host_profiles': ['codex_desktop']}, {'capabilities': ['other_read']},
+    {'allowed_lanes': ['research']}, {'host_profiles': ['codex_desktop_beta']}, {'capabilities': ['other_read']},
     {'allowed_actions': ['connector_read']},
 ])
 def test_mismatched_grant_cannot_select_or_run(system, changes):

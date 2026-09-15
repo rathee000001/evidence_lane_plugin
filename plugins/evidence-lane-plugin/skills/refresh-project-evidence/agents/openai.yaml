@@ -1,6 +1,8 @@
 interface:
   display_name: "Refresh project evidence"
   short_description: "Refresh changed evidence and lane views"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $refresh-project-evidence to refresh the selected changed project evidence."
 dependencies:

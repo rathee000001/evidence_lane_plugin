@@ -1,6 +1,8 @@
 interface:
   display_name: "Execute project plan"
   short_description: "Execute the next eligible project-plan task"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $execute-project-plan to run the next eligible task in my project plan."
 dependencies:

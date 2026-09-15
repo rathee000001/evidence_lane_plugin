@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "member_count": 4,
@@ -7,22 +7,22 @@
     {
       "bytes": 761,
       "path": "sdk/recovery/coherent-backup.contract.v4.json",
-      "sha256": "e640d398c9e9cbbbcd5027abfdb4e95ec2264de2a9a6560e5ce3370dee29bdfb"
+      "sha256": "d701a1bce1d022c8743b3cbf96ee0b9e8198cbe31f2044636cad8c2e30eae194"
     },
     {
       "bytes": 582,
       "path": "sdk/recovery/database-recovery.contract.v4.json",
-      "sha256": "447609c0ae132d2688924a7aa41ef819f83353e7642883c3b31675ca27314aa7"
+      "sha256": "0541ecaa52d3c205e1fee55458c99f823149ff37a671e7c0f26d4cd749f045cb"
     },
     {
       "bytes": 748,
       "path": "sdk/recovery/git-restore.contract.v4.json",
-      "sha256": "1fcba3539d33a89730d0c9f0a0fba6843a5d1a54cfcad9c2fc7963d24503c466"
+      "sha256": "a1b61ef7c211940b1c08dacf4b51dd0da0389ae94d2cc5c95c0fa530e5c3ce10"
     },
     {
       "bytes": 572,
       "path": "sdk/recovery/job-recovery.contract.v4.json",
-      "sha256": "7568109d412907a8dc8d8d7f706bb4b023364d082098b052db591440d0f686f1"
+      "sha256": "64d64bbd35fe89604b79685b48e88837dcc48f2ed71dc09814edc71e2861b1b5"
     }
   ],
   "schema": "evidence-lane.sdk-recovery-contract-registry.v4",

@@ -110,7 +110,7 @@ AUTHORITY_SUPPORT_PROFILES = MappingProxyType({
         ('accelerators', 'ACCELERATOR_MIGRATIONS'), ('remote_api', 'REMOTE_MIGRATIONS'),
         ('database_recovery', 'RECOVERY_MIGRATIONS'),
         ('remote_git', 'PUSH_MIGRATIONS'), ('capture_routing', 'CAPTURE_MIGRATIONS'),
-        ('agent_learning', 'HOST_MEMORY_MIGRATIONS'), ('storage_selection', 'STORAGE_MIGRATIONS')),
+        ('agent_learning', 'HOST_MEMORY_MIGRATIONS')),
         foundation_owners=('receipts',)),
     'universe': AuthoritySupportProfile('universe', 'project_universe', (
         ('project_universe', 'UNIVERSE_MIGRATIONS'), ('universe_federation', 'FEDERATION_MIGRATIONS'))),

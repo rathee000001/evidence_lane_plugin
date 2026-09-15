@@ -60,11 +60,11 @@ def test_business_skill_set_and_complete_distribution_manifests():
     assert {row["name"] for row in skill_surface["skills"]} == EXPECTED_SKILLS
 
     mcp = load("mcp/mcp-manifest.v4.json")
-    assert mcp["action_count"] == 297
+    assert mcp["action_count"] == 295
     verify_members(mcp)
 
     sdk = load("sdk/sdk-manifest.v4.json")
-    assert sdk["complete_family_surface"] and sdk["action_count"] == 297
+    assert sdk["complete_family_surface"] and sdk["action_count"] == 295
     verify_members(sdk)
     sdk_paths = {row["path"] for row in sdk["members"]}
     assert {"sdk/plan/runtime.py", "sdk/hooks/runtime.py", "sdk/internal/runtime.py",
@@ -76,7 +76,7 @@ def test_business_skill_set_and_complete_distribution_manifests():
         "plan", "recovery", "routing", "skills", "transports", "workflows"}
 
     schemas = load("schemas/schema-manifest.v4.json")
-    assert schemas["complete_family_surface"] and schemas["action_count"] == 297
+    assert schemas["complete_family_surface"] and schemas["action_count"] == 295
     verify_members(schemas)
     family = load("schemas/schema-family-registry.v4.json")
     assert family["family_count"] >= 40

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Verify exact ENV/UOP policy bytes against the current registry without writing state.",
@@ -88,7 +88,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "f5f518c18e3b774389fc919a550192dea141c1baf344c7c63ae521006cb6ca2a",
+    "contract_digest": "4685038f78b1092a3a88f11aedf1ced778844bc5a647c0296fe0b4a1491e11d2",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -107,9 +107,7 @@
         "reason": "Registered engine adapter",
         "route_id": "session_flash_status.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

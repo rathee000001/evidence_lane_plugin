@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Publish bounded page derivatives tied to immutable PDF source bytes.",
@@ -129,7 +129,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "7f11837caa5b2de710ec08334ee3a6454210b6f9af780398e8844b8bbfdeaeec",
+    "contract_digest": "0718ceac58f50bdbf5300707f73017beba02ee2a279943db4caacee586b66917",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -165,9 +165,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_ocr.rapidocr",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

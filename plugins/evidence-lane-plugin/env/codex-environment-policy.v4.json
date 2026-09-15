@@ -64,7 +64,7 @@
           "primary_key": 0
         },
         {
-          "name": "tunnel_policy",
+          "name": "persistence_policy",
           "type": "TEXT",
           "not_null": true,
           "primary_key": 0
@@ -751,8 +751,8 @@
         {
           "stage_id": "PROJECT_BINDING",
           "ordinal": 3,
-          "label": "Explicit project and storage selection",
-          "source_owner": "projects and storage_selection",
+          "label": "Explicit project and local persistence binding",
+          "source_owner": "projects and local persistence policy",
           "output_contract": "project binding",
           "status": "ACTIVE"
         },
@@ -1150,5 +1150,5 @@
       "rows": []
     }
   },
-  "catalog_sha256": "bcf5cdc358dc2475969f95e38d38b7c4dfaada2ebfe4fce167e3a2ea81471636"
+  "catalog_sha256": "3359ab0dae9da201ce6c3d117433c4753c981f9026000865b7e71122cbd318f5"
 }

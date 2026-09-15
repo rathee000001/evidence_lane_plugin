@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "authority_id": "learning",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 24961,
+    "bytes": 24820,
     "path": "authorities/agent_learning/manifest.v4.json",
-    "sha256": "b473ed5a5d6fce2e617da169b52aa392aadb0eb7e6c6e5404bf167e8f424b19a"
+    "sha256": "bca748f86b26bbf233011f175cccb7d585e2931bf2f3c578bbb223108393594c"
   },
   "path": "authorities/agent_learning",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

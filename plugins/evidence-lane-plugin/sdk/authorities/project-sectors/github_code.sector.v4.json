@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "github_code",
   "manifest": {
-    "bytes": 80924,
+    "bytes": 80407,
     "path": "authorities/project_sectors/github_code/manifest.v4.json",
-    "sha256": "e924b52e91def1dc42a3b6d0d9ffb6389cbfe3cb29ee3e774d2e8a83f000c87f"
+    "sha256": "5622e502a1ae0fd289de216cf05c86b76b494b0a0d410cf953cd28813ceaf6eb"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

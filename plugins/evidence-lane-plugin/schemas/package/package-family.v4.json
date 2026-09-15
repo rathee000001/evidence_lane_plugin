@@ -4,15 +4,15 @@
   "members": [
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "dcd1fdf6fa863ba9dfe00d60d3ff5ce0572ce68c97ad1762c88a318f6d522f9d"
+      "sha256": "368d4ffbff14d9f0e583ff61da99be939c075aebac997fbea3a68440294e9124"
     },
     {
       "path": "manifests/plugin-architecture.v4.json",
-      "sha256": "30f7b49b52255e1d0a8b4cecffa16bbd414b54fbe7ca15bae9aab4e7e65c828f"
+      "sha256": "e67997e5e7e25e39d2dae8b45203b025084ae5efb665ed23ce2d9d05b7c6cf51"
     },
     {
       "path": "src/evidence_lane_plugin/plugin_architecture.py",
-      "sha256": "b6da6899faa63ac5699c3776c1c208d8c460b12f711f3e90640b0c3f665d2cae"
+      "sha256": "b91a9598a182126b18d131dc650951343706fb1be5034a9e14cfe247ffbf52f0"
     }
   ],
   "purpose": "Plugin identity and source-derived architecture contracts",

@@ -73,7 +73,8 @@ def main(argv: list[str] | None = None) -> None:
     location.add_argument("--runtime-root", type=Path)
     location.add_argument("--remote-config", type=Path)
     parser.add_argument("--transport", choices=["stdio"], default="stdio")
-    parser.add_argument("--host-profile", choices=sorted(HOST_MATRIX), default=os.environ.get('EVIDENCE_LANE_HOST_PROFILE', 'unknown'))
+    parser.add_argument("--host-profile", choices=sorted(HOST_MATRIX),
+        default=os.environ.get('EVIDENCE_LANE_HOST_PROFILE', 'codex_desktop_stable'))
     parser.add_argument('--local-project-administration', action='store_true',
         help='Grant project administration only when this packaged launcher selects the local owner route.')
     add_selection_arguments(parser)
@@ -87,8 +88,6 @@ def main(argv: list[str] | None = None) -> None:
         args.manage_projects = True
     selections = configured_selections(args, parser)
     if args.remote_config is None:
-        if args.host_profile in {'codex_vm_persistent', 'codex_vm_ephemeral'}:
-            parser.error('Configured VM profiles require an explicitly verified remote engine before local startup.')
         args.runtime_root = runtime_root(args.runtime_root)
         ensure_local_engine(args.runtime_root)
     elif args.manage_projects:

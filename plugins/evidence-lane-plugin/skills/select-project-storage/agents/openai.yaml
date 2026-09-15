@@ -1,8 +1,10 @@
 interface:
   display_name: "Select project storage"
-  short_description: "Inspect project roots and durable storage routes"
+  short_description: "Inspect project roots and local persistence evidence"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
-  default_prompt: "Use $select-project-storage to inspect or select my project storage root."
+  default_prompt: "Use $select-project-storage to register or inspect my persistent local project root."
 dependencies:
   tools:
     - type: "mcp"

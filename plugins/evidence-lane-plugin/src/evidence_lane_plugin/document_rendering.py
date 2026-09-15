@@ -109,8 +109,10 @@ def _convert(source, temporary, *, timeout_seconds, output_format='pdf', family=
         raise LaneError('DOCUMENT_RENDER_RUNTIME_MISMATCH', 'The selected office executable is outside its verified runtime asset.')
     runtime_verified = time.monotonic()
     profile, output = temporary / 'profile', temporary / 'output'
+    sandbox_temp = temporary / 'tmp'
     (profile / 'user').mkdir(parents=True)
     output.mkdir()
+    sandbox_temp.mkdir()
     (profile / 'user/registrymodifications.xcu').write_text(
         '<?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry">'
         '<item oor:path="/org.openoffice.Office.Common/Security/Scripting">'
@@ -127,8 +129,24 @@ def _convert(source, temporary, *, timeout_seconds, output_format='pdf', family=
         '--outdir', str(output), str(source)]
     group = ChildProcessGroup()
     group.start()
-    environment = {key: value for key, value in os.environ.items() if not key.upper().startswith('PYTHON')}
-    environment.update(PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1')
+    blocked_environment = {
+        'TEMP', 'TMP', 'TMPDIR', 'UNO_PATH', 'URE_BOOTSTRAP',
+    }
+    environment = {
+        key: value for key, value in os.environ.items()
+        if not key.upper().startswith(('PYTHON', 'SAL_'))
+        and key.upper() not in blocked_environment
+    }
+    environment.update(
+        PYTHONDONTWRITEBYTECODE='1',
+        PYTHONNOUSERSITE='1',
+        TEMP=str(sandbox_temp),
+        TMP=str(sandbox_temp),
+        TMPDIR=str(sandbox_temp),
+        SAL_DISABLE_OPENCL='1',
+        SAL_DISABLE_SKIA='1',
+        SAL_DISABLEGL='1',
+    )
     converter_started = time.monotonic()
     try:
         with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:

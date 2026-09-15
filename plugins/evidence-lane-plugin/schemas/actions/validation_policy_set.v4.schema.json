@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Save an exact project validation policy revision without executing checks or changing task contracts.",
@@ -534,7 +534,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "4be17112bddba522b7655ab69add1370ef1610fa2df0c8b478b67a446262f169",
+    "contract_digest": "7dd65ee064b85c000efb19a5b6c9a584983192f6c12ce718bdf2bd7ae3d64ff1",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -553,9 +553,7 @@
         "reason": "Registered engine adapter",
         "route_id": "validation_policy_set.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

@@ -122,7 +122,7 @@ class SelectedViewRefresh:
         return {'view_id': self.view_id, 'selection': 'existing_consumer_exact_snapshot',
             'preserve': ['scope', 'formats', 'include_pointer', 'dot_validation'],
             'native_dot': {'tool_ids': ['Graphviz_dot'], 'engine_systems': ['Windows'],
-                'client_families': ['codex_desktop', 'codex_cli', 'codex_vm']}}
+                'client_families': ['codex_desktop']}}
 
     def resolve(self, context):
         from .host_routing import HOST_MATRIX
@@ -134,7 +134,7 @@ class SelectedViewRefresh:
         family = HOST_MATRIX.get(profile, {}).get('family')
         return {'view_id': self.view_id, 'selection': selection,
             'tool_ids': ['Graphviz_dot'] if native else [],
-            'native_dot': native, 'host_compatible': not native or family in {'codex_desktop', 'codex_cli', 'codex_vm'}}
+            'native_dot': native, 'host_compatible': not native or family == 'codex_desktop'}
 
 
 class LaneArtifacts:
@@ -347,7 +347,7 @@ class LaneArtifacts:
             native_host_profile = None
             if request.dot_validation == 'native':
                 native_host_profile = HOST_MATRIX[host.client.configured_profile]['family'].upper()
-                if native_host_profile not in {'CODEX_DESKTOP', 'CODEX_CLI', 'CODEX_VM'}:
+                if native_host_profile != 'CODEX_DESKTOP':
                     raise LaneError('VIEW_NATIVE_HOST_UNAVAILABLE', 'Native DOT validation requires a supported configured client profile.')
                 if execution is not None and 'Graphviz_dot' not in execution.guard.task.permitted_tools:
                     raise LaneError('DELTA_TOOL_SCOPE', 'The adopted task must permit native Graphviz to preserve this selected export.')

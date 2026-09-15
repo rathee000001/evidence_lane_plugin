@@ -1,12 +1,12 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "installed_execution_claimed": false,
   "lane_id": "images_ocr",
   "manifest": {
-    "bytes": 87513,
+    "bytes": 86301,
     "path": "authorities/project_sectors/images_ocr/manifest.v4.json",
-    "sha256": "e5cf7bafe2b3d818bdde9d79c4e52fa0afdea628b2f8b6049bcbb418feead3aa"
+    "sha256": "e23bfdc76e501056c867b6b8d41fdd205ef844804693db1244e5ddcbd7f87aaf"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

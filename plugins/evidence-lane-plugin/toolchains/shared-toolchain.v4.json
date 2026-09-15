@@ -7,8 +7,11 @@
   "shared_root": "C:/Apps/EvidenceLaneStudio",
   "override": "EVIDENCE_LANE_STUDIO_ROOT",
   "windows_studio_only": true,
-  "mac_path": "reduced_native_sdk_mcp_hooks_without_managed_bundle",
-  "vm_path": "explicit_engine_route_with_verified_durable_storage",
+  "supported_host_profiles": [
+    "codex_desktop_stable",
+    "codex_desktop_beta"
+  ],
+  "persistent_local_windows_only": true,
   "full_bundle_gate": "all_required_local_tools_models_and_compatible_provider_environments_verified",
   "operation_selection_does_not_reduce_installation_scope": true,
   "source_locks": [

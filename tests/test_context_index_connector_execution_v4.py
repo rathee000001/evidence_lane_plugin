@@ -49,7 +49,7 @@ def system(tmp_path, monkeypatch):
         bind_fixture_flash(engine, tmp_path, monkeypatch)
         entry = engine.directory.register(tmp_path / 'state', source_root=source, create=True, read_only=False)
         store = engine.directory.open(entry['project_id'], write=True)
-        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_cli'),
+        _, session = engine.clients.connect(ConnectRequest(hello=ClientHello(configured_profile='codex_desktop_stable'),
             projects=[ProjectSelection(project_id=store.project_id,
                 permissions=['read', 'write', 'publish', 'tools', 'admin'])]))
         def controlled(command, **kwargs):
@@ -89,7 +89,7 @@ def configure(system, tool_id, **changes):
         'allowed_actions': [CONTEXT_INDEX_QUERY, CONTEXT_INDEX_SYNC], 'resource_ids': [RESOURCES[tool_id]],
         'expires_at': 'NO_EXPIRY', 'role': 'context_index_result',
         'role_schema': {'tool_id': 'text', 'operation': 'text', 'result': 'json', 'receipt_sha256': 'blob_hash'},
-        'host_profiles': ['codex_cli'], 'backend_runtime': 'python', 'backend_id': backend_id,
+        'host_profiles': ['codex_desktop_stable'], 'backend_runtime': 'python', 'backend_id': backend_id,
         'backend_version': version,
     } | changes)
     result = call(system, 'connector_configure', {'registration': registration.model_dump()})
@@ -180,7 +180,7 @@ def test_provider_partial_failure_blocks_delta_result(system):
 
 def test_packaged_mcp_declares_four_routes_and_executes_real_httpx_adapter(system):
     engine, store, _, _ = system
-    configure(system, 'Pinecone', host_profiles=['codex_cli', 'codex_desktop'])
+    configure(system, 'Pinecone', host_profiles=['codex_desktop_stable', 'codex_desktop_beta'])
     task = plan(system, 'Pinecone', CONTEXT_INDEX_QUERY)
     with LocalEndpoint(engine):
         async def exercise():

@@ -1,6 +1,8 @@
 interface:
   display_name: "Close a project session"
   short_description: "Close a session and detach its capture binding"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $close-project-session to close my current project session safely."
 dependencies:

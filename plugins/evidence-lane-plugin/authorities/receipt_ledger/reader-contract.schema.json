@@ -203,55 +203,6 @@
       "title": "AuthorityRequest_session_exit_boundary",
       "type": "object"
     },
-    "AuthorityRequest_storage_connector_inspect": {
-      "additionalProperties": false,
-      "properties": {
-        "protocol_version": {
-          "const": 4,
-          "default": 4,
-          "title": "Protocol Version",
-          "type": "integer"
-        },
-        "request_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Request Id",
-          "type": "string"
-        },
-        "action": {
-          "const": "storage_connector_inspect",
-          "title": "Action",
-          "type": "string"
-        },
-        "project_id": {
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "title": "Project Id",
-          "type": "string"
-        },
-        "expected_revision": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Revision"
-        },
-        "arguments": {
-          "$ref": "#/$defs/StorageInspect"
-        }
-      },
-      "required": [
-        "action",
-        "project_id",
-        "arguments"
-      ],
-      "title": "AuthorityRequest_storage_connector_inspect",
-      "type": "object"
-    },
     "ConnectorRead": {
       "additionalProperties": false,
       "properties": {
@@ -366,20 +317,6 @@
       ],
       "title": "SessionBoundaryRead",
       "type": "object"
-    },
-    "StorageInspect": {
-      "additionalProperties": false,
-      "properties": {
-        "history_limit": {
-          "default": 4096,
-          "maximum": 4096,
-          "minimum": 1,
-          "title": "History Limit",
-          "type": "integer"
-        }
-      },
-      "title": "StorageInspect",
-      "type": "object"
     }
   },
   "discriminator": {
@@ -387,8 +324,7 @@
       "accelerator_read": "#/$defs/AuthorityRequest_accelerator_read",
       "connector_read": "#/$defs/AuthorityRequest_connector_read",
       "remote_git_action_read": "#/$defs/AuthorityRequest_remote_git_action_read",
-      "session_exit_boundary": "#/$defs/AuthorityRequest_session_exit_boundary",
-      "storage_connector_inspect": "#/$defs/AuthorityRequest_storage_connector_inspect"
+      "session_exit_boundary": "#/$defs/AuthorityRequest_session_exit_boundary"
     },
     "propertyName": "action"
   },
@@ -404,9 +340,6 @@
     },
     {
       "$ref": "#/$defs/AuthorityRequest_session_exit_boundary"
-    },
-    {
-      "$ref": "#/$defs/AuthorityRequest_storage_connector_inspect"
     }
   ],
   "title": "receipts typed SDK requests"

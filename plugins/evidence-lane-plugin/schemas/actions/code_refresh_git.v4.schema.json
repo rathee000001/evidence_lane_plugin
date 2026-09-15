@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Index exact granted local bytes at the selected clean Sources Git checkpoint.",
@@ -136,7 +136,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "d5b4536f4b7034098c71ee59b949b40d89323bb922110a8792c565a4e715b085",
+    "contract_digest": "94fd48e9f9e7c2e584495bafa17841c0f241beed4357fa68d15dd0bcb4d5d50d",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -155,9 +155,7 @@
         "reason": "Registered engine adapter",
         "route_id": "code_refresh_git.git_checkpoint",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

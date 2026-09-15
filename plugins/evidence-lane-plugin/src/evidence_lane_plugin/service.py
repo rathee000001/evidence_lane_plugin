@@ -11,11 +11,9 @@ from pathlib import Path
 
 import httpx
 
-from .engine import Engine
 from .engine_runtime import create_runtime_engine, reconcile_jobs
 from .errors import LaneError
 from .local_transport import LocalEndpoint, owner_endpoint
-from .runtime_health import CapabilityMonitor
 from .studio_window import StudioWindow
 
 
@@ -59,7 +57,7 @@ class Service:
         """Reconcile previously admitted jobs only, without replaying any effect."""
         self.recovery = reconcile_jobs(self.engine)
 
-    def start(self, *, open_studio: bool = True) -> None:
+    def start(self, *, open_studio: bool = False) -> None:
         self.engine.start()
         try:
             self.reconcile()
@@ -98,27 +96,6 @@ class Service:
         self.stop_requested.wait()
 
 
-class ReducedService(Service):
-    """Shared Mac/Unix MCP and SDK backend without Studio or managed OS workers."""
-
-    def __init__(self, runtime_root: Path, *, capabilities=None):
-        if platform.system() not in {'Darwin', 'Linux'}:
-            raise LaneError('REDUCED_PLATFORM_UNSUPPORTED', 'Select the native Windows Studio service on Windows.')
-        self.engine = Engine(runtime_root, capabilities=capabilities or CapabilityMonitor())
-        self.endpoint = LocalEndpoint(self.engine, owner_control=self.control, studio_enabled=False)
-        self.stop_requested = threading.Event()
-        self.recovery = []
-        self.studio_launch = 'unsupported_on_this_route'
-
-    def start(self, *, open_studio: bool = False) -> None:
-        if open_studio:
-            raise LaneError('STUDIO_PLATFORM_UNSUPPORTED', 'The reduced native route has no Studio application.')
-        super().start(open_studio=False)
-
-    def open_studio(self):
-        raise LaneError('STUDIO_PLATFORM_UNSUPPORTED', 'The reduced native route has no Studio application.')
-
-
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime-root", type=Path)
@@ -129,12 +106,20 @@ def main(argv: list[str] | None = None) -> None:
     if args.control:
         request_owner_control(args.runtime_root, args.control)
         return
-    service = Service(args.runtime_root) if platform.system() == 'Windows' else ReducedService(args.runtime_root)
+    if platform.system() != "Windows":
+        raise LaneError(
+            "WINDOWS_HOST_REQUIRED",
+            "Evidence Lane supports persistent local Windows Codex Desktop hosts.",
+        )
+    service = Service(args.runtime_root)
     signal.signal(signal.SIGINT, lambda *_: service.stop_requested.set())
     signal.signal(signal.SIGTERM, lambda *_: service.stop_requested.set())
     try:
         try:
-            service.start()
+            # Engine discovery from MCP or another client must not create a
+            # Studio window. The installed launcher requests one window only
+            # after the engine endpoint is ready.
+            service.start(open_studio=False)
         except LaneError as error:
             if error.code != "RUNTIME_IN_USE":
                 raise

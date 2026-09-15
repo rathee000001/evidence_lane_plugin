@@ -10,7 +10,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/001-git/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "fc232b1195e24f0bfe8f598ce802dcfc9f6d3eb6096bf9ba786b348b82618c5a",
+      "evidence_sha256": "7b3b8d686513a88241a82a99ab0afa7a18b70768a53a2295aadf9fbc4309981c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_portable_git",
@@ -27,7 +27,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/002-python/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d120bed42b33bf08b2f702feb151115f9cb7ffd0428b3e077189746e514b3b92",
+      "evidence_sha256": "0f4d193e09cc47ae1e3ddea994fddbf6ee75c396afd3715571d5050af043e9f5",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "pinned_shared_engine_and_tool_interpreters",
@@ -44,7 +44,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/003-hashlib-pathlib/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b0436aea71e486e59af4965f5dec96c5f4391cba93021571b55ba3ab368cc691",
+      "evidence_sha256": "45242537c5c4f3e352bd069fbcb1a299ef0edd0c4c49fc4a77eb9379a763057b",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -61,7 +61,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/004-sqlite-cas/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "6f1107c5d344c42d582c89bdf47e65c216e175b199efa3032045bad3fcb3d602",
+      "evidence_sha256": "2397bad8eab712ce0fd3f7c4e13727ac96a98cfcdd044edd9e3d8305c97c5856",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -78,7 +78,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/005-sqlite-fts5-bm25/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7edac12e70b60ade8ea4efd0fd181c5e16362284db79fb969fb82a6219c10db6",
+      "evidence_sha256": "2798f39b73ed9d82690a37c671e5231962d9bcac7d7ed6069533af10c2063e2b",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -95,7 +95,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/006-apsw-sqlite-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8fcb307ff684beb64357c76c417f10b699c5667ab82485b153d02e21907b5763",
+      "evidence_sha256": "2116239882561a781e5c4fbf2c57394eb16499fa798d5cbf3d2d1e8ead8a7786",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -112,7 +112,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/007-deterministic-tfidf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0ecd184a14ef1cdfde4c2cadc75d6ded8bcd601ead0514424f8ec7b072982249",
+      "evidence_sha256": "d80e81a8a464b42b260aec8d64dfed8da2baa56af1e4823b499724863ba2ac0d",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -129,7 +129,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/008-langgraph-mermaid-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "468a9a53e022b4ef62ecfd8ff058daf693cb430dbcf1ebf86d49796bac1752e6",
+      "evidence_sha256": "3bd3289ecf2f89abddb4c77fbacb5fffc33b2af0cb34a20eef8d889651668282",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -146,7 +146,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/009-python-graphviz-dot-engine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "3d4f8ff972ff1e6650d06cae165d4889ba42cb776e99ea338d0497ebd7b3a024",
+      "evidence_sha256": "d8513bad25a991776b7d0b80b6c4af0ccb4b6694a3534369fee8019dee3d89c9",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -163,7 +163,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/010-llamaindex-sqlite-indexer/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "37ea3c7ec47f70c543ef96659ef8c81ffe814062159a7e6688dc7c1d58a4710c",
+      "evidence_sha256": "c4ba5b3e27de58f22eb296c7332f88719aedf5600ed99ca39a4a80a2dc5521af",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -180,7 +180,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/011-mermaid-cli-mmdc/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ae9fd30262cec3f4144c4cfdc3d34bd6d11396fd67c32162608bcfb87ea85edf",
+      "evidence_sha256": "4c6bae45cfceb14c43f2c48e6b3612c40b9bcc1d532e0954f38706cabfff5717",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
@@ -197,7 +197,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/012-graphviz-dot/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "39545cf610dde4d7a17ea9fa80cf17caa1eca6bc97f7e903eb8f2a11fc049011",
+      "evidence_sha256": "48791f79e59a256165c7c096532978519a453243e07b4fd9ac6e433056d4b721",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -214,7 +214,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/013-python-structural-parser/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "26c0d0421d7b525b52afbfb1ddc3ed59bc3a9bc96f96a99e706c9121e1908017",
+      "evidence_sha256": "0ac105bc4e78463a9cd67280de756de33e8feb6ed7a0485c45b1cacd35d93968",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -231,7 +231,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/015-nodejs-typescript/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f71a6c0de1d2c4eef581985ee17235dea4b633f66c7267094f9cd01838cd9b59",
+      "evidence_sha256": "5a234ff92f1ef3935644fff5656732ce2898529dbef7f0ab3f80abc8836fe481",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
@@ -248,7 +248,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/016-pytest/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "232c4b5585843a94aa1961ac21b4e0fba687ea6905a7d8c8ac866d262e99e9d8",
+      "evidence_sha256": "e7582f6aa3564c085fa6e0e6a61215ef10a8d515ea9ce3ff7198e6ab04f72c53",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -265,7 +265,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/017-ruff/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "77f3a0876ebe11e5c1052801868096b728b30418534a133cc1104b8a888b0239",
+      "evidence_sha256": "6981c11a5c865c6df769dea7ee85fadf99273212eccf1bfff419186a572fd454",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -282,7 +282,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/018-mypy/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ba51f18d353133a6d868d35234cc90315b51a69dc9af2286e8f78fd81d1e7ca1",
+      "evidence_sha256": "eb6c7d735315123389170d5803add558e4ba47beee059f35127164352c8c90ec",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -299,7 +299,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/019-secret-redactor/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "345deb08c5ee86e21ae025381e5ab2ac5725df3ba990b0aeb7155690186a3442",
+      "evidence_sha256": "02b5f6bb30c2ccc2df5f02a2dd0024221f7fd81a58f7b4f39b67198e22c663f8",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -316,7 +316,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/020-hash-chain-writer/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "6f40415378775b04f6b553f06b6c6dba2352eb63a7d08d0833a161be7e69fb45",
+      "evidence_sha256": "8ec0ac8c71d0a7a4fca7f97d096e8ffebbf9e754f352bba16100aeacd5700563",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -333,7 +333,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/021-env-uop-classifier/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "3c33579af4ddbbc052e2fbc7c69640eb8304a3a253a123512758ee11ec4d8c4f",
+      "evidence_sha256": "4ac4ab1b094e607a9b051555da4f0ecdceb4ac2b06b1ca15ad02e3171fbb0d04",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -350,7 +350,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/023-docx-openxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7ed0a2e3fe373d206f2bcc7b89a3bf28bccc852b936ee684b06b3df2f91204c3",
+      "evidence_sha256": "94c2b069a020ac7e35220bc7aeca57b3c36f952b6f0cbcb1cafe777b5c6d2ffc",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -367,7 +367,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/024-defusedxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a5495bfdc68befead25e29e407bbe05775732aed1589b7e03fc7afcbe4b2f26a",
+      "evidence_sha256": "e92e9c49ef5bc768f21495765da8af701d7ea378b0d6b87da2afa5fa008ab4b8",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -384,7 +384,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/025-openxml-csv-json-parser/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7b1aeca8cec7a660778cc2b787cbeda1cf2b8474dd9668d7232b36ae8222a955",
+      "evidence_sha256": "7af77d6d4434aee0fb420d8139babd7f3c7763d6d7ce2e4dbddecc8233554ad5",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -401,7 +401,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/026-openpyxl/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "3c07ba6094422e75afef75a008be25acdb1b4177c816dc0fe83069382401a6a4",
+      "evidence_sha256": "f60d2dbde2cddeca055b7b6c2f7c85623c4f8f57d2307e977c63ed7ade5e492d",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -418,7 +418,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/027-pandas/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7ce9859972e360852712b9fb0502ab8f4bafafcbbe1a4e35020255406bf127cb",
+      "evidence_sha256": "a896a82b200c8e58f575241e1bc8171045257d4d381574735bd0e74b3656af1f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -435,7 +435,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/028-python-calamine/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0df6402799d6ff3f13b31c70d8050adac246304d09bf64f85ea6014f0952a47b",
+      "evidence_sha256": "8dd4e5f49a6b1d21c1faffc7fb89d48ed600783e9e0519d4df0bfa12dc885d78",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -452,7 +452,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/029-pyarrow/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4db77dbc693e513c2f1c18fa45305ace40dc631b1a2660bc7b40803b4e82adf6",
+      "evidence_sha256": "8f79cc706c89f8f54e88859916d677e43d455be29c18f0b849fe69048b4415f2",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -469,7 +469,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/030-pptx-openxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bb219ff1b4507b872d95dd39c4734271bab275df560e0ed672b82fc3d167221a",
+      "evidence_sha256": "d5eaa8dd785d3128563316f11adc1215f36f3ef9bd76d5c1f71e41e2bf358fe1",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -486,7 +486,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/031-pypdf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "6709dca186bb17eec0d487aa9727f876738ad2eae26540893299b9ec18d39936",
+      "evidence_sha256": "461b9ea3e29d46b2f027dbe9d371f95d65fa59b00ef020dca3b9efe2d32630bd",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -503,7 +503,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/032-pypdfium2/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4fb62ded32771058f43b3041c3c471e9321e1f374c05fba03e9c2b4012786e5c",
+      "evidence_sha256": "8551392ac41b442301b86400e5c2333b5ec2a6c3220b272a965a0e7c14006212",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -520,7 +520,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/033-pdfplumber/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "78aa0b784e2359c02d05baa2271e7586f1a4c6f3a7c4381528c17277cfb28069",
+      "evidence_sha256": "01a1b0e3417514986d8342de56ac285915fa5a07355a4315f9cf5641e99609d8",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -537,7 +537,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/034-rapidocr-onnx-runtime/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ea82dbff98eb94ec7baf1a6db845c88a844196ffae4187d71f5afd532f4e35bb",
+      "evidence_sha256": "5c916df0f5d03cd1e8cacf963b1f0da9207aa35bca0aa72ceaaf90af25b6198a",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -554,7 +554,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/035-pytesseract-tesseract/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "605b8dd54cfb401e2e0d05dde1dffa003ee8055547b25b0560ff53465d5b424e",
+      "evidence_sha256": "685c5160ccad3cd1e35fbf6e39b4e36ac05325dcfe9f1c844dc52a652fee48c3",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -571,7 +571,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/036-pillow/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "99f2d7f3857dd7039b12c9ec4694461844052967642b6699e3c0c5c86e7ad40f",
+      "evidence_sha256": "9d9726d0aa3fe793bfdd5bff90006620c9e6af0eb0f32e9cf5446c13beac787f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -588,7 +588,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/037-poppler-pdftotext-pdfinfo/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2d6fe2aa35a02e2ff787ff76338a7f0311396901ce3e162ff80da3e5f12b6cff",
+      "evidence_sha256": "c013657d8801b4e635394461ad1982e7174b9ae78409d726f788bb2d75e35273",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -605,7 +605,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/038-ghostscript/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d3771fbe5340b0a5f279ea70e79572645c5693e76ae2e8dac19b0f9ef7027b6a",
+      "evidence_sha256": "5b02c0e460447486ccee745e2737bd856b21562e23dfc5a77650ed8d3143ce4c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -622,7 +622,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/039-opencv/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "1af802a027d165a14b7c4861f5a7c471bc8f9e06bef375ca9cdcb2f7d8ce8610",
+      "evidence_sha256": "fbcb06890204a3c4bab319e37f942d7b27bdb52f9b3a1277e6930d087f895755",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -639,7 +639,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/040-custom-schema-compiler/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "90ac7d302c22706bda73c7d6446b8ff94dc02fc184617350972de8339629b7d1",
+      "evidence_sha256": "79ca78aa0d1f6e9324355ecede927e7a50932c86b96217cb7eaf7fe7a1bc3c70",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -656,7 +656,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/041-sqlite-immutable-uri-reader/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e9dcbb28ba84e07f9682c14a8d339db043ad9ba5c0794173e46ba7d6b894b55e",
+      "evidence_sha256": "a142ff12988117faf2e444fad2531cc182a394e50d5e122b8e1023288456a302",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -673,7 +673,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/042-safe-archive-intake/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e69fe023164d5805c9206445165aa4a23202d470f0de9f07ae130a65929b0d29",
+      "evidence_sha256": "d56fed11a04375edd2287c74f8f1454bf991092b0de6dd0021716ddbd9c88137",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -690,7 +690,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/043-citation-binder/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "75f70c68346739a6ebe68ec97cdf4ae2cb99452f419b6ad7fe6f324d0acd143d",
+      "evidence_sha256": "c409370b1fe7d961f22aad986b7fb70c6e05ca3095c06422788e8c608754e0d2",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -707,7 +707,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/044-project-inventory/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d35eebba55f27716d0feadbebcf9afa2852f06bc10ab78b9e23ecbe4622ee010",
+      "evidence_sha256": "e28da6c6cf44da97288c5be20730aeb13a3610cd20fa3a7dac4f37df1efdbb6c",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -724,7 +724,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/045-git-detector/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8a7d5f4afd21123f78ef0ee18c3f3ca057c3700520b7317ec044ae2baa12d487",
+      "evidence_sha256": "c077c64a5d79622796e9d01f0c6116130b899aee95d3df1a4cb61c154dada4e8",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -741,7 +741,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/046-compatibility-mapper/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "64e7a5115e4a70333edd1096536d275f096e4c3c4d02b35381329efd2e6fd864",
+      "evidence_sha256": "f1ee871e7b5dfdb36fd8172fc5bc399de75b058540b64e1fab15991ef62c1c4e",
       "delivery_owner": "managed_plugin_and_studio_engine_source",
       "install_mode": "packaged_plugin_engine_code",
       "provisioning_route": "packaged_engine_code_or_standard_library",
@@ -758,7 +758,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/047-mcp-python-sdk/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "d0c82de6a5ad543d19f08828367ae7f01c345367efa2ba654ccaf7cabacac57f",
+      "evidence_sha256": "9233e5818ededa35503d422d9cf6062b2f66716e6daa77c01c4b3e35a81de140",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -775,7 +775,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/048-pydantic/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b942b2fed832b276deed755419bea8329c92564ae0f61b7014777b9b80e71699",
+      "evidence_sha256": "9816b88524691532bed374bdc7070a670d94bef407c59428dda994dc788b265a",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -792,7 +792,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/049-httpx/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "36120ebf173630f8057bc4c6197c37671fb72926b0bc24eb5226480df407e0be",
+      "evidence_sha256": "af13fea87556b04e97e4d8883f362f8e45192a4792eabd47893ee889e1d77104",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -809,7 +809,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/050-cryptography-pyjwt/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "60b271307165782d1959228293d3307f1f3cdd30d6ce27ab9d32bae9a5ae763f",
+      "evidence_sha256": "265508cfa9d3787e53fff625acd8c45646a44b0f9f642b3208a11c1ae28858ab",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -826,7 +826,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/051-powershell-win32-apis/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "17845e2534d7e66ada0df972637a1c87b86bf950ab0fc3aa6c96f0e10a33b8b2",
+      "evidence_sha256": "9eb6c46fea58bddfdfca4d85f0a13dfbc2e07065d45d24afcab4ca72c0326e54",
       "delivery_owner": "windows_host",
       "install_mode": "windows_host_capability_probe",
       "provisioning_route": "windows_host_api_with_platform_verification",
@@ -843,7 +843,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/052-ripgrep-15-2-0/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "706040269ebb6b3f5b931080173e8476227ad1c42bd21476b57cb5640fb24a7a",
+      "evidence_sha256": "ac0bc7bbb08620fb0bd3a0eec515b63fb2c68431b48cb2a9f409ddac7a86ecb7",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -860,7 +860,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/053-sevenzip-nsis-extractor/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "89479ed63ba23f292175b075acb40494e54004fe0fe408a1460229e5d3985b86",
+      "evidence_sha256": "afa506890c54017e147770b1eae2c72321e01485ba7268a0d0a7720884f9309c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -877,7 +877,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/054-jq/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "deff45978cdc7cf4ad597e88e36a5aa7c7f40b0cd4cc53f0b87af5fd95b48e87",
+      "evidence_sha256": "ce1afe41109422248e8176a174c51b3442785761abc32e7ea670f7890cc3ed68",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -894,7 +894,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/055-ffmpeg/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c70d2812182d2fd804d06c9c17f851c50eda286d310345be7a64697adf0d9121",
+      "evidence_sha256": "415613f05e30fbec428861f459ca461028de2352457fd4fbc655b9d3c7b1a824",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -911,7 +911,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/056-pymupdf/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "57f0e80d19e52326c493bb2c9223b8f33556a1f1ea6d850a19c104f8d14bcf0a",
+      "evidence_sha256": "8cc7e05d9556fe4ffdb8f2639f4e3cee4cf02541b492b38fdd18e7c83aae46c6",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -928,7 +928,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/057-docling/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bc0e290a984e0d7d0539883a3dd273180dbb0c1846085bb8f0c345bc67b0ee60",
+      "evidence_sha256": "a66486725b1bfd9deeb3bc336bb497c5231561d82f7049d53fbc5a3d9d071488",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -945,7 +945,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/058-lxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7ba2226678dba723c062d859c0dbe9982b59b9584003ebd6cc85db5a9e49b87f",
+      "evidence_sha256": "9927d20120edcd557fe82ab1e9e851066092137b073f623dcfa2dedc258d07ec",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -962,7 +962,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/059-beautifulsoup4/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e4478b84ffda1b482509f73826264a6f80dbd9568212e285e5886bb1c067554b",
+      "evidence_sha256": "f009b40f4fbdd5d5da32c84a25920c89c08d7c384dba2d7f00decbe8be3d336f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -979,7 +979,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/060-markdownify/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "279cba578017c2fa13b745717a9476e44af2fc3447334f3784af7a601707e8dd",
+      "evidence_sha256": "47e3c0a89961ae70927f0c06cc19e86bb2be48877a805d24a918326ed198b470",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -996,7 +996,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/061-html2text/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "3381683b4f49579cee978d2a75e060300afa63b9c870944d06aabd3b428d481e",
+      "evidence_sha256": "85e705fd108719ab46a138f62df2914287b6afee1dc3a675eb3fd5ea868476bc",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1013,7 +1013,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/062-trafilatura/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e4fe5bef81f8b7f4ef5a7ff04b423ff432df7f4cc290a36bb9c30dd35408da68",
+      "evidence_sha256": "17637c4cd73492e64418f44ed50ed5dab7b74cbd93f177b41f1c1fd337bb2cdc",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1030,7 +1030,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/063-duckdb/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "ad5ea1e96f73db3bde218d657dcee2d4dafae53146e44768a5bde922d8350b29",
+      "evidence_sha256": "915cf379d19ae18ceab9f2615e4a250e7613bdd4027cef4a4a22cc6f6e104a4c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1047,7 +1047,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/064-sqlalchemy/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bfd58efe2783b7151156b3e48e2125666b55d8cfee91e46a3b0a71218d15b59c",
+      "evidence_sha256": "14853c34721aa48660d2654905fb19019ecee2330305904ec0ea0cc5aa44b9e8",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1064,7 +1064,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/065-tableau-hyper-api/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7871f9299774948c62174fa8fb16aeb072d5b555e485dec0d1b756ce215ccce9",
+      "evidence_sha256": "37cb562f87cb2e26981aa02128d77ec916c169dcf8a53951c10bc1744fa21719",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1081,7 +1081,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/066-langchain/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "daab5ca9b25944e9faa82a7c7d8e2e5e60bc0189036c173875c6a3ed728b4d7b",
+      "evidence_sha256": "f84ce657880b79e857b7ffe5f13e669ef9ffba357d73f3168e3741f4a6261244",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1098,7 +1098,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/067-sentencetransformers/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f4948afb1d15901d1411d8d8bf8d69bbad65348e9b1b6ea947ee0ff99d7cd71a",
+      "evidence_sha256": "b77c2456220ab9e1c2e343dcb8edf1c29244948f3ccd949f2c3ea1d73e45d94e",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1115,7 +1115,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/068-faiss-cpu/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "b2b260ad2105f426c06131ba3e0c7aae12e6ebb75b40fe2551ff6923389307de",
+      "evidence_sha256": "499831f75ed798a8e5aa37433ecbba330def055eefe9198d817fac505d562834",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1132,7 +1132,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/069-rank-bm25/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a37a24f9edc636d94903efdf84a3aa4b706a075cbe7de968bda0d018f43f8378",
+      "evidence_sha256": "0ab54964af6da4b80a9d728751a4e1bd706bc82949fd44c5a5b793b4cb69e41b",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1149,7 +1149,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/070-fastapi/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c76a394119ad838f27d27040516b9d371066c35eefc58be79f9df527091adabc",
+      "evidence_sha256": "4405af3f0bd4e8aded6317afac0fa10ef4aeb859bf8d9d81cb68a3d58319cedc",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1166,7 +1166,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/071-uvicorn/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c70709e8214b762fe2e436ca23ad599d8c27ee367df078492704adf0e2e5e792",
+      "evidence_sha256": "2b346a950c8ed990f2bfedcd7052ba8df2dabcaf187454b56e8d8f49a0fab3ac",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1183,7 +1183,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/072-pydantic-settings/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "9159c54c9312dbc4f779c0516c3b8a345b8372c1077641b61ba93ef576aef035",
+      "evidence_sha256": "5be32e27373c911f367b83ae8c5feb3f70b4219f98ed364ebe9eedf97971a12d",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1200,7 +1200,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/073-python-multipart/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "6a0df8b307633b05364def2dff15e5f99275e6f05a1baac6ad83cdfb51fd4aa6",
+      "evidence_sha256": "851e015cb4c1f8925b1dcc400e958170485632abef01073d1db7135f41a486c0",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1217,7 +1217,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/074-requests/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4ac4acf06b3900e2e7d08b1614777619ee1ce53acb5975c05d18e5dc9a4bbfc0",
+      "evidence_sha256": "b9fda3ffbb7fd6b82cdc01dd629a7748a6e467b6310aecf6f8768698f22097c1",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1234,7 +1234,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/075-aiofiles/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bc1542923f23d1119b3fbc21d82319cd82e9a2cb8c49d48ac23e04c4e598b6e2",
+      "evidence_sha256": "800b2a37158ce2f9e97391659378db89912d51ef525cd3bddda349b88ee1316a",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1251,7 +1251,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/076-orjson/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8dc316e718008d7b5a37f20344f8bdf8a99852123172b8b6a2009754e4f971b8",
+      "evidence_sha256": "1f5da935c75c4cce9f96a6120cdae887bc8a5f3d061e6eccf883ce798d4e2a70",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1268,7 +1268,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/077-python-dotenv/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "1d786773de57b0e6ea4af647c766406d73d4ee09b1ebd37e15ac20c062e41bd8",
+      "evidence_sha256": "3dd161bd26a844d7e4daa4a7c8109d3b59e71af3760e064836d0dc2de575a372",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1285,7 +1285,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/078-tenacity/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bfbcde861d21424782f8e294771066b0b75d2649abe00e3bdd2bdfef58f239d0",
+      "evidence_sha256": "b18c45c51f14f410d7f47c13202cd74598d6134d6e0b84011058bd23d7296dcf",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1302,7 +1302,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/080-ddgs/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "eceaf1b132c83366592572585f311bfbb900db0902440a01283178f11e338be2",
+      "evidence_sha256": "c44cd0ab0a566720ca31e8d9a2a5d56b49b20565d6d34e708550704f7f78090f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1319,7 +1319,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/081-pygithub/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "1fd1a13b50b80c49b75e82fe2e8c80aed3dbb185cdd45670bcf6556b629dbb9a",
+      "evidence_sha256": "721829482c6c19f4cc797d2cd2bf907c73dcec99f173c7918d5f6b08db3929ef",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1336,7 +1336,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/082-gitpython/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "8f72bf3f1ac1996ed24f18e903476e707dab48acbc0a6e1614777f6a2541dddf",
+      "evidence_sha256": "262ecfd5b45fbcb6b0871da9d1a4ae41fecabe85cd719a98ee7ffdfd9536c450",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1353,7 +1353,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/083-tldextract/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a1a11b8b7841446e3bd97d4bd352023dd1e4ed64c6c9ba144c60b2e6e38078f9",
+      "evidence_sha256": "7c01e3d3599b6f69e2c39f9132b7e72bccec8045e8ead3fa1aafa28e5649ff69",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1370,7 +1370,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/084-validators/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cb3a900c970ba04fea98c296fc939add4c8e1f37db44d767e417aa073aa39f2a",
+      "evidence_sha256": "cac61ddc2a9600419be67e2f520dd28aff32ffb132403c767bd2cb26f82ac7dc",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1387,7 +1387,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/085-readability-lxml/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "4e8586f93f0a6c4b0ed771b5241457dba1a2a32ce3938563f625d39f514069ac",
+      "evidence_sha256": "d91d772d7981f39621d4f4e51f05382beb8ffa65373aca87a1ad969a4914cd24",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1404,7 +1404,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/086-polars/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "13478f59d5b71a1e75f0a4b5fd470c14089ddb504bea8b81ed5c23c37ab51ca9",
+      "evidence_sha256": "e911a98f959a20477e0cdfd90d243cd2868b934684b2ea5bb00e4f129cfea213",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1421,7 +1421,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/087-treesitter-languagepack/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "bb5c368dfbd06beebb873c2bb158a016d2b6996c1d97b912bd036ea3f97b16db",
+      "evidence_sha256": "51f065f14f761795e401e2cdec242591347d884aa58e41d5fa44a60a0278ad35",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1438,7 +1438,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/089-rustworkx/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "2c03fc62fab621982c56187872495a09c0bf035fb1acee34e17f0a94484218a8",
+      "evidence_sha256": "6ed8922de7a3e847140a923051e957e8a73e2e2f2637dc726e52e9d53b4db12e",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1455,7 +1455,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/090-sqlite-vec/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0d3052509782d57e562219913039e6791b112729e9e619f2d83018a5f951c9b1",
+      "evidence_sha256": "a71a2cd3512d4f1e02a526eb7596e3c06f15aa25faaca6a068c409af92337627",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1472,7 +1472,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/091-huggingface-hub-modelsnapshot/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "59c6205a9a89379e9ae69bbbf01a823da5fcb721f6c241f4c39f1bb282ab0354",
+      "evidence_sha256": "948491242573a64cb41e21d0c02904aff03c03347abb291ae6116e6d7ba3355f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1489,7 +1489,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/092-nextjs-react-threejs-framermotion/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "7615f5957c5f0aa24f5fd04c11346ec29b0e836e451e9446e892b206c60feebc",
+      "evidence_sha256": "72f56f5ea0b0b3a31b46fce543230cd0e10759763a4cf9c6cd11cc894ceae60a",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_node_runtime_and_locked_npm_assets",
@@ -1506,7 +1506,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/095-openai-agents-sdk/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "e2809d34699a87d48c8649d1bee43168fdf9f5d7ecb9e00a97de68d6787f0331",
+      "evidence_sha256": "f8519bfb67908c548c3f5e479de5174c509191ec817af468a32198cd3461fcd4",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1523,7 +1523,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/096-fastmcp/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "690d8b60a6a3b41d02b1cbdc2462941adac2ff62c02e3636ebfbef0f97f1aab0",
+      "evidence_sha256": "72e954897287033402cfdb2748b5fd7b94ea0f6d96050a0bbf090a692c7e8e5d",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1540,7 +1540,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/101-pinecone/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "5a10cab384163565f9ab45db67308e3d9313cb84c6115606cd459e857d57fbb0",
+      "evidence_sha256": "7d710c96e7d044bd74bc7788d91bf9c304b64169484b342f9b01f15a7a39047f",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1557,7 +1557,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/102-weaviate/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "5eb5e78aeb992d09c70cab69cd4c97349795add2e09348cf18b62a96220993ae",
+      "evidence_sha256": "d71bb325967fcda08aa0ceaa4a17357d1e6b48d9816e1b0d842e93237da82d3a",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1574,7 +1574,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/103-milvus/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "f0f4a793c63e7630fd7095eae5a76b8c3838ff9630ebd0b66d1c4a8d33df7f9e",
+      "evidence_sha256": "992b35d5e4622a52e4a29821910d7b72faff46e1c56c35a508855fa538b79764",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1591,7 +1591,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/104-opensearch/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a9697ae4574b77409723e6d40d7084d1b77f9c454b6e97ae16bd422fbecb6155",
+      "evidence_sha256": "6170af954fb93efd5ee3701fdfdc23157799d3a6358ec93d1df28a744cdbaf25",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1608,7 +1608,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/105-langsmith/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "70266b1193cc9ef274d4ca6066e84c2928fedb860b4feaea0039153c3b4eedcc",
+      "evidence_sha256": "885fb31871038e4ce51e535ca0c7c9c9339b76c85f0787123de149228f0dbb5c",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1625,7 +1625,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/109-langfuse/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "0c902143cdbe376570f2baaa7ced27e3e20103da4d6c2f0f643dfdd9ab23dd22",
+      "evidence_sha256": "fa6e3221aa98229a9217c1dddfd3e193f162c64fc2318ab52e1c44942e7b066a",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1642,7 +1642,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/111-opentelemetry/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "a15627dba8c39a74957a52dbe6f95009fc6ede7e0656ac39ce7eb4ffcca3ead7",
+      "evidence_sha256": "db5aec7db6b0074e85fe83ba0a31a18ebf898cc77de3739d38220dfa94a36adc",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1659,7 +1659,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/112-grafana/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "30d82a8e272d20107e477263f78935d24eb9407cdc91ec0458a1207e8b961d51",
+      "evidence_sha256": "4595da7b581849ae773cfb467c0f67002c4ff173f46d2d03cd071c7ad2001cf8",
       "delivery_owner": "plugin_adapter_and_explicit_external_service_configuration",
       "install_mode": "packaged_adapter_external_service_not_redistributed",
       "provisioning_route": "packaged_adapter_and_explicit_external_service_configuration",
@@ -1676,7 +1676,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/current-libreoffice/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "cd5fdae359428779a7ef719a0ab7e6966c14d89e3eb6749fa4756f833322fe8c",
+      "evidence_sha256": "2da413958e3cd99f6a6059115dc43e1a02ebba2ba0356bd433ccb05b4f8ee92c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -1693,7 +1693,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/current-powerbi-tom/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c758d261e6f78e0e97f5843fb2aca185452543f51a5d8baf89c86efd0a9aaa0e",
+      "evidence_sha256": "df1d128cd020d829ca3f16c5e8f9acd4ec0be6d953324e4219eaf40d85ff4a24",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -1710,7 +1710,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/current-pbixray/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "dc04c281b0a215cb29c77463b865ab2cab8b94ea93abb29bf74bd4cc13796777",
+      "evidence_sha256": "96341336a20473b5f5d5d168315cc750ef762d3f201cf913c274ade7430c8c1f",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_native_manifest",
@@ -1727,7 +1727,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/current-jsonschema/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "24cb97413e7708515eef694264d3ab739a82f4d22d16fddb08eb272660c86e53",
+      "evidence_sha256": "bdeb97850e4ad547dd6ece9c55fd2aeeff18a3fc5d10e4352c46e5e7aa6a8976",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1744,7 +1744,7 @@
       "evidence_paths": [
         "toolchains/licenses/requirements/current-reportlab/LICENSE-RECORD.json"
       ],
-      "evidence_sha256": "c031598caa8792b2c47ac39a5019e28769443b87bfad3c1b86c84aa177e917b2",
+      "evidence_sha256": "6dafa216cdafcf29d14b7edd0af77b549eeba3d607a499abbbd8348ec783e44c",
       "delivery_owner": "evidence_lane_studio_shared_toolchain",
       "install_mode": "shipped_with_evidence_lane_studio",
       "provisioning_route": "shared_locked_python_environment",
@@ -1760,5 +1760,5 @@
   "external_service_terms_remain_external": true,
   "studio_bundle_owns_retained_local_toolchain": true,
   "tunnel_dependency": false,
-  "receipt_sha256": "da4d608d6e1eb0f91a3ea7a2b5bc30fda19a574f3afc904e50b850dcd6381127"
+  "receipt_sha256": "adad84871bd910120967fef14463881b996fa742168c362aba3619513c5a9eab"
 }

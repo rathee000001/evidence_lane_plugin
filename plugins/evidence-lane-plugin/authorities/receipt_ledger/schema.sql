@@ -62,8 +62,3 @@ CREATE TABLE hostmemory_imports (
        request_id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, input_digest TEXT NOT NULL,
        receipt_id TEXT NOT NULL UNIQUE REFERENCES receipts(receipt_id), receipt_digest TEXT NOT NULL,
        result_json TEXT NOT NULL CHECK(json_valid(result_json)), result_digest TEXT NOT NULL);
--- storage v1, digest a47bb0877ae5f3d44866e04ee05766eca59af045fb07c7618917470bd197135b
-CREATE TABLE storage_selection_events (sequence INTEGER PRIMARY KEY,
-       request_id TEXT NOT NULL UNIQUE, client_id TEXT NOT NULL, input_digest TEXT NOT NULL,
-       previous_digest TEXT, body_json TEXT NOT NULL CHECK(json_valid(body_json)),
-       digest TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL);

@@ -38,7 +38,7 @@ def packaged_docling_artifacts_root():
 def extract_with_docling(request):
     source = request.source_path.absolute()
     reject_links(source, Path(source.anchor))
-    if request.host_profile not in {'CODEX_DESKTOP', 'CODEX_CLI', 'CODEX_VM', 'STUDIO_WORKER'}:
+    if request.host_profile not in {'CODEX_DESKTOP', 'STUDIO_WORKER'}:
         raise ValueError('DOCLING_CODEX_HOST_PROFILE_REQUIRED')
     if request.allow_model_download:
         raise ValueError('DOCLING_RUNTIME_MODEL_DOWNLOAD_FORBIDDEN')

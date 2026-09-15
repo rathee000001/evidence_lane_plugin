@@ -90,7 +90,7 @@ class RemoteTransport:
                 reject_links(path, Path(path.anchor))
                 if path.exists():
                     if path.stat().st_size > 16_384:
-                        raise LaneError("REMOTE_PROBE_INVALID", "The saved restart probe exceeds its budget.")
+                        raise LaneError("REMOTE_PROBE_INVALID", "The saved API restart probe exceeds its budget.")
                     self.verify_storage(ProbeVerification.model_validate_json(path.read_bytes()))
         except BaseException:
             self.http.close()
@@ -138,12 +138,17 @@ class RemoteTransport:
             raise LaneError("REMOTE_BINDING_CHANGED", "The reply does not match the selected remote server, project and engine.")
 
     def seed_probe(self) -> ProbeVerification:
+        """Prepare an optional API-server restart probe; this is not a host route gate."""
         nonce = secrets.token_urlsafe(48)
         result = self.post("probe", {"project_id": self.config.project_id, "nonce": nonce})
         self._bind(result)
-        ticket = ProbeVerification(project_id=self.config.project_id, nonce=nonce,
-                                   previous_engine_id=result["instance_id"],
-                                   policy_digest=result["policy_digest"], object_digest=result["object_digest"])
+        ticket = ProbeVerification(
+            project_id=self.config.project_id,
+            nonce=nonce,
+            previous_engine_id=result["instance_id"],
+            policy_digest=result["policy_digest"],
+            object_digest=result["object_digest"],
+        )
         self._ticket, self._verification = ticket, None
         if self.config.probe_file:
             path = Path(self.config.probe_file)
@@ -152,37 +157,31 @@ class RemoteTransport:
         return ticket
 
     def verify_storage(self, ticket: ProbeVerification) -> dict:
+        """Verify optional API-server continuity without changing host support."""
         self._verification = None
         if ticket.project_id != self.config.project_id:
-            raise LaneError("REMOTE_PROBE_MISMATCH", "Select the restart probe for this project.")
+            raise LaneError("REMOTE_PROBE_MISMATCH", "Select the API restart probe for this project.")
         result = self.post("verify", ticket.model_dump(mode="json"))
         self._bind(result)
-        if (result.get("object_digest") != ticket.object_digest
-                or result.get("policy_digest") != ticket.policy_digest
-                or result.get("restart_observed") != (self.instance_id != ticket.previous_engine_id)
-                or result.get("storage_class") != self.connected.get("storage_class")
-                or result.get("volume_id") != self.connected.get("volume_id")):
-            raise LaneError("REMOTE_PROBE_MISMATCH", "The verification reply differs from the selected restart probe.")
+        if (
+            result.get("object_digest") != ticket.object_digest
+            or result.get("policy_digest") != ticket.policy_digest
+            or result.get("restart_observed") != (self.instance_id != ticket.previous_engine_id)
+            or result.get("storage_class") != self.connected.get("storage_class")
+            or result.get("volume_id") != self.connected.get("volume_id")
+        ):
+            raise LaneError("REMOTE_PROBE_MISMATCH", "The API verification reply differs from the selected probe.")
         self._ticket, self._verification, self._verified_at = ticket, result, self.monotonic()
         return result
 
     def route(self) -> dict:
-        fresh = self._verified_at is not None and 0 <= self.monotonic() - self._verified_at <= 300
-        verified = bool(fresh and self._verification and self._verification.get("durable_verified") is True
-                        and self._verification.get("restart_observed") is True
-                        and self._verification.get("storage_class") == "persistent_operator_declared")
-        route = select_host_route(self.observation, remote_ready=True, durable_remote_verified=verified,
-                                  prefer_remote=True)
+        route = select_host_route(self.observation, remote_ready=True, prefer_remote=True)
         return {**route, "server_id": self.config.server_id, "project_id": self.config.project_id,
-                "durability": "restart_observed_operator_persistent" if verified else "unverified",
-                "physical_volume_durability": "operator_declaration_only"}
+                "api_configuration": "explicit_tls_scoped_credential"}
 
     def _require_route(self):
-        if self._ticket is not None and self._verified_at is not None and self.monotonic() - self._verified_at > 300:
-            # Refresh only the read-only verification. Never retry/reconnect work.
-            self.verify_storage(self._ticket)
         if self.route()["route"] != "remote_api":
-            raise LaneError("REMOTE_DURABILITY_UNVERIFIED", "Verify the selected persistent remote store after an engine restart before execution.")
+            raise LaneError("REMOTE_API_UNAVAILABLE", "The explicitly configured Desktop API route is unavailable.")
 
     def catalog(self) -> list[dict]:
         self._require_route()
@@ -278,16 +277,11 @@ class RemoteTransport:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Verify an explicitly configured remote storage route")
+    parser = argparse.ArgumentParser(description="Inspect an explicitly configured Desktop API route")
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--seed-probe", action="store_true")
     args = parser.parse_args()
     config = RemoteClientConfig.load(args.config)
-    if args.seed_probe and not config.probe_file:
-        raise LaneError("REMOTE_PROBE_PATH_REQUIRED", "Select a local probe-file path before preparing a restart probe.")
-    with RemoteTransport(config, hello=ClientHello(configured_profile="codex_vm_ephemeral")) as transport:
-        if args.seed_probe:
-            transport.seed_probe()
+    with RemoteTransport(config, hello=ClientHello(configured_profile="codex_desktop_stable")) as transport:
         print(json.dumps(transport.route()))
 
 

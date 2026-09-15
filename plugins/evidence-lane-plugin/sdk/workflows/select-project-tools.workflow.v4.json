@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "dot": {
     "bytes": 501,
@@ -15,14 +15,14 @@
   "package": {
     "bytes": 4852,
     "path": "sdk/workflows/skills/select-project-tools/workflow.v4.json",
-    "sha256": "59f6e8d0758b427905e49e9becee762467166c970ffcc687d2399f9717ddde8c"
+    "sha256": "0b8fe14da57d3f0e6086fd06cac6aa2ca19de01c417a5cb553e79a81396392bf"
   },
   "schema": "evidence-lane.sdk-surface-workflow-ref.v4",
   "skill": "select-project-tools",
   "source_skill": {
-    "bytes": 1991,
+    "bytes": 1996,
     "path": "skills/select-project-tools/SKILL.md",
-    "sha256": "a33f79186a0f8a235ed39831b19708cb2095ef22f33837b5afbd3c837913ed8c"
+    "sha256": "594b81ffdd41439d1a3b645338a0faff035ada44be3d64dd4a0df9c4f69a92f8"
   },
   "status": "PASS",
   "title": "Select project tools",

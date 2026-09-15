@@ -218,8 +218,6 @@ class Engine:
         register_transition_law(self)
         from .project_actions import register_project_actions
         register_project_actions(self)
-        from .storage_selection import register_storage_actions
-        register_storage_actions(self)
         from .mcp_apps import register_panel_actions
         register_panel_actions(self)
         from .reader import register_reader_actions

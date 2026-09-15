@@ -1,6 +1,8 @@
 interface:
   display_name: "Evidence Lane"
   short_description: "Explore a project and choose the right workflow"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $evidence-lane to inspect my selected project and choose the right workflow."
 dependencies:

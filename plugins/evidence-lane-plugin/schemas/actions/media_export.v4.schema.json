@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Parse exact exported bytes and renew Sources, destination facts and existing lane views with the selected native parser.",
@@ -98,7 +98,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "ac47062eda1c4ae58ed382367618d45125cd38530808f8db102f3f66941abafb",
+    "contract_digest": "3c181327837866495bb654069dab466fd732a861b78d81500f046d8d004ff9a7",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -129,9 +129,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_export.raster",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -140,9 +138,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -180,9 +176,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_export.vector",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -191,9 +185,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -249,9 +241,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -296,9 +286,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_export.raster_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -310,9 +298,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -351,9 +337,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_export.vector_view",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -365,9 +349,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"
@@ -427,9 +409,7 @@
         "view_refresh": {
           "native_dot": {
             "client_families": [
-              "codex_desktop",
-              "codex_cli",
-              "codex_vm"
+              "codex_desktop"
             ],
             "engine_systems": [
               "Windows"

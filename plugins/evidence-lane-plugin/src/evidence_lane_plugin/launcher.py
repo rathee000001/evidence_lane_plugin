@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import platform
 import subprocess
 import sys
 import time
@@ -26,12 +25,8 @@ def runtime_root(selected: Path | None = None) -> Path:
         elif os.name == 'nt':
             from .installation_layout import studio_installation
             selected = studio_installation().engine_runtime
-        elif platform.system() == 'Darwin':
-            selected = Path.home() / 'Library/Application Support/EvidenceLane/runtime'
-        elif platform.system() == 'Linux':
-            selected = Path.home() / '.local/share/EvidenceLane/runtime'
         else:
-            raise LaneError('LOCAL_RUNTIME_UNSUPPORTED', 'Select a supported local runtime or an explicit remote engine.')
+            raise LaneError('WINDOWS_HOST_REQUIRED', 'Evidence Lane supports persistent local Windows Codex Desktop hosts.')
     if not selected.is_absolute() or any(value in str(selected) for value in '\r\n\x00'):
         raise LaneError('RUNTIME_PATH_INVALID', 'Select an absolute runtime directory.')
     selected = Path(os.path.abspath(selected))

@@ -1,5 +1,5 @@
 {
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "credentials_recorded": false,
   "installed_execution_claimed": false,
@@ -7,14 +7,14 @@
   "schema": "evidence-lane.sdk-transport-contract.v4",
   "sources": [
     {
-      "bytes": 27499,
+      "bytes": 27463,
       "path": "src/evidence_lane_plugin/remote_api.py",
-      "sha256": "f3b8f6faa7fe49ca4944f5c509b5f03f9d97c6d759195faa138dfe629f217525"
+      "sha256": "0bd820a2bf1a2eea00e44248f0d8e6ddf826bb7e3eeec0accad2e81ef62055de"
     },
     {
-      "bytes": 18644,
+      "bytes": 17693,
       "path": "src/evidence_lane_plugin/remote_transport.py",
-      "sha256": "47c4788775e3543586b7082cb3ad65016161d533612f0d67a57b1b4bbaf0336d"
+      "sha256": "6c14bad0ced1488d0e505d2014e18c34eabfef5523c6dfd77b4990d211275096"
     }
   ],
   "status": "PASS",

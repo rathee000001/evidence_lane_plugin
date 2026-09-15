@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PermissionRequest/handler.py",
   "event": "PermissionRequest",
   "event_contract": "hooks/events/PermissionRequest/event.v4.json",
-  "event_contract_sha256": "2cb121f92dcbe7ab267e2545c21aa6edbe57b4caaa03dd35e6f01aeb73d9f693",
+  "event_contract_sha256": "2fae2665d7ba45488c32c3b830019a5fa5e706c932e51837c03f6a51f7e347b3",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
   "host_stage_runner": "hooks/stage_runner.py",
@@ -16,6 +16,14 @@
   ],
   "input_schema": "schemas/hooks/PermissionRequest.v4.schema.json",
   "input_schema_sha256": "db28f55ea5de1314c734a0cbbb9db215dfaa368ad212da40d97efcd18a13fd98",
+  "installation_policy": {
+    "enabled_by_default": false,
+    "enablement_owner": "user",
+    "plugin_mutates_host_hook_state": false,
+    "source": "plugin",
+    "trust_owner": "codex_plugin_manager",
+    "trusted_after_supported_install_required": true
+  },
   "installed_execution_claimed": false,
   "runtime_bridge": "hooks/runner.mjs",
   "schema": "evidence-lane.sdk-hook-binding.v4",

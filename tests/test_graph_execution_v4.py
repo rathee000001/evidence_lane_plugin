@@ -53,8 +53,7 @@ def test_static_projection_is_independent_of_native_configuration_and_optional_a
 
 
 @pytest.mark.parametrize(('profile', 'family'), [
-    ('codex_desktop_stable', 'CODEX_DESKTOP'), ('codex_desktop_beta', 'CODEX_DESKTOP'),
-    ('codex_cli', 'CODEX_CLI')])
+    ('codex_desktop_stable', 'CODEX_DESKTOP'), ('codex_desktop_beta', 'CODEX_DESKTOP')])
 def test_native_dot_worker_binds_current_client_and_exact_bytes(views, monkeypatch, profile, family):
     native_root = Path(os.environ['EVI_GRAPH_QUALIFICATION_ASSETS'])
     monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', str(native_root))
@@ -87,93 +86,18 @@ def test_native_dot_worker_binds_current_client_and_exact_bytes(views, monkeypat
     assert not any((store.root / lane / 'plan').exists() for lane in ('sectors',))
 
 
-def test_native_request_cannot_use_unknown_client_or_unavailable_binary(views, monkeypatch, tmp_path):
-    engine, store, unknown = views
+def test_native_request_cannot_use_an_unavailable_binary(views, monkeypatch, tmp_path):
+    engine, store, _ = views
     monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', os.environ['EVI_GRAPH_QUALIFICATION_ASSETS'])
-    call, _ = connect(engine, store, 'codex_cli')
-    _, request = prepare(unknown, formats=['dot'], dot_validation='native')
+    call, _ = connect(engine, store, 'codex_desktop_stable')
+    _, request = prepare(call, formats=['dot'], dot_validation='native')
     before = {str(path): path.read_bytes() for path in store.root.rglob('*') if path.is_file()}
-    failed = unknown('lane_view_refresh', request.model_dump(mode='json'))
-    assert failed.error.code == 'TOOL_ROUTE_UNAVAILABLE'
-    native_attempt = failed.error.details['attempts'][-1]
-    assert native_attempt['reason'] == 'HOST_PROFILE_UNSUPPORTED' and not native_attempt['adapter_invoked']
     monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', str(tmp_path / 'absent-native-installation'))
     failed = call('lane_view_refresh', request.model_dump(mode='json'))
     assert failed.error.code == 'TOOL_ROUTE_UNAVAILABLE'
     native_attempt = failed.error.details['attempts'][-1]
     assert any(row['tool_id'] == 'Graphviz_dot' and not row['ready'] for row in native_attempt['observations'])
     assert {str(path): path.read_bytes() for path in store.root.rglob('*') if path.is_file()} == before
-
-
-@pytest.mark.parametrize('profile', ['codex_vm_persistent', 'codex_vm_ephemeral'])
-def test_vm_profile_cannot_bypass_durable_remote_admission(views, profile):
-    from evidence_lane_plugin.errors import LaneError
-    engine, store, _ = views
-    before = {str(path): path.read_bytes() for path in store.root.rglob('*') if path.is_file()}
-    with pytest.raises(LaneError) as error:
-        connect(engine, store, profile)
-    assert error.value.code == 'REMOTE_DURABILITY_UNVERIFIED'
-    assert {str(path): path.read_bytes() for path in store.root.rglob('*') if path.is_file()} == before
-
-
-@pytest.mark.parametrize('profile', ['codex_vm_persistent', 'codex_vm_ephemeral'])
-def test_vm_native_dot_uses_restarted_verified_https_engine(tmp_path, profile):
-    import secrets
-    import socket
-    from datetime import UTC, datetime, timedelta
-    from uuid import uuid4
-
-    from evidence_lane_plugin.engine_runtime import create_runtime_engine
-    from evidence_lane_plugin.plan_runtime import PlanCreate, PlanStore, TaskDefinition
-    from evidence_lane_plugin.remote_api import RemoteGateway, RemotePolicy, issue_remote_grant
-    from evidence_lane_plugin.remote_transport import RemoteClientConfig, RemoteTransport
-    from evidence_lane_plugin.runtime_health import CapabilityMonitor
-    from evidence_lane_plugin.sdk import EvidenceLaneClient
-
-    from tests.test_remote_api import listening, tls
-
-    certificates = tls.__wrapped__(tmp_path)
-    source = tmp_path / 'source'
-    source.mkdir()
-    environment = {'EVI_GRAPH_REMOTE_TEST': secrets.token_urlsafe(48)}
-    with socket.socket() as port:
-        port.bind(('127.0.0.1', 0))
-        origin = f'https://127.0.0.1:{port.getsockname()[1]}'
-    with create_runtime_engine(tmp_path / 'runtime', workers=1, capabilities=CapabilityMonitor()) as seed:
-        entry = seed.directory.register(tmp_path / 'state', source_root=source, create=True, read_only=False)
-        store = seed.directory.open(entry['project_id'], write=True)
-        with seed.project_work.mutation(store) as lease:
-            PlanStore(store).create(PlanCreate(title='Remote graph fixture', tasks=[TaskDefinition(
-                task_id='graph-fixture', title='Read graph', requested_outcome='Keep graph source attribution')]), lease, actor_id='fixture')
-        grant = issue_remote_grant(seed, project_id=store.project_id,
-            actions=['lane_view_preview', 'lane_view_refresh', 'lane_view_read'], credential_env='EVI_GRAPH_REMOTE_TEST',
-            purpose='Isolated native graph HTTPS qualification', expires_at=datetime.now(UTC) + timedelta(hours=1),
-            allow_storage_probe=True)
-        policy = RemotePolicy(server_id=str(uuid4()), origin=origin,
-            storage_class='persistent_operator_declared', volume_id='isolated-graph-test', grants=[grant])
-        config = RemoteClientConfig(origin=origin, server_id=policy.server_id, project_id=store.project_id,
-            credential_env=grant.credential_env, ca_file=str(certificates[0]), probe_file=str(tmp_path / 'probe.json'))
-        with (listening(RemoteGateway(seed, policy, environment=environment), certificates),
-              RemoteTransport(config, environment=environment) as transport):
-            transport.seed_probe()
-    assert seed.workers.status()['shutdown_complete']
-    with (create_runtime_engine(tmp_path / 'runtime', workers=1, capabilities=CapabilityMonitor()) as engine,
-          listening(RemoteGateway(engine, policy, environment=environment), certificates),
-          RemoteTransport(config, environment=environment, hello=ClientHello(configured_profile=profile)) as transport):
-        client = EvidenceLaneClient(transport)
-
-        def call(action, arguments=None):
-            return client.call(action, project_id=store.project_id, arguments=arguments or {})
-
-        _, request = prepare(call, formats=['dot'], dot_validation='native')
-        publish(call, request)
-        read = call('lane_view_read', {'view_id': request.view_id, 'include_content': True})
-        assert read.status == 'ok', read.error
-        native = read.result['manifest']['tool_evidence']['dot']['native_graphviz_validation']
-        assert native['status'] == 'PASS' and native['host_profile'] == 'CODEX_VM'
-        assert native['input_sha256'] == hashlib.sha256(read.result['contents']['dot'].encode()).hexdigest()
-        assert read.result['manifest']['worker_execution']['native_task_attestation'] == 'not_provided'
-    assert engine.workers.status()['shutdown_complete']
 
 
 def test_pointer_and_source_exports_do_not_claim_native_execution(views, monkeypatch):
@@ -196,7 +120,7 @@ def test_pointer_and_source_exports_do_not_claim_native_execution(views, monkeyp
 def test_native_failure_has_no_source_fallback_or_publication(views, monkeypatch):
     engine, store, _ = views
     monkeypatch.setenv('EVIDENCE_LANE_STUDIO_ROOT', os.environ['EVI_GRAPH_QUALIFICATION_ASSETS'])
-    call, _ = connect(engine, store, 'codex_cli')
+    call, _ = connect(engine, store, 'codex_desktop_beta')
     _, request = prepare(call, formats=['dot'], dot_validation='native')
     original = engine.workers.submit
 

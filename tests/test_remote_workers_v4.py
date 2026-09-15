@@ -57,7 +57,7 @@ def test_https_code_delta_uses_shared_workers_and_separate_lane_state(tmp_path, 
         reconcile_jobs(engine)
         with listening(RemoteGateway(engine, policy, environment=environment), tls):  # noqa: SIM117 - explicit server and client lifetimes
             with RemoteTransport(config, environment=environment,
-                                 hello=ClientHello(configured_profile='codex_vm_ephemeral')) as transport:
+                                 hello=ClientHello(configured_profile='codex_desktop_beta')) as transport:
                 task = PlanStore(store).task('code-0', expected_revision=1)
                 client = EvidenceLaneClient(transport)
                 response = client.call('delta_enter', project_id=store.project_id, expected_revision=1,
@@ -95,9 +95,8 @@ def test_https_code_delta_uses_shared_workers_and_separate_lane_state(tmp_path, 
 
 
 @pytest.mark.parametrize('system', ['Darwin', 'Linux'])
-def test_remote_unix_engine_keeps_explicit_reduced_capabilities(tmp_path, monkeypatch, system):
+def test_non_windows_engine_route_is_rejected(tmp_path, monkeypatch, system):
     monkeypatch.setattr('evidence_lane_plugin.engine_runtime.platform.system', lambda: system)
-    engine = create_runtime_engine(tmp_path / 'runtime')
-    assert engine.workers is None
-    assert engine.capabilities.runtimes == {}
-    assert not engine.capabilities.installation_status['full_bundle_ready']
+    with pytest.raises(LaneError) as error:
+        create_runtime_engine(tmp_path / 'runtime')
+    assert error.value.code == 'WINDOWS_HOST_REQUIRED'

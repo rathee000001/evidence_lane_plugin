@@ -22,7 +22,7 @@ def test_stdio_grant_versions_and_exact_revocation_preserve_separate_receipts(tm
         async def exercise():
             parameters = StdioServerParameters(command=sys.executable, args=[
                 '-m', 'evidence_lane_plugin.mcp_adapter', '--runtime-root', str(engine.root),
-                '--host-profile', 'codex_cli', '--project-id', project.project_id,
+                '--host-profile', 'codex_desktop_stable', '--project-id', project.project_id,
                 '--permission', 'read', '--permission', 'admin'], env={'PYTHONPATH': str(plugin / 'src')})
             async with (stdio_client(parameters) as (read, write),
                         ClientSession(read, write, read_timeout_seconds=timedelta(seconds=30)) as session):
@@ -38,7 +38,7 @@ def test_stdio_grant_versions_and_exact_revocation_preserve_separate_receipts(tm
                     'description': 'Configuration-only fixture.', 'purpose': 'Verify versioned grant handling.',
                     'capabilities': ['bounded_read'], 'allowed_lanes': ['research'], 'allowed_actions': ['project_status'],
                     'expires_at': 'NO_EXPIRY', 'role': 'source_reader', 'role_schema': {'source_hash': 'blob_hash'},
-                    'host_profiles': ['codex_cli'], 'backend_runtime': 'external_mcp',
+                    'host_profiles': ['codex_desktop_stable'], 'backend_runtime': 'external_mcp',
                     'backend_id': 'fixture.not-installed', 'backend_version': '1.0.0'}
                 first = await call('connector_configure', {'registration': registration})
                 assert first['status'] == 'ok', first

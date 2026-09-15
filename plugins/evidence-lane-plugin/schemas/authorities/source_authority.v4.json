@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/source_authority/manifest.v4.json",
-      "sha256": "ac05cbb88339ff0ccb648183099008622cca7fcde52beb85cc9b2cddd52f8b85"
+      "sha256": "ff594e003a5090e6fc88d5ee267501c7e0dc51dcff1ab89e297a62cfb45cc007"
     },
     {
       "path": "authorities/source_authority/migration-history.json",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Publish bounded page derivatives tied to immutable PDF source bytes.",
@@ -105,7 +105,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "1fca9cf92bcac2a2e579ec7386b2c1639b1a4e65713a3ad8ce589f80b37596ef",
+    "contract_digest": "6bf97c030eddfb3ebe8bda27659e0a118e73392e8ef6c7dcae89255aba08b79e",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -124,9 +124,7 @@
         "reason": "Registered engine adapter",
         "route_id": "pdf_render.pdfium",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

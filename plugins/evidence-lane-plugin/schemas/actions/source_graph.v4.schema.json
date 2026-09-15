@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Build a bounded source graph only when an analysis consumer requests it.",
@@ -155,7 +155,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "279d608be9686d8920a3694d03dbf39d93b5c8d9fa53c4d9fff84bba3fbe3eb9",
+    "contract_digest": "4cb188183670963886be76bcd9d37a19239310ab3b8a7f021530b59ac3db816b",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -174,9 +174,7 @@
         "reason": "Registered engine adapter",
         "route_id": "source_graph.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

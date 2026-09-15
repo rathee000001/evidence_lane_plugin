@@ -70,11 +70,13 @@ def write_wheel(path: Path, name: str, version: str) -> None:
         archive.writestr(dist + "/licenses/LICENSE", "fixture MIT text\n")
 
 
-def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
+def fixture_plugin(
+    tmp_path: Path, version: str = "4.0.1"
+) -> tuple[Path, dict[str, Path]]:
     plugin = tmp_path / "marketplace/plugins/evidence-lane-plugin"
     write(
         plugin / ".codex-plugin/plugin.json",
-        json.dumps({"name": "evidence-lane-plugin", "version": "4.0.1"}) + "\n",
+        json.dumps({"name": "evidence-lane-plugin", "version": version}) + "\n",
     )
     for name in (
         "run_mcp.py",
@@ -82,6 +84,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
         "verify_installed_runtime.py",
         "register_installed_runtime.py",
         "first_detection.py",
+        "quiesce_installed_release.py",
     ):
         write(plugin / "scripts" / name, f"# {name}\n")
     write(
@@ -89,7 +92,10 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
         / "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
         b"fixture launcher",
     )
-    write(plugin / "src/evidence_lane_plugin/__init__.py", "__version__='4.0.1'\n")
+    write(
+        plugin / "src/evidence_lane_plugin/__init__.py",
+        f"__version__={version!r}\n",
+    )
     cpu_lock = plugin / "toolchains/providers/cpu.lock.txt"
     write(cpu_lock, "fixture provider lock\n")
     cpu_lock_sha = hashlib.sha256(cpu_lock.read_bytes()).hexdigest()
@@ -143,7 +149,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
         ("directml", "directml_compatible"),
         ("rocm", "amd_rocm_compatible"),
     ):
-        version = "cp314" if provider in {"cpu", "cuda"} else "cp312"
+        runtime_version = "cp314" if provider in {"cpu", "cuda"} else "cp312"
         environment = (
             f"toolchains/python/providers/cpu-{cpu_lock_sha[:16]}"
             if provider == "cpu"
@@ -154,7 +160,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
                 {
                     "operation": "create_venv",
                     "component_id": f"provider-{provider}",
-                    "interpreter": f"toolchains/python/base/{version}/python.exe",
+                    "interpreter": f"toolchains/python/base/{runtime_version}/python.exe",
                     "target": environment,
                 },
                 {
@@ -174,7 +180,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
             "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
             "plugin": {
                 "id": "evidence-lane-plugin",
-                "version": "4.0.1",
+                "version": version,
                 "repository": builder.REPOSITORY,
                 "sparse_root": builder.SPARSE_ROOT,
             },
@@ -202,6 +208,9 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
                     "component_id": "model-assets",
                     "path": "toolchains/models/embedding_snapshot",
                     "source_manifest": None,
+                    "repository": "fixture/model",
+                    "revision": "fixture-revision",
+                    "dimension": 8,
                 }
             ],
             "provider_environments": [
@@ -245,7 +254,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
             "status": "SOURCE_TEMPLATE_UNBOUND",
             "installation_enabled": False,
             "plugin_id": "evidence-lane-plugin",
-            "plugin_version": "4.0.1",
+            "plugin_version": version,
             "repository": builder.REPOSITORY,
             "sparse_root": builder.SPARSE_ROOT,
             "release_ref": None,
@@ -304,7 +313,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
         )
     archives: dict[str, Path] = {}
     for component, _ in COMPONENTS:
-        archive = tmp_path / "assets" / f"evidence-lane-{component}-4.0.1.zip"
+        archive = tmp_path / "assets" / f"evidence-lane-{component}-{version}.zip"
         builder.build_component_archive(component, component_sources[component], archive)
         archives[component] = archive
     plan_value = json.loads(
@@ -335,7 +344,7 @@ def fixture_plugin(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
             }
         )
     assets_sha = hashlib.sha256(builder.canonical(asset_rows)).hexdigest()
-    release_ref = f"refs/tags/evidence-lane-v4.0.1-bundle-{assets_sha[:16]}"
+    release_ref = f"refs/tags/evidence-lane-v{version}-bundle-{assets_sha[:16]}"
     builder.bind_release(
         plugin_root=plugin,
         release_ref=release_ref,
@@ -425,6 +434,20 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         "powerbi_tom_runtime",
         "powerbi_pbix_runtime",
     }
+    asset_groups = {row["asset_id"]: row for row in plan["asset_groups"]}
+    assert asset_groups["embedding_snapshot"] == {
+        "asset_id": "embedding_snapshot",
+        "component_id": "model-assets",
+        "path": "toolchains/models/embedding_snapshot",
+        "source_manifest": "toolchains/embedding-model.v4.json",
+        "repository": "BAAI/bge-small-en-v1.5",
+        "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "dimension": 384,
+    }
+    assert asset_groups["parser_grammars"]["distribution"] == "tree-sitter-language-pack"
+    assert asset_groups["parser_grammars"]["version"] == "1.14.3"
+    assert len(asset_groups["parser_grammars"]["languages"]) == 34
+    assert {"typescript", "rust"} <= set(asset_groups["parser_grammars"]["languages"])
     assert len(plan["native_inputs"]) == 13
     git_runtime = next(
         row for row in plan["native_inputs"] if row["tool_id"] == "git"
@@ -483,8 +506,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.4"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.4-bundle-")
+        assert binding["plugin_version"] == "4.0.5"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.5-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()
@@ -631,21 +654,20 @@ def test_release_binding_accepts_one_complete_multipart_provider_sequence(
     assert {row["part_count"] for row in cuda} == {len(cuda)}
 
 
-def test_bound_non_windows_host_keeps_the_reduced_route_without_studio_install(
+def test_bound_non_windows_host_is_rejected_without_studio_install(
     tmp_path: Path,
 ) -> None:
     plugin, _ = fixture_plugin(tmp_path)
     target = tmp_path / "must-not-exist"
-    result = installer_module.prepare_mcp(
-        plugin,
-        [],
-        environment={"EVIDENCE_LANE_STUDIO_ROOT": str(target)},
-        system="Darwin",
-        machine="arm64",
-    )
-    assert result["mode"] == "REDUCED_NON_WINDOWS_HOST"
-    assert result["studio_installed"] is False
-    assert result["reexec"] is False
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer_module.prepare_mcp(
+            plugin,
+            [],
+            environment={"EVIDENCE_LANE_STUDIO_ROOT": str(target)},
+            system="Darwin",
+            machine="arm64",
+        )
+    assert error.value.code == "WINDOWS_HOST_REQUIRED"
     assert not target.exists()
 
 
@@ -747,9 +769,15 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     installation = StudioInstallation(install_root)
     assert installation.active_root == release
     assert resolve_native_tool("ripgrep", runtime_root=release).version == "fixture"
-    assert resolve_shared_asset("embedding_snapshot")[0] == (
-        release / "toolchains/models/embedding_snapshot"
-    )
+    asset_path, asset_record = resolve_shared_asset("embedding_snapshot")
+    assert asset_path == release / "toolchains/models/embedding_snapshot"
+    assert {
+        key: asset_record[key] for key in ("repository", "revision", "dimension")
+    } == {
+        "repository": "fixture/model",
+        "revision": "fixture-revision",
+        "dimension": 8,
+    }
     providers, provider_state = load_installed_providers(
         installation=installation,
         contracts=release / "plugin/toolchains/providers",
@@ -761,7 +789,10 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     first_command_count = len(commands)
     reused = installer.ensure()
     assert reused["installation_state"] == "REUSED_EXACT_RELEASE"
-    assert len(commands) == first_command_count
+    assert len(commands) == first_command_count + 1
+    assert any(
+        value.endswith("launch_studio.py") for value in commands[-1]
+    )
     assert set(copied) == expected
     pointer = json.loads((install_root / "installation.json").read_text())
     installer_module.verify_seal(pointer, code="TEST")
@@ -841,6 +872,357 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     with pytest.raises(installer_module.FirstDetectionError) as error:
         installer_module.validate_active_installation(install_root)
     assert error.value.code == "INSTALLED_RELEASE_CHANGED"
+
+
+def test_valid_older_exact_release_upgrades_in_place_with_sibling_preservation(
+    tmp_path: Path,
+) -> None:
+    old_plugin, old_archives = fixture_plugin(tmp_path / "old", "4.0.1")
+    install_root = tmp_path / "EvidenceLaneStudio"
+
+    def old_fetch(asset, target):
+        shutil.copyfile(old_archives[asset["component_id"]], target)
+
+    old_commands: list[list[str]] = []
+    old = installer_module.FirstDetectionInstaller(
+        old_plugin,
+        install_root,
+        fetcher=old_fetch,
+        runner=fake_runner(old_commands),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    assert old["installation_state"] == "INSTALLED_EXACT_RELEASE"
+    old_binding = old["pointer"]["release_binding_sha256"]
+    stale_projects = install_root / "engine/projects.json"
+    write(stale_projects, b'{"stale":"v4.0.3 project selection"}\n')
+    project = tmp_path / "project-state" / "plan.sqlite"
+    write(project, b"project bytes")
+
+    new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
+
+    def new_fetch(asset, target):
+        shutil.copyfile(new_archives[asset["component_id"]], target)
+
+    new_commands: list[list[str]] = []
+    upgraded = installer_module.FirstDetectionInstaller(
+        new_plugin,
+        install_root,
+        fetcher=new_fetch,
+        runner=fake_runner(new_commands),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    assert upgraded["installation_state"] == "UPGRADED_EXACT_RELEASE"
+    assert upgraded["release_root"] == install_root.resolve()
+    assert not (install_root / "releases").exists()
+    assert json.loads(
+        (install_root / "plugin/.codex-plugin/plugin.json").read_text()
+    )["version"] == "4.0.2"
+    previous = Path(upgraded["previous_release_root"])
+    assert previous.parent == install_root.parent / ".EvidenceLaneStudio-previous"
+    assert json.loads(
+        (previous / "plugin/.codex-plugin/plugin.json").read_text()
+    )["version"] == "4.0.1"
+    assert not (install_root / "engine/projects.json").exists()
+    assert (previous / "engine/projects.json").read_bytes() == (
+        b'{"stale":"v4.0.3 project selection"}\n'
+    )
+    assert json.loads((previous / "installation.json").read_text())[
+        "release_binding_sha256"
+    ] == old_binding
+    assert project.read_bytes() == b"project bytes"
+    assert any(
+        any(value.endswith("launch_studio.py") for value in command)
+        for command in new_commands
+    )
+    quiesce_index = next(
+        index
+        for index, command in enumerate(new_commands)
+        if any(value.endswith("quiesce_installed_release.py") for value in command)
+    )
+    register_index = next(
+        index
+        for index, command in enumerate(new_commands)
+        if any(value.endswith("register_installed_runtime.py") for value in command)
+    )
+    launch_index = next(
+        index
+        for index, command in enumerate(new_commands)
+        if any(value.endswith("launch_studio.py") for value in command)
+    )
+    assert quiesce_index < register_index < launch_index
+    status = json.loads((install_root / "installation-status.json").read_text())
+    assert status["phase"] == "ACTIVE_EXACT_RELEASE"
+    assert status["plugin_version"] == "4.0.2"
+
+
+def test_failed_exact_release_upgrade_restores_previous_active_release(
+    tmp_path: Path,
+) -> None:
+    old_plugin, old_archives = fixture_plugin(tmp_path / "old", "4.0.1")
+    install_root = tmp_path / "EvidenceLaneStudio"
+
+    def old_fetch(asset, target):
+        shutil.copyfile(old_archives[asset["component_id"]], target)
+
+    old = installer_module.FirstDetectionInstaller(
+        old_plugin,
+        install_root,
+        fetcher=old_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    old_pointer = (install_root / "installation.json").read_bytes()
+    old_receipt = (install_root / ".evidence-lane-release.json").read_bytes()
+
+    new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
+
+    def new_fetch(asset, target):
+        shutil.copyfile(new_archives[asset["component_id"]], target)
+
+    commands: list[list[str]] = []
+    base = fake_runner(commands)
+
+    def fail_registration(command, cwd, environment):
+        values = [str(value) for value in command]
+        if any(value.endswith("register_installed_runtime.py") for value in values):
+            commands.append(values)
+            return 1
+        return base(command, cwd, environment)
+
+    installer = installer_module.FirstDetectionInstaller(
+        new_plugin,
+        install_root,
+        fetcher=new_fetch,
+        runner=fail_registration,
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer.ensure()
+    assert error.value.code == "INSTALLATION_REGISTRATION_FAILED"
+    assert (install_root / "installation.json").read_bytes() == old_pointer
+    assert (install_root / ".evidence-lane-release.json").read_bytes() == old_receipt
+    restored = installer_module.validate_active_installation_quick(
+        install_root,
+        expected_binding_sha256=old["pointer"]["release_binding_sha256"],
+    )
+    assert restored["release_receipt"]["plugin_version"] == "4.0.1"
+    status = json.loads((install_root / "installation-status.json").read_text())
+    assert status["phase"] == "ACTIVE_EXACT_RELEASE"
+    assert status["plugin_version"] == "4.0.1"
+
+
+def test_failed_upgrade_quiescence_preserves_the_previous_active_release(
+    tmp_path: Path,
+) -> None:
+    old_plugin, old_archives = fixture_plugin(tmp_path / "old", "4.0.1")
+    install_root = tmp_path / "EvidenceLaneStudio"
+
+    def old_fetch(asset, target):
+        shutil.copyfile(old_archives[asset["component_id"]], target)
+
+    old = installer_module.FirstDetectionInstaller(
+        old_plugin,
+        install_root,
+        fetcher=old_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    old_pointer = (install_root / "installation.json").read_bytes()
+    old_receipt = (install_root / ".evidence-lane-release.json").read_bytes()
+    new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
+
+    def new_fetch(asset, target):
+        shutil.copyfile(new_archives[asset["component_id"]], target)
+
+    commands: list[list[str]] = []
+    base = fake_runner(commands)
+
+    def fail_quiescence(command, cwd, environment):
+        values = [str(value) for value in command]
+        if any(value.endswith("quiesce_installed_release.py") for value in values):
+            commands.append(values)
+            return 1
+        return base(command, cwd, environment)
+
+    installer = installer_module.FirstDetectionInstaller(
+        new_plugin,
+        install_root,
+        fetcher=new_fetch,
+        runner=fail_quiescence,
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        installer.ensure()
+    assert error.value.code == "INSTALLATION_QUIESCENCE_FAILED"
+    assert (install_root / "installation.json").read_bytes() == old_pointer
+    assert (install_root / ".evidence-lane-release.json").read_bytes() == old_receipt
+    assert not any(
+        any(value.endswith("register_installed_runtime.py") for value in command)
+        for command in commands
+    )
+    restored = installer_module.validate_active_installation_quick(
+        install_root,
+        expected_binding_sha256=old["pointer"]["release_binding_sha256"],
+    )
+    assert restored["release_receipt"]["plugin_version"] == "4.0.1"
+    status = json.loads((install_root / "installation-status.json").read_text())
+    assert status["phase"] == "ACTIVE_EXACT_RELEASE"
+    assert status["plugin_version"] == "4.0.1"
+    assert status["error_code"] == "INSTALLATION_QUIESCENCE_FAILED"
+
+
+def test_failed_upgrade_preservation_receipt_restores_previous_release(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    old_plugin, old_archives = fixture_plugin(tmp_path / "old", "4.0.1")
+    install_root = tmp_path / "EvidenceLaneStudio"
+
+    def old_fetch(asset, target):
+        shutil.copyfile(old_archives[asset["component_id"]], target)
+
+    old = installer_module.FirstDetectionInstaller(
+        old_plugin,
+        install_root,
+        fetcher=old_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    old_pointer = (install_root / "installation.json").read_bytes()
+    new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
+
+    def new_fetch(asset, target):
+        shutil.copyfile(new_archives[asset["component_id"]], target)
+
+    upgrade = installer_module.FirstDetectionInstaller(
+        new_plugin,
+        install_root,
+        fetcher=new_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    original = upgrade._write_upgrade_receipt
+
+    def fail_preservation(*args, status, **kwargs):
+        if status == "PREVIOUS_RELEASE_PRESERVED":
+            raise OSError("fixture receipt failure")
+        return original(*args, status=status, **kwargs)
+
+    monkeypatch.setattr(upgrade, "_write_upgrade_receipt", fail_preservation)
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        upgrade.ensure()
+    assert error.value.code == "INSTALLATION_PRESERVATION_FAILED"
+    assert (install_root / "installation.json").read_bytes() == old_pointer
+    restored = installer_module.validate_active_installation_quick(
+        install_root,
+        expected_binding_sha256=old["pointer"]["release_binding_sha256"],
+    )
+    assert restored["release_receipt"]["plugin_version"] == "4.0.1"
+
+
+def test_exact_release_upgrade_blocks_downgrade_without_changing_active_root(
+    tmp_path: Path,
+) -> None:
+    newer_plugin, newer_archives = fixture_plugin(tmp_path / "newer", "4.0.2")
+    install_root = tmp_path / "EvidenceLaneStudio"
+
+    def newer_fetch(asset, target):
+        shutil.copyfile(newer_archives[asset["component_id"]], target)
+
+    installer_module.FirstDetectionInstaller(
+        newer_plugin,
+        install_root,
+        fetcher=newer_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    ).ensure()
+    pointer = (install_root / "installation.json").read_bytes()
+
+    older_plugin, older_archives = fixture_plugin(tmp_path / "older", "4.0.1")
+
+    def older_fetch(asset, target):
+        shutil.copyfile(older_archives[asset["component_id"]], target)
+
+    downgrade = installer_module.FirstDetectionInstaller(
+        older_plugin,
+        install_root,
+        fetcher=older_fetch,
+        runner=fake_runner([]),
+        gpu_probe=lambda: {
+            "names": [],
+            "nvidia_cuda_compatible": False,
+            "directml_compatible": False,
+            "amd_rocm_compatible": False,
+        },
+        system="Windows",
+        machine="AMD64",
+    )
+    with pytest.raises(installer_module.FirstDetectionError) as error:
+        downgrade.ensure()
+    assert error.value.code == "INSTALLATION_DOWNGRADE_BLOCKED"
+    assert (install_root / "installation.json").read_bytes() == pointer
 
 
 def test_mcp_first_detection_defers_installation_outside_initialize(

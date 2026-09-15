@@ -433,7 +433,7 @@ class SemanticGraph:
     ) -> None:
         if analysis not in {"omit", "optional", "required"}:
             raise ValueError("GRAPH_ANALYSIS_POLICY_INVALID")
-        if native_host_profile not in {None, "CODEX_DESKTOP", "CODEX_CLI", "CODEX_VM"}:
+        if native_host_profile not in {None, "CODEX_DESKTOP"}:
             raise ValueError("NATIVE_HOST_PROFILE_INVALID")
         self.name = _safe_id(name, role="graph")
         self.direction = direction if direction in {"TB", "TD", "BT", "LR", "RL"} else "TB"

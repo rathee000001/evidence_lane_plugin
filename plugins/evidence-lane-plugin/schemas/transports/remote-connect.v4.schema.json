@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "configured_profile": {
-          "default": "unknown",
+          "default": "codex_desktop_stable",
           "title": "Configured Profile",
           "type": "string"
         },

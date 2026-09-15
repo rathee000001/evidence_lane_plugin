@@ -511,6 +511,9 @@ def build_outputs() -> dict[str, bytes]:
             "component_id": "model-assets",
             "path": "toolchains/models/embedding_snapshot",
             "source_manifest": "toolchains/embedding-model.v4.json",
+            "repository": "BAAI/bge-small-en-v1.5",
+            "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+            "dimension": 384,
         },
         {
             "asset_id": "rapidocr_models",
@@ -535,6 +538,15 @@ def build_outputs() -> dict[str, bytes]:
             "component_id": "model-assets",
             "path": "toolchains/models/parser_grammars",
             "source_manifest": None,
+            "distribution": "tree-sitter-language-pack",
+            "version": "1.14.3",
+            "languages": [
+                "astro", "bash", "c", "c_sharp", "cmake", "cpp", "css", "dockerfile",
+                "go", "hcl", "html", "ini", "java", "javascript", "json", "kotlin",
+                "lua", "make", "markdown", "php", "powershell", "python", "ruby", "rust",
+                "scss", "sql", "svelte", "swift", "toml", "tsx", "typescript", "vue",
+                "xml", "yaml",
+            ],
         },
         {
             "asset_id": "poppler_runtime",

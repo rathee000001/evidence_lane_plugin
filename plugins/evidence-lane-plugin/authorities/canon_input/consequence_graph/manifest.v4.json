@@ -51,7 +51,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "ec6fbbb9a3ec86220f274c7a16e0e16df6cbc79a24d60cbdaaa63999de18c2e7"
+      "sha256": "91fe9d7640d8cdfb1d3945cca4944e290bfe7c0578143b01df323b158a9b9309"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "6e4c5fdf586f3aeeca41a45e367c73b2bab66aeaf908e1519be7faa37b1575e3"
+      "sha256": "34eb07553abd2f0139c57dd8c66e37d87ea8962d3f7b106e44bdb734fd855c79"
     }
   ]
 }

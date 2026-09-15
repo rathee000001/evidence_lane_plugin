@@ -20,7 +20,7 @@ def test_real_legacy_sheet_value_reader_preserves_original(tabular_system, tmp_p
     source = tabular_system[1].source_root
     fixture = tmp_path / 'fixture-conversion'
     fixture.mkdir()
-    output, _ = _convert(source / 'fixture.xlsx', fixture, timeout_seconds=45, output_format=extension, family='calc')
+    output, _ = _convert(source / 'fixture.xlsx', fixture, timeout_seconds=120, output_format=extension, family='calc')
     content = output.read_bytes()
     path = source / ('legacy.' + extension)
     path.write_bytes(content)

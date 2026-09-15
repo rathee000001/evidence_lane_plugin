@@ -1,6 +1,8 @@
 interface:
   display_name: "Configure project connector"
   short_description: "Configure a bounded project connector grant"
+  icon_small: "./assets/skill-cube.svg"
+  icon_large: "./assets/skill-cube.svg"
   brand_color: "#18A9C8"
   default_prompt: "Use $configure-project-connector to configure the selected project connector."
 dependencies:

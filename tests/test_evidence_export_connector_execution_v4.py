@@ -62,7 +62,7 @@ def system(tmp_path, monkeypatch):
         store = engine.directory.open(entry["project_id"], write=True)
         _, session = engine.clients.connect(
             ConnectRequest(
-                hello=ClientHello(configured_profile="codex_cli"),
+                hello=ClientHello(configured_profile="codex_desktop_stable"),
                 projects=[
                     ProjectSelection(
                         project_id=store.project_id,
@@ -175,7 +175,7 @@ def configure(system, tool_id: str, **changes):
                 "delivery": "json",
                 "receipt_sha256": "blob_hash",
             },
-            "host_profiles": ["codex_cli"],
+            "host_profiles": ["codex_desktop_stable"],
             "backend_runtime": "python",
             "backend_id": backend_id,
             "backend_version": version,
@@ -389,7 +389,7 @@ def test_current_connector_revocation_terminates_running_export(system):
 
 def test_packaged_mcp_declares_routes_and_executes_owned_adapter(system):
     engine, store, _, _ = system
-    configure(system, "Grafana", host_profiles=["codex_cli", "codex_desktop"])
+    configure(system, "Grafana", host_profiles=["codex_desktop_stable", "codex_desktop_beta"])
     task = plan(system, "Grafana")
     with LocalEndpoint(engine):
 

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=F8B52AC74FA3BB47E40D89244FEDB7A019EC2BF2A9C3598FFA4F52FD0657C307
+%% LANGGRAPH_EXPORT_SHA256=3C0E386AB6C9C6BD76F67CE5C03F824922BBD559E62E346A6D9ABE3C79228FAB
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=10
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=9
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -291,39 +291,37 @@ flowchart TB
     ROW_uop_action_policy_v4_262["spreadsheet_render_read<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_uop_action_policy_v4_263["steer_preview<br/>REGISTERED_CONTRACT"]:::semantic
     ROW_uop_action_policy_v4_264["steer_submit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_265["storage_connector_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_266["storage_connector_select<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_267["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_268["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_269["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_270["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_271["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_272["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_273["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_274["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_275["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_276["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_277["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_278["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_279["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_280["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_281["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_282["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_283["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_284["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_285["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_286["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_287["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_288["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_289["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_290["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_291["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_292["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_293["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_294["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_295["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_296["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
-    ROW_uop_action_policy_v4_297["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_265["storage_status<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_266["tableau_current<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_267["tableau_edit<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_268["tableau_export<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_269["tableau_generate<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_270["tableau_index<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_271["tableau_query<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_272["tableau_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_273["tableau_refresh<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_274["task_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_275["task_evidence_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_276["task_evidence_decide<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_277["task_evidence_edge_bind<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_278["task_evidence_edge_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_279["task_evidence_expect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_280["task_evidence_graph<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_281["task_evidence_inbox<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_282["task_evidence_input_request<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_283["task_evidence_inspect<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_284["task_evidence_packet_classify<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_285["task_evidence_participant_register<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_286["task_evidence_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_287["task_evidence_receive<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_288["task_evidence_result<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_289["task_evidence_send<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_290["task_evidence_supersede<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_291["toolchain_catalog<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_292["toolchain_resolve<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_293["validation_policy_read<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_294["validation_policy_set<br/>REGISTERED_CONTRACT"]:::semantic
+    ROW_uop_action_policy_v4_295["workflow_catalog<br/>REGISTERED_CONTRACT"]:::semantic
   end
   subgraph GROUP_uop_disclosure_policy_v4["uop disclosure policy"]
     direction TB
@@ -347,13 +345,8 @@ flowchart TB
   subgraph GROUP_uop_host_policy_v4["uop host policy"]
     direction TB
     TABLE_uop_host_policy_v4["uop_host_policy_v4"]:::semantic
-    ROW_uop_host_policy_v4_1["codex_cli<br/>selected_local_or_remote"]:::semantic
-    ROW_uop_host_policy_v4_2["codex_desktop<br/>selected_local_or_remote"]:::semantic
-    ROW_uop_host_policy_v4_3["codex_desktop_beta<br/>selected_local_or_remote"]:::semantic
-    ROW_uop_host_policy_v4_4["codex_desktop_stable<br/>selected_local_or_remote"]:::semantic
-    ROW_uop_host_policy_v4_5["codex_vm_ephemeral<br/>durable_remote_required"]:::semantic
-    ROW_uop_host_policy_v4_6["codex_vm_persistent<br/>durability_verification_required"]:::semantic
-    ROW_uop_host_policy_v4_7["unknown<br/>explicit_selection_required"]:::semantic
+    ROW_uop_host_policy_v4_1["codex_desktop_beta<br/>local_persistent_system"]:::semantic
+    ROW_uop_host_policy_v4_2["codex_desktop_stable<br/>local_persistent_system"]:::semantic
   end
   subgraph GROUP_uop_permission_policy_v4["uop permission policy"]
     direction TB
@@ -881,8 +874,6 @@ flowchart TB
   TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_293
   TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_294
   TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_295
-  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_296
-  TABLE_uop_action_policy_v4 -->|"declares"| ROW_uop_action_policy_v4_297
   ROOT -->|"owns policy rows"| TABLE_uop_disclosure_policy_v4
   TABLE_uop_disclosure_policy_v4 -->|"declares"| ROW_uop_disclosure_policy_v4_1
   ROOT -->|"owns policy rows"| TABLE_uop_fallback_policy_v4
@@ -899,11 +890,6 @@ flowchart TB
   ROOT -->|"owns policy rows"| TABLE_uop_host_policy_v4
   TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_1
   TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_2
-  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_3
-  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_4
-  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_5
-  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_6
-  TABLE_uop_host_policy_v4 -->|"declares"| ROW_uop_host_policy_v4_7
   ROOT -->|"owns policy rows"| TABLE_uop_permission_policy_v4
   TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_1
   TABLE_uop_permission_policy_v4 -->|"declares"| ROW_uop_permission_policy_v4_2
@@ -1098,13 +1084,12 @@ flowchart TB
   ROOT -->|"requires"| GATE_VERIFICATION
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   GATE_CONNECTION_SCOPE ~~~ GATE_DISCLOSURE
-  ROW_uop_action_policy_v4_42 ~~~ ROW_uop_action_policy_v4_43
-  ROW_uop_action_policy_v4_93 ~~~ ROW_uop_action_policy_v4_94
-  ROW_uop_action_policy_v4_145 ~~~ ROW_uop_action_policy_v4_146
-  ROW_uop_action_policy_v4_195 ~~~ ROW_uop_action_policy_v4_196
-  ROW_uop_action_policy_v4_246 ~~~ ROW_uop_action_policy_v4_247
-  ROW_uop_fallback_policy_v4_2 ~~~ ROW_uop_fallback_policy_v4_3
-  ROW_uop_tool_policy_v4_18 ~~~ ROW_uop_tool_policy_v4_19
-  ROW_uop_tool_policy_v4_71 ~~~ ROW_uop_tool_policy_v4_72
+  ROW_uop_action_policy_v4_47 ~~~ ROW_uop_action_policy_v4_48
+  ROW_uop_action_policy_v4_104 ~~~ ROW_uop_action_policy_v4_105
+  ROW_uop_action_policy_v4_160 ~~~ ROW_uop_action_policy_v4_161
+  ROW_uop_action_policy_v4_218 ~~~ ROW_uop_action_policy_v4_219
+  ROW_uop_action_policy_v4_275 ~~~ ROW_uop_action_policy_v4_276
+  ROW_uop_tool_policy_v4_6 ~~~ ROW_uop_tool_policy_v4_7
+  ROW_uop_tool_policy_v4_65 ~~~ ROW_uop_tool_policy_v4_66
   ROW_uop_workflow_gate_v4_11 ~~~ ROW_uop_workflow_gate_v4_12
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

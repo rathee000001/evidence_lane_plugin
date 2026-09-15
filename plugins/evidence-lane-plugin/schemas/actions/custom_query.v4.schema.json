@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": true,
   "description": "Read bounded current identities, literal search, typed facts or historical bytes in the custom lane.",
@@ -143,7 +143,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": true,
   "toolchain": {
-    "contract_digest": "2999887adf6dae50f16e7b674bb4889a5fb1815f7fdd76a1e226970b73b2c2ed",
+    "contract_digest": "03e2b4314f3a7ee993b640e0ed6f25863df01410a318fa0d838f8206f420b23c",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -162,9 +162,7 @@
         "reason": "Registered engine adapter",
         "route_id": "custom_query.engine",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python"

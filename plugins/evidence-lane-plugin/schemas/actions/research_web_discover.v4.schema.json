@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Discover bounded attributed sources through selected DDGS providers and preserve their response bundle in Research.",
@@ -177,7 +177,7 @@
   "schema": "evidence-lane.action-schema.v4",
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "bcc60861685d90c2a157fed1c7aeba1db1c9bfb2e6852574b920e4bdb9fa5510",
+    "contract_digest": "6adbb6e52817aef9889080756bff4b4b43180fc490f720eb6ec01a6552f3bfac",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -196,9 +196,7 @@
         "reason": "Pinned DDGS provider parsing and ranking over bounded HTTPX requests; targets remain unvisited.",
         "route_id": "research_web_discover.ddgs",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "action_set_sha256": "e316b2b30bb83105369ba4e44ce356b253bdd9212266c68c1a19dcfd368366fe",
+  "action_set_sha256": "efe2793f4f5d9005c546d5eaaa189f534ac94a76f4eabc7b67f08eaac1cdcb65",
   "authority": "engine_typed_action_registry",
   "cross_project_read": false,
   "description": "Snapshot exact image/media bytes and bounded raster, vector or container facts.",
@@ -123,7 +123,7 @@
   },
   "studio_read": false,
   "toolchain": {
-    "contract_digest": "8aa2feb7cb7debf035e8f0610fd535c6b8e53a17637211b961f86e47b5aed68e",
+    "contract_digest": "2e3a03644d18967ceb8290c77ea9a2c100b1bc44ec0f88f83f294b8c08f11fdf",
     "fallback_after_invocation": false,
     "installation_implied": false,
     "installation_matrix": "toolchains/shared-toolchain.v4.json",
@@ -153,9 +153,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_refresh.raster",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",
@@ -177,9 +175,7 @@
         "reason": "Registered engine adapter",
         "route_id": "media_refresh.vector",
         "systems": [
-          "Windows",
-          "Darwin",
-          "Linux"
+          "Windows"
         ],
         "tool_ids": [
           "Python",

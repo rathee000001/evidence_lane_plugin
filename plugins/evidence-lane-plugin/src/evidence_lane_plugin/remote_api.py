@@ -249,7 +249,7 @@ class RemoteGateway:
         return StorageBackend(project_id=project_id, engine_instance_id=self.engine.instance_id,
             connection='remote_api', evidence_basis='authenticated_gateway_policy_and_restart_probe',
             storage_class=self.policy.storage_class, volume_id=self.policy.volume_id,
-            policy_digest=self.policy_digest(grant), connector_id=self.policy.server_id,
+            policy_digest=self.policy_digest(grant),
             restart_recovery_verified=True, restart_verified_at=verified.isoformat(), observed_at=self.clock().isoformat())
 
     def _connection(self, envelope, grant, *, durable=True):

@@ -474,8 +474,7 @@
         "remote",
         "hostmemory",
         "gitpush",
-        "capture",
-        "storage"
+        "capture"
       ],
       "source_origins": [
         "authorities/receipt_ledger/schema.sql"

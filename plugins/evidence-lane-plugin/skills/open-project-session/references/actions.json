@@ -1,5 +1,5 @@
 {
-  "action_set_digest": "e67f380d1233840164d3e43de3ee1e9ca6987c08c20b6434e74e452e883e2ac0",
+  "action_set_digest": "d9a2fdd24ce2b78e3c8f3d455f8c6ef1d4328259dea7ca7a08da869109afa8e2",
   "actions": [
     {
       "cross_project_read": false,
@@ -21,7 +21,7 @@
       "input_schema_digest": "bddbcad92722f3d9016997c20c0e82dd5ec1d94793a9eb33fc5a57ac843382a2",
       "mutates": false,
       "name": "client_context",
-      "output_schema_digest": "5d54458f6ad8fd27aea1319af0d087f19e18168b67a0e0afc2bed42c5359f7dc",
+      "output_schema_digest": "0e3104ddd804639382ba2c030423bca49b8fb47b2ff31847b250b2ce23313271",
       "permission": "read",
       "profile": "core",
       "project_required": false,
@@ -35,7 +35,7 @@
       "input_schema_digest": "9d75707c168746ad69e19fccbde7cd64d340b6cbf72692f03d2afd7770227304",
       "mutates": false,
       "name": "engine_health",
-      "output_schema_digest": "eef9447ee590a264d79223d43a85116cfbeda71126fa89857063d90e8ccbb350",
+      "output_schema_digest": "ab2c274d8341d7d2ae772dd8ba95f4a7e1ee975b5e84697e553e0396c0dadf08",
       "permission": "read",
       "profile": "core",
       "project_required": false,

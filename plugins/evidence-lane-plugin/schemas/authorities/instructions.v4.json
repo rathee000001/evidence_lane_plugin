@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/instructions/manifest.v4.json",
-      "sha256": "92d46ecec02766392b3b48a1a186a0d8bfdcea87a0d43d85245e41be669970ab"
+      "sha256": "43d13dba9716a59dcf5a57139c0658c40604f44656a29a49bb6cc48e6a4b82b7"
     },
     {
       "path": "authorities/instructions/reader-contract.schema.json",
