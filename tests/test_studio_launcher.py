@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import os
 import subprocess
 import sys
 from datetime import UTC, datetime, timedelta
@@ -244,6 +246,36 @@ def test_shortcut_timeout_remains_bounded_and_redacts_captured_output(tmp_path, 
         shell_link(tmp_path / "temporary.lnk", specification={"target": str(Path(sys.executable).with_name("pythonw.exe"))})
     assert failure.value.code == "SHORTCUT_OPERATION_FAILED"
     assert failure.value.details == {"reason": "deadline_exceeded", "timeout_seconds": 30}
+    assert "private captured" not in str(failure.value.public())
+
+
+def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_path, monkeypatch):
+    expected = {"target": str(Path(sys.executable).with_name("pythonw.exe")),
+                "arguments": '"literal & $value"', "working_directory": "C:/literal & $value",
+                "window_style": 1, "icon_location": "C:/literal & $value/icon.ico,0"}
+    monkeypatch.setenv("EVIDENCE_LANE_SHORTCUT_REQUEST", "parent value stays")
+
+    def run(command, **options):
+        assert options["stdin"] == subprocess.DEVNULL and "input" not in options
+        request = json.loads(options["env"]["EVIDENCE_LANE_SHORTCUT_REQUEST"])
+        assert request == {"path": str(tmp_path / "literal & $value.lnk"), "mode": "write", **expected}
+        assert "Console]::In.ReadToEnd" not in command[-1]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(expected), stderr="EL_SHORTCUT_PHASE=readback_ready")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert shell_link(tmp_path / "literal & $value.lnk", specification=expected) == expected
+    assert os.environ["EVIDENCE_LANE_SHORTCUT_REQUEST"] == "parent value stays"
+
+
+def test_shortcut_timeout_exposes_only_whitelisted_phase(tmp_path, monkeypatch):
+    def timeout(command, **options):
+        raise subprocess.TimeoutExpired(command, 30, output=b"private captured output",
+            stderr=b"private captured error\nEL_SHORTCUT_PHASE=request_loaded\nEL_SHORTCUT_PHASE=private captured phase\n")
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(LaneError) as failure:
+        shell_link(tmp_path / "temporary.lnk", specification={"target": str(Path(sys.executable).with_name("pythonw.exe"))})
+    assert failure.value.details == {"reason": "deadline_exceeded", "timeout_seconds": 30, "phase": "request_loaded"}
     assert "private captured" not in str(failure.value.public())
 
 

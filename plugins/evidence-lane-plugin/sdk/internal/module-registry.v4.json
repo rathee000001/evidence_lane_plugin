@@ -1146,9 +1146,9 @@
       "sha256": "9c4e9391805603cc5c2b1fab8bd495563587ca89a3f29904fb2dc9419b3014ea"
     },
     {
-      "bytes": 750,
+      "bytes": 751,
       "path": "sdk/internal/modules/shortcuts.module.v4.json",
-      "sha256": "33ec5321cd2c81dcdd75e5c5867572d0f0b2c89e83cb7a5b82595b3702728d9e"
+      "sha256": "c1ce71c5cf202da7cc60f26f33730ccf531de8d2b7cb076d51a1e0aa6d159d7a"
     },
     {
       "bytes": 766,

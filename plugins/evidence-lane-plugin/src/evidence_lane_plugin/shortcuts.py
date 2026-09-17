@@ -18,9 +18,13 @@ from .storage import reject_links
 _SCRIPT = r"""
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
-$studioRequest = [Console]::In.ReadToEnd() | ConvertFrom-Json
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=started')
+$studioRequest = $env:EVIDENCE_LANE_SHORTCUT_REQUEST | ConvertFrom-Json
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=request_loaded')
 $studioShell = New-Object -ComObject WScript.Shell
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=shell_created')
 $studioLink = $studioShell.CreateShortcut([string]$studioRequest.path)
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_loaded')
 if ($studioRequest.mode -eq 'write') {
     $studioLink.TargetPath = [string]$studioRequest.target
     $studioLink.Arguments = [string]$studioRequest.arguments
@@ -29,7 +33,9 @@ if ($studioRequest.mode -eq 'write') {
     $studioLink.IconLocation = [string]$studioRequest.icon_location
     $studioLink.WindowStyle = 1
     $studioLink.Save()
+    [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_saved')
 }
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=readback_ready')
 @{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle;icon_location=$studioLink.IconLocation} | ConvertTo-Json -Compress
 """
 
@@ -41,26 +47,42 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     executable = root / "System32/WindowsPowerShell/v1.0/powershell.exe"
     reject_links(executable, Path(executable.anchor))
     request = {"path": str(path), "mode": "write" if specification else "read"} | (specification or {})
+    payload = json.dumps(request, ensure_ascii=True)
+    if len(payload) > 16_384:
+        raise LaneError("SHORTCUT_OPERATION_FAILED", "The shortcut request exceeded its supported size.",
+                        details={"reason": "oversized_request"})
+
+    def safe_phase(output) -> dict:
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        allowed = {"started", "request_loaded", "shell_created", "link_loaded", "link_saved", "readback_ready"}
+        phases = [line.removeprefix("EL_SHORTCUT_PHASE=") for line in (output or "").splitlines()
+                  if line.startswith("EL_SHORTCUT_PHASE=") and line.removeprefix("EL_SHORTCUT_PHASE=") in allowed]
+        return {"phase": phases[-1]} if phases else {}
+
+    phase = {}
     try:
         completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-Command", _SCRIPT],
-            input=json.dumps(request, ensure_ascii=True), capture_output=True, text=True, encoding="utf-8",
+            stdin=subprocess.DEVNULL, env={**os.environ, "EVIDENCE_LANE_SHORTCUT_REQUEST": payload},
+            capture_output=True, text=True, encoding="utf-8",
             timeout=30, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
+        phase = safe_phase(completed.stderr)
         if completed.returncode or len(completed.stdout) > 16_384:
             raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
                             details={"reason": "process_exit" if completed.returncode else "oversized_readback",
-                                     "exit_code": completed.returncode})
+                                     "exit_code": completed.returncode, **phase})
         value = json.loads(completed.stdout)
         if not isinstance(value, dict) or set(value) != {
             "target", "arguments", "working_directory", "window_style", "icon_location"
         }:
             raise ValueError()
         return value
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as error:
         raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the shortcut operation within 30 seconds.",
-                        details={"reason": "deadline_exceeded", "timeout_seconds": 30}) from None
+                        details={"reason": "deadline_exceeded", "timeout_seconds": 30, **safe_phase(error.stderr)}) from None
     except (OSError, ValueError) as error:
         raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
-                        details={"reason": "process_unavailable" if isinstance(error, OSError) else "invalid_readback"}) from None
+                        details={"reason": "process_unavailable" if isinstance(error, OSError) else "invalid_readback", **phase}) from None
 
 
 class StudioShortcut:
