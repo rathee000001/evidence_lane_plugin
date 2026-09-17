@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -67,6 +68,7 @@ def test_existing_private_profile_window_is_restored_without_spawning(tmp_path):
         if profile == tmp_path / "runtime/studio-browser"
         else [],
         restore=lambda processes: restored.append(processes) or True,
+        authenticated_session=lambda: True,
     )
     url = "http://127.0.0.1:12345/studio/#ticket=" + "x" * 64
     assert window(url)
@@ -75,6 +77,111 @@ def test_existing_private_profile_window_is_restored_without_spawning(tmp_path):
     assert window.last_launch["mode"] == "existing_dedicated_browser_window"
     assert window.last_launch["visible_window_verified"] is True
     assert window.last_launch["existing_profile_process_count"] == 1
+
+
+def test_owner_reopen_recovers_expired_session_without_extending_or_mutating_project(tmp_path):
+    service = Service(tmp_path / "runtime", workers=1)
+    window = service.studio_launcher
+    browser = tmp_path / "chrome.exe"
+    browser.touch()
+    window.browser = browser
+    processes = []
+    launches = []
+    closed = []
+
+    def spawn(arguments, **_options):
+        launches.append(arguments)
+        processes.append(SimpleNamespace(pid=99))
+        return SimpleNamespace(poll=lambda: None)
+
+    def close(profile):
+        assert profile == tmp_path / "runtime/studio-browser"
+        closed.append(profile)
+        processes.clear()
+
+    window.spawn = spawn
+    window.existing = lambda _profile: tuple(processes)
+    window.restore = lambda _processes: True
+    window.close_existing = close
+    current = [datetime.now(UTC)]
+    try:
+        service.start()
+        gateway = service.endpoint.studio
+        gateway.clock = lambda: current[0]
+        engine_instance = service.engine.instance_id
+        service.open_studio()
+        ticket = next(arg for arg in launches[-1] if arg.startswith("--app=")).split("#ticket=", 1)[1]
+        token, session = gateway.exchange(ticket)
+        assert gateway.has_live_session()
+        assert session.expires_at == current[0] + timedelta(hours=12)
+        service.open_studio()
+        assert len(launches) == 1 and closed == []
+        assert gateway.authenticate(gateway.cookie(token)).expires_at == session.expires_at
+
+        current[0] += timedelta(hours=13)
+        with pytest.raises(LaneError) as expired:
+            gateway.authenticate(gateway.cookie(token))
+        assert expired.value.code == "STUDIO_AUTHENTICATION_REQUIRED"
+        assert not gateway.has_live_session()
+        service.open_studio()
+        assert len(launches) == 2 and len(closed) == 1 and len(processes) == 1
+        assert window.last_launch["mode"] == "reconnected_dedicated_browser_window"
+        ticket = next(arg for arg in launches[-1] if arg.startswith("--app=")).split("#ticket=", 1)[1]
+        new_token, new_session = gateway.exchange(ticket)
+        assert new_session.actor_id != session.actor_id
+        assert gateway.authenticate(gateway.cookie(new_token), csrf=new_session.csrf) == new_session
+        assert service.engine.instance_id == engine_instance
+        assert service.engine.directory.entries() == {}
+        assert not service.stop_requested.is_set()
+    finally:
+        service.close()
+
+
+def test_new_engine_reopens_existing_profile_with_new_engine_ticket(tmp_path):
+    old_gateway = StudioGateway(Engine(tmp_path / "old"))
+    old_token, _ = old_gateway.exchange(old_gateway.issue_ticket())
+    new_gateway = StudioGateway(Engine(tmp_path / "new"))
+    browser = tmp_path / "chrome.exe"
+    browser.touch()
+    existing = [SimpleNamespace(pid=99)]
+    launches = []
+    window = StudioWindow(
+        tmp_path / "runtime", browser=browser,
+        existing=lambda _profile: tuple(existing),
+        authenticated_session=new_gateway.has_live_session,
+        close_existing=lambda _profile: existing.clear(),
+        restore=lambda _processes: pytest.fail("An old-engine window cannot authenticate to the new engine"),
+        spawn=lambda arguments, **_options: launches.append(arguments) or SimpleNamespace(poll=lambda: None),
+    )
+    ticket = new_gateway.issue_ticket()
+    assert window("http://127.0.0.1:12345/studio/#ticket=" + ticket)
+    assert len(launches) == 1 and existing == []
+    with pytest.raises(LaneError):
+        new_gateway.authenticate(old_gateway.cookie(old_token))
+    token, session = new_gateway.exchange(ticket)
+    assert new_gateway.authenticate(new_gateway.cookie(token)) == session
+
+
+@pytest.mark.parametrize("close_fails", [True, False])
+def test_reconnect_never_spawns_until_exact_profile_closure_is_confirmed(tmp_path, close_fails):
+    browser = tmp_path / "chrome.exe"
+    browser.touch()
+    spawned = []
+
+    def close(_profile):
+        if close_fails:
+            raise LaneError("STUDIO_WINDOW_CLOSE_FAILED", "Owned browser did not close.")
+
+    window = StudioWindow(
+        tmp_path / "runtime", browser=browser,
+        existing=lambda _profile: (SimpleNamespace(pid=99),),
+        close_existing=close,
+        spawn=lambda *args, **kwargs: spawned.append((args, kwargs)),
+    )
+    with pytest.raises(LaneError) as failure:
+        window("http://127.0.0.1:12345/studio/#ticket=" + "x" * 64)
+    assert failure.value.code == "STUDIO_WINDOW_CLOSE_FAILED"
+    assert spawned == []
 
 
 def test_private_profile_process_selection_and_close_never_touch_other_browser(tmp_path):

@@ -2,12 +2,12 @@
   "bundle_plan": {
     "bytes": 541625,
     "path": "provisioning/full-bundle-plan.v4.json",
-    "sha256": "23aee7d71a0402d40fea9bf6e0550b65bc8c78e11237107a3a91e8ab71a81517"
+    "sha256": "b8241b9d0e7e1d3bbfd98ac0a53c3f753e52dfb4e0a3a6c7d343efb165235feb"
   },
   "canonical_installer": {
-    "bytes": 108262,
+    "bytes": 113368,
     "path": "scripts/first_detection.py",
-    "sha256": "2b94cc553d5875fa28086c143d686dd7676ca8d53c24733798a32e2484f89847"
+    "sha256": "812d68d888db058265203d1e272b16e4e14c75041abbc58cab7431365dd81827"
   },
   "discoverable_alias": "studio/install.py",
   "explicit_bootstrap": {

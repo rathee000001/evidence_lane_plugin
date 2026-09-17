@@ -3,7 +3,7 @@
   "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
   "plugin": {
     "id": "evidence-lane-plugin",
-    "version": "4.0.5",
+    "version": "4.0.6",
     "repository": "https://github.com/rathee000001/evidence_lane_plugin",
     "sparse_root": "plugins/evidence-lane-plugin"
   },
@@ -10214,7 +10214,7 @@
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "368d4ffbff14d9f0e583ff61da99be939c075aebac997fbea3a68440294e9124",
+      "sha256": "ab1caeb0011d1ce0328a0cd94a6c2cc2bf68729924be7860d500c2847ece2c0f",
       "bytes": 1842
     },
     {
@@ -10239,7 +10239,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "b51a8910e4493c00b2bda1eec93f98310215ef91dbcb613fb20ecf0dae226e76",
+      "sha256": "1062d8ba4a7a18e5d7eb947ef3fc7a0faa28a48d51f0d49f9478a65f880d5ecb",
       "bytes": 3996
     },
     {
@@ -10289,22 +10289,22 @@
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-      "sha256": "16f51d1c8f8a5801d31319333172fe6e1a13145f961e1d224cc4f2c55c7a816f",
+      "sha256": "02893d6cfec7da00424f373311df1d3a112ce048332e3972ae8349d0e575f55b",
       "bytes": 8132
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-      "sha256": "4cff5ca1448dc29f63d7f4fb658c751d2c32bb8929aef4616aad6c8129d4845a",
+      "sha256": "4d3d7687f2cb010b5d9c37df2bc19c197c41cfbccd165d622476438636d9deb7",
       "bytes": 9216
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-      "sha256": "ff65f4d84848686a521205c36563217b5ff7ebc38d485824f6ec0ef2051ce317",
+      "sha256": "98bb52ff13f40702550262201c685874e8ba4232018df4e1454068db966a28e9",
       "bytes": 502
     },
     {
       "path": "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
-      "sha256": "ff476d5c66f115f51e6f05914deb8c3d4ddb87312ff35ef514030519aeffb369",
+      "sha256": "1bf5f2fffed9fc10b24dacbcd27867e4cbe898bf318159608d26a5193f39567e",
       "bytes": 2093
     },
     {
@@ -10406,5 +10406,5 @@
   },
   "installation_state": "not_installed",
   "installed_native_execution_claimed": false,
-  "receipt_sha256": "ac9b7783481baf4c090fb48f8761ef4849efa91b37b8b5d325412de6c31b85f8"
+  "receipt_sha256": "c5aa9c7a2a417cd211612c53d038f1ac9a610b513faf769ff0e0080a57b6db27"
 }

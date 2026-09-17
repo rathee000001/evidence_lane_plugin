@@ -5,18 +5,23 @@
   "contract": "studio-window.contract.v4",
   "installed_execution_claimed": false,
   "native_identity_inferred": false,
-  "purpose": "Keep one exact-profile Studio window visible and read-only, restore it on reopen, and keep the engine independent of window close/minimize.",
+  "purpose": "Keep one exact-profile read-only Studio window; restore a healthy authenticated window or reopen only that profile with an owner-issued ticket after expiry or engine replacement, independently of engine work.",
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 9040,
+      "bytes": 9805,
       "path": "src/evidence_lane_plugin/studio_window.py",
-      "sha256": "4b88d90548d17a25f65ebd248475d88e6e61fd7303c83e91c8f48fb4eea96d53"
+      "sha256": "ecebfba3ca20712faa4d308f4c1a8e7042df1921a3eb9a63060181e29be0b0fc"
     },
     {
-      "bytes": 12498,
+      "bytes": 12715,
       "path": "src/evidence_lane_plugin/studio_gateway.py",
-      "sha256": "5c376d5252200a453ca07a410ae7cb25a9bc1b1f455e2768be1b6574a2907920"
+      "sha256": "db36a0e1019b42555953352df2d1d4b5d59f78bcf9b5e31a1004ff87789ea554"
+    },
+    {
+      "bytes": 5915,
+      "path": "src/evidence_lane_plugin/service.py",
+      "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
     }
   ],
   "status": "PASS"

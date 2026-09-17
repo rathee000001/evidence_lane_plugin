@@ -53,7 +53,7 @@
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "948dd7e7fed1bae8970748b246520526478616fe5a24f38db5458501172f0f8b"
+      "sha256": "08f98c3f7404b35438c21a54fff91d6a382a03c390d9564627a400a18da1d6fc"
     },
     {
       "path": "schemas/env/env-family.v4.json",
@@ -85,7 +85,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "8f2f4f5dbb590245794cc41b68578e495f4e53fd00e67103e87f2d76475fbeb5"
+      "sha256": "32b18f6d400e2176beb087e0e83f91dc42017622c6dc5abfa2b75b5a5dda650f"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",

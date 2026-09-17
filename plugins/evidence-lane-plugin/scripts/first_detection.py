@@ -15,7 +15,7 @@ import zipfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path, PurePosixPath
 from typing import Any, Self
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 BINDING_SCHEMA = "evidence-lane.first-detection-release-binding.v4"
 PLAN_SCHEMA = "evidence-lane.first-detection-bundle-plan.v4"
@@ -1796,8 +1796,77 @@ class FirstDetectionInstaller:
         self.license_grants = tuple(license_grants)
         self.system = platform.system() if system is None else system
         self.machine = platform.machine() if machine is None else machine
+        self._project_directory_payload: bytes | None = None
+        self._project_directory_count = 0
+
+    def _read_project_directory(self) -> tuple[bytes | None, int]:
+        """Preserve engine locators, never project data or connection state."""
+        path = self.root / "engine/projects.json"
+        reject_links(path, self.root)
+        if not path.exists():
+            return None, 0
+        try:
+            if not path.is_file() or path.stat().st_size > 2_000_000:
+                raise ValueError()
+            payload = path.read_bytes()
+            if len(payload) > 2_000_000:
+                raise ValueError()
+            document = json.loads(payload)
+            if (
+                not isinstance(document, dict)
+                or set(document) != {"version", "projects"}
+                or type(document["version"]) is not int
+                or document["version"] != 1
+                or not isinstance(document["projects"], dict)
+            ):
+                raise ValueError()
+            allowed = {
+                "project_id", "state_root", "source_root", "read_only",
+                "display_name", "sensitivity", "capture_route", "registration_bound",
+                "registration_digest", "sensitivity_enforcement",
+            }
+            for identity, record in document["projects"].items():
+                if (
+                    not isinstance(identity, str)
+                    or str(UUID(identity)) != identity
+                    or not isinstance(record, dict)
+                    or set(record) - allowed
+                    or record.get("project_id") != identity
+                    or not isinstance(record.get("read_only"), bool)
+                ):
+                    raise ValueError()
+                for key in ("state_root", "source_root"):
+                    value = record.get(key)
+                    if not isinstance(value, str) or not Path(value).is_absolute():
+                        raise ValueError()
+                for key in (
+                    "display_name", "sensitivity", "capture_route",
+                    "registration_digest", "sensitivity_enforcement",
+                ):
+                    if record.get(key) is not None and not isinstance(record[key], str):
+                        raise ValueError()
+                if (
+                    "registration_bound" in record
+                    and not isinstance(record["registration_bound"], bool)
+                ):
+                    raise ValueError()
+                if record.get("registration_digest") is not None and re.fullmatch(
+                    r"[0-9a-f]{64}", record["registration_digest"]
+                ) is None:
+                    raise ValueError()
+                state = Path(os.path.abspath(record["state_root"]))
+                if state.is_relative_to(self.root):
+                    raise ValueError()
+            return payload, len(document["projects"])
+        except (OSError, ValueError, TypeError, UnicodeError):
+            raise FirstDetectionError(
+                "INSTALLATION_PROJECT_DIRECTORY_INVALID",
+                "The existing project locator registry cannot be preserved safely; the previous release was not replaced.",
+            ) from None
 
     def ensure(self) -> dict[str, Any]:
+        self._project_directory_payload = None
+        self._project_directory_count = 0
         if self.system != "Windows" or self.machine.casefold() not in {
             "amd64",
             "x86_64",
@@ -1846,7 +1915,13 @@ class FirstDetectionInstaller:
             )
             if previous is not None:
                 try:
+                    # Validate before stopping a usable release, then freeze the
+                    # final locator bytes only after its engine lock is released.
+                    self._read_project_directory()
                     self._quiesce_active_release(previous)
+                    self._project_directory_payload, self._project_directory_count = (
+                        self._read_project_directory()
+                    )
                     preservation = self._preserve_active_release(previous, binding)
                 except Exception as reason:
                     self._write_status(
@@ -2165,6 +2240,14 @@ class FirstDetectionInstaller:
             "preservation_root": str(preservation),
             "error_code": error_code,
             "project_state_changed": False,
+            "project_locator_registry_preserved": self._project_directory_payload is not None,
+            "project_locator_count": self._project_directory_count,
+            "project_locator_registry_sha256": (
+                hashlib.sha256(self._project_directory_payload).hexdigest()
+                if self._project_directory_payload is not None else None
+            ),
+            "project_databases_copied": False,
+            "client_or_session_bindings_copied": False,
         }
         path = root / (
             f"{active['release_receipt']['plugin_version']}-to-"
@@ -2210,6 +2293,21 @@ class FirstDetectionInstaller:
                 {row["component_id"] for row in selected},
                 self.runner,
             )
+            if self._project_directory_payload is not None:
+                project_directory = stage / "engine/projects.json"
+                reject_links(project_directory, stage)
+                if project_directory.exists():
+                    raise FirstDetectionError(
+                        "INSTALLATION_PROJECT_DIRECTORY_COLLISION",
+                        "Runtime archives must not supply project registrations.",
+                    )
+                project_directory.parent.mkdir(parents=True, exist_ok=True)
+                project_directory.write_bytes(self._project_directory_payload)
+                if project_directory.read_bytes() != self._project_directory_payload:
+                    raise FirstDetectionError(
+                        "INSTALLATION_PROJECT_DIRECTORY_CHANGED",
+                        "The preserved project locator registry differs from its snapshot.",
+                    )
             finalize_installation_records(
                 stage,
                 release_root,

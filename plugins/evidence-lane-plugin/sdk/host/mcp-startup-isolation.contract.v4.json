@@ -24,9 +24,9 @@
       "sha256": "0bf5a1b778f2269b1695edcbb4c7a62ae1f40ef1c543fcfc18493513bc92f420"
     },
     {
-      "bytes": 5647,
+      "bytes": 5915,
       "path": "src/evidence_lane_plugin/service.py",
-      "sha256": "de3ae623d89e6754696bc7c71b0a700c95d295a1176be219d032a94b9bec5413"
+      "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
     }
   ],
   "status": "PASS"

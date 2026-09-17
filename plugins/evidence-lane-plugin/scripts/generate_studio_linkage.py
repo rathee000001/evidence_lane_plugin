@@ -116,6 +116,15 @@ def outputs() -> dict[str, object]:
         "background_engine_opens_studio": False,
         "exact_profile_single_window": True,
         "existing_window_restored_on_reopen": True,
+        "existing_window_restore_requires_live_session": True,
+        "expired_session_reopens_exact_profile": True,
+        "owner_issued_ticket_required": True,
+        "session_lifetime_hours": 12,
+        "failed_profile_close_prevents_spawn": True,
+        "owner_control_timeout_seconds": 30,
+        "upgrade_preserves_project_locator_registry": True,
+        "upgrade_copies_project_databases": False,
+        "upgrade_copies_client_or_session_bindings": False,
         "upgrade_closes_exact_profile_before_preservation": True,
         "engine_console_hidden": True,
         "installed_verification": ref("scripts/verify_installed_runtime.py"),
@@ -138,10 +147,17 @@ canonical first-detection installer. MCP startup may start that installer in a
 detached process, then returns without blocking an unrelated Codex task.
 
 Background engine discovery does not open Studio. The installed launcher opens
-one exact private-profile window; a later open request restores that window.
+one exact private-profile window; a later open request restores a healthy
+authenticated window. If its session expired or its engine changed, the owner
+launcher closes only that private profile and opens one freshly ticketed window.
+Failed profile closure prevents a new window from being launched. The twelve-hour
+authentication lifetime remains unchanged.
 Before a flat-root upgrade, the installer closes only that exact Studio profile,
 requests owner-authenticated engine shutdown and confirms lock release before
 preserving the previous release.
+Valid engine-owned project locator references survive the upgrade independently
+of immutable runtime files. Project databases, credentials, client/session bindings
+and active selections are never copied into the new runtime.
 
 Studio is a visible read-only observer. Codex calls the engine through the
 plugin MCP/SDK routes. The Studio bundle installs local dependencies once under

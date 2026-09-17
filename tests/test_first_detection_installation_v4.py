@@ -506,8 +506,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.5"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.5-bundle-")
+        assert binding["plugin_version"] == "4.0.6"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.6-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()
@@ -900,10 +900,15 @@ def test_valid_older_exact_release_upgrades_in_place_with_sibling_preservation(
     ).ensure()
     assert old["installation_state"] == "INSTALLED_EXACT_RELEASE"
     old_binding = old["pointer"]["release_binding_sha256"]
-    stale_projects = install_root / "engine/projects.json"
-    write(stale_projects, b'{"stale":"v4.0.3 project selection"}\n')
+    project_directory = install_root / "engine/projects.json"
     project = tmp_path / "project-state" / "plan.sqlite"
     write(project, b"project bytes")
+    identity = "902b95a9-bcab-45fd-990b-2159a94da0a7"
+    locators = json.dumps({"version": 1, "projects": {identity: {
+        "project_id": identity, "state_root": str(project.parent.resolve()),
+        "source_root": str((tmp_path / "source").resolve()), "read_only": False,
+    }}}).encode()
+    write(project_directory, locators)
 
     new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
 
@@ -936,10 +941,10 @@ def test_valid_older_exact_release_upgrades_in_place_with_sibling_preservation(
     assert json.loads(
         (previous / "plugin/.codex-plugin/plugin.json").read_text()
     )["version"] == "4.0.1"
-    assert not (install_root / "engine/projects.json").exists()
-    assert (previous / "engine/projects.json").read_bytes() == (
-        b'{"stale":"v4.0.3 project selection"}\n'
-    )
+    assert (install_root / "engine/projects.json").read_bytes() == locators
+    assert (previous / "engine/projects.json").read_bytes() == locators
+    from evidence_lane_plugin.projects import ProjectDirectory
+    assert ProjectDirectory(install_root / "engine").entries()[identity]["state_root"] == str(project.parent.resolve())
     assert json.loads((previous / "installation.json").read_text())[
         "release_binding_sha256"
     ] == old_binding
@@ -969,6 +974,33 @@ def test_valid_older_exact_release_upgrades_in_place_with_sibling_preservation(
     assert status["plugin_version"] == "4.0.2"
 
 
+def test_invalid_project_registry_blocks_upgrade_before_quiescence(tmp_path: Path) -> None:
+    old_plugin, old_archives = fixture_plugin(tmp_path / "old", "4.0.1")
+    root = tmp_path / "EvidenceLaneStudio"
+    probe = lambda: {"names": [], "nvidia_cuda_compatible": False,
+                     "directml_compatible": False, "amd_rocm_compatible": False}
+    installer_module.FirstDetectionInstaller(
+        old_plugin, root,
+        fetcher=lambda asset, target: shutil.copyfile(old_archives[asset["component_id"]], target),
+        runner=fake_runner([]), gpu_probe=probe, system="Windows", machine="AMD64",
+    ).ensure()
+    pointer = (root / "installation.json").read_bytes()
+    invalid_registry = b'{"stale":"this is not a project locator registry"}'
+    write(root / "engine/projects.json", invalid_registry)
+    new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
+    commands = []
+    with pytest.raises(installer_module.FirstDetectionError) as failure:
+        installer_module.FirstDetectionInstaller(
+            new_plugin, root,
+            fetcher=lambda asset, target: shutil.copyfile(new_archives[asset["component_id"]], target),
+            runner=fake_runner(commands), gpu_probe=probe, system="Windows", machine="AMD64",
+        ).ensure()
+    assert failure.value.code == "INSTALLATION_PROJECT_DIRECTORY_INVALID"
+    assert commands == []
+    assert (root / "installation.json").read_bytes() == pointer
+    assert (root / "engine/projects.json").read_bytes() == invalid_registry
+
+
 def test_failed_exact_release_upgrade_restores_previous_active_release(
     tmp_path: Path,
 ) -> None:
@@ -994,6 +1026,12 @@ def test_failed_exact_release_upgrade_restores_previous_active_release(
     ).ensure()
     old_pointer = (install_root / "installation.json").read_bytes()
     old_receipt = (install_root / ".evidence-lane-release.json").read_bytes()
+    identity = "902b95a9-bcab-45fd-990b-2159a94da0a7"
+    registry = json.dumps({"version": 1, "projects": {identity: {
+        "project_id": identity, "state_root": str((tmp_path / "external-state").resolve()),
+        "source_root": str((tmp_path / "source").resolve()), "read_only": True,
+    }}}).encode()
+    write(install_root / "engine/projects.json", registry)
 
     new_plugin, new_archives = fixture_plugin(tmp_path / "new", "4.0.2")
 
@@ -1029,6 +1067,7 @@ def test_failed_exact_release_upgrade_restores_previous_active_release(
     assert error.value.code == "INSTALLATION_REGISTRATION_FAILED"
     assert (install_root / "installation.json").read_bytes() == old_pointer
     assert (install_root / ".evidence-lane-release.json").read_bytes() == old_receipt
+    assert (install_root / "engine/projects.json").read_bytes() == registry
     restored = installer_module.validate_active_installation_quick(
         install_root,
         expected_binding_sha256=old["pointer"]["release_binding_sha256"],

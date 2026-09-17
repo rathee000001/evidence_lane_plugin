@@ -86,7 +86,7 @@
       "path": "sdk/host/runtime.py",
       "registry": {
         "path": "sdk/host/host-contract-registry.v4.json",
-        "sha256": "a0d29ed5e323949c9a0286d47af5556accba572f1c38da688084c6e7fa58e62e"
+        "sha256": "34914ae14e3976f2e67b906e81103cc8e36960f6118de4a10ac3730158f28f78"
       },
       "runtime": {
         "path": "sdk/host/runtime.py",
@@ -101,7 +101,7 @@
       "path": "sdk/internal/runtime.py",
       "registry": {
         "path": "sdk/internal/module-registry.v4.json",
-        "sha256": "49c7e4c2f815b4f9653e05f54d83490a23231a77bce839b3d539bd0788c76bb3"
+        "sha256": "dad2a27c3bb097fbf03cd6ebdc2ba5326e05a37ee21b168f2279b090143acf22"
       },
       "runtime": {
         "path": "sdk/internal/runtime.py",

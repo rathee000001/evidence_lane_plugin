@@ -8,7 +8,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/studio_gateway.py",
-      "sha256": "5c376d5252200a453ca07a410ae7cb25a9bc1b1f455e2768be1b6574a2907920"
+      "sha256": "db36a0e1019b42555953352df2d1d4b5d59f78bcf9b5e31a1004ff87789ea554"
     }
   ],
   "purpose": "Studio and inspectable package architecture consumers",

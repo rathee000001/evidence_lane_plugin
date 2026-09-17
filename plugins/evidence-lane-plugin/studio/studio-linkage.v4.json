@@ -6,14 +6,14 @@
   "member_count": 6,
   "members": [
     {
-      "bytes": 1282,
+      "bytes": 1788,
       "path": "studio/README.md",
-      "sha256": "42f13250a7ffc754e94a7351557b5989a1c10a7ab8a9cdf2e92e2b3747c6c145"
+      "sha256": "02339bde055db457b7ed4b5913f760175a00e277bee8a34f5199bba6082ef1ed"
     },
     {
       "bytes": 1415,
       "path": "studio/engine-api.contract.v4.json",
-      "sha256": "c6262e9f540b2fe6d46747d625111a1402e3476dd20f94e2a93bec5822c72243"
+      "sha256": "87db1df755ce7269f924d464723356e90808bc1fce82f30d2ecce761be65d2b7"
     },
     {
       "bytes": 637,
@@ -23,7 +23,7 @@
     {
       "bytes": 1591,
       "path": "studio/installation.contract.v4.json",
-      "sha256": "b06195517925acf57c4cd140089dc34fa946e319a27e943f3eb9a94507fa4a0d"
+      "sha256": "db925448d00664ed23e7659fb4194cbe8353febf1e218686141d0e7d25934596"
     },
     {
       "bytes": 1009,
@@ -31,9 +31,9 @@
       "sha256": "faa5e6a5f983951ae7dfd6b9a316342d7eca599339ef63b89ebf9f52129803f5"
     },
     {
-      "bytes": 2122,
+      "bytes": 2539,
       "path": "studio/windows-integration.contract.v4.json",
-      "sha256": "1a86fcbddaefdcb5ae3474fe3c8c1c22c4edf07c258119b99470c9e4d0bd1c51"
+      "sha256": "0f04023cdcdc0693cf1689104388fa16d5a4d235e25a6b2bd6fe4fcb68c1060d"
     }
   ],
   "native_installation_verified": false,

@@ -2,5 +2,5 @@
 
 from typing import Final
 
-__version__ = "4.0.5"
+__version__ = "4.0.6"
 PROTOCOL_VERSION: Final = 4

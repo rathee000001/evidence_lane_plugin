@@ -2727,7 +2727,7 @@
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "948dd7e7fed1bae8970748b246520526478616fe5a24f38db5458501172f0f8b"
+      "sha256": "08f98c3f7404b35438c21a54fff91d6a382a03c390d9564627a400a18da1d6fc"
     },
     {
       "path": "schemas/env/env-family.v4.json",
@@ -2811,7 +2811,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "b51a8910e4493c00b2bda1eec93f98310215ef91dbcb613fb20ecf0dae226e76"
+      "sha256": "1062d8ba4a7a18e5d7eb947ef3fc7a0faa28a48d51f0d49f9478a65f880d5ecb"
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
@@ -2839,7 +2839,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "8f2f4f5dbb590245794cc41b68578e495f4e53fd00e67103e87f2d76475fbeb5"
+      "sha256": "32b18f6d400e2176beb087e0e83f91dc42017622c6dc5abfa2b75b5a5dda650f"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -2927,11 +2927,11 @@
     },
     {
       "path": "schemas/schema-family-registry.v4.json",
-      "sha256": "3eb9208efc6fd556a733c1ca786471a9cb83a4ddb3e27d8c4686baaff8165d5a"
+      "sha256": "68138289e934f8f172ee187673018a0958a877a9e7051b2d0f207a6b1930d04b"
     },
     {
       "path": "schemas/schema-manifest.v4.json",
-      "sha256": "07b201cc9041eeee4c01743714d8a8f939c95adbe2fff45a01f0d69850f8415d"
+      "sha256": "19d3565c868b44f47588d478edec4025d2d2e5185d6c251e35b44f5ac2121c58"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",
@@ -4391,15 +4391,15 @@
     },
     {
       "path": "sdk/host/host-contract-registry.v4.json",
-      "sha256": "a0d29ed5e323949c9a0286d47af5556accba572f1c38da688084c6e7fa58e62e"
+      "sha256": "34914ae14e3976f2e67b906e81103cc8e36960f6118de4a10ac3730158f28f78"
     },
     {
       "path": "sdk/host/local-install.contract.v4.json",
-      "sha256": "8f33b003dd6e27a9d66a8df860f669b05a30676bab45e2a28346accd017410fd"
+      "sha256": "7e2a121f7b82514be2e44a47c6881e8bfbbff3eef9edc9537f330166d74f265e"
     },
     {
       "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
-      "sha256": "6d6bfac2c409b8858e58c3e4a8b897a38ae64eae5845c48777d8980171cd3ae9"
+      "sha256": "e5c9db80b464e2f53810d70dcdee8863aa704589ccfcbe867498a5cc193ec6ef"
     },
     {
       "path": "sdk/host/plan-relock.contract.v4.json",
@@ -4407,15 +4407,15 @@
     },
     {
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "58476830214edd2b90971fc03e14a1c3b3c2d0c693e073d389202f36f0a46b03"
+      "sha256": "06b6c16e0190fe5c630274b80bf61e383bf7800f546303e355a4f27e941d1afb"
     },
     {
       "path": "sdk/host/runtime-install-restart.contract.v4.json",
-      "sha256": "1dcdef80b1a8ed0207c626bf3167faec846f8a8cc976b080b897d966f737f045"
+      "sha256": "51058c8d467ea8e9814b335a3ddf5e29a0a3a7e9259cca81d3d18a7d7006c87d"
     },
     {
       "path": "sdk/host/studio-window.contract.v4.json",
-      "sha256": "d9373dbf3cb5e85a688d788f54256ea7f92abe71f6178653eae89b8716bcdd5c"
+      "sha256": "2e0b5ee2523ee2caf77855d4d9dbfd555694ee152c7f17fae24fa75d5f76278c"
     },
     {
       "path": "sdk/host/supported-hosts.v4.json",
@@ -4431,11 +4431,11 @@
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "49c7e4c2f815b4f9653e05f54d83490a23231a77bce839b3d539bd0788c76bb3"
+      "sha256": "dad2a27c3bb097fbf03cd6ebdc2ba5326e05a37ee21b168f2279b090143acf22"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
-      "sha256": "5a1eba873352b8550ed799572578d0fdd8b08034c190bf5a16a544ae39308a92"
+      "sha256": "3d0f1b2387906f1e44e4c2786f875cd3bd1dacc5d71359fd6f59edf3ae958d07"
     },
     {
       "path": "sdk/internal/modules/_bounded_process_child.module.v4.json",
@@ -4503,7 +4503,7 @@
     },
     {
       "path": "sdk/internal/modules/build.module.v4.json",
-      "sha256": "15b1e2ea07d3f913bebe193b07e4f7b0033169ae03e059a1d487a984b7cdc1f4"
+      "sha256": "269db996eff201e0c59c275a1b0d2b25ee01aa24a1cd9bbd79e1a64b4569bfc0"
     },
     {
       "path": "sdk/internal/modules/canon_consequence_graph.module.v4.json",
@@ -5275,7 +5275,7 @@
     },
     {
       "path": "sdk/internal/modules/sdk_projection.module.v4.json",
-      "sha256": "82fd4794ca5cfff8e39d028088eaefa218f9b1ad6e2a1b097158b536cdc94e4a"
+      "sha256": "bbb3fd44f8b69545ef252db51737c51399cc105ea3cd43d118ed054c58f37673"
     },
     {
       "path": "sdk/internal/modules/secret_patterns.module.v4.json",
@@ -5327,7 +5327,7 @@
     },
     {
       "path": "sdk/internal/modules/service.module.v4.json",
-      "sha256": "df2affb951fbaa4c072a55fa22dae0f3117118e9fc527aa90b410bd72efe5389"
+      "sha256": "29cd9eb204ef66124a6ea5812414b47e5b5f9cfa1f1d62914adea348fc0da435"
     },
     {
       "path": "sdk/internal/modules/session.module.v4.json",
@@ -5447,7 +5447,7 @@
     },
     {
       "path": "sdk/internal/modules/storage_selection.module.v4.json",
-      "sha256": "9a22fe25fe80ebcfbfe23f190263736dcd25c8056444fb295d05e7501230985d"
+      "sha256": "b3917bb0127a98cd93d43b2ef02ffc67779fee1791d7d9a03c1348c4395e8e49"
     },
     {
       "path": "sdk/internal/modules/store.module.v4.json",
@@ -5463,11 +5463,11 @@
     },
     {
       "path": "sdk/internal/modules/studio_gateway.module.v4.json",
-      "sha256": "7a96681653c00c4a073bddf2575fcdb6c6a2bd01bd3616f3a21607f2d4639829"
+      "sha256": "d211600d216221bbad2eff42e77589575746386c8ba08b2f5a94bea8bde6c8a5"
     },
     {
       "path": "sdk/internal/modules/studio_window.module.v4.json",
-      "sha256": "d2c96af2f4ac2331144c6636a55eb5ca08face47cdcf66925e29dafda6a7eabc"
+      "sha256": "7c07e3bbb84e84cad237c51d983c2e339d93369365439ad8f36ea3b065b52cf6"
     },
     {
       "path": "sdk/internal/modules/tableau_authoring.module.v4.json",
@@ -6819,11 +6819,11 @@
     },
     {
       "path": "sdk/sdk-manifest.v4.json",
-      "sha256": "5c246b0afdc4c370f259bee13f89ed0efb583c9d4e40a2d6d0721d46302b802b"
+      "sha256": "bfcecd5305ecf7c23debb87d392929f68a6c14d6f4cc9adf3ffeb8369a3b1bed"
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "8af28dd93e9b00e1f38eeb099da364ab9418982ed6cac3281da10520652d57ef"
+      "sha256": "dad96ad2f7354eabe83e3a0b52d887bd78624623805eead8777da0dae1348643"
     },
     {
       "path": "sdk/skills/skill-bindings.v4.json",

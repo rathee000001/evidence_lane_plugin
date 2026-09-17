@@ -646,8 +646,8 @@ def _host_outputs(
             ],
         ),
         "studio-window.contract.v4.json": (
-            "Keep one exact-profile Studio window visible and read-only, restore it on reopen, and keep the engine independent of window close/minimize.",
-            ["src/evidence_lane_plugin/studio_window.py", "src/evidence_lane_plugin/studio_gateway.py"],
+            "Keep one exact-profile read-only Studio window; restore a healthy authenticated window or reopen only that profile with an owner-issued ticket after expiry or engine replacement, independently of engine work.",
+            ["src/evidence_lane_plugin/studio_window.py", "src/evidence_lane_plugin/studio_gateway.py", "src/evidence_lane_plugin/service.py"],
         ),
         "supported-hosts.v4.json": (
             "Select persistent local Windows Codex Desktop Stable or Beta and reject every other host profile.",

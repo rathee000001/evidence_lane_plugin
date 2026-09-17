@@ -95,7 +95,11 @@
         "tests/test_lane_contract_generator_v4.py",
         "tests/test_env_uop_framework_v4.py",
         "tests/test_office_scope_v4.py",
-        "tests/test_final_workspace_purge_v4.py"
+        "tests/test_final_workspace_purge_v4.py",
+        "tests/test_first_detection_installation_v4.py",
+        "tests/test_project_locator_upgrade_v4.py",
+        "tests/test_studio_launcher.py",
+        "tests/test_studio.py"
       ],
       "timeout_seconds": 1800
     },

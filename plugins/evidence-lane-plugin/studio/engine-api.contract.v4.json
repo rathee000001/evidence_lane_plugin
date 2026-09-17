@@ -2,7 +2,7 @@
   "connection_manifest": {
     "bytes": 6281,
     "path": "manifests/engine-connection.v4.json",
-    "sha256": "990f283da79a2b5e003bed6abda92e58c0b44c63ac56a8ca391a6c62bad7fa80"
+    "sha256": "968b65ade21c6461f51f825a47eee465b6d8cd680b1c5dd0cca721e5f82c1ca3"
   },
   "engine_launcher": {
     "bytes": 275,
@@ -11,9 +11,9 @@
   },
   "engine_owns_operations": true,
   "engine_service": {
-    "bytes": 5647,
+    "bytes": 5915,
     "path": "src/evidence_lane_plugin/service.py",
-    "sha256": "de3ae623d89e6754696bc7c71b0a700c95d295a1176be219d032a94b9bec5413"
+    "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
   },
   "human_mutation_routes": [],
   "installed_execution_claimed": false,
@@ -35,8 +35,8 @@
   "schema": "evidence-lane.studio-engine-api-link.v4",
   "studio_boundary": "visible_read_only_observer",
   "studio_gateway": {
-    "bytes": 12498,
+    "bytes": 12715,
     "path": "src/evidence_lane_plugin/studio_gateway.py",
-    "sha256": "5c376d5252200a453ca07a410ae7cb25a9bc1b1f455e2768be1b6574a2907920"
+    "sha256": "db36a0e1019b42555953352df2d1d4b5d59f78bcf9b5e31a1004ff87789ea554"
   }
 }

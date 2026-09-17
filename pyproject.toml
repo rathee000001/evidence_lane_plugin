@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-lane-plugin"
-version = "4.0.1"
+version = "4.0.6"
 description = "Local project state and verified sequential work for Codex."
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
@@ -72,6 +72,10 @@ testpaths = [
   "tests/test_env_uop_framework_v4.py",
   "tests/test_office_scope_v4.py",
   "tests/test_final_workspace_purge_v4.py",
+  "tests/test_first_detection_installation_v4.py",
+  "tests/test_project_locator_upgrade_v4.py",
+  "tests/test_studio_launcher.py",
+  "tests/test_studio.py",
   "tests/test_document_profile_v4.py",
   "tests/test_document_verification_v4.py",
   "tests/test_document_resource_boundaries_v4.py",

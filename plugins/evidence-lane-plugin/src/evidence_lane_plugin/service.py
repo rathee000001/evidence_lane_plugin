@@ -23,7 +23,7 @@ def request_owner_control(runtime_root: Path, operation: str) -> dict:
         raise LaneError("UNKNOWN_OWNER_OPERATION", "The launcher operation is unsupported.")
     try:
         record, credential = owner_endpoint(runtime_root)
-        with (httpx.Client(timeout=10, trust_env=False, follow_redirects=False) as client,
+        with (httpx.Client(timeout=30, trust_env=False, follow_redirects=False) as client,
               client.stream("POST", f"http://127.0.0.1:{record['port']}/v4/control",
                             headers={"Authorization": "Bearer " + credential},
                             json={"operation": operation, "instance_id": record["instance_id"]}) as response):
@@ -48,7 +48,13 @@ class Service:
                             'The Studio service and managed local toolchain are available on Windows PCs only.')
         self.engine = create_runtime_engine(runtime_root, workers=workers, capabilities=capabilities)
         self.endpoint = LocalEndpoint(self.engine, owner_control=self.control)
-        self.studio_launcher = studio_launcher or StudioWindow(runtime_root)
+        self.studio_launcher = studio_launcher or StudioWindow(
+            runtime_root,
+            authenticated_session=lambda: bool(
+                self.endpoint.studio and self.endpoint.studio.has_live_session()
+            ),
+        )
+        self._studio_lock = threading.Lock()
         self.stop_requested = threading.Event()
         self.recovery: list[dict] = []
         self.studio_launch = "not_requested"
@@ -70,12 +76,13 @@ class Service:
             raise
 
     def open_studio(self) -> dict:
-        if self.endpoint.server is None or self.endpoint.studio is None:
-            raise LaneError("STUDIO_ENDPOINT_UNAVAILABLE", "Start the local endpoint before opening Studio.")
-        url = f"http://127.0.0.1:{self.endpoint.server.server_port}/studio/"
-        opened = self.studio_launcher(url + "#ticket=" + self.endpoint.studio.issue_ticket())
-        self.studio_launch = "requested" if opened else "launcher_unavailable"
-        return {"studio_launch": self.studio_launch, "url": url, "visible_window_verified": False}
+        with self._studio_lock:
+            if self.endpoint.server is None or self.endpoint.studio is None:
+                raise LaneError("STUDIO_ENDPOINT_UNAVAILABLE", "Start the local endpoint before opening Studio.")
+            url = f"http://127.0.0.1:{self.endpoint.server.server_port}/studio/"
+            opened = self.studio_launcher(url + "#ticket=" + self.endpoint.studio.issue_ticket())
+            self.studio_launch = "requested" if opened else "launcher_unavailable"
+            return {"studio_launch": self.studio_launch, "url": url, "visible_window_verified": False}
 
     def control(self, operation: str) -> dict:
         if operation == "open_studio":

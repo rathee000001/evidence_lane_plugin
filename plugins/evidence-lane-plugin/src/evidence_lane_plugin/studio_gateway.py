@@ -89,6 +89,12 @@ class StudioGateway:
             self._tickets[self._digest(ticket)] = self.clock() + timedelta(seconds=60)
             return ticket
 
+    def has_live_session(self) -> bool:
+        """Report authentication state to the owner launcher without credentials."""
+        with self._lock:
+            self._prune()
+            return bool(self._sessions)
+
     def exchange(self, ticket: str, *, cookie: str = "") -> tuple[str | None, BrowserSession]:
         with self._lock:
             self._prune()

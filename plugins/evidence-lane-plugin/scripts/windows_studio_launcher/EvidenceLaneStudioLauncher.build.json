@@ -2,11 +2,11 @@
   "schema": "evidence-lane.windows-studio-launcher-build.v4",
   "status": "PASS",
   "source": "EvidenceLaneStudioLauncher.cs",
-  "source_sha256": "16f51d1c8f8a5801d31319333172fe6e1a13145f961e1d224cc4f2c55c7a816f",
+  "source_sha256": "02893d6cfec7da00424f373311df1d3a112ce048332e3972ae8349d0e575f55b",
   "output": "EvidenceLaneStudioLauncher.exe",
-  "output_sha256": "4cff5ca1448dc29f63d7f4fb658c751d2c32bb8929aef4616aad6c8129d4845a",
+  "output_sha256": "4d3d7687f2cb010b5d9c37df2bc19c197c41cfbccd165d622476438636d9deb7",
   "output_bytes": 9216,
   "compiler": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
   "target": "winexe-x64",
-  "version": "4.0.5.0"
+  "version": "4.0.6.0"
 }

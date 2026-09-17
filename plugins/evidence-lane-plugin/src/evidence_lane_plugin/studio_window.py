@@ -151,7 +151,7 @@ def installed_browser() -> Path | None:
 
 class StudioWindow:
     def __init__(self, runtime_root: Path, *, browser: Path | None = None, spawn=None, fallback=None,
-                 system=None, existing=None, restore=None):
+                 system=None, existing=None, restore=None, authenticated_session=None, close_existing=None):
         self.root = runtime_root.absolute()
         self.browser = browser if browser is not None else installed_browser()
         self.spawn = spawn or subprocess.Popen
@@ -159,6 +159,8 @@ class StudioWindow:
         self.system = system or platform.system
         self.existing = existing or dedicated_browser_processes
         self.restore = restore or restore_dedicated_browser_window
+        self.authenticated_session = authenticated_session or (lambda: False)
+        self.close_existing = close_existing or close_dedicated_browser_processes
         self.last_launch = {"state": "not_requested", "window_controls": "browser_native",
                             "minimize_stops_engine": False, "close_stops_engine": False}
 
@@ -184,7 +186,16 @@ class StudioWindow:
                 reject_links(profile, Path(profile.anchor))
                 profile.mkdir(parents=True, exist_ok=True)
                 existing = tuple(self.existing(profile))
-                restored = bool(existing and self.restore(existing))
+                authenticated = bool(existing and self.authenticated_session())
+                restored = bool(authenticated and self.restore(existing))
+                reconnected = bool(existing and not restored)
+                if reconnected:
+                    self.close_existing(profile)
+                    if tuple(self.existing(profile)):
+                        raise LaneError(
+                            "STUDIO_WINDOW_CLOSE_FAILED",
+                            "The previous Studio window must close before reconnecting.",
+                        )
                 if restored:
                     opened = True
                     mode = "existing_dedicated_browser_window"
@@ -198,7 +209,7 @@ class StudioWindow:
                                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
                     code = process.poll()
                     opened = code is None or code == 0
-                    mode = "dedicated_browser_window"
+                    mode = "reconnected_dedicated_browser_window" if reconnected else "dedicated_browser_window"
             else:
                 opened = bool(self.fallback(url, new=1, autoraise=True))
                 mode, restored, existing = "system_browser_window", False, ()

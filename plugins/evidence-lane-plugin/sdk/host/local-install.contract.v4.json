@@ -14,9 +14,9 @@
       "sha256": "cef946824307ea4b4a212e4ce3b41319899783a610a205ee2a8d0030199b0935"
     },
     {
-      "bytes": 108262,
+      "bytes": 113368,
       "path": "scripts/first_detection.py",
-      "sha256": "2b94cc553d5875fa28086c143d686dd7676ca8d53c24733798a32e2484f89847"
+      "sha256": "812d68d888db058265203d1e272b16e4e14c75041abbc58cab7431365dd81827"
     },
     {
       "bytes": 4285,

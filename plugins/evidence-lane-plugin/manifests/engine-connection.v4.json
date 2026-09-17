@@ -74,7 +74,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/service.py",
-      "sha256": "DE3AE623D89E6754696BC7C71B0A700C95D295A1176BE219D032A94B9BEC5413"
+      "sha256": "D59477F19C8891172B9A0109156B4A5BFB41CEEDCB82DD2F74ABF2985B36E95A"
     },
     {
       "path": "src/evidence_lane_plugin/connections.py",

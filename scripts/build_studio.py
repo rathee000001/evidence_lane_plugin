@@ -46,7 +46,10 @@ def main():
         entries[route] = {'file': relative.as_posix(), 'content_type': allowed[source.suffix],
                           'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'bytes': source.stat().st_size}
     assert {'/studio/', '/studio/app.js', '/studio/styles.css'} <= set(entries)
-    (DESTINATION/'assets-manifest.json').write_text(json.dumps({'schema_version': 1, 'assets': entries}, indent=2)+'\n', encoding='utf-8')
+    (DESTINATION/'assets-manifest.json').write_text(
+        json.dumps({'schema_version': 1, 'assets': entries}, indent=2)+'\n',
+        encoding='utf-8', newline='\n',
+    )
     print(json.dumps({'assets': len(entries), 'bytes': sum(entry['bytes'] for entry in entries.values()), 'destination': str(DESTINATION)}))
 
 

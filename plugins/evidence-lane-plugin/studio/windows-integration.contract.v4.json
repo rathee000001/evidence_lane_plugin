@@ -3,7 +3,10 @@
   "desktop_shortcut_count": 1,
   "engine_console_hidden": true,
   "exact_profile_single_window": true,
+  "existing_window_restore_requires_live_session": true,
   "existing_window_restored_on_reopen": true,
+  "expired_session_reopens_exact_profile": true,
+  "failed_profile_close_prevents_spawn": true,
   "installed_verification": {
     "bytes": 6377,
     "path": "scripts/verify_installed_runtime.py",
@@ -12,19 +15,21 @@
   "launcher_binary": {
     "bytes": 9216,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-    "sha256": "4cff5ca1448dc29f63d7f4fb658c751d2c32bb8929aef4616aad6c8129d4845a"
+    "sha256": "4d3d7687f2cb010b5d9c37df2bc19c197c41cfbccd165d622476438636d9deb7"
   },
   "launcher_build": {
     "bytes": 502,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-    "sha256": "ff65f4d84848686a521205c36563217b5ff7ebc38d485824f6ec0ef2051ce317"
+    "sha256": "98bb52ff13f40702550262201c685874e8ba4232018df4e1454068db966a28e9"
   },
   "launcher_source": {
     "bytes": 8132,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-    "sha256": "16f51d1c8f8a5801d31319333172fe6e1a13145f961e1d224cc4f2c55c7a816f"
+    "sha256": "02893d6cfec7da00424f373311df1d3a112ce048332e3972ae8349d0e575f55b"
   },
   "native_installation_verified": false,
+  "owner_control_timeout_seconds": 30,
+  "owner_issued_ticket_required": true,
   "registration": {
     "bytes": 6496,
     "path": "scripts/register_installed_runtime.py",
@@ -32,10 +37,11 @@
   },
   "schema": "evidence-lane.studio-windows-integration-link.v4",
   "service_owner": {
-    "bytes": 5647,
+    "bytes": 5915,
     "path": "src/evidence_lane_plugin/service.py",
-    "sha256": "de3ae623d89e6754696bc7c71b0a700c95d295a1176be219d032a94b9bec5413"
+    "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
   },
+  "session_lifetime_hours": 12,
   "shortcut_owner": {
     "bytes": 8862,
     "path": "src/evidence_lane_plugin/shortcuts.py",
@@ -49,9 +55,12 @@
   },
   "studio_visible": true,
   "upgrade_closes_exact_profile_before_preservation": true,
+  "upgrade_copies_client_or_session_bindings": false,
+  "upgrade_copies_project_databases": false,
+  "upgrade_preserves_project_locator_registry": true,
   "window_owner": {
-    "bytes": 9040,
+    "bytes": 9805,
     "path": "src/evidence_lane_plugin/studio_window.py",
-    "sha256": "4b88d90548d17a25f65ebd248475d88e6e61fd7303c83e91c8f48fb4eea96d53"
+    "sha256": "ecebfba3ca20712faa4d308f4c1a8e7042df1921a3eb9a63060181e29be0b0fc"
   }
 }

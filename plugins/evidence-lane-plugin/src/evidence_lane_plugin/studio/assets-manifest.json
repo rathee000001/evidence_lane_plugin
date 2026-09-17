@@ -46,8 +46,8 @@
     "/studio/": {
       "file": "index.html",
       "content_type": "text/html; charset=utf-8",
-      "sha256": "a6446799e20b993de5ed017e064df306e3837eae5d344a563857166b21ac9749",
-      "bytes": 459
+      "sha256": "fa1600571decb7ab72240da6d2b87ac076cae46f6fe5ee1c02520b7f85895a29",
+      "bytes": 458
     },
     "/studio/styles.css": {
       "file": "styles.css",
