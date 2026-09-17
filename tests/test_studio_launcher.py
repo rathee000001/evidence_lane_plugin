@@ -282,10 +282,17 @@ def test_shortcut_timeout_exposes_only_whitelisted_phase(tmp_path, monkeypatch):
 def test_real_windows_shortcut_create_readback_and_collision_preservation(tmp_path_factory):
     root = tmp_path_factory.mktemp("link")
     interpreter = Path(sys.executable).with_name("pythonw.exe")
-    shortcut = StudioShortcut(interpreter, root / "state & $literal", root / "temporary menu")
+
+    def diagnosed_shell_link(path, **options):
+        try:
+            return shell_link(path, **options)
+        except LaneError as error:
+            pytest.fail(json.dumps(error.public(), sort_keys=True), pytrace=False)
+
+    shortcut = StudioShortcut(interpreter, root / "state & $literal", root / "temporary menu", backend=diagnosed_shell_link)
     result = shortcut.install()
     assert result["registered"]
-    assert shell_link(shortcut.path) == shortcut.specification()
+    assert diagnosed_shell_link(shortcut.path) == shortcut.specification()
     assert not shortcut.install()["changed"]
     assert not shortcut.uninstall()["registered"]
     assert not shortcut.path.exists()
