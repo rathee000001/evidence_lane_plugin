@@ -160,6 +160,7 @@
       "polars-runtime-32",
       "primp",
       "propcache",
+      "psutil",
       "pyarrow",
       "pycparser",
       "pydantic",
@@ -781,6 +782,12 @@
       "version": "0.5.2",
       "filename": "propcache-0.5.2-cp314-cp314-win_amd64.whl",
       "sha256": "81e3a30b0bb60caa22033dd0f8a3618d1d67356212514f62c57db75cb0ef410c"
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2",
+      "filename": "psutil-7.2.2-cp37-abi3-win_amd64.whl",
+      "sha256": "eb7e81434c8d223ec4a219b5fc1c47d0417b12be7ea866e24fb5ad6e84b3d988"
     },
     {
       "name": "pyarrow",

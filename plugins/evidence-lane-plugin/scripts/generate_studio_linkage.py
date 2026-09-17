@@ -122,6 +122,7 @@ def outputs() -> dict[str, object]:
         "session_lifetime_hours": 12,
         "failed_profile_close_prevents_spawn": True,
         "owner_control_timeout_seconds": 30,
+        "shortcut_helper_timeout_seconds": 30,
         "upgrade_preserves_project_locator_registry": True,
         "upgrade_copies_project_databases": False,
         "upgrade_copies_client_or_session_bindings": False,

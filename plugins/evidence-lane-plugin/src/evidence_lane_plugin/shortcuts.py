@@ -44,17 +44,23 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     try:
         completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-Command", _SCRIPT],
             input=json.dumps(request, ensure_ascii=True), capture_output=True, text=True, encoding="utf-8",
-            timeout=15, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
+            timeout=30, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
         if completed.returncode or len(completed.stdout) > 16_384:
-            raise ValueError()
+            raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
+                            details={"reason": "process_exit" if completed.returncode else "oversized_readback",
+                                     "exit_code": completed.returncode})
         value = json.loads(completed.stdout)
         if not isinstance(value, dict) or set(value) != {
             "target", "arguments", "working_directory", "window_style", "icon_location"
         }:
             raise ValueError()
         return value
-    except (OSError, ValueError, subprocess.TimeoutExpired):
-        raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.") from None
+    except subprocess.TimeoutExpired:
+        raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the shortcut operation within 30 seconds.",
+                        details={"reason": "deadline_exceeded", "timeout_seconds": 30}) from None
+    except (OSError, ValueError) as error:
+        raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
+                        details={"reason": "process_unavailable" if isinstance(error, OSError) else "invalid_readback"}) from None
 
 
 class StudioShortcut:

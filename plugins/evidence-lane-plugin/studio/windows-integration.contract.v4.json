@@ -42,10 +42,11 @@
     "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
   },
   "session_lifetime_hours": 12,
+  "shortcut_helper_timeout_seconds": 30,
   "shortcut_owner": {
-    "bytes": 8862,
+    "bytes": 9496,
     "path": "src/evidence_lane_plugin/shortcuts.py",
-    "sha256": "99613727e72a2b151f1c0f6bfd6db0652959420e47358bd06459625752a6e48a"
+    "sha256": "e5774f9c783a96d5ebad65c7c9847cddc61e7641cf9228a1cf1cbc908846048a"
   },
   "start_menu_shortcut_count": 1,
   "startup_owner": {

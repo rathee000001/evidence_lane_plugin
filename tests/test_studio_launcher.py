@@ -234,6 +234,19 @@ def test_reopening_uses_existing_browser_session_without_extending_expiry(tmp_pa
     assert new_token and second.actor_id != first.actor_id
 
 
+def test_shortcut_timeout_remains_bounded_and_redacts_captured_output(tmp_path, monkeypatch):
+    def timeout(command, **options):
+        assert options["timeout"] == 30
+        raise subprocess.TimeoutExpired(command, 30, output="private captured output", stderr="private captured error")
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(LaneError) as failure:
+        shell_link(tmp_path / "temporary.lnk", specification={"target": str(Path(sys.executable).with_name("pythonw.exe"))})
+    assert failure.value.code == "SHORTCUT_OPERATION_FAILED"
+    assert failure.value.details == {"reason": "deadline_exceeded", "timeout_seconds": 30}
+    assert "private captured" not in str(failure.value.public())
+
+
 def test_real_windows_shortcut_create_readback_and_collision_preservation(tmp_path_factory):
     root = tmp_path_factory.mktemp("link")
     interpreter = Path(sys.executable).with_name("pythonw.exe")

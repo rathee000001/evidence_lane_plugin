@@ -31,9 +31,9 @@
       "sha256": "faa5e6a5f983951ae7dfd6b9a316342d7eca599339ef63b89ebf9f52129803f5"
     },
     {
-      "bytes": 2539,
+      "bytes": 2580,
       "path": "studio/windows-integration.contract.v4.json",
-      "sha256": "0f04023cdcdc0693cf1689104388fa16d5a4d235e25a6b2bd6fe4fcb68c1060d"
+      "sha256": "b5b3496d162954660f66d251c302b0cf1c7576f2ee1b14c112160d816a9645ad"
     }
   ],
   "native_installation_verified": false,

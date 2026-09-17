@@ -8,8 +8,8 @@
     "provisioning/source-manifest.v4.json"
   ],
   "file_count": 3315,
-  "total_bytes": 54332575,
-  "files_sha256": "9fe1037b0ff1a43f632a7f1db8770c8e3a2aa086b621d4d57776c270e9ec57fc",
+  "total_bytes": 54333297,
+  "files_sha256": "ddb691487d3eaef8f4784f6c1ec2dcd431cdebd23321906c0ad9dbb26c2cd659",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
@@ -3969,7 +3969,7 @@
     {
       "path": "manifests/executable-action-surface.v4.json",
       "bytes": 296216,
-      "sha256": "992ac0f34cda3c2bd4da0e3e2be425f858589ddc5cc493c5cdc6c9f8611df198"
+      "sha256": "5dd0860d42d86fcb884b8bb377fe9e7cdcb7db9b6274bbdf0d61d7f8fb082627"
     },
     {
       "path": "manifests/plugin-architecture.v4.json",
@@ -7518,8 +7518,8 @@
     },
     {
       "path": "scripts/generate_studio_linkage.py",
-      "bytes": 9548,
-      "sha256": "38d1059e0631833623d80872e0990dc5c01e2841835f1ae6e6ff6202f840d86b"
+      "bytes": 9595,
+      "sha256": "79ba86cc7e77e0ba9efbe3080e8ce0e5c69efaa470e1f1f7334e016b50327e6f"
     },
     {
       "path": "scripts/generate_toolchain_execution_matrix.py",
@@ -9579,7 +9579,7 @@
     {
       "path": "sdk/internal/module-registry.v4.json",
       "bytes": 53766,
-      "sha256": "dad2a27c3bb097fbf03cd6ebdc2ba5326e05a37ee21b168f2279b090143acf22"
+      "sha256": "1055f2e155b6b166f0ba8781afd7657e3b664e970500f1c294647ff96cbc2ba0"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
@@ -10724,7 +10724,7 @@
     {
       "path": "sdk/internal/modules/shortcuts.module.v4.json",
       "bytes": 750,
-      "sha256": "878dc6cabc741fa00b61f2e26641f1b39a93a575deab2ae9ea0bdb708a935a0e"
+      "sha256": "33ec5321cd2c81dcdd75e5c5867572d0f0b2c89e83cb7a5b82595b3702728d9e"
     },
     {
       "path": "sdk/internal/modules/source_authority.module.v4.json",
@@ -12599,12 +12599,12 @@
     {
       "path": "sdk/sdk-manifest.v4.json",
       "bytes": 179689,
-      "sha256": "bfcecd5305ecf7c23debb87d392929f68a6c14d6f4cc9adf3ffeb8369a3b1bed"
+      "sha256": "9f7564e4d4f7782d325c2a06fd0f99d202358ef8688eed62684bc09485871d16"
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
       "bytes": 7809,
-      "sha256": "dad96ad2f7354eabe83e3a0b52d887bd78624623805eead8777da0dae1348643"
+      "sha256": "0ab937f490dd92c87e0f81b848a99ed593fc219187ecb7d95a86c68b27d0ad0d"
     },
     {
       "path": "sdk/skills/__init__.py",
@@ -15418,8 +15418,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/shortcuts.py",
-      "bytes": 8862,
-      "sha256": "99613727e72a2b151f1c0f6bfd6db0652959420e47358bd06459625752a6e48a"
+      "bytes": 9496,
+      "sha256": "e5774f9c783a96d5ebad65c7c9847cddc61e7641cf9228a1cf1cbc908846048a"
     },
     {
       "path": "src/evidence_lane_plugin/source_authority.py",
@@ -15789,7 +15789,7 @@
     {
       "path": "studio/studio-linkage.v4.json",
       "bytes": 1473,
-      "sha256": "af0330fda7c6be2afdc262452a3893bacc7a70a2b9312cfd8ccbbe9dbb0a52c3"
+      "sha256": "21ef64906634b21e24bcd0e7a6cfb44a6b92e74de5e462fbe53b858d304b9a26"
     },
     {
       "path": "studio/toolchain-license.contract.v4.json",
@@ -15798,8 +15798,8 @@
     },
     {
       "path": "studio/windows-integration.contract.v4.json",
-      "bytes": 2539,
-      "sha256": "0f04023cdcdc0693cf1689104388fa16d5a4d235e25a6b2bd6fe4fcb68c1060d"
+      "bytes": 2580,
+      "sha256": "b5b3496d162954660f66d251c302b0cf1c7576f2ee1b14c112160d816a9645ad"
     },
     {
       "path": "tests/test-surface-policy.v4.json",
@@ -16587,5 +16587,5 @@
       "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
     }
   ],
-  "receipt_sha256": "1f3849847ec1e0167c143e316fa55b019ac13c60cb5ef1723f09661db36e4f92"
+  "receipt_sha256": "3f0b7aaab3b10bfd205b3413021991e71b67794f4091c54bdf456c639c809146"
 }
