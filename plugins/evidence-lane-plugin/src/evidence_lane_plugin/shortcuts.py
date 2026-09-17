@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -16,9 +17,8 @@ from .startup import LoginStartup
 from .storage import reject_links
 
 _SCRIPT = r"""
-$ErrorActionPreference = 'Stop'
-[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=started')
+$ErrorActionPreference = 'Stop'
 $studioRequest = $env:EVIDENCE_LANE_SHORTCUT_REQUEST | ConvertFrom-Json
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=request_loaded')
 $studioShell = New-Object -ComObject WScript.Shell
@@ -36,7 +36,8 @@ if ($studioRequest.mode -eq 'write') {
     [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_saved')
 }
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=readback_ready')
-@{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle;icon_location=$studioLink.IconLocation} | ConvertTo-Json -Compress
+$studioReadback = @{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle;icon_location=$studioLink.IconLocation} | ConvertTo-Json -Compress
+[Console]::Out.WriteLine([Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($studioReadback)))
 """
 
 
@@ -62,16 +63,20 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
 
     phase = {}
     try:
-        completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-Command", _SCRIPT],
+        command = base64.b64encode(_SCRIPT.encode("utf-16-le")).decode("ascii")
+        completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
             stdin=subprocess.DEVNULL, env={**os.environ, "EVIDENCE_LANE_SHORTCUT_REQUEST": payload},
             capture_output=True, text=True, encoding="utf-8",
             timeout=30, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
         phase = safe_phase(completed.stderr)
-        if completed.returncode or len(completed.stdout) > 16_384:
+        if completed.returncode or len(completed.stdout) > 24_000:
             raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
                             details={"reason": "process_exit" if completed.returncode else "oversized_readback",
                                      "exit_code": completed.returncode, **phase})
-        value = json.loads(completed.stdout)
+        readback = base64.b64decode(completed.stdout.strip(), validate=True)
+        if len(readback) > 16_384:
+            raise ValueError()
+        value = json.loads(readback.decode("utf-8"))
         if not isinstance(value, dict) or set(value) != {
             "target", "arguments", "working_directory", "window_style", "icon_location"
         }:

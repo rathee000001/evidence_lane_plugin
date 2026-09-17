@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 import subprocess
@@ -251,7 +252,7 @@ def test_shortcut_timeout_remains_bounded_and_redacts_captured_output(tmp_path, 
 
 def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_path, monkeypatch):
     expected = {"target": str(Path(sys.executable).with_name("pythonw.exe")),
-                "arguments": '"literal & $value"', "working_directory": "C:/literal & $value",
+                "arguments": '"literal & $value"', "working_directory": "C:/litéral & $value/工具",
                 "window_style": 1, "icon_location": "C:/literal & $value/icon.ico,0"}
     monkeypatch.setenv("EVIDENCE_LANE_SHORTCUT_REQUEST", "parent value stays")
 
@@ -259,8 +260,12 @@ def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_
         assert options["stdin"] == subprocess.DEVNULL and "input" not in options
         request = json.loads(options["env"]["EVIDENCE_LANE_SHORTCUT_REQUEST"])
         assert request == {"path": str(tmp_path / "literal & $value.lnk"), "mode": "write", **expected}
-        assert "Console]::In.ReadToEnd" not in command[-1]
-        return SimpleNamespace(returncode=0, stdout=json.dumps(expected), stderr="EL_SHORTCUT_PHASE=readback_ready")
+        script = base64.b64decode(command[-1], validate=True).decode("utf-16-le")
+        assert command[-2] == "-EncodedCommand"
+        assert "Console]::In.ReadToEnd" not in script and "Console]::OutputEncoding" not in script
+        assert "litéral" not in script and "工具" not in script
+        readback = base64.b64encode(json.dumps(expected, ensure_ascii=False).encode()).decode("ascii")
+        return SimpleNamespace(returncode=0, stdout=readback, stderr="EL_SHORTCUT_PHASE=readback_ready")
 
     monkeypatch.setattr(subprocess, "run", run)
     assert shell_link(tmp_path / "literal & $value.lnk", specification=expected) == expected
@@ -277,6 +282,15 @@ def test_shortcut_timeout_exposes_only_whitelisted_phase(tmp_path, monkeypatch):
         shell_link(tmp_path / "temporary.lnk", specification={"target": str(Path(sys.executable).with_name("pythonw.exe"))})
     assert failure.value.details == {"reason": "deadline_exceeded", "timeout_seconds": 30, "phase": "request_loaded"}
     assert "private captured" not in str(failure.value.public())
+
+
+@pytest.mark.parametrize("output", ["not valid base64!", base64.b64encode(b'{}').decode(), base64.b64encode(b'x' * 16_385).decode()])
+def test_shortcut_rejects_invalid_or_oversized_readback(tmp_path, monkeypatch, output):
+    monkeypatch.setattr(subprocess, "run", lambda *args, **options:
+        SimpleNamespace(returncode=0, stdout=output, stderr="EL_SHORTCUT_PHASE=readback_ready"))
+    with pytest.raises(LaneError) as failure:
+        shell_link(tmp_path / "temporary.lnk")
+    assert failure.value.details == {"reason": "invalid_readback", "phase": "readback_ready"}
 
 
 def test_real_windows_shortcut_create_readback_and_collision_preservation(tmp_path_factory):
