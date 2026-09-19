@@ -255,9 +255,11 @@ def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_
                 "arguments": '"literal & $value"', "working_directory": "C:/litéral & $value/工具",
                 "window_style": 1, "icon_location": "C:/literal & $value/icon.ico,0"}
     monkeypatch.setenv("EVIDENCE_LANE_SHORTCUT_REQUEST", "parent value stays")
+    monkeypatch.setenv("PSModulePath", "parent PowerShell 7 modules stay")
 
     def run(command, **options):
         assert options["stdin"] == subprocess.DEVNULL and "input" not in options
+        assert not any(key.casefold() == "psmodulepath" for key in options["env"])
         request = json.loads(options["env"]["EVIDENCE_LANE_SHORTCUT_REQUEST"])
         assert request == {"path": str(tmp_path / "literal & $value.lnk"), "mode": "write", **expected}
         script = base64.b64decode(command[-1], validate=True).decode("utf-16-le")
@@ -270,6 +272,7 @@ def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_
     monkeypatch.setattr(subprocess, "run", run)
     assert shell_link(tmp_path / "literal & $value.lnk", specification=expected) == expected
     assert os.environ["EVIDENCE_LANE_SHORTCUT_REQUEST"] == "parent value stays"
+    assert os.environ["PSModulePath"] == "parent PowerShell 7 modules stay"
 
 
 def test_shortcut_timeout_exposes_only_whitelisted_phase(tmp_path, monkeypatch):

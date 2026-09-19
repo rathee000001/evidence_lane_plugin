@@ -64,8 +64,14 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     phase = {}
     try:
         command = base64.b64encode(_SCRIPT.encode("utf-16-le")).decode("ascii")
+        # A PowerShell 7 parent can export its module search path to the child.
+        # Windows PowerShell must resolve ConvertFrom-Json and COM support from
+        # its own module set; keep the correction local to this child process.
+        environment = {key: value for key, value in os.environ.items()
+                       if key.casefold() != "psmodulepath"}
+        environment["EVIDENCE_LANE_SHORTCUT_REQUEST"] = payload
         completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
-            stdin=subprocess.DEVNULL, env={**os.environ, "EVIDENCE_LANE_SHORTCUT_REQUEST": payload},
+            stdin=subprocess.DEVNULL, env=environment,
             capture_output=True, text=True, encoding="utf-8",
             timeout=30, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
         phase = safe_phase(completed.stderr)
