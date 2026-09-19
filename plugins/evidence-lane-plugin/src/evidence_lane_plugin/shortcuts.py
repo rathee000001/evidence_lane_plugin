@@ -109,7 +109,7 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
             raise ValueError()
         if not isinstance(encoded["window_style"], int):
             raise TypeError()
-        value = {"window_style": encoded["window_style"]}
+        value: dict[str, str | int] = {"window_style": encoded["window_style"]}
         for key in ("target", "arguments", "working_directory", "icon_location"):
             if not isinstance(encoded[key], str):
                 raise TypeError()

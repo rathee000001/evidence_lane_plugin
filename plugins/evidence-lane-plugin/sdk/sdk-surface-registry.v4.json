@@ -101,7 +101,7 @@
       "path": "sdk/internal/runtime.py",
       "registry": {
         "path": "sdk/internal/module-registry.v4.json",
-        "sha256": "586ee65cfacda33193c752709ede713857207dca727391c9f55250a384ce1e61"
+        "sha256": "6de2b2ddb5fc7645e2b371449093d8e55690651211bc8632e2be417538baaab7"
       },
       "runtime": {
         "path": "sdk/internal/runtime.py",
