@@ -34,7 +34,10 @@
   ],
   "prewarming": "One bounded shared worker pool loads installed dependencies as selected by lane/operation contracts; no per-project dependency installation",
   "codex_direct_use": "Explicit executable/environment paths resolved from this same installation and its verified receipt",
-  "macos": "MCP/SDK/skills/hooks host path without local Studio or the Windows-managed toolchain",
+  "supported_host_profiles": [
+    "codex_desktop_stable",
+    "codex_desktop_beta"
+  ],
   "mobile_studio": false,
   "install_sequence": [
     "complete executable plugin",

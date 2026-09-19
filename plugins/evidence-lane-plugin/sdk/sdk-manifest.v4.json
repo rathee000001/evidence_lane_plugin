@@ -1216,7 +1216,7 @@
     },
     {
       "path": "sdk/authorities/named-authorities.ref.v4.json",
-      "sha256": "871cd4bd9770057dc5952be27fa64e2956095b7c999bfc4e23a37642d77845ef"
+      "sha256": "dcb5a8b9d20970496924b71af0806f3535baf64338ac4e7a9c6741750e375df1"
     },
     {
       "path": "sdk/authorities/named/canon.authority.v4.json",
@@ -1244,7 +1244,7 @@
     },
     {
       "path": "sdk/authorities/named/sessions.authority.v4.json",
-      "sha256": "04d8b4226c148bf2ae4a479335b0c815e3083b225892dfff34e9f6ee368e0aa7"
+      "sha256": "929224c6ccc90f5d568e982c9eb5ccb7713920934cbd348395b069ca2428e613"
     },
     {
       "path": "sdk/authorities/named/sources.authority.v4.json",
@@ -1508,11 +1508,11 @@
     },
     {
       "path": "sdk/host/host-contract-registry.v4.json",
-      "sha256": "34914ae14e3976f2e67b906e81103cc8e36960f6118de4a10ac3730158f28f78"
+      "sha256": "19cf51656dbf4188732b4e9fcdc32dbfed3ed29aa4bfceac4173d160ba148056"
     },
     {
       "path": "sdk/host/local-install.contract.v4.json",
-      "sha256": "7e2a121f7b82514be2e44a47c6881e8bfbbff3eef9edc9537f330166d74f265e"
+      "sha256": "d67983aca886c28386f8d8d60d3dc6cc2b814dd74ec1256f7ccef77b6f8d6426"
     },
     {
       "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
@@ -1524,7 +1524,7 @@
     },
     {
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "06b6c16e0190fe5c630274b80bf61e383bf7800f546303e355a4f27e941d1afb"
+      "sha256": "e973d7b6ca008adbe939bdb8d2b8af4289feb7df844ff38219b88b997fc221b7"
     },
     {
       "path": "sdk/host/runtime-install-restart.contract.v4.json",
@@ -1552,11 +1552,11 @@
     },
     {
       "path": "sdk/internal/authority-surface-routing.v4.json",
-      "sha256": "a8d94ccc9b01515cb2d87bd95a6dcebb3777e2397a4e66cf508d5bd9e8d30465"
+      "sha256": "0116ca529f98d90afb960e53feca77c5dccaab251146fdcbafd9150ed99747f5"
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "b6e52adbb8f6f1893a8ee7b407910030cdda59707fa1fd6a8b0ef4606a1762f8"
+      "sha256": "9576d5304a4939be28794565160fd78ca87f58b6a87f9277d4b2ec0d01395905"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
@@ -2472,7 +2472,7 @@
     },
     {
       "path": "sdk/internal/modules/shortcuts.module.v4.json",
-      "sha256": "db75c40bd33ca6162bb75f2985a4c2b658c0e591c1198653fba8a336d1c7e1e1"
+      "sha256": "5643562423ac5dd9b457b0913c7db8701c6d595cb97e14e94532418687a29d68"
     },
     {
       "path": "sdk/internal/modules/source_authority.module.v4.json",
@@ -3972,7 +3972,7 @@
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "f4dda7b2d3597f010237d5ce76ec2a36eacd61ff9a378fa82677248057a627f0"
+      "sha256": "e9ad1a3b6051abdf31a98ab676ede43c219a43bfa9fd27254b8f25b21fe75016"
     },
     {
       "path": "sdk/skills/__init__.py",

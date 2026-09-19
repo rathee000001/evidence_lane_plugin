@@ -1240,7 +1240,7 @@
     },
     {
       "path": "schemas/authorities/session_authority.v4.json",
-      "sha256": "1853065ac3f6d1f40a9f5fd5668e09b08c2d09a1fb5733d35859f0f58d12270c"
+      "sha256": "0f7d0ea1828620ffa83b63e197b161cc85e937b77292fc190b12d76be85f4bb1"
     },
     {
       "path": "schemas/authorities/source_authority.v4.json",
@@ -1248,7 +1248,7 @@
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "08f98c3f7404b35438c21a54fff91d6a382a03c390d9564627a400a18da1d6fc"
+      "sha256": "29fec9c8bfa59c8b7d80d48636228959b9195d73fdba51192039b06c17e00970"
     },
     {
       "path": "schemas/env/env-family.v4.json",
@@ -1256,7 +1256,7 @@
     },
     {
       "path": "schemas/governance/governance-family.v4.json",
-      "sha256": "fbf8700aac19839424a7d8faca8f6cb5cf8b555da65b2322c4fa33aa5df7d120"
+      "sha256": "c21d601af66694d22a55f94eca09e2a62ee3b16a0c54256cb43a8e5cf087a879"
     },
     {
       "path": "schemas/hooks/Interrupt.v4.schema.json",
@@ -1376,7 +1376,7 @@
     },
     {
       "path": "schemas/lane-workflows.v4.json",
-      "sha256": "dff5e524637a157f6e87763aa946d5a0f579eb8b9084afd2f0bbe82b8ca0bd4a"
+      "sha256": "7391c52b079bfec245edd6ca03f6bb865637e77894ddad56fc6854aecbc7a433"
     },
     {
       "path": "schemas/lifecycle/lifecycle-family.v4.json",
@@ -1388,7 +1388,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "32b18f6d400e2176beb087e0e83f91dc42017622c6dc5abfa2b75b5a5dda650f"
+      "sha256": "8b381b0a2e81e7a63174c2f2fa315bd13ae83754a71d8c9c1ebb5e807412b4ff"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -1476,7 +1476,7 @@
     },
     {
       "path": "schemas/schema-family-registry.v4.json",
-      "sha256": "68138289e934f8f172ee187673018a0958a877a9e7051b2d0f207a6b1930d04b"
+      "sha256": "6a3db31dd604809e2db2d55764b1853c43479862d631bbe595a70839281dab62"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",

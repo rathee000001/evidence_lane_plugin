@@ -45,7 +45,7 @@
     },
     {
       "path": "schemas/authorities/session_authority.v4.json",
-      "sha256": "1853065ac3f6d1f40a9f5fd5668e09b08c2d09a1fb5733d35859f0f58d12270c"
+      "sha256": "0f7d0ea1828620ffa83b63e197b161cc85e937b77292fc190b12d76be85f4bb1"
     },
     {
       "path": "schemas/authorities/source_authority.v4.json",
@@ -53,7 +53,7 @@
     },
     {
       "path": "schemas/consumers/consumers-family.v4.json",
-      "sha256": "08f98c3f7404b35438c21a54fff91d6a382a03c390d9564627a400a18da1d6fc"
+      "sha256": "29fec9c8bfa59c8b7d80d48636228959b9195d73fdba51192039b06c17e00970"
     },
     {
       "path": "schemas/env/env-family.v4.json",
@@ -61,7 +61,7 @@
     },
     {
       "path": "schemas/governance/governance-family.v4.json",
-      "sha256": "fbf8700aac19839424a7d8faca8f6cb5cf8b555da65b2322c4fa33aa5df7d120"
+      "sha256": "c21d601af66694d22a55f94eca09e2a62ee3b16a0c54256cb43a8e5cf087a879"
     },
     {
       "path": "schemas/hooks/hooks-family.v4.json",
@@ -85,7 +85,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "32b18f6d400e2176beb087e0e83f91dc42017622c6dc5abfa2b75b5a5dda650f"
+      "sha256": "8b381b0a2e81e7a63174c2f2fa315bd13ae83754a71d8c9c1ebb5e807412b4ff"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",

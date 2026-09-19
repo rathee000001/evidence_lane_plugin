@@ -8,7 +8,7 @@
     },
     {
       "path": "manifests/plugin-architecture.v4.json",
-      "sha256": "e67997e5e7e25e39d2dae8b45203b025084ae5efb665ed23ce2d9d05b7c6cf51"
+      "sha256": "8a0ebebe3186eab1fe87fdc6808b6f47177fd6ebfd4c1230493e78ea03d29969"
     },
     {
       "path": "src/evidence_lane_plugin/plugin_architecture.py",

@@ -28,7 +28,7 @@
     {
       "bytes": 1086,
       "path": "sdk/host/local-install.contract.v4.json",
-      "sha256": "7e2a121f7b82514be2e44a47c6881e8bfbbff3eef9edc9537f330166d74f265e"
+      "sha256": "d67983aca886c28386f8d8d60d3dc6cc2b814dd74ec1256f7ccef77b6f8d6426"
     },
     {
       "bytes": 1174,
@@ -43,7 +43,7 @@
     {
       "bytes": 847,
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "06b6c16e0190fe5c630274b80bf61e383bf7800f546303e355a4f27e941d1afb"
+      "sha256": "e973d7b6ca008adbe939bdb8d2b8af4289feb7df844ff38219b88b997fc221b7"
     },
     {
       "bytes": 1536,

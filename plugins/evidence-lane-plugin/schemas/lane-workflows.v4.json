@@ -22324,7 +22324,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/session_authority/manifest.v4.json",
-        "sha256": "F3031233E5794C624C60E05510024834801C5E86C519636F4CD841A0D133B6C2"
+        "sha256": "5AFFEBE2D38590F48057975BF478ED4A60CF21837261CADF2EA68FEF4D884630"
       },
       "runtime": "evidence_lane_plugin.session_authority",
       "schema": {

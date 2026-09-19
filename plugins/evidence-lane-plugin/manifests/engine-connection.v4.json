@@ -134,7 +134,7 @@
     },
     {
       "path": "authorities/session_authority/installation-layout.v4.json",
-      "sha256": "CEF946824307EA4B4A212E4CE3B41319899783A610A205EE2A8D0030199B0935"
+      "sha256": "44D8E48A08A6680EFFFBF812CFB4AF23A9A18D35F37386452D172D650988D838"
     }
   ],
   "status": "source_contract",

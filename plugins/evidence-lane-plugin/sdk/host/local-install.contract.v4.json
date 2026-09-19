@@ -9,9 +9,9 @@
   "schema": "evidence-lane.sdk-host-contract.v4",
   "sources": [
     {
-      "bytes": 3277,
+      "bytes": 3267,
       "path": "authorities/session_authority/installation-layout.v4.json",
-      "sha256": "cef946824307ea4b4a212e4ce3b41319899783a610a205ee2a8d0030199b0935"
+      "sha256": "44d8e48a08a6680efffbf812cfb4af23a9a18d35f37386452d172d650988d838"
     },
     {
       "bytes": 113368,

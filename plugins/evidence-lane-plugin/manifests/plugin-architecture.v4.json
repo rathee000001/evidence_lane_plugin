@@ -60924,7 +60924,7 @@
     }
   ],
   "authority": "current_executable_registry_and_lane_contracts",
-  "contract_sha256": "FD05DA9800E63DFCFFF57087E38669DC9EDF862D85BA772A0BEB0D4CA2D1938B",
+  "contract_sha256": "5B3AEC59158802B217ACE347DA586070CC37BAC6B68A7D8B8E246AEAF2A8085B",
   "hooks": {
     "ambient_python_required": false,
     "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
@@ -61295,7 +61295,6 @@
     ],
     "installed": false,
     "license_policy": "Copy complete retained license/source evidence; Ghostscript remains explicit-license-gated",
-    "macos": "MCP/SDK/skills/hooks host path without local Studio or the Windows-managed toolchain",
     "mobile_studio": false,
     "plugin_installation": "Codex-managed installed plugin location; discovered from the loaded package",
     "plugin_source": "plugins/evidence-lane-plugin",
@@ -61316,6 +61315,10 @@
     "studio_platform": "Windows PC",
     "studio_root_override": "EVIDENCE_LANE_STUDIO_ROOT",
     "studio_source": "apps/evidence-lane-studio",
+    "supported_host_profiles": [
+      "codex_desktop_stable",
+      "codex_desktop_beta"
+    ],
     "toolchain_scope": "Every retained locally installable tool and transitive dependency in the complete registry, including required model assets and compatible provider environments"
   },
   "installed_execution_claimed": false,
@@ -61485,10 +61488,13 @@
       ]
     },
     "host_platform_policy": {
-      "VM_and_CLI": "Use the host matrix and explicit supported backend route; ephemeral hosts need verified persistent storage.",
-      "Windows": "Studio/backend with its shared managed toolchain; execution requires measured readiness and lane selection.",
-      "macOS": "MCP/SDK/skills/hooks host path only; no local Studio or Windows-managed toolchain capabilities. Current direct adapter implementation and host support must be verified.",
-      "mobile": "No Studio application or mobile product workflow.",
+      "api": "Optional authenticated API access does not create another host profile.",
+      "persistence": "local_persistent_system",
+      "platform": "Windows",
+      "profiles": [
+        "codex_desktop_stable",
+        "codex_desktop_beta"
+      ],
       "tool_count": "Derive counts from the current registry; installed and usable counts come from runtime evidence."
     },
     "installation": {
@@ -61532,7 +61538,7 @@
       },
       {
         "id": "host_transport",
-        "role": "Codex Desktop, CLI and supported VM hosts use native MCP clients; optional authenticated remote clients use a declared remote engine"
+        "role": "Codex Desktop Stable and Beta on persistent local Windows systems use native MCP clients; optional authenticated API access remains a transport within those supported profiles rather than another host profile"
       },
       {
         "id": "typed_dispatch",
@@ -61634,7 +61640,6 @@
       "frontend_source": "F:/DATA MACHINE/evidence-os-clean-full-app_current hill_sopuce code/frontend/theme-contract",
       "human_mutations": false,
       "layout": "Direct HIL four-shell reuse: project side rail, persistent top context shell, workflow pills in command/prompt bar, single changing inner content panel.",
-      "macos_application": false,
       "mobile_application": false,
       "navigation": [
         "Overview",
@@ -84027,7 +84032,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/session_authority/manifest.v4.json",
-        "sha256": "F3031233E5794C624C60E05510024834801C5E86C519636F4CD841A0D133B6C2"
+        "sha256": "5AFFEBE2D38590F48057975BF478ED4A60CF21837261CADF2EA68FEF4D884630"
       },
       "runtime": "evidence_lane_plugin.session_authority",
       "schema": {

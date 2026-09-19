@@ -13,7 +13,7 @@
     {
       "bytes": 1415,
       "path": "studio/engine-api.contract.v4.json",
-      "sha256": "87db1df755ce7269f924d464723356e90808bc1fce82f30d2ecce761be65d2b7"
+      "sha256": "4aaefa4584817e931b9e20b8be8acca5165fcfde54760cd41267d59c8c322c97"
     },
     {
       "bytes": 637,
@@ -23,7 +23,7 @@
     {
       "bytes": 1591,
       "path": "studio/installation.contract.v4.json",
-      "sha256": "db925448d00664ed23e7659fb4194cbe8353febf1e218686141d0e7d25934596"
+      "sha256": "176bcf5cac68dc64d2e90fa8460377eb81cd2d90fcca231dc20b59c6e49a2f45"
     },
     {
       "bytes": 1009,

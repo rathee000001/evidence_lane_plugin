@@ -20,7 +20,7 @@
     },
     {
       "id": "host_transport",
-      "role": "Codex Desktop, CLI and supported VM hosts use native MCP clients; optional authenticated remote clients use a declared remote engine"
+      "role": "Codex Desktop Stable and Beta on persistent local Windows systems use native MCP clients; optional authenticated API access remains a transport within those supported profiles rather than another host profile"
     },
     {
       "id": "typed_dispatch",
@@ -190,7 +190,6 @@
     "asset_source": "apps/evidence-lane-app/public",
     "platform": "Windows PC only",
     "mobile_application": false,
-    "macos_application": false,
     "human_mutations": false,
     "app_source": "apps/evidence-lane-studio",
     "plugin_source": "plugins/evidence-lane-plugin",
@@ -220,10 +219,13 @@
     "direct_codex_use": "Resolve explicit executable/environment paths from the same verified shared Studio installation"
   },
   "host_platform_policy": {
-    "Windows": "Studio/backend with its shared managed toolchain; execution requires measured readiness and lane selection.",
-    "macOS": "MCP/SDK/skills/hooks host path only; no local Studio or Windows-managed toolchain capabilities. Current direct adapter implementation and host support must be verified.",
-    "mobile": "No Studio application or mobile product workflow.",
-    "VM_and_CLI": "Use the host matrix and explicit supported backend route; ephemeral hosts need verified persistent storage.",
+    "platform": "Windows",
+    "persistence": "local_persistent_system",
+    "profiles": [
+      "codex_desktop_stable",
+      "codex_desktop_beta"
+    ],
+    "api": "Optional authenticated API access does not create another host profile.",
     "tool_count": "Derive counts from the current registry; installed and usable counts come from runtime evidence."
   },
   "command_path": [

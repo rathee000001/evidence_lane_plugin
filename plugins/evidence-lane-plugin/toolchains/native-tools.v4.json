@@ -4,9 +4,8 @@
   "version": 4,
   "plane": "CODEX",
   "host_profiles": [
-    "CODEX_DESKTOP",
-    "CODEX_CLI",
-    "CODEX_VM"
+    "codex_desktop_stable",
+    "codex_desktop_beta"
   ],
   "workspace_install_allowed": false,
   "path_mutation_allowed": false,

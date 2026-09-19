@@ -1,4 +1,6 @@
+import json
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from evidence_lane_plugin.connections import ClientRouter, ConnectRequest
@@ -13,6 +15,9 @@ from evidence_lane_plugin.host_routing import (
 from evidence_lane_plugin.projects import ProjectDirectory
 from pydantic import ValidationError
 
+PLUGIN = Path(__file__).resolve().parents[1] / "plugins/evidence-lane-plugin"
+SUPPORTED_HOST_PROFILES = ["codex_desktop_stable", "codex_desktop_beta"]
+
 
 def detector(**overrides):
     return HostDetector(**{
@@ -22,7 +27,7 @@ def detector(**overrides):
 
 
 def test_host_matrix_exposes_only_persistent_local_windows_desktop_profiles():
-    assert set(HOST_MATRIX) == {"codex_desktop_stable", "codex_desktop_beta"}
+    assert list(HOST_MATRIX) == SUPPORTED_HOST_PROFILES
     for profile in HOST_MATRIX:
         observation = detector().inspect(trigger="client_connect", client=ClientHello(
             configured_profile=profile, peer_name="Codex", peer_version="claimed",
@@ -35,6 +40,31 @@ def test_host_matrix_exposes_only_persistent_local_windows_desktop_profiles():
         assert observation.available_commands == ["git"]
         assert observation.client_evidence_basis == "authenticated_client_report"
         assert observation.configured_persistence == "local_persistent_system"
+
+
+def test_packaged_host_contracts_match_the_executable_host_matrix():
+    for relative in (
+        "toolchains/native-tools.v4.json",
+        "toolchains/native-tool-definitions.v4.json",
+    ):
+        document = json.loads((PLUGIN / relative).read_text(encoding="utf-8"))
+        assert document["host_profiles"] == SUPPORTED_HOST_PROFILES
+
+    policy = json.loads(
+        (PLUGIN / "env/orchestration.policy.v4.json").read_text(encoding="utf-8")
+    )
+    assert policy["host_platform_policy"]["platform"] == "Windows"
+    assert policy["host_platform_policy"]["persistence"] == "local_persistent_system"
+    assert policy["host_platform_policy"]["profiles"] == SUPPORTED_HOST_PROFILES
+
+    layout = json.loads(
+        (
+            PLUGIN
+            / "authorities/session_authority/installation-layout.v4.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert layout["supported_host_profiles"] == SUPPORTED_HOST_PROFILES
+    assert "macos" not in layout
 
 
 def test_default_stable_desktop_keeps_local_access_without_fabricating_native_identity():

@@ -2,7 +2,7 @@
   "connection_manifest": {
     "bytes": 6281,
     "path": "manifests/engine-connection.v4.json",
-    "sha256": "968b65ade21c6461f51f825a47eee465b6d8cd680b1c5dd0cca721e5f82c1ca3"
+    "sha256": "1dc2a29376f6e847241e972f62b656cb80b17266f2a8a95d340dfda574c0bb11"
   },
   "engine_launcher": {
     "bytes": 275,
