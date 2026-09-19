@@ -30,7 +30,9 @@ function Write-EvidenceLaneShortcutValue([string]$value) {
 $studioPath = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_PATH_B64'
 $studioMode = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_MODE_B64'
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=request_loaded')
-$studioShell = New-Object -ComObject WScript.Shell
+$studioShellType = [Type]::GetTypeFromProgID('WScript.Shell', $true)
+[Console]::Error.WriteLine('EL_SHORTCUT_PHASE=shell_type_resolved')
+$studioShell = [Activator]::CreateInstance($studioShellType)
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=shell_created')
 $studioLink = $studioShell.CreateShortcut($studioPath)
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_loaded')
@@ -78,7 +80,8 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     def safe_phase(output) -> dict:
         if isinstance(output, bytes):
             output = output.decode("utf-8", errors="replace")
-        allowed = {"started", "request_loaded", "shell_created", "link_loaded", "link_saved", "readback_ready"}
+        allowed = {"started", "request_loaded", "shell_type_resolved", "shell_created", "link_loaded",
+                   "link_saved", "readback_ready"}
         phases = [line.removeprefix("EL_SHORTCUT_PHASE=") for line in (output or "").splitlines()
                   if line.startswith("EL_SHORTCUT_PHASE=") and line.removeprefix("EL_SHORTCUT_PHASE=") in allowed]
         return {"phase": phases[-1]} if phases else {}
@@ -93,7 +96,8 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
                        if key.casefold() != "psmodulepath"
                        and not key.casefold().startswith("evidence_lane_shortcut_")}
         environment.update(encoded_request)
-        completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
+        completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-Sta",
+                                    "-EncodedCommand", command],
             stdin=subprocess.DEVNULL, env=environment,
             capture_output=True, text=True, encoding="utf-8",
             timeout=30, check=False, creationflags=subprocess.CREATE_NO_WINDOW)

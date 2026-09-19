@@ -271,8 +271,10 @@ def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_
         assert request == {"path": str(tmp_path / "literal & $value.lnk"), "mode": "write", **expected}
         script = base64.b64decode(command[-1], validate=True).decode("utf-16-le")
         assert command[-2] == "-EncodedCommand"
+        assert "-Sta" in command
         assert "Console]::In.ReadToEnd" not in script and "Console]::OutputEncoding" not in script
         assert "ConvertFrom-Json" not in script and "ConvertTo-Json" not in script
+        assert "New-Object" not in script and "Activator]::CreateInstance" in script
         assert "litéral" not in script and "工具" not in script
         readback = json.dumps({key: value if key == "window_style" else base64.b64encode(
             str(value).encode("utf-8")).decode("ascii") for key, value in expected.items()})

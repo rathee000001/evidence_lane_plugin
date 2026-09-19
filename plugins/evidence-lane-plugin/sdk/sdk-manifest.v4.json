@@ -1556,7 +1556,7 @@
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "6de2b2ddb5fc7645e2b371449093d8e55690651211bc8632e2be417538baaab7"
+      "sha256": "ce387300df5f7e7b4941305eb464bc99e015829ec3fe8703189a1e8d444676d0"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
@@ -2472,7 +2472,7 @@
     },
     {
       "path": "sdk/internal/modules/shortcuts.module.v4.json",
-      "sha256": "9057272ae57c8c097bb8596e1da1ac36bd2344b730023f2f2810ee0ff32ef9ee"
+      "sha256": "0106fc3fd7ed018e5e9a455f4f953ea52c48a335f7d35d1bb0a56f080eb7b48e"
     },
     {
       "path": "sdk/internal/modules/source_authority.module.v4.json",
@@ -3972,7 +3972,7 @@
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "887c38d6675608f545663b709dd248d7425760e054058c2405379627fa79b78d"
+      "sha256": "4581f8b4a60597b1b3d0db695d469754e1a00a31537c4507313536a7842a63ca"
     },
     {
       "path": "sdk/skills/__init__.py",
