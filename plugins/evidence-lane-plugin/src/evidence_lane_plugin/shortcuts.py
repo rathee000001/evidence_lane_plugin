@@ -19,26 +19,45 @@ from .storage import reject_links
 _SCRIPT = r"""
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=started')
 $ErrorActionPreference = 'Stop'
-$studioRequest = $env:EVIDENCE_LANE_SHORTCUT_REQUEST | ConvertFrom-Json
+function Read-EvidenceLaneShortcutValue([string]$name) {
+    $encoded = [Environment]::GetEnvironmentVariable($name, 'Process')
+    if ($null -eq $encoded) { return '' }
+    return [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($encoded))
+}
+function Write-EvidenceLaneShortcutValue([string]$value) {
+    return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($value))
+}
+$studioPath = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_PATH_B64'
+$studioMode = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_MODE_B64'
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=request_loaded')
 $studioShell = New-Object -ComObject WScript.Shell
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=shell_created')
-$studioLink = $studioShell.CreateShortcut([string]$studioRequest.path)
+$studioLink = $studioShell.CreateShortcut($studioPath)
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_loaded')
-if ($studioRequest.mode -eq 'write') {
-    $studioLink.TargetPath = [string]$studioRequest.target
-    $studioLink.Arguments = [string]$studioRequest.arguments
-    $studioLink.WorkingDirectory = [string]$studioRequest.working_directory
+if ($studioMode -eq 'write') {
+    $studioLink.TargetPath = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_TARGET_B64'
+    $studioLink.Arguments = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_ARGUMENTS_B64'
+    $studioLink.WorkingDirectory = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_WORKING_DIRECTORY_B64'
     $studioLink.Description = 'Open Evidence Lane Studio; start the local engine if needed.'
-    $studioLink.IconLocation = [string]$studioRequest.icon_location
-    $studioLink.WindowStyle = 1
+    $studioLink.IconLocation = Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_ICON_LOCATION_B64'
+    $studioLink.WindowStyle = [int](Read-EvidenceLaneShortcutValue 'EVIDENCE_LANE_SHORTCUT_WINDOW_STYLE_B64')
     $studioLink.Save()
     [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=link_saved')
 }
 [Console]::Error.WriteLine('EL_SHORTCUT_PHASE=readback_ready')
-$studioReadback = @{target=$studioLink.TargetPath;arguments=$studioLink.Arguments;working_directory=$studioLink.WorkingDirectory;window_style=$studioLink.WindowStyle;icon_location=$studioLink.IconLocation} | ConvertTo-Json -Compress
-[Console]::Out.WriteLine([Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($studioReadback)))
+$studioReadback = '{"target":"' + (Write-EvidenceLaneShortcutValue $studioLink.TargetPath) + '","arguments":"' + (Write-EvidenceLaneShortcutValue $studioLink.Arguments) + '","working_directory":"' + (Write-EvidenceLaneShortcutValue $studioLink.WorkingDirectory) + '","window_style":' + ([string]$studioLink.WindowStyle) + ',"icon_location":"' + (Write-EvidenceLaneShortcutValue $studioLink.IconLocation) + '"}'
+[Console]::Out.WriteLine($studioReadback)
 """
+
+_REQUEST_ENVIRONMENT = {
+    "path": "EVIDENCE_LANE_SHORTCUT_PATH_B64",
+    "mode": "EVIDENCE_LANE_SHORTCUT_MODE_B64",
+    "target": "EVIDENCE_LANE_SHORTCUT_TARGET_B64",
+    "arguments": "EVIDENCE_LANE_SHORTCUT_ARGUMENTS_B64",
+    "working_directory": "EVIDENCE_LANE_SHORTCUT_WORKING_DIRECTORY_B64",
+    "window_style": "EVIDENCE_LANE_SHORTCUT_WINDOW_STYLE_B64",
+    "icon_location": "EVIDENCE_LANE_SHORTCUT_ICON_LOCATION_B64",
+}
 
 
 def shell_link(path: Path, *, specification: dict | None = None) -> dict:
@@ -48,8 +67,11 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     executable = root / "System32/WindowsPowerShell/v1.0/powershell.exe"
     reject_links(executable, Path(executable.anchor))
     request = {"path": str(path), "mode": "write" if specification else "read"} | (specification or {})
-    payload = json.dumps(request, ensure_ascii=True)
-    if len(payload) > 16_384:
+    encoded_request = {
+        _REQUEST_ENVIRONMENT[key]: base64.b64encode(str(value).encode("utf-8")).decode("ascii")
+        for key, value in request.items()
+    }
+    if sum(len(value) for value in encoded_request.values()) > 24_000:
         raise LaneError("SHORTCUT_OPERATION_FAILED", "The shortcut request exceeded its supported size.",
                         details={"reason": "oversized_request"})
 
@@ -64,12 +86,13 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
     phase = {}
     try:
         command = base64.b64encode(_SCRIPT.encode("utf-16-le")).decode("ascii")
-        # A PowerShell 7 parent can export its module search path to the child.
-        # Windows PowerShell must resolve ConvertFrom-Json and COM support from
-        # its own module set; keep the correction local to this child process.
+        # Keep the Windows PowerShell child independent from its PowerShell 7
+        # parent and pass only fixed Base64 fields; the helper never loads the
+        # JSON cmdlets or interpolates request values into its command text.
         environment = {key: value for key, value in os.environ.items()
-                       if key.casefold() != "psmodulepath"}
-        environment["EVIDENCE_LANE_SHORTCUT_REQUEST"] = payload
+                       if key.casefold() != "psmodulepath"
+                       and not key.casefold().startswith("evidence_lane_shortcut_")}
+        environment.update(encoded_request)
         completed = subprocess.run([str(executable), "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
             stdin=subprocess.DEVNULL, env=environment,
             capture_output=True, text=True, encoding="utf-8",
@@ -79,19 +102,26 @@ def shell_link(path: Path, *, specification: dict | None = None) -> dict:
             raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
                             details={"reason": "process_exit" if completed.returncode else "oversized_readback",
                                      "exit_code": completed.returncode, **phase})
-        readback = base64.b64decode(completed.stdout.strip(), validate=True)
-        if len(readback) > 16_384:
-            raise ValueError()
-        value = json.loads(readback.decode("utf-8"))
-        if not isinstance(value, dict) or set(value) != {
+        encoded = json.loads(completed.stdout.strip())
+        if not isinstance(encoded, dict) or set(encoded) != {
             "target", "arguments", "working_directory", "window_style", "icon_location"
         }:
             raise ValueError()
+        if not isinstance(encoded["window_style"], int):
+            raise TypeError()
+        value = {"window_style": encoded["window_style"]}
+        for key in ("target", "arguments", "working_directory", "icon_location"):
+            if not isinstance(encoded[key], str):
+                raise TypeError()
+            decoded = base64.b64decode(encoded[key], validate=True)
+            if len(decoded) > 16_384:
+                raise ValueError()
+            value[key] = decoded.decode("utf-8")
         return value
     except subprocess.TimeoutExpired as error:
         raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the shortcut operation within 30 seconds.",
                         details={"reason": "deadline_exceeded", "timeout_seconds": 30, **safe_phase(error.stderr)}) from None
-    except (OSError, ValueError) as error:
+    except (OSError, TypeError, ValueError) as error:
         raise LaneError("SHORTCUT_OPERATION_FAILED", "Windows did not confirm the requested shortcut operation.",
                         details={"reason": "process_unavailable" if isinstance(error, OSError) else "invalid_readback", **phase}) from None
 

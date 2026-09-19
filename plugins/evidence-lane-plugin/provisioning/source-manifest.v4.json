@@ -8,8 +8,8 @@
     "provisioning/source-manifest.v4.json"
   ],
   "file_count": 3315,
-  "total_bytes": 54335568,
-  "files_sha256": "69800cc928642b92de6b6a59f3c553764030190da8155a84fdcdefdf47835e54",
+  "total_bytes": 54337395,
+  "files_sha256": "0fb0a29d0de2d70a31fb362c8f08e1bfb9aa7af2c39bb4e4a79bdede4478188b",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
@@ -3969,7 +3969,7 @@
     {
       "path": "manifests/executable-action-surface.v4.json",
       "bytes": 296216,
-      "sha256": "7a5c54da990c0e066208d74e7e0491f8fdb206f5f2fe88f6bbaa26398f5605b9"
+      "sha256": "ebb9a285b310ebeaccab397a8a1d1ba5be62ec27db87238d760a1e4c84af732f"
     },
     {
       "path": "manifests/plugin-architecture.v4.json",
@@ -9579,7 +9579,7 @@
     {
       "path": "sdk/internal/module-registry.v4.json",
       "bytes": 53766,
-      "sha256": "9576d5304a4939be28794565160fd78ca87f58b6a87f9277d4b2ec0d01395905"
+      "sha256": "586ee65cfacda33193c752709ede713857207dca727391c9f55250a384ce1e61"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
@@ -10724,7 +10724,7 @@
     {
       "path": "sdk/internal/modules/shortcuts.module.v4.json",
       "bytes": 751,
-      "sha256": "5643562423ac5dd9b457b0913c7db8701c6d595cb97e14e94532418687a29d68"
+      "sha256": "595f5cc3ce7230ef7d1a1086c229d3434af4b6c560b7a618a79696c853b16fcc"
     },
     {
       "path": "sdk/internal/modules/source_authority.module.v4.json",
@@ -12599,12 +12599,12 @@
     {
       "path": "sdk/sdk-manifest.v4.json",
       "bytes": 179689,
-      "sha256": "a93eb0440467bca9f1f332a4d88fb89daa855d8dbb2cd321bf144070bc160375"
+      "sha256": "ac098011c14ce2d73b9419958c986a956f0b2b75374208091cdfec69852648fa"
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
       "bytes": 7809,
-      "sha256": "e9ad1a3b6051abdf31a98ab676ede43c219a43bfa9fd27254b8f25b21fe75016"
+      "sha256": "6277b4ac650319ed1f55627bad73505ab41cdc4f3c9d56aa165eabef30f576c9"
     },
     {
       "path": "sdk/skills/__init__.py",
@@ -15418,8 +15418,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/shortcuts.py",
-      "bytes": 11509,
-      "sha256": "d59b56021fe823bd67582756b0f38ec71ba869901fc4633d6f4af15e1b821a87"
+      "bytes": 13336,
+      "sha256": "6ead5124e4e79b0389f76962af717883286bce15447d6a420601cb579d399d29"
     },
     {
       "path": "src/evidence_lane_plugin/source_authority.py",
@@ -15789,7 +15789,7 @@
     {
       "path": "studio/studio-linkage.v4.json",
       "bytes": 1473,
-      "sha256": "80200b6d20efc9c3f91ed9933c8ee7c711f2bcdf3c4685d38cc636f8e98fb487"
+      "sha256": "ed45a29ab415919637c78386930d7c48ced833eb34a41e0942ebe60a5b3c5756"
     },
     {
       "path": "studio/toolchain-license.contract.v4.json",
@@ -15799,7 +15799,7 @@
     {
       "path": "studio/windows-integration.contract.v4.json",
       "bytes": 2918,
-      "sha256": "1adb95422d4d6fe4a858980e39514f282ffbf6182bdd419288b28e5fa45e8808"
+      "sha256": "ffda9bbaed4229d252d896137a000ffe12ac1b824615718fbb3d442f45f254bf"
     },
     {
       "path": "tests/test-surface-policy.v4.json",
@@ -16587,5 +16587,5 @@
       "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
     }
   ],
-  "receipt_sha256": "682a943f995cfc303dd20fe18d3e2fb5732a1502250107dd6e48dcc26614a4fd"
+  "receipt_sha256": "2b6d2b1666633a55e08e32373039c3ec3fcf84be849cbe720bf2675f09d5e287"
 }

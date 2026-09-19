@@ -47,9 +47,9 @@
   "shortcut_fixed_script_transport": "utf16le_base64_encoded_command",
   "shortcut_helper_timeout_seconds": 30,
   "shortcut_owner": {
-    "bytes": 11509,
+    "bytes": 13336,
     "path": "src/evidence_lane_plugin/shortcuts.py",
-    "sha256": "d59b56021fe823bd67582756b0f38ec71ba869901fc4633d6f4af15e1b821a87"
+    "sha256": "6ead5124e4e79b0389f76962af717883286bce15447d6a420601cb579d399d29"
   },
   "shortcut_readback_transport": "ascii_base64_utf8_json",
   "shortcut_request_transport": "child_process_environment_json",

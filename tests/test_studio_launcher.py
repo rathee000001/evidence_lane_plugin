@@ -260,13 +260,22 @@ def test_shortcut_request_uses_child_environment_and_preserves_literal_data(tmp_
     def run(command, **options):
         assert options["stdin"] == subprocess.DEVNULL and "input" not in options
         assert not any(key.casefold() == "psmodulepath" for key in options["env"])
-        request = json.loads(options["env"]["EVIDENCE_LANE_SHORTCUT_REQUEST"])
+        assert "EVIDENCE_LANE_SHORTCUT_REQUEST" not in options["env"]
+        request = {
+            key.removeprefix("EVIDENCE_LANE_SHORTCUT_").removesuffix("_B64").lower():
+                base64.b64decode(value, validate=True).decode("utf-8")
+            for key, value in options["env"].items()
+            if key.startswith("EVIDENCE_LANE_SHORTCUT_")
+        }
+        request["window_style"] = int(request["window_style"])
         assert request == {"path": str(tmp_path / "literal & $value.lnk"), "mode": "write", **expected}
         script = base64.b64decode(command[-1], validate=True).decode("utf-16-le")
         assert command[-2] == "-EncodedCommand"
         assert "Console]::In.ReadToEnd" not in script and "Console]::OutputEncoding" not in script
+        assert "ConvertFrom-Json" not in script and "ConvertTo-Json" not in script
         assert "litéral" not in script and "工具" not in script
-        readback = base64.b64encode(json.dumps(expected, ensure_ascii=False).encode()).decode("ascii")
+        readback = json.dumps({key: value if key == "window_style" else base64.b64encode(
+            str(value).encode("utf-8")).decode("ascii") for key, value in expected.items()})
         return SimpleNamespace(returncode=0, stdout=readback, stderr="EL_SHORTCUT_PHASE=readback_ready")
 
     monkeypatch.setattr(subprocess, "run", run)
