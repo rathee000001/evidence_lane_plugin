@@ -1,7 +1,7 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=1AD02D37A4C5B97EB5DB95EBB40C2EA5E3C08CECBB2CF1DC5786B9DAFC36C2D8
+%% LANGGRAPH_EXPORT_SHA256=B3765D20AD4D86778DAB5D7DD00C2EAD49A0197E61579A0F6FE343B84138D5AA
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
@@ -17,9 +17,9 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
+  owner["memory current executable owner"]:::default
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
-  owner["memory current executable owner"]:::default
   action_context_index_query["context_index_query"]:::default
   action_context_index_sync["context_index_sync"]:::default
   action_memory_checkpoint["memory_checkpoint"]:::default

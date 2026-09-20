@@ -3448,27 +3448,27 @@
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.mmd",
-      "sha256": "07e019b6789ed7c47cd67eb6ed76216a25987df6f253cb7d62a9b2e7de2a650f"
+      "sha256": "95f40ae96d09fdb2e591991bf0f98b9c001f0203a6f14d04e9a0a458a6825d33"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/pdf_ocr.dot",
-      "sha256": "eca4e9dfefaf99ef147968d85af3f906f978a2e1b4b9ed61fb9a6177e7761d06"
+      "sha256": "a0a3ca9c2aeaa9773e9b8aed11af0834c02bf0f3735e5a998eb30fc80d62b08a"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.mmd",
-      "sha256": "b633018148d56194f5929942b502dfc2281e846942314c60bb51e2333676164a"
+      "sha256": "1e9dcc9bce319e097bf480d5eec18256ce7169930f1d8d23bc347840590e7e73"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.dot",
-      "sha256": "20675e31b48f3203833067cab2e58a6c14bcc623b662333c9032e10cc9256d15"
+      "sha256": "2cc982ac13072ef1ec00c00d9764fd745b70e9bf14afe41473c6d5502a4bcf6e"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/workflow.v4.json",
-      "sha256": "1bfaa7dafa55e5f8ff6956b4c6c7ac0aa868d7eee484fcb5f70997a15b735fa3"
+      "sha256": "a4a010a8aba20fdd9c424d05b5e5a2647b58c432082c68d269d013f942beff6d"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.json",
-      "sha256": "aec1f222f1d82cb3e8fc1cdd961f623425d6e98ef6e818eee430174c309c7775"
+      "sha256": "66efdf47bf392e476945adac633ae123f9ceddeab2331022f861059514510380"
     },
     {
       "path": "authorities/project_sectors/pdf_ocr/tools.schema.json",

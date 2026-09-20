@@ -1,6 +1,118 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
+    "AuthorityRequest_client_context": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "client_context",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ClientContextQuery"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_client_context",
+      "type": "object"
+    },
+    "AuthorityRequest_engine_health": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "engine_health",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/Empty"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_engine_health",
+      "type": "object"
+    },
     "AuthorityRequest_env_uop_inspect": {
       "additionalProperties": false,
       "properties": {
@@ -55,6 +167,286 @@
         "arguments"
       ],
       "title": "AuthorityRequest_env_uop_inspect",
+      "type": "object"
+    },
+    "AuthorityRequest_lifecycle_transition_law": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lifecycle_transition_law",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/TransitionLawQuery"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lifecycle_transition_law",
+      "type": "object"
+    },
+    "AuthorityRequest_project_work_classify": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_work_classify",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/WorkClassificationRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_work_classify",
+      "type": "object"
+    },
+    "AuthorityRequest_render_runtime_panel": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "render_runtime_panel",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/PanelRead"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_render_runtime_panel",
+      "type": "object"
+    },
+    "AuthorityRequest_runtime_doctor": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "runtime_doctor",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/SessionStatusRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_runtime_doctor",
+      "type": "object"
+    },
+    "AuthorityRequest_runtime_status": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "runtime_status",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/RuntimeStatusInput"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_runtime_status",
       "type": "object"
     },
     "AuthorityRequest_session_context": {
@@ -260,6 +652,18 @@
       "title": "AuthorityRequest_session_status",
       "type": "object"
     },
+    "ClientContextQuery": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "ClientContextQuery",
+      "type": "object"
+    },
+    "Empty": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Empty",
+      "type": "object"
+    },
     "OperatingPolicyInspect": {
       "additionalProperties": false,
       "properties": {
@@ -290,6 +694,26 @@
         "query"
       ],
       "title": "OperatingPolicyInspect",
+      "type": "object"
+    },
+    "PanelRead": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "PanelRead",
+      "type": "object"
+    },
+    "RuntimeStatusInput": {
+      "additionalProperties": false,
+      "properties": {
+        "job_limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Job Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RuntimeStatusInput",
       "type": "object"
     },
     "SessionBoundaryRead": {
@@ -370,11 +794,83 @@
       "properties": {},
       "title": "SessionStatusRequest",
       "type": "object"
+    },
+    "TransitionLawQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "anyOf": [
+            {
+              "enum": [
+                "plan_task",
+                "project_session"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        }
+      },
+      "title": "TransitionLawQuery",
+      "type": "object"
+    },
+    "WorkClassificationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "request": {
+          "maxLength": 12000,
+          "minLength": 1,
+          "title": "Request",
+          "type": "string"
+        },
+        "explicit_work_classes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Explicit Work Classes",
+          "type": "array"
+        },
+        "code_lane": {
+          "default": "local_code",
+          "enum": [
+            "local_code",
+            "github_code"
+          ],
+          "title": "Code Lane",
+          "type": "string"
+        },
+        "custom_work_classes": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "maxItems": 8,
+          "title": "Custom Work Classes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request"
+      ],
+      "title": "WorkClassificationRequest",
+      "type": "object"
     }
   },
   "discriminator": {
     "mapping": {
+      "client_context": "#/$defs/AuthorityRequest_client_context",
+      "engine_health": "#/$defs/AuthorityRequest_engine_health",
       "env_uop_inspect": "#/$defs/AuthorityRequest_env_uop_inspect",
+      "lifecycle_transition_law": "#/$defs/AuthorityRequest_lifecycle_transition_law",
+      "project_work_classify": "#/$defs/AuthorityRequest_project_work_classify",
+      "render_runtime_panel": "#/$defs/AuthorityRequest_render_runtime_panel",
+      "runtime_doctor": "#/$defs/AuthorityRequest_runtime_doctor",
+      "runtime_status": "#/$defs/AuthorityRequest_runtime_status",
       "session_context": "#/$defs/AuthorityRequest_session_context",
       "session_exit_boundary": "#/$defs/AuthorityRequest_session_exit_boundary",
       "session_flash_status": "#/$defs/AuthorityRequest_session_flash_status",
@@ -384,7 +880,28 @@
   },
   "oneOf": [
     {
+      "$ref": "#/$defs/AuthorityRequest_client_context"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_engine_health"
+    },
+    {
       "$ref": "#/$defs/AuthorityRequest_env_uop_inspect"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lifecycle_transition_law"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_project_work_classify"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_render_runtime_panel"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_runtime_doctor"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_runtime_status"
     },
     {
       "$ref": "#/$defs/AuthorityRequest_session_context"

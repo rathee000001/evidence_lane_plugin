@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/session_authority/manifest.v4.json",
-      "sha256": "5affebe2d38590f48057975bf478ed4a60cf21837261cadf2ea68fef4d884630"
+      "sha256": "94dac720e17833d9a1480e3bd55f64dcbe81bec30e38eb20554c2df379c1dba1"
     },
     {
       "path": "authorities/session_authority/migration-history.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "authorities/session_authority/reader-contract.schema.json",
-      "sha256": "921909b325f85ed15a8bf3111020d04674f219220b0fbb10cc41237ffebc39f0"
+      "sha256": "646ca8283292348f56fdf2d0a9d1611892064dc5f68665ee18f015dc7795c00c"
     },
     {
       "path": "authorities/session_authority/refresh-receipt.schema.json",

@@ -1956,11 +1956,11 @@
     },
     {
       "path": "authorities/project_sectors/tableau/tableau.mmd",
-      "sha256": "145e004da43db6f4c71f1a7e3ad978319d3b08ba43713e3534aa5f4db91ba6a0"
+      "sha256": "067206531d3b89044cf2a64c48315757c62ed5bdfe5425f744e1ee7e6da86b06"
     },
     {
       "path": "authorities/project_sectors/tableau/tableau.dot",
-      "sha256": "8aa5f4cc9e67d7c6c16bd2e6cfc70bb2a94885aa22a7f19c4ddaec34d8626f00"
+      "sha256": "905be99f282234aac83f654c7b255fb9c1125a1b909db771420e798667556353"
     },
     {
       "path": "authorities/project_sectors/tableau/workflow.mmd",
@@ -1972,11 +1972,11 @@
     },
     {
       "path": "authorities/project_sectors/tableau/workflow.v4.json",
-      "sha256": "66aef957a83f9ef2de04ae22b5a65ef4b26b8e10ec4acb07f1973a89b486c217"
+      "sha256": "8ef89e8efc3042353adbfa79fb870d2882678875ddff0b5b0cd03976e23a57bd"
     },
     {
       "path": "authorities/project_sectors/tableau/tools.json",
-      "sha256": "b391d6fdf03a9083f6ae05de2699ed421da86745f245104523bbb44080cc3c83"
+      "sha256": "372efbd6639287fe425c0357fb4791e963fb87de30d181be488c404e04250193"
     },
     {
       "path": "authorities/project_sectors/tableau/tools.schema.json",

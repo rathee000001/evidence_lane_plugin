@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.preview/
+*.tsbuildinfo
+
+# Local Windows launcher shortcut contains workstation paths.
+*.lnk

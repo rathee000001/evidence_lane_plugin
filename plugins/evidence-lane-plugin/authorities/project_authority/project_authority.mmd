@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=E2394E8B0D6DB6D3188E38480A14ECFC903A2A1BB390334E1AC5A4045795195B
+%% LANGGRAPH_EXPORT_SHA256=55D2AB0AB81D80A8576296DF4A8819854EFBE45753EDFF63D0D090C73B8D110C
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["project_authority owning SQLite schema"]:::default
   t_project["project<br/>singleton, project_id, source_root, format_version, storage_layout, created_at, registration_digest"]:::table
   t_project_registration["project_registration<br/>singleton, body_json"]:::table
   t_root_lane_catalog["root_lane_catalog<br/>lane_id, kind, database_path, initialized_at"]:::table
@@ -22,4 +23,17 @@ flowchart TB
   t_root_pv_head["root_pv_head<br/>singleton, revision, head_digest, commit_id"]:::table
   t_root_transaction_journal["root_transaction_journal<br/>commit_id, phase, body_json, created_at, updated_at"]:::table
   t_writer_lease["writer_lease<br/>singleton, fence, owner_id, engine_id, expires_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_project
+  SCHEMA_ROOT -->|"owns table"| t_project_registration
+  SCHEMA_ROOT -->|"owns table"| t_root_lane_catalog
+  SCHEMA_ROOT -->|"owns table"| t_root_lane_heads
+  SCHEMA_ROOT -->|"owns table"| t_root_pv_head
+  SCHEMA_ROOT -->|"owns table"| t_root_transaction_journal
+  SCHEMA_ROOT -->|"owns table"| t_writer_lease
   t_root_lane_heads -->|"lane_id"| t_root_lane_catalog
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_project ~~~ t_project_registration
+  t_project_registration ~~~ t_root_lane_catalog
+  t_root_pv_head ~~~ t_root_transaction_journal
+  t_root_transaction_journal ~~~ t_writer_lease
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

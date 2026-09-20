@@ -2691,27 +2691,27 @@
     },
     {
       "path": "authorities/project_sectors/ppt/ppt.mmd",
-      "sha256": "89983ea3515152f30d175a5302f463a48b64c38f32c078646bc17cbef374728d"
+      "sha256": "2c520f867431ca5e8cf432389bb94808eaf9bb24f071a1f2da4c5842080ac97e"
     },
     {
       "path": "authorities/project_sectors/ppt/ppt.dot",
-      "sha256": "0d9f1a3023b966b4476cc3389c6da02df7c8b7d0b849f5e1acccd9daa0eaea9c"
+      "sha256": "5a4c6a9ebf9fb70cc5e39a563051c97fa3b573012b26c664844643b7ba63d766"
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.mmd",
-      "sha256": "0b7214e6bb09eb5c55f463cc421c0495501159188b4ee47955b71df7bca7b25d"
+      "sha256": "7e524ce3fc5e6f6b9a9c2f086df9dad824ffb1154d63f0fd589946aaa2be7624"
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.dot",
-      "sha256": "0ca3edaaba620865f758f9f736826656a7abf04cd676785602b4401da012ab78"
+      "sha256": "15ff36285de854365905cbf86b5b9ae7a4ac64da124d015ec2a8fa00fbeb130c"
     },
     {
       "path": "authorities/project_sectors/ppt/workflow.v4.json",
-      "sha256": "0c9ce8f0c1fa53df1275aec31c41e94f74157b43cd2bcd9a1db9fd04c14d50c1"
+      "sha256": "6267b20d5194ef184bda40a581899ea3559f4969a87c3fd1dd04735fa49fc542"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.json",
-      "sha256": "ce1afbfdb98bc130db6c2e63bf247e6cbd6451b2ff9c56498f228a103f8abed6"
+      "sha256": "166d52dfdc2f31762c8f2c2f89c19b6a90d53fbb020538f99e8cf9e4606e8e2a"
     },
     {
       "path": "authorities/project_sectors/ppt/tools.schema.json",

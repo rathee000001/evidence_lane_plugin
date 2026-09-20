@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=E0B05BB1540B3940F923D40DBD17DA9B59B53FEDDA63824F542C8A1B8CA7A906
+%% LANGGRAPH_EXPORT_SHA256=38D5EB5B69BEB2C8691EA2FE97FA7FCD81992D268E7A1458478A03289BD1E619
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=12
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["receipts owning SQLite schema"]:::default
   t_accelerator_settings["accelerator_settings<br/>revision, config_json, digest, actor_id, configured_at"]:::table
   t_access_grants["access_grants<br/>grant_id, principal_id, permissions_json, roots_json, expires_at, revoked_at, created_at, parent_grant_id"]:::table
   t_capture_decisions["capture_decisions<br/>sequence, event_id, previous_digest, digest, body_json"]:::table
@@ -33,9 +34,41 @@ flowchart TB
   t_remote_probe["remote_probe<br/>principal_id, policy_digest, nonce_digest, object_digest, engine_id, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_accelerator_settings
+  SCHEMA_ROOT -->|"owns table"| t_access_grants
+  SCHEMA_ROOT -->|"owns table"| t_capture_decisions
+  SCHEMA_ROOT -->|"owns table"| t_extensions_events
+  SCHEMA_ROOT -->|"owns table"| t_extensions_registration
+  SCHEMA_ROOT -->|"owns table"| t_extensions_versions
+  SCHEMA_ROOT -->|"owns table"| t_gitpush_current
+  SCHEMA_ROOT -->|"owns table"| t_gitpush_events
+  SCHEMA_ROOT -->|"owns table"| t_hostmemory_imports
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_receipts
+  SCHEMA_ROOT -->|"owns table"| t_recovery_backups
+  SCHEMA_ROOT -->|"owns table"| t_recovery_control
+  SCHEMA_ROOT -->|"owns table"| t_recovery_history
+  SCHEMA_ROOT -->|"owns table"| t_remote_probe
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
   t_access_grants -->|"parent_grant_id"| t_access_grants
   t_extensions_events -->|"plugin_id"| t_extensions_registration
   t_extensions_versions -->|"plugin_id"| t_extensions_registration
   t_gitpush_current -->|"action_id"| t_gitpush_events
   t_gitpush_current -->|"sequence"| t_gitpush_events
   t_hostmemory_imports -->|"receipt_id"| t_receipts
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_accelerator_settings ~~~ t_access_grants
+  t_access_grants ~~~ t_capture_decisions
+  t_capture_decisions ~~~ t_extensions_events
+  t_gitpush_events ~~~ t_hostmemory_imports
+  t_hostmemory_imports ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_receipts
+  t_recovery_backups ~~~ t_recovery_control
+  t_recovery_control ~~~ t_recovery_history
+  t_recovery_history ~~~ t_remote_probe
+  t_remote_probe ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

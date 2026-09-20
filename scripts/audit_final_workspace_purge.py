@@ -254,9 +254,8 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
     catalog = load(PLUGIN / "toolchains/tool-catalog.v4.json")
     tools = {row["tool_id"] for row in definitions["entries"]}
     reject(
-        definitions.get("entry_count") != 103
-        or len(definitions["entries"]) != 103
-        or len(tools) != 103,
+        definitions.get("entry_count") != len(definitions["entries"])
+        or len(tools) != len(definitions["entries"]),
         "TOOL_DEFINITION_COUNT_MISMATCH",
     )
     reject(bool(tools & REMOVED_TOOL_IDS), "REMOVED_TOOL_DECLARATION_PRESENT")
@@ -266,7 +265,7 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
     )
     reject(
         catalog.get("schema_version") != 4
-        or catalog.get("counts") != {"retained": 103}
+        or catalog.get("counts") != {"retained": len(tools)}
         or catalog.get("source_sha256") != sha256(definitions_path),
         "TOOL_CATALOG_SOURCE_MISMATCH",
     )
@@ -274,8 +273,8 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
         PLUGIN / "toolchains/licenses/retained-install-license-index.v4.json"
     )
     reject(
-        license_index.get("retained_tool_count") != 103
-        or license_index.get("record_count", 103) != 103,
+        license_index.get("retained_tool_count") != len(tools)
+        or license_index.get("record_count", len(tools)) != len(tools),
         "LICENSE_INDEX_COUNT_MISMATCH",
     )
     reject(
@@ -358,9 +357,65 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
         name for name in package_test_policy.get('tests', [])
         if not (PLUGIN / 'tests' / name).is_file())
     reject(bool(missing_package_tests), 'PACKAGE_SELF_TEST_MISSING', paths=missing_package_tests)
+    canonical_actions = {
+        row['name'] for row in load(PLUGIN / 'schemas/public-action-schemas.v4.json')['actions']
+    }
+    workflow_actions = {
+        row['name']
+        for path in (PLUGIN / 'authorities').rglob('workflow.v4.json')
+        for row in load(path).get('actions', [])
+        if isinstance(row, dict) and isinstance(row.get('name'), str)
+    }
     reject(
-        any(path.startswith('apps/evidence-lane-app/') for path in public_paths),
-        "PREMATURE_WEBSITE_SOURCE_PRESENT",
+        workflow_actions != canonical_actions,
+        'WORKFLOW_ACTION_OWNER_COVERAGE_MISMATCH',
+        missing=sorted(canonical_actions - workflow_actions),
+        unknown=sorted(workflow_actions - canonical_actions),
+    )
+    operation_contracts = load(PLUGIN / 'toolchains/operation-toolchains.v4.json')['operations']
+    operation_actions = {row['operation'] for row in operation_contracts}
+    routed_tools = {
+        tool_id for row in operation_contracts for route in row['routes']
+        for tool_id in route['tool_ids']
+    }
+    reject(
+        operation_actions != canonical_actions,
+        'OPERATION_ACTION_REGISTRY_MISMATCH',
+        missing=sorted(canonical_actions - operation_actions),
+        unknown=sorted(operation_actions - canonical_actions),
+    )
+    reject(
+        not routed_tools.issubset(tools),
+        'OPERATION_UNKNOWN_TOOL_REFERENCE',
+        paths=sorted(routed_tools - tools),
+    )
+    website_root = 'apps/evidence-lane-app/'
+    website_paths = {path for path in public_paths if path.startswith(website_root)}
+    required_website_paths = {
+        website_root + '.gitignore',
+        website_root + 'app/layout.tsx',
+        website_root + 'package.json',
+        website_root + 'pnpm-lock.yaml',
+        website_root + 'vercel.json',
+    }
+    reject(
+        not required_website_paths.issubset(website_paths),
+        "WEBSITE_SOURCE_INCOMPLETE",
+        paths=sorted(required_website_paths - website_paths),
+    )
+    forbidden_website_paths = sorted(
+        path for path in website_paths
+        if any(part in path.split('/') for part in ('node_modules', '.next', '.preview'))
+        or path.endswith(('.blend', '.blend1', '.lnk', '.psd', '.tsbuildinfo'))
+        or (
+            Path(path).name.startswith('.env')
+            and Path(path).name != '.env.example'
+        )
+    )
+    reject(
+        bool(forbidden_website_paths),
+        "WEBSITE_PRIVATE_OR_BUILD_ARTIFACT_PRESENT",
+        paths=forbidden_website_paths,
     )
     reject(
         (ROOT / "apps/evidence-lane-studio/src/hil").exists(),

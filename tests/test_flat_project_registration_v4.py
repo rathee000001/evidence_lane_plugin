@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from evidence_lane_plugin.engine import Engine
 from evidence_lane_plugin.errors import LaneError
-from evidence_lane_plugin.lanes import AUTHORITY_LANE_IDS
+from evidence_lane_plugin.lanes import AUTHORITY_LANE_IDS, SECTOR_LANE_IDS
 from evidence_lane_plugin.recovery_snapshot import inventory, relative_file
 from evidence_lane_plugin.registry import ActionContext
 from evidence_lane_plugin.storage import project_snapshot
@@ -133,3 +133,35 @@ def test_recovery_scope_accepts_direct_members_and_rejects_old_wrappers():
     with pytest.raises(LaneError) as error:
         relative_file("authorities/plan/plan_authority_v001.sqlite")
     assert error.value.code == "RECOVERY_FILE_SCOPE"
+
+
+def test_absent_sector_read_is_noncreating_and_explicit_selection_materializes_only_that_sector(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    state = tmp_path / "state"
+    engine = Engine(tmp_path / "runtime")
+    project = engine.directory.register(
+        state,
+        source_root=source,
+        create=True,
+        read_only=False,
+    )
+    store = engine.directory.open(project["project_id"], write=True)
+    assert [row["lane_id"] for row in store.lane_catalog()] == list(AUTHORITY_LANE_IDS)
+    assert not any((state / lane_id).exists() for lane_id in SECTOR_LANE_IDS)
+    before = {path.relative_to(state): path.read_bytes() for path in state.rglob("*") if path.is_file()}
+    with pytest.raises(LaneError) as error:
+        store.lane("docs")
+    assert error.value.code == "LANE_NOT_INITIALIZED"
+    assert before == {
+        path.relative_to(state): path.read_bytes()
+        for path in state.rglob("*") if path.is_file()
+    }
+    selected = store.lane("docs", create=True)
+    assert selected.database.is_file()
+    assert [row["lane_id"] for row in store.lane_catalog()] == [*AUTHORITY_LANE_IDS, "docs"]
+    assert (state / "docs").is_dir()
+    assert not any(
+        (state / lane_id).exists()
+        for lane_id in SECTOR_LANE_IDS if lane_id != "docs"
+    )

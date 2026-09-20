@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { validatedHookOutput } from "./hook_output_contract.mjs";
 
 const events = new Set([
   "Interrupt",
@@ -26,6 +27,8 @@ const hooksRoot = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(hooksRoot, "..");
 const handler = path.join(hooksRoot, "stage_runner.py");
 const stages = new Set(["VALIDATE", "SEAL", "TRANSPORT", "EMIT"]);
+const terminalEvents = new Set(["Interrupt", "SessionEnd"]);
+const terminalOwnerStage = "VALIDATE";
 const studioRoot = process.env.EVIDENCE_LANE_STUDIO_ROOT || "C:\\Apps\\EvidenceLaneStudio";
 const stablePython = path.join(studioRoot, "engine", "venv", "Scripts", "python.exe");
 const checkoutPython = path.resolve(pluginRoot, "..", "..", ".venv", "Scripts", "python.exe");
@@ -37,6 +40,13 @@ function unavailable(code) {
 
 if (!events.has(selectedEvent) || !stages.has(selectedStage) || !existsSync(handler)) {
   unavailable("HOOK_EVENT_UNSUPPORTED");
+} else if (terminalEvents.has(selectedEvent) && selectedStage !== terminalOwnerStage) {
+  // Codex permits at most three seconds for Interrupt and SessionEnd.  Keep
+  // all four Host-visible rows, but avoid four concurrent cold interpreters:
+  // Hook 1 owns the complete terminal pipeline and the other rows are bounded
+  // compatibility/presentation members.
+  process.stdout.write("{}\n");
+  process.exitCode = 0;
 } else {
   const candidates = [];
   if (process.env.EVIDENCE_LANE_PYTHON) candidates.push(process.env.EVIDENCE_LANE_PYTHON);
@@ -54,7 +64,8 @@ if (!events.has(selectedEvent) || !stages.has(selectedStage) || !existsSync(hand
       return;
     }
     const command = unique[index++];
-    const child = spawn(command, ["-I", "-B", handler, selectedEvent, selectedStage], {
+    const executionStage = terminalEvents.has(selectedEvent) ? "EMIT" : selectedStage;
+    const child = spawn(command, ["-I", "-B", handler, selectedEvent, executionStage], {
       cwd: pluginRoot,
       env: { ...process.env, EVIDENCE_LANE_PLUGIN_ROOT: pluginRoot },
       shell: false,
@@ -62,30 +73,33 @@ if (!events.has(selectedEvent) || !stages.has(selectedStage) || !existsSync(hand
       windowsHide: true,
     });
     const stdout = [];
-    const stderr = [];
     let stdoutBytes = 0;
-    let stderrBytes = 0;
     let spawned = false;
+    let settled = false;
     child.once("spawn", () => { spawned = true; });
     child.stdout.on("data", (chunk) => {
       stdoutBytes += chunk.length;
       if (stdoutBytes <= 65_536) stdout.push(chunk);
     });
-    child.stderr.on("data", (chunk) => {
-      stderrBytes += chunk.length;
-      if (stderrBytes <= 8_192) stderr.push(chunk);
-    });
+    // Always drain child stderr, but never forward raw diagnostics into the
+    // shared Host Hook channel where request paths or values may be exposed.
+    child.stderr.on("data", () => {});
     child.once("error", (error) => {
       if (!spawned && error.code === "ENOENT") startNext(error);
-      else unavailable(error.code || "HOOK_RUNTIME_UNAVAILABLE");
+      else if (!settled) {
+        settled = true;
+        unavailable(error.code || "HOOK_RUNTIME_UNAVAILABLE");
+      }
     });
     child.once("exit", (code) => {
-      if (code === 0 && stdoutBytes > 0 && stdoutBytes <= 65_536) {
-        process.stdout.write(Buffer.concat(stdout));
+      if (settled) return;
+      settled = true;
+      const output = code === 0 ? validatedHookOutput(stdout, stdoutBytes, selectedEvent) : null;
+      if (output !== null) {
+        process.stdout.write(output);
         process.exitCode = 0;
         return;
       }
-      if (stderr.length) process.stderr.write(Buffer.concat(stderr));
       unavailable(code === 0 ? "HOOK_OUTPUT_INVALID" : "HOOK_HANDLER_FAILED");
     });
   }

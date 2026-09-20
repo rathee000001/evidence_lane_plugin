@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=95FB86D61AE60849407E12ED8FE0B8BA93D040D7528552D39400B87A4C75F5E8
+%% LANGGRAPH_EXPORT_SHA256=D7CF5DAC65F2AA830E804C91919755D61E7A861F7DB18B57E0909701CFC022B2
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=9
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,9 +17,8 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
-  writer["Engine coordinator and owning project writer"]:::default
-  delta["Current stored Plan operation and Delta admission"]:::default
   owner["universe current executable owner"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
   action_project_evidence_link["project_evidence_link"]:::default
   action_project_evidence_links_read["project_evidence_links_read"]:::default
   action_project_evidence_links_verify["project_evidence_links_verify"]:::default
@@ -63,8 +62,12 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_project_evidence_link ~~~ action_project_evidence_links_read
+  action_project_evidence_links_read ~~~ action_project_evidence_links_verify
   action_project_evidence_links_verify ~~~ action_project_evidence_map_inspect
+  action_project_evidence_map_query ~~~ action_project_evidence_network_create
   action_project_evidence_network_create ~~~ action_project_evidence_network_grant
+  action_project_evidence_network_grant ~~~ action_project_evidence_network_link
   action_project_evidence_network_read ~~~ action_project_evidence_network_register
+  action_project_evidence_network_register ~~~ action_project_evidence_network_revoke
   action_project_evidence_network_revoke ~~~ action_project_evidence_network_verify
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

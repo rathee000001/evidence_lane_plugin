@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=A2730351E4D189D85DB939DB0FF064AF6221AA081E79EDFD6FAB88DF8A682D94
+%% LANGGRAPH_EXPORT_SHA256=A7FA2F474B1087E0DE3A19B715ABE9578F6ED861C83DFB04A0CC0518C5E8E137
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=18
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["data_excel owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
@@ -38,6 +39,29 @@ flowchart TB
   t_sheet_validation["sheet_validation<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
   t_sheet_version["sheet_version<br/>snapshot_id, source_id, generation, previous_snapshot, manifest_object, raw_object, facts_object, parser_contract, created_at"]:::table
   t_sheet_workbook["sheet_workbook<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
+  SCHEMA_ROOT -->|"owns table"| t_sheet_cell_sample
+  SCHEMA_ROOT -->|"owns table"| t_sheet_chart_metadata
+  SCHEMA_ROOT -->|"owns table"| t_sheet_chunk
+  SCHEMA_ROOT -->|"owns table"| t_sheet_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_sheet_current
+  SCHEMA_ROOT -->|"owns table"| t_sheet_defined_name
+  SCHEMA_ROOT -->|"owns table"| t_sheet_derivative
+  SCHEMA_ROOT -->|"owns table"| t_sheet_export
+  SCHEMA_ROOT -->|"owns table"| t_sheet_formula
+  SCHEMA_ROOT -->|"owns table"| t_sheet_hyperlink
+  SCHEMA_ROOT -->|"owns table"| t_sheet_range
+  SCHEMA_ROOT -->|"owns table"| t_sheet_relationship
+  SCHEMA_ROOT -->|"owns table"| t_sheet_source
+  SCHEMA_ROOT -->|"owns table"| t_sheet_tab
+  SCHEMA_ROOT -->|"owns table"| t_sheet_table
+  SCHEMA_ROOT -->|"owns table"| t_sheet_validation
+  SCHEMA_ROOT -->|"owns table"| t_sheet_version
+  SCHEMA_ROOT -->|"owns table"| t_sheet_workbook
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
   t_sheet_cell_sample -->|"snapshot_id"| t_sheet_version
@@ -63,3 +87,23 @@ flowchart TB
   t_sheet_version -->|"previous_snapshot"| t_sheet_version
   t_sheet_version -->|"source_id"| t_sheet_source
   t_sheet_workbook -->|"snapshot_id"| t_sheet_version
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_selector_retirement
+  t_selector_retirement ~~~ t_sheet_cell_sample
+  t_sheet_cell_sample ~~~ t_sheet_chart_metadata
+  t_sheet_chunk ~~~ t_sheet_chunk_fts
+  t_sheet_chunk_fts ~~~ t_sheet_current
+  t_sheet_current ~~~ t_sheet_defined_name
+  t_sheet_defined_name ~~~ t_sheet_derivative
+  t_sheet_derivative ~~~ t_sheet_export
+  t_sheet_export ~~~ t_sheet_formula
+  t_sheet_hyperlink ~~~ t_sheet_range
+  t_sheet_range ~~~ t_sheet_relationship
+  t_sheet_relationship ~~~ t_sheet_source
+  t_sheet_source ~~~ t_sheet_tab
+  t_sheet_tab ~~~ t_sheet_table
+  t_sheet_table ~~~ t_sheet_validation
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

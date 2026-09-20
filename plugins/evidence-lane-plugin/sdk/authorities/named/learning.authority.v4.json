@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 24820,
     "path": "authorities/agent_learning/manifest.v4.json",
-    "sha256": "bca748f86b26bbf233011f175cccb7d585e2931bf2f3c578bbb223108393594c"
+    "sha256": "56e4bdba59f81249da18acf43a4c9e192d4c00aaae15ff60acef9c0f0a39f45e"
   },
   "path": "authorities/agent_learning",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "git",
+    "file": "git.svg",
+    "source": "https://git-scm.com/community/logos",
+    "asset": "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.svg",
+    "rights": "Git logo by Jason Long; CC BY 3.0",
+    "sha256": "1080a5430edb6278dc03e4b04efc16c8bed5b943408d648ad721a28836814220"
+  },
+  {
+    "name": "python",
+    "file": "python.svg",
+    "source": "https://www.python.org/community/logos/",
+    "asset": "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/files/python-logo-only.svg",
+    "rights": "Python Software Foundation trademark; used to identify Python",
+    "sha256": "baec8662a1461c2cacc326b54d2727cb2f1ce07ba02d00f5b826d035104f649f"
+  },
+  {
+    "name": "nodejs",
+    "file": "nodejs.svg",
+    "source": "https://nodejs.org/en/about/branding",
+    "asset": "https://nodejs.org/static/logos/jsIconGreen.svg",
+    "rights": "Node.js trademark; OpenJS Foundation branding policy",
+    "sha256": "3c88b1a2261132b11d242fe8831525be051450e1149c965d5a5f1ded63e9b50d"
+  },
+  {
+    "name": "github",
+    "file": "github.png",
+    "source": "https://github.com/logos",
+    "asset": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+    "rights": "GitHub mark; used to identify GitHub",
+    "sha256": "6d6ef7bede0416b6ebee2014be5852576dbce89235fe16ea5c44ed01bd522132"
+  },
+  {
+    "name": "word",
+    "file": "word.svg",
+    "source": "https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/branding",
+    "asset": "https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/word_48x1.svg",
+    "rights": "Microsoft Word product icon; Microsoft trademark",
+    "sha256": "fef9d7fc114f0c5d55e6d50c6d8d3fc40ed69f1122d9adf1780dfa57ad40af79"
+  },
+  {
+    "name": "excel",
+    "file": "excel.svg",
+    "source": "https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/branding",
+    "asset": "https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/excel_48x1.svg",
+    "rights": "Microsoft Excel product icon; Microsoft trademark",
+    "sha256": "da91a550409ab355e664188a00135bc93603e5a8f53df3eeed8abc2ab3db8d71"
+  },
+  {
+    "name": "powerpoint",
+    "file": "powerpoint.svg",
+    "source": "https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/branding",
+    "asset": "https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/powerpoint_48x1.svg",
+    "rights": "Microsoft PowerPoint product icon; Microsoft trademark",
+    "sha256": "708fa79febaf25786d84a4bd6a39c8a7345e1e927399f88761db11dab5441f84"
+  },
+  {
+    "name": "openai",
+    "file": "openai.svg",
+    "source": "https://github.com/openai/openai-agents-python/blob/main/docs/assets/logo.svg",
+    "asset": "https://raw.githubusercontent.com/openai/openai-agents-python/main/docs/assets/logo.svg",
+    "rights": "OpenAI mark, unchanged; used to identify the supported host. No endorsement implied.",
+    "sha256": "b94ea61d860fae6f82f43571f36f17111fcf5d348e8e9cc22ae4b441c7560011"
+  },
+  {
+    "name": "powerbi",
+    "file": "powerbi.svg",
+    "source": "https://github.com/microsoft/PowerBI-Icons",
+    "asset": "https://raw.githubusercontent.com/microsoft/PowerBI-Icons/main/SVG/Power-BI.svg",
+    "rights": "Microsoft official Power BI icon repository; CC BY 4.0; Microsoft trademark.",
+    "sha256": "55daee85ccbe0d410909cd3b2b2d974d9a450ca3c6208992eec99fa9fa7b0b8d"
+  },
+  {
+    "name": "tableau",
+    "file": "tableau.ico",
+    "source": "https://www.tableau.com/support",
+    "asset": "https://www.tableau.com/themes/custom/tableau_www/favicon.ico",
+    "rights": "Tableau official website icon; Salesforce/Tableau trademark; unchanged identifying use.",
+    "sha256": "26e7546a015a3299fb76d46030ee9202f6f428ba3505d25734858a279c3b2c54"
+  }
+]

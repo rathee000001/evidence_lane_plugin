@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B22338E34E4BBA694291EAB7919233AEA9CD1E207367D1DD99982DB2CC599E6B
+%% LANGGRAPH_EXPORT_SHA256=10DE13CC9C7352D1BA7F6CD556787868A709FBDBA2CCA63B08CB82E4229A2CEB
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=18
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["custom owning SQLite schema"]:::default
   t_custom_archive_member["custom_archive_member<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
   t_custom_chunk["custom_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
   t_custom_chunk_fts["custom_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
@@ -38,6 +39,29 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_custom_archive_member
+  SCHEMA_ROOT -->|"owns table"| t_custom_chunk
+  SCHEMA_ROOT -->|"owns table"| t_custom_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_custom_current
+  SCHEMA_ROOT -->|"owns table"| t_custom_decision
+  SCHEMA_ROOT -->|"owns table"| t_custom_evidence
+  SCHEMA_ROOT -->|"owns table"| t_custom_file
+  SCHEMA_ROOT -->|"owns table"| t_custom_item
+  SCHEMA_ROOT -->|"owns table"| t_custom_native_fact
+  SCHEMA_ROOT -->|"owns table"| t_custom_next_action
+  SCHEMA_ROOT -->|"owns table"| t_custom_review_required
+  SCHEMA_ROOT -->|"owns table"| t_custom_source
+  SCHEMA_ROOT -->|"owns table"| t_custom_sqlite_receipt
+  SCHEMA_ROOT -->|"owns table"| t_custom_sqlite_relationship
+  SCHEMA_ROOT -->|"owns table"| t_custom_sqlite_row
+  SCHEMA_ROOT -->|"owns table"| t_custom_sqlite_schema_object
+  SCHEMA_ROOT -->|"owns table"| t_custom_sqlite_table
+  SCHEMA_ROOT -->|"owns table"| t_custom_version
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_custom_archive_member -->|"snapshot_id"| t_custom_version
   t_custom_chunk -->|"text_object"| t_objects
   t_custom_chunk -->|"snapshot_id"| t_custom_version
@@ -62,3 +86,23 @@ flowchart TB
   t_custom_version -->|"source_id"| t_custom_file
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_custom_archive_member ~~~ t_custom_chunk
+  t_custom_chunk ~~~ t_custom_chunk_fts
+  t_custom_chunk_fts ~~~ t_custom_current
+  t_custom_current ~~~ t_custom_decision
+  t_custom_decision ~~~ t_custom_evidence
+  t_custom_evidence ~~~ t_custom_file
+  t_custom_item ~~~ t_custom_native_fact
+  t_custom_native_fact ~~~ t_custom_next_action
+  t_custom_next_action ~~~ t_custom_review_required
+  t_custom_review_required ~~~ t_custom_source
+  t_custom_source ~~~ t_custom_sqlite_receipt
+  t_custom_sqlite_receipt ~~~ t_custom_sqlite_relationship
+  t_custom_sqlite_row ~~~ t_custom_sqlite_schema_object
+  t_custom_sqlite_schema_object ~~~ t_custom_sqlite_table
+  t_custom_version ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_schema_migrations
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

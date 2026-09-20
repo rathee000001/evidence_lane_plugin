@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=069635A837651C915EC1A19B0398856D9A30A0A71157D47C6EE67D6F4E860BAF
+%% LANGGRAPH_EXPORT_SHA256=85B731D008240971B1195EF032604BE81DF525CECB085B83B6A0E2C484FD2839
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=28
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["power_bi owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_powerbi_annotation["powerbi_annotation<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
@@ -52,6 +53,43 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_annotation
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_bookmark
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_chunk
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_column
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_culture
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_current
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_data_source
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_export
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_expression
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_file
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_filter
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_hierarchy
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_measure
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_model
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_model_metadata
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_model_row
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_opaque
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_package_member
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_page
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_partition
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_perspective
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_project
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_reference
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_relationship
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_report
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_role
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_structure
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_table
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_theme
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_version
+  SCHEMA_ROOT -->|"owns table"| t_powerbi_visual
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_powerbi_annotation -->|"snapshot_id"| t_powerbi_version
   t_powerbi_bookmark -->|"snapshot_id"| t_powerbi_version
   t_powerbi_chunk -->|"text_object"| t_objects
@@ -91,3 +129,33 @@ flowchart TB
   t_powerbi_visual -->|"snapshot_id"| t_powerbi_version
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_powerbi_annotation
+  t_powerbi_annotation ~~~ t_powerbi_bookmark
+  t_powerbi_bookmark ~~~ t_powerbi_chunk
+  t_powerbi_chunk ~~~ t_powerbi_chunk_fts
+  t_powerbi_chunk_fts ~~~ t_powerbi_column
+  t_powerbi_column ~~~ t_powerbi_culture
+  t_powerbi_current ~~~ t_powerbi_data_source
+  t_powerbi_data_source ~~~ t_powerbi_export
+  t_powerbi_expression ~~~ t_powerbi_file
+  t_powerbi_file ~~~ t_powerbi_filter
+  t_powerbi_filter ~~~ t_powerbi_hierarchy
+  t_powerbi_hierarchy ~~~ t_powerbi_measure
+  t_powerbi_model ~~~ t_powerbi_model_metadata
+  t_powerbi_model_metadata ~~~ t_powerbi_model_row
+  t_powerbi_model_row ~~~ t_powerbi_opaque
+  t_powerbi_opaque ~~~ t_powerbi_package_member
+  t_powerbi_package_member ~~~ t_powerbi_page
+  t_powerbi_partition ~~~ t_powerbi_perspective
+  t_powerbi_project ~~~ t_powerbi_reference
+  t_powerbi_reference ~~~ t_powerbi_relationship
+  t_powerbi_relationship ~~~ t_powerbi_report
+  t_powerbi_report ~~~ t_powerbi_role
+  t_powerbi_role ~~~ t_powerbi_structure
+  t_powerbi_structure ~~~ t_powerbi_table
+  t_powerbi_table ~~~ t_powerbi_theme
+  t_powerbi_visual ~~~ t_schema_migrations
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -3,7 +3,7 @@ flowchart TB
 %% LANGGRAPH_VERSION=1.2.11
 %% LANGGRAPH_EXPORT_SHA256=96057C27A1E3B34F8D824AE717D7AA7FD35C2A47CA8394BB03106DD4DA44B7DD
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=10
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -75,8 +75,13 @@ flowchart TB
   lane -->|"bounded recorded evidence"| action_source_snapshot_state
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_presentation_convert ~~~ action_presentation_edit
+  action_presentation_edit ~~~ action_presentation_enrich
   action_presentation_export ~~~ action_presentation_generate
+  action_presentation_generate ~~~ action_presentation_index
   action_presentation_refresh ~~~ action_presentation_render
+  action_presentation_render ~~~ action_source_snapshot_retire
   action_presentation_current ~~~ action_presentation_enrichment_read
+  action_presentation_enrichment_read ~~~ action_presentation_query
+  action_presentation_read ~~~ action_presentation_render_read
   action_presentation_render_read ~~~ action_source_snapshot_state
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=13AA790E4DFF54CAA480BAAF1F7271E017F2689A17C0F8474C7706C71977BA81
+%% LANGGRAPH_EXPORT_SHA256=C06C55C04476E9C8F6175FE048BC00F12514C45E411AF7FE5EAE678FFAA1DD26
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=9
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["chat_lineage owning SQLite schema"]:::default
   t_continuation_bindings["continuation_bindings<br/>binding_digest, participant_id, generation, body_json"]:::table
   t_continuation_events["continuation_events<br/>sequence, request_id, kind, actor_id, input_digest, result_json, previous_digest, digest, created_at"]:::table
   t_continuation_offers["continuation_offers<br/>sequence, continuation_id, participant_id, source_client_id, destination_client_id, continuation_digest, body_json, state, result_json, created_at"]:::table
@@ -29,6 +30,20 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_turn_events["turn_events<br/>sequence, source_event_id, client_id, reported_session_id, reported_turn_id, session_digest, event_name, body_digest, previous_digest, digest"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_continuation_bindings
+  SCHEMA_ROOT -->|"owns table"| t_continuation_events
+  SCHEMA_ROOT -->|"owns table"| t_continuation_offers
+  SCHEMA_ROOT -->|"owns table"| t_continuation_retired_clients
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_lineage_chunks
+  SCHEMA_ROOT -->|"owns table"| t_lineage_events
+  SCHEMA_ROOT -->|"owns table"| t_lineage_fts
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_prompt_classifications
+  SCHEMA_ROOT -->|"owns table"| t_prompt_entries
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_turn_events
   t_continuation_retired_clients -->|"continuation_id"| t_continuation_offers
   t_lineage_chunks -->|"event_id"| t_lineage_events
   t_lineage_events -->|"payload_digest"| t_objects
@@ -37,3 +52,14 @@ flowchart TB
   t_prompt_entries -->|"source_event_id"| t_lineage_events
   t_turn_events -->|"body_digest"| t_objects
   t_turn_events -->|"source_event_id"| t_lineage_events
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_continuation_bindings ~~~ t_continuation_events
+  t_continuation_events ~~~ t_continuation_offers
+  t_continuation_retired_clients ~~~ t_lane_identity
+  t_lane_identity ~~~ t_lineage_chunks
+  t_lineage_fts ~~~ t_objects
+  t_objects ~~~ t_prompt_classifications
+  t_prompt_entries ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_turn_events
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

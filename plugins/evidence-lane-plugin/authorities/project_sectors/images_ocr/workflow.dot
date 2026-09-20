@@ -56,7 +56,10 @@ digraph workflow_images_ocr {
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_media_current -> action_media_extraction_read [constraint=true style=invis weight=100]
   action_media_extraction_read -> action_media_ocr_read [constraint=true style=invis weight=100]
+  action_media_query -> action_media_read [constraint=true style=invis weight=100]
   action_media_read -> action_source_snapshot_state [constraint=true style=invis weight=100]
+  action_media_export -> action_media_extract [constraint=true style=invis weight=100]
   action_media_extract -> action_media_index [constraint=true style=invis weight=100]
+  action_media_ocr -> action_media_refresh [constraint=true style=invis weight=100]
   action_media_refresh -> action_media_transform [constraint=true style=invis weight=100]
 }

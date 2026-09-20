@@ -8,28 +8,28 @@
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt VALIDATE",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt VALIDATE",
             "statusMessage": "Validating and redacting Evidence Lane Interrupt",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt SEAL",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt SEAL",
             "statusMessage": "Classifying and sealing Evidence Lane Interrupt",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt TRANSPORT",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt TRANSPORT",
             "statusMessage": "Handling and delivering Evidence Lane Interrupt",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" Interrupt EMIT",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" Interrupt EMIT",
             "statusMessage": "Verifying and emitting Evidence Lane Interrupt",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           }
         ]
@@ -212,28 +212,28 @@
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd VALIDATE",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd VALIDATE",
             "statusMessage": "Validating and redacting Evidence Lane SessionEnd",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd SEAL",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd SEAL",
             "statusMessage": "Classifying and sealing Evidence Lane SessionEnd",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd TRANSPORT",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd TRANSPORT",
             "statusMessage": "Handling and delivering Evidence Lane SessionEnd",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           },
           {
             "command": "node \"${PLUGIN_ROOT}/hooks/runner.mjs\" SessionEnd EMIT",
             "commandWindows": "& node \"${PLUGIN_ROOT}\\hooks\\runner.mjs\" SessionEnd EMIT",
             "statusMessage": "Verifying and emitting Evidence Lane SessionEnd",
-            "timeout": 10,
+            "timeout": 3,
             "type": "command"
           }
         ]

@@ -51,7 +51,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "91fe9d7640d8cdfb1d3945cca4944e290bfe7c0578143b01df323b158a9b9309"
+      "sha256": "2d27cfc7b9c456b60ed157872dd9f82beea85291e8d762751cb58332df46265a"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -59,15 +59,15 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.dot",
-      "sha256": "07f867ee390703a432d57c7957a36b7e4211e2d62f99501f8ee0441e15a191ce"
+      "sha256": "02ae943d539ea98fb95a231210184fa951569a6b118239012cd9969806a050c8"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.mmd",
-      "sha256": "cd8926f3f103022a5d51a6d7666bce53c52b759d68b6ceeb48e6c910d9277fa1"
+      "sha256": "f5adb693caacb32700cdf067f291c5e493a3750303e955e2accdc2b5ebd51afb"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "34eb07553abd2f0139c57dd8c66e37d87ea8962d3f7b106e44bdb734fd855c79"
+      "sha256": "8a6ae41172079d156e580cfe563ff2b34ceddb1e1714f74699f29a6bd67809b8"
     }
   ]
 }

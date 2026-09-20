@@ -610,7 +610,7 @@
       "version": 1,
       "meaning": "Verified observations, their exact source receipts and version relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "63209a611b1c2aaccd78dbd014e5e0850eda0d136af47f60b9287a851c06d4f4",
+      "implementation_digest": "c2490d9512431cc0651eee1f6c86998f4103f21ee8e90bd1cebcaee742f2367d",
       "files": {
         "mmd": "agent-learning.mmd",
         "dot": "agent-learning.dot"
@@ -681,11 +681,11 @@
     },
     {
       "path": "authorities/agent_learning/agent-learning.dot",
-      "sha256": "e33b468de05cb7b5d005e288bc39cfb241f034f2ffbad9f5fb18c8cd4af8653c"
+      "sha256": "063c1c0289a01c6c230db5b15c013c04769917abd3c439de0f69a125ece26c8f"
     },
     {
       "path": "authorities/agent_learning/agent-learning.mmd",
-      "sha256": "cb2dd8b9b0f52e00ea22dea2e3147b0683a0f4bb812d383f0f0c6ddcd504d476"
+      "sha256": "77534c28427eb8ab2b13f18971653635b7d8f2732c998fa7b51e137df3333e33"
     },
     {
       "path": "authorities/agent_learning/agent-learning.sqlite",
@@ -693,7 +693,7 @@
     },
     {
       "path": "authorities/agent_learning/agent-learning.tools.json",
-      "sha256": "6e77c2be32c43c024fb71c046ccc3c95cdb1a53d97078aecf1bbe8b959b37adb"
+      "sha256": "756c4430524d82c92f0d12de2f5579c544bb316d29abc7e57adf8dde2c1a774d"
     },
     {
       "path": "authorities/agent_learning/build-refresh-contract.schema.json",
@@ -705,7 +705,7 @@
     },
     {
       "path": "authorities/agent_learning/dot-artifact.schema.json",
-      "sha256": "9aa6950d2862f45bd3da009a95f5e0655c1b943a978b0c4c2e4aa2bfbe3f0852"
+      "sha256": "6aab433c59da7ef13ed6f63c44da4475a90c7cb65385c7d02bab101855fc865a"
     },
     {
       "path": "authorities/agent_learning/manifest.schema.json",
@@ -717,7 +717,7 @@
     },
     {
       "path": "authorities/agent_learning/mmd-artifact.schema.json",
-      "sha256": "beb99ccea6ecab091521b34c96e899108b608d9dc99a9bc31b17dad830391bf8"
+      "sha256": "4134078fd99a1fcea2abbf6ce42083d91545977e9dd70e71754b7149a82a29a9"
     },
     {
       "path": "authorities/agent_learning/pointer-contract.schema.json",
@@ -725,7 +725,7 @@
     },
     {
       "path": "authorities/agent_learning/pointer-contract.v4.json",
-      "sha256": "5f0058de392f6261aff14ad254ba6e220cb2633cb2a9dc8f34f1be8bc53c776c"
+      "sha256": "b7574e8215915d5cedb5fea225bdf16ea8eeeff546d0625bdf5e0df4b6d603a0"
     },
     {
       "path": "authorities/agent_learning/reader-contract.schema.json",
@@ -769,15 +769,15 @@
     },
     {
       "path": "authorities/agent_learning/workflow.dot",
-      "sha256": "32a4652b58919a89b77397be08af40bd12fa95b585f02cfbb3d69fc4655e407e"
+      "sha256": "12125e6f2c6fd384c0c4da829b6f6d8371b81b1c262be7511c9b0795ac5a2326"
     },
     {
       "path": "authorities/agent_learning/workflow.mmd",
-      "sha256": "8ff6f19e14f9dcf161a17ea2ed43d191887b5defc1d1539c969048232afc25ea"
+      "sha256": "1b6f0d825b2c7357d58cf5a333a4864c643502c73b5f3d0c0fc625befbf5b6b6"
     },
     {
       "path": "authorities/agent_learning/workflow.v4.json",
-      "sha256": "63043c8e0e8ae256d48bcdf5e037f48ffce866cc8718fb56278ded1450691851"
+      "sha256": "e3c482407be0b64845732ebc83e32f77e60f8a92f02c816a11a78c9f95014c13"
     }
   ]
 }

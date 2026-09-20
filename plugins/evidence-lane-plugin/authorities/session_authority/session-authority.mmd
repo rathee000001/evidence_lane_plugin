@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=96A790E389CCF8BB5522573CEECDFD90E38B6D44A0A92DAEC65EDAD73F932946
+%% LANGGRAPH_EXPORT_SHA256=57684C1FD4D51E01B2123378CC6B1DE82E2018686A94D94E34A2B651438CFE0C
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["sessions owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
@@ -22,5 +23,18 @@ flowchart TB
   t_sessions_current["sessions_current<br/>singleton, session_id"]:::table
   t_sessions_events["sessions_events<br/>sequence, request_id, session_id, generation, action, client_id, input_digest, body_json, previous_digest, digest, created_at"]:::table
   t_sessions_records["sessions_records<br/>session_id, state, generation, owner_client_id, owner_engine_id, reported_session_id, flash_digest, runtime_package_digest, event_digest, created_at, updated_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_sessions_current
+  SCHEMA_ROOT -->|"owns table"| t_sessions_events
+  SCHEMA_ROOT -->|"owns table"| t_sessions_records
   t_sessions_current -->|"session_id"| t_sessions_records
   t_sessions_events -->|"session_id"| t_sessions_records
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_sessions_current ~~~ t_sessions_events
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

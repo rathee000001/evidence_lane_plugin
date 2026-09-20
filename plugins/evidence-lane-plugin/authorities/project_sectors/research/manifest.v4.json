@@ -2877,7 +2877,7 @@
       "version": 1,
       "meaning": "Exact local sources, captured responses and unvisited provider results with attributed Research assertions and citations.",
       "consumer": "artifact_export",
-      "implementation_digest": "abe61132b0ed7cfb37869cb31cbce180c11154ffeaf36b05d6e5dde90384adc4",
+      "implementation_digest": "fcf2ef381da5d1df6a0e671da08cb4be1f8810847f4bd9fba657429d72b75eb4",
       "files": {
         "mmd": "research.mmd",
         "dot": "research.dot",
@@ -3036,27 +3036,27 @@
     },
     {
       "path": "authorities/project_sectors/research/research.mmd",
-      "sha256": "8e4af135798c45f59430f2942af304600cdf5fc96ac487d81c68e5a01d95e633"
+      "sha256": "07741b7bae2f39ce6fa37e78eb9173dbabc7d195493ec91d56d946d77d035259"
     },
     {
       "path": "authorities/project_sectors/research/research.dot",
-      "sha256": "cd6d59e03546184e106425d17dcf68321d64b8c778178da1f730af15e8f85c42"
+      "sha256": "e8568955516ca7771701b0ec37280b886825fc2a8248229ea78e6d5fe3c2505d"
     },
     {
       "path": "authorities/project_sectors/research/workflow.mmd",
-      "sha256": "05f915dfa6792a03d93733abe1795ccd979f089785863232d2bbd4c69a30ab22"
+      "sha256": "8c86be9427af490029f55ab0ce64abd2f5aee8e77ef99fcc7e4c2bd9089bcade"
     },
     {
       "path": "authorities/project_sectors/research/workflow.dot",
-      "sha256": "bc9c03fcedcebaa0265f8ef35bdbfbbcf227cf34dfcd6edefce36b32c278c798"
+      "sha256": "e687d18dfc8f3d919d7a63d415be58e06fc788b68e46cfed72f0f5b2774c3a1c"
     },
     {
       "path": "authorities/project_sectors/research/workflow.v4.json",
-      "sha256": "4ae5f49c3eb6fbab193065e6a897b013f76e1668087f62d8e266353c1ee98153"
+      "sha256": "cbd51b8fd565ee8867c60bec9914f63dea0bc9d046455c71702627b72eba7275"
     },
     {
       "path": "authorities/project_sectors/research/tools.json",
-      "sha256": "48c88d6255cd1592f709fcd3b11426bc9740b4f5ac3ce2891f91737c36bf04a7"
+      "sha256": "8200bded11a937750184ed003e4d3e691c94023237974d96b538a4432b66bc2e"
     },
     {
       "path": "authorities/project_sectors/research/tools.schema.json",

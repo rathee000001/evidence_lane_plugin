@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=EF5D0D734696B6F806543F777159CFE8B71E4A3C1B2211FDA70B4241EE7FE746
+%% LANGGRAPH_EXPORT_SHA256=BB5FB0E51E1EBE4D3C500AB65DECBD6B3D296CF3E2DF38A6735D89BEBEC64224
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=9
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,15 +17,17 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
+  owner["receipts current executable owner"]:::default
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
-  owner["receipts current executable owner"]:::default
   action_accelerator_configure["accelerator_configure"]:::default
   action_accelerator_read["accelerator_read"]:::default
   action_capture_bind["capture_bind"]:::default
   action_connector_configure["connector_configure"]:::default
   action_connector_read["connector_read"]:::default
   action_connector_revoke["connector_revoke"]:::default
+  action_evaluation_feedback_export["evaluation_feedback_export"]:::default
+  action_observability_export["observability_export"]:::default
   action_remote_git_action_read["remote_git_action_read"]:::default
   action_remote_git_execute_push["remote_git_execute_push"]:::default
   action_remote_git_prepare_push["remote_git_prepare_push"]:::default
@@ -42,6 +44,12 @@ flowchart TB
   action_connector_read -->|"inspect-project-connectors"| read
   sdk -->|"admin"| action_connector_revoke
   action_connector_revoke -->|"revoke-project-connector"| writer
+  sdk -->|"publish"| action_evaluation_feedback_export
+  delta -->|"required current operation contract"| action_evaluation_feedback_export
+  action_evaluation_feedback_export -->|"select-project-tools"| writer
+  sdk -->|"publish"| action_observability_export
+  delta -->|"required current operation contract"| action_observability_export
+  action_observability_export -->|"select-project-tools"| writer
   sdk -->|"read"| action_remote_git_action_read
   action_remote_git_action_read -->|"run-project-lifecycle"| read
   sdk -->|"publish"| action_remote_git_execute_push
@@ -56,7 +64,12 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_accelerator_configure ~~~ action_accelerator_read
+  action_accelerator_read ~~~ action_capture_bind
   action_capture_bind ~~~ action_connector_configure
-  action_connector_revoke ~~~ action_remote_git_action_read
+  action_connector_read ~~~ action_connector_revoke
+  action_connector_revoke ~~~ action_evaluation_feedback_export
+  action_evaluation_feedback_export ~~~ action_observability_export
+  action_remote_git_action_read ~~~ action_remote_git_execute_push
+  action_remote_git_execute_push ~~~ action_remote_git_prepare_push
   action_remote_git_prepare_push ~~~ action_session_exit_boundary
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

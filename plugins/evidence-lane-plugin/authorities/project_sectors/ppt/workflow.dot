@@ -63,8 +63,13 @@ digraph workflow_ppt {
   read -> action_source_snapshot_state [label=read]
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_presentation_convert -> action_presentation_edit [constraint=true style=invis weight=100]
+  action_presentation_edit -> action_presentation_enrich [constraint=true style=invis weight=100]
   action_presentation_export -> action_presentation_generate [constraint=true style=invis weight=100]
+  action_presentation_generate -> action_presentation_index [constraint=true style=invis weight=100]
   action_presentation_refresh -> action_presentation_render [constraint=true style=invis weight=100]
+  action_presentation_render -> action_source_snapshot_retire [constraint=true style=invis weight=100]
   action_presentation_current -> action_presentation_enrichment_read [constraint=true style=invis weight=100]
+  action_presentation_enrichment_read -> action_presentation_query [constraint=true style=invis weight=100]
+  action_presentation_read -> action_presentation_render_read [constraint=true style=invis weight=100]
   action_presentation_render_read -> action_source_snapshot_state [constraint=true style=invis weight=100]
 }

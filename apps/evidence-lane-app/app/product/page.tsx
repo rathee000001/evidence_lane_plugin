@@ -1,0 +1,1 @@
+import type{Metadata}from'next';import{ProductAnatomy}from'../components/product-anatomy';export const metadata:Metadata={title:'Inside an Evidence Lane project',description:'Explore the real project structure: separate records, selected sources, intentional work and the read-only Studio observer.'};export default function Product(){return <ProductAnatomy/>}

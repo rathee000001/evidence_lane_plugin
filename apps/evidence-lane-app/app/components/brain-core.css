@@ -1,0 +1,22 @@
+.pulsating-brain { --brain-intensity:1; position: relative; display: grid; place-items: center; isolation: isolate; }
+.pulsating-brain__energy { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pulsating-brain__energy path { fill: none; stroke-linecap: round; }
+.pulsating-brain__arcs path { stroke-width: 4; opacity: calc(.7 * var(--brain-intensity)); }
+.pulsating-brain__arcs--cool path, .pulsating-brain__wave--cool { stroke: #85d9ff; }
+.pulsating-brain__arcs--warm path, .pulsating-brain__wave--warm { stroke: #f2d79c; }
+.pulsating-brain__wave { stroke-width: 4; opacity: 0; stroke-dasharray: 210; }
+.pulsating-brain__halo { position: absolute; z-index: -1; width: 70%; height: 70%; border-radius: 50%; background: radial-gradient(circle,rgba(255,255,255,.18),rgba(122,210,245,.08) 47%,transparent 72%); filter: blur(11px); }
+.brain-sphere { position: relative; z-index: 3; border-radius: 50%; isolation: isolate; }
+.brain-sphere__rear, .brain-sphere__glass, .brain-sphere__rim, .brain-sphere__reflection { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+.brain-sphere__rear { z-index: -2; background: radial-gradient(circle at 33% 27%,rgba(255,255,255,.78),transparent 25%),radial-gradient(circle at 48% 48%,color-mix(in srgb,var(--brain-orb-color,#67d9f6) 62%,white),color-mix(in srgb,var(--brain-orb-color,#67d9f6) 38%,transparent) 50%,rgba(255,255,255,.14) 76%); box-shadow: 0 0 18px color-mix(in srgb,var(--brain-orb-color,#67d9f6) 44%,transparent); }
+.brain-sphere__brain { position: absolute; z-index: -1; left: 12.5%; top: 16%; width: 75%; height: 70%; object-fit: contain; }
+.brain-sphere__glass { background: radial-gradient(circle at 35% 25%,rgba(255,255,255,.42),transparent 28%),radial-gradient(circle at 58% 68%,transparent 45%,rgba(143,204,235,.16) 75%,rgba(255,255,255,.35)); }
+.brain-sphere__rim { inset: 2px; border: 2px solid color-mix(in srgb,var(--brain-orb-color,#67d9f6) 34%,white); box-shadow: inset 7px 7px 12px rgba(255,255,255,.66),inset -9px -11px 16px color-mix(in srgb,var(--brain-orb-color,#67d9f6) 17%,transparent),0 0 0 5px color-mix(in srgb,var(--brain-orb-color,#67d9f6) 14%,transparent); }
+.brain-sphere__reflection { inset: 7%; background: linear-gradient(130deg,rgba(255,255,255,.52),transparent 28%); clip-path: ellipse(32% 48% at 27% 24%); }
+.pulsating-brain.is-active .pulsating-brain__orb { animation: brain-pulse 1.42s cubic-bezier(.42,0,.2,1) infinite; filter: brightness(1.08) saturate(1.1) drop-shadow(0 0 10px color-mix(in srgb,var(--brain-orb-color,#67d9f6) 38%,transparent)); will-change: transform; }
+.pulsating-brain.is-active .pulsating-brain__wave { animation: brain-wave 1.34s ease-in-out infinite; filter: drop-shadow(0 0 7px currentColor); }
+@keyframes brain-pulse { 0%,100% { transform: scale(1); } 45% { transform: scale(1.058); } 68% { transform: scale(1.018); } }
+@keyframes brain-wave { 0% { opacity:0;stroke-dashoffset:210; } 20%,72% { opacity:1; } 100% { opacity:0;stroke-dashoffset:-210; } }
+.brain-core-host .pulsating-brain__arcs--cool path,.brain-core-host .pulsating-brain__wave--cool{stroke:var(--brain-orb-color)}.brain-core-host .pulsating-brain__halo{background:radial-gradient(circle,color-mix(in srgb,var(--brain-orb-color) 32%,transparent),transparent 73%)}.brain-core-host .brain-sphere__brain{filter:drop-shadow(0 2px 6px color-mix(in srgb,var(--brain-orb-color) 45%,transparent));transition:filter .25s}.brain-core-host .brain-sphere__glass{background:radial-gradient(circle at 30% 24%,#ffffff5c,transparent 30%),radial-gradient(circle,color-mix(in srgb,var(--brain-orb-color) 15%,transparent),transparent 64%)}@media(prefers-reduced-motion:reduce){.brain-core-host *{animation:none!important}}
+
+.brain-core-host .brain-sphere{overflow:hidden;aspect-ratio:1}.brain-core-host .brain-sphere__brain{position:absolute;left:15%;top:17%;width:70%;height:67%;object-fit:contain;z-index:1}.brain-core-host .brain-sphere__rear{z-index:0}.brain-core-host .brain-sphere__glass{z-index:2}.brain-core-host .brain-sphere__rim{z-index:3}.brain-core-host .brain-sphere__reflection{z-index:4}

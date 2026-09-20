@@ -2662,27 +2662,27 @@
     },
     {
       "path": "authorities/project_sectors/github_code/github_code.mmd",
-      "sha256": "f6b527f83a46ab7364cfb132f5db36f0c14d2397624ce75d96de86f3bc528f90"
+      "sha256": "b8939eb1db89a713bb87c3899bde590dcc8862d6b48d500864c54b8807ebd585"
     },
     {
       "path": "authorities/project_sectors/github_code/github_code.dot",
-      "sha256": "d32fff1dc03ed821becec7b3f4caef1eacb72a9d4d6ab4e7cc23daeffcdd2ef7"
+      "sha256": "d4ee708f0b2da013370ce027a44384c68960491c805ad52eedf51d8b4d3601c6"
     },
     {
       "path": "authorities/project_sectors/github_code/workflow.mmd",
-      "sha256": "73f2be91a4f4ec584bb1237cc7be6dd16d922d55c016b9d0416c137e3dae107e"
+      "sha256": "2030842dc690d902d68665d6dae70d1270bc6c38c7674022522fafcbdab5af8a"
     },
     {
       "path": "authorities/project_sectors/github_code/workflow.dot",
-      "sha256": "0f82e9591b4c3b8d9371bd2064335084d9dd042658fb267807c015f3c58c1db6"
+      "sha256": "e24f4d9919a2d3beeba4b9cd7a4d298fabd324aa6bf10d3a963a197b5c8247a6"
     },
     {
       "path": "authorities/project_sectors/github_code/workflow.v4.json",
-      "sha256": "774cc98d730d1fbff0754ef41a1b6167e6ee37d71999fc8930d745064e8b64e8"
+      "sha256": "a0f211ac7cbd43f3d361cabd6ae33a6d28435b7448486e120e09429baa5baea5"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.json",
-      "sha256": "45a357aebfd11d0a9f642d05057a572f0b5fb0403e0111c2c30ba889c4718931"
+      "sha256": "8494e7d69fb41ab1aad92fe39e9a55e8e862cfd80db003e81fefe633723d78c4"
     },
     {
       "path": "authorities/project_sectors/github_code/tools.schema.json",

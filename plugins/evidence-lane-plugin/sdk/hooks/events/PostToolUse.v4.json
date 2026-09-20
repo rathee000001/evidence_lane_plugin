@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PostToolUse/handler.py",
   "event": "PostToolUse",
   "event_contract": "hooks/events/PostToolUse/event.v4.json",
-  "event_contract_sha256": "d99dc7a0aa23678c6cbddf33968ff2f872dc1b551213062fc1a348feeb220e32",
+  "event_contract_sha256": "314851f2a76ac9d9a2eaf509dc61c2a98a88e50255df03bbcb628705e963f8a8",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostToolUseHandler",
   "host_stage_runner": "hooks/stage_runner.py",

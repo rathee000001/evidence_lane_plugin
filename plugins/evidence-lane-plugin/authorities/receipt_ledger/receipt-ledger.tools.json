@@ -252,6 +252,244 @@
       "verification_checks": []
     },
     {
+      "name": "evaluation_feedback_export",
+      "permission": "publish",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "core",
+      "workflow": "select-project-tools",
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "evaluation_feedback_export",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "evaluation_feedback_export.langsmith",
+            "adapter": "evidence_lane_plugin.evaluation_toolchain:register_evaluation_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "LangSmith"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "langsmith.feedback-rest",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "evaluation_feedback",
+              "lane": "selected_by_action",
+              "role": "evaluation_feedback_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "LangSmith"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9cdb142be0a2f784d3109744d52442cc4ba8b524017288dcc8046301d12e2d80"
+      },
+      "verification_checks": [
+        "external_evidence_receipt"
+      ]
+    },
+    {
+      "name": "observability_export",
+      "permission": "publish",
+      "mutates": true,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "core",
+      "workflow": "select-project-tools",
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "observability_export",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "observability_export.opentelemetry",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenTelemetry"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "opentelemetry.otlp-http-json",
+              "backend_version": "1.11",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "OpenTelemetry"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "observability_export.langfuse",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Langfuse"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "langfuse.otlp-http",
+              "backend_version": "v4",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Langfuse"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "observability_export.grafana",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Grafana"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "grafana.annotations-rest",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Grafana"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "38243322fd318176558b082d167c4407c9252e0955e1e7c3b0aafefda3e84988"
+      },
+      "verification_checks": [
+        "external_evidence_receipt"
+      ]
+    },
+    {
       "name": "remote_git_action_read",
       "permission": "read",
       "mutates": false,
@@ -436,6 +674,8 @@
   "views": [],
   "dependency_installation_inferred": false,
   "planned_actions": [
+    "evaluation_feedback_export",
+    "observability_export",
     "remote_git_execute_push",
     "remote_git_prepare_push"
   ],

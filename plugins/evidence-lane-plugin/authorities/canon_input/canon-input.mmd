@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=9CA778DBDD428CFE3097A1C26F780E310F3180FD974B1153833A43CEBBFB0AC5
+%% LANGGRAPH_EXPORT_SHA256=9F431DE753EB8EB12FC038D5E04923AFE400A1295FFC1B6466E2DAF596BBE711
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=7
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["canon owning SQLite schema"]:::default
   t_canon_contract_current["canon_contract_current<br/>receiver_id, contract_key, contract_digest"]:::table
   t_canon_contracts["canon_contracts<br/>contract_digest, receiver_id, contract_key, version, body_json"]:::table
   t_canon_events["canon_events<br/>sequence, request_id, kind, actor_id, input_digest, result_json, previous_digest, digest, created_at"]:::table
@@ -27,6 +28,18 @@ flowchart TB
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_canon_contract_current
+  SCHEMA_ROOT -->|"owns table"| t_canon_contracts
+  SCHEMA_ROOT -->|"owns table"| t_canon_events
+  SCHEMA_ROOT -->|"owns table"| t_canon_exchanges
+  SCHEMA_ROOT -->|"owns table"| t_canon_participants
+  SCHEMA_ROOT -->|"owns table"| t_canon_supersessions
+  SCHEMA_ROOT -->|"owns table"| t_canon_task_edge_bindings
+  SCHEMA_ROOT -->|"owns table"| t_canon_task_edges
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
   t_canon_contract_current -->|"contract_digest"| t_canon_contracts
   t_canon_contract_current -->|"receiver_id"| t_canon_participants
   t_canon_contracts -->|"receiver_id"| t_canon_participants
@@ -35,3 +48,12 @@ flowchart TB
   t_canon_supersessions -->|"exchange_id"| t_canon_exchanges
   t_canon_task_edge_bindings -->|"request_id"| t_canon_events
   t_canon_task_edge_bindings -->|"edge_id"| t_canon_task_edges
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_canon_contracts ~~~ t_canon_events
+  t_canon_events ~~~ t_canon_exchanges
+  t_canon_exchanges ~~~ t_canon_participants
+  t_canon_supersessions ~~~ t_canon_task_edge_bindings
+  t_canon_task_edges ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_schema_migrations ~~~ t_schema_ownership
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -184,6 +184,36 @@
         "schema_history": "power_bi/schema-history.v4.json"
       }
     ],
+    "authority_lanes": [
+      "plan",
+      "chat_lineage",
+      "canon",
+      "memory",
+      "learning",
+      "sources",
+      "sessions",
+      "receipts",
+      "universe"
+    ],
+    "authority_materialization": "all_retained_authorities_on_project_registration",
+    "sector_lanes": [
+      "github_code",
+      "local_code",
+      "docs",
+      "data_excel",
+      "ppt",
+      "pdf_ocr",
+      "images_ocr",
+      "artifacts",
+      "custom",
+      "research",
+      "data",
+      "tableau",
+      "power_bi"
+    ],
+    "sector_materialization": "only_explicitly_selected_source_or_workflow_lanes",
+    "absent_sector_read_behavior": "LANE_NOT_INITIALIZED_WITHOUT_CREATION",
+    "lane_folders_are_direct_root_children": true,
     "separate_source_workspace": true,
     "shared_tool_installation": true,
     "coordinated_publish": "Exact lane heads, commit journal, publication fence and owned recovery",

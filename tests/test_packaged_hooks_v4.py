@@ -3,8 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
+import time
 from itertools import pairwise
 from pathlib import Path
 
@@ -16,11 +18,13 @@ from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.hook_contract import (
     HOOK_INSTALLATION_POLICY,
     HOOK_PIPELINE,
+    HOOK_TERMINAL_EVENTS,
     hook_event_contract,
     hook_event_handler_path,
     hook_event_input_schema,
     hook_manifest,
     hook_registry,
+    hook_timeout_seconds,
     prepare_hook,
     submit_hook,
 )
@@ -146,6 +150,8 @@ def test_generated_hook_manifest_uses_current_events_and_four_visible_stage_hand
             assert command['command'].endswith(f'hooks/runner.mjs" {name} {stage}')
             assert command['commandWindows'].endswith(f'hooks\\runner.mjs" {name} {stage}')
             assert 'subhook_' not in command['commandWindows'] and '.exe' not in command['commandWindows']
+            assert command['timeout'] == hook_timeout_seconds(name)
+            assert command['timeout'] == (3 if name in HOOK_TERMINAL_EVENTS else 10)
         folder = PLUGIN / 'hooks/events' / name
         stage_names = {f'{index:02d}-{stage["id"]}.stage.v4.json'
             for index, stage in enumerate(HOOK_PIPELINE, 1)}
@@ -156,6 +162,10 @@ def test_generated_hook_manifest_uses_current_events_and_four_visible_stage_hand
         assert all((PLUGIN / member['path']).is_file() for member in contract['members'])
         expected = hook_event_contract(name)
         assert all(contract[key] == value for key, value in expected.items())
+        assert contract['host_execution_strategy'] == (
+            'single_validate_owner_terminal_fast_path'
+            if name in HOOK_TERMINAL_EVENTS else 'four_stage_coordination'
+        )
 
 
 def test_supported_install_inventory_is_trusted_and_off_by_default(tmp_path):
@@ -191,15 +201,18 @@ def test_supported_install_inventory_is_trusted_and_off_by_default(tmp_path):
         validate_installed_hook_inventory(reply, plugin_selector=selector, workspace=tmp_path)
 
 
-def test_actual_host_visible_stage_processes_coordinate_one_delivery(capture, tmp_path):
+@pytest.mark.parametrize('name', HOOK_EVENT_ORDER)
+def test_all_48_host_visible_stage_processes_coordinate_one_delivery(capture, tmp_path, name):
     _engine, store = capture
-    raw = json.dumps(event('UserPromptSubmit')).encode()
+    raw = json.dumps(event(name)).encode()
     environment = os.environ.copy()
     environment['EVIDENCE_LANE_RUNTIME_ROOT'] = str(_engine.root)
     environment['EVIDENCE_LANE_HOOK_PIPELINE_ROOT'] = str(tmp_path / 'hook-pipeline')
     stages = ('EMIT', 'TRANSPORT', 'SEAL', 'VALIDATE')
+    timeout = hook_timeout_seconds(name)
+    started = time.monotonic()
     processes = [subprocess.Popen(
-        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'UserPromptSubmit', stage],
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), name, stage],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment)
         for stage in stages]
     for process in processes:
@@ -207,12 +220,14 @@ def test_actual_host_visible_stage_processes_coordinate_one_delivery(capture, tm
         process.stdin.close()
     outputs = {}
     for stage, process in zip(stages, processes, strict=True):
-        assert process.wait(timeout=12) == 0, process.stderr.read().decode(errors='replace')
+        remaining = max(0.05, timeout - (time.monotonic() - started))
+        assert process.wait(timeout=remaining) == 0, process.stderr.read().decode(errors='replace')
         outputs[stage] = json.loads(process.stdout.read())
+    assert time.monotonic() - started <= timeout
     assert outputs['VALIDATE'] == outputs['SEAL'] == outputs['TRANSPORT'] == {}
     assert isinstance(outputs['EMIT'], dict)
     assert ChatLineage(store).read(LineageRead()).total_events == 1
-    occurrence = next((tmp_path / 'hook-pipeline' / 'UserPromptSubmit').iterdir())
+    occurrence = next((tmp_path / 'hook-pipeline' / name).iterdir())
     receipts = [json.loads(path.read_text(encoding='utf-8')) for path in sorted(occurrence.glob('*.json'))]
     assert [row['stage'] for row in receipts] == ['VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT']
     assert receipts[0]['previous_receipt_sha256'] is None
@@ -220,10 +235,158 @@ def test_actual_host_visible_stage_processes_coordinate_one_delivery(capture, tm
     assert all(current['previous_receipt_sha256'] == prior['receipt_sha256']
         for prior, current in pairwise(receipts))
     for stage in ('VALIDATE', 'SEAL', 'TRANSPORT', 'EMIT'):
-        replay = subprocess.run(['node', str(PLUGIN / 'hooks/runner.mjs'), 'UserPromptSubmit', stage],
-            input=raw, capture_output=True, env=environment, timeout=12, check=False)
+        replay = subprocess.run(['node', str(PLUGIN / 'hooks/runner.mjs'), name, stage],
+            input=raw, capture_output=True, env=environment, timeout=timeout, check=False)
         assert replay.returncode == 0
     assert ChatLineage(store).read(LineageRead()).total_events == 1
+
+
+@pytest.mark.parametrize(
+    ('name', 'stage'),
+    [('UnknownEvent', 'VALIDATE'), ('SessionStart', 'UNKNOWN_STAGE')],
+)
+def test_hook_runner_rejects_unknown_event_or_stage_without_host_failure(name, stage):
+    process = subprocess.run(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), name, stage],
+        input=b'{}', capture_output=True, timeout=3, check=False,
+    )
+    assert process.returncode == 0
+    assert json.loads(process.stdout) == {
+        'systemMessage': 'Evidence Lane capture unavailable: HOOK_EVENT_UNSUPPORTED',
+    }
+    assert process.stderr == b''
+
+
+def test_hook_runner_output_contract_rejects_unbound_or_controlling_json():
+    contract = (PLUGIN / 'hooks/hook_output_contract.mjs').as_uri()
+    script = f'''import {{ validatedHookOutput }} from {json.dumps(contract)};
+const encoded = (value) => Buffer.from(JSON.stringify(value), "utf8");
+const check = (value, event) => {{
+  const bytes = encoded(value);
+  return validatedHookOutput([bytes], bytes.length, event);
+}};
+const results = [
+  check({{}}, "Stop"),
+  check({{"systemMessage": "bounded"}}, "Stop"),
+  check({{"continue": true}}, "Stop"),
+  check({{"systemMessage": "bounded", "continue": true}}, "Stop"),
+  check({{"hookSpecificOutput": {{"hookEventName": "SessionStart", "additionalContext": "ok"}}}}, "SessionStart"),
+  check({{"hookSpecificOutput": {{"hookEventName": "Stop", "additionalContext": "wrong event"}}}}, "SessionStart"),
+  check({{"hookSpecificOutput": {{"hookEventName": "Stop", "additionalContext": "not allowed"}}}}, "Stop"),
+];
+console.log(JSON.stringify(results));'''
+    process = subprocess.run(
+        ['node', '--input-type=module', '-e', script],
+        capture_output=True, text=True, timeout=3, check=False,
+    )
+    assert process.returncode == 0, process.stderr
+    assert json.loads(process.stdout) == [
+        '{}\n',
+        '{"systemMessage":"bounded"}\n',
+        None,
+        None,
+        '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"ok"}}\n',
+        None,
+        None,
+    ]
+
+
+@pytest.mark.parametrize(
+    ('payload', 'expected_code'),
+    [
+        (b'{}', 'HOOK_INPUT_INVALID'),
+        (b'x' * 262_146, 'HOOK_INPUT_BUDGET'),
+    ],
+    ids=('malformed', 'oversized'),
+)
+def test_hook_runner_rejects_malformed_or_oversized_input_safely(payload, expected_code):
+    process = subprocess.run(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'PreToolUse', 'VALIDATE'],
+        input=payload, capture_output=True, timeout=10, check=False,
+    )
+    assert process.returncode == 0
+    response = json.loads(process.stdout)
+    assert response['systemMessage'].startswith('Evidence Lane capture unavailable: ')
+    assert expected_code in response['systemMessage']
+    assert process.stderr == b''
+
+
+def test_hook_runner_missing_engine_fails_closed_without_creating_project_state(tmp_path):
+    missing_runtime = tmp_path / 'missing-runtime'
+    environment = os.environ.copy()
+    environment['EVIDENCE_LANE_PYTHON'] = sys.executable
+    environment['EVIDENCE_LANE_RUNTIME_ROOT'] = str(missing_runtime)
+    environment['EVIDENCE_LANE_HOOK_PIPELINE_ROOT'] = str(tmp_path / 'hook-pipeline')
+    raw = json.dumps(event('PreToolUse')).encode()
+    for stage in ('VALIDATE', 'SEAL'):
+        process = subprocess.run(
+            ['node', str(PLUGIN / 'hooks/runner.mjs'), 'PreToolUse', stage],
+            input=raw, capture_output=True, env=environment, timeout=10, check=False,
+        )
+        assert process.returncode == 0 and json.loads(process.stdout) == {}
+    transport = subprocess.run(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'PreToolUse', 'TRANSPORT'],
+        input=raw, capture_output=True, env=environment, timeout=10, check=False,
+    )
+    assert transport.returncode == 0
+    assert json.loads(transport.stdout) == {
+        'systemMessage': 'Evidence Lane capture unavailable: ENGINE_UNAVAILABLE',
+    }
+    assert transport.stderr == b''
+    assert not missing_runtime.exists()
+
+
+def test_terminal_hook_self_materializes_missing_prerequisite_inside_host_budget(tmp_path, monkeypatch):
+    import evidence_lane_plugin.hook_stage_runtime as runtime
+
+    control = tmp_path / 'hook-pipeline'
+    monkeypatch.setenv('EVIDENCE_LANE_HOOK_PIPELINE_ROOT', str(control))
+    raw = json.dumps(event('Interrupt')).encode()
+    started = time.monotonic()
+    assert runtime.run_host_hook_stage(raw, 'Interrupt', 'SEAL') == {}
+    elapsed = time.monotonic() - started
+    assert elapsed < hook_timeout_seconds('Interrupt')
+    assert runtime.TERMINAL_PREREQUISITE_WAIT_SECONDS == 1.0
+    occurrence = next((control / 'Interrupt').iterdir())
+    receipts = [json.loads(path.read_text(encoding='utf-8'))
+        for path in sorted(occurrence.glob('*.json'))]
+    assert [row['stage'] for row in receipts] == ['VALIDATE', 'SEAL']
+    assert receipts[1]['previous_receipt_sha256'] == receipts[0]['receipt_sha256']
+
+
+def test_hook_runner_rejects_zero_exit_non_json_child_output(tmp_path):
+    if os.name != 'nt':
+        pytest.skip('The Windows interpreter-misconfiguration regression uses cmd.exe.')
+    environment = os.environ.copy()
+    environment['EVIDENCE_LANE_PYTHON'] = str(Path(os.environ['SystemRoot']) / 'System32/cmd.exe')
+    environment['EVIDENCE_LANE_STUDIO_ROOT'] = str(tmp_path / 'missing-studio')
+    process = subprocess.run(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'SessionStart', 'VALIDATE'],
+        input=b'{}', capture_output=True, env=environment, timeout=3, check=False,
+    )
+    assert process.returncode == 0
+    assert json.loads(process.stdout) == {
+        'systemMessage': 'Evidence Lane capture unavailable: HOOK_OUTPUT_INVALID',
+    }
+    assert process.stderr == b''
+
+
+def test_hook_runner_redacts_nonzero_child_failure(tmp_path):
+    failing_executable = shutil.which('false') or shutil.which('where')
+    if failing_executable is None:
+        pytest.skip('No bounded native failing executable is available on this host.')
+    environment = os.environ.copy()
+    environment['EVIDENCE_LANE_PYTHON'] = failing_executable
+    environment['EVIDENCE_LANE_STUDIO_ROOT'] = str(tmp_path / 'missing-studio')
+    process = subprocess.run(
+        ['node', str(PLUGIN / 'hooks/runner.mjs'), 'SessionStart', 'VALIDATE'],
+        input=b'{}', capture_output=True, env=environment, timeout=3, check=False,
+    )
+    assert process.returncode == 0
+    assert json.loads(process.stdout) == {
+        'systemMessage': 'Evidence Lane capture unavailable: HOOK_HANDLER_FAILED',
+    }
+    assert process.stderr == b''
 
 
 def test_stage_identity_uses_redacted_event_and_handler_runs_once(tmp_path, monkeypatch):

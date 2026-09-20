@@ -1,0 +1,1 @@
+import type{Metadata}from'next';import{StudioScrollStory}from'../components/studio-scroll-story';export const metadata:Metadata={title:'Studio — a window into the work'};export default function Studio(){return <main id="main"><StudioScrollStory/></main>}

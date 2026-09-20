@@ -1,0 +1,7 @@
+import {notFound} from 'next/navigation';
+import workflows from '../../../data/workflows.json';
+import {GuideArticle} from '../../../components/guide-article';
+export const dynamicParams=false;
+export function generateStaticParams(){return workflows.map(w=>({id:w.id}))}
+export async function generateMetadata({params}:{params:Promise<{id:string}>}){const{id}=await params;return{title:workflows.find(w=>w.id===id)?.title??'Workflow'}}
+export default async function WorkflowGuide({params}:{params:Promise<{id:string}>}){const{id}=await params;const w=workflows.find(w=>w.id===id);if(!w)notFound();return <GuideArticle guide={{slug:w.id,title:w.title,group:w.group+' workflow',intro:w.description,sections:[{title:'When to use it',paragraphs:[w.outcome,'Example request: “'+w.example+'”']},{title:'Representative path',paragraphs:['The stages below explain the inspected source path. Actual prerequisites and branches follow the current project state and live action contract.'],steps:w.stages.map(s=>s.description+' ('+s.action+'; '+(s.mutates?'changes state':'read')+').')},{title:'Boundary',paragraphs:[w.limitation,'Inspect the result and its attribution. A stage shown here does not mean it ran in your project.']},{title:'Read the current contract',paragraphs:['Use the public skill '+w.id+' and its current typed action schema for the supported workflow. The website does not submit commands or grant project access.']}],related:['workflow-guide','sdk-mcp','troubleshooting']}}/>}

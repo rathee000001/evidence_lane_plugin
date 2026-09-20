@@ -2124,7 +2124,7 @@
       "version": 1,
       "meaning": "Custom source assertions and selected SQLite table, foreign-key and row locators; no Plan mutation or imported SQL execution.",
       "consumer": "artifact_export",
-      "implementation_digest": "abe61132b0ed7cfb37869cb31cbce180c11154ffeaf36b05d6e5dde90384adc4",
+      "implementation_digest": "fcf2ef381da5d1df6a0e671da08cb4be1f8810847f4bd9fba657429d72b75eb4",
       "files": {
         "mmd": "custom.mmd",
         "dot": "custom.dot",
@@ -2261,11 +2261,11 @@
     },
     {
       "path": "authorities/project_sectors/custom/custom.mmd",
-      "sha256": "cb7502b6eb3a4ed50f90a72e10069c509ce2728eeebcee2d4d817be550ae80f7"
+      "sha256": "3cf7f40839d342ec2e13137ddc87bcff4e18d0d232cde8d791b9cb2555f8d024"
     },
     {
       "path": "authorities/project_sectors/custom/custom.dot",
-      "sha256": "2368b2ab2a7bf62aa312ab97a17ad835541cc60a34065de8a19c6fac1b63c798"
+      "sha256": "9d4583cf6b608dad2cc804babc34b649e362ea512ec4db23cb4648c92baa5665"
     },
     {
       "path": "authorities/project_sectors/custom/workflow.mmd",
@@ -2277,11 +2277,11 @@
     },
     {
       "path": "authorities/project_sectors/custom/workflow.v4.json",
-      "sha256": "840d53849a9cd0cdb844acfe3896030b17a39bbc95bc82a085d5f70779f80ebc"
+      "sha256": "4b2ef215e1dd4ab141a2d63830a31934d6e5524f7c8f3d9b9874954a8fa81260"
     },
     {
       "path": "authorities/project_sectors/custom/tools.json",
-      "sha256": "f8e27f15254e10d30ebff3095ff6104377a429108f280573f2a425896a12d935"
+      "sha256": "0fe8ff7d08c98f6e1e8c88ae8a542f51bfd9b46e62fdfcbccf15a85748606b9a"
     },
     {
       "path": "authorities/project_sectors/custom/tools.schema.json",

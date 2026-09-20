@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/UserPromptSubmit/handler.py",
   "event": "UserPromptSubmit",
   "event_contract": "hooks/events/UserPromptSubmit/event.v4.json",
-  "event_contract_sha256": "2c6dd17c55a681fa6842242f9986359c9a68a2dd5e5669b7f24541dd58db2624",
+  "event_contract_sha256": "9c1fa2694e0807f861416d7f4dfa131baba8480b84dbf17d53d773a6ea2ce26b",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.UserPromptSubmitHandler",
   "host_stage_runner": "hooks/stage_runner.py",

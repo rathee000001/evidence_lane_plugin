@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=F524B92C1CCC0B82B9E60300673D1AB0587DC17FBAADF9A1824B8A901B7DADD3
+%% LANGGRAPH_EXPORT_SHA256=C1A5251BB5DE90F0C1F7C4364A4B7056BBC1630C1E8C32A0516D1AACCE78C8C3
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=12
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,9 +17,8 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
-  writer["Engine coordinator and owning project writer"]:::default
-  delta["Current stored Plan operation and Delta admission"]:::default
   owner["canon current executable owner"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
   action_task_evidence_classify["task_evidence_classify"]:::default
   action_task_evidence_decide["task_evidence_decide"]:::default
   action_task_evidence_edge_bind["task_evidence_edge_bind"]:::default
@@ -72,8 +71,15 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_task_evidence_classify ~~~ action_task_evidence_decide
+  action_task_evidence_decide ~~~ action_task_evidence_edge_bind
   action_task_evidence_edge_bind ~~~ action_task_evidence_edge_register
+  action_task_evidence_expect ~~~ action_task_evidence_graph
+  action_task_evidence_graph ~~~ action_task_evidence_inbox
   action_task_evidence_inbox ~~~ action_task_evidence_input_request
+  action_task_evidence_inspect ~~~ action_task_evidence_packet_classify
+  action_task_evidence_packet_classify ~~~ action_task_evidence_participant_register
   action_task_evidence_participant_register ~~~ action_task_evidence_read
+  action_task_evidence_receive ~~~ action_task_evidence_result
+  action_task_evidence_result ~~~ action_task_evidence_send
   action_task_evidence_send ~~~ action_task_evidence_supersede
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

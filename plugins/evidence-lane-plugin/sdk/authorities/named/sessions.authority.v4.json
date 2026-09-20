@@ -4,9 +4,9 @@
   "authority_id": "sessions",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 65513,
+    "bytes": 112501,
     "path": "authorities/session_authority/manifest.v4.json",
-    "sha256": "5affebe2d38590f48057975bf478ed4a60cf21837261cadf2ea68fef4d884630"
+    "sha256": "94dac720e17833d9a1480e3bd55f64dcbe81bec30e38eb20554c2df379c1dba1"
   },
   "path": "authorities/session_authority",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

@@ -2116,7 +2116,7 @@
       "version": 1,
       "meaning": "Artifact bytes, extracted evidence, archive directory entries and explicit review state; no execution or release approval.",
       "consumer": "artifact_export",
-      "implementation_digest": "abe61132b0ed7cfb37869cb31cbce180c11154ffeaf36b05d6e5dde90384adc4",
+      "implementation_digest": "fcf2ef381da5d1df6a0e671da08cb4be1f8810847f4bd9fba657429d72b75eb4",
       "files": {
         "mmd": "artifacts.mmd",
         "dot": "artifacts.dot",
@@ -2256,11 +2256,11 @@
     },
     {
       "path": "authorities/project_sectors/artifacts/artifacts.mmd",
-      "sha256": "80c0cbf3a402937b4708923c88f17244ede7245e7f02c1566bce7339f1ef64b4"
+      "sha256": "b2314bdce7b15c3256340c91d18332dcda1f101f80fabcbecc90e3792d65c7a6"
     },
     {
       "path": "authorities/project_sectors/artifacts/artifacts.dot",
-      "sha256": "f09a40e5fd7c7b7bf69c10990a72a9a18d1d9714c035715363630acd4fbd6049"
+      "sha256": "540872a6026fc18d8a21e3b655432a0b81bbe8c32f06c23d07dbc2d74a93a397"
     },
     {
       "path": "authorities/project_sectors/artifacts/workflow.mmd",
@@ -2272,11 +2272,11 @@
     },
     {
       "path": "authorities/project_sectors/artifacts/workflow.v4.json",
-      "sha256": "819cd7e9e78d77f27740a7da8416718f18604597b3d234749b28fc94fb79c3b7"
+      "sha256": "54d373386d6e3aae1f24cdaaae21a6c125ac4ae818ffd386ee5ebd487ad0bf21"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.json",
-      "sha256": "7aab271bba9da42a813b0a1cca9e57725e73fd11a3cd22478e11856cb0082a40"
+      "sha256": "ec79e01344c9428e51cd4aabe926506e29bf28dbef555177a8cf8707884a71bf"
     },
     {
       "path": "authorities/project_sectors/artifacts/tools.schema.json",

@@ -55,5 +55,6 @@ digraph workflow_research {
   action_research_index -> action_research_index_media [constraint=true style=invis weight=100]
   action_research_index_media -> action_research_refresh [constraint=true style=invis weight=100]
   action_research_refresh_media -> action_research_web_capture [constraint=true style=invis weight=100]
+  action_research_web_capture -> action_research_web_discover [constraint=true style=invis weight=100]
   action_research_web_extract -> action_source_snapshot_retire [constraint=true style=invis weight=100]
 }

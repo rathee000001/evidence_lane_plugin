@@ -15,9 +15,9 @@
       "sha256": "762dd200850e010bb0156fb394fe195b871bff7d9b8329684cae75409d8ab81e"
     },
     {
-      "bytes": 1548288,
+      "bytes": 1409024,
       "path": "uop/uop_sqlite.sqlite",
-      "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
+      "sha256": "6eccd5569b6dd6c318934fed9b4046dacf677edf1b1e6e0e644a7eb7d45e9c8c"
     },
     {
       "bytes": 11194,

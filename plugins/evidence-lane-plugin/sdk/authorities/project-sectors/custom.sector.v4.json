@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 70895,
     "path": "authorities/project_sectors/custom/manifest.v4.json",
-    "sha256": "c3b6187873beb4a0e011c93ee6fb6eae36e9aad29f39adf1f5830424c4fe9ece"
+    "sha256": "99eecb47f1cd2ba406de861a94e64a6bb9e0009f96e0e275247f2801b57cf768"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

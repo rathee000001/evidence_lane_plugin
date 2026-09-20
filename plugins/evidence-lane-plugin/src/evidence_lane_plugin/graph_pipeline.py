@@ -554,9 +554,12 @@ class SemanticGraph:
                             continue
                         seen.add(pair)
                         constraints.append(pair)
+        # Preserve the square-root grid for ordinary logical maps.  The old
+        # log2 cap discarded nearly every render-only constraint as a graph
+        # grew, which returned large TB fan-outs to one horizontal strip.
         maximum_constraints = max(
-            4,
-            math.ceil(math.log2(max(len(self.nodes), 2))),
+            16,
+            math.ceil(math.sqrt(max(len(self.nodes), 2))) * 4,
         )
         if len(constraints) > maximum_constraints:
             final_index = len(constraints) - 1
@@ -881,6 +884,52 @@ class SemanticGraph:
         }
 
 
+def schema_traversal_graph(
+    identity: str, schema: dict[str, Any]
+) -> tuple[str, str, dict[str, Any]]:
+    """Render one connected logical map of an owning SQLite schema.
+
+    Root-to-table edges make every table reachable even when SQLite has no
+    foreign-key edge for it. Actual foreign-key relationships remain separate
+    semantic edges. Rows stay in SQLite and never become graph nodes.
+    """
+
+    graph = SemanticGraph(
+        "schema_" + identity,
+        role="AUTHORITY_TRAVERSAL",
+    )
+    graph.add_node(
+        "SCHEMA_ROOT",
+        identity + " owning SQLite schema",
+        kind="authority",
+    )
+    names = {row["name"] for row in schema["tables"]}
+    for row in schema["tables"]:
+        node_id = "t_" + row["name"]
+        graph.add_node(
+            node_id,
+            row["name"] + "\n" + ", ".join(
+                column["name"] for column in row["columns"]
+            ),
+            kind="table",
+        )
+        graph.add_edge("SCHEMA_ROOT", node_id, "owns table")
+    for row in schema["relations"]:
+        if row["source"] not in names or row["target"] not in names:
+            raise ValueError(
+                "Unresolved schema relationship: "
+                + row["source"]
+                + " -> "
+                + row["target"]
+            )
+        graph.add_edge(
+            "t_" + row["source"],
+            "t_" + row["target"],
+            row["column"],
+        )
+    return graph.render_pair()
+
+
 def graph_engine_status() -> dict[str, Any]:
     body = {
         "schema": "evidence-lane.graph-engine-status.v1",
@@ -915,5 +964,6 @@ __all__ = [
     "SemanticGroup",
     "SemanticNode",
     "graph_engine_status",
+    "schema_traversal_graph",
     "semantic_graph_from_mermaid",
 ]

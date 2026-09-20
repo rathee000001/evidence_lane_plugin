@@ -12,9 +12,11 @@ from evidence_lane_plugin.hook_contract import (
     HOOK_EVENT_NAMES,
     HOOK_INSTALLATION_POLICY,
     HOOK_PIPELINE,
+    HOOK_TERMINAL_EVENTS,
     hook_event_handler_path,
     hook_manifest,
     hook_registry,
+    hook_timeout_seconds,
 )
 from evidence_lane_plugin.hook_event_handlers import HOOK_HANDLER_CLASSES
 
@@ -30,6 +32,10 @@ def test_every_registered_hook_has_one_executable_owned_event_package():
     assert registry["installation_policy"]["enabled_by_default"] is False
     for event in registry["events"]:
         name = event["name"]
+        handlers = manifest["hooks"][name][0]["hooks"]
+        assert len(handlers) == 4
+        assert {handler["timeout"] for handler in handlers} == {hook_timeout_seconds(name)}
+        assert hook_timeout_seconds(name) == (3 if name in HOOK_TERMINAL_EVENTS else 10)
         folder = PLUGIN / "hooks/events" / name
         assert event["handler"] == hook_event_handler_path(name)
         stage_names = {
@@ -44,6 +50,11 @@ def test_every_registered_hook_has_one_executable_owned_event_package():
             path = PLUGIN / member["path"]
             assert hashlib.sha256(path.read_bytes()).hexdigest() == member["sha256"]
         pipeline = json.loads((folder / "pipeline.v4.json").read_text(encoding="utf-8"))
+        assert contract["host_execution_strategy"] == (
+            "single_validate_owner_terminal_fast_path"
+            if name in HOOK_TERMINAL_EVENTS
+            else "four_stage_coordination"
+        )
         assert pipeline["stages"] == list(HOOK_PIPELINE)
         assert pipeline["stage_contracts"] == [
             f"hooks/events/{name}/{stage}" for stage in sorted(stage_names)

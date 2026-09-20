@@ -3295,27 +3295,27 @@
     },
     {
       "path": "authorities/project_sectors/data_excel/data_excel.mmd",
-      "sha256": "c0f1612f955dc200ea0a930634d5b6e44a93d8a5b727b1f784b325f1ce3250ba"
+      "sha256": "fea1425ab9651ed58855f0cdb5e3d548e575d3f94d44e3849c5abb61f3907bb4"
     },
     {
       "path": "authorities/project_sectors/data_excel/data_excel.dot",
-      "sha256": "2b12d681b2863a046c7df571b0551b82e7d7247f6070842dbd6b7bad53cd8b25"
+      "sha256": "25c823e8e4ec8c742b6e07f0bda0149f0a820dd353c51559d0af73807857f34d"
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.mmd",
-      "sha256": "0642441e36568dcd9db89f276464311f5b68db7f92a64a6a0b57c9879cdb1d2c"
+      "sha256": "b9987d46c60cad77f86ac9c289b8994c366e159248a23143c9c094834686248b"
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.dot",
-      "sha256": "8a50889e2fb462aa6c10a60c8b79044933dca3b26a35bb112012d5c62529861e"
+      "sha256": "16fb2685acbb92b1fe55d246f52695ddf131ef18c6decb000a594b8195162d4d"
     },
     {
       "path": "authorities/project_sectors/data_excel/workflow.v4.json",
-      "sha256": "9f8547db95a255536b9827a29c2ab05b454f12cf9bb3d40fb1b095268446954e"
+      "sha256": "d24a1a7e16528fed7b9b118f5344af0f87b509012925b2f476a17ce1adaac9fd"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.json",
-      "sha256": "71df5da1df37f9609856f21cf57c66ef017c610cda0cce2eebdb0c4f8772de61"
+      "sha256": "d936719c40f96c5180b63f2ea201f8c05c4087f4ca7d5337984e9e58ddf6fed5"
     },
     {
       "path": "authorities/project_sectors/data_excel/tools.schema.json",

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=DD67BAAC5D17A1DDAA1C0AFFD7CCD156490BB9D9022E3CAA193BB5A386990E9F
+%% LANGGRAPH_EXPORT_SHA256=573B48522102DA470215C7D3549591B3FC8BBB2F81B172DDF5970538BB34F3F7
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=20
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["github_code owning SQLite schema"]:::default
   t_code_call["code_call<br/>record_id, version_id, ordinal, name, start_line, payload_json"]:::table
   t_code_change["code_change<br/>snapshot_id, path, change_kind, before_sha256, after_sha256"]:::table
   t_code_chunk["code_chunk<br/>chunk_id, version_id, ordinal, start_line, end_line, content_object"]:::table
@@ -41,6 +42,32 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_code_call
+  SCHEMA_ROOT -->|"owns table"| t_code_change
+  SCHEMA_ROOT -->|"owns table"| t_code_chunk
+  SCHEMA_ROOT -->|"owns table"| t_code_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_code_current
+  SCHEMA_ROOT -->|"owns table"| t_code_dependency
+  SCHEMA_ROOT -->|"owns table"| t_code_embedding
+  SCHEMA_ROOT -->|"owns table"| t_code_embedding_run
+  SCHEMA_ROOT -->|"owns table"| t_code_file
+  SCHEMA_ROOT -->|"owns table"| t_code_file_version
+  SCHEMA_ROOT -->|"owns table"| t_code_git_reference
+  SCHEMA_ROOT -->|"owns table"| t_code_import
+  SCHEMA_ROOT -->|"owns table"| t_code_import_edge
+  SCHEMA_ROOT -->|"owns table"| t_code_mutation
+  SCHEMA_ROOT -->|"owns table"| t_code_parser_diagnostic
+  SCHEMA_ROOT -->|"owns table"| t_code_parser_receipt
+  SCHEMA_ROOT -->|"owns table"| t_code_repo
+  SCHEMA_ROOT -->|"owns table"| t_code_route
+  SCHEMA_ROOT -->|"owns table"| t_code_snapshot
+  SCHEMA_ROOT -->|"owns table"| t_code_snapshot_file
+  SCHEMA_ROOT -->|"owns table"| t_code_symbol
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_code_call -->|"version_id"| t_code_file_version
   t_code_change -->|"snapshot_id"| t_code_snapshot
   t_code_chunk -->|"content_object"| t_objects
@@ -72,3 +99,25 @@ flowchart TB
   t_code_symbol -->|"version_id"| t_code_file_version
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_code_call ~~~ t_code_change
+  t_code_change ~~~ t_code_chunk
+  t_code_chunk ~~~ t_code_chunk_fts
+  t_code_chunk_fts ~~~ t_code_current
+  t_code_current ~~~ t_code_dependency
+  t_code_dependency ~~~ t_code_embedding
+  t_code_embedding_run ~~~ t_code_file
+  t_code_file_version ~~~ t_code_git_reference
+  t_code_git_reference ~~~ t_code_import
+  t_code_import ~~~ t_code_import_edge
+  t_code_import_edge ~~~ t_code_mutation
+  t_code_parser_diagnostic ~~~ t_code_parser_receipt
+  t_code_parser_receipt ~~~ t_code_repo
+  t_code_repo ~~~ t_code_route
+  t_code_route ~~~ t_code_snapshot
+  t_code_snapshot_file ~~~ t_code_symbol
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

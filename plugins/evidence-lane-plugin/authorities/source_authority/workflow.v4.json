@@ -991,6 +991,238 @@
       "read_schemas": []
     },
     {
+      "name": "github_repository_inspect",
+      "description": "Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.",
+      "inputSchema": {
+        "$defs": {
+          "GitHubPageCursor": {
+            "additionalProperties": false,
+            "properties": {
+              "page": {
+                "default": 1,
+                "maximum": 1000000,
+                "minimum": 1,
+                "title": "Page",
+                "type": "integer"
+              },
+              "offset": {
+                "default": 0,
+                "maximum": 99,
+                "minimum": 0,
+                "title": "Offset",
+                "type": "integer"
+              },
+              "page_sha256": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Page Sha256"
+              }
+            },
+            "title": "GitHubPageCursor",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "repository": {
+            "maxLength": 140,
+            "minLength": 3,
+            "title": "Repository",
+            "type": "string"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "include_workflows": {
+            "default": true,
+            "title": "Include Workflows",
+            "type": "boolean"
+          },
+          "branch_cursor": {
+            "$ref": "#/$defs/GitHubPageCursor"
+          },
+          "workflow_cursor": {
+            "$ref": "#/$defs/GitHubPageCursor"
+          },
+          "max_branches": {
+            "default": 100,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Max Branches",
+            "type": "integer"
+          },
+          "max_workflows": {
+            "default": 100,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Max Workflows",
+            "type": "integer"
+          },
+          "max_http_requests": {
+            "default": 16,
+            "maximum": 32,
+            "minimum": 1,
+            "title": "Max Http Requests",
+            "type": "integer"
+          },
+          "max_response_bytes": {
+            "default": 2097152,
+            "maximum": 4194304,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          },
+          "max_total_response_bytes": {
+            "default": 8388608,
+            "maximum": 33554432,
+            "minimum": 1024,
+            "title": "Max Total Response Bytes",
+            "type": "integer"
+          },
+          "max_metadata_bytes": {
+            "default": 2097152,
+            "maximum": 8388608,
+            "minimum": 1024,
+            "title": "Max Metadata Bytes",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "repository"
+        ],
+        "title": "GitHubInspectionRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Snapshot",
+            "type": "object"
+          },
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository",
+          "snapshot",
+          "receipt_sha256"
+        ],
+        "title": "GitHubInspectionResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "code",
+      "workflow": "manage-project-sources",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python",
+        "PyGithub"
+      ],
+      "toolchain": {
+        "operation": "github_repository_inspect",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "github_repository_inspect.pygithub",
+            "adapter": "evidence_lane_plugin.github_toolchain:register_github_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "PyGithub"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "github.repository-reader",
+              "backend_version": "2.10.0",
+              "backend_runtime": "python",
+              "capability": "repository_metadata_read",
+              "lane": "github_code",
+              "role": "github_repository_snapshot",
+              "role_schema": {
+                "repository": "text",
+                "snapshot": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "repository"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": null,
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "94fd3dbf227747cf23004fc7033e57f7f5fdd56ade2d4a21b0da3d785e580980"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "github_snapshot_integrity"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
       "name": "lane_configure_routes",
       "description": "Consume exact source-to-sector overrides in one attributed registration, optionally inheriting a prior route receipt.",
       "inputSchema": {
@@ -1159,6 +1391,343 @@
       "path_fields": [],
       "queued": false,
       "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "project_workflow_configure",
+      "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "batch_id": {
+            "maxLength": 192,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:-]+$",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "requested_outcome": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Requested Outcome",
+            "type": "string"
+          },
+          "explicit_project_type": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "pattern": "^(CODE|DATA|DOCUMENT|MEDIA|RESEARCH|MIXED|CUSTOM:[A-Za-z0-9][A-Za-z0-9 ._/-]{0,119})$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Explicit Project Type"
+          },
+          "explicit_work_classes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Explicit Work Classes",
+            "type": "array"
+          },
+          "custom_work_classes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 8,
+            "title": "Custom Work Classes",
+            "type": "array"
+          },
+          "work_classification_request": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Work Classification Request"
+          },
+          "code_lane": {
+            "default": "local_code",
+            "enum": [
+              "local_code",
+              "github_code"
+            ],
+            "title": "Code Lane",
+            "type": "string"
+          },
+          "git_mode": {
+            "default": "AUTO",
+            "enum": [
+              "AUTO",
+              "REQUIRED",
+              "DISABLED"
+            ],
+            "title": "Git Mode",
+            "type": "string"
+          },
+          "max_result_bytes": {
+            "default": 524288,
+            "maximum": 2097152,
+            "minimum": 8192,
+            "title": "Max Result Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "batch_id",
+          "requested_outcome"
+        ],
+        "title": "ProjectWorkflowRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JsonValue": {}
+        },
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "batch_digest": {
+            "title": "Batch Digest",
+            "type": "string"
+          },
+          "project_type": {
+            "title": "Project Type",
+            "type": "string"
+          },
+          "classification_basis": {
+            "title": "Classification Basis",
+            "type": "string"
+          },
+          "selected_sector_lanes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selected Sector Lanes",
+            "type": "array"
+          },
+          "authority_references": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Authority References",
+            "type": "array"
+          },
+          "stage_sequence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stage Sequence",
+            "type": "array"
+          },
+          "artifact_contracts": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "title": "Artifact Contracts",
+            "type": "object"
+          },
+          "project_class_policy": {
+            "additionalProperties": true,
+            "title": "Project Class Policy",
+            "type": "object"
+          },
+          "selected_lane_validation": {
+            "additionalProperties": true,
+            "title": "Selected Lane Validation",
+            "type": "object"
+          },
+          "project_validation_policy": {
+            "additionalProperties": true,
+            "title": "Project Validation Policy",
+            "type": "object"
+          },
+          "work_classification": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Classification"
+          },
+          "repository_context": {
+            "additionalProperties": true,
+            "title": "Repository Context",
+            "type": "object"
+          },
+          "execution_workflow": {
+            "additionalProperties": true,
+            "title": "Execution Workflow",
+            "type": "object"
+          },
+          "lane_workflows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Lane Workflows",
+            "type": "array"
+          },
+          "operation_contracts": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Operation Contracts",
+            "type": "object"
+          },
+          "workflow_dependency_readiness_checked": {
+            "const": false,
+            "default": false,
+            "title": "Workflow Dependency Readiness Checked",
+            "type": "boolean"
+          },
+          "workflow_and_work_classification_are_distinct": {
+            "const": true,
+            "default": true,
+            "title": "Workflow And Work Classification Are Distinct",
+            "type": "boolean"
+          },
+          "workflow_digest": {
+            "title": "Workflow Digest",
+            "type": "string"
+          },
+          "proposal_only": {
+            "const": true,
+            "default": true,
+            "title": "Proposal Only",
+            "type": "boolean"
+          },
+          "plan_changed": {
+            "const": false,
+            "default": false,
+            "title": "Plan Changed",
+            "type": "boolean"
+          },
+          "source_bytes_reverified": {
+            "const": false,
+            "default": false,
+            "title": "Source Bytes Reverified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "batch_id",
+          "batch_digest",
+          "project_type",
+          "classification_basis",
+          "selected_sector_lanes",
+          "authority_references",
+          "stage_sequence",
+          "artifact_contracts",
+          "project_class_policy",
+          "selected_lane_validation",
+          "project_validation_policy",
+          "work_classification",
+          "repository_context",
+          "execution_workflow",
+          "lane_workflows",
+          "operation_contracts",
+          "workflow_digest"
+        ],
+        "title": "ProjectWorkflowResult",
+        "type": "object"
+      },
+      "permission": "read",
+      "profile": "core",
+      "workflow": "configure-project-workflow",
+      "mutates": false,
+      "project_required": true,
+      "requires_delta": false,
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_workflow_configure",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "project_workflow_configure.git",
+            "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.with_git",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Bounded read-only observation of the exact source-root repository.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "git_mode": [
+                "AUTO",
+                "REQUIRED"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "project_workflow_configure.content",
+            "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.content_only",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Content workflow with Git disabled or unavailable; repository state is not inferred.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "git_mode": [
+                "AUTO",
+                "DISABLED"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "72ec1f18d503f516d71e51de7eba409b0e08be08446866b2986dc542f1278743"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": true,
       "studio_read": false,
       "verification_checks": [],
       "cross_project_read": false,
@@ -5055,16 +5624,16 @@
     "status": "PASS",
     "graph": "workflow_sources",
     "graph_role": "EXECUTABLE_WORKFLOW",
-    "node_count": 36,
-    "edge_count": 67,
+    "node_count": 38,
+    "edge_count": 72,
     "group_count": 0,
-    "semantic_topology_sha256": "EBCFD56E5C5B7216E869A0DA4CCCE329D0850D67258ED594F0FD65677550AFA2",
-    "mmd_sha256": "0113394AED9CE9548C0B78947E75FD889A9B4719082902D4AEFC834ADDDC44E5",
-    "dot_sha256": "EADEABCAFD6D12DE47D586A7BAA19879B021B517C28E8A4CF659089F1C2AAA97",
+    "semantic_topology_sha256": "17AEF3D2EE697306BF1C632D1ECAB985FD917368444DAE7F7819100661305528",
+    "mmd_sha256": "528E3B25A1162BD7274DC55204904785DDB1EDECD6FEE0C0D931E962C025AC43",
+    "dot_sha256": "F7D04EBEC53F9C2B6B4808A895EA6AA0C196B7001749D48C6DF9A886BEA316A9",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "8F2557AFD630983782793F3C13FA83B30CFFD4E800E1B94E54CDEC57FBB9A909",
+    "langgraph_export_sha256": "548E9B19D0E59ABE4AB4B45A49B0521A3400366E49E162C285B3A4190AABB74B",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -5080,13 +5649,13 @@
     "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 6,
+    "layout_constraint_count": 27,
     "balanced_two_dimensional_projection": true,
     "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "1062CDAE0D26C3FC802D9E1D6B1BAFE200F85325702DE2D968DF9E53D8DABB17"
+    "receipt_sha256": "5B63B387B1D59106FF40DC1C5E8FA468A7A72CB3472B88F179211EEBB12ECC44"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false,
@@ -5095,16 +5664,16 @@
     "status": "PASS",
     "graph": "schema_sources",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 61,
-    "edge_count": 78,
+    "node_count": 62,
+    "edge_count": 139,
     "group_count": 0,
-    "semantic_topology_sha256": "6832BACE52AE8D75797D3505D6E4D21831F0962888E96E9116573F9E6B0BD3BE",
-    "mmd_sha256": "3A75C7A9ECB73828A5E05DCB3FDAEB6733F06A6652024470BFFB4054A46D93BD",
-    "dot_sha256": "A6B3FF2C75AE34F9B7BD00CAAD46734535469ABC5D3DAF5BC0678A8577EB7344",
+    "semantic_topology_sha256": "7D1040A985FEDD6D595971807668CC8BF850CE74CFE6D9DB87D943E952D54349",
+    "mmd_sha256": "B782C738E1A0483110E15859BA659C7058AD9DE96309473DEA4B033E4512678E",
+    "dot_sha256": "B4AA3BE8515853DBA9EB4590C28A42F1E0C20EBC20BE6376C0E0BCDD75ACA9D6",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "7441C8FDFB6589607A399587194CDDC52B25A6A24BE8B18F698282099EA82E07",
+    "langgraph_export_sha256": "561A1D7F8C668F7675DEA4C1D7703D005EA111D6B246DB47C759F715EBB012BF",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -5120,12 +5689,12 @@
     "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 0,
+    "layout_constraint_count": 32,
     "balanced_two_dimensional_projection": true,
     "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "E83517FC2D76011C5A0A3A3FB2E4AEE2B2C8EB07790CA8B3C0CFB4F4D07F510D"
+    "receipt_sha256": "042B292E9339320BC0AEA2481B297A0E7662F9B97B0B267617C5106E35A36A75"
   }
 }

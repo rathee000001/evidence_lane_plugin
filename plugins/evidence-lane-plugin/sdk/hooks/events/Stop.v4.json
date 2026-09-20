@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/Stop/handler.py",
   "event": "Stop",
   "event_contract": "hooks/events/Stop/event.v4.json",
-  "event_contract_sha256": "b44786f1032ed3d7faddf944c8a284c385bf6d68f5fbe64ff4425899d65642ad",
+  "event_contract_sha256": "2d1a2052d7a535c73ff302f0cdde1d24a4cc1dfacabdb000c4c0dd28a22d71d1",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.StopHandler",
   "host_stage_runner": "hooks/stage_runner.py",

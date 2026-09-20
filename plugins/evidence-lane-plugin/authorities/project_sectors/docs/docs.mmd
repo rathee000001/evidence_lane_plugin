@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=1A2D96276FB1CF71ACDAD3507D06FFD637C65B8DFE7B5B9DB67E1EDC17FF8874
+%% LANGGRAPH_EXPORT_SHA256=D97C5FC7471041C35422D76875ADC1C335B4AD892FB2230714CC66048079F5B6
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=19
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["docs owning SQLite schema"]:::default
   t_doc_bookmark["doc_bookmark<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
   t_doc_chunk["doc_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
   t_doc_chunk_fts["doc_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
@@ -40,6 +41,31 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_doc_bookmark
+  SCHEMA_ROOT -->|"owns table"| t_doc_chunk
+  SCHEMA_ROOT -->|"owns table"| t_doc_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_doc_content_control
+  SCHEMA_ROOT -->|"owns table"| t_doc_current
+  SCHEMA_ROOT -->|"owns table"| t_doc_embedded_object
+  SCHEMA_ROOT -->|"owns table"| t_doc_export
+  SCHEMA_ROOT -->|"owns table"| t_doc_field
+  SCHEMA_ROOT -->|"owns table"| t_doc_file
+  SCHEMA_ROOT -->|"owns table"| t_doc_heading
+  SCHEMA_ROOT -->|"owns table"| t_doc_hyperlink
+  SCHEMA_ROOT -->|"owns table"| t_doc_image_reference
+  SCHEMA_ROOT -->|"owns table"| t_doc_paragraph
+  SCHEMA_ROOT -->|"owns table"| t_doc_relationship
+  SCHEMA_ROOT -->|"owns table"| t_doc_render
+  SCHEMA_ROOT -->|"owns table"| t_doc_revision
+  SCHEMA_ROOT -->|"owns table"| t_doc_structure
+  SCHEMA_ROOT -->|"owns table"| t_doc_table_extract
+  SCHEMA_ROOT -->|"owns table"| t_doc_version
+  SCHEMA_ROOT -->|"owns table"| t_docling_extraction
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_doc_bookmark -->|"snapshot_id"| t_doc_version
   t_doc_chunk -->|"text_object"| t_objects
   t_doc_chunk -->|"snapshot_id"| t_doc_version
@@ -69,3 +95,24 @@ flowchart TB
   t_docling_extraction -->|"snapshot_id"| t_doc_version
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_doc_bookmark ~~~ t_doc_chunk
+  t_doc_chunk ~~~ t_doc_chunk_fts
+  t_doc_chunk_fts ~~~ t_doc_content_control
+  t_doc_content_control ~~~ t_doc_current
+  t_doc_current ~~~ t_doc_embedded_object
+  t_doc_embedded_object ~~~ t_doc_export
+  t_doc_field ~~~ t_doc_file
+  t_doc_file ~~~ t_doc_heading
+  t_doc_heading ~~~ t_doc_hyperlink
+  t_doc_hyperlink ~~~ t_doc_image_reference
+  t_doc_image_reference ~~~ t_doc_paragraph
+  t_doc_paragraph ~~~ t_doc_relationship
+  t_doc_render ~~~ t_doc_revision
+  t_doc_revision ~~~ t_doc_structure
+  t_doc_structure ~~~ t_doc_table_extract
+  t_docling_extraction ~~~ t_lane_identity
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

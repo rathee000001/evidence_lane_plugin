@@ -1,0 +1,1 @@
+import type{Metadata}from'next';import{WorkflowJourney}from'../components/workflow-journey';export const metadata:Metadata={title:'Workflows — follow the work'};export default function Workflows(){return <main id="main"><WorkflowJourney/></main>}

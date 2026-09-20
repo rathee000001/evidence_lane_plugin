@@ -12,9 +12,9 @@
       "sha256": "319fbe6589843117f647a49118a520205006eba9bf369d316d8cfa582f499b53"
     },
     {
-      "bytes": 17822,
+      "bytes": 17814,
       "path": "hooks/hooks.json",
-      "sha256": "90bc24c86a401ea24bc2ab5f0b15715cd084ebbab1dc3ea869f7965852165bbf"
+      "sha256": "eeaea0bc18e6ebec60d45e38b1de3fd252cb662a71859fe1ee74d0b88f5eaff1"
     }
   ],
   "status": "PASS",

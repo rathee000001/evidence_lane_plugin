@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/SubagentStart/handler.py",
   "event": "SubagentStart",
   "event_contract": "hooks/events/SubagentStart/event.v4.json",
-  "event_contract_sha256": "8acb6fb4020c6290d131ea35d95088a50f4241b587b35cf749e99db5243fcdda",
+  "event_contract_sha256": "93deaaf1d12b0f98dbef3b2d643c6d7264aa3a87b298b338ac8429e8f7f19b96",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SubagentStartHandler",
   "host_stage_runner": "hooks/stage_runner.py",

@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 137702,
     "path": "authorities/canon_input/manifest.v4.json",
-    "sha256": "0b33e4f62105147e76dd564137260263ef6551ab504481c5fb3f64dae5abb21c"
+    "sha256": "b6450cda718294563710bdcb5059f6f4884e33a2123100c0ef8a14fc772b300b"
   },
   "path": "authorities/canon_input",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

@@ -10,7 +10,7 @@
     {
       "bytes": 861,
       "path": "sdk/env_uop/action-plane.v4.json",
-      "sha256": "24bdc697dcb20ce1035b0cb45a43676744da677fba658af53adfaf4d5db24dd3"
+      "sha256": "a201398b8c65d33af91fcd5233509a1ca6228ee3c81500dd8f37dea1aed51e08"
     },
     {
       "bytes": 895,
@@ -20,7 +20,7 @@
     {
       "bytes": 1045,
       "path": "sdk/env_uop/env-authority.v4.json",
-      "sha256": "61d1c375724070a51f8a8f5d3603525027c22bc7cccbbe22c829450e43cc342a"
+      "sha256": "c2e7c3072ef70cf0178a34bb7d22a18e768da2c724cd5526554f77ba315e44b0"
     },
     {
       "bytes": 886,
@@ -35,7 +35,7 @@
     {
       "bytes": 888,
       "path": "sdk/env_uop/operations/route-operation.operation.v4.json",
-      "sha256": "55f8d562341a4c0e0e1d66191662cb9a85cb8b6de00bee5e0dd160de4c10f48a"
+      "sha256": "11fbe3aef40397f197294db3554798f5183ea0ffdd4721eefa9ff3e50eb4bcea"
     },
     {
       "bytes": 883,
@@ -45,7 +45,7 @@
     {
       "bytes": 1040,
       "path": "sdk/env_uop/uop-authority.v4.json",
-      "sha256": "de8dfe941dca6b2f83009851dfa6a34bdcc1201183fafd1b3e04bbd07e18ed40"
+      "sha256": "7353ead8098f0042267dfd32cc1c86f47bacddf8aeeecdca2e02073cc937364d"
     }
   ],
   "schema": "evidence-lane.sdk-env-uop-contract-registry.v4",

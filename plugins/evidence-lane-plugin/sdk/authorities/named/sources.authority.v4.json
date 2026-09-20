@@ -4,9 +4,9 @@
   "authority_id": "sources",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 161865,
+    "bytes": 179002,
     "path": "authorities/source_authority/manifest.v4.json",
-    "sha256": "ff594e003a5090e6fc88d5ee267501c7e0dc51dcff1ab89e297a62cfb45cc007"
+    "sha256": "19afe4bac5d26af8d8701efc400079f8d2f21a69169dfde5290ec272bf5a1a0b"
   },
   "path": "authorities/source_authority",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

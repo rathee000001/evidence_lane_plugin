@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=90E98B8CFB944A7D82323A7F647791AA7B5F58F8D949B44EC48244C2D5DAD888
+%% LANGGRAPH_EXPORT_SHA256=FE38D453BCFDF372BA9DB55EAEB39054277025E21E09A6A21D902B5AC1A79598
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=12
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["plan owning SQLite schema"]:::default
   t_delta_exits["delta_exits<br/>job_id, verification_object, receipt_id, next_task_id, created_at"]:::table
   t_delta_runs["delta_runs<br/>job_id, request_id, actor_id, task_id, plan_revision, contract_digest, binding_digest, entry_object, state, result_object, error_code, created_at, updated_at"]:::table
   t_jobs_effects["jobs_effects<br/>effect_id, job_id, effect_key, state, description, evidence_object, created_at, updated_at"]:::table
@@ -36,6 +37,27 @@ flowchart TB
   t_validation_policy_current["validation_policy_current<br/>singleton, revision"]:::table
   t_validation_policy_revisions["validation_policy_revisions<br/>revision, request_id, request_digest, policy_json, policy_digest, previous_digest, revision_digest, actor_id, receipt_id, created_at"]:::table
   t_validationrun_summaries["validationrun_summaries<br/>job_id, task_id, plan_revision, contract_digest, summary_object, receipt_id"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_delta_exits
+  SCHEMA_ROOT -->|"owns table"| t_delta_runs
+  SCHEMA_ROOT -->|"owns table"| t_jobs_effects
+  SCHEMA_ROOT -->|"owns table"| t_jobs_jobs
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_plan_current
+  SCHEMA_ROOT -->|"owns table"| t_plan_dependencies
+  SCHEMA_ROOT -->|"owns table"| t_plan_events
+  SCHEMA_ROOT -->|"owns table"| t_plan_host_bindings
+  SCHEMA_ROOT -->|"owns table"| t_plan_host_projections
+  SCHEMA_ROOT -->|"owns table"| t_plan_revisions
+  SCHEMA_ROOT -->|"owns table"| t_plan_tasks
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_steer_control
+  SCHEMA_ROOT -->|"owns table"| t_steer_interrupts
+  SCHEMA_ROOT -->|"owns table"| t_steer_requests
+  SCHEMA_ROOT -->|"owns table"| t_validation_policy_current
+  SCHEMA_ROOT -->|"owns table"| t_validation_policy_revisions
+  SCHEMA_ROOT -->|"owns table"| t_validationrun_summaries
   t_delta_exits -->|"verification_object"| t_objects
   t_delta_exits -->|"job_id"| t_delta_runs
   t_delta_runs -->|"plan_revision"| t_plan_tasks
@@ -58,3 +80,17 @@ flowchart TB
   t_plan_tasks -->|"revision"| t_plan_revisions
   t_steer_requests -->|"checkpoint_object"| t_objects
   t_validation_policy_current -->|"revision"| t_validation_policy_revisions
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_delta_runs ~~~ t_jobs_effects
+  t_jobs_jobs ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_plan_current
+  t_plan_current ~~~ t_plan_dependencies
+  t_plan_events ~~~ t_plan_host_bindings
+  t_plan_tasks ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_steer_control
+  t_steer_interrupts ~~~ t_steer_requests
+  t_steer_requests ~~~ t_validation_policy_current
+  t_validation_policy_revisions ~~~ t_validationrun_summaries
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

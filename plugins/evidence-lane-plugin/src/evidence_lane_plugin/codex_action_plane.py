@@ -21,6 +21,75 @@ DOMAIN_PATHS = {'env': 'env/codex-environment-policy.v4.json',
                 'uop': 'uop/codex-operation-policy.v4.json'}
 DATABASE_PATHS = {'env': 'env/env_sqlite.sqlite', 'uop': 'uop/uop_sqlite.sqlite'}
 
+_GRAPH_DOMAINS = {
+    'env': (
+        ('host_compute', 'Host and compute', (
+            'codex_host_variant_v4', 'env_accelerator_profile_v4', 'env_tool_registry_v4')),
+        ('intent_workflow', 'Intent and workflow', (
+            'env_mode_policy_v4', 'env_work_policy_v4', 'env_project_class_policy_v4',
+            'env_skill_binding_v4', 'env_workflow_policy_v4')),
+        ('action_transport', 'Actions and transports', (
+            'env_action_binding_v4', 'env_operation_pipeline_v4',
+            'env_sdk_action_binding_v4', 'env_mcp_action_binding_v4')),
+        ('lane_source', 'Lanes and source classification', (
+            'env_lane_binding_v4', 'env_source_lane_classification_v4')),
+        ('host_observation', 'Host projection and observation', (
+            'env_hook_binding_v4', 'env_plan_projection_binding_v4', 'env_studio_binding_v4')),
+        ('current_flow', 'Current Codex workflow schema', (
+            'env_codex_workflow_stage_v4', 'env_codex_workflow_edge_v4')),
+    ),
+    'uop': (
+        ('admission', 'Admission and task state', (
+            'uop_required_gate_v4', 'uop_workflow_gate_v4',
+            'uop_permission_policy_v4', 'uop_task_state_policy_v4')),
+        ('execution', 'Execution and fallback', (
+            'uop_action_policy_v4', 'uop_tool_policy_v4', 'uop_accelerator_policy_v4',
+            'uop_host_policy_v4', 'uop_fallback_policy_v4')),
+        ('project_evidence', 'Project evidence and verification', (
+            'uop_work_classification_policy_v4', 'uop_project_class_validation_policy_v4',
+            'uop_source_policy_v4', 'uop_disclosure_policy_v4',
+            'uop_verification_policy_v4', 'uop_plan_projection_policy_v4')),
+    ),
+}
+
+_GRAPH_RELATIONS = {
+    'env': (
+        ('codex_host_variant_v4', 'env_hook_binding_v4', 'hosts documented events'),
+        ('codex_host_variant_v4', 'env_plan_projection_binding_v4', 'hosts exact Plan projection'),
+        ('codex_host_variant_v4', 'env_studio_binding_v4', 'hosts read-only Studio'),
+        ('env_accelerator_profile_v4', 'env_tool_registry_v4', 'provides compatible compute'),
+        ('env_mode_policy_v4', 'env_work_policy_v4', 'binds work policy'),
+        ('env_work_policy_v4', 'env_project_class_policy_v4', 'selects project validation'),
+        ('env_skill_binding_v4', 'env_workflow_policy_v4', 'owns public workflow'),
+        ('env_workflow_policy_v4', 'env_action_binding_v4', 'selects registered actions'),
+        ('env_action_binding_v4', 'env_operation_pipeline_v4', 'orders routes'),
+        ('env_action_binding_v4', 'env_sdk_action_binding_v4', 'binds internal and outer SDK'),
+        ('env_action_binding_v4', 'env_mcp_action_binding_v4', 'binds native MCP tool'),
+        ('env_project_class_policy_v4', 'env_lane_binding_v4', 'selects lane families'),
+        ('env_source_lane_classification_v4', 'env_lane_binding_v4', 'classifies owning lane'),
+        ('env_lane_binding_v4', 'env_tool_registry_v4', 'declares ordered tools'),
+        ('env_codex_workflow_stage_v4', 'env_codex_workflow_edge_v4', 'defines stage transitions'),
+        ('env_plan_projection_binding_v4', 'env_studio_binding_v4', 'exposes read-only observation'),
+    ),
+    'uop': (
+        ('uop_host_policy_v4', 'uop_action_policy_v4', 'admits host action'),
+        ('uop_action_policy_v4', 'uop_permission_policy_v4', 'checks permission'),
+        ('uop_action_policy_v4', 'uop_required_gate_v4', 'must satisfy gates'),
+        ('uop_action_policy_v4', 'uop_tool_policy_v4', 'selects eligible tools'),
+        ('uop_accelerator_policy_v4', 'uop_tool_policy_v4', 'admits compute route'),
+        ('uop_fallback_policy_v4', 'uop_tool_policy_v4', 'limits same-contract fallback'),
+        ('uop_required_gate_v4', 'uop_workflow_gate_v4', 'binds stage checks'),
+        ('uop_task_state_policy_v4', 'uop_plan_projection_policy_v4', 'controls Plan eligibility'),
+        ('uop_work_classification_policy_v4', 'uop_project_class_validation_policy_v4',
+            'selects validation policy'),
+        ('uop_source_policy_v4', 'uop_disclosure_policy_v4', 'bounds source disclosure'),
+        ('uop_verification_policy_v4', 'uop_plan_projection_policy_v4',
+            'verifies before Plan advance'),
+        ('uop_plan_projection_policy_v4', 'uop_disclosure_policy_v4',
+            'publishes bounded result'),
+    ),
+}
+
 
 def _json(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
@@ -295,27 +364,47 @@ def _build_graph(connection, role):
     from .graph_pipeline import SemanticGraph
     graph = SemanticGraph(role + '_operating_framework', direction='TB', role='AUTHORITY_TRAVERSAL')
     graph.add_node('ROOT', role.upper() + ': locked operating policy and current executable bindings', 'root')
-    table_names = [r[0] for r in connection.execute("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name")]
-    for table in table_names:
-        if table.endswith(('_build_receipt', '_authority_meta')):
-            continue
-        table_id = 'TABLE_' + table
-        graph.begin_group('GROUP_' + table, table.replace('_v4', '').replace('_', ' '))
-        graph.add_node(table_id, table, 'semantic')
-        graph.add_edge('ROOT', table_id, 'owns policy rows')
-        for ordinal, raw in enumerate(connection.execute('SELECT * FROM ' + _identifier(table)), 1):
-            row = dict(raw)
-            identity = next((row[k] for k in (
-                'action_name', 'work_id', 'stage_id', 'edge_id', 'gate_id', 'event_id',
-                'permission', 'task_state', 'policy_id', 'project_class', 'lane_id',
-                'workflow_id', 'skill_name', 'tool_id', 'binding_id', 'provider_id',
-                'host_id', 'key') if k in row), ordinal)
-            label = next((str(row[k]) for k in (
-                'label', 'rule', 'requirement', 'reason', 'role', 'stage', 'status') if k in row), str(identity))
-            node_id = 'ROW_' + table + '_' + str(ordinal)
-            graph.add_node(node_id, str(identity) + '\n' + label[:240], 'semantic')
-            graph.add_edge(table_id, node_id, 'declares')
+    table_names = {
+        row[0] for row in connection.execute(
+            "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"
+        ) if not row[0].endswith(('_build_receipt', '_authority_meta'))
+    }
+    declared_tables = {
+        table for _domain_id, _label, tables in _GRAPH_DOMAINS[role] for table in tables
+    }
+    if table_names != declared_tables:
+        raise LaneError(
+            'ENV_UOP_GRAPH_TABLE_COVERAGE',
+            'The logical ENV/UOP graph must classify every current policy table exactly once.',
+            details={
+                'role': role,
+                'missing': sorted(table_names - declared_tables),
+                'stale': sorted(declared_tables - table_names),
+            },
+        )
+    hubs = {}
+    for domain_id, domain_label, tables in _GRAPH_DOMAINS[role]:
+        hub_id = 'DOMAIN_' + role + '_' + domain_id
+        hubs[domain_id] = hub_id
+        graph.begin_group('GROUP_' + role + '_' + domain_id, domain_label)
+        graph.add_node(hub_id, domain_label, 'authority')
+        graph.add_edge('ROOT', hub_id, 'governs')
+        for table in tables:
+            quoted = _identifier(table)
+            columns = [dict(row) for row in connection.execute('PRAGMA table_info(' + quoted + ')')]
+            primary = [row['name'] for row in sorted(columns, key=lambda value: value['pk']) if row['pk']]
+            row_count = connection.execute('SELECT count(*) FROM ' + quoted).fetchone()[0]
+            label = (
+                table + '\n' + str(row_count) + ' policy rows\n'
+                + ('key: ' + ', '.join(primary) if primary else 'key: declared schema')
+                + '\ncolumns: ' + ', '.join(row['name'] for row in columns)
+            )
+            table_id = 'TABLE_' + table
+            graph.add_node(table_id, label, 'table')
+            graph.add_edge(hub_id, table_id, 'indexes ' + str(row_count) + ' rows')
         graph.end_group()
+    for source, target, label in _GRAPH_RELATIONS[role]:
+        graph.add_edge('TABLE_' + source, 'TABLE_' + target, label)
     if role == 'env':
         stages = connection.execute(
             'SELECT stage_id,label FROM env_codex_workflow_stage_v4 ORDER BY ordinal'
@@ -330,12 +419,13 @@ def _build_graph(connection, role):
                 raise LaneError('ENV_WORKFLOW_EDGE_INVALID', 'Every current workflow edge must resolve both stages.')
             graph.add_edge(lookup[row['source_stage']], lookup[row['target_stage']])
         graph.end_group()
+        graph.add_edge(hubs['current_flow'], lookup[stages[0]['stage_id']], 'projects current workflow')
     else:
         graph.begin_group('CURRENT_OPERATION_GATES', 'Current operation admission gates')
         for row in connection.execute('SELECT gate_id,rule FROM uop_required_gate_v4 ORDER BY gate_id'):
             node_id = 'GATE_' + row['gate_id']
             graph.add_node(node_id, row['gate_id'] + '\n' + row['rule'], 'semantic')
-            graph.add_edge('ROOT', node_id, 'requires')
+            graph.add_edge(hubs['admission'], node_id, 'requires')
         graph.end_group()
     return graph
 

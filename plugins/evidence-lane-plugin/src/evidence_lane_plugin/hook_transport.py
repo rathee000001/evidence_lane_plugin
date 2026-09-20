@@ -23,12 +23,19 @@ def deliver_hook(handled: HandledHook, selected_root: Path | None = None) -> dic
         return {**result, "transport": "remote_authenticated_capture", "handler_id": handled.handler_id}
 
     root = runtime_root(selected_root)
-    timeout = 0.75 if handled.classification.terminal_timeout else 3
-    with LocalTransport(root, timeout=timeout) as transport:
-        health = verify_engine_binding(transport)
-    record, credential = owner_endpoint(root)
-    if record["instance_id"] != health["instance_id"]:
-        raise LaneError("ENGINE_INSTANCE_CHANGED", "The engine changed before Hook delivery.")
+    terminal = handled.classification.terminal_timeout
+    timeout = 1.5 if terminal else 3
+    if terminal:
+        # The authenticated capture request itself verifies the protected
+        # credential and exact engine instance ID.  Avoid a second health HTTP
+        # round trip inside Codex's fixed three-second terminal Hook budget.
+        record, credential = owner_endpoint(root)
+    else:
+        with LocalTransport(root, timeout=timeout) as transport:
+            health = verify_engine_binding(transport)
+        record, credential = owner_endpoint(root)
+        if record["instance_id"] != health["instance_id"]:
+            raise LaneError("ENGINE_INSTANCE_CHANGED", "The engine changed before Hook delivery.")
     payload = {"instance_id": record["instance_id"], "capture": handled.envelope.model_dump(mode="json")}
     try:
         with (

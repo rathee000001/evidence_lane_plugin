@@ -22,7 +22,12 @@ from evidence_lane_plugin.authority_support import (
     authority_package_folder,
 )
 from evidence_lane_plugin.hook_contract import hook_registry
-from evidence_lane_plugin.lanes import CANONICAL_LANE_IDS, get_lane
+from evidence_lane_plugin.lanes import (
+    AUTHORITY_LANE_IDS,
+    CANONICAL_LANE_IDS,
+    SECTOR_LANE_IDS,
+    get_lane,
+)
 from evidence_lane_plugin.session_authority import SessionResult
 from evidence_lane_plugin.storage import APPLICATION_ID, CORE_SCHEMA, LANE_SCHEMA, RECEIPTS_SCHEMA
 from evidence_lane_plugin.writers import WRITER_MIGRATIONS
@@ -152,7 +157,7 @@ __all__ = ['AUTHORITY_ID', 'SESSION_MIGRATIONS', 'SessionAuthority', 'initialize
                             'path': folder, 'manifest': authority_manifest})
 
     folder = PROJECT_COORDINATION_FOLDER
-    extras, _ = compile_workflow_assets(registry, 'project_authority', folder,
+    extras, project_workflow = compile_workflow_assets(registry, 'project_authority', folder,
         storage='root-pv.sqlite3 for project identity, writer fencing, lane heads and coordinated recovery only',
         runtime_modules=['evidence_lane_plugin.storage', 'evidence_lane_plugin.lane_transactions',
             'evidence_lane_plugin.writers', 'evidence_lane_plugin.coordination', 'evidence_lane_plugin.projects'])
@@ -164,9 +169,11 @@ __all__ = ['AUTHORITY_ID', 'SESSION_MIGRATIONS', 'SessionAuthority', 'initialize
         schema_seed_rows={'root_pv_head': [(1, 0, '', None)]})
     outputs[folder + '/project-authority.sqlite'] = raw
     outputs[folder + '/sqlite-schema.v4.json'] = encode(schema)
-    mmd, dot, _ = schema_graph('project_authority', schema)
+    mmd, dot, project_schema_topology = schema_graph('project_authority', schema)
     outputs[folder + '/project_authority.mmd'] = mmd.encode()
     outputs[folder + '/project_authority.dot'] = dot.encode()
+    project_workflow['schema_topology'] = project_schema_topology
+    outputs[folder + '/workflow.v4.json'] = encode(project_workflow)
     outputs[folder + '/runtime.py'] = b'''"""Project coordination binds the sole Root PV and the existing project writer."""
 from evidence_lane_plugin.coordination import ProjectCoordinator
 from evidence_lane_plugin.lane_transactions import coordinated_transaction, recover_transactions
@@ -182,6 +189,12 @@ __all__ = ['ProjectCoordinator', 'ProjectStore', 'WriterLease', 'coordinated_tra
             'folder': get_lane(name).folder, 'database': get_lane(name).database_relative_path,
             'files': get_lane(name).files_relative_path, 'schema_history': get_lane(name).schema_history_relative_path}
             for name in CANONICAL_LANE_IDS],
+        'authority_lanes': list(AUTHORITY_LANE_IDS),
+        'authority_materialization': 'all_retained_authorities_on_project_registration',
+        'sector_lanes': list(SECTOR_LANE_IDS),
+        'sector_materialization': 'only_explicitly_selected_source_or_workflow_lanes',
+        'absent_sector_read_behavior': 'LANE_NOT_INITIALIZED_WITHOUT_CREATION',
+        'lane_folders_are_direct_root_children': True,
         'separate_source_workspace': True, 'shared_tool_installation': True,
         'coordinated_publish': 'Exact lane heads, commit journal, publication fence and owned recovery',
         'accepted_zip_hierarchy': False, 'extra_authority_database': False}

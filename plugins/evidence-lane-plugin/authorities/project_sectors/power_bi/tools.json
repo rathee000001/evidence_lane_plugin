@@ -621,7 +621,7 @@
       "version": 1,
       "meaning": "Exact project/report/model metadata locators and native stored model structure; not rendered charts.",
       "consumer": "artifact_export",
-      "implementation_digest": "a9dcd61614dfb3ff151f9f5a1ba11e271c8b5f15eba8ca6a406ad8520f75770c",
+      "implementation_digest": "989ceb2f7caa5049675e86986ac79b261759757e5671d8f5ed4ac40110b5e68b",
       "files": {
         "mmd": "powerbi.mmd",
         "dot": "powerbi.dot",

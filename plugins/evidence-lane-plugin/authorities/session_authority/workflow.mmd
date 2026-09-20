@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=285EAED119127B4A83661AE1E8F9591D7BB1423F2A4B80C873CD0650E9651B0A
+%% LANGGRAPH_EXPORT_SHA256=4C11711A411F2EB3A00BC053FFED3F9265F99E6B53AB72207AE1A7B371D1D87B
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=4
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=11
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,10 +17,16 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
-  writer["Engine coordinator and owning project writer"]:::default
-  delta["Current stored Plan operation and Delta admission"]:::default
   owner["sessions current executable owner"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
+  action_client_context["client_context"]:::default
+  action_engine_health["engine_health"]:::default
   action_env_uop_inspect["env_uop_inspect"]:::default
+  action_lifecycle_transition_law["lifecycle_transition_law"]:::default
+  action_project_work_classify["project_work_classify"]:::default
+  action_render_runtime_panel["render_runtime_panel"]:::default
+  action_runtime_doctor["runtime_doctor"]:::default
+  action_runtime_status["runtime_status"]:::default
   action_session_boot["session_boot"]:::default
   action_session_context["session_context"]:::default
   action_session_exit["session_exit"]:::default
@@ -28,8 +34,22 @@ flowchart TB
   action_session_flash_status["session_flash_status"]:::default
   action_session_resume["session_resume"]:::default
   action_session_status["session_status"]:::default
+  sdk -->|"read"| action_client_context
+  action_client_context -->|"open-project-session"| read
+  sdk -->|"read"| action_engine_health
+  action_engine_health -->|"open-project-session"| read
   sdk -->|"read"| action_env_uop_inspect
   action_env_uop_inspect -->|"evidence-lane"| read
+  sdk -->|"read"| action_lifecycle_transition_law
+  action_lifecycle_transition_law -->|"evidence-lane"| read
+  sdk -->|"read"| action_project_work_classify
+  action_project_work_classify -->|"classify-project-work"| read
+  sdk -->|"read"| action_render_runtime_panel
+  action_render_runtime_panel -->|"open-project-session"| read
+  sdk -->|"read"| action_runtime_doctor
+  action_runtime_doctor -->|"open-project-session"| read
+  sdk -->|"read"| action_runtime_status
+  action_runtime_status -->|"select-project-tools"| read
   sdk -->|"write"| action_session_boot
   action_session_boot -->|"open-project-session"| writer
   sdk -->|"read"| action_session_context
@@ -47,8 +67,15 @@ flowchart TB
   writer -->|"owned mutation and attributed result"| owner
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
-  action_env_uop_inspect ~~~ action_session_boot
+  action_client_context ~~~ action_engine_health
+  action_engine_health ~~~ action_env_uop_inspect
+  action_env_uop_inspect ~~~ action_lifecycle_transition_law
+  action_project_work_classify ~~~ action_render_runtime_panel
+  action_render_runtime_panel ~~~ action_runtime_doctor
+  action_runtime_doctor ~~~ action_runtime_status
   action_session_boot ~~~ action_session_context
+  action_session_context ~~~ action_session_exit
   action_session_exit ~~~ action_session_exit_boundary
+  action_session_flash_status ~~~ action_session_resume
   action_session_resume ~~~ action_session_status
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

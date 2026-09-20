@@ -302,6 +302,160 @@
       "title": "AuthorityRequest_lane_status",
       "type": "object"
     },
+    "AuthorityRequest_lane_view_catalog": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_view_catalog",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ViewCatalogRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_view_catalog",
+      "type": "object"
+    },
+    "AuthorityRequest_lane_view_preview": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_view_preview",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ViewPreview"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_view_preview",
+      "type": "object"
+    },
+    "AuthorityRequest_lane_view_read": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "lane_view_read",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ViewRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_lane_view_read",
+      "type": "object"
+    },
     "AuthorityRequest_linked_project_evidence_query": {
       "additionalProperties": false,
       "properties": {
@@ -554,6 +708,55 @@
       "title": "AuthorityRequest_project_evidence_history",
       "type": "object"
     },
+    "AuthorityRequest_project_evidence_select": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "project_evidence_select",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectEvidenceSelectionRequest"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_project_evidence_select",
+      "type": "object"
+    },
     "AuthorityRequest_project_recovery_inspect": {
       "additionalProperties": false,
       "properties": {
@@ -650,6 +853,55 @@
         "arguments"
       ],
       "title": "AuthorityRequest_project_status",
+      "type": "object"
+    },
+    "AuthorityRequest_render_project_panel": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "render_project_panel",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ProjectPanelRead"
+        }
+      },
+      "required": [
+        "action",
+        "project_id",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_render_project_panel",
       "type": "object"
     },
     "AuthorityRequest_restoration_read": {
@@ -799,6 +1051,174 @@
       "title": "AuthorityRequest_storage_status",
       "type": "object"
     },
+    "AuthorityRequest_toolchain_catalog": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "toolchain_catalog",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/CatalogRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_toolchain_catalog",
+      "type": "object"
+    },
+    "AuthorityRequest_toolchain_resolve": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "toolchain_resolve",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/ResolveRequest"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_toolchain_resolve",
+      "type": "object"
+    },
+    "AuthorityRequest_workflow_catalog": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 4,
+          "default": 4,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "action": {
+          "const": "workflow_catalog",
+          "title": "Action",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "arguments": {
+          "$ref": "#/$defs/WorkflowQuery"
+        }
+      },
+      "required": [
+        "action",
+        "arguments"
+      ],
+      "title": "AuthorityRequest_workflow_catalog",
+      "type": "object"
+    },
     "BackupVerify": {
       "additionalProperties": false,
       "properties": {
@@ -819,6 +1239,12 @@
         "manifest_digest"
       ],
       "title": "BackupVerify",
+      "type": "object"
+    },
+    "CatalogRequest": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "CatalogRequest",
       "type": "object"
     },
     "CrossProjectQuery": {
@@ -901,6 +1327,42 @@
       "additionalProperties": false,
       "properties": {},
       "title": "Empty",
+      "type": "object"
+    },
+    "EvidenceSlice": {
+      "additionalProperties": false,
+      "properties": {
+        "content_id": {
+          "maxLength": 192,
+          "minLength": 1,
+          "title": "Content Id",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "token_count": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Token Count",
+          "type": "integer"
+        },
+        "priority": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "Priority",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "content_id",
+        "content_sha256",
+        "token_count"
+      ],
+      "title": "EvidenceSlice",
       "type": "object"
     },
     "GitRestoreSelection": {
@@ -1262,6 +1724,65 @@
       "title": "ProjectCatalogRequest",
       "type": "object"
     },
+    "ProjectEvidenceSelectionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "authority_id": {
+          "title": "Authority Id",
+          "type": "string"
+        },
+        "slices": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSlice"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Slices",
+          "type": "array"
+        },
+        "token_budget": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Token Budget",
+          "type": "integer"
+        },
+        "max_slices": {
+          "default": 20,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Max Slices",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "authority_id",
+        "slices",
+        "token_budget"
+      ],
+      "title": "ProjectEvidenceSelectionRequest",
+      "type": "object"
+    },
+    "ProjectPanelRead": {
+      "additionalProperties": false,
+      "properties": {
+        "offset": {
+          "default": 0,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "ProjectPanelRead",
+      "type": "object"
+    },
     "ProjectQuery": {
       "additionalProperties": false,
       "properties": {
@@ -1392,6 +1913,34 @@
       "title": "RecoveryInspect",
       "type": "object"
     },
+    "ResolveRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "title": "Action",
+          "type": "string"
+        },
+        "arguments": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arguments"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "title": "ResolveRequest",
+      "type": "object"
+    },
     "RestorationRead": {
       "additionalProperties": false,
       "properties": {
@@ -1489,6 +2038,167 @@
       ],
       "title": "Summary",
       "type": "object"
+    },
+    "ViewCatalogRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "view_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "View Ids",
+          "type": "array"
+        }
+      },
+      "title": "ViewCatalogRequest",
+      "type": "object"
+    },
+    "ViewPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "view_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+          "title": "View Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/ViewScope"
+        }
+      },
+      "required": [
+        "view_id"
+      ],
+      "title": "ViewPreview",
+      "type": "object"
+    },
+    "ViewRead": {
+      "additionalProperties": false,
+      "properties": {
+        "view_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+          "title": "View Id",
+          "type": "string"
+        },
+        "snapshot_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Digest"
+        },
+        "include_content": {
+          "default": false,
+          "title": "Include Content",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "default": 131072,
+          "maximum": 262144,
+          "minimum": 2048,
+          "title": "Max Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "view_id"
+      ],
+      "title": "ViewRead",
+      "type": "object"
+    },
+    "ViewScope": {
+      "additionalProperties": false,
+      "properties": {
+        "node_limit": {
+          "default": 100,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Node Limit",
+          "type": "integer"
+        },
+        "edge_limit": {
+          "default": 200,
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Edge Limit",
+          "type": "integer"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "include_history": {
+          "default": false,
+          "title": "Include History",
+          "type": "boolean"
+        }
+      },
+      "title": "ViewScope",
+      "type": "object"
+    },
+    "WorkflowQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "workflow": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "enum": [
+            "evidence-lane",
+            "open-project-session",
+            "execute-project-plan",
+            "manage-project-plan",
+            "manage-project-sources",
+            "exchange-task-evidence",
+            "manage-project-memory",
+            "manage-project-lessons",
+            "inspect-project-instructions",
+            "configure-project-workflow",
+            "classify-project-work",
+            "retrieve-project-evidence",
+            "refresh-project-evidence",
+            "inspect-project-connectors",
+            "configure-project-connector",
+            "revoke-project-connector",
+            "select-project-tools",
+            "select-project-storage",
+            "inspect-project-evidence-map",
+            "link-project-evidence-network",
+            "handoff-project-work",
+            "recover-project-state",
+            "close-project-session",
+            "run-project-lifecycle",
+            null
+          ],
+          "title": "Workflow"
+        }
+      },
+      "title": "WorkflowQuery",
+      "type": "object"
     }
   },
   "discriminator": {
@@ -1499,16 +2209,24 @@
       "lane_fetch": "#/$defs/AuthorityRequest_lane_fetch",
       "lane_search": "#/$defs/AuthorityRequest_lane_search",
       "lane_status": "#/$defs/AuthorityRequest_lane_status",
+      "lane_view_catalog": "#/$defs/AuthorityRequest_lane_view_catalog",
+      "lane_view_preview": "#/$defs/AuthorityRequest_lane_view_preview",
+      "lane_view_read": "#/$defs/AuthorityRequest_lane_view_read",
       "linked_project_evidence_query": "#/$defs/AuthorityRequest_linked_project_evidence_query",
       "project_backup_verify": "#/$defs/AuthorityRequest_project_backup_verify",
       "project_catalog": "#/$defs/AuthorityRequest_project_catalog",
       "project_evidence_heads_compare": "#/$defs/AuthorityRequest_project_evidence_heads_compare",
       "project_evidence_history": "#/$defs/AuthorityRequest_project_evidence_history",
+      "project_evidence_select": "#/$defs/AuthorityRequest_project_evidence_select",
       "project_recovery_inspect": "#/$defs/AuthorityRequest_project_recovery_inspect",
       "project_status": "#/$defs/AuthorityRequest_project_status",
+      "render_project_panel": "#/$defs/AuthorityRequest_render_project_panel",
       "restoration_read": "#/$defs/AuthorityRequest_restoration_read",
       "search": "#/$defs/AuthorityRequest_search",
-      "storage_status": "#/$defs/AuthorityRequest_storage_status"
+      "storage_status": "#/$defs/AuthorityRequest_storage_status",
+      "toolchain_catalog": "#/$defs/AuthorityRequest_toolchain_catalog",
+      "toolchain_resolve": "#/$defs/AuthorityRequest_toolchain_resolve",
+      "workflow_catalog": "#/$defs/AuthorityRequest_workflow_catalog"
     },
     "propertyName": "action"
   },
@@ -1532,6 +2250,15 @@
       "$ref": "#/$defs/AuthorityRequest_lane_status"
     },
     {
+      "$ref": "#/$defs/AuthorityRequest_lane_view_catalog"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_view_preview"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_lane_view_read"
+    },
+    {
       "$ref": "#/$defs/AuthorityRequest_linked_project_evidence_query"
     },
     {
@@ -1547,10 +2274,16 @@
       "$ref": "#/$defs/AuthorityRequest_project_evidence_history"
     },
     {
+      "$ref": "#/$defs/AuthorityRequest_project_evidence_select"
+    },
+    {
       "$ref": "#/$defs/AuthorityRequest_project_recovery_inspect"
     },
     {
       "$ref": "#/$defs/AuthorityRequest_project_status"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_render_project_panel"
     },
     {
       "$ref": "#/$defs/AuthorityRequest_restoration_read"
@@ -1560,6 +2293,15 @@
     },
     {
       "$ref": "#/$defs/AuthorityRequest_storage_status"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_toolchain_catalog"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_toolchain_resolve"
+    },
+    {
+      "$ref": "#/$defs/AuthorityRequest_workflow_catalog"
     }
   ],
   "title": "project_authority typed SDK requests"

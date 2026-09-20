@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PermissionRequest/handler.py",
   "event": "PermissionRequest",
   "event_contract": "hooks/events/PermissionRequest/event.v4.json",
-  "event_contract_sha256": "2fae2665d7ba45488c32c3b830019a5fa5e706c932e51837c03f6a51f7e347b3",
+  "event_contract_sha256": "084afb21ba45f351ae750f93d517704600722796c9a681c44f81d29a4ac6e0ec",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PermissionRequestHandler",
   "host_stage_runner": "hooks/stage_runner.py",

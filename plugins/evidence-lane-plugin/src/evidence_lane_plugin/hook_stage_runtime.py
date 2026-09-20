@@ -26,8 +26,8 @@ from uuid import UUID
 from .capture_routing import HookEnvelope
 from .errors import LaneError
 from .hook_admission import MAX_HOOK_INPUT_BYTES, admit_hook
-from .hook_classification import classify_hook
-from .hook_event_handlers import HandledHook, handler_class_for_event
+from .hook_classification import HookClassification, classify_hook
+from .hook_event_handlers import HandledHook, NativeHookHandler, handler_class_for_event
 from .hook_lifecycle_boundary import verify_capture_boundary
 from .hook_output import project_hook_output
 from .hook_receipts import seal_hook_receipt
@@ -35,6 +35,8 @@ from .hook_transport import deliver_hook
 from .storage import json_text
 
 HOST_STAGE_SCHEMA: Final = "evidence-lane.native-host-hook-stage.v4"
+TERMINAL_PREREQUISITE_WAIT_SECONDS: Final = 1.0
+STANDARD_PREREQUISITE_WAIT_SECONDS: Final = 8.0
 
 
 class HostHookStage(TypedDict):
@@ -118,11 +120,25 @@ def _write_once(path: Path, body: dict) -> dict:
             raise LaneError("HOOK_STAGE_REPLAY_COLLISION", "A host Hook stage already has different sealed output.")
         return sealed
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    temporary.write_bytes(encoded)
+    with temporary.open("xb") as handle:
+        handle.write(encoded)
+        handle.flush()
+        os.fsync(handle.fileno())
     try:
-        os.replace(temporary, path)
+        # Publish the complete immutable receipt without replacing a path that
+        # another Host Hook process may already be reading.  The hard link is
+        # atomic on the same volume and fails closed when another writer wins.
+        try:
+            os.link(temporary, path)
+        except FileExistsError:
+            pass
+        except OSError:
+            if not path.exists():
+                raise
     finally:
         temporary.unlink(missing_ok=True)
+    if path.read_bytes() != encoded:
+        raise LaneError("HOOK_STAGE_REPLAY_COLLISION", "A host Hook stage already has different sealed output.")
     return sealed
 
 
@@ -145,7 +161,9 @@ def _read_sealed(path: Path, *, stage: str, chain_id: str) -> dict:
 
 
 def _wait(path: Path, *, stage: str, chain_id: str, terminal: bool) -> dict:
-    deadline = time.monotonic() + (2.0 if terminal else 8.0)
+    deadline = time.monotonic() + (
+        TERMINAL_PREREQUISITE_WAIT_SECONDS if terminal else STANDARD_PREREQUISITE_WAIT_SECONDS
+    )
     while True:
         try:
             return _read_sealed(path, stage=stage, chain_id=chain_id)
@@ -173,6 +191,175 @@ def _base(event: str, stage: str, chain_id: str, admitted_digest: str, previous:
     }
 
 
+def _terminal_validate(root: Path, event: str, chain_id: str, admitted_digest: str, envelope: HookEnvelope) -> dict:
+    target = _stage_path(root, "VALIDATE")
+    try:
+        return _read_sealed(target, stage="VALIDATE", chain_id=chain_id)
+    except LaneError as error:
+        if error.code != "HOOK_PRIOR_STAGE_MISSING":
+            raise
+    _write_once(
+        target,
+        {
+            **_base(event, "VALIDATE", chain_id, admitted_digest, None),
+            "event_id": envelope.event_id,
+            "owners_executed": ["hook_admission"],
+        },
+    )
+    return _read_sealed(target, stage="VALIDATE", chain_id=chain_id)
+
+
+def _terminal_seal(
+    root: Path,
+    event: str,
+    chain_id: str,
+    admitted_digest: str,
+    envelope: HookEnvelope,
+) -> tuple[dict, HookClassification]:
+    validated = _terminal_validate(root, event, chain_id, admitted_digest, envelope)
+    if validated.get("event_id") != envelope.event_id:
+        raise LaneError("HOOK_STAGE_EVENT_MISMATCH", "The admitted Host Hook event differs across stages.")
+    classification = classify_hook(envelope, event)
+    target = _stage_path(root, "SEAL")
+    try:
+        sealed = _read_sealed(target, stage="SEAL", chain_id=chain_id)
+    except LaneError as error:
+        if error.code != "HOOK_PRIOR_STAGE_MISSING":
+            raise
+        _write_once(
+            target,
+            {
+                **_base(event, "SEAL", chain_id, admitted_digest, validated["receipt_sha256"]),
+                "event_id": envelope.event_id,
+                "classification": asdict(classification),
+                "boundary": verify_capture_boundary(classification),
+                "dedupe_identity_sha256": _sha256(f"{event}|{chain_id}|SEAL".encode()),
+                "owners_executed": ["hook_classification", "hook_lifecycle_boundary"],
+            },
+        )
+        sealed = _read_sealed(target, stage="SEAL", chain_id=chain_id)
+    if sealed.get("event_id") != envelope.event_id or sealed.get("classification") != asdict(classification):
+        raise LaneError("HOOK_STAGE_EVENT_MISMATCH", "The classified Host Hook event differs across stages.")
+    return sealed, classification
+
+
+def _terminal_transport(
+    root: Path,
+    event: str,
+    chain_id: str,
+    admitted_digest: str,
+    envelope: HookEnvelope,
+) -> tuple[dict | None, HookClassification, type[NativeHookHandler]]:
+    sealed, classification = _terminal_seal(root, event, chain_id, admitted_digest, envelope)
+    handler = handler_class_for_event(event)
+    target = _stage_path(root, "TRANSPORT")
+    try:
+        transported = _read_sealed(target, stage="TRANSPORT", chain_id=chain_id)
+    except LaneError as error:
+        if error.code != "HOOK_PRIOR_STAGE_MISSING":
+            raise
+        lock = root / "03-transport.lock"
+        try:
+            handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            # Another visible terminal row owns the one delivery.  Never spend
+            # the three-second Host Hook budget waiting in a losing process;
+            # the lock owner also seals EMIT before it returns.
+            try:
+                transported = _read_sealed(target, stage="TRANSPORT", chain_id=chain_id)
+            except LaneError as pending:
+                if pending.code != "HOOK_PRIOR_STAGE_MISSING":
+                    raise
+                return None, classification, handler
+        else:
+            try:
+                os.close(handle)
+                handled = handler.handle(envelope, classification)
+                delivered = deliver_hook(handled)
+                _write_once(
+                    target,
+                    {
+                        **_base(event, "TRANSPORT", chain_id, admitted_digest, sealed["receipt_sha256"]),
+                        "event_id": envelope.event_id,
+                        "handler_id": handled.handler_id,
+                        "delivery": delivered,
+                        "delivery_sha256": _sha256(_canonical(delivered)),
+                        "implementation_execution_count": 1,
+                        "owners_executed": ["event_specific_handler", "hook_transport"],
+                    },
+                )
+                transported = _read_sealed(target, stage="TRANSPORT", chain_id=chain_id)
+                _terminal_emit(root, event, chain_id, admitted_digest, envelope, transported, classification, handler)
+            finally:
+                lock.unlink(missing_ok=True)
+    if transported is None:
+        return None, classification, handler
+    transported_delivery = transported.get("delivery")
+    if (
+        transported.get("event_id") != envelope.event_id
+        or transported.get("handler_id") != handler.handler_id
+        or not isinstance(transported_delivery, dict)
+        or transported.get("delivery_sha256") != _sha256(_canonical(transported_delivery))
+    ):
+        raise LaneError("HOOK_STAGE_DELIVERY_MISMATCH", "The authenticated Hook delivery failed stage verification.")
+    return transported, classification, handler
+
+
+def _terminal_emit(
+    root: Path,
+    event: str,
+    chain_id: str,
+    admitted_digest: str,
+    envelope: HookEnvelope,
+    transported: dict,
+    classification: HookClassification,
+    handler: type[NativeHookHandler],
+) -> dict:
+    handled = HandledHook(
+        envelope=envelope,
+        classification=classification,
+        handler_id=handler.handler_id,
+    )
+    receipt = seal_hook_receipt(handled, transported["delivery"])
+    output = project_hook_output(handled, receipt)
+    _write_once(
+        _stage_path(root, "EMIT"),
+        {
+            **_base(event, "EMIT", chain_id, admitted_digest, transported["receipt_sha256"]),
+            "event_id": envelope.event_id,
+            "hook_receipt_sha256": receipt["receipt_sha256"],
+            "output_sha256": _sha256(_canonical(output)),
+            "implementation_execution_count": 0,
+            "owners_executed": ["hook_receipts", "hook_output"],
+        },
+    )
+    return output
+
+
+def _run_terminal_hook_stage(
+    root: Path,
+    chain_id: str,
+    admitted_digest: str,
+    envelope: HookEnvelope,
+    event: str,
+    stage: str,
+) -> dict:
+    if stage == "VALIDATE":
+        _terminal_validate(root, event, chain_id, admitted_digest, envelope)
+        return {}
+    if stage == "SEAL":
+        _terminal_seal(root, event, chain_id, admitted_digest, envelope)
+        return {}
+    transported, classification, handler = _terminal_transport(
+        root, event, chain_id, admitted_digest, envelope
+    )
+    if stage == "TRANSPORT" or transported is None:
+        return {}
+    return _terminal_emit(
+        root, event, chain_id, admitted_digest, envelope, transported, classification, handler
+    )
+
+
 def run_host_hook_stage(raw: bytes, event: str, stage: str) -> dict:
     if stage not in _STAGE_INDEX:
         raise LaneError("HOOK_STAGE_UNSUPPORTED", "Select a registered Host Hook stage.")
@@ -180,6 +367,10 @@ def run_host_hook_stage(raw: bytes, event: str, stage: str) -> dict:
         raise LaneError("HOOK_INPUT_BUDGET", "The native Hook payload exceeds its capture budget.")
     root, chain_id, admitted_digest, envelope = _admitted_occurrence(raw, event)
     terminal = event in {"Interrupt", "SessionEnd"}
+    if terminal:
+        return _run_terminal_hook_stage(
+            root, chain_id, admitted_digest, envelope, event, stage
+        )
 
     if stage == "VALIDATE":
         _write_once(
@@ -295,4 +486,11 @@ def main(event: str, stage: str) -> int:
         return 0
 
 
-__all__ = ["HOST_HOOK_STAGES", "HOST_STAGE_SCHEMA", "main", "run_host_hook_stage"]
+__all__ = [
+    "HOST_HOOK_STAGES",
+    "HOST_STAGE_SCHEMA",
+    "STANDARD_PREREQUISITE_WAIT_SECONDS",
+    "TERMINAL_PREREQUISITE_WAIT_SECONDS",
+    "main",
+    "run_host_hook_stage",
+]

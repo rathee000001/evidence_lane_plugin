@@ -2925,27 +2925,27 @@
     },
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr.mmd",
-      "sha256": "00cea90bc8e5f8d5d0713b2106d15536ab609678cd199c17d6785c2a62b17e3d"
+      "sha256": "2d87769f241763226ee85c6a3e3ee915b998acd9f35941a1901dc11b57d7db02"
     },
     {
       "path": "authorities/project_sectors/images_ocr/images_ocr.dot",
-      "sha256": "a77225192097229fec264b35f67cb6ee7ae2959314ac719a10d1c3cc2d7bd129"
+      "sha256": "d514d271fa9bc99806574f5c7b26f4c1b7202f8fe882e73a981fc28e0c2118d3"
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.mmd",
-      "sha256": "f7ab0f5445c93d0978f2bd42a055cbcb5ad4d1a84b109137a7f29d422a0bea77"
+      "sha256": "3d2407fe7f6310e206eec669cde134aace816bf962d08ea1fbddcee262666005"
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.dot",
-      "sha256": "e25cd0701e495bb6abf7df29764fae7b7c153ae1f5a2885897360a0993533285"
+      "sha256": "1ecef29148784f921c8da7f2ff44869be9f2dee3d6fb53a54c713c85ec206fc6"
     },
     {
       "path": "authorities/project_sectors/images_ocr/workflow.v4.json",
-      "sha256": "4b2dbaae724fa7e2674662aabc54eaef68fa00ab462d6ad8ef5f8c0b354d07c2"
+      "sha256": "5cb30249d1da20136058a492ee86680896ef92cd7f0bcba3e15b90b9df632152"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.json",
-      "sha256": "f39622738b79a3d4041523e9c4ad0525331857b8924e29e6394cf184af64e9c7"
+      "sha256": "af91e396c63e67e664d53d4b8158e2d4959d3dfd11b49a978eab63d06bcf25b4"
     },
     {
       "path": "authorities/project_sectors/images_ocr/tools.schema.json",

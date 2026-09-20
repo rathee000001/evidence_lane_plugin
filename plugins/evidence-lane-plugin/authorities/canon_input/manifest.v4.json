@@ -4263,7 +4263,7 @@
       "version": 1,
       "meaning": "Participants, exchanges, receiver states, replies and explicit evidence references.",
       "consumer": "artifact_export",
-      "implementation_digest": "2fce26732b0a96d83f7bce58019ecca80ca0697408b620ee7c7bbe7169646d08",
+      "implementation_digest": "99f4684951ae20e62e083fbbd32851bd6985e74ebecc2c631c57e1265448ff23",
       "files": {
         "mmd": "canon-input.mmd",
         "dot": "canon-input.dot",
@@ -4386,11 +4386,11 @@
     },
     {
       "path": "authorities/canon_input/canon-input.dot",
-      "sha256": "c318ee4b3fbf66efcd1e24440946870c8b06de6c701b70d866e19cb6610da95b"
+      "sha256": "460c210395a2b1175f8d4f6e4aaf8fbb13b319485af68245a9fe8c4012d13d47"
     },
     {
       "path": "authorities/canon_input/canon-input.mmd",
-      "sha256": "d28a4a5e6ab9db7bdbd7d8209d055fa61d2ce4c566bf8b8df65608c6ba9f2941"
+      "sha256": "adbf8c83f65662f015f720a5d7b4d00728aea809d79c13ce52be4656ebd08e6a"
     },
     {
       "path": "authorities/canon_input/canon-input.sqlite",
@@ -4398,7 +4398,7 @@
     },
     {
       "path": "authorities/canon_input/canon-input.tools.json",
-      "sha256": "acdb333070dbab1cdad14c05b135ccc0361647f25418a830b95de7297c77cc00"
+      "sha256": "a7eaa8b7dfcb664368472d66738805282ff1e4a35aec59b646fba1fda513ec39"
     },
     {
       "path": "authorities/canon_input/consequence_graph/README.md",
@@ -4418,7 +4418,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/manifest.v4.json",
-      "sha256": "c61e9407f4383876ef5f8a1106a632671ddb52569f085d766b92ecd15a868bdd"
+      "sha256": "c4de588a7234e2314cd64fb1f756cf1c490e211190255d850c9948e26bd156c2"
     },
     {
       "path": "authorities/canon_input/consequence_graph/reader-contract.schema.json",
@@ -4446,7 +4446,7 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.json",
-      "sha256": "91fe9d7640d8cdfb1d3945cca4944e290bfe7c0578143b01df323b158a9b9309"
+      "sha256": "2d27cfc7b9c456b60ed157872dd9f82beea85291e8d762751cb58332df46265a"
     },
     {
       "path": "authorities/canon_input/consequence_graph/tools.schema.json",
@@ -4454,19 +4454,19 @@
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.dot",
-      "sha256": "07f867ee390703a432d57c7957a36b7e4211e2d62f99501f8ee0441e15a191ce"
+      "sha256": "02ae943d539ea98fb95a231210184fa951569a6b118239012cd9969806a050c8"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.mmd",
-      "sha256": "cd8926f3f103022a5d51a6d7666bce53c52b759d68b6ceeb48e6c910d9277fa1"
+      "sha256": "f5adb693caacb32700cdf067f291c5e493a3750303e955e2accdc2b5ebd51afb"
     },
     {
       "path": "authorities/canon_input/consequence_graph/workflow.v4.json",
-      "sha256": "34eb07553abd2f0139c57dd8c66e37d87ea8962d3f7b106e44bdb734fd855c79"
+      "sha256": "8a6ae41172079d156e580cfe563ff2b34ceddb1e1714f74699f29a6bd67809b8"
     },
     {
       "path": "authorities/canon_input/dot-artifact.schema.json",
-      "sha256": "615277009498a22ad97329614b00305794cf0d2c078e806a66eab86302da4015"
+      "sha256": "c450e17cd1871901982930950a47fdf4f7d7669e6934a7c4ec616660eaca115c"
     },
     {
       "path": "authorities/canon_input/manifest.schema.json",
@@ -4478,7 +4478,7 @@
     },
     {
       "path": "authorities/canon_input/mmd-artifact.schema.json",
-      "sha256": "fe0cb40fae287a4b3540405952a03f168b7256c18092055a87fedf74feefe3b7"
+      "sha256": "8d2557cd915e4ffb1620ffb2f2573c83a57c6f026f12395c3f012e1905efd656"
     },
     {
       "path": "authorities/canon_input/pointer-contract.schema.json",
@@ -4486,7 +4486,7 @@
     },
     {
       "path": "authorities/canon_input/pointer-contract.v4.json",
-      "sha256": "e2d7f55aad7b738b0c6fbb2f58e44e4184e8f9297f724f3ecd6e3d91f59e7f5a"
+      "sha256": "74e893db7247fdfd133fc8360658de3cdae99cb173dc231d0bffd174acd91084"
     },
     {
       "path": "authorities/canon_input/reader-contract.schema.json",
@@ -4530,15 +4530,15 @@
     },
     {
       "path": "authorities/canon_input/workflow.dot",
-      "sha256": "eacfa28c0d4b6b0d239fe5d5d17c5eee682637b10890aafb9d20668807d23eae"
+      "sha256": "5dee314022c37b42e8751108227d5707d853139915d7292b7fb90ac8f2a6560e"
     },
     {
       "path": "authorities/canon_input/workflow.mmd",
-      "sha256": "8bd31912d3dca9314df2acb99ec6f1eef7b5fa6451270ca12a394dc204186a27"
+      "sha256": "7a9d2417ed6ceaf39ec643a27f586cb7ec885bb545679cf93e7429ddb37f8014"
     },
     {
       "path": "authorities/canon_input/workflow.v4.json",
-      "sha256": "d5fcde6b13a395b996b1813d09dc6f2bd84cd155ba152c510d691b006296f67e"
+      "sha256": "0357710fa8a596e979eb08921d49d697c38631618b766747f06bd0593ece2086"
     }
   ]
 }

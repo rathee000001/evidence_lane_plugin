@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=062C95775C740BCED1236248CEC93672A10E630CD1630F368C767729ACC19369
+%% LANGGRAPH_EXPORT_SHA256=FABD425B605F7C42C9A0504EBAA35CBC25A66717A9ABE1E7CA2594C2078C1D47
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["learning owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_learning_controls["learning_controls<br/>lesson_key, revoked_by, reason, revoked_at"]:::table
   t_learning_current["learning_current<br/>lesson_key, version_id"]:::table
@@ -24,6 +25,22 @@ flowchart TB
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_learning_controls
+  SCHEMA_ROOT -->|"owns table"| t_learning_current
+  SCHEMA_ROOT -->|"owns table"| t_learning_events
+  SCHEMA_ROOT -->|"owns table"| t_learning_fts
+  SCHEMA_ROOT -->|"owns table"| t_learning_versions
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
   t_learning_current -->|"version_id"| t_learning_versions
   t_learning_events -->|"version_id"| t_learning_versions
   t_learning_versions -->|"content_digest"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_learning_controls
+  t_learning_controls ~~~ t_learning_current
+  t_learning_current ~~~ t_learning_events
+  t_learning_fts ~~~ t_learning_versions
+  t_objects ~~~ t_schema_migrations
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -1,0 +1,6 @@
+import {studioPanels} from './studio-panels';
+export const studioObserverViews=[...studioPanels,
+ {name:'Learning',color:'#8bdfb1',title:'Keep lessons attributed.',description:'Inspect procedural learning recorded after verified work.',fields:[['Procedure','What the verified work established.'],['Evidence','The task and checks behind the lesson.'],['Applicability','Its project and operation context.'],['Revocation','Withdrawn lessons retain their history.']]},
+ {name:'Compute',color:'#e7cc83',title:'Read the measured environment.',description:'Inspect operation-specific compute compatibility and observations.',fields:[['CPU','The declared local processing route.'],['Accelerators','Supported device and runtime combinations.'],['Compatibility','Measured dependencies and requirements.'],['Budgets','The selected operation’s resource bounds.']]},
+ {name:'Diagnostics',color:'#85d5ec',title:'See what is known and missing.',description:'Read engine, client and dependency observations with their limits.',fields:[['Engine','Current service and connection observations.'],['Session','The explicit client and project binding.'],['Dependencies','Measured availability and reported gaps.'],['Qualification','Configured, installed and executed remain distinct.']]}
+];

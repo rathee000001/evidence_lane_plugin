@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=9C2E4877C2670B2A70750DB211AF455E0B22906440538FEAA95608317F729494
+%% LANGGRAPH_EXPORT_SHA256=FEE1BA920DE270B8DA5AC6E025D6CE000C6D79876D526F73CB37058FA4B3EBAF
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=11
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["universe owning SQLite schema"]:::default
   t_federation_grants["federation_grants<br/>grant_id, body_json, digest"]:::table
   t_federation_identity["federation_identity<br/>singleton, federation_id, body_json, digest"]:::table
   t_federation_lane_heads["federation_lane_heads<br/>project_id, lane_id, mini_brain_id"]:::table
@@ -29,6 +30,33 @@ flowchart TB
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_universe_link_events["universe_link_events<br/>sequence, request_id, actor_id, input_digest, body_json, previous_digest, digest"]:::table
   t_universe_links["universe_links<br/>target_project_id, version, state, binding_digest, body_json"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_federation_grants
+  SCHEMA_ROOT -->|"owns table"| t_federation_identity
+  SCHEMA_ROOT -->|"owns table"| t_federation_lane_heads
+  SCHEMA_ROOT -->|"owns table"| t_federation_links
+  SCHEMA_ROOT -->|"owns table"| t_federation_member_history
+  SCHEMA_ROOT -->|"owns table"| t_federation_members
+  SCHEMA_ROOT -->|"owns table"| t_federation_mini_brains
+  SCHEMA_ROOT -->|"owns table"| t_federation_revocations
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_universe_link_events
+  SCHEMA_ROOT -->|"owns table"| t_universe_links
   t_federation_lane_heads -->|"mini_brain_id"| t_federation_mini_brains
   t_federation_links -->|"grant_id"| t_federation_grants
   t_federation_revocations -->|"grant_id"| t_federation_grants
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_federation_grants ~~~ t_federation_identity
+  t_federation_identity ~~~ t_federation_lane_heads
+  t_federation_lane_heads ~~~ t_federation_links
+  t_federation_links ~~~ t_federation_member_history
+  t_federation_members ~~~ t_federation_mini_brains
+  t_federation_mini_brains ~~~ t_federation_revocations
+  t_federation_revocations ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_universe_link_events
+  t_universe_link_events ~~~ t_universe_links
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

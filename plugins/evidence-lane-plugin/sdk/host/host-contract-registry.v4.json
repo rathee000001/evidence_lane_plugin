@@ -23,7 +23,7 @@
     {
       "bytes": 844,
       "path": "sdk/host/hook-control.contract.v4.json",
-      "sha256": "ebbab7763f399c86fa9be644c2c16ea7c2483e182b7532e1ea3521725ea2b32c"
+      "sha256": "9b39abd004fcc20ac18075ebcb36eee8e5720f0dbe1e18939cf62913e63e4bfe"
     },
     {
       "bytes": 1086,
@@ -43,7 +43,7 @@
     {
       "bytes": 847,
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "e973d7b6ca008adbe939bdb8d2b8af4289feb7df844ff38219b88b997fc221b7"
+      "sha256": "93d6eeaad9a9e3f1b9ecfe5af6565c0265c12df9cbbccf3300ca19082965ed70"
     },
     {
       "bytes": 1536,

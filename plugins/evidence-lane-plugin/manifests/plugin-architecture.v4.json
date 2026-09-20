@@ -60924,7 +60924,7 @@
     }
   ],
   "authority": "current_executable_registry_and_lane_contracts",
-  "contract_sha256": "5B3AEC59158802B217ACE347DA586070CC37BAC6B68A7D8B8E246AEAF2A8085B",
+  "contract_sha256": "C37F0367AAA1849CF34E1EA11F0ACD6D1577855FC2B35D327F8637FE8CA379C8",
   "hooks": {
     "ambient_python_required": false,
     "behavior_handoff_owner": "src/evidence_lane_plugin/hook_behavior_handoff.py",
@@ -61669,7 +61669,7 @@
   "root_pv": {
     "business_database": false,
     "folder": "authorities/project_authority",
-    "manifest_sha256": "3C94019DD90EAAC4662A26000CA4625BC8286B67C2F70FFAD7F847FC4A570AE3",
+    "manifest_sha256": "85E2C5C41D15410AE7DCBB0764F0FED6F21CC4F674CAE5881BD6D67910F7E319",
     "role": "identity_and_coordinated_lane_head_references"
   },
   "routing_stages": [
@@ -68280,7 +68280,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/plan/manifest.v4.json",
-        "sha256": "7E76EA8ED509E4E787C503F9A286706E1E738168F7C481E19831CD7BF124390E"
+        "sha256": "1F98A2EA81604A680CE5AD7638BEE349576BC92BD374ECCE01F7CE8F68822664"
       },
       "runtime": "evidence_lane_plugin.plan_runtime",
       "schema": {
@@ -69976,7 +69976,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/chat_lineage/manifest.v4.json",
-        "sha256": "62716D3660B3FA6E4F98373FF4203B95C91BAA171F61D38C22478DA5E37FC687"
+        "sha256": "B523F98380ACA000C6A5408519A6CF89AED5525A1543B8CD6D123617C4D4FDAD"
       },
       "runtime": "evidence_lane_plugin.lineage",
       "schema": {
@@ -74214,7 +74214,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/canon_input/manifest.v4.json",
-        "sha256": "0B33E4F62105147E76DD564137260263EF6551AB504481C5FB3F64DAE5ABB21C"
+        "sha256": "B6450CDA718294563710BDCB5059F6F4884E33A2123100C0EF8A14FC772B300B"
       },
       "runtime": "evidence_lane_plugin.canon_task_graph",
       "schema": {
@@ -76107,7 +76107,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_memory/manifest.v4.json",
-        "sha256": "DCC37874C8C38E4F08AAE98CB54E8E5FC8F5C8A2239C05E9305701E93969A587"
+        "sha256": "F02AE5A473AC833FF414F35164D08C144748044F3735655411CEF5BF2F22F22C"
       },
       "runtime": "evidence_lane_plugin.project_memory",
       "schema": {
@@ -76705,7 +76705,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/agent_learning/manifest.v4.json",
-        "sha256": "BCA748F86B26BBF233011F175CCCB7D585E2931BF2F3C578BBB223108393594C"
+        "sha256": "56E4BDBA59F81249DA18ACF43A4C9E192D4C00AAAE15FF60ACEF9C0F0A39F45E"
       },
       "runtime": "evidence_lane_plugin.agent_learning",
       "schema": {
@@ -77735,6 +77735,238 @@
         },
         {
           "cross_project_read": false,
+          "description": "Inspect bounded GitHub repository, branch and workflow metadata through one exact project connector grant.",
+          "inputSchema": {
+            "$defs": {
+              "GitHubPageCursor": {
+                "additionalProperties": false,
+                "properties": {
+                  "offset": {
+                    "default": 0,
+                    "maximum": 99,
+                    "minimum": 0,
+                    "title": "Offset",
+                    "type": "integer"
+                  },
+                  "page": {
+                    "default": 1,
+                    "maximum": 1000000,
+                    "minimum": 1,
+                    "title": "Page",
+                    "type": "integer"
+                  },
+                  "page_sha256": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Page Sha256"
+                  }
+                },
+                "title": "GitHubPageCursor",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "branch_cursor": {
+                "$ref": "#/$defs/GitHubPageCursor"
+              },
+              "include_workflows": {
+                "default": true,
+                "title": "Include Workflows",
+                "type": "boolean"
+              },
+              "max_branches": {
+                "default": 100,
+                "maximum": 500,
+                "minimum": 1,
+                "title": "Max Branches",
+                "type": "integer"
+              },
+              "max_http_requests": {
+                "default": 16,
+                "maximum": 32,
+                "minimum": 1,
+                "title": "Max Http Requests",
+                "type": "integer"
+              },
+              "max_metadata_bytes": {
+                "default": 2097152,
+                "maximum": 8388608,
+                "minimum": 1024,
+                "title": "Max Metadata Bytes",
+                "type": "integer"
+              },
+              "max_response_bytes": {
+                "default": 2097152,
+                "maximum": 4194304,
+                "minimum": 1024,
+                "title": "Max Response Bytes",
+                "type": "integer"
+              },
+              "max_total_response_bytes": {
+                "default": 8388608,
+                "maximum": 33554432,
+                "minimum": 1024,
+                "title": "Max Total Response Bytes",
+                "type": "integer"
+              },
+              "max_workflows": {
+                "default": 100,
+                "maximum": 500,
+                "minimum": 1,
+                "title": "Max Workflows",
+                "type": "integer"
+              },
+              "plugin_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Plugin Id"
+              },
+              "repository": {
+                "maxLength": 140,
+                "minLength": 3,
+                "title": "Repository",
+                "type": "string"
+              },
+              "timeout_seconds": {
+                "default": 20,
+                "exclusiveMinimum": 0,
+                "maximum": 60,
+                "title": "Timeout Seconds",
+                "type": "number"
+              },
+              "workflow_cursor": {
+                "$ref": "#/$defs/GitHubPageCursor"
+              }
+            },
+            "required": [
+              "repository"
+            ],
+            "title": "GitHubInspectionRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "github_repository_inspect",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "receipt_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Receipt Sha256",
+                "type": "string"
+              },
+              "repository": {
+                "title": "Repository",
+                "type": "string"
+              },
+              "snapshot": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Snapshot",
+                "type": "object"
+              }
+            },
+            "required": [
+              "repository",
+              "snapshot",
+              "receipt_sha256"
+            ],
+            "title": "GitHubInspectionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "code",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [
+            "Python",
+            "PyGithub"
+          ],
+          "requires_delta": true,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "94fd3dbf227747cf23004fc7033e57f7f5fdd56ade2d4a21b0da3d785e580980",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "github_repository_inspect",
+            "profile": "code",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.github_toolchain:register_github_actions.<locals>.handler",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": {
+                  "backend_id": "github.repository-reader",
+                  "backend_runtime": "python",
+                  "backend_version": "2.10.0",
+                  "capability": "repository_metadata_read",
+                  "code_loaded_from_registration": false,
+                  "execution_owner": "engine_delta",
+                  "lane": "github_code",
+                  "lane_field": null,
+                  "plugin_id_field": "plugin_id",
+                  "read_path_fields": [],
+                  "resource_fields": [
+                    "repository"
+                  ],
+                  "role": "github_repository_snapshot",
+                  "role_schema": {
+                    "receipt_sha256": "blob_hash",
+                    "repository": "text",
+                    "snapshot": "json"
+                  },
+                  "write_path_fields": []
+                },
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "github_repository_inspect.pygithub",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "PyGithub"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [
+            "github_snapshot_integrity"
+          ],
+          "worker_operations": [],
+          "workflow": "manage-project-sources"
+        },
+        {
+          "cross_project_read": false,
           "description": "Consume exact source-to-sector overrides in one attributed registration, optionally inheriting a prior route receipt.",
           "inputSchema": {
             "$defs": {
@@ -77906,6 +78138,343 @@
           "verification_checks": [],
           "worker_operations": [],
           "workflow": "manage-project-sources"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "batch_id": {
+                "maxLength": 192,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:-]+$",
+                "title": "Batch Id",
+                "type": "string"
+              },
+              "code_lane": {
+                "default": "local_code",
+                "enum": [
+                  "local_code",
+                  "github_code"
+                ],
+                "title": "Code Lane",
+                "type": "string"
+              },
+              "custom_work_classes": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "maxItems": 8,
+                "title": "Custom Work Classes",
+                "type": "array"
+              },
+              "explicit_project_type": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "pattern": "^(CODE|DATA|DOCUMENT|MEDIA|RESEARCH|MIXED|CUSTOM:[A-Za-z0-9][A-Za-z0-9 ._/-]{0,119})$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Explicit Project Type"
+              },
+              "explicit_work_classes": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 16,
+                "title": "Explicit Work Classes",
+                "type": "array"
+              },
+              "git_mode": {
+                "default": "AUTO",
+                "enum": [
+                  "AUTO",
+                  "REQUIRED",
+                  "DISABLED"
+                ],
+                "title": "Git Mode",
+                "type": "string"
+              },
+              "max_result_bytes": {
+                "default": 524288,
+                "maximum": 2097152,
+                "minimum": 8192,
+                "title": "Max Result Bytes",
+                "type": "integer"
+              },
+              "requested_outcome": {
+                "maxLength": 4000,
+                "minLength": 1,
+                "title": "Requested Outcome",
+                "type": "string"
+              },
+              "work_classification_request": {
+                "anyOf": [
+                  {
+                    "maxLength": 4000,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Work Classification Request"
+              }
+            },
+            "required": [
+              "batch_id",
+              "requested_outcome"
+            ],
+            "title": "ProjectWorkflowRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "project_workflow_configure",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "artifact_contracts": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Artifact Contracts",
+                "type": "object"
+              },
+              "authority_references": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Authority References",
+                "type": "array"
+              },
+              "batch_digest": {
+                "title": "Batch Digest",
+                "type": "string"
+              },
+              "batch_id": {
+                "title": "Batch Id",
+                "type": "string"
+              },
+              "classification_basis": {
+                "title": "Classification Basis",
+                "type": "string"
+              },
+              "execution_workflow": {
+                "additionalProperties": true,
+                "title": "Execution Workflow",
+                "type": "object"
+              },
+              "lane_workflows": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "title": "Lane Workflows",
+                "type": "array"
+              },
+              "operation_contracts": {
+                "additionalProperties": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "title": "Operation Contracts",
+                "type": "object"
+              },
+              "plan_changed": {
+                "const": false,
+                "default": false,
+                "title": "Plan Changed",
+                "type": "boolean"
+              },
+              "project_class_policy": {
+                "additionalProperties": true,
+                "title": "Project Class Policy",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "project_type": {
+                "title": "Project Type",
+                "type": "string"
+              },
+              "project_validation_policy": {
+                "additionalProperties": true,
+                "title": "Project Validation Policy",
+                "type": "object"
+              },
+              "proposal_only": {
+                "const": true,
+                "default": true,
+                "title": "Proposal Only",
+                "type": "boolean"
+              },
+              "repository_context": {
+                "additionalProperties": true,
+                "title": "Repository Context",
+                "type": "object"
+              },
+              "selected_lane_validation": {
+                "additionalProperties": true,
+                "title": "Selected Lane Validation",
+                "type": "object"
+              },
+              "selected_sector_lanes": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Selected Sector Lanes",
+                "type": "array"
+              },
+              "source_bytes_reverified": {
+                "const": false,
+                "default": false,
+                "title": "Source Bytes Reverified",
+                "type": "boolean"
+              },
+              "stage_sequence": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Stage Sequence",
+                "type": "array"
+              },
+              "work_classification": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Work Classification"
+              },
+              "workflow_and_work_classification_are_distinct": {
+                "const": true,
+                "default": true,
+                "title": "Workflow And Work Classification Are Distinct",
+                "type": "boolean"
+              },
+              "workflow_dependency_readiness_checked": {
+                "const": false,
+                "default": false,
+                "title": "Workflow Dependency Readiness Checked",
+                "type": "boolean"
+              },
+              "workflow_digest": {
+                "title": "Workflow Digest",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "batch_id",
+              "batch_digest",
+              "project_type",
+              "classification_basis",
+              "selected_sector_lanes",
+              "authority_references",
+              "stage_sequence",
+              "artifact_contracts",
+              "project_class_policy",
+              "selected_lane_validation",
+              "project_validation_policy",
+              "work_classification",
+              "repository_context",
+              "execution_workflow",
+              "lane_workflows",
+              "operation_contracts",
+              "workflow_digest"
+            ],
+            "title": "ProjectWorkflowResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "72ec1f18d503f516d71e51de7eba409b0e08be08446866b2986dc542f1278743",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": null,
+            "operation": "project_workflow_configure",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.with_git",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "git_mode": [
+                    "AUTO",
+                    "REQUIRED"
+                  ]
+                },
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Bounded read-only observation of the exact source-root repository.",
+                "route_id": "project_workflow_configure.git",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "Git"
+                ]
+              },
+              {
+                "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.content_only",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "git_mode": [
+                    "AUTO",
+                    "DISABLED"
+                  ]
+                },
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Content workflow with Git disabled or unavailable; repository state is not inferred.",
+                "route_id": "project_workflow_configure.content",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "configure-project-workflow"
         },
         {
           "cross_project_read": false,
@@ -81827,7 +82396,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/source_authority/manifest.v4.json",
-        "sha256": "FF594E003A5090E6FC88D5EE267501C7E0DC51DCFF1AB89E297A62CFB45CC007"
+        "sha256": "19AFE4BAC5D26AF8D8701EFC400079F8D2F21A69169DFDE5290EC272BF5A1A0B"
       },
       "runtime": "evidence_lane_plugin.source_authority",
       "schema": {
@@ -81940,6 +82509,679 @@
     },
     {
       "actions": [
+        {
+          "cross_project_read": false,
+          "description": "Read this authenticated engine client and its explicitly configured project selections.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "ClientContextQuery",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "client_context",
+          "outputSchema": {
+            "$defs": {
+              "ClientHello": {
+                "additionalProperties": false,
+                "properties": {
+                  "configured_profile": {
+                    "default": "codex_desktop_stable",
+                    "title": "Configured Profile",
+                    "type": "string"
+                  },
+                  "peer_capabilities": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 16,
+                    "title": "Peer Capabilities",
+                    "type": "array"
+                  },
+                  "peer_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 128,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Peer Name"
+                  },
+                  "peer_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 128,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Peer Version"
+                  },
+                  "protocol": {
+                    "default": "local_api",
+                    "enum": [
+                      "local_api",
+                      "mcp_stdio"
+                    ],
+                    "title": "Protocol",
+                    "type": "string"
+                  },
+                  "protocol_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 32,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Protocol Version"
+                  }
+                },
+                "title": "ClientHello",
+                "type": "object"
+              },
+              "HostObservation": {
+                "additionalProperties": false,
+                "properties": {
+                  "architecture": {
+                    "title": "Architecture",
+                    "type": "string"
+                  },
+                  "available_commands": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Available Commands",
+                    "type": "array"
+                  },
+                  "client": {
+                    "$ref": "#/$defs/ClientHello"
+                  },
+                  "client_evidence_basis": {
+                    "const": "authenticated_client_report",
+                    "default": "authenticated_client_report",
+                    "title": "Client Evidence Basis",
+                    "type": "string"
+                  },
+                  "configured_persistence": {
+                    "const": "local_persistent_system",
+                    "default": "local_persistent_system",
+                    "title": "Configured Persistence",
+                    "type": "string"
+                  },
+                  "cpu_count": {
+                    "title": "Cpu Count",
+                    "type": "integer"
+                  },
+                  "engine_studio_platform_supported": {
+                    "default": false,
+                    "title": "Engine Studio Platform Supported",
+                    "type": "boolean"
+                  },
+                  "host_profile_attestation": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Host Profile Attestation",
+                    "type": "string"
+                  },
+                  "local_measurement_basis": {
+                    "const": "engine_os_and_path_probe",
+                    "default": "engine_os_and_path_probe",
+                    "title": "Local Measurement Basis",
+                    "type": "string"
+                  },
+                  "local_transport": {
+                    "enum": [
+                      "windows_current_user_loopback",
+                      "unavailable"
+                    ],
+                    "title": "Local Transport",
+                    "type": "string"
+                  },
+                  "managed_toolchain_readiness": {
+                    "default": "not_supported_on_this_platform",
+                    "enum": [
+                      "requires_windows_studio_probe",
+                      "not_supported_on_this_platform"
+                    ],
+                    "title": "Managed Toolchain Readiness",
+                    "type": "string"
+                  },
+                  "model_identity": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Model Identity",
+                    "type": "string"
+                  },
+                  "native_goal": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Goal",
+                    "type": "string"
+                  },
+                  "native_hooks": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Hooks",
+                    "type": "string"
+                  },
+                  "native_plan": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Plan",
+                    "type": "string"
+                  },
+                  "native_task_attestation": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Task Attestation",
+                    "type": "string"
+                  },
+                  "observation_id": {
+                    "title": "Observation Id",
+                    "type": "string"
+                  },
+                  "observed_at": {
+                    "title": "Observed At",
+                    "type": "string"
+                  },
+                  "operating_system": {
+                    "title": "Operating System",
+                    "type": "string"
+                  },
+                  "python_version": {
+                    "title": "Python Version",
+                    "type": "string"
+                  },
+                  "studio_installation": {
+                    "const": "not_measured",
+                    "default": "not_measured",
+                    "title": "Studio Installation",
+                    "type": "string"
+                  },
+                  "trigger": {
+                    "enum": [
+                      "engine_start",
+                      "client_connect"
+                    ],
+                    "title": "Trigger",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "observation_id",
+                  "observed_at",
+                  "trigger",
+                  "operating_system",
+                  "architecture",
+                  "python_version",
+                  "cpu_count",
+                  "available_commands",
+                  "client",
+                  "local_transport"
+                ],
+                "title": "HostObservation",
+                "type": "object"
+              },
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "client_id": {
+                "title": "Client Id",
+                "type": "string"
+              },
+              "engine_instance_id": {
+                "title": "Engine Instance Id",
+                "type": "string"
+              },
+              "expires_at": {
+                "title": "Expires At",
+                "type": "string"
+              },
+              "host_observation": {
+                "$ref": "#/$defs/HostObservation"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "permission_changed": {
+                "const": false,
+                "default": false,
+                "title": "Permission Changed",
+                "type": "boolean"
+              },
+              "projects": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Projects",
+                "type": "array"
+              }
+            },
+            "required": [
+              "client_id",
+              "engine_instance_id",
+              "expires_at",
+              "host_observation",
+              "projects"
+            ],
+            "title": "ClientContextResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "60a18ff5c54afa6f3e0ea6d01a8f45be7a225d06a6087db7ec4d3db7f5301d8a",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "client_context",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.connections:register_client_actions.<locals>.read",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "client_context.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read the local engine lifecycle and version.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "Empty",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "engine_health",
+          "outputSchema": {
+            "$defs": {
+              "ClientHello": {
+                "additionalProperties": false,
+                "properties": {
+                  "configured_profile": {
+                    "default": "codex_desktop_stable",
+                    "title": "Configured Profile",
+                    "type": "string"
+                  },
+                  "peer_capabilities": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 16,
+                    "title": "Peer Capabilities",
+                    "type": "array"
+                  },
+                  "peer_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 128,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Peer Name"
+                  },
+                  "peer_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 128,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Peer Version"
+                  },
+                  "protocol": {
+                    "default": "local_api",
+                    "enum": [
+                      "local_api",
+                      "mcp_stdio"
+                    ],
+                    "title": "Protocol",
+                    "type": "string"
+                  },
+                  "protocol_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 32,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Protocol Version"
+                  }
+                },
+                "title": "ClientHello",
+                "type": "object"
+              },
+              "HostObservation": {
+                "additionalProperties": false,
+                "properties": {
+                  "architecture": {
+                    "title": "Architecture",
+                    "type": "string"
+                  },
+                  "available_commands": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Available Commands",
+                    "type": "array"
+                  },
+                  "client": {
+                    "$ref": "#/$defs/ClientHello"
+                  },
+                  "client_evidence_basis": {
+                    "const": "authenticated_client_report",
+                    "default": "authenticated_client_report",
+                    "title": "Client Evidence Basis",
+                    "type": "string"
+                  },
+                  "configured_persistence": {
+                    "const": "local_persistent_system",
+                    "default": "local_persistent_system",
+                    "title": "Configured Persistence",
+                    "type": "string"
+                  },
+                  "cpu_count": {
+                    "title": "Cpu Count",
+                    "type": "integer"
+                  },
+                  "engine_studio_platform_supported": {
+                    "default": false,
+                    "title": "Engine Studio Platform Supported",
+                    "type": "boolean"
+                  },
+                  "host_profile_attestation": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Host Profile Attestation",
+                    "type": "string"
+                  },
+                  "local_measurement_basis": {
+                    "const": "engine_os_and_path_probe",
+                    "default": "engine_os_and_path_probe",
+                    "title": "Local Measurement Basis",
+                    "type": "string"
+                  },
+                  "local_transport": {
+                    "enum": [
+                      "windows_current_user_loopback",
+                      "unavailable"
+                    ],
+                    "title": "Local Transport",
+                    "type": "string"
+                  },
+                  "managed_toolchain_readiness": {
+                    "default": "not_supported_on_this_platform",
+                    "enum": [
+                      "requires_windows_studio_probe",
+                      "not_supported_on_this_platform"
+                    ],
+                    "title": "Managed Toolchain Readiness",
+                    "type": "string"
+                  },
+                  "model_identity": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Model Identity",
+                    "type": "string"
+                  },
+                  "native_goal": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Goal",
+                    "type": "string"
+                  },
+                  "native_hooks": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Hooks",
+                    "type": "string"
+                  },
+                  "native_plan": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Plan",
+                    "type": "string"
+                  },
+                  "native_task_attestation": {
+                    "const": "unavailable",
+                    "default": "unavailable",
+                    "title": "Native Task Attestation",
+                    "type": "string"
+                  },
+                  "observation_id": {
+                    "title": "Observation Id",
+                    "type": "string"
+                  },
+                  "observed_at": {
+                    "title": "Observed At",
+                    "type": "string"
+                  },
+                  "operating_system": {
+                    "title": "Operating System",
+                    "type": "string"
+                  },
+                  "python_version": {
+                    "title": "Python Version",
+                    "type": "string"
+                  },
+                  "studio_installation": {
+                    "const": "not_measured",
+                    "default": "not_measured",
+                    "title": "Studio Installation",
+                    "type": "string"
+                  },
+                  "trigger": {
+                    "enum": [
+                      "engine_start",
+                      "client_connect"
+                    ],
+                    "title": "Trigger",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "observation_id",
+                  "observed_at",
+                  "trigger",
+                  "operating_system",
+                  "architecture",
+                  "python_version",
+                  "cpu_count",
+                  "available_commands",
+                  "client",
+                  "local_transport"
+                ],
+                "title": "HostObservation",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "accepted_requests": {
+                "default": 0,
+                "title": "Accepted Requests",
+                "type": "integer"
+              },
+              "host_observation": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/HostObservation"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "instance_id": {
+                "title": "Instance Id",
+                "type": "string"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "phase": {
+                "enum": [
+                  "created",
+                  "running",
+                  "draining",
+                  "stopped"
+                ],
+                "title": "Phase",
+                "type": "string"
+              },
+              "previous_shutdown": {
+                "enum": [
+                  "first_start",
+                  "clean",
+                  "unclean"
+                ],
+                "title": "Previous Shutdown",
+                "type": "string"
+              },
+              "project_count": {
+                "title": "Project Count",
+                "type": "integer"
+              },
+              "runtime_identity": {
+                "additionalProperties": true,
+                "title": "Runtime Identity",
+                "type": "object"
+              },
+              "started_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Started At"
+              },
+              "version": {
+                "title": "Version",
+                "type": "string"
+              }
+            },
+            "required": [
+              "version",
+              "instance_id",
+              "phase",
+              "started_at",
+              "previous_shutdown",
+              "project_count",
+              "host_observation",
+              "runtime_identity"
+            ],
+            "title": "EngineHealth",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "547ca29fd0420f25daf921b1467088fa808e214d65dd1cb955bccbf6b8463760",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "engine_health",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.engine:Engine.__init__.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "engine_health.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
         {
           "cross_project_read": false,
           "description": "Retrieve bounded current ENV/UOP policy from its own locked SQLite/FTS index.",
@@ -82065,6 +83307,890 @@
           "verification_checks": [],
           "worker_operations": [],
           "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Inspect executable Plan/session transitions and current UOP workflow gates without changing state.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "domain": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "plan_task",
+                      "project_session"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Domain"
+              }
+            },
+            "title": "TransitionLawQuery",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "lifecycle_transition_law",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "contract": {
+                "const": "evidence-lane.lifecycle-transition-law.v4",
+                "default": "evidence-lane.lifecycle-transition-law.v4",
+                "title": "Contract",
+                "type": "string"
+              },
+              "coverage": {
+                "const": "plan_task_transitions_and_project_session_events",
+                "default": "plan_task_transitions_and_project_session_events",
+                "title": "Coverage",
+                "type": "string"
+              },
+              "domains": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Domains",
+                "type": "object"
+              },
+              "execution_authorized": {
+                "const": false,
+                "default": false,
+                "title": "Execution Authorized",
+                "type": "boolean"
+              },
+              "flash_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Flash Digest",
+                "type": "string"
+              },
+              "independent_state_owners": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Independent State Owners",
+                "type": "array"
+              },
+              "law_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Law Digest",
+                "type": "string"
+              },
+              "native_goal_or_task_attested": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Or Task Attested",
+                "type": "boolean"
+              },
+              "project_mutated": {
+                "const": false,
+                "default": false,
+                "title": "Project Mutated",
+                "type": "boolean"
+              },
+              "workflow_gates": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Workflow Gates",
+                "type": "array"
+              }
+            },
+            "required": [
+              "domains",
+              "flash_digest",
+              "workflow_gates",
+              "law_digest",
+              "independent_state_owners"
+            ],
+            "title": "TransitionLawResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "63177bae7cb9405d3af23afb24e23ce50eb9e2e98590b9bb43c4f3dc43057ee6",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "lifecycle_transition_law",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.state_law:register_transition_law.<locals>.read",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "lifecycle_transition_law.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "code_lane": {
+                "default": "local_code",
+                "enum": [
+                  "local_code",
+                  "github_code"
+                ],
+                "title": "Code Lane",
+                "type": "string"
+              },
+              "custom_work_classes": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "maxItems": 8,
+                "title": "Custom Work Classes",
+                "type": "array"
+              },
+              "explicit_work_classes": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 16,
+                "title": "Explicit Work Classes",
+                "type": "array"
+              },
+              "request": {
+                "maxLength": 12000,
+                "minLength": 1,
+                "title": "Request",
+                "type": "string"
+              }
+            },
+            "required": [
+              "request"
+            ],
+            "title": "WorkClassificationRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "project_work_classify",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "effects_authorized": {
+                "const": false,
+                "default": false,
+                "title": "Effects Authorized",
+                "type": "boolean"
+              },
+              "plan_changed": {
+                "const": false,
+                "default": false,
+                "title": "Plan Changed",
+                "type": "boolean"
+              },
+              "work_classification": {
+                "additionalProperties": true,
+                "title": "Work Classification",
+                "type": "object"
+              }
+            },
+            "required": [
+              "work_classification"
+            ],
+            "title": "WorkClassificationResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [
+            "ENV_UOP_classifier"
+          ],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "20bc8b83666bdb6801d31d98f821a08626c650761f34b999dcc39c571410a2ef",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "project_work_classify",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.mode_governance:register_mode_actions.<locals>.classify",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "project_work_classify.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "ENV_UOP_classifier"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "classify-project-work"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Render read-only engine, Flash, reported host and lane-catalog observations; structured data remains available without an Apps renderer.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "PanelRead",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "render_runtime_panel",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {},
+              "PanelFact": {
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "title": "Label",
+                    "type": "string"
+                  },
+                  "value": {
+                    "title": "Value",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ],
+                "title": "PanelFact",
+                "type": "object"
+              },
+              "PanelLane": {
+                "additionalProperties": false,
+                "properties": {
+                  "head_digest": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Head Digest"
+                  },
+                  "id": {
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "authority",
+                      "sector"
+                    ],
+                    "title": "Kind",
+                    "type": "string"
+                  },
+                  "name": {
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "revision": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Revision"
+                  },
+                  "state": {
+                    "enum": [
+                      "registered",
+                      "published",
+                      "initialized_without_publication"
+                    ],
+                    "title": "State",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "kind",
+                  "state"
+                ],
+                "title": "PanelLane",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "facts": {
+                "items": {
+                  "$ref": "#/$defs/PanelFact"
+                },
+                "title": "Facts",
+                "type": "array"
+              },
+              "identity": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Identity",
+                "type": "object"
+              },
+              "lanes": {
+                "items": {
+                  "$ref": "#/$defs/PanelLane"
+                },
+                "title": "Lanes",
+                "type": "array"
+              },
+              "links": {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "title": "Links",
+                "type": "array"
+              },
+              "mutation_performed": {
+                "const": false,
+                "default": false,
+                "title": "Mutation Performed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observed_at": {
+                "title": "Observed At",
+                "type": "string"
+              },
+              "panel": {
+                "enum": [
+                  "runtime",
+                  "project"
+                ],
+                "title": "Panel",
+                "type": "string"
+              },
+              "panel_schema": {
+                "const": "evidence-lane.mcp-app-panel.v4",
+                "default": "evidence-lane.mcp-app-panel.v4",
+                "title": "Panel Schema",
+                "type": "string"
+              },
+              "plan": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Plan"
+              },
+              "project_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Project Id"
+              },
+              "read_only": {
+                "const": true,
+                "default": true,
+                "title": "Read Only",
+                "type": "boolean"
+              },
+              "root_pv": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Root Pv"
+              },
+              "session": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session"
+              },
+              "status": {
+                "const": "observed",
+                "default": "observed",
+                "title": "Status",
+                "type": "string"
+              },
+              "summary": {
+                "title": "Summary",
+                "type": "string"
+              },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              }
+            },
+            "required": [
+              "panel",
+              "title",
+              "summary",
+              "observed_at",
+              "identity",
+              "facts",
+              "lanes",
+              "links"
+            ],
+            "title": "PanelSnapshot",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "a1fd6483ef631fccb2bd987824a05151e9e20a8821783edaad3988c91e10458b",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "render_runtime_panel",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.mcp_apps:register_panel_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "render_runtime_panel.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "ui": {
+            "resourceUri": "ui://evidence-lane/governed-console-v4-1.html",
+            "visibility": [
+              "model"
+            ]
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Verify this engine, current host observations and the locked Flash routing package.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "SessionStatusRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "runtime_doctor",
+          "outputSchema": {
+            "$defs": {
+              "FlashStatus": {
+                "additionalProperties": false,
+                "properties": {
+                  "action_set_digest": {
+                    "title": "Action Set Digest",
+                    "type": "string"
+                  },
+                  "authority_version": {
+                    "default": "ENV4_UOP4_FULL_OPERATING_FRAMEWORK",
+                    "title": "Authority Version",
+                    "type": "string"
+                  },
+                  "context": {
+                    "title": "Context",
+                    "type": "string"
+                  },
+                  "manifest_digest": {
+                    "title": "Manifest Digest",
+                    "type": "string"
+                  },
+                  "member_count": {
+                    "title": "Member Count",
+                    "type": "integer"
+                  },
+                  "members": {
+                    "items": {
+                      "additionalProperties": {
+                        "$ref": "#/$defs/JsonValue"
+                      },
+                      "type": "object"
+                    },
+                    "title": "Members",
+                    "type": "array"
+                  },
+                  "native_attachment_attested": {
+                    "default": false,
+                    "title": "Native Attachment Attested",
+                    "type": "boolean"
+                  },
+                  "runtime_data_mutated": {
+                    "default": false,
+                    "title": "Runtime Data Mutated",
+                    "type": "boolean"
+                  },
+                  "state": {
+                    "default": "verified",
+                    "title": "State",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "manifest_digest",
+                  "action_set_digest",
+                  "member_count",
+                  "members",
+                  "context"
+                ],
+                "title": "FlashStatus",
+                "type": "object"
+              },
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "engine_instance_id": {
+                "title": "Engine Instance Id",
+                "type": "string"
+              },
+              "engine_phase": {
+                "title": "Engine Phase",
+                "type": "string"
+              },
+              "flash": {
+                "$ref": "#/$defs/FlashStatus"
+              },
+              "host": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Host",
+                "type": "object"
+              },
+              "managed_toolchain": {
+                "title": "Managed Toolchain",
+                "type": "string"
+              },
+              "native_task_attestation": {
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "package_digest": {
+                "title": "Package Digest",
+                "type": "string"
+              },
+              "project_mutated": {
+                "default": false,
+                "title": "Project Mutated",
+                "type": "boolean"
+              },
+              "studio_supported": {
+                "title": "Studio Supported",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "engine_phase",
+              "engine_instance_id",
+              "package_digest",
+              "flash",
+              "host",
+              "studio_supported",
+              "managed_toolchain"
+            ],
+            "title": "RuntimeDoctor",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "1968667f157c70aa78a04012f0e5865b262247eefbeec0b0c900e3fe121c14c8",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "runtime_doctor",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.session:SessionManager.doctor",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "runtime_doctor.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read measured tools/providers, worker state and selected-project job health.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "job_limit": {
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "title": "Job Limit",
+                "type": "integer"
+              }
+            },
+            "title": "RuntimeStatusInput",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "runtime_status",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "client": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Client"
+              },
+              "engine_phase": {
+                "title": "Engine Phase",
+                "type": "string"
+              },
+              "execution_claim": {
+                "default": "Only recorded operations and job outcomes establish execution.",
+                "title": "Execution Claim",
+                "type": "string"
+              },
+              "inventory": {
+                "additionalProperties": true,
+                "title": "Inventory",
+                "type": "object"
+              },
+              "native_task_attestation": {
+                "default": "unavailable",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observed_at": {
+                "title": "Observed At",
+                "type": "string"
+              },
+              "project": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Project"
+              },
+              "workers": {
+                "additionalProperties": true,
+                "title": "Workers",
+                "type": "object"
+              }
+            },
+            "required": [
+              "observed_at",
+              "engine_phase",
+              "inventory",
+              "workers"
+            ],
+            "title": "RuntimeStatus",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "808d87dcafd44f3bbd1e16428e866b015a11904d56d225837d8fdda77995482c",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "runtime_status",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.engine:Engine.__init__.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "runtime_status.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "select-project-tools"
         },
         {
           "cross_project_read": false,
@@ -84032,7 +86158,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/session_authority/manifest.v4.json",
-        "sha256": "5AFFEBE2D38590F48057975BF478ED4A60CF21837261CADF2EA68FEF4D884630"
+        "sha256": "94DAC720E17833D9A1480E3BD55F64DCBE81BEC30E38EB20554C2DF379C1DBA1"
       },
       "runtime": "evidence_lane_plugin.session_authority",
       "schema": {
@@ -85200,6 +87326,620 @@
         },
         {
           "cross_project_read": false,
+          "description": "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "description": "One pre-existing LangSmith run receives one bounded numeric feedback row.",
+            "properties": {
+              "action_name": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Action Name",
+                "type": "string"
+              },
+              "action_schema_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Action Schema Sha256",
+                "type": "string"
+              },
+              "dataset_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Dataset Sha256",
+                "type": "string"
+              },
+              "feedback_key": {
+                "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,63}$",
+                "title": "Feedback Key",
+                "type": "string"
+              },
+              "lane_id": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "max_request_bytes": {
+                "default": 131072,
+                "maximum": 262144,
+                "minimum": 4096,
+                "title": "Max Request Bytes",
+                "type": "integer"
+              },
+              "max_response_bytes": {
+                "default": 1048576,
+                "maximum": 4194304,
+                "minimum": 1024,
+                "title": "Max Response Bytes",
+                "type": "integer"
+              },
+              "observed_at_unix_nano": {
+                "maximum": 4102444800000000000,
+                "minimum": 1,
+                "title": "Observed At Unix Nano",
+                "type": "integer"
+              },
+              "plugin_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Plugin Id"
+              },
+              "redaction_receipt_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Redaction Receipt Sha256",
+                "type": "string"
+              },
+              "resource_id": {
+                "maxLength": 266,
+                "minLength": 13,
+                "title": "Resource Id",
+                "type": "string"
+              },
+              "route_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Route Sha256",
+                "type": "string"
+              },
+              "run_id": {
+                "maxLength": 36,
+                "minLength": 36,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "score": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "title": "Score",
+                "type": "number"
+              },
+              "session_id": {
+                "maxLength": 36,
+                "minLength": 36,
+                "title": "Session Id",
+                "type": "string"
+              },
+              "timeout_seconds": {
+                "default": 20,
+                "exclusiveMinimum": 0,
+                "maximum": 60,
+                "title": "Timeout Seconds",
+                "type": "number"
+              },
+              "tool_id": {
+                "const": "LangSmith",
+                "title": "Tool Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool_id",
+              "lane_id",
+              "resource_id",
+              "action_name",
+              "run_id",
+              "session_id",
+              "feedback_key",
+              "score",
+              "observed_at_unix_nano",
+              "action_schema_sha256",
+              "route_sha256",
+              "dataset_sha256",
+              "redaction_receipt_sha256"
+            ],
+            "title": "EvaluationFeedbackRequest",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "evaluation_feedback_export",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "delivery": {
+                "additionalProperties": true,
+                "title": "Delivery",
+                "type": "object"
+              },
+              "kind": {
+                "enum": [
+                  "evaluation",
+                  "observability"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "receipt_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Receipt Sha256",
+                "type": "string"
+              },
+              "tool_id": {
+                "enum": [
+                  "LangSmith",
+                  "OpenTelemetry",
+                  "Langfuse",
+                  "Grafana"
+                ],
+                "title": "Tool Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool_id",
+              "kind",
+              "delivery",
+              "receipt_sha256"
+            ],
+            "title": "ExternalEvidenceResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "publish",
+          "profile": "core",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [
+            "Python",
+            "HTTPX"
+          ],
+          "requires_delta": true,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "9cdb142be0a2f784d3109744d52442cc4ba8b524017288dcc8046301d12e2d80",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "evaluation_feedback_export",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.evaluation_toolchain:register_evaluation_actions.<locals>.handler",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "tool_id": [
+                    "LangSmith"
+                  ]
+                },
+                "extension": {
+                  "backend_id": "langsmith.feedback-rest",
+                  "backend_runtime": "python",
+                  "backend_version": "v1",
+                  "capability": "evaluation_feedback",
+                  "code_loaded_from_registration": false,
+                  "execution_owner": "engine_delta",
+                  "lane": "selected_by_action",
+                  "lane_field": "lane_id",
+                  "plugin_id_field": "plugin_id",
+                  "read_path_fields": [],
+                  "resource_fields": [
+                    "resource_id"
+                  ],
+                  "role": "evaluation_feedback_receipt",
+                  "role_schema": {
+                    "delivery": "json",
+                    "kind": "text",
+                    "receipt_sha256": "blob_hash",
+                    "tool_id": "text"
+                  },
+                  "write_path_fields": []
+                },
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "evaluation_feedback_export.langsmith",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "HTTPX",
+                  "LangSmith"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [
+            "external_evidence_receipt"
+          ],
+          "worker_operations": [],
+          "workflow": "select-project-tools"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Send one bounded hash-only observation to an exact OTLP, Langfuse or Grafana connector resource.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "description": "Export one hash-only observation through one exact provider resource.",
+            "properties": {
+              "action_name": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Action Name",
+                "type": "string"
+              },
+              "attribute_sha256": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "maxProperties": 32,
+                "title": "Attribute Sha256",
+                "type": "object"
+              },
+              "correlation_id": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@/-]{0,127}$",
+                "title": "Correlation Id",
+                "type": "string"
+              },
+              "dashboard_uid": {
+                "anyOf": [
+                  {
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Dashboard Uid"
+              },
+              "duration_nanoseconds": {
+                "default": 0,
+                "maximum": 86400000000000,
+                "minimum": 0,
+                "title": "Duration Nanoseconds",
+                "type": "integer"
+              },
+              "input_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Input Sha256",
+                "type": "string"
+              },
+              "lane_id": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Lane Id",
+                "type": "string"
+              },
+              "max_request_bytes": {
+                "default": 131072,
+                "maximum": 262144,
+                "minimum": 4096,
+                "title": "Max Request Bytes",
+                "type": "integer"
+              },
+              "max_response_bytes": {
+                "default": 1048576,
+                "maximum": 4194304,
+                "minimum": 1024,
+                "title": "Max Response Bytes",
+                "type": "integer"
+              },
+              "metric_value": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Metric Value"
+              },
+              "observed_at_unix_nano": {
+                "maximum": 4102444800000000000,
+                "minimum": 1,
+                "title": "Observed At Unix Nano",
+                "type": "integer"
+              },
+              "plugin_id": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Plugin Id"
+              },
+              "redaction_receipt_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Redaction Receipt Sha256",
+                "type": "string"
+              },
+              "resource_id": {
+                "maxLength": 266,
+                "minLength": 10,
+                "title": "Resource Id",
+                "type": "string"
+              },
+              "result_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Result Sha256",
+                "type": "string"
+              },
+              "signal": {
+                "maxLength": 32,
+                "minLength": 3,
+                "title": "Signal",
+                "type": "string"
+              },
+              "timeout_seconds": {
+                "default": 20,
+                "exclusiveMinimum": 0,
+                "maximum": 60,
+                "title": "Timeout Seconds",
+                "type": "number"
+              },
+              "tool_id": {
+                "enum": [
+                  "OpenTelemetry",
+                  "Langfuse",
+                  "Grafana"
+                ],
+                "title": "Tool Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool_id",
+              "signal",
+              "lane_id",
+              "resource_id",
+              "action_name",
+              "correlation_id",
+              "input_sha256",
+              "result_sha256",
+              "redaction_receipt_sha256",
+              "observed_at_unix_nano"
+            ],
+            "title": "ObservabilityExportRequest",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "observability_export",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "delivery": {
+                "additionalProperties": true,
+                "title": "Delivery",
+                "type": "object"
+              },
+              "kind": {
+                "enum": [
+                  "evaluation",
+                  "observability"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "receipt_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Receipt Sha256",
+                "type": "string"
+              },
+              "tool_id": {
+                "enum": [
+                  "LangSmith",
+                  "OpenTelemetry",
+                  "Langfuse",
+                  "Grafana"
+                ],
+                "title": "Tool Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool_id",
+              "kind",
+              "delivery",
+              "receipt_sha256"
+            ],
+            "title": "ExternalEvidenceResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "publish",
+          "profile": "core",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [
+            "Python",
+            "HTTPX"
+          ],
+          "requires_delta": true,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "38243322fd318176558b082d167c4407c9252e0955e1e7c3b0aafefda3e84988",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": null,
+            "operation": "observability_export",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "tool_id": [
+                    "OpenTelemetry"
+                  ]
+                },
+                "extension": {
+                  "backend_id": "opentelemetry.otlp-http-json",
+                  "backend_runtime": "python",
+                  "backend_version": "1.11",
+                  "capability": "observability_export",
+                  "code_loaded_from_registration": false,
+                  "execution_owner": "engine_delta",
+                  "lane": "selected_by_action",
+                  "lane_field": "lane_id",
+                  "plugin_id_field": "plugin_id",
+                  "read_path_fields": [],
+                  "resource_fields": [
+                    "resource_id"
+                  ],
+                  "role": "observability_export_receipt",
+                  "role_schema": {
+                    "delivery": "json",
+                    "kind": "text",
+                    "receipt_sha256": "blob_hash",
+                    "tool_id": "text"
+                  },
+                  "write_path_fields": []
+                },
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "observability_export.opentelemetry",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "HTTPX",
+                  "OpenTelemetry"
+                ]
+              },
+              {
+                "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "tool_id": [
+                    "Langfuse"
+                  ]
+                },
+                "extension": {
+                  "backend_id": "langfuse.otlp-http",
+                  "backend_runtime": "python",
+                  "backend_version": "v4",
+                  "capability": "observability_export",
+                  "code_loaded_from_registration": false,
+                  "execution_owner": "engine_delta",
+                  "lane": "selected_by_action",
+                  "lane_field": "lane_id",
+                  "plugin_id_field": "plugin_id",
+                  "read_path_fields": [],
+                  "resource_fields": [
+                    "resource_id"
+                  ],
+                  "role": "observability_export_receipt",
+                  "role_schema": {
+                    "delivery": "json",
+                    "kind": "text",
+                    "receipt_sha256": "blob_hash",
+                    "tool_id": "text"
+                  },
+                  "write_path_fields": []
+                },
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "observability_export.langfuse",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "HTTPX",
+                  "Langfuse"
+                ]
+              },
+              {
+                "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+                "argument_suffixes": {},
+                "argument_values": {
+                  "tool_id": [
+                    "Grafana"
+                  ]
+                },
+                "extension": {
+                  "backend_id": "grafana.annotations-rest",
+                  "backend_runtime": "python",
+                  "backend_version": "v1",
+                  "capability": "observability_export",
+                  "code_loaded_from_registration": false,
+                  "execution_owner": "engine_delta",
+                  "lane": "selected_by_action",
+                  "lane_field": "lane_id",
+                  "plugin_id_field": "plugin_id",
+                  "read_path_fields": [],
+                  "resource_fields": [
+                    "resource_id"
+                  ],
+                  "role": "observability_export_receipt",
+                  "role_schema": {
+                    "delivery": "json",
+                    "kind": "text",
+                    "receipt_sha256": "blob_hash",
+                    "tool_id": "text"
+                  },
+                  "write_path_fields": []
+                },
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "observability_export.grafana",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "HTTPX",
+                  "Grafana"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [
+            "external_evidence_receipt"
+          ],
+          "worker_operations": [],
+          "workflow": "select-project-tools"
+        },
+        {
+          "cross_project_read": false,
           "description": "Read one recorded push state and integrity without contacting the remote.",
           "inputSchema": {
             "additionalProperties": false,
@@ -85834,7 +88574,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/receipt_ledger/manifest.v4.json",
-        "sha256": "72C9E0022388CDEECAF9B9E403BA17AF987A32F30F1081369BBB70E35B9C8399"
+        "sha256": "287D4277D2DB605C4A41003FBE32482D36A9600F858961326DFFF21BE119E94B"
       },
       "runtime": "evidence_lane_plugin.projects",
       "schema": {
@@ -87774,7 +90514,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_universe/manifest.v4.json",
-        "sha256": "C3307245DF6E1FC30DE633692B229A4F3E0B6318CFA1893A8BD56EBB0E0E7FF4"
+        "sha256": "7D890C047824EE2D67FB37483B32A670AEB5EB72A45D38BC5C04D6F466076BFC"
       },
       "runtime": "evidence_lane_plugin.project_universe",
       "schema": {
@@ -90385,7 +93125,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/github_code/manifest.v4.json",
-        "sha256": "5622E502A1AE0FD289DE216CF05C86B76B494B0A0D410CF953CD28813CEAF6EB"
+        "sha256": "C4B4EB8F50E807761C46163BB2FDFE7278BB226834C909A09A060E24D5CCA31D"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
@@ -93503,7 +96243,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/local_code/manifest.v4.json",
-        "sha256": "5774BEB4F1D8966E53C236A7C757A997EB3BFEA9AA1789966365555B0DE958D3"
+        "sha256": "C37650DEF0F52378FEC89FC9DBE270CFF276A2800CBF0FD8DA6D7E8B2013FEFD"
       },
       "runtime": "evidence_lane_plugin.code_profile",
       "schema": {
@@ -95958,7 +98698,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/docs/manifest.v4.json",
-        "sha256": "D3474FE76D057CA1D89E61EDD1FD0618AAAD4B0D53B280E3F3EF8ADDA34C7AFC"
+        "sha256": "EDF32C34522C0DEA56F442A8AACF149874355CAF0D28C6BBAA53B16AEBAB9E0C"
       },
       "runtime": "evidence_lane_plugin.document_profile",
       "schema": {
@@ -99076,7 +101816,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/data_excel/manifest.v4.json",
-        "sha256": "238E6AD726EBB3D3E8FB401D34ACB96C200EFD925419DBD99D789AC8970D22C6"
+        "sha256": "2E2EA5D481DEF5C8475D250951BBDAC7FE2A6981052FAB29D9A8C7B8DD9D6799"
       },
       "runtime": "evidence_lane_plugin.tabular_profile",
       "schema": {
@@ -101644,7 +104384,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/ppt/manifest.v4.json",
-        "sha256": "8446824268DF2C734C46D30EEA479C80E8634FABF8FD8B9405E852342D4B1A14"
+        "sha256": "EC4A29D449016E71BA280647D5AED27ABB54A5E0CB0D184097B54A800DBBE4B1"
       },
       "runtime": "evidence_lane_plugin.presentation_profile",
       "schema": {
@@ -105004,7 +107744,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/pdf_ocr/manifest.v4.json",
-        "sha256": "8250205EC7B607EAEBBA15AED3DA269F557D2C6FFBB8C15AD889803A65C864A7"
+        "sha256": "6576CD239F81BB27A25B7C19425C118763D04A9BADC09333D07D6EAE5D199998"
       },
       "runtime": "evidence_lane_plugin.pdf_profile",
       "schema": {
@@ -107806,7 +110546,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/images_ocr/manifest.v4.json",
-        "sha256": "E23BFDC76E501056C867B6B8D41FDD205EF844804693DB1244E5DDCBD7F87AAF"
+        "sha256": "C0115AF6EC39B5A9EEE93F425FEB256903C61B24AEE767755A01A5A37C371A77"
       },
       "runtime": "evidence_lane_plugin.media_profile",
       "schema": {
@@ -109838,7 +112578,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/artifacts/manifest.v4.json",
-        "sha256": "AA7D40377DA84F1895FA6BCD7BD63DE73962166201F2AAC61824E9784D82D9C5"
+        "sha256": "6B659137D7FF385F8C7A80180345DD504F665B4B236358ED314A26E427882424"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
@@ -111871,7 +114611,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/custom/manifest.v4.json",
-        "sha256": "C3B6187873BEB4A0E011C93EE6FB6EAE36E9AAD29F39ADF1F5830424C4FE9ECE"
+        "sha256": "99EECB47F1CD2BA406DE861A94E64A6BB9E0009F96E0E275247F2801B57CF768"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
@@ -114636,7 +117376,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/research/manifest.v4.json",
-        "sha256": "87A31EE0F9CC53890549CDF01BAA38CE3B419B6E1BA854E5F4C269A460AE8C4A"
+        "sha256": "8CF35AC45C412D5B6D38171EDA632A6FA1591E2C2D77ABA78963F843DF17E6EC"
       },
       "runtime": "evidence_lane_plugin.sector_evidence_profile",
       "schema": {
@@ -117465,7 +120205,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/data/manifest.v4.json",
-        "sha256": "59A5A3600ACFD71C6B5A324AC5C95F228B57F5C559C65EDB8F9640B0C3EFAB75"
+        "sha256": "1C4F485267387EEC805E375157FAD9686C9E820E5C27DA92C832EF216FEFCDE6"
       },
       "runtime": "evidence_lane_plugin.tabular_profile",
       "schema": {
@@ -119328,7 +122068,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/tableau/manifest.v4.json",
-        "sha256": "26C6F7E940906D0BFD5A364AB81B7127E10C6F657F0C91450DE0AEC78ADCAF40"
+        "sha256": "E5C2B215D62DB0785324FAFFD4964F6FBE35C8A238A8EA9C4B0BDD50195E02A7"
       },
       "runtime": "evidence_lane_plugin.tableau_profile",
       "schema": {
@@ -121318,7 +124058,7 @@
       "installation_verified": false,
       "manifest": {
         "path": "authorities/project_sectors/power_bi/manifest.v4.json",
-        "sha256": "DBF29558BF29F61E65C16762E302A0A7D64256CAFA2B924B16E7168E5F2CF9C4"
+        "sha256": "98EB3101AC31EBE35470B82E875923982DA1A37F6B61050B911FC51D4810B387"
       },
       "runtime": "evidence_lane_plugin.powerbi_profile",
       "schema": {
@@ -123255,6 +125995,785 @@
         },
         {
           "cross_project_read": false,
+          "description": "Read implemented per-lane view semantics, selected file roles and shared tools.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "view_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "title": "View Ids",
+                "type": "array"
+              }
+            },
+            "title": "ViewCatalogRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "lane_view_catalog",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "views": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Views",
+                "type": "array"
+              }
+            },
+            "required": [
+              "views"
+            ],
+            "title": "ViewCatalog",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "d4d5ff8c57a9a05423714442f24c1f5c21a022b30dceb021f85de9d55694efa8",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "lane_view_catalog",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.catalog",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "lane_view_catalog.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Preview a bounded lane graph and exact source binding without writing files.",
+          "inputSchema": {
+            "$defs": {
+              "ViewScope": {
+                "additionalProperties": false,
+                "properties": {
+                  "edge_limit": {
+                    "default": 200,
+                    "maximum": 500,
+                    "minimum": 0,
+                    "title": "Edge Limit",
+                    "type": "integer"
+                  },
+                  "include_history": {
+                    "default": false,
+                    "title": "Include History",
+                    "type": "boolean"
+                  },
+                  "node_limit": {
+                    "default": 100,
+                    "maximum": 200,
+                    "minimum": 1,
+                    "title": "Node Limit",
+                    "type": "integer"
+                  },
+                  "query": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Query"
+                  }
+                },
+                "title": "ViewScope",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "scope": {
+                "$ref": "#/$defs/ViewScope"
+              },
+              "view_id": {
+                "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "view_id"
+            ],
+            "title": "ViewPreview",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "lane_view_preview",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {},
+              "ViewScope": {
+                "additionalProperties": false,
+                "properties": {
+                  "edge_limit": {
+                    "default": 200,
+                    "maximum": 500,
+                    "minimum": 0,
+                    "title": "Edge Limit",
+                    "type": "integer"
+                  },
+                  "include_history": {
+                    "default": false,
+                    "title": "Include History",
+                    "type": "boolean"
+                  },
+                  "node_limit": {
+                    "default": 100,
+                    "maximum": 200,
+                    "minimum": 1,
+                    "title": "Node Limit",
+                    "type": "integer"
+                  },
+                  "query": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Query"
+                  }
+                },
+                "title": "ViewScope",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "contract_digest": {
+                "title": "Contract Digest",
+                "type": "string"
+              },
+              "files": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "title": "Files",
+                "type": "object"
+              },
+              "files_written": {
+                "const": false,
+                "default": false,
+                "title": "Files Written",
+                "type": "boolean"
+              },
+              "generation": {
+                "title": "Generation",
+                "type": "integer"
+              },
+              "graph": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Graph",
+                "type": "object"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/ViewScope"
+              },
+              "source_digest": {
+                "title": "Source Digest",
+                "type": "string"
+              },
+              "source_head": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Source Head",
+                "type": "object"
+              },
+              "view_id": {
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "view_id",
+              "contract_digest",
+              "source_digest",
+              "source_head",
+              "generation",
+              "scope",
+              "graph",
+              "files"
+            ],
+            "title": "ViewPreviewResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "artifacts",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "d225c6b45d73c1ce39cc5947e43a487fe5cd8108e69a6f4f7953bcad523fafbe",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "lane_view_preview",
+            "profile": "artifacts",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "lane_view_preview.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Validate recorded lane artifacts and report stale bindings without refreshing them.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "include_content": {
+                "default": false,
+                "title": "Include Content",
+                "type": "boolean"
+              },
+              "max_bytes": {
+                "default": 131072,
+                "maximum": 262144,
+                "minimum": 2048,
+                "title": "Max Bytes",
+                "type": "integer"
+              },
+              "snapshot_digest": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Snapshot Digest"
+              },
+              "view_id": {
+                "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "view_id"
+            ],
+            "title": "ViewRead",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "lane_view_read",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "checked_at": {
+                "title": "Checked At",
+                "type": "string"
+              },
+              "contents": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Contents"
+              },
+              "generation": {
+                "title": "Generation",
+                "type": "integer"
+              },
+              "manifest": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Manifest"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "refresh_performed": {
+                "const": false,
+                "default": false,
+                "title": "Refresh Performed",
+                "type": "boolean"
+              },
+              "snapshot_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Snapshot Digest"
+              },
+              "state": {
+                "enum": [
+                  "not_materialized",
+                  "fresh",
+                  "stale",
+                  "historical",
+                  "contract_changed"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "view_id": {
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "view_id",
+              "state",
+              "generation"
+            ],
+            "title": "ViewState",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "artifacts",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "320ff070cabf7923b01232e6ce9b09e135fafadad793c1ffbe1390f8266f9019",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "lane_view_read",
+            "profile": "artifacts",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "lane_view_read.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Export only selected lane artifacts from an exact verified source preview.",
+          "inputSchema": {
+            "$defs": {
+              "ViewScope": {
+                "additionalProperties": false,
+                "properties": {
+                  "edge_limit": {
+                    "default": 200,
+                    "maximum": 500,
+                    "minimum": 0,
+                    "title": "Edge Limit",
+                    "type": "integer"
+                  },
+                  "include_history": {
+                    "default": false,
+                    "title": "Include History",
+                    "type": "boolean"
+                  },
+                  "node_limit": {
+                    "default": 100,
+                    "maximum": 200,
+                    "minimum": 1,
+                    "title": "Node Limit",
+                    "type": "integer"
+                  },
+                  "query": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Query"
+                  }
+                },
+                "title": "ViewScope",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "consumer": {
+                "const": "artifact_export",
+                "default": "artifact_export",
+                "title": "Consumer",
+                "type": "string"
+              },
+              "contract_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Contract Digest",
+                "type": "string"
+              },
+              "dot_validation": {
+                "default": "source",
+                "enum": [
+                  "source",
+                  "native"
+                ],
+                "title": "Dot Validation",
+                "type": "string"
+              },
+              "expected_generation": {
+                "minimum": 0,
+                "title": "Expected Generation",
+                "type": "integer"
+              },
+              "formats": {
+                "items": {
+                  "enum": [
+                    "mmd",
+                    "dot"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "title": "Formats",
+                "type": "array"
+              },
+              "include_pointer": {
+                "default": false,
+                "title": "Include Pointer",
+                "type": "boolean"
+              },
+              "request_id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "title": "Request Id",
+                "type": "string"
+              },
+              "scope": {
+                "$ref": "#/$defs/ViewScope"
+              },
+              "source_digest": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Source Digest",
+                "type": "string"
+              },
+              "view_id": {
+                "pattern": "^[a-z][a-z0-9_]{0,47}\\.[a-z][a-z0-9_]{0,47}$",
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "view_id",
+              "expected_generation",
+              "contract_digest",
+              "source_digest"
+            ],
+            "title": "ViewRefresh",
+            "type": "object"
+          },
+          "mutates": true,
+          "name": "lane_view_refresh",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "files": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Files",
+                "type": "array"
+              },
+              "generation": {
+                "title": "Generation",
+                "type": "integer"
+              },
+              "project_id": {
+                "title": "Project Id",
+                "type": "string"
+              },
+              "reused_snapshot": {
+                "default": false,
+                "title": "Reused Snapshot",
+                "type": "boolean"
+              },
+              "snapshot_digest": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Snapshot Digest"
+              },
+              "source_authority_mutated": {
+                "const": false,
+                "default": false,
+                "title": "Source Authority Mutated",
+                "type": "boolean"
+              },
+              "state": {
+                "enum": [
+                  "published",
+                  "empty"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "view_id": {
+                "title": "View Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "view_id",
+              "state",
+              "generation",
+              "snapshot_digest",
+              "files"
+            ],
+            "title": "ViewPublished",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "write",
+          "profile": "artifacts",
+          "project_required": true,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "ae52879d593c3f110f3683132cc5eaf42fe4a104df3c4993a86c28a5678e6219",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": null,
+            "operation": "lane_view_refresh",
+            "profile": "artifacts",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+                "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.pointer",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "lane_view_refresh.pointer",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ],
+                "worker_operations": []
+              },
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+                "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.source",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Selected source export with bounded graph analysis; native DOT is not requested.",
+                "route_id": "lane_view_refresh.source",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "LangGraph_Mermaid_engine",
+                  "Python_Graphviz_DOT_engine",
+                  "rustworkx"
+                ],
+                "worker_operations": [
+                  "render_lane_view"
+                ]
+              },
+              {
+                "adapter": "evidence_lane_plugin.artifact_contract:register_artifact_actions.<locals>.refresh",
+                "applicable": "evidence_lane_plugin.artifact_contract:graph_export_routes.<locals>.native",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [
+                  "codex_desktop_stable",
+                  "codex_desktop_beta"
+                ],
+                "provider": "engine_cpu",
+                "reason": "Explicit native DOT validation using the configured client profile and verified shared binary.",
+                "route_id": "lane_view_refresh.native_dot",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python",
+                  "LangGraph_Mermaid_engine",
+                  "Python_Graphviz_DOT_engine",
+                  "rustworkx",
+                  "Graphviz_dot"
+                ],
+                "worker_operations": [
+                  "render_lane_view"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": [
+              "render_lane_view"
+            ]
+          },
+          "verification_checks": [],
+          "worker_operations": [
+            "render_lane_view"
+          ],
+          "workflow": "refresh-project-evidence"
+        },
+        {
+          "cross_project_read": false,
           "description": "Read explicit authorized projects in place with bounded attributed owner views.",
           "inputSchema": {
             "$defs": {
@@ -124327,6 +127846,246 @@
         },
         {
           "cross_project_read": false,
+          "description": "Select deterministic metadata slices using explicit estimated-token and item budgets; verify content through its owning authority.",
+          "inputSchema": {
+            "$defs": {
+              "EvidenceSlice": {
+                "additionalProperties": false,
+                "properties": {
+                  "content_id": {
+                    "maxLength": 192,
+                    "minLength": 1,
+                    "title": "Content Id",
+                    "type": "string"
+                  },
+                  "content_sha256": {
+                    "pattern": "^[0-9a-fA-F]{64}$",
+                    "title": "Content Sha256",
+                    "type": "string"
+                  },
+                  "priority": {
+                    "default": 0,
+                    "maximum": 1000,
+                    "minimum": -1000,
+                    "title": "Priority",
+                    "type": "integer"
+                  },
+                  "token_count": {
+                    "maximum": 1000000,
+                    "minimum": 1,
+                    "title": "Token Count",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "content_id",
+                  "content_sha256",
+                  "token_count"
+                ],
+                "title": "EvidenceSlice",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "authority_id": {
+                "title": "Authority Id",
+                "type": "string"
+              },
+              "max_slices": {
+                "default": 20,
+                "maximum": 200,
+                "minimum": 1,
+                "title": "Max Slices",
+                "type": "integer"
+              },
+              "slices": {
+                "items": {
+                  "$ref": "#/$defs/EvidenceSlice"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "title": "Slices",
+                "type": "array"
+              },
+              "token_budget": {
+                "maximum": 1000000,
+                "minimum": 1,
+                "title": "Token Budget",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "authority_id",
+              "slices",
+              "token_budget"
+            ],
+            "title": "ProjectEvidenceSelectionRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "project_evidence_select",
+          "outputSchema": {
+            "$defs": {
+              "EvidenceSlice": {
+                "additionalProperties": false,
+                "properties": {
+                  "content_id": {
+                    "maxLength": 192,
+                    "minLength": 1,
+                    "title": "Content Id",
+                    "type": "string"
+                  },
+                  "content_sha256": {
+                    "pattern": "^[0-9a-fA-F]{64}$",
+                    "title": "Content Sha256",
+                    "type": "string"
+                  },
+                  "priority": {
+                    "default": 0,
+                    "maximum": 1000,
+                    "minimum": -1000,
+                    "title": "Priority",
+                    "type": "integer"
+                  },
+                  "token_count": {
+                    "maximum": 1000000,
+                    "minimum": 1,
+                    "title": "Token Count",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "content_id",
+                  "content_sha256",
+                  "token_count"
+                ],
+                "title": "EvidenceSlice",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "authority_id": {
+                "title": "Authority Id",
+                "type": "string"
+              },
+              "authority_merged": {
+                "const": false,
+                "default": false,
+                "title": "Authority Merged",
+                "type": "boolean"
+              },
+              "available_count": {
+                "title": "Available Count",
+                "type": "integer"
+              },
+              "content_identity_reverified": {
+                "const": false,
+                "default": false,
+                "title": "Content Identity Reverified",
+                "type": "boolean"
+              },
+              "input_digest": {
+                "title": "Input Digest",
+                "type": "string"
+              },
+              "model_training_performed": {
+                "const": false,
+                "default": false,
+                "title": "Model Training Performed",
+                "type": "boolean"
+              },
+              "raw_payload_copied": {
+                "const": false,
+                "default": false,
+                "title": "Raw Payload Copied",
+                "type": "boolean"
+              },
+              "selected_count": {
+                "title": "Selected Count",
+                "type": "integer"
+              },
+              "selected_slices": {
+                "items": {
+                  "$ref": "#/$defs/EvidenceSlice"
+                },
+                "title": "Selected Slices",
+                "type": "array"
+              },
+              "token_budget": {
+                "title": "Token Budget",
+                "type": "integer"
+              },
+              "token_count_basis": {
+                "const": "caller_supplied_estimates",
+                "default": "caller_supplied_estimates",
+                "title": "Token Count Basis",
+                "type": "string"
+              },
+              "used_tokens": {
+                "title": "Used Tokens",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "authority_id",
+              "selected_slices",
+              "selected_count",
+              "available_count",
+              "used_tokens",
+              "token_budget",
+              "input_digest"
+            ],
+            "title": "ProjectEvidenceSelectionResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "01a128f3cc574913b52114a453a8a222eaf1038763cdc92dce2ee3b1f8d8c90d",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "project_evidence_select",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "project_evidence_select.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "retrieve-project-evidence"
+        },
+        {
+          "cross_project_read": false,
           "description": "Inspect registered files, unregistered leftovers and database recovery status without repair.",
           "inputSchema": {
             "additionalProperties": false,
@@ -124955,6 +128714,348 @@
           "verification_checks": [],
           "worker_operations": [],
           "workflow": "open-project-session"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Render the selected project registration, current Plan page, session and exact published lane references without changing work.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "limit": {
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "title": "Limit",
+                "type": "integer"
+              },
+              "offset": {
+                "default": 0,
+                "maximum": 10000,
+                "minimum": 0,
+                "title": "Offset",
+                "type": "integer"
+              }
+            },
+            "title": "ProjectPanelRead",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "render_project_panel",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {},
+              "PanelFact": {
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "title": "Label",
+                    "type": "string"
+                  },
+                  "value": {
+                    "title": "Value",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ],
+                "title": "PanelFact",
+                "type": "object"
+              },
+              "PanelLane": {
+                "additionalProperties": false,
+                "properties": {
+                  "head_digest": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Head Digest"
+                  },
+                  "id": {
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "authority",
+                      "sector"
+                    ],
+                    "title": "Kind",
+                    "type": "string"
+                  },
+                  "name": {
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "revision": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Revision"
+                  },
+                  "state": {
+                    "enum": [
+                      "registered",
+                      "published",
+                      "initialized_without_publication"
+                    ],
+                    "title": "State",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "kind",
+                  "state"
+                ],
+                "title": "PanelLane",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "properties": {
+              "facts": {
+                "items": {
+                  "$ref": "#/$defs/PanelFact"
+                },
+                "title": "Facts",
+                "type": "array"
+              },
+              "identity": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "title": "Identity",
+                "type": "object"
+              },
+              "lanes": {
+                "items": {
+                  "$ref": "#/$defs/PanelLane"
+                },
+                "title": "Lanes",
+                "type": "array"
+              },
+              "links": {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "title": "Links",
+                "type": "array"
+              },
+              "mutation_performed": {
+                "const": false,
+                "default": false,
+                "title": "Mutation Performed",
+                "type": "boolean"
+              },
+              "native_goal_completed": {
+                "const": false,
+                "default": false,
+                "title": "Native Goal Completed",
+                "type": "boolean"
+              },
+              "native_task_attestation": {
+                "const": "not_provided",
+                "default": "not_provided",
+                "title": "Native Task Attestation",
+                "type": "string"
+              },
+              "observed_at": {
+                "title": "Observed At",
+                "type": "string"
+              },
+              "panel": {
+                "enum": [
+                  "runtime",
+                  "project"
+                ],
+                "title": "Panel",
+                "type": "string"
+              },
+              "panel_schema": {
+                "const": "evidence-lane.mcp-app-panel.v4",
+                "default": "evidence-lane.mcp-app-panel.v4",
+                "title": "Panel Schema",
+                "type": "string"
+              },
+              "plan": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Plan"
+              },
+              "project_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Project Id"
+              },
+              "read_only": {
+                "const": true,
+                "default": true,
+                "title": "Read Only",
+                "type": "boolean"
+              },
+              "root_pv": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Root Pv"
+              },
+              "session": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Session"
+              },
+              "status": {
+                "const": "observed",
+                "default": "observed",
+                "title": "Status",
+                "type": "string"
+              },
+              "summary": {
+                "title": "Summary",
+                "type": "string"
+              },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              }
+            },
+            "required": [
+              "panel",
+              "title",
+              "summary",
+              "observed_at",
+              "identity",
+              "facts",
+              "lanes",
+              "links"
+            ],
+            "title": "PanelSnapshot",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": true,
+          "queryable_in_delta": true,
+          "queued": false,
+          "read_schemas": [
+            {
+              "digest": "894079043dd019dfeba959e2775a2d8c7503ad08b384ff8e7c5ac5ad7387666c",
+              "owner": "plan",
+              "version": 1
+            },
+            {
+              "digest": "cb9132a93a80e1dc059d9cf60e1a12cd7b0bbf636db1d22cc0334b56e9ae3543",
+              "owner": "plan",
+              "version": 2
+            },
+            {
+              "digest": "d8bca37d7340c6873d3a4d3dc58cc43bbe157c124b02d708f5d303ee74bbdb79",
+              "owner": "plan",
+              "version": 3
+            },
+            {
+              "digest": "f12e2a4708db487d7384c38e8249ceae9c6a85afd4c385731f71e496b0bea3fb",
+              "owner": "sessions",
+              "version": 1
+            }
+          ],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": true,
+          "toolchain": {
+            "contract_digest": "62d4ddb33f5bc5b5ed1eac4dd571be73c9d3ab5babc806755b37a47060547b24",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "render_project_panel",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.mcp_apps:register_panel_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "render_project_panel.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "ui": {
+            "resourceUri": "ui://evidence-lane/governed-console-v4-1.html",
+            "visibility": [
+              "model"
+            ]
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
         },
         {
           "cross_project_read": false,
@@ -125662,11 +129763,331 @@
           "verification_checks": [],
           "worker_operations": [],
           "workflow": "select-project-storage"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Read shared tool declarations and executable operation routes; installation and execution remain separately qualified.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "CatalogRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "toolchain_catalog",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "installation_scope": {
+                "default": "shared_windows_studio_bundle_once_per_installation",
+                "title": "Installation Scope",
+                "type": "string"
+              },
+              "operations": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "title": "Operations",
+                "type": "array"
+              },
+              "tools": {
+                "additionalProperties": true,
+                "title": "Tools",
+                "type": "object"
+              }
+            },
+            "required": [
+              "tools",
+              "operations"
+            ],
+            "title": "CatalogResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "ef3beb5ce1b24c2bbfc84e481139970ef4ef23c8f7b1cfbd10b0c0f21e807f3a",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "toolchain_catalog",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.tool_routes:register_toolchain_actions.<locals>.catalog",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "toolchain_catalog.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "select-project-tools"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "title": "Action",
+                "type": "string"
+              },
+              "arguments": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Arguments"
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "title": "ResolveRequest",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "toolchain_resolve",
+          "outputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "resolution": {
+                "additionalProperties": true,
+                "title": "Resolution",
+                "type": "object"
+              }
+            },
+            "required": [
+              "resolution"
+            ],
+            "title": "ResolveResult",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "9fb39e1b25c42e02022f6ae4b7fc2c54c440212d7fcbed05a3eb91fac775e690",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "toolchain_resolve",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.tool_routes:register_toolchain_actions.<locals>.resolve",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "toolchain_resolve.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "select-project-tools"
+        },
+        {
+          "cross_project_read": false,
+          "description": "Discover current public workflows and their registered actions without granting access.",
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "workflow": {
+                "anyOf": [
+                  {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "enum": [
+                  "evidence-lane",
+                  "open-project-session",
+                  "execute-project-plan",
+                  "manage-project-plan",
+                  "manage-project-sources",
+                  "exchange-task-evidence",
+                  "manage-project-memory",
+                  "manage-project-lessons",
+                  "inspect-project-instructions",
+                  "configure-project-workflow",
+                  "classify-project-work",
+                  "retrieve-project-evidence",
+                  "refresh-project-evidence",
+                  "inspect-project-connectors",
+                  "configure-project-connector",
+                  "revoke-project-connector",
+                  "select-project-tools",
+                  "select-project-storage",
+                  "inspect-project-evidence-map",
+                  "link-project-evidence-network",
+                  "handoff-project-work",
+                  "recover-project-state",
+                  "close-project-session",
+                  "run-project-lifecycle",
+                  null
+                ],
+                "title": "Workflow"
+              }
+            },
+            "title": "WorkflowQuery",
+            "type": "object"
+          },
+          "mutates": false,
+          "name": "workflow_catalog",
+          "outputSchema": {
+            "$defs": {
+              "JsonValue": {}
+            },
+            "additionalProperties": false,
+            "properties": {
+              "authority": {
+                "const": "engine_typed_action_registry",
+                "default": "engine_typed_action_registry",
+                "title": "Authority",
+                "type": "string"
+              },
+              "native_installation_verified": {
+                "const": false,
+                "default": false,
+                "title": "Native Installation Verified",
+                "type": "boolean"
+              },
+              "permission_granted": {
+                "const": false,
+                "default": false,
+                "title": "Permission Granted",
+                "type": "boolean"
+              },
+              "schema_version": {
+                "const": 4,
+                "default": 4,
+                "title": "Schema Version",
+                "type": "integer"
+              },
+              "workflows": {
+                "items": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                },
+                "title": "Workflows",
+                "type": "array"
+              }
+            },
+            "required": [
+              "workflows"
+            ],
+            "title": "WorkflowCatalog",
+            "type": "object"
+          },
+          "path_fields": [],
+          "permission": "read",
+          "profile": "core",
+          "project_required": false,
+          "queryable_in_delta": false,
+          "queued": false,
+          "read_schemas": [],
+          "required_tools": [],
+          "requires_delta": false,
+          "studio_read": false,
+          "toolchain": {
+            "contract_digest": "8c60b761091cc09794c8e65a9a76101708bba494ea634621fc25e76b3cc90de4",
+            "fallback_after_invocation": false,
+            "installation_implied": false,
+            "installation_matrix": "toolchains/shared-toolchain.v4.json",
+            "no_fallback_reason": "No equivalent alternate adapter is registered.",
+            "operation": "workflow_catalog",
+            "profile": "core",
+            "routes": [
+              {
+                "adapter": "evidence_lane_plugin.workflow_surface:register_workflow_actions.<locals>.<lambda>",
+                "argument_suffixes": {},
+                "argument_values": {},
+                "extension": null,
+                "fidelity": "exact_contract",
+                "host_profiles": [],
+                "provider": "engine_cpu",
+                "reason": "Registered engine adapter",
+                "route_id": "workflow_catalog.engine",
+                "systems": [
+                  "Windows"
+                ],
+                "tool_ids": [
+                  "Python"
+                ]
+              }
+            ],
+            "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+            "worker_operations": []
+          },
+          "verification_checks": [],
+          "worker_operations": [],
+          "workflow": "evidence-lane"
         }
       ],
       "installed_execution_claimed": false,
       "logical_authority_added": false,
-      "manifest_sha256": "3C94019DD90EAAC4662A26000CA4625BC8286B67C2F70FFAD7F847FC4A570AE3",
+      "manifest_sha256": "85E2C5C41D15410AE7DCBB0764F0FED6F21CC4F674CAE5881BD6D67910F7E319",
       "owner_id": "project_authority",
       "source_package_folder": "authorities/project_authority",
       "storage": "root-pv.sqlite3 for project identity, writer fencing, lane heads and coordinated recovery only"
@@ -125910,7 +130331,7 @@
       ],
       "installed_execution_claimed": false,
       "logical_authority_added": false,
-      "manifest_sha256": "43D13DBA9716A59DCF5A57139C0658C40604F44656A29A49BB6CC48E6A4B82B7",
+      "manifest_sha256": "450EFCA7ACA485A5A28AFD89E110476A0815C5B4C46B64CFD2A90BBC06581680",
       "owner_id": "instructions",
       "source_package_folder": "authorities/instructions",
       "storage": "Scoped instruction and separate workspace/host recall files; no database"

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B7E5F2FDF5D7C83F9795C5DFE062067BD0B44DEC0A4FA7072A8291687C721E2D
+%% LANGGRAPH_EXPORT_SHA256=27F57B4516AB1D4D7F816EE0B35278B180BFAE875AF01A8CE684225ED1101489
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=28
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["research owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_research_archive_member["research_archive_member<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
@@ -55,6 +56,46 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_research_archive_member
+  SCHEMA_ROOT -->|"owns table"| t_research_chunk
+  SCHEMA_ROOT -->|"owns table"| t_research_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_research_citation
+  SCHEMA_ROOT -->|"owns table"| t_research_current
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_chunk
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_current
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_fact
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_source
+  SCHEMA_ROOT -->|"owns table"| t_research_discovery_version
+  SCHEMA_ROOT -->|"owns table"| t_research_evidence
+  SCHEMA_ROOT -->|"owns table"| t_research_file
+  SCHEMA_ROOT -->|"owns table"| t_research_finding
+  SCHEMA_ROOT -->|"owns table"| t_research_hypothesis
+  SCHEMA_ROOT -->|"owns table"| t_research_limitation
+  SCHEMA_ROOT -->|"owns table"| t_research_method
+  SCHEMA_ROOT -->|"owns table"| t_research_native_fact
+  SCHEMA_ROOT -->|"owns table"| t_research_open_question
+  SCHEMA_ROOT -->|"owns table"| t_research_question
+  SCHEMA_ROOT -->|"owns table"| t_research_receipt
+  SCHEMA_ROOT -->|"owns table"| t_research_review_required
+  SCHEMA_ROOT -->|"owns table"| t_research_source
+  SCHEMA_ROOT -->|"owns table"| t_research_sqlite_receipt
+  SCHEMA_ROOT -->|"owns table"| t_research_sqlite_relationship
+  SCHEMA_ROOT -->|"owns table"| t_research_sqlite_row
+  SCHEMA_ROOT -->|"owns table"| t_research_sqlite_schema_object
+  SCHEMA_ROOT -->|"owns table"| t_research_sqlite_table
+  SCHEMA_ROOT -->|"owns table"| t_research_version
+  SCHEMA_ROOT -->|"owns table"| t_research_web_chunk
+  SCHEMA_ROOT -->|"owns table"| t_research_web_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_research_web_current
+  SCHEMA_ROOT -->|"owns table"| t_research_web_fact
+  SCHEMA_ROOT -->|"owns table"| t_research_web_source
+  SCHEMA_ROOT -->|"owns table"| t_research_web_version
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_research_archive_member -->|"snapshot_id"| t_research_version
   t_research_chunk -->|"text_object"| t_objects
   t_research_chunk -->|"snapshot_id"| t_research_version
@@ -106,3 +147,33 @@ flowchart TB
   t_research_web_version -->|"source_id"| t_research_web_source
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_research_archive_member
+  t_research_archive_member ~~~ t_research_chunk
+  t_research_chunk ~~~ t_research_chunk_fts
+  t_research_chunk_fts ~~~ t_research_citation
+  t_research_citation ~~~ t_research_current
+  t_research_discovery_chunk ~~~ t_research_discovery_chunk_fts
+  t_research_discovery_current ~~~ t_research_discovery_fact
+  t_research_discovery_fact ~~~ t_research_discovery_source
+  t_research_discovery_version ~~~ t_research_evidence
+  t_research_evidence ~~~ t_research_file
+  t_research_finding ~~~ t_research_hypothesis
+  t_research_hypothesis ~~~ t_research_limitation
+  t_research_method ~~~ t_research_native_fact
+  t_research_native_fact ~~~ t_research_open_question
+  t_research_open_question ~~~ t_research_question
+  t_research_question ~~~ t_research_receipt
+  t_research_review_required ~~~ t_research_source
+  t_research_source ~~~ t_research_sqlite_receipt
+  t_research_sqlite_receipt ~~~ t_research_sqlite_relationship
+  t_research_sqlite_row ~~~ t_research_sqlite_schema_object
+  t_research_sqlite_schema_object ~~~ t_research_sqlite_table
+  t_research_web_chunk ~~~ t_research_web_chunk_fts
+  t_research_web_chunk_fts ~~~ t_research_web_current
+  t_research_web_current ~~~ t_research_web_fact
+  t_research_web_fact ~~~ t_research_web_source
+  t_research_web_version ~~~ t_schema_migrations
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

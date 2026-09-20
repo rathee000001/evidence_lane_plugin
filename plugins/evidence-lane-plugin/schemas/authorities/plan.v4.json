@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/plan/dot-artifact.schema.json",
-      "sha256": "185305f6a00f57292ebb1763174168cbe8f4f65ac91fe1c3c550eb5851369d8f"
+      "sha256": "a2b799a9522f86636092403689a769bb31de4403976620bcc1dbeb7d7c3a0ad2"
     },
     {
       "path": "authorities/plan/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/plan/manifest.v4.json",
-      "sha256": "7e76ea8ed509e4e787c503f9a286706e1e738168f7c481e19831cd7bf124390e"
+      "sha256": "1f98a2ea81604a680ce5ad7638bee349576bc92bd374ecce01f7ce8f68822664"
     },
     {
       "path": "authorities/plan/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/plan/mmd-artifact.schema.json",
-      "sha256": "e5386f8f8ea8348254fc81c0bf041f14df8e7b72581a35251e62f8971f610610"
+      "sha256": "61f1bae2b01162a92bc572107ecf1b552e6c118d4fb4b3bb7b04a1c4f2a21eae"
     },
     {
       "path": "authorities/plan/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/plan/pointer-contract.v4.json",
-      "sha256": "0ad087c296cb6ac97458547423d126e49b45ae219b5aacb0a68354b648e77680"
+      "sha256": "dd17e6a873378a0e1f2060466ee7efbb13fe6b703dd2fccb4e405b7be04b92de"
     },
     {
       "path": "authorities/plan/reader-contract.schema.json",

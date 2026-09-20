@@ -8,7 +8,7 @@
     {
       "bytes": 747,
       "path": "sdk/internal/modules/__init__.module.v4.json",
-      "sha256": "3d0f1b2387906f1e44e4c2786f875cd3bd1dacc5d71359fd6f59edf3ae958d07"
+      "sha256": "c35f40ae816d17e6b8252913156757c4457ea367441e38eb4ee209cf7df07fef"
     },
     {
       "bytes": 775,
@@ -83,7 +83,7 @@
     {
       "bytes": 767,
       "path": "sdk/internal/modules/authority_support.module.v4.json",
-      "sha256": "ba2d6677abf3053e01df8ec9236fdd4091290840c838b186d7e99f73a587068e"
+      "sha256": "dd2cda3a81fd1d2e210a31494e06e2691f77c00a4a7d9f011aef47e2113efd03"
     },
     {
       "bytes": 753,
@@ -93,7 +93,7 @@
     {
       "bytes": 742,
       "path": "sdk/internal/modules/build.module.v4.json",
-      "sha256": "269db996eff201e0c59c275a1b0d2b25ee01aa24a1cd9bbd79e1a64b4569bfc0"
+      "sha256": "85c00b8a2f6c7b4634b49b2fc0c2ac0906507747455d133a8e86bb0e7fc7ebad"
     },
     {
       "bytes": 778,
@@ -163,7 +163,7 @@
     {
       "bytes": 769,
       "path": "sdk/internal/modules/codex_action_plane.module.v4.json",
-      "sha256": "cf62013e605c66186645b5a5b8ab8c7a296f6f139c0072227875d8890a161227"
+      "sha256": "e4e9cc456a42a9159b0a10a8451e669ddcad93d18576ad0ac20cd639dc1245ab"
     },
     {
       "bytes": 773,
@@ -348,7 +348,7 @@
     {
       "bytes": 762,
       "path": "sdk/internal/modules/flash_authority.module.v4.json",
-      "sha256": "bc046835e1c754fdce63fddf68361140e3ee45a2a56f9f898a55c385dcc7f7a0"
+      "sha256": "328bac54352f6493dfe3a7faf53d93ac46612e1bf333c008dec8c0802e99be53"
     },
     {
       "bytes": 755,
@@ -388,7 +388,7 @@
     {
       "bytes": 761,
       "path": "sdk/internal/modules/graph_pipeline.module.v4.json",
-      "sha256": "36b96c7606ef4a16805915a9ddec8e026c41ca1f1d1e2946c78469269e42264a"
+      "sha256": "cadbe6b8f094d108c6802f523d285e7a0f5c3257bfbcb00f7e65bc4d6ce77ccb"
     },
     {
       "bytes": 775,
@@ -418,7 +418,7 @@
     {
       "bytes": 759,
       "path": "sdk/internal/modules/hook_contract.module.v4.json",
-      "sha256": "0dc934af8b9c4c8e87d8934fc4dcb7b97d8c55d418ccbe90ab62ec45b3fd0a51"
+      "sha256": "8c965e8c937aaf1a06650a22868852ff03d35b1ee6c39e2c83ea3612fa641fe7"
     },
     {
       "bytes": 770,
@@ -453,12 +453,12 @@
     {
       "bytes": 769,
       "path": "sdk/internal/modules/hook_stage_runtime.module.v4.json",
-      "sha256": "d0841a223c1239d3af31dba3ab500b70ec5403047ea62e453dd776013a405467"
+      "sha256": "395313e5f6c6844612d17df230832eaf650cd912a4d7ce5a491461b3e9ae04e1"
     },
     {
       "bytes": 760,
       "path": "sdk/internal/modules/hook_transport.module.v4.json",
-      "sha256": "68f3f22616a0a018ca61134705e04f60a4bc3d23e478cc9bdc258278a21a5aff"
+      "sha256": "28acc411598753b7e4ed192f78d5b33e9451d67cad5b9e2f9f024035f16f9f1b"
     },
     {
       "bytes": 756,
@@ -1098,7 +1098,7 @@
     {
       "bytes": 761,
       "path": "sdk/internal/modules/sector_support.module.v4.json",
-      "sha256": "160075267fe10944b312b0ae42997eff24f1e5f14f24312114973293105e40ef"
+      "sha256": "a8e27c66610e77872e4592adc67e33a3dfb3c82e22d701e2413eb0a78c5faf7b"
     },
     {
       "bytes": 776,
@@ -1273,7 +1273,7 @@
     {
       "bytes": 766,
       "path": "sdk/internal/modules/storage_selection.module.v4.json",
-      "sha256": "b3917bb0127a98cd93d43b2ef02ffc67779fee1791d7d9a03c1348c4395e8e49"
+      "sha256": "8811fee79c0b8e3bb8d3de4ff356211686516f9a28fadb43ad4db2385ffe5b64"
     },
     {
       "bytes": 898,

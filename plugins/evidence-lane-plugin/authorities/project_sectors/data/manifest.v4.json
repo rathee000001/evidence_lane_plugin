@@ -2931,27 +2931,27 @@
     },
     {
       "path": "authorities/project_sectors/data/data.mmd",
-      "sha256": "67021456b5df2bed68af6e007a7c995f144e2f5ff9b3ece41ed5ef63b283c13f"
+      "sha256": "d1d13c8e4a67706ac47404dab21b223cf1f08418dad669256c234e0609af4707"
     },
     {
       "path": "authorities/project_sectors/data/data.dot",
-      "sha256": "78c765190646e662ac65db4d316f88d17a1bad6d1456744e62f903d21391c17f"
+      "sha256": "2684dae80afc05a22d2f8a5e1b391b28da124833da613c9972bf62501765dd17"
     },
     {
       "path": "authorities/project_sectors/data/workflow.mmd",
-      "sha256": "44d64968e99ad9c417369f3f6f39ae75db272dbcddc5763868826e33ebaddd18"
+      "sha256": "08abce021b1e5d9563a85b93e223502bda494e8abed8166c4494af07ae79d353"
     },
     {
       "path": "authorities/project_sectors/data/workflow.dot",
-      "sha256": "d0615461e3036472381fa658256ecd48278cffecf41bfd56faa1995779417ab9"
+      "sha256": "5fcfb096ae028ab18b2a4363866335bf3897b970e4126ab5121baf3ec8538a39"
     },
     {
       "path": "authorities/project_sectors/data/workflow.v4.json",
-      "sha256": "daf133c47d8fc09194565839930cc1a63898c8a5910d48a56eb3c852c74b5325"
+      "sha256": "610270f1a93a33a53ba4030f1557829cc45e8c296bae968440ddf53d5a03ee10"
     },
     {
       "path": "authorities/project_sectors/data/tools.json",
-      "sha256": "ea49b2b4dab3509c8e07b9f7905afe36aa3cfd79b3ddd91c4f230dc3e5dd294a"
+      "sha256": "2dcbf04885b342c88ea884bc44165714169679ed5e296231839b0974bb0f1e7c"
     },
     {
       "path": "authorities/project_sectors/data/tools.schema.json",

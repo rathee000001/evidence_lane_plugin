@@ -1,6 +1,6 @@
 """Read-only persistence evidence for the selected local project root.
 
-The v4.0.6 host scope supports persistent local Windows Codex Desktop Stable
+The v4.0.7 host scope supports persistent local Windows Codex Desktop Stable
 and Beta. Project registration selects the root. There is no storage connector,
 storage-mode mutation, VM durability route, or storage-selection ledger.
 """

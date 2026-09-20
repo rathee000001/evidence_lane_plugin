@@ -1940,7 +1940,7 @@
       "version": 1,
       "meaning": "Distinct registered projects, hash-only lane references and explicitly granted historical cross-project edges.",
       "consumer": "artifact_export",
-      "implementation_digest": "a787322ac29f25ed7f20bbba872982cb9c046d5ca19f40361089124bf7c84e53",
+      "implementation_digest": "a5aaa7ac2dd7e9f94d1e600ebc87597385b96bcc4b181a4c0cc997fb78577172",
       "files": {
         "mmd": "project_evidence_network.mmd",
         "dot": "project_evidence_network.dot"
@@ -2012,7 +2012,7 @@
       "version": 1,
       "meaning": "Project lane topology, Plan dependencies, Sources and explicit project links; exact project evidence head coordinator coordinates use project_evidence_map_inspect.",
       "consumer": "artifact_export",
-      "implementation_digest": "f02bbc25688f9fe9dc6dc8635b397df284012860f5be9087b1a6fb6e27a0ed1e",
+      "implementation_digest": "8fff37a6ac3f351aca73ff98f0af860224dd03c749acf2fda1bce75ad367d109",
       "files": {
         "mmd": "project_universe.mmd",
         "dot": "project_universe.dot"
@@ -2125,7 +2125,7 @@
     },
     {
       "path": "authorities/project_universe/dot-artifact.schema.json",
-      "sha256": "9eca15a9e0aa0656d7314c1202f6d2d6e4827c5ff6581999ad5686db14b1ef8a"
+      "sha256": "5f4b1f0a5c7ee52f882d85ab0640ce368cc1e6047479d61027c9ac91368c6bac"
     },
     {
       "path": "authorities/project_universe/manifest.schema.json",
@@ -2137,7 +2137,7 @@
     },
     {
       "path": "authorities/project_universe/mmd-artifact.schema.json",
-      "sha256": "f9d405cb990706e38bb0e6be52d0474884f5f8595b841d082ec7e650231e447d"
+      "sha256": "64efd7a7ac664145ed316eb35156ccf96f59d013a068a62bcc4b4b5e2a18d9eb"
     },
     {
       "path": "authorities/project_universe/pointer-contract.schema.json",
@@ -2145,15 +2145,15 @@
     },
     {
       "path": "authorities/project_universe/pointer-contract.v4.json",
-      "sha256": "adadc985252446d064a803effecd9439ad467d0d7ac415d88bdc31f6afb76872"
+      "sha256": "f7bf27c401fa7d81e4fc7cb4bcd54f2c7343b74bf8bc7f569c5250e31dfc4f2b"
     },
     {
       "path": "authorities/project_universe/project_universe.dot",
-      "sha256": "7f8740e1ecdeb5fe47d50c828fd83515041ee7e2e9f5f19f247636972a8b018e"
+      "sha256": "8ac470bc0f5c23ea42232a6601fc3a0c63622f61f3aba0959453fe19fec36eb6"
     },
     {
       "path": "authorities/project_universe/project_universe.mmd",
-      "sha256": "98f0e72ab54f90b5a2847ec27ba6474b007bd615aff8216129ab8d2d98723fb7"
+      "sha256": "fa3dae25aa44263c2619f72ca5170d3b62721cff3da8562a64127f5f892fed7f"
     },
     {
       "path": "authorities/project_universe/project_universe.sqlite",
@@ -2161,7 +2161,7 @@
     },
     {
       "path": "authorities/project_universe/project_universe.tools.json",
-      "sha256": "28ae5131bdb505668280402f61cd42446d7d903e205e90897658f3b661475aa4"
+      "sha256": "115d4d5538fdc88d9b90eac9ebd9f124781d45db20067e50b0be41f0e39ea085"
     },
     {
       "path": "authorities/project_universe/reader-contract.schema.json",
@@ -2205,15 +2205,15 @@
     },
     {
       "path": "authorities/project_universe/workflow.dot",
-      "sha256": "2c828be341f853c7ad1fdf7eeccc6db81c4669e1257db611a441c3883cdb6237"
+      "sha256": "0910f9ce59738f492eb7a965ab806e7416cc507913827ff04264626d7e86cfde"
     },
     {
       "path": "authorities/project_universe/workflow.mmd",
-      "sha256": "ab4c81cb633024c7bdadec9dcac4919fda262fe119a884f74612b4d97d2edef3"
+      "sha256": "93127dd5848be7f7a2a0b8eaba143eec4c6a998026d76d394766c4df94a44921"
     },
     {
       "path": "authorities/project_universe/workflow.v4.json",
-      "sha256": "454662be88841dbfcb988848de5d92a057553ffdd500eca43cfe6ad6a836228f"
+      "sha256": "59811fafc4b31d7a4fec9b7b08f533ab91d987f7f3d2ce308ed320b20bd8c6f0"
     }
   ]
 }

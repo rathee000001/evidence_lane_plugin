@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 from uuid import uuid4
 
@@ -61,6 +62,60 @@ def test_full_policy_keeps_current_codex_action_workflow_and_project_class_famil
     assert {'SOURCE_CURRENTNESS','PLAN_TASK','TOOL_READINESS','HOST_PLAN_PROJECTION','VERIFICATION'} <= set(runtime['required_gates'])
     assert not runtime['project_payload_accessed'] and not runtime['action_effect_executed']
     assert not runtime['legacy_translation_layer']
+
+
+def test_env_uop_graphs_are_logical_maps_while_sqlite_retains_complete_policy_rows():
+    runtime = load_env_uop_runtime_authority()
+    tool_count = len(json.loads(
+        (ROOT / 'toolchains/tool-definitions.v4.json').read_bytes()
+    )['entries'])
+    operation_count = sum(
+        len(row['routes']) for row in json.loads(
+            (ROOT / 'toolchains/operation-toolchains.v4.json').read_bytes()
+        )['operations']
+    )
+    expected = {
+        'env': {
+            'tables': 19,
+            'maximum_nodes': 64,
+            'rows': {
+                'env_action_binding_v4': len(runtime['action_policies']),
+                'env_operation_pipeline_v4': operation_count,
+                'env_tool_registry_v4': tool_count,
+            },
+            'relations': (
+                'binds native MCP tool',
+                'declares ordered tools',
+                'projects current workflow',
+            ),
+        },
+        'uop': {
+            'tables': 15,
+            'maximum_nodes': 48,
+            'rows': {
+                'uop_action_policy_v4': len(runtime['action_policies']),
+                'uop_tool_policy_v4': tool_count,
+                'uop_required_gate_v4': len(runtime['required_gates']),
+            },
+            'relations': (
+                'must satisfy gates',
+                'limits same-contract fallback',
+                'verifies before Plan advance',
+            ),
+        },
+    }
+    for role, contract in expected.items():
+        source = (ROOT / role / f'{role}_mmd.mmd').read_text(encoding='utf-8')
+        assert 'ROW_' not in source
+        assert source.count('\n    TABLE_') == contract['tables']
+        assert all(label in source for label in contract['relations'])
+        with sqlite3.connect(ROOT / role / f'{role}_sqlite.sqlite') as connection:
+            for table, count in contract['rows'].items():
+                quoted = '"' + table.replace('"', '""') + '"'
+                assert connection.execute(f'SELECT count(*) FROM {quoted}').fetchone()[0] == count
+            assert connection.execute(
+                'SELECT count(*) FROM semantic_graph_node_v4'
+            ).fetchone()[0] <= contract['maximum_nodes']
 
 
 def test_retained_ordered_mode_intersections_use_real_authority_and_sector_owners():

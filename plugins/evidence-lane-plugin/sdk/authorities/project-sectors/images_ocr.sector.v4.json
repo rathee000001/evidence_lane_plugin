@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 86301,
     "path": "authorities/project_sectors/images_ocr/manifest.v4.json",
-    "sha256": "e23bfdc76e501056c867b6b8d41fdd205ef844804693db1244e5ddcbd7f87aaf"
+    "sha256": "c0115af6ec39b5a9eee93f425feb256903c61b24aee767755a01a5a37c371a77"
   },
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",
   "runtime_execution_inferred": false,

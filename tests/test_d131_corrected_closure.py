@@ -160,6 +160,7 @@ def test_skill_icons_and_mcp_bridge_are_deterministic() -> None:
             assert command["commandWindows"].endswith(f'hooks\\runner.mjs" {event} {stage}')
             assert " python" not in command["command"].lower()
             assert " python" not in command["commandWindows"].lower()
+            assert command["timeout"] == (3 if event in {"Interrupt", "SessionEnd"} else 10)
     assert not list((PLUGIN / "mcp/actions").glob("*.sh"))
 
 

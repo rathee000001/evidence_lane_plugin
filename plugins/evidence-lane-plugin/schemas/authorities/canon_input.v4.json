@@ -8,7 +8,7 @@
     },
     {
       "path": "authorities/canon_input/dot-artifact.schema.json",
-      "sha256": "615277009498a22ad97329614b00305794cf0d2c078e806a66eab86302da4015"
+      "sha256": "c450e17cd1871901982930950a47fdf4f7d7669e6934a7c4ec616660eaca115c"
     },
     {
       "path": "authorities/canon_input/manifest.schema.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "authorities/canon_input/manifest.v4.json",
-      "sha256": "0b33e4f62105147e76dd564137260263ef6551ab504481c5fb3f64dae5abb21c"
+      "sha256": "b6450cda718294563710bdcb5059f6f4884e33a2123100c0ef8a14fc772b300b"
     },
     {
       "path": "authorities/canon_input/migration-history.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/canon_input/mmd-artifact.schema.json",
-      "sha256": "fe0cb40fae287a4b3540405952a03f168b7256c18092055a87fedf74feefe3b7"
+      "sha256": "8d2557cd915e4ffb1620ffb2f2573c83a57c6f026f12395c3f012e1905efd656"
     },
     {
       "path": "authorities/canon_input/pointer-contract.schema.json",
@@ -32,7 +32,7 @@
     },
     {
       "path": "authorities/canon_input/pointer-contract.v4.json",
-      "sha256": "e2d7f55aad7b738b0c6fbb2f58e44e4184e8f9297f724f3ecd6e3d91f59e7f5a"
+      "sha256": "74e893db7247fdfd133fc8360658de3cdae99cb173dc231d0bffd174acd91084"
     },
     {
       "path": "authorities/canon_input/reader-contract.schema.json",

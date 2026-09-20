@@ -5,7 +5,7 @@
   "manifest": {
     "bytes": 4227,
     "path": "authorities/project_authority/manifest.v4.json",
-    "sha256": "3c94019dd90eaac4662a26000ca4625bc8286b67c2f70ffad7f847fc4a570ae3"
+    "sha256": "85e2c5c41d15410ae7dcbb0764f0fed6f21cc4f674cae5881bd6d67910f7e319"
   },
   "role": "coordinate_exact_separate_lane_heads_and_receipts",
   "schema": "evidence-lane.sdk-root-pv-ref.v4",

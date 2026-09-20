@@ -6,9 +6,9 @@ from typing import get_args
 from .code_profile_schema import code_migrations
 from .document_schema import DOC_MIGRATIONS
 from .errors import LaneError
-from .lanes import get_lane, lane_artifact_contract, lane_family
+from .lanes import SECTOR_LANE_IDS, get_lane, lane_artifact_contract, lane_family
 
-IMPLEMENTED_SECTORS = ('local_code', 'github_code', 'docs', 'data_excel', 'data', 'ppt', 'tableau', 'power_bi', 'pdf_ocr', 'images_ocr', 'research', 'artifacts', 'custom')
+IMPLEMENTED_SECTORS = tuple(SECTOR_LANE_IDS)
 
 
 def sector_package_folder(lane_id):

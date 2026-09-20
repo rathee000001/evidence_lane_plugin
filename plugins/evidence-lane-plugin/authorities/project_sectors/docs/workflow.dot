@@ -63,8 +63,13 @@ digraph workflow_docs {
   read -> action_source_snapshot_state [label=read]
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_document_convert -> action_document_edit [constraint=true style=invis weight=100]
+  action_document_edit -> action_document_enrich [constraint=true style=invis weight=100]
   action_document_export -> action_document_generate [constraint=true style=invis weight=100]
+  action_document_generate -> action_document_index [constraint=true style=invis weight=100]
   action_document_refresh -> action_document_render [constraint=true style=invis weight=100]
+  action_document_render -> action_source_snapshot_retire [constraint=true style=invis weight=100]
   action_document_current -> action_document_enrichment_read [constraint=true style=invis weight=100]
+  action_document_enrichment_read -> action_document_query [constraint=true style=invis weight=100]
+  action_document_read -> action_document_render_read [constraint=true style=invis weight=100]
   action_document_render_read -> action_source_snapshot_state [constraint=true style=invis weight=100]
 }

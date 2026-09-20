@@ -110,7 +110,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/hook_contract.py",
-      "sha256": "AE5D32C5DB8B65D57B9E350B8DFDF99B78C738DE0EC0352465AEE261312F3D7B"
+      "sha256": "901DA27207E614CB350A0185243759B74F40E6215A14E08DD68048006834448D"
     },
     {
       "path": "src/evidence_lane_plugin/session.py",
@@ -122,7 +122,7 @@
     },
     {
       "path": "src/evidence_lane_plugin/flash_authority.py",
-      "sha256": "6A66AD1182CEA21CD3434AA75028B4333EE9187FF92A56A3159B2FF2B0F55AF4"
+      "sha256": "884AADD269F458169C603C02D38A1421486CFDC3C4BD34220107F26EE321015E"
     },
     {
       "path": "src/evidence_lane_plugin/host_routing.py",

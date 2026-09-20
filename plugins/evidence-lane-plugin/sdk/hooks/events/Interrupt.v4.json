@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/Interrupt/handler.py",
   "event": "Interrupt",
   "event_contract": "hooks/events/Interrupt/event.v4.json",
-  "event_contract_sha256": "e63c13959139db4d58ee4da4e8fca87b6706aee459dfc1b4c3d7c9376547553b",
+  "event_contract_sha256": "1a39d159d1b7e45218da3411b4d0b5feb4aa34d21ff3f816c4e429a48b060ecc",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.InterruptHandler",
   "host_stage_runner": "hooks/stage_runner.py",

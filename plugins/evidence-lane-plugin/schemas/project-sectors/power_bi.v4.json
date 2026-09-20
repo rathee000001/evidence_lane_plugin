@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/power_bi/manifest.v4.json",
-      "sha256": "dbf29558bf29f61e65c16762e302a0a7d64256cafa2b924b16e7168e5f2cf9c4"
+      "sha256": "98eb3101ac31ebe35470b82e875923982da1a37f6b61050b911fc51d4810b387"
     },
     {
       "path": "authorities/project_sectors/power_bi/migration-history.json",

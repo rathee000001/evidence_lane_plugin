@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PostCompact/handler.py",
   "event": "PostCompact",
   "event_contract": "hooks/events/PostCompact/event.v4.json",
-  "event_contract_sha256": "79f5082dba1b415a692c5486671fcf85e66f94f8b9317223a46f637436df5cc9",
+  "event_contract_sha256": "b732ba7ca738834c4269409659528915528e6a8065e9cdd4f204ba410aff1aa8",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PostCompactHandler",
   "host_stage_runner": "hooks/stage_runner.py",

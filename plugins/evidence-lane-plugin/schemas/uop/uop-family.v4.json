@@ -4,7 +4,7 @@
   "members": [
     {
       "path": "src/evidence_lane_plugin/codex_action_plane.py",
-      "sha256": "357a00913976dbe7beb8a805c5fec558ab7c73a6a359a5bf54a6843544c35297"
+      "sha256": "dc4e260dfbe9bb202403f26a9f5f534b50fbbe67ffe99b5571e99e8ac2c946a9"
     },
     {
       "path": "src/evidence_lane_plugin/codex_env_uop_policy.py",
@@ -20,7 +20,7 @@
     },
     {
       "path": "uop/uop_sqlite.sqlite",
-      "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
+      "sha256": "6eccd5569b6dd6c318934fed9b4046dacf677edf1b1e6e0e644a7eb7d45e9c8c"
     }
   ],
   "purpose": "Locked operation policy, gates and typed execution bindings",

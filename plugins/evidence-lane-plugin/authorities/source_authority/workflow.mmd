@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=8F2557AFD630983782793F3C13FA83B30CFFD4E800E1B94E54CDEC57FBB9A909
+%% LANGGRAPH_EXPORT_SHA256=548E9B19D0E59ABE4AB4B45A49B0521A3400366E49E162C285B3A4190AABB74B
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=6
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=27
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,16 +17,18 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
+  owner["sources current executable owner"]:::default
   writer["Engine coordinator and owning project writer"]:::default
   delta["Current stored Plan operation and Delta admission"]:::default
-  owner["sources current executable owner"]:::default
   action_custom_lane_configure["custom_lane_configure"]:::default
   action_custom_lanes_read["custom_lanes_read"]:::default
   action_enroll_project["enroll_project"]:::default
   action_fetch["fetch"]:::default
   action_git_branch_authority["git_branch_authority"]:::default
   action_git_sync_selected["git_sync_selected"]:::default
+  action_github_repository_inspect["github_repository_inspect"]:::default
   action_lane_configure_routes["lane_configure_routes"]:::default
+  action_project_workflow_configure["project_workflow_configure"]:::default
   action_source_classify["source_classify"]:::default
   action_source_crosswalk["source_crosswalk"]:::default
   action_source_git_history["source_git_history"]:::default
@@ -65,8 +67,13 @@ flowchart TB
   sdk -->|"write"| action_git_sync_selected
   delta -->|"required current operation contract"| action_git_sync_selected
   action_git_sync_selected -->|"run-project-lifecycle"| writer
+  sdk -->|"read"| action_github_repository_inspect
+  delta -->|"required current operation contract"| action_github_repository_inspect
+  action_github_repository_inspect -->|"manage-project-sources"| read
   sdk -->|"write"| action_lane_configure_routes
   action_lane_configure_routes -->|"manage-project-sources"| writer
+  sdk -->|"read"| action_project_workflow_configure
+  action_project_workflow_configure -->|"configure-project-workflow"| read
   sdk -->|"read"| action_source_classify
   action_source_classify -->|"manage-project-sources"| read
   sdk -->|"write"| action_source_crosswalk
@@ -120,9 +127,30 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_custom_lane_configure ~~~ action_custom_lanes_read
+  action_custom_lanes_read ~~~ action_enroll_project
+  action_enroll_project ~~~ action_fetch
+  action_fetch ~~~ action_git_branch_authority
   action_git_branch_authority ~~~ action_git_sync_selected
+  action_github_repository_inspect ~~~ action_lane_configure_routes
+  action_lane_configure_routes ~~~ action_project_workflow_configure
+  action_project_workflow_configure ~~~ action_source_classify
+  action_source_classify ~~~ action_source_crosswalk
+  action_source_crosswalk ~~~ action_source_git_history
   action_source_git_impact ~~~ action_source_graph
+  action_source_graph ~~~ action_source_graph_diff
+  action_source_graph_diff ~~~ action_source_graph_impact
+  action_source_graph_impact ~~~ action_source_identity
+  action_source_identity ~~~ action_source_inspect_sqlite
   action_source_materialization_read ~~~ action_source_materialization_reconcile
+  action_source_materialization_reconcile ~~~ action_source_materialize
+  action_source_materialize ~~~ action_source_preparation_read
+  action_source_preparation_read ~~~ action_source_prepare_refresh
+  action_source_prepare_refresh ~~~ action_source_prepare_tasks
   action_source_read ~~~ action_source_reconcile_archives
+  action_source_reconcile_archives ~~~ action_source_register
+  action_source_register ~~~ action_source_routes_read
+  action_source_routes_read ~~~ action_source_schema_configure
+  action_source_schema_configure ~~~ action_source_schema_map
   action_source_snapshot_retire ~~~ action_source_snapshot_state
+  action_source_snapshot_state ~~~ action_source_verify
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

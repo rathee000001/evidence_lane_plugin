@@ -1,0 +1,8 @@
+import Link from 'next/link';
+import type {Guide} from '../data/guides';
+import {guides} from '../data/guides';
+import {PageUniverse,UniverseMotionControl} from './page-universe';
+import {OriginalGlassIconOrb as Orb} from './original-glass';
+import {SemanticIcon} from './semantic-icon';
+import './home-flow.css';import './neon-glass.css';import './cosmic-pages.css';import './guide-article.css';
+export function GuideArticle({guide}:{guide:Guide}){return <main id="main" className="home-flow cosmic-page guide-page"><PageUniverse world="docs"/><UniverseMotionControl/><div className="guide-shell"><aside className="guide-navigation"><Link href="/docs">← Guide library</Link><p>{guide.group}</p><nav aria-label="On this page">{guide.sections.map((s,i)=><a key={s.title} href={'#guide-section-'+i}>{String(i+1).padStart(2,'0')}　{s.title}</a>)}</nav><Link href="/workflows">Find a workflow ↗</Link></aside><article className="guide-content"><header><p className="flow-kicker">EVIDENCE LANE / {guide.group.toUpperCase()}</p><Orb size={62} color="#b8b9ee" decorative><SemanticIcon name="guide" size={34}/></Orb><h1>{guide.title}</h1><p>{guide.intro}</p></header>{guide.sections.map((s,i)=><section key={s.title} id={'guide-section-'+i}><h2>{s.title}</h2>{s.paragraphs.map(p=><p key={p}>{p}</p>)}{s.steps&&<ol>{s.steps.map(step=><li key={step}>{step}</li>)}</ol>}</section>)}<footer><h2>Continue reading</h2><div>{guide.related.map(slug=><Link key={slug} href={'/docs/'+slug}>{guides.find(g=>g.slug===slug)?.title??slug} ↗</Link>)}</div><a href="https://github.com/rathee000001/evidence_lane_plugin">Inspect the source repository ↗</a></footer></article></div></main>}

@@ -10,9 +10,9 @@
   "schema": "evidence-lane.sdk-env-uop-contract.v4",
   "sources": [
     {
-      "bytes": 27893,
+      "bytes": 33065,
       "path": "src/evidence_lane_plugin/codex_action_plane.py",
-      "sha256": "357a00913976dbe7beb8a805c5fec558ab7c73a6a359a5bf54a6843544c35297"
+      "sha256": "dc4e260dfbe9bb202403f26a9f5f534b50fbbe67ffe99b5571e99e8ac2c946a9"
     },
     {
       "bytes": 952,

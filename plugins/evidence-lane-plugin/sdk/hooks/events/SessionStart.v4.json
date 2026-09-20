@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/SessionStart/handler.py",
   "event": "SessionStart",
   "event_contract": "hooks/events/SessionStart/event.v4.json",
-  "event_contract_sha256": "e25ad3a82709282ed3ed3c8743d7f8f0236e878027ed4454b4c101b202f9c2cf",
+  "event_contract_sha256": "e8b3c3c76cf9a8178e3ce4597c3f07046117de4f36730a77ec4844a1cf9a0a5c",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionStartHandler",
   "host_stage_runner": "hooks/stage_runner.py",

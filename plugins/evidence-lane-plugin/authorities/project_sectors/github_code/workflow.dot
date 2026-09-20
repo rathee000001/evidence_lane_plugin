@@ -56,7 +56,9 @@ digraph workflow_github_code {
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_code_current -> action_code_impact [constraint=true style=invis weight=100]
   action_code_impact -> action_code_query [constraint=true style=invis weight=100]
+  action_code_query -> action_code_read [constraint=true style=invis weight=100]
   action_code_semantic_query -> action_code_semantic_query_faiss [constraint=true style=invis weight=100]
   action_code_semantic_query_faiss -> action_code_semantic_query_vec [constraint=true style=invis weight=100]
+  action_code_semantic_query_vec -> action_code_snapshot_summary [constraint=true style=invis weight=100]
   action_fetch -> action_source_snapshot_state [constraint=true style=invis weight=100]
 }

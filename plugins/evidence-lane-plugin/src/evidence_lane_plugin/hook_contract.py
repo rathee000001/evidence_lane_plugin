@@ -23,6 +23,9 @@ from .storage import json_text
 
 HOOK_CONTRACT_SCHEMA = "evidence-lane.native-hook-contract.v4"
 HOOK_EVENT_NAMES = HOOK_EVENT_ORDER
+HOOK_DEFAULT_TIMEOUT_SECONDS = 10
+HOOK_TERMINAL_TIMEOUT_SECONDS = 3
+HOOK_TERMINAL_EVENTS = frozenset({"Interrupt", "SessionEnd"})
 HOOK_INSTALLATION_POLICY = {
     "trust_owner": "codex_plugin_manager",
     "source": "plugin",
@@ -31,6 +34,15 @@ HOOK_INSTALLATION_POLICY = {
     "enablement_owner": "user",
     "plugin_mutates_host_hook_state": False,
 }
+
+
+def hook_timeout_seconds(name: str) -> int:
+    """Return the exact current Codex host timeout allowed for this event."""
+    if name not in HOOK_EVENT_NAMES:
+        raise LaneError("HOOK_EVENT_UNSUPPORTED", "Select a documented packaged Hook event.")
+    if name in HOOK_TERMINAL_EVENTS:
+        return HOOK_TERMINAL_TIMEOUT_SECONDS
+    return HOOK_DEFAULT_TIMEOUT_SECONDS
 
 
 def hook_event_handler_path(name: str) -> str:
@@ -91,6 +103,11 @@ def hook_event_contract(name: str) -> dict:
         "host_stage_runner": "hooks/stage_runner.py",
         "host_stage_count": len(HOST_HOOK_STAGES),
         "host_stages": [stage["id"] for stage in HOST_HOOK_STAGES],
+        "host_execution_strategy": (
+            "single_validate_owner_terminal_fast_path"
+            if name in HOOK_TERMINAL_EVENTS
+            else "four_stage_coordination"
+        ),
         "ambient_python_required": False,
         "input_schema": f"hooks/events/{name}/event.schema.json",
         "pipeline": f"hooks/events/{name}/pipeline.v4.json",
@@ -126,7 +143,7 @@ def hook_manifest() -> dict:
                     + " "
                     + stage["id"]
                 ),
-                "timeout": 10,
+                "timeout": hook_timeout_seconds(name),
                 "statusMessage": stage["status"].format(event=name),
             }
             if stage["id"] == "EMIT" and name in {"SessionStart", "UserPromptSubmit"}:

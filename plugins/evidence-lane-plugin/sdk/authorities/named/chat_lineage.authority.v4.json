@@ -6,7 +6,7 @@
   "manifest": {
     "bytes": 58020,
     "path": "authorities/chat_lineage/manifest.v4.json",
-    "sha256": "62716d3660b3fa6e4f98373ff4203b95c91baa171f61d38c22478da5e37fc687"
+    "sha256": "b523f98380aca000c6a5408519a6cf89aed5525a1543b8cd6d123617c4d4fdad"
   },
   "path": "authorities/chat_lineage",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

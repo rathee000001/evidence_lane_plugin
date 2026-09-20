@@ -50,11 +50,18 @@ _ACTION_PROFILES = MappingProxyType({
     'instructions': (),
 })
 _ACTION_NAMES = MappingProxyType({
-    'sources': ('git_branch_authority', 'enroll_project', 'fetch', 'git_sync_selected'),
-    'receipts': ('capture_bind', 'remote_git_action_read', 'remote_git_prepare_push', 'remote_git_execute_push'),
+    'sources': ('git_branch_authority', 'enroll_project', 'fetch', 'git_sync_selected',
+                'github_repository_inspect', 'project_workflow_configure'),
+    'receipts': ('capture_bind', 'remote_git_action_read', 'remote_git_prepare_push', 'remote_git_execute_push',
+                 'evaluation_feedback_export', 'observability_export'),
     'project_authority': ('project_catalog', 'project_deselect', 'project_register', 'project_select',
-                          'project_status', 'storage_status', 'code_snapshot_summary'),
-    'sessions': ('session_flash_status', 'session_exit_boundary', 'env_uop_inspect'),
+                          'project_status', 'storage_status', 'code_snapshot_summary',
+                          'lane_view_catalog', 'lane_view_preview', 'lane_view_read', 'lane_view_refresh',
+                          'project_evidence_select', 'render_project_panel', 'toolchain_catalog',
+                          'toolchain_resolve', 'workflow_catalog'),
+    'sessions': ('session_flash_status', 'session_exit_boundary', 'env_uop_inspect',
+                 'client_context', 'engine_health', 'lifecycle_transition_law',
+                 'project_work_classify', 'render_runtime_panel', 'runtime_doctor', 'runtime_status'),
     'instructions': ('instructions_inspect',),
 })
 

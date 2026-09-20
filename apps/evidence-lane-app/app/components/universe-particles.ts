@@ -1,0 +1,13 @@
+import type * as Three from 'three';
+import {createInteractiveStarfield} from './interactive-starfield';
+
+/** The shared physical particle response used by each newly coded page world. */
+export function createUniverseParticles(T:typeof Three,scene:Three.Scene,camera:Three.PerspectiveCamera,host:HTMLElement){
+ const stars=createInteractiveStarfield(T,innerWidth<740?850:2400,180);scene.add(stars.group);const matrix=new T.Matrix4();const target=new T.Vector3();let elapsed=0,lastStage='',burst=0,transfer=0;
+ const pointer=(event:PointerEvent)=>stars.pointer(event.clientX/innerWidth*2-1,1-event.clientY/innerHeight*2);
+ window.addEventListener('pointermove',pointer,{passive:true});window.addEventListener('blur',stars.leave);document.addEventListener('pointerleave',stars.leave);
+ return{update(dt:number,paused:boolean){if(!paused)elapsed+=dt;const owner=host.closest('.home-flow');const sections=Array.from(owner?.querySelectorAll<HTMLElement>('[data-workflow-chapter],[data-studio-chapter],.cosmic-hero,.cosmic-section')??[]);let progress=0;for(let i=0;i<sections.length;i++){const r=sections[i].getBoundingClientRect();if(r.top<innerHeight*.55)progress=i+Math.max(0,Math.min(.999,(innerHeight*.55-r.top)/Math.max(r.height,1)))}const declared=owner?.getAttribute('data-story-progress');if(declared!==null&&declared!==undefined&&Number.isFinite(Number(declared)))progress=Number(declared);const stage=String(Math.floor(progress))+':'+(owner?.getAttribute('data-universe-stage')??'');if(lastStage&&stage!==lastStage)burst=1;lastStage=stage;if(!paused)burst=Math.max(0,burst-dt*.7);
+ const fraction=progress%1;const travel=Math.sin(Math.PI*Math.max(0,Math.min(1,(fraction-.65)/.35)))**2;const desired=document.querySelector('.flowPopupOverlay')?0:Math.max(travel,Math.sin(Math.PI*burst)**2)*.55;if(!paused)transfer+=(desired-transfer)*(1-Math.exp(-dt*8));const amount=transfer;const point=(t:number)=>{const a=t*Math.PI*2,side=Math.floor(progress)%2===0?1:-1,focus=owner?.getAttribute('data-particle-focus'),centre=focus?((Number(focus)*2-1)*Math.tan(camera.fov*Math.PI/360)*camera.position.z*camera.aspect):side*3;return target.set(centre+Math.cos(a)*(1.1+amount*1.5),Math.sin(a)*(.6+amount*.6),Math.sin(a+progress)*.8)};
+ const displacement=stars.update(dt,camera,progress,paused,{amount,matrix,point});host.dataset.particleTransfer=amount.toFixed(3);host.dataset.particleDisplacement=displacement.toFixed(4);host.dataset.particlePhase=amount>.1?'gather-travel-disperse':'ambient';host.dataset.motionEnergy=amount.toFixed(3);
+ },dispose(){window.removeEventListener('pointermove',pointer);window.removeEventListener('blur',stars.leave);document.removeEventListener('pointerleave',stars.leave);stars.dispose()}};
+}

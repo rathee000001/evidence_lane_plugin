@@ -48,7 +48,10 @@ digraph workflow_power_bi {
   read -> action_source_snapshot_state [label=read]
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_powerbi_current -> action_powerbi_query [constraint=true style=invis weight=100]
+  action_powerbi_query -> action_powerbi_read [constraint=true style=invis weight=100]
   action_powerbi_schema -> action_source_snapshot_state [constraint=true style=invis weight=100]
+  action_powerbi_edit -> action_powerbi_export [constraint=true style=invis weight=100]
   action_powerbi_export -> action_powerbi_generate [constraint=true style=invis weight=100]
+  action_powerbi_index -> action_powerbi_refresh [constraint=true style=invis weight=100]
   action_powerbi_refresh -> action_source_snapshot_retire [constraint=true style=invis weight=100]
 }

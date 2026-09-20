@@ -7,67 +7,67 @@
     {
       "bytes": 580,
       "path": "sdk/authorities/project-sectors/artifacts.sector.v4.json",
-      "sha256": "75fd9559a3dd7896b7ecbef6321f84bb87b384b6367bee2d90e0df353ab84fc4"
+      "sha256": "8cf891c767f5345443928117caa73b93488f923fcc413da23f510c9f395efc68"
     },
     {
       "bytes": 574,
       "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
-      "sha256": "0c96f72c4debdcbea3d67485bab4a089b61cea6d10542efa0cdc8bf4afdd6b42"
+      "sha256": "50368c6a6345e5670241ab34467445614e59c8d12ae5b2311e2adcb67ceca055"
     },
     {
       "bytes": 570,
       "path": "sdk/authorities/project-sectors/data.sector.v4.json",
-      "sha256": "5c0cd7ecb6238b41da8b9173669a164994e1db564a2faa6a5ded14a08d25a365"
+      "sha256": "6a6405d7171b2b43ec284665a612ee219eb4abe22d9068f5d9a63faa7b2e6390"
     },
     {
       "bytes": 582,
       "path": "sdk/authorities/project-sectors/data_excel.sector.v4.json",
-      "sha256": "87d24811b396203ac4b4dddc393ac95e8d4dbe938c6abd8ca6869e888c5d320c"
+      "sha256": "836f1aa872433517d1b996a855b256c6053a86285b197c7e34b576f4d05cdf4c"
     },
     {
       "bytes": 570,
       "path": "sdk/authorities/project-sectors/docs.sector.v4.json",
-      "sha256": "7c9a4ead43db281d552806a0308b3083ccc2ad267c3788f9a8a754ea43b9b4ed"
+      "sha256": "0144dcab0cfd9497ac990925960c1bc8ec6c2c449203d38df42f3c3b43c2856e"
     },
     {
       "bytes": 584,
       "path": "sdk/authorities/project-sectors/github_code.sector.v4.json",
-      "sha256": "7f9c7d4d1b7e2917e4a87eb9818a9a5c5c40c0c27be99be25e7d6ff1b29de39a"
+      "sha256": "d91cd725df10ac1099de03756e303eb9f974fcccbc2a648daf3082e7b02806c6"
     },
     {
       "bytes": 582,
       "path": "sdk/authorities/project-sectors/images_ocr.sector.v4.json",
-      "sha256": "cd7725d23a7a4a55ac6c66a477ca688a54c711207e8c3bebc21242b78cadf839"
+      "sha256": "c6ad3ebed87fb74fae1f070cf774e948babc37da3194c970607144cb476c79df"
     },
     {
       "bytes": 582,
       "path": "sdk/authorities/project-sectors/local_code.sector.v4.json",
-      "sha256": "917b47c1cea628c5950de8b77ce337ad2c67720165e35a0b83fc1df7810c7649"
+      "sha256": "6913788973cc4759b12692957f3df0a7ce85568da71de4d3a4e83f1d26b9d1fd"
     },
     {
       "bytes": 577,
       "path": "sdk/authorities/project-sectors/pdf_ocr.sector.v4.json",
-      "sha256": "2f44abc00b9df0461960979b62b1711d4d3806a0e900ba7dcf07e2659a4fc39b"
+      "sha256": "c132b581109691852da8eebfd4464157e7f1d991606b2c3db595b1f9308131f3"
     },
     {
       "bytes": 578,
       "path": "sdk/authorities/project-sectors/power_bi.sector.v4.json",
-      "sha256": "ffbf7ce022ab919ee394676386f1926f50c54e092f0c9baaadd3880601aead4c"
+      "sha256": "fb63a30fc4e298744f91cd0d0c89209687dc6d94882e87459cc1f375366abe3a"
     },
     {
       "bytes": 568,
       "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
-      "sha256": "e51ce0e8821907d9ea6e1db7cd296a5b45e0d213927399c5265a764ec6f17335"
+      "sha256": "2362bbf76cd775532e03218a5c56a854be707d3ce9f2d1f67872e837ab1365b9"
     },
     {
       "bytes": 578,
       "path": "sdk/authorities/project-sectors/research.sector.v4.json",
-      "sha256": "9a380fe20af872f755cf3c7e70a53a12aad16dfc1deef5ef0126d8bcc7b329e7"
+      "sha256": "36dcb184594dbe48cc08b15f05c553715941f699ceb6bf7ef9922739aa9f5c0c"
     },
     {
       "bytes": 576,
       "path": "sdk/authorities/project-sectors/tableau.sector.v4.json",
-      "sha256": "8bf08a7b8b41df36295b54c3543d69a79e18839b17e1af50de56922a77940fa7"
+      "sha256": "35ee07d02a0cea9ec29400ed3c8535b16e130d7e7c1d9c3a43e7b32df22c02a3"
     }
   ],
   "other_sector_definitions": "schemas/lane-registry.v4.json",

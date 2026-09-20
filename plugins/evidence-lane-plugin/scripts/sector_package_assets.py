@@ -16,7 +16,7 @@ from pydantic import Field, TypeAdapter, create_model
 
 from evidence_lane_plugin.adaptive_delta_entry import PlannedDeltaEnter
 from evidence_lane_plugin.artifact_contract import ViewPublished, ViewState
-from evidence_lane_plugin.graph_pipeline import SemanticGraph
+from evidence_lane_plugin.graph_pipeline import SemanticGraph, schema_traversal_graph
 from evidence_lane_plugin.lanes import CUSTOM_INSTANCE_PATTERN, get_lane
 from evidence_lane_plugin.sdk import UUID_PATTERN, ActionRequest, ActionResponse
 from evidence_lane_plugin.sector_support import (
@@ -148,23 +148,19 @@ def compile_lane_assets(registry, lane_id):
             'tables': {'type': 'array'}, 'relations': {'type': 'array'}},
         'additionalProperties': True}, lane.display_label + ' empty schema template inspection')
 
-    graph = SemanticGraph('schema_' + lane_id, role='AUTHORITY_TRAVERSAL')
-    table_names = {row['name'] for row in schema['tables']}
-    for row in schema['tables']:
-        graph.add_node('t_' + row['name'], row['name'] + '\n' + ', '.join(col['name'] for col in row['columns']), kind='table')
-    for row in schema['relations']:
-        if row['target'] not in table_names:
-            raise ValueError('Unresolved schema relationship: ' + row['target'])
-        graph.add_edge('t_' + row['source'], 't_' + row['target'], row['column'])
-    mmd, dot, topology = graph.render_pair()
+    mmd, dot, topology = schema_traversal_graph(lane_id, schema)
     outputs[folder + '/' + lane.mmd_filename] = mmd.encode()
     outputs[folder + '/' + lane.dot_filename] = dot.encode()
 
     flow = SemanticGraph('workflow_' + lane_id, role='EXECUTABLE_WORKFLOW')
     flow.add_node('lane', lane_id + ' owning database and immutable files', kind='authority')
-    flow.add_node('delta', 'Exact current Plan and normal Delta admission')
-    flow.add_node('verify', 'Owning acceptance checks and verified Delta exit')
-    flow.add_node('read', 'Scoped authenticated SDK read')
+    has_mutation = any(action['mutates'] for action in actions)
+    has_read = any(not action['mutates'] for action in actions)
+    if has_mutation:
+        flow.add_node('delta', 'Exact current Plan and normal Delta admission')
+        flow.add_node('verify', 'Owning acceptance checks and verified Delta exit')
+    if has_read:
+        flow.add_node('read', 'Scoped authenticated SDK read')
     for action in actions:
         identity = 'action_' + action['name']
         flow.add_node(identity, action['name'], kind='action')

@@ -18,7 +18,12 @@ from evidence_lane_plugin.authority_support import (
 from evidence_lane_plugin.connections import ConnectRequest, ProjectSelection
 from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.internal_sdk import PublicActionSDKDispatcher
-from evidence_lane_plugin.lanes import AUTHORITY_LANE_IDS, CANONICAL_LANE_IDS, get_lane
+from evidence_lane_plugin.lanes import (
+    AUTHORITY_LANE_IDS,
+    CANONICAL_LANE_IDS,
+    SECTOR_LANE_IDS,
+    get_lane,
+)
 from evidence_lane_plugin.plugin_architecture import build_universal_plugin_architecture
 from evidence_lane_plugin.sdk import EvidenceLaneClient
 from evidence_lane_plugin.storage import ProjectStore
@@ -154,6 +159,12 @@ def test_root_session_instruction_and_canon_graph_owners_bind_existing_engine(se
     assert consequence.canon_view is canon_view and consequence.canon_pointer is canon_pointer
     layout = json.loads((PLUGIN / 'authorities/project_authority/live-root-layout.v4.json').read_bytes())
     assert {row['lane_id'] for row in layout['lanes']} == set(CANONICAL_LANE_IDS)
+    assert layout['authority_lanes'] == list(AUTHORITY_LANE_IDS)
+    assert layout['authority_materialization'] == 'all_retained_authorities_on_project_registration'
+    assert layout['sector_lanes'] == list(SECTOR_LANE_IDS)
+    assert layout['sector_materialization'] == 'only_explicitly_selected_source_or_workflow_lanes'
+    assert layout['absent_sector_read_behavior'] == 'LANE_NOT_INITIALIZED_WITHOUT_CREATION'
+    assert layout['lane_folders_are_direct_root_children'] is True
     before = hashes(project.root)
     response = module('authorities/instructions', 'reader.py').read_authority(client_for(engine, session),
         action='instructions_inspect', project_id=project.project_id)

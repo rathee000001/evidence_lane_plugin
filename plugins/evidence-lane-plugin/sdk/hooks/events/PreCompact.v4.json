@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PreCompact/handler.py",
   "event": "PreCompact",
   "event_contract": "hooks/events/PreCompact/event.v4.json",
-  "event_contract_sha256": "40211de6c783d47e4df426eaf940434ebd8a0d0ccd4241445697192fec9f0ebf",
+  "event_contract_sha256": "136b032ba2be384bb33857e20373919afad13671c9036c5072c7e059a2eb42c0",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreCompactHandler",
   "host_stage_runner": "hooks/stage_runner.py",

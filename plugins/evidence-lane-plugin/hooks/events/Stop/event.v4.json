@@ -7,6 +7,7 @@
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.StopHandler",
   "host_control_output": false,
+  "host_execution_strategy": "four_stage_coordination",
   "host_stage_count": 4,
   "host_stage_runner": "hooks/stage_runner.py",
   "host_stages": [

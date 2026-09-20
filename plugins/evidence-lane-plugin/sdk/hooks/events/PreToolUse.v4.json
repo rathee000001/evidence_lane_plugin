@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/PreToolUse/handler.py",
   "event": "PreToolUse",
   "event_contract": "hooks/events/PreToolUse/event.v4.json",
-  "event_contract_sha256": "07766160c6f53d5b59b0aafa765b3d6dbb5fd726c61be893f4c7030942b322a9",
+  "event_contract_sha256": "44c816f4a701bdf24889a8bf3e656d52f9c42fca9fe9b6722898f16c9991bc3e",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.PreToolUseHandler",
   "host_stage_runner": "hooks/stage_runner.py",

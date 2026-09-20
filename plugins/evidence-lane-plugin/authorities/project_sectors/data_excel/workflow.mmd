@@ -3,7 +3,7 @@ flowchart TB
 %% LANGGRAPH_VERSION=1.2.11
 %% LANGGRAPH_EXPORT_SHA256=C28196902062C6784B23F6ED587A9A052DFF22C9893C7998DA9338FA05A9F98F
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=13
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -87,8 +87,16 @@ flowchart TB
   lane -->|"bounded recorded evidence"| action_spreadsheet_render_read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_source_snapshot_retire ~~~ action_spreadsheet_edit
+  action_spreadsheet_edit ~~~ action_spreadsheet_export
+  action_spreadsheet_export ~~~ action_spreadsheet_generate
   action_spreadsheet_index ~~~ action_spreadsheet_index_values
+  action_spreadsheet_index_values ~~~ action_spreadsheet_inspect_openpyxl
+  action_spreadsheet_inspect_openpyxl ~~~ action_spreadsheet_inspect_pandas
   action_spreadsheet_recalculate ~~~ action_spreadsheet_refresh
+  action_spreadsheet_refresh ~~~ action_spreadsheet_refresh_values
+  action_spreadsheet_refresh_values ~~~ action_spreadsheet_render
   action_source_snapshot_state ~~~ action_spreadsheet_current
+  action_spreadsheet_current ~~~ action_spreadsheet_inspection_read
+  action_spreadsheet_query ~~~ action_spreadsheet_read
   action_spreadsheet_read ~~~ action_spreadsheet_render_read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

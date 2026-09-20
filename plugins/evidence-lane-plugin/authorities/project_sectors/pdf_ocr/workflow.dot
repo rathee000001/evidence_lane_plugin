@@ -66,8 +66,13 @@ digraph workflow_pdf_ocr {
   read -> action_source_snapshot_state [label=read]
   lane -> action_source_snapshot_state [label="bounded recorded evidence"]
   action_pdf_current -> action_pdf_enrichment_read [constraint=true style=invis weight=100]
+  action_pdf_enrichment_read -> action_pdf_ocr_read [constraint=true style=invis weight=100]
   action_pdf_query -> action_pdf_read [constraint=true style=invis weight=100]
+  action_pdf_read -> action_pdf_render_read [constraint=true style=invis weight=100]
   action_pdf_edit -> action_pdf_enrich [constraint=true style=invis weight=100]
+  action_pdf_enrich -> action_pdf_export [constraint=true style=invis weight=100]
   action_pdf_generate -> action_pdf_index [constraint=true style=invis weight=100]
+  action_pdf_index -> action_pdf_ocr [constraint=true style=invis weight=100]
+  action_pdf_refresh -> action_pdf_render [constraint=true style=invis weight=100]
   action_pdf_render -> action_source_snapshot_retire [constraint=true style=invis weight=100]
 }

@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=7441C8FDFB6589607A399587194CDDC52B25A6A24BE8B18F698282099EA82E07
+%% LANGGRAPH_EXPORT_SHA256=561A1D7F8C668F7675DEA4C1D7703D005EA111D6B246DB47C759F715EBB012BF
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=32
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["sources owning SQLite schema"]:::default
   t_customlanes_contracts["customlanes_contracts<br/>contract_sha256, lane_id, previous_contract, contract_json, created_at"]:::table
   t_customlanes_current["customlanes_current<br/>lane_id, contract_sha256"]:::table
   t_gitbranch_current["gitbranch_current<br/>singleton, generation, digest"]:::table
@@ -76,6 +77,67 @@ flowchart TB
   t_sourceroutes_preparations["sourceroutes_preparations<br/>request_id, client_id, request_digest, preparation_id, created_at"]:::table
   t_sourceroutes_receipts["sourceroutes_receipts<br/>route_id, batch_id, parent_route_id, created_at"]:::table
   t_sourceroutes_requests["sourceroutes_requests<br/>request_id, client_id, action, request_digest, route_id, result_object, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_customlanes_contracts
+  SCHEMA_ROOT -->|"owns table"| t_customlanes_current
+  SCHEMA_ROOT -->|"owns table"| t_gitbranch_current
+  SCHEMA_ROOT -->|"owns table"| t_gitbranch_enrollment
+  SCHEMA_ROOT -->|"owns table"| t_gitbranch_history
+  SCHEMA_ROOT -->|"owns table"| t_gitbranch_sync
+  SCHEMA_ROOT -->|"owns table"| t_intake_batch
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_registry_event
+  SCHEMA_ROOT -->|"owns table"| t_registry_meta
+  SCHEMA_ROOT -->|"owns table"| t_restoration_control
+  SCHEMA_ROOT -->|"owns table"| t_restoration_history
+  SCHEMA_ROOT -->|"owns table"| t_restoration_reindex
+  SCHEMA_ROOT -->|"owns table"| t_restoration_requests
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_source_archive_receipt
+  SCHEMA_ROOT -->|"owns table"| t_source_assertion_set
+  SCHEMA_ROOT -->|"owns table"| t_source_authority_fts
+  SCHEMA_ROOT -->|"owns table"| t_source_custom_schema
+  SCHEMA_ROOT -->|"owns table"| t_source_custom_schema_mapping
+  SCHEMA_ROOT -->|"owns table"| t_source_custom_schema_receipt
+  SCHEMA_ROOT -->|"owns table"| t_source_exclusion_summary
+  SCHEMA_ROOT -->|"owns table"| t_source_git_changed_line
+  SCHEMA_ROOT -->|"owns table"| t_source_git_commit
+  SCHEMA_ROOT -->|"owns table"| t_source_git_file_change
+  SCHEMA_ROOT -->|"owns table"| t_source_git_hunk
+  SCHEMA_ROOT -->|"owns table"| t_source_git_impact
+  SCHEMA_ROOT -->|"owns table"| t_source_git_object
+  SCHEMA_ROOT -->|"owns table"| t_source_git_object_path
+  SCHEMA_ROOT -->|"owns table"| t_source_git_parent
+  SCHEMA_ROOT -->|"owns table"| t_source_git_ref
+  SCHEMA_ROOT -->|"owns table"| t_source_git_rename
+  SCHEMA_ROOT -->|"owns table"| t_source_git_snapshot
+  SCHEMA_ROOT -->|"owns table"| t_source_git_tree_entry
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_diff
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_edge
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_file_coverage
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_impact
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_node
+  SCHEMA_ROOT -->|"owns table"| t_source_graph_snapshot
+  SCHEMA_ROOT -->|"owns table"| t_source_identity_assertion
+  SCHEMA_ROOT -->|"owns table"| t_source_identity_entity
+  SCHEMA_ROOT -->|"owns table"| t_source_identity_receipt
+  SCHEMA_ROOT -->|"owns table"| t_source_identity_relation
+  SCHEMA_ROOT -->|"owns table"| t_source_member
+  SCHEMA_ROOT -->|"owns table"| t_source_object
+  SCHEMA_ROOT -->|"owns table"| t_source_occurrence
+  SCHEMA_ROOT -->|"owns table"| t_source_policy_receipt
+  SCHEMA_ROOT -->|"owns table"| t_source_provenance
+  SCHEMA_ROOT -->|"owns table"| t_source_relation
+  SCHEMA_ROOT -->|"owns table"| t_source_sqlite_asset
+  SCHEMA_ROOT -->|"owns table"| t_source_sqlite_foreign_key
+  SCHEMA_ROOT -->|"owns table"| t_source_sqlite_receipt
+  SCHEMA_ROOT -->|"owns table"| t_source_sqlite_schema_object
+  SCHEMA_ROOT -->|"owns table"| t_source_sqlite_table_stat
+  SCHEMA_ROOT -->|"owns table"| t_sourcematerialization_runs
+  SCHEMA_ROOT -->|"owns table"| t_sourceroutes_preparations
+  SCHEMA_ROOT -->|"owns table"| t_sourceroutes_receipts
+  SCHEMA_ROOT -->|"owns table"| t_sourceroutes_requests
   t_customlanes_contracts -->|"previous_contract"| t_customlanes_contracts
   t_customlanes_current -->|"contract_sha256"| t_customlanes_contracts
   t_gitbranch_current -->|"generation"| t_gitbranch_history
@@ -154,3 +216,37 @@ flowchart TB
   t_sourceroutes_receipts -->|"route_id"| t_objects
   t_sourceroutes_requests -->|"result_object"| t_objects
   t_sourceroutes_requests -->|"route_id"| t_sourceroutes_receipts
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_customlanes_current ~~~ t_gitbranch_current
+  t_gitbranch_current ~~~ t_gitbranch_enrollment
+  t_gitbranch_enrollment ~~~ t_gitbranch_history
+  t_gitbranch_sync ~~~ t_intake_batch
+  t_intake_batch ~~~ t_lane_identity
+  t_objects ~~~ t_registry_event
+  t_registry_event ~~~ t_registry_meta
+  t_restoration_reindex ~~~ t_restoration_requests
+  t_schema_migrations ~~~ t_schema_ownership
+  t_source_archive_receipt ~~~ t_source_assertion_set
+  t_source_assertion_set ~~~ t_source_authority_fts
+  t_source_authority_fts ~~~ t_source_custom_schema
+  t_source_custom_schema_receipt ~~~ t_source_exclusion_summary
+  t_source_exclusion_summary ~~~ t_source_git_changed_line
+  t_source_git_hunk ~~~ t_source_git_impact
+  t_source_git_impact ~~~ t_source_git_object
+  t_source_git_parent ~~~ t_source_git_ref
+  t_source_git_ref ~~~ t_source_git_rename
+  t_source_git_snapshot ~~~ t_source_git_tree_entry
+  t_source_git_tree_entry ~~~ t_source_graph_diff
+  t_source_graph_edge ~~~ t_source_graph_file_coverage
+  t_source_graph_file_coverage ~~~ t_source_graph_impact
+  t_source_graph_impact ~~~ t_source_graph_node
+  t_source_identity_assertion ~~~ t_source_identity_entity
+  t_source_identity_entity ~~~ t_source_identity_receipt
+  t_source_occurrence ~~~ t_source_policy_receipt
+  t_source_policy_receipt ~~~ t_source_provenance
+  t_source_relation ~~~ t_source_sqlite_asset
+  t_source_sqlite_asset ~~~ t_source_sqlite_foreign_key
+  t_source_sqlite_schema_object ~~~ t_source_sqlite_table_stat
+  t_source_sqlite_table_stat ~~~ t_sourcematerialization_runs
+  t_sourceroutes_preparations ~~~ t_sourceroutes_receipts
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

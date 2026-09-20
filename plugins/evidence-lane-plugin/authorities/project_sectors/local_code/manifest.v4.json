@@ -3157,27 +3157,27 @@
     },
     {
       "path": "authorities/project_sectors/local_code/local_code.mmd",
-      "sha256": "f6b527f83a46ab7364cfb132f5db36f0c14d2397624ce75d96de86f3bc528f90"
+      "sha256": "0768be3dc3379613d553c6687baaa65be9954b1b2a20b54729eaf28cca0f6349"
     },
     {
       "path": "authorities/project_sectors/local_code/local_code.dot",
-      "sha256": "4abcc53b85998c24523c5593186fa99cc881c8d38e63db02bc08b2e6e805bfd8"
+      "sha256": "a91f0ac810b329507226eb8a3a3ce0841b9e091a109b5ebebca149630d71d9f3"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.mmd",
-      "sha256": "d9fbdd4dad58ffd8e4102cd41a3ec74026b2da26d5e69e381a8d312886401a8d"
+      "sha256": "024db44efd40bd32cb1f2fb3fce22f19b057e39c8eb526f8c6c54a37c04910fb"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.dot",
-      "sha256": "8ea3d53b73d393e807fa5f0ed4cfa4a25ab5206341a07478b2d5034fcfc3abfe"
+      "sha256": "253da5bf4334fe1b66b36da93119921a53c2bd314e3f34d3772e7be31a29fa42"
     },
     {
       "path": "authorities/project_sectors/local_code/workflow.v4.json",
-      "sha256": "42a374ed24372e376f3e9ba72474cd718898ec8a757a18c2e58b8267ab53276a"
+      "sha256": "f42a4049831c98826d3beba2bb05477ddfaa3ef1b6908556e56a95809e0ff27b"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.json",
-      "sha256": "b179d7e100463d2ffda9edfbc8d584736c9725f9db82355e6bb8e94748de73e1"
+      "sha256": "2f53fa992789907c59325c917501a7efb9881f29b506a53ae2ef6f4a524086e8"
     },
     {
       "path": "authorities/project_sectors/local_code/tools.schema.json",

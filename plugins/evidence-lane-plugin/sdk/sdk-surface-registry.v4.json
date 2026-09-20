@@ -26,7 +26,7 @@
       "path": "sdk/authorities/runtime.py",
       "registry": {
         "path": "sdk/authorities/named-authorities.ref.v4.json",
-        "sha256": "dcb5a8b9d20970496924b71af0806f3535baf64338ac4e7a9c6741750e375df1"
+        "sha256": "c4c43bf9c1c5478ff133ef7b11755caacda03dc81d4ee88c36dbcfd04fa2fefd"
       },
       "runtime": {
         "path": "sdk/authorities/runtime.py",
@@ -56,7 +56,7 @@
       "path": "sdk/env_uop/runtime.py",
       "registry": {
         "path": "sdk/env_uop/env-uop-contract-registry.v4.json",
-        "sha256": "3d51ea629c2efbdd0d13143934fa5040cbff7b596ade6abcde52e0eeaebcba28"
+        "sha256": "2ca8241d84a1dc8905b80c3d231a3284863efeb44dea5a02a55cc371b56e4276"
       },
       "runtime": {
         "path": "sdk/env_uop/runtime.py",
@@ -71,7 +71,7 @@
       "path": "sdk/hooks/runtime.py",
       "registry": {
         "path": "sdk/hooks/hook-runtime.ref.v4.json",
-        "sha256": "5a4c3aceb739b8a9f692b6bf0c4d1d0baef1b0bf21cb91d1d9fb378a681e8ebd"
+        "sha256": "5f5e379a032a67d82a8a5b1bc9c6115cd7d8a33455bbd941baa43e5c122472af"
       },
       "runtime": {
         "path": "sdk/hooks/runtime.py",
@@ -86,7 +86,7 @@
       "path": "sdk/host/runtime.py",
       "registry": {
         "path": "sdk/host/host-contract-registry.v4.json",
-        "sha256": "19cf51656dbf4188732b4e9fcdc32dbfed3ed29aa4bfceac4173d160ba148056"
+        "sha256": "7e816681ddfa88fbba92ef50933358fe8287d166a28bb3165e8e044e4554c53d"
       },
       "runtime": {
         "path": "sdk/host/runtime.py",
@@ -101,7 +101,7 @@
       "path": "sdk/internal/runtime.py",
       "registry": {
         "path": "sdk/internal/module-registry.v4.json",
-        "sha256": "ce387300df5f7e7b4941305eb464bc99e015829ec3fe8703189a1e8d444676d0"
+        "sha256": "305461ca8efde28049b167a3072023ca3b49059e049c24ba2ed986380e0a7216"
       },
       "runtime": {
         "path": "sdk/internal/runtime.py",
@@ -116,7 +116,7 @@
       "path": "sdk/plan/runtime.py",
       "registry": {
         "path": "sdk/plan/plan-contract-registry.v4.json",
-        "sha256": "04445b05623aebda69bb316f9cbef08bb0a44edcb04f500095440171c7a75a00"
+        "sha256": "96315bed0a657b981cbffc021ed0a652ea004be7a64a0015ec66a84a088bb7d5"
       },
       "runtime": {
         "path": "sdk/plan/runtime.py",
@@ -176,7 +176,7 @@
       "path": "sdk/transports/runtime.py",
       "registry": {
         "path": "sdk/transports/transport-registry.v4.json",
-        "sha256": "ec8bf6cc9a6e36fd8aaa7649c5ee180728fcb944049c7cad3cbef55ac470fbdc"
+        "sha256": "dbed69c50863113041f1acade25b3af5ace7563f8285f813fffeddfe2b498d1f"
       },
       "runtime": {
         "path": "sdk/transports/runtime.py",

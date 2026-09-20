@@ -2081,27 +2081,27 @@
     },
     {
       "path": "authorities/project_sectors/power_bi/power_bi.mmd",
-      "sha256": "5009fad7ff708f76a6e3aec98545e54d863eec22cb70de1b8591aaa8645db1db"
+      "sha256": "0f35ef30aa2012c48350c10af2a6624fb82bd9b0f1543e058622beb7562d696f"
     },
     {
       "path": "authorities/project_sectors/power_bi/power_bi.dot",
-      "sha256": "994764e30b4e767ce2e81683651a1134d1ff2d6b3ff8bc1a9480915762ff126c"
+      "sha256": "6de5b5e4a3625e3a30cd6ad0df518bd8d92e866004f93fab03602ad18ee3e2c8"
     },
     {
       "path": "authorities/project_sectors/power_bi/workflow.mmd",
-      "sha256": "a8d5b516510f543fcd1900e4d01f5ff4e166bfc8f93b976605908c2537a9f3c9"
+      "sha256": "ee28eff57e97d6526452fbfd2ccfe5e958a01c224d8679bac3ed1c9a96f48453"
     },
     {
       "path": "authorities/project_sectors/power_bi/workflow.dot",
-      "sha256": "fa94c23941daf5ad5f85689724f1574afd89d56c59a98198b73180277d0d003a"
+      "sha256": "d94245e439ab574344cc3f21d08fb2990fec09837d0ce46a2f4e4da5b874fc2d"
     },
     {
       "path": "authorities/project_sectors/power_bi/workflow.v4.json",
-      "sha256": "263da9c159465d4df020681411a3f6c043abf5e59610736924fc674b9f861dca"
+      "sha256": "de6784109df78658a8af87155a3d16f0210c230e715edb8e3099a46bc9d7a7b9"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.json",
-      "sha256": "f816606a781be48c7c208cde43da69c53eefce2eb8866787842281a66213acf9"
+      "sha256": "7a531880b19aaaed5d53437f8df46e3059955340b9c9c1f96eee42b6d7fba41f"
     },
     {
       "path": "authorities/project_sectors/power_bi/tools.schema.json",

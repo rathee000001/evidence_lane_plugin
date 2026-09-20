@@ -1,0 +1,2 @@
+'use client';
+export function StoryRail({items,active,onSelect,label}:{items:{id:string;name:string}[];active:number;onSelect:(i:number)=>void;label:string}){return <nav className="el-story-rail" aria-label={label}>{items.map((item,i)=><a key={item.id} href={'#'+item.id} onClick={e=>{e.preventDefault();onSelect(i)}} aria-current={active===i?'step':undefined} aria-label={String(i).padStart(2,'0')+' '+item.name}><span>{String(i).padStart(2,'0')}</span><i/><b>{item.name}</b></a>)}</nav>}

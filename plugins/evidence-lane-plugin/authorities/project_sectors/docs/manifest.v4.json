@@ -2559,27 +2559,27 @@
     },
     {
       "path": "authorities/project_sectors/docs/docs.mmd",
-      "sha256": "360d4091de9d8d74199776e39e1a4fe1979601fc59fc74332fd4f22614c00809"
+      "sha256": "ef2c2389d7e9debb9f491279795afbc193e6ca2142f1f94d58af20698ebf09c3"
     },
     {
       "path": "authorities/project_sectors/docs/docs.dot",
-      "sha256": "910af231ceba0b2d785c2ca953c251300945fbd560d830bfff91928761271f5f"
+      "sha256": "184f57fd72d7ae5484a2089b81bbdeb21e914587639066358da99148cc21c903"
     },
     {
       "path": "authorities/project_sectors/docs/workflow.mmd",
-      "sha256": "68f40c73c6ed5148112461a3fed0e34c49ad19e7526f16b0d09d4b6e1e95bb5b"
+      "sha256": "0eb3416981677546037dc7fce08e78778e637cdffc1ac6e0d006d118c89e77f5"
     },
     {
       "path": "authorities/project_sectors/docs/workflow.dot",
-      "sha256": "7328861f97df6796c1697983956fc3c0b7f55cbda223783fd189395d160a0e8c"
+      "sha256": "650027f1e276fcab4cb5dd1283da663a7ee9d737308cef4fdfb42f18c7fe7e9a"
     },
     {
       "path": "authorities/project_sectors/docs/workflow.v4.json",
-      "sha256": "85e9606898e0534eef0c436ec0c93afa071072396be8218c69bdc8990dc53ec4"
+      "sha256": "eb97bbd290d5abaa8b84f7d50f460aa584d44b5dd1fd1a0335de6f2f2a825e86"
     },
     {
       "path": "authorities/project_sectors/docs/tools.json",
-      "sha256": "aa214c2f70faff05dcb954007bb0d7310afa31691260d5761d2ca50773d60411"
+      "sha256": "c8c52c1317721e06bdaa72514f41e4c6dbd60e73c1df90fb35c9c1b0af386135"
     },
     {
       "path": "authorities/project_sectors/docs/tools.schema.json",

@@ -11,8 +11,8 @@
     },
     {
       "path": "env/SOURCE_PACKET_AUDIT.json",
-      "bytes": 8933,
-      "sha256": "723a3b3743c33653ca43e8005a16bc3764a96441e5d043a7a1800071103ebb35"
+      "bytes": 8925,
+      "sha256": "96d0f14f380e0392757997c88474f90e55bacba4e188795801c92ae41c9b32e0"
     },
     {
       "path": "env/UNIVERSAL_FLASH_PROMPT.md",
@@ -36,23 +36,23 @@
     },
     {
       "path": "env/env_mmd.dot",
-      "bytes": 383956,
-      "sha256": "953ded233ecf87dd7310dc96365054bdfff07e3c5f11a800e03fb4c85e500bb0"
+      "bytes": 13235,
+      "sha256": "1393cbe8d030e7db9086b8ee9d9f78e070f3bf3db55ca7f4f7cde7cfc18fa119"
     },
     {
       "path": "env/env_mmd.mmd",
-      "bytes": 278031,
-      "sha256": "fb9e3e95478492027a301f2d86757854b83a19f92de2a0f8950f408bf5510465"
+      "bytes": 11158,
+      "sha256": "59918652671d46c471d22edbae97225f1784a3205d64b15258bdbf05add85ac8"
     },
     {
       "path": "env/env_sqlite.sqlite",
-      "bytes": 4960256,
-      "sha256": "c5dce9097c1e23b4dd57e2cb7da72954d5dc9411a2e4588d8eba51427e002ed3"
+      "bytes": 4501504,
+      "sha256": "d0520ccce8614e0765ed96db72a0479595dc25faae5f2d7786eb5b253895d294"
     },
     {
       "path": "env/locked_mmd_hash.txt",
       "bytes": 127,
-      "sha256": "7f4ace6a839f6e87edcd306f4892b627b5ebc7fd9c46e054866f36c69d420b32"
+      "sha256": "313b531ffd7dd17955bb28324203a984d6d5ba9088797da26d6da4bef7d1ad26"
     },
     {
       "path": "toolchains/tool-catalog.v4.json",
@@ -77,7 +77,7 @@
     {
       "path": "uop/locked_mmd_hash.txt",
       "bytes": 127,
-      "sha256": "2ea5c3106d1ef37e478ae6c179fb64d0fc728bc53bcad33e80830b9b2f25cf5c"
+      "sha256": "660423e7985a048139382e7e66aa82f5dad6ce660296f8e653cdf1f516263e11"
     },
     {
       "path": "uop/uop_law.md",
@@ -86,18 +86,18 @@
     },
     {
       "path": "uop/uop_mmd.dot",
-      "bytes": 118270,
-      "sha256": "8268477d903eac31fd10c1c54656726885161aa6d58f74b7ac88e49a02e5f562"
+      "bytes": 11878,
+      "sha256": "8c99e193e78a95bb1a2f1bb464719a73e8d0bc0e19d980825136d7c7dcf4a529"
     },
     {
       "path": "uop/uop_mmd.mmd",
-      "bytes": 84725,
-      "sha256": "8c6d9160af0a7a4780d26c9843853649fed7c264a08d3ec2e1204ad504ba6047"
+      "bytes": 9936,
+      "sha256": "bb185c9b1c645267f869e40bc99ce45dc596ec96522e58b4f3033c03b94aff92"
     },
     {
       "path": "uop/uop_sqlite.sqlite",
-      "bytes": 1548288,
-      "sha256": "e424ac563aac45eb10deb457722900c44b863e4749da9f6aa8491835e4aeb50c"
+      "bytes": 1409024,
+      "sha256": "6eccd5569b6dd6c318934fed9b4046dacf677edf1b1e6e0e644a7eb7d45e9c8c"
     }
   ]
 }

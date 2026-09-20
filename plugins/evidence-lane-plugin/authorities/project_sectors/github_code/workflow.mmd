@@ -3,7 +3,7 @@ flowchart TB
 %% LANGGRAPH_VERSION=1.2.11
 %% LANGGRAPH_EXPORT_SHA256=5B96B4BB2C74FEE63EACF773ED11AE77BB2947107D951B8DC161739545060B3E
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=7
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -68,7 +68,9 @@ flowchart TB
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_code_current ~~~ action_code_impact
   action_code_impact ~~~ action_code_query
+  action_code_query ~~~ action_code_read
   action_code_semantic_query ~~~ action_code_semantic_query_faiss
   action_code_semantic_query_faiss ~~~ action_code_semantic_query_vec
+  action_code_semantic_query_vec ~~~ action_code_snapshot_summary
   action_fetch ~~~ action_source_snapshot_state
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

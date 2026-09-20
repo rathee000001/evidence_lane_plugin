@@ -1902,7 +1902,7 @@
       "version": 1,
       "meaning": "Attributed locators and explicitly recorded typed Memory relationships.",
       "consumer": "artifact_export",
-      "implementation_digest": "dc28be26672ea9d6f2a8c84e5d0240b5027168beae0bdd91c5e92139e9df123e",
+      "implementation_digest": "258e53ebd213fabd2a197b424890ff9858c7ee3ea85b0214ef1cb6f937164e0c",
       "files": {
         "mmd": "memory.mmd",
         "dot": "memory.dot",
@@ -2040,7 +2040,7 @@
     },
     {
       "path": "authorities/project_memory/dot-artifact.schema.json",
-      "sha256": "de2b05f389cdc71a14397b8f7ad4928fe0e1e90633cd0fdbd73915b7cf12a815"
+      "sha256": "9fd8f5439d372e40d2d719bcb417296267aba77048516cea2e215e2a0f4105ff"
     },
     {
       "path": "authorities/project_memory/manifest.schema.json",
@@ -2048,11 +2048,11 @@
     },
     {
       "path": "authorities/project_memory/memory.dot",
-      "sha256": "d6f003703c78e19fee3f10a227d257648db2b4d78313e1a82b74a6a6e10ed89f"
+      "sha256": "5627203930b53fa647fdacc14367fce693a7640bd998c7064ff64c696d514c68"
     },
     {
       "path": "authorities/project_memory/memory.mmd",
-      "sha256": "a46709590892774a74d99e0e0cde8157efdea27df6db9bd032b077304e0420fc"
+      "sha256": "0674c9c493be6326ac9bbdcc3ec648d1af3506db082cb088798ef159e40f401a"
     },
     {
       "path": "authorities/project_memory/memory.sqlite",
@@ -2060,7 +2060,7 @@
     },
     {
       "path": "authorities/project_memory/memory.tools.json",
-      "sha256": "1802816f652cc30ae116f5bdab19a34cc8703203a5d4900fcf23627c1133fe41"
+      "sha256": "01343944dffd97616d9c4adfc3e2b05310dc50fc440765819048087e695aac7c"
     },
     {
       "path": "authorities/project_memory/migration-history.json",
@@ -2068,7 +2068,7 @@
     },
     {
       "path": "authorities/project_memory/mmd-artifact.schema.json",
-      "sha256": "238e44242c7459da11f018873231dd86d83148ba94695daa0dfec64f546df34b"
+      "sha256": "0b9bc5e3ac4e54b2c63d714a7b1e5fd90beaff6688e2423eb3d38437004fdbff"
     },
     {
       "path": "authorities/project_memory/pointer-contract.schema.json",
@@ -2076,7 +2076,7 @@
     },
     {
       "path": "authorities/project_memory/pointer-contract.v4.json",
-      "sha256": "50dd633e1f17afe8b593a2a78dbb7f2034ec4678f93d332cb1a5b986d7ea1f3d"
+      "sha256": "45062b1d78e6ab5c15f528ad2efaad2be1a6981bfa0e1716bd1fb32bedde54ba"
     },
     {
       "path": "authorities/project_memory/reader-contract.schema.json",
@@ -2120,15 +2120,15 @@
     },
     {
       "path": "authorities/project_memory/workflow.dot",
-      "sha256": "3ea689c8893258021b672c6e99d57fe35f6206a6e61682750e3b00f3e5aa06c9"
+      "sha256": "03e614d06a1be30a0f511cc2af21b16b4651d7525a08e7f93e861e670989ccf3"
     },
     {
       "path": "authorities/project_memory/workflow.mmd",
-      "sha256": "d64870a5e9441ff3d856cedbe6e910a0303661f0d31d2cf00f7c776d1af8275e"
+      "sha256": "9157d3813f55ff51b1cb93aebb326000e26832ecb30ee513a33fe5af3f8509e6"
     },
     {
       "path": "authorities/project_memory/workflow.v4.json",
-      "sha256": "05d36ca53c8ae0fcd4382827a5b81b63b82c70e96c0e6df17d1995e69b6a24c1"
+      "sha256": "f18f6372e14e7f60e8fb2962aa7651a1555744529ee4e917b2c3cf8968d9e75a"
     }
   ]
 }

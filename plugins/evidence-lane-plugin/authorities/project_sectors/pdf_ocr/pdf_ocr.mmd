@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=0CA887A3A8D5F3BFDD9D71F7A31C770EE966FE6DBEE3A3264AAEBF5EE823C403
+%% LANGGRAPH_EXPORT_SHA256=068813E7E61EE6253B471B022C4990C2A0F6ED9E29DDE064B3BF2E91DB6042BD
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=22
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["pdf_ocr owning SQLite schema"]:::default
   t_docling_extraction["docling_extraction<br/>enrichment_id, snapshot_id, manifest_object, created_at"]:::table
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
@@ -43,6 +44,34 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_docling_extraction
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_pdf_annotation
+  SCHEMA_ROOT -->|"owns table"| t_pdf_attachment
+  SCHEMA_ROOT -->|"owns table"| t_pdf_chunk
+  SCHEMA_ROOT -->|"owns table"| t_pdf_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_pdf_current
+  SCHEMA_ROOT -->|"owns table"| t_pdf_export
+  SCHEMA_ROOT -->|"owns table"| t_pdf_file
+  SCHEMA_ROOT -->|"owns table"| t_pdf_form_field
+  SCHEMA_ROOT -->|"owns table"| t_pdf_image
+  SCHEMA_ROOT -->|"owns table"| t_pdf_link
+  SCHEMA_ROOT -->|"owns table"| t_pdf_ocr_line
+  SCHEMA_ROOT -->|"owns table"| t_pdf_ocr_run
+  SCHEMA_ROOT -->|"owns table"| t_pdf_outline
+  SCHEMA_ROOT -->|"owns table"| t_pdf_page
+  SCHEMA_ROOT -->|"owns table"| t_pdf_render
+  SCHEMA_ROOT -->|"owns table"| t_pdf_review_region
+  SCHEMA_ROOT -->|"owns table"| t_pdf_structure
+  SCHEMA_ROOT -->|"owns table"| t_pdf_table
+  SCHEMA_ROOT -->|"owns table"| t_pdf_text_block
+  SCHEMA_ROOT -->|"owns table"| t_pdf_text_line
+  SCHEMA_ROOT -->|"owns table"| t_pdf_version
+  SCHEMA_ROOT -->|"owns table"| t_pdf_widget
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_docling_extraction -->|"manifest_object"| t_objects
   t_docling_extraction -->|"snapshot_id"| t_pdf_version
   t_pdf_annotation -->|"snapshot_id"| t_pdf_version
@@ -77,3 +106,27 @@ flowchart TB
   t_pdf_widget -->|"snapshot_id"| t_pdf_version
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_docling_extraction ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_pdf_annotation
+  t_pdf_annotation ~~~ t_pdf_attachment
+  t_pdf_attachment ~~~ t_pdf_chunk
+  t_pdf_chunk ~~~ t_pdf_chunk_fts
+  t_pdf_current ~~~ t_pdf_export
+  t_pdf_export ~~~ t_pdf_file
+  t_pdf_file ~~~ t_pdf_form_field
+  t_pdf_form_field ~~~ t_pdf_image
+  t_pdf_image ~~~ t_pdf_link
+  t_pdf_link ~~~ t_pdf_ocr_line
+  t_pdf_ocr_run ~~~ t_pdf_outline
+  t_pdf_outline ~~~ t_pdf_page
+  t_pdf_page ~~~ t_pdf_render
+  t_pdf_render ~~~ t_pdf_review_region
+  t_pdf_review_region ~~~ t_pdf_structure
+  t_pdf_structure ~~~ t_pdf_table
+  t_pdf_text_block ~~~ t_pdf_text_line
+  t_pdf_widget ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

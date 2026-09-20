@@ -6716,7 +6716,7 @@
       "version": 1,
       "meaning": "Current Plan tasks, states and declared dependencies.",
       "consumer": "artifact_export",
-      "implementation_digest": "86f12c19ca771833f22f2ac635e5989d89d29810177a20b1e4cf087059e4bf06",
+      "implementation_digest": "c7a03dc84e90402f80b5e3418b9409d1ae90f00b1bbe18e8dce1b3d31da7f668",
       "files": {
         "mmd": "plan.mmd",
         "dot": "plan.dot",
@@ -6804,7 +6804,7 @@
     },
     {
       "path": "authorities/plan/dot-artifact.schema.json",
-      "sha256": "185305f6a00f57292ebb1763174168cbe8f4f65ac91fe1c3c550eb5851369d8f"
+      "sha256": "a2b799a9522f86636092403689a769bb31de4403976620bcc1dbeb7d7c3a0ad2"
     },
     {
       "path": "authorities/plan/law.v4.json",
@@ -6820,15 +6820,15 @@
     },
     {
       "path": "authorities/plan/mmd-artifact.schema.json",
-      "sha256": "e5386f8f8ea8348254fc81c0bf041f14df8e7b72581a35251e62f8971f610610"
+      "sha256": "61f1bae2b01162a92bc572107ecf1b552e6c118d4fb4b3bb7b04a1c4f2a21eae"
     },
     {
       "path": "authorities/plan/plan.dot",
-      "sha256": "a9807e462346a14faacacbe0b764b63ef9160cae916330b843cfc3cb94d2a469"
+      "sha256": "ef1e9ecb6b924563f59738e4beac621ef4c48f33f81e7410de5a15aa1e19b99b"
     },
     {
       "path": "authorities/plan/plan.mmd",
-      "sha256": "e2b013e6364f3b181654c4f99e30676c7e8ca3943e0d537a66b5512777a426a6"
+      "sha256": "fea2f9625ac2d296fa5e2cd41731a2c2829166c57a198795544713333975590b"
     },
     {
       "path": "authorities/plan/plan.sqlite",
@@ -6836,7 +6836,7 @@
     },
     {
       "path": "authorities/plan/plan.tools.json",
-      "sha256": "314878a2a3534699fcc036ceec9576e8e1cf24c8f0954050fb08875a2951927b"
+      "sha256": "7cddbf5aca41e6c630ac00ec247e3e3f7fa378e888396cedab350f690d4b32c9"
     },
     {
       "path": "authorities/plan/pointer-contract.schema.json",
@@ -6844,7 +6844,7 @@
     },
     {
       "path": "authorities/plan/pointer-contract.v4.json",
-      "sha256": "0ad087c296cb6ac97458547423d126e49b45ae219b5aacb0a68354b648e77680"
+      "sha256": "dd17e6a873378a0e1f2060466ee7efbb13fe6b703dd2fccb4e405b7be04b92de"
     },
     {
       "path": "authorities/plan/reader-contract.schema.json",
@@ -6888,15 +6888,15 @@
     },
     {
       "path": "authorities/plan/workflow.dot",
-      "sha256": "51ad036ccb85d4fcb745f48a8a8e65cdabf631c592de07d30ebfb9c7bd8cd7bd"
+      "sha256": "e44e7f231932b1a7c5520bb1c8b4abd764478a3a7c4ae1474d5d3ecb12f7d96a"
     },
     {
       "path": "authorities/plan/workflow.mmd",
-      "sha256": "733eea5ccf051bb07a602cc16161a8c324220bba4e12398cd6263c243cc4f05d"
+      "sha256": "b9aaadb3f2a8b87c35b378d95d0e3f48fb163618ca7c46be45096018586f044a"
     },
     {
       "path": "authorities/plan/workflow.v4.json",
-      "sha256": "e7e17d5e82084650e9a38e5b176c88c6da460a8464e8ade1407e64d1d3065473"
+      "sha256": "ebb8b88885c0f12ada27ee9d06ab00c68ca4a86e227b858a8a122046adbd3b21"
     }
   ]
 }

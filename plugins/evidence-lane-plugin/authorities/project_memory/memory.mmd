@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=B8BB726481849CC0AF5E1FA395D3EAFCC61A87AD5F3D6B5B17CF87695D59D70A
+%% LANGGRAPH_EXPORT_SHA256=1F1AB0E243A0A6E118B92046ED1625F4DD1A9F2B01C23D4ACA5CAAF054AE9576
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=7
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["memory owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_memory_checkpoints["memory_checkpoints<br/>checkpoint_digest, body_json"]:::table
   t_memory_edges["memory_edges<br/>edge_id, source_id, target_id, kind, body_json, row_digest, created_at"]:::table
@@ -24,5 +25,23 @@ flowchart TB
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_memory_checkpoints
+  SCHEMA_ROOT -->|"owns table"| t_memory_edges
+  SCHEMA_ROOT -->|"owns table"| t_memory_events
+  SCHEMA_ROOT -->|"owns table"| t_memory_fts
+  SCHEMA_ROOT -->|"owns table"| t_memory_locators
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
   t_memory_edges -->|"target_id"| t_memory_locators
   t_memory_edges -->|"source_id"| t_memory_locators
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_memory_checkpoints
+  t_memory_checkpoints ~~~ t_memory_edges
+  t_memory_edges ~~~ t_memory_events
+  t_memory_events ~~~ t_memory_fts
+  t_memory_locators ~~~ t_objects
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

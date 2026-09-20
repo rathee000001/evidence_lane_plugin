@@ -1016,7 +1016,7 @@
       "version": 1,
       "meaning": "Workbook sheets and exact formula cells with syntactic A1 reference ranges; not a calculated dependency model.",
       "consumer": "artifact_export",
-      "implementation_digest": "89c1cf72b973bed3c9239130b823193d8586ab079aa7a5b5f9dcded66b4e45af",
+      "implementation_digest": "69e7096ae45cd37924bba9bf84cd59ddb147c30d1da9e8b976f55e41283e8a9c",
       "files": {
         "mmd": "data_excel.mmd",
         "dot": "data_excel.dot",

@@ -1131,6 +1131,620 @@
       "read_schemas": []
     },
     {
+      "name": "evaluation_feedback_export",
+      "description": "Write one hash-bound numeric feedback row to a pre-existing LangSmith run through an exact project connector grant.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "description": "One pre-existing LangSmith run receives one bounded numeric feedback row.",
+        "properties": {
+          "tool_id": {
+            "const": "LangSmith",
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 266,
+            "minLength": 13,
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "action_name": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Action Name",
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Run Id",
+            "type": "string"
+          },
+          "session_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Session Id",
+            "type": "string"
+          },
+          "feedback_key": {
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,63}$",
+            "title": "Feedback Key",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "observed_at_unix_nano": {
+            "maximum": 4102444800000000000,
+            "minimum": 1,
+            "title": "Observed At Unix Nano",
+            "type": "integer"
+          },
+          "action_schema_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Action Schema Sha256",
+            "type": "string"
+          },
+          "route_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Route Sha256",
+            "type": "string"
+          },
+          "dataset_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Dataset Sha256",
+            "type": "string"
+          },
+          "redaction_receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Redaction Receipt Sha256",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "max_request_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 4096,
+            "title": "Max Request Bytes",
+            "type": "integer"
+          },
+          "max_response_bytes": {
+            "default": 1048576,
+            "maximum": 4194304,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tool_id",
+          "lane_id",
+          "resource_id",
+          "action_name",
+          "run_id",
+          "session_id",
+          "feedback_key",
+          "score",
+          "observed_at_unix_nano",
+          "action_schema_sha256",
+          "route_sha256",
+          "dataset_sha256",
+          "redaction_receipt_sha256"
+        ],
+        "title": "EvaluationFeedbackRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "tool_id": {
+            "enum": [
+              "LangSmith",
+              "OpenTelemetry",
+              "Langfuse",
+              "Grafana"
+            ],
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "evaluation",
+              "observability"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "delivery": {
+            "additionalProperties": true,
+            "title": "Delivery",
+            "type": "object"
+          },
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "kind",
+          "delivery",
+          "receipt_sha256"
+        ],
+        "title": "ExternalEvidenceResult",
+        "type": "object"
+      },
+      "permission": "publish",
+      "profile": "core",
+      "workflow": "select-project-tools",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "evaluation_feedback_export",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "evaluation_feedback_export.langsmith",
+            "adapter": "evidence_lane_plugin.evaluation_toolchain:register_evaluation_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "LangSmith"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "langsmith.feedback-rest",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "evaluation_feedback",
+              "lane": "selected_by_action",
+              "role": "evaluation_feedback_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "LangSmith"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "9cdb142be0a2f784d3109744d52442cc4ba8b524017288dcc8046301d12e2d80"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "external_evidence_receipt"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
+      "name": "observability_export",
+      "description": "Send one bounded hash-only observation to an exact OTLP, Langfuse or Grafana connector resource.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "description": "Export one hash-only observation through one exact provider resource.",
+        "properties": {
+          "tool_id": {
+            "enum": [
+              "OpenTelemetry",
+              "Langfuse",
+              "Grafana"
+            ],
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "signal": {
+            "maxLength": 32,
+            "minLength": 3,
+            "title": "Signal",
+            "type": "string"
+          },
+          "lane_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Lane Id",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 266,
+            "minLength": 10,
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "plugin_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plugin Id"
+          },
+          "action_name": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Action Name",
+            "type": "string"
+          },
+          "correlation_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@/-]{0,127}$",
+            "title": "Correlation Id",
+            "type": "string"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "result_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Result Sha256",
+            "type": "string"
+          },
+          "redaction_receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Redaction Receipt Sha256",
+            "type": "string"
+          },
+          "observed_at_unix_nano": {
+            "maximum": 4102444800000000000,
+            "minimum": 1,
+            "title": "Observed At Unix Nano",
+            "type": "integer"
+          },
+          "duration_nanoseconds": {
+            "default": 0,
+            "maximum": 86400000000000,
+            "minimum": 0,
+            "title": "Duration Nanoseconds",
+            "type": "integer"
+          },
+          "metric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Metric Value"
+          },
+          "attribute_sha256": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 32,
+            "title": "Attribute Sha256",
+            "type": "object"
+          },
+          "dashboard_uid": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dashboard Uid"
+          },
+          "timeout_seconds": {
+            "default": 20,
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "max_request_bytes": {
+            "default": 131072,
+            "maximum": 262144,
+            "minimum": 4096,
+            "title": "Max Request Bytes",
+            "type": "integer"
+          },
+          "max_response_bytes": {
+            "default": 1048576,
+            "maximum": 4194304,
+            "minimum": 1024,
+            "title": "Max Response Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tool_id",
+          "signal",
+          "lane_id",
+          "resource_id",
+          "action_name",
+          "correlation_id",
+          "input_sha256",
+          "result_sha256",
+          "redaction_receipt_sha256",
+          "observed_at_unix_nano"
+        ],
+        "title": "ObservabilityExportRequest",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "tool_id": {
+            "enum": [
+              "LangSmith",
+              "OpenTelemetry",
+              "Langfuse",
+              "Grafana"
+            ],
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "evaluation",
+              "observability"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "delivery": {
+            "additionalProperties": true,
+            "title": "Delivery",
+            "type": "object"
+          },
+          "receipt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Receipt Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "kind",
+          "delivery",
+          "receipt_sha256"
+        ],
+        "title": "ExternalEvidenceResult",
+        "type": "object"
+      },
+      "permission": "publish",
+      "profile": "core",
+      "workflow": "select-project-tools",
+      "mutates": true,
+      "project_required": true,
+      "requires_delta": true,
+      "required_tools": [
+        "Python",
+        "HTTPX"
+      ],
+      "toolchain": {
+        "operation": "observability_export",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "observability_export.opentelemetry",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "OpenTelemetry"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "opentelemetry.otlp-http-json",
+              "backend_version": "1.11",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "OpenTelemetry"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "observability_export.langfuse",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Langfuse"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "langfuse.otlp-http",
+              "backend_version": "v4",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Langfuse"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "observability_export.grafana",
+            "adapter": "evidence_lane_plugin.observability_toolchain:register_observability_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "HTTPX",
+              "Grafana"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "grafana.annotations-rest",
+              "backend_version": "v1",
+              "backend_runtime": "python",
+              "capability": "observability_export",
+              "lane": "selected_by_action",
+              "role": "observability_export_receipt",
+              "role_schema": {
+                "tool_id": "text",
+                "kind": "text",
+                "delivery": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "resource_id"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": "lane_id",
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {
+              "tool_id": [
+                "Grafana"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "38243322fd318176558b082d167c4407c9252e0955e1e7c3b0aafefda3e84988"
+      },
+      "worker_operations": [],
+      "path_fields": [],
+      "queued": false,
+      "queryable_in_delta": false,
+      "studio_read": false,
+      "verification_checks": [
+        "external_evidence_receipt"
+      ],
+      "cross_project_read": false,
+      "read_schemas": []
+    },
+    {
       "name": "remote_git_action_read",
       "description": "Read one recorded push state and integrity without contacting the remote.",
       "inputSchema": {
@@ -1739,16 +2353,16 @@
     "status": "PASS",
     "graph": "workflow_receipts",
     "graph_role": "EXECUTABLE_WORKFLOW",
-    "node_count": 15,
-    "edge_count": 24,
+    "node_count": 17,
+    "edge_count": 30,
     "group_count": 0,
-    "semantic_topology_sha256": "E97B154E105B6B756DB494ABAFE062F12B28EE82793B5C39E5C256818F2E9C74",
-    "mmd_sha256": "F80520FB60D9E0A3FEF9635B4F8676FFD6119454507A48F308C447625447730F",
-    "dot_sha256": "EBAA288272BE66F2747F80771364D4B1C7D61E95F22EA02AF53A47E2740C4384",
+    "semantic_topology_sha256": "DF565BA08432DB9832F1D8182BCE0F85076FC7ADFCF919DC3BD06AD0E7C40464",
+    "mmd_sha256": "90E77C9CFBB7AE9750A2B558C5F58290B208B64389808BDDB14DFAB9988B67D1",
+    "dot_sha256": "C0DDD299A39724D64E41FE1E2B11BC729105E2E2A229B3D442B427E5FC95C264",
     "mermaid_exporter": "LANGGRAPH_STATEGRAPH",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "EF5D0D734696B6F806543F777159CFE8B71E4A3C1B2211FDA70B4241EE7FE746",
+    "langgraph_export_sha256": "BB5FB0E51E1EBE4D3C500AB65DECBD6B3D296CF3E2DF38A6735D89BEBEC64224",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -1764,13 +2378,13 @@
     "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 4,
+    "layout_constraint_count": 9,
     "balanced_two_dimensional_projection": true,
     "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "37C8CF90521B93B5DF35A1BF71B126C49494D517B976362B339C794BC089F99D"
+    "receipt_sha256": "9760D60A9163AF9C5851E32B65D03E807FF221B1C22C26F987CD226A25E78F7E"
   },
   "graph_role": "source_package_executable_routes",
   "installed_execution_claimed": false,
@@ -1779,16 +2393,16 @@
     "status": "PASS",
     "graph": "schema_receipts",
     "graph_role": "AUTHORITY_TRAVERSAL",
-    "node_count": 18,
-    "edge_count": 6,
+    "node_count": 19,
+    "edge_count": 24,
     "group_count": 0,
-    "semantic_topology_sha256": "07C526169A94CBC8B6CB37A39BEA98EF742F861831EAEAB535A1E8770F6371AA",
-    "mmd_sha256": "EDDE45E12C0F8EB75E6042855151D7ED1F3729AD5D3A8E07BF8CD14D7B1A6188",
-    "dot_sha256": "841E6080F9BF8FF62D88729DD10D44FE6D206FF0F288FE263427B807BE70F5BB",
+    "semantic_topology_sha256": "C1872A4D52C6F472F2DDA8E5054BDDA9FBA7344CFC23D2AA62D713AB8E95D3C9",
+    "mmd_sha256": "473BB9747440440EC71207FE173B7ED1491811768A9617F25700FB415C2CDDBB",
+    "dot_sha256": "B484937A411A34BC9F82A4B18A46495771343D6B4A900ACA3EC6F890E899ED89",
     "mermaid_exporter": "LANGGRAPH_GRAPH_EXPORTER",
     "langgraph_version": "1.2.11",
     "langchain_core_version": "1.6.1",
-    "langgraph_export_sha256": "E0B05BB1540B3940F923D40DBD17DA9B59B53FEDDA63824F542C8A1B8CA7A906",
+    "langgraph_export_sha256": "38D5EB5B69BEB2C8691EA2FE97FA7FCD81992D268E7A1458478A03289BD1E619",
     "dot_exporter": "PYTHON_GRAPHVIZ",
     "python_graphviz_version": "0.21",
     "native_graphviz_dot_available": null,
@@ -1804,12 +2418,12 @@
     "graph_analysis_sha256": "F2FEB708856D8B7507DFBAA7DD4B1018E8384729801FA0AE212CCD8DAEEF06B4",
     "layout_strategy": "BALANCED_TWO_DIMENSIONAL_FANOUT_V1",
     "layout_scale_rule": "SQRT_FANOUT_LABEL_AWARE_NO_FIXED_RATIO",
-    "layout_constraint_count": 0,
+    "layout_constraint_count": 12,
     "balanced_two_dimensional_projection": true,
     "layout_constraints_change_semantic_topology": false,
     "mmd_and_dot_are_sqlite_traversal_maps": true,
     "sqlite_authority_replaced": false,
     "mmd_dot_same_semantic_topology": true,
-    "receipt_sha256": "06764F0093A845951BAFD899B041C1FC2D6EC884B5AA9CD3692E6BFAFE0C8BAD"
+    "receipt_sha256": "B246059206A2BE7BBF4E8CEA94FD8B7327897EAE58868EE2104379C6865682E0"
   }
 }

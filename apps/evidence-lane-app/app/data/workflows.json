@@ -1,0 +1,636 @@
+[
+  {
+    "id": "evidence-lane",
+    "title": "Explore a project",
+    "group": "Understand",
+    "example": "Show what this project contains and where work stands.",
+    "outcome": "A bounded view of the current Plan, sources and recorded evidence.",
+    "limitation": "A read does not refresh changed files or prove that a tool ran.",
+    "description": "Explore Evidence Lane, inspect the selected project and its evidence, and find the workflow that matches the request. Use for orientation or a read-only project question.",
+    "stages": [
+      {
+        "action": "workflow_catalog",
+        "description": "Discover current public workflows and their registered actions without granting access.",
+        "mutates": false
+      },
+      {
+        "action": "render_project_panel",
+        "description": "Render the selected project registration, current Plan page, session and exact published lane references without changing work.",
+        "mutates": false
+      },
+      {
+        "action": "lane_search",
+        "description": "Search one separate lane through its current registered owner and disclose snapshot coverage.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "open-project-session",
+    "title": "Open or resume a project",
+    "group": "Start",
+    "example": "Resume my selected project and show the current Plan.",
+    "outcome": "A checked session with its exact project and saved context.",
+    "limitation": "A missing native identity or mismatched saved session remains unresolved.",
+    "description": "Verify the runtime and locked operating-policy package, then start or resume one explicitly selected project session. Use for project entry or client reconnection.",
+    "stages": [
+      {
+        "action": "client_context",
+        "description": "Read this authenticated engine client and its explicitly configured project selections.",
+        "mutates": false
+      },
+      {
+        "action": "runtime_doctor",
+        "description": "Verify this engine, current host observations and the locked Flash routing package.",
+        "mutates": false
+      },
+      {
+        "action": "session_status",
+        "description": "Read the current project session, exact resume head and Plan reference.",
+        "mutates": false
+      },
+      {
+        "action": "session_resume",
+        "description": "Resume the exact project session without duplicating or silently taking over a live owner.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "execute-project-plan",
+    "title": "Carry out the next task",
+    "group": "Work",
+    "example": "Continue the next eligible task and show its output and checks.",
+    "outcome": "A bounded job, addressed output and recorded verification result.",
+    "limitation": "A queued or failed job is not complete; changed task contracts require a Plan update.",
+    "description": "Execute the next eligible project-plan task through bounded work, selected lane operations and verified completion. Use when carrying out project implementation.",
+    "stages": [
+      {
+        "action": "plan_read",
+        "description": "Read a bounded page of the authoritative project Plan.",
+        "mutates": false
+      },
+      {
+        "action": "delta_enter_planned",
+        "description": "Run the operation already bound to one exact Plan task through its owning Delta executor and verifier.",
+        "mutates": true
+      },
+      {
+        "action": "delta_status",
+        "description": "Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "manage-project-plan",
+    "title": "Create or update the Plan",
+    "group": "Work",
+    "example": "Change the next task to produce a spreadsheet while preserving completed work.",
+    "outcome": "One current ordered Plan with explicit scope and acceptance checks.",
+    "limitation": "A steer waits for an active job to reach a safe boundary; it cannot rewrite completed history.",
+    "description": "Create, inspect or safely steer the current project plan while preserving completed history and replacing only affected work. Use for planning and semantic changes.",
+    "stages": [
+      {
+        "action": "plan_read",
+        "description": "Read a bounded page of the authoritative project Plan.",
+        "mutates": false
+      },
+      {
+        "action": "steer_preview",
+        "description": "Inspect a visible input's declared intent without changing Plan or project data.",
+        "mutates": false
+      },
+      {
+        "action": "steer_submit",
+        "description": "Queue an exact visible change or stop; checkpoint an unstarted selected task, while admitted jobs keep their owning checkpoint route.",
+        "mutates": true
+      },
+      {
+        "action": "plan_refresh",
+        "description": "Atomically replace remaining Plan contracts after a captured steer and safe checkpoint.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "manage-project-sources",
+    "title": "Bring in project sources",
+    "group": "Sources",
+    "example": "Register this folder and prepare the documents and spreadsheets for my project.",
+    "outcome": "An ordered source record and bounded tasks for the selected files.",
+    "limitation": "Registration is not indexing. Parser coverage and current file checks are reported separately.",
+    "description": "Classify, register, inspect and refresh ordered project sources with exact attribution. Use for files, selected SQLite, source identity, source graphs and authorized Git history.",
+    "stages": [
+      {
+        "action": "source_classify",
+        "description": "Classify ordered granted sources into retained sectors without registering or copying bytes.",
+        "mutates": false
+      },
+      {
+        "action": "source_register",
+        "description": "Freeze and register ordered source identities and assertions in the Sources authority.",
+        "mutates": true
+      },
+      {
+        "action": "source_prepare_tasks",
+        "description": "Prepare complete bounded selected-source file routes and owning Plan tasks; does not adopt a Plan or run parsers.",
+        "mutates": true
+      },
+      {
+        "action": "source_materialize",
+        "description": "Run one exact prepared source group through its current Plan tasks and owning Delta verifiers, then verify coverage.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "exchange-task-evidence",
+    "title": "Exchange evidence between tasks",
+    "group": "Connect",
+    "example": "Send this result to the selected task under its stated input requirements.",
+    "outcome": "An attributed packet with sender, receiver and input or return contract.",
+    "limitation": "A sealed outgoing packet is not proof of receipt. Receiver acceptance remains separately owned.",
+    "description": "Exchange typed requirements, evidence and results between explicitly selected project tasks while preserving sender and receiver ownership. Use for a governed task exchange.",
+    "stages": [
+      {
+        "action": "task_evidence_expect",
+        "description": "Version the receiver-owned typed expected-input contract.",
+        "mutates": true
+      },
+      {
+        "action": "task_evidence_send",
+        "description": "Seal a foreign-project outbox packet, or receive a local participant exchange against its exact contract.",
+        "mutates": true
+      },
+      {
+        "action": "task_evidence_receive",
+        "description": "Receive an exact source-sealed packet as its destination participant; never mutate the source project.",
+        "mutates": true
+      },
+      {
+        "action": "task_evidence_result",
+        "description": "Seal or reuse the content-derived typed result for the exact bound edge and pinned return contract.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "manage-project-memory",
+    "title": "Recall project context",
+    "group": "Understand",
+    "example": "Find the evidence behind the last completed task and its decisions.",
+    "outcome": "Bounded project references with their original owners and evidence links.",
+    "limitation": "Memory stores attributed locators; it does not merge source content or prove present-day freshness.",
+    "description": "Ingest, query and checkpoint bounded project memory with source attribution. Use for project recall while keeping host recall, instructions, task exchanges and procedural lessons separate.",
+    "stages": [
+      {
+        "action": "memory_read",
+        "description": "Search a bounded project-local locator slice without loading source payloads.",
+        "mutates": false
+      },
+      {
+        "action": "memory_checkpoint",
+        "description": "Pin a bounded Memory slice to current Plan and attributed visible lineage.",
+        "mutates": true
+      },
+      {
+        "action": "memory_rehydrate",
+        "description": "Read a checkpoint slice with explicit attribution and current compatibility.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "manage-project-lessons",
+    "title": "Inspect project lessons",
+    "group": "Understand",
+    "example": "Show lessons from verified work that are relevant to this task.",
+    "outcome": "Project-local lessons with verification provenance and retained revocation history.",
+    "limitation": "Host recall is separate. Referencing host memory does not create a verified lesson.",
+    "description": "Inspect and revoke project-isolated procedural lessons recorded after verified work, or record an explicit host-memory provenance reference without creating a lesson. Use for lesson retrieval, correction or provenance.",
+    "stages": [
+      {
+        "action": "learning_read",
+        "description": "Retrieve a bounded project-local slice of verified execution observations.",
+        "mutates": false
+      },
+      {
+        "action": "learning_revoke",
+        "description": "Revoke the exact current Learning observation and suppress automatic reactivation.",
+        "mutates": true
+      },
+      {
+        "action": "learning_read",
+        "description": "Retrieve a bounded project-local slice of verified execution observations.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "inspect-project-instructions",
+    "title": "Understand applicable instructions",
+    "group": "Understand",
+    "example": "Show the instruction chain for this project folder.",
+    "outcome": "File provenance, override order and separately identified recall sources.",
+    "limitation": "Observed files do not prove what a particular Codex task actually loaded.",
+    "description": "Inspect the selected instruction chain and explicitly selected host recall without merging either into project evidence. Use for instruction provenance and recall boundaries.",
+    "stages": [
+      {
+        "action": "instructions_inspect",
+        "description": "Inspect scoped instruction and separate workspace/host recall file hashes; never import or modify their contents.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "configure-project-workflow",
+    "title": "Shape the project workflow",
+    "group": "Start",
+    "example": "Use these selected sources to propose a workflow for a research report.",
+    "outcome": "A proposal tying the requested outcome to source types and relevant checks.",
+    "limitation": "A proposal neither changes the Plan nor grants permission to execute.",
+    "description": "Derive or change the project workflow from explicitly selected sources and the requested outcome. Use during initial project classification or an explicit workflow change.",
+    "stages": [
+      {
+        "action": "project_workflow_configure",
+        "description": "Propose Git or content-only project workflows from a complete registered batch and current lane contracts without changing Plan or sources.",
+        "mutates": false
+      },
+      {
+        "action": "plan_read",
+        "description": "Read a bounded page of the authoritative project Plan.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "classify-project-work",
+    "title": "Clarify the kind of work",
+    "group": "Start",
+    "example": "Classify this document review and explain its relevant checks.",
+    "outcome": "A classification with suitable source types, work units and validation gates.",
+    "limitation": "Inferred classifications are labeled; classification alone cannot start work.",
+    "description": "Classify the requested work, relevant source lanes, action classes and required gates. Use for known work patterns or an explicit custom classification; classification does not authorize execution.",
+    "stages": [
+      {
+        "action": "project_work_classify",
+        "description": "Classify ordered work policies, owning lanes and action classes without creating a sector or authorizing work.",
+        "mutates": false
+      },
+      {
+        "action": "toolchain_resolve",
+        "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "retrieve-project-evidence",
+    "title": "Fit evidence into context",
+    "group": "Understand",
+    "example": "Select the most relevant evidence within a 2000-token estimate.",
+    "outcome": "A deterministic selection of attributed references within explicit budgets.",
+    "limitation": "Token counts are estimates. Selection does not fetch or reverify raw source content.",
+    "description": "Select attributed project evidence within explicit item and estimated-token budgets. Use to fit the relevant evidence into context without merging its owning stores.",
+    "stages": [
+      {
+        "action": "project_evidence_select",
+        "description": "Select deterministic metadata slices using explicit estimated-token and item budgets; verify content through its owning authority.",
+        "mutates": false
+      },
+      {
+        "action": "lane_fetch",
+        "description": "Fetch bounded immutable source bytes through the owning lane using an exact snapshot and path.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "refresh-project-evidence",
+    "title": "Refresh changed evidence",
+    "group": "Sources",
+    "example": "Refresh the selected spreadsheet after these source changes.",
+    "outcome": "Updated selected source snapshots and requested derived views.",
+    "limitation": "Refresh does not automatically parse every source or render every possible view.",
+    "description": "Refresh selected sources, lane views and changed authority references after a steer or verified work. Use for explicit evidence refresh and stale view repair.",
+    "stages": [
+      {
+        "action": "source_prepare_refresh",
+        "description": "Prepare changed, new and deleted selected sources as exact owning parser and retirement Plan tasks; preserve unselected scopes and history.",
+        "mutates": true
+      },
+      {
+        "action": "plan_refresh",
+        "description": "Atomically replace remaining Plan contracts after a captured steer and safe checkpoint.",
+        "mutates": true
+      },
+      {
+        "action": "source_materialize",
+        "description": "Run one exact prepared source group through its current Plan tasks and owning Delta verifiers, then verify coverage.",
+        "mutates": true
+      },
+      {
+        "action": "lane_view_refresh",
+        "description": "Export only selected lane artifacts from an exact verified source preview.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "inspect-project-connectors",
+    "title": "Inspect connections",
+    "group": "Connect",
+    "example": "Show which connectors this project can use and when their grants expire.",
+    "outcome": "Current connector registrations, scope, versions and configured backend references.",
+    "limitation": "Registration is separate from measured execution readiness.",
+    "description": "Inspect connector grants and their runtime readiness within an Evidence Lane project. Use for connector orientation; configuration and revocation have separate workflows.",
+    "stages": [
+      {
+        "action": "connector_read",
+        "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+        "mutates": false
+      },
+      {
+        "action": "toolchain_resolve",
+        "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "configure-project-connector",
+    "title": "Configure a connection",
+    "group": "Connect",
+    "example": "Configure the selected registered adapter for this exact project resource.",
+    "outcome": "A versioned connector definition with bounded actions, targets and expiry.",
+    "limitation": "Saving configuration cannot install an arbitrary adapter or grant project administration.",
+    "description": "Configure an Evidence Lane project connector and its bounded grant. Use to add or change connector access within that project.",
+    "stages": [
+      {
+        "action": "connector_read",
+        "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+        "mutates": false
+      },
+      {
+        "action": "connector_configure",
+        "description": "Add or configure one versioned project extension grant without executing its backend.",
+        "mutates": true
+      },
+      {
+        "action": "connector_read",
+        "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "revoke-project-connector",
+    "title": "Withdraw a connection",
+    "group": "Connect",
+    "example": "Revoke this project connector and retain its history.",
+    "outcome": "The exact grant is revoked and its historical receipts remain inspectable.",
+    "limitation": "Revocation does not uninstall the provider, remove project data or revoke unrelated grants.",
+    "description": "Revoke one Evidence Lane project connector grant while preserving its recorded history. Use for explicit withdrawal of connector access.",
+    "stages": [
+      {
+        "action": "connector_read",
+        "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+        "mutates": false
+      },
+      {
+        "action": "connector_revoke",
+        "description": "Revoke the exact reviewed project extension version while preserving its history.",
+        "mutates": true
+      },
+      {
+        "action": "connector_read",
+        "description": "Inspect a bounded project registration page and current scope choices without activating a backend.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "select-project-tools",
+    "title": "Inspect and select tools",
+    "group": "Work",
+    "example": "Check which tools can perform this task on my current machine.",
+    "outcome": "A primary route and declared alternatives with measured readiness requirements.",
+    "limitation": "An unavailable tool stays unavailable. Uncertain effects are not silently retried with another tool.",
+    "description": "Inspect and select lane operation tools, ordered fallbacks and measured compute readiness. Use for toolchain resolution or project accelerator configuration.",
+    "stages": [
+      {
+        "action": "toolchain_catalog",
+        "description": "Read shared tool declarations and executable operation routes; installation and execution remain separately qualified.",
+        "mutates": false
+      },
+      {
+        "action": "toolchain_resolve",
+        "description": "Inspect ordered compatible routes for an authorized operation without invoking or installing tools.",
+        "mutates": false
+      },
+      {
+        "action": "runtime_status",
+        "description": "Read measured tools/providers, worker state and selected-project job health.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "select-project-storage",
+    "title": "Choose project storage",
+    "group": "Start",
+    "example": "Register this source folder with a separate durable project-state folder.",
+    "outcome": "Distinct source and state roots with separately owned project records.",
+    "limitation": "Persistent local Windows only. Registering roots does not migrate existing data or prove that source indexing has run.",
+    "description": "Register or inspect persistent local project state and its separate lane databases. Use for local project root selection.",
+    "stages": [
+      {
+        "action": "project_register",
+        "description": "Register an existing project root or create one direct flat PV root, intake its selected source lane first, then initialize retained authorities without unrelated sectors.",
+        "mutates": true
+      },
+      {
+        "action": "storage_status",
+        "description": "Read distinct source, state, engine and plugin roots and the exact published lane references.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "inspect-project-evidence-map",
+    "title": "Explore linked evidence",
+    "group": "Understand",
+    "example": "Show how this project’s sources and tasks relate to its recorded results.",
+    "outcome": "A bounded attributed map with source, task and selected project references.",
+    "limitation": "Links do not grant access; a recorded relationship does not imply current target access.",
+    "description": "Inspect and maintain one project's explicitly linked evidence and project references with attributed read-only queries. Use for integrity checks and selected project links.",
+    "stages": [
+      {
+        "action": "project_evidence_map_inspect",
+        "description": "Verify coherent project evidence head coordinator, initialized lane heads and bounded registered-file identities without refresh.",
+        "mutates": false
+      },
+      {
+        "action": "project_evidence_map_query",
+        "description": "Read or literally filter bounded project evidence head coordinator, lane, Plan, Source and project-link nodes; follow category cursors.",
+        "mutates": false
+      },
+      {
+        "action": "project_evidence_links_read",
+        "description": "Read this project's attributed links without opening or authorizing their targets.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "link-project-evidence-network",
+    "title": "Link separate projects",
+    "group": "Connect",
+    "example": "Connect the selected projects through a separate evidence network.",
+    "outcome": "A hash-reference network while each project keeps its own databases and files.",
+    "limitation": "The coordinator is separate from members. Snapshots are not simultaneous freshness guarantees.",
+    "description": "Register and link hash-only project summaries in a separate cross-project network without merging project data. Use only for an explicitly selected network.",
+    "stages": [
+      {
+        "action": "project_evidence_network_create",
+        "description": "Create an explicitly selected federation in a separate coordinator project.",
+        "mutates": true
+      },
+      {
+        "action": "project_evidence_network_register",
+        "description": "Capture verified member lane hashes, reuse unchanged content and preserve historical heads.",
+        "mutates": true
+      },
+      {
+        "action": "project_evidence_network_link",
+        "description": "Append a hash-only cross-project edge under its exact active grant and current member read access.",
+        "mutates": true
+      },
+      {
+        "action": "project_evidence_network_verify",
+        "description": "Verify bounded federation identities, historical heads and explicit grant links.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "handoff-project-work",
+    "title": "Transfer work to another client",
+    "group": "Continue",
+    "example": "Transfer this project at a safe boundary to the selected client.",
+    "outcome": "An exact offer, destination acceptance and attributed continuation context.",
+    "limitation": "A title or client label cannot prove native task identity. Missing required attestation stops transfer.",
+    "description": "Transfer current project work between explicitly selected clients with exact ownership checks and attributed continuation context. Use for a requested task handoff.",
+    "stages": [
+      {
+        "action": "continuation_context",
+        "description": "Read attributed Plan, task exchange authority, Memory and lineage locators for an accepted project continuation.",
+        "mutates": false
+      },
+      {
+        "action": "continuation_offer",
+        "description": "Offer exact project-participant continuity to another registered client at a safe work boundary.",
+        "mutates": true
+      },
+      {
+        "action": "continuation_accept",
+        "description": "Accept a destination-pinned project continuation and put the source client in read-only closeout.",
+        "mutates": true
+      },
+      {
+        "action": "session_resume",
+        "description": "Resume the exact project session without duplicating or silently taking over a live owner.",
+        "mutates": true
+      }
+    ]
+  },
+  {
+    "id": "recover-project-state",
+    "title": "Back up or recover a project",
+    "group": "Continue",
+    "example": "Create and verify a coherent project backup before recovery.",
+    "outcome": "A checked backup of separate records or a fresh recovery destination.",
+    "limitation": "Offline recovery requires a stopped engine. It preserves the original root and never claims failed work succeeded.",
+    "description": "Back up separate project lanes coherently, restore selected Git history to a fresh folder, or recover after client loss. Use for explicit recovery; accepted-PV rollback is removed.",
+    "stages": [
+      {
+        "action": "project_recovery_inspect",
+        "description": "Inspect registered files, unregistered leftovers and database recovery status without repair.",
+        "mutates": false
+      },
+      {
+        "action": "project_backup",
+        "description": "Create and verify a consistent project database and registered-file backup.",
+        "mutates": true
+      },
+      {
+        "action": "project_backup_verify",
+        "description": "Hash-check an exact project backup without restoring it.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "close-project-session",
+    "title": "Close a project session",
+    "group": "Continue",
+    "example": "Close this session after the current work reaches a safe boundary.",
+    "outcome": "A recorded session closure and detached capture.",
+    "limitation": "Closing a session does not delete data, stop the shared engine or complete a native Goal.",
+    "description": "Close the selected Evidence Lane project session at a safe work boundary and detach its Flash and capture. Use when explicitly ending that session.",
+    "stages": [
+      {
+        "action": "session_status",
+        "description": "Read the current project session, exact resume head and Plan reference.",
+        "mutates": false
+      },
+      {
+        "action": "session_exit",
+        "description": "Close the exact current session at a safe boundary and detach its capture binding.",
+        "mutates": true
+      },
+      {
+        "action": "session_status",
+        "description": "Read the current project session, exact resume head and Plan reference.",
+        "mutates": false
+      }
+    ]
+  },
+  {
+    "id": "run-project-lifecycle",
+    "title": "Coordinate end-to-end work",
+    "group": "Continue",
+    "example": "Take this project from selected sources through a Plan to a verified result.",
+    "outcome": "The owning workflows coordinate entry, planning, work, evidence and closure.",
+    "limitation": "Each step retains its own checks and permissions. A lifecycle request cannot bypass a failed gate.",
+    "description": "Coordinate project entry, planning, bounded implementation, evidence refresh and session closure across the owning first-class workflows. Use for the complete Evidence Lane project lifecycle.",
+    "stages": [
+      {
+        "action": "session_boot",
+        "description": "Boot one project session with verified Flash and attributed capture.",
+        "mutates": true
+      },
+      {
+        "action": "plan_read",
+        "description": "Read a bounded page of the authoritative project Plan.",
+        "mutates": false
+      },
+      {
+        "action": "delta_enter_planned",
+        "description": "Run the operation already bound to one exact Plan task through its owning Delta executor and verifier.",
+        "mutates": true
+      },
+      {
+        "action": "delta_status",
+        "description": "Read a recorded run and reconcile its completion evidence; optionally return result and verification bytes.",
+        "mutates": false
+      },
+      {
+        "action": "session_exit",
+        "description": "Close the exact current session at a safe boundary and detach its capture binding.",
+        "mutates": true
+      }
+    ]
+  }
+]

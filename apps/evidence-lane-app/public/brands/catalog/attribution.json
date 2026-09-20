@@ -1,0 +1,284 @@
+{
+  "package": "simple-icons",
+  "version": "16.31.0",
+  "tarball": "https://registry.npmjs.org/simple-icons/-/simple-icons-16.31.0.tgz",
+  "icons": [
+    {
+      "slug": "sqlite",
+      "file": "sqlite.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/sqlite/sqlite/blob/43e862723ec680542ca6f608f9963c0993dd7324/art/sqlite370.eps",
+      "hex": "003B57",
+      "sha256": "5d6914ac86d88c380d485b219171c18cb7eff2c738851f40f3c83d4d933c7cb1"
+    },
+    {
+      "slug": "langchain",
+      "file": "langchain.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://www.langchain.com/langchain",
+      "hex": "7FC8FF",
+      "sha256": "3ab96dbbc1a0ea806834eab1f9d144819bdd9fb880cd91dffb6f1b6df0a54a16"
+    },
+    {
+      "slug": "langgraph",
+      "file": "langgraph.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://www.langchain.com/langgraph",
+      "hex": "7FC8FF",
+      "sha256": "8fbb156b4bbb146af931da19770cb36ad6c217f71a7594903588c9a373b54123"
+    },
+    {
+      "slug": "mermaid",
+      "file": "mermaid.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/mermaid-js/mermaid/blob/f5bd1e08098fa688ef889e73c8b06696e75e62d8/docs/public/mermaid-logo.svg",
+      "hex": "FF3670",
+      "sha256": "97a9fc2b84a9afa4f9ffd94eac48513b8d655d9b767caa532e2a46a2b552b2dd"
+    },
+    {
+      "slug": "typescript",
+      "file": "typescript.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://www.typescriptlang.org/branding",
+      "hex": "3178C6",
+      "sha256": "662b9b049a06df067089cacc32c8a40e14b08e13b5874f397ccf3e70ef15872c"
+    },
+    {
+      "slug": "pytest",
+      "file": "pytest.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/pytest-dev/design/blob/081f06cd2d6cd742e68f593560a2e8c1802feb7c/pytest_logo/pytest_logo.svg",
+      "hex": "0A9EDC",
+      "sha256": "9673d431bd483e0335bb3275baf5318ea563a2ad9f30a57aba74985af61b0e92"
+    },
+    {
+      "slug": "ruff",
+      "file": "ruff.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://astral.sh/ruff",
+      "hex": "D7FF64",
+      "sha256": "b5452afc56c104891d2cb2ad5cc1bf47a688d370ce76ea867ac6385bbe927cb3"
+    },
+    {
+      "slug": "pandas",
+      "file": "pandas.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://pandas.pydata.org/about/citing.html",
+      "hex": "150458",
+      "sha256": "7ff6ac657802511b4f2134ff37ff4c4fb8fca6bf3a9ffee1fb19e9469525913f"
+    },
+    {
+      "slug": "apachearrow",
+      "file": "apachearrow.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://arrow.apache.org/visual_identity",
+      "hex": "E2EFF6",
+      "sha256": "b2104c2381880e9aad904c88e5c23673ef8002035ca4dccdaf377d3a39abde68"
+    },
+    {
+      "slug": "pypi",
+      "file": "pypi.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://pypi.org",
+      "hex": "3775A9",
+      "sha256": "c88c92a1a64a362c0c051bdd9809ab8db6847c10fbec3f7699e5a43c2431e857"
+    },
+    {
+      "slug": "onnx",
+      "file": "onnx.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/onnx/onnx.github.io/blob/382e7036b616ce1555499ac41730245a2478513c/images/ONNX-ICON.svg",
+      "hex": "005CED",
+      "sha256": "450a09bea138b49091387d5226e57c2eaa559e7f46b86c2e10100273b8a4bfd7"
+    },
+    {
+      "slug": "opencv",
+      "file": "opencv.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://opencv.org/resources/media-kit/",
+      "hex": "5C3EE8",
+      "sha256": "25c5c8a50d3fdf78abfc7f08a318a957ed933216f2885abd635ee77b34c892d5"
+    },
+    {
+      "slug": "modelcontextprotocol",
+      "file": "modelcontextprotocol.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/modelcontextprotocol/docs/blob/573dc60c2e7aab2605b29d0bf27194aa7b02e4fb/logo/light.svg",
+      "hex": "E2EFF6",
+      "sha256": "7478142a78c3a1f4e63d62ec6d235296af750f2d73651c90ba13eb914e398563"
+    },
+    {
+      "slug": "pydantic",
+      "file": "pydantic.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/pydantic/pydantic/blob/94c748001a32992a587694b999fb1f3d2f1fc1fe/docs/logo-white.svg",
+      "hex": "E92063",
+      "sha256": "668d741ae5dae3599c03374d85a22176040fe225b249579afa1ea578c7215771"
+    },
+    {
+      "slug": "ffmpeg",
+      "file": "ffmpeg.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://commons.wikimedia.org/wiki/File:FFmpeg_Logo_new.svg",
+      "hex": "007808",
+      "sha256": "5a607fb736b612e265c47e4653da657f1bc8f1441a8e6b58a00b17d285222c34"
+    },
+    {
+      "slug": "duckdb",
+      "file": "duckdb.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://duckdb.org",
+      "hex": "FFF000",
+      "sha256": "075115bfb2c07d6ea80dd3d0c246c2de49277b44929d0fb3c575a7cea5ae0e2e"
+    },
+    {
+      "slug": "sqlalchemy",
+      "file": "sqlalchemy.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://commons.wikimedia.org/wiki/File:SQLAlchemy.svg",
+      "hex": "D71F00",
+      "sha256": "22d517003d77fb59127d2269a052002be811c0750afb06846dbab745a0d5607f"
+    },
+    {
+      "slug": "huggingface",
+      "file": "huggingface.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://huggingface.co/brand",
+      "hex": "FFD21E",
+      "sha256": "c167703fa2fb404f1de9bbbd38b6ac6c4c01dbeae49e7783521333ba03ab706a"
+    },
+    {
+      "slug": "fastapi",
+      "file": "fastapi.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/tiangolo/fastapi/blob/ffb4f77a11f83132b521ba0aac6c95792c19e797/docs/en/docs/img/icon-white.svg",
+      "hex": "009688",
+      "sha256": "faca76e57b2cb4164d3a51d680ce014fd925c7c96a993f2fafa109386758cad3"
+    },
+    {
+      "slug": "polars",
+      "file": "polars.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://pola.rs",
+      "hex": "0075FF",
+      "sha256": "069e472de4e28c271976122678c2a14b170ffb2be7e151dcc69b80c93d40dab0"
+    },
+    {
+      "slug": "nextdotjs",
+      "file": "nextdotjs.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://vercel.com/design/brands#next-js",
+      "hex": "E2EFF6",
+      "sha256": "d3ca79f697752c1255fc503c47ad130c0a8fdb6f3eadf8f02434040b841a667a"
+    },
+    {
+      "slug": "react",
+      "file": "react.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/facebook/create-react-app/blob/282c03f9525fdf8061ffa1ec50dce89296d916bd/test/fixtures/relative-paths/src/logo.svg",
+      "hex": "61DAFB",
+      "sha256": "37c8c23bc6ea999ad58b7f3883fc08b7e22128ec25adcca60ae1046ff878bcc3"
+    },
+    {
+      "slug": "threedotjs",
+      "file": "threedotjs.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/mrdoob/three.js/blob/a567b810cfcb7f6a03e4faea99f03c53081da477/files/icon.svg",
+      "hex": "E2EFF6",
+      "sha256": "81a35cd16e6fbe7d76846d911d5b61a584dd0d76aee9e17e2258349f14d2c8be"
+    },
+    {
+      "slug": "framer",
+      "file": "framer.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://framer.com",
+      "hex": "0055FF",
+      "sha256": "a4e3c4d0edab0a63056ac0a46a27f914a9d58bdd1db169e0c91d9a293c70468b"
+    },
+    {
+      "slug": "milvus",
+      "file": "milvus.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://github.com/milvus-io/artwork/blob/e30bffa2b0632b0d4cefcdd4e1a2c09fee5b0d28/icon/black/milvus-icon-black.svg",
+      "hex": "00A1EA",
+      "sha256": "36ae12b9f51849ce40363b8d3a2ee510b88ca248a4d87fd57c0f1da4a3ff8064"
+    },
+    {
+      "slug": "opensearch",
+      "file": "opensearch.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://opensearch.org/trademark-brand-policy.html",
+      "hex": "005EB8",
+      "sha256": "01601179a41447124e39c41ce46cec0ce18c7cdef77293b8eb070e0d93f1bee7"
+    },
+    {
+      "slug": "opentelemetry",
+      "file": "opentelemetry.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://cncf-branding.netlify.app/projects/opentelemetry/",
+      "hex": "E2EFF6",
+      "sha256": "aaa0f1b68849f85bbf2103510535da11378633edb9864751222ca1d2a8e1f9d9"
+    },
+    {
+      "slug": "grafana",
+      "file": "grafana.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://grafana.com",
+      "hex": "F46800",
+      "sha256": "fd70ea7298d67665cae32bdf1721fa7bd0b6b79b6f7cd8da1e3f77c97bbcdcc9"
+    },
+    {
+      "slug": "libreoffice",
+      "file": "libreoffice.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://wiki.documentfoundation.org/Marketing/Branding",
+      "hex": "18A303",
+      "sha256": "a58639710515d13390049d2b81bd130bae5519e798302f50ef371fc105ff2f8a"
+    },
+    {
+      "slug": "json",
+      "file": "json.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://commons.wikimedia.org/wiki/File:JSON_vector_logo.svg",
+      "hex": "E2EFF6",
+      "sha256": "e60cead2dfc53c51673eedb758ca91f53d8dd94e57e4ee4419e2ceedc33f2da0"
+    },
+    {
+      "slug": "python",
+      "file": "python.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://www.python.org/community/logos/",
+      "hex": "3776AB",
+      "sha256": "a762008752dc999ad54e7e477194f12a1b2ce07c735be1f21b3b3af8f26eb7af"
+    },
+    {
+      "slug": "git",
+      "file": "git.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://git-scm.com/community/logos",
+      "hex": "F03C2E",
+      "sha256": "ae0cc33bc3fc7c29c500c90a029e32f21fdb9297e0b3d59948da27b2607e8a2c"
+    },
+    {
+      "slug": "nodedotjs",
+      "file": "nodedotjs.svg",
+      "packageVersion": "16.31.0",
+      "source": "https://nodejs.org/en/about/branding",
+      "hex": "5FA04E",
+      "sha256": "6c7826737490eb559312b3fdc8853db70ef48a9e035d1bac019efd6e1a1e1371"
+    }
+  ],
+  "unavailableSlugs": [
+    "graphviz",
+    "llamaindex",
+    "mypy",
+    "powershell",
+    "tableau",
+    "requests",
+    "openai",
+    "pinecone",
+    "weaviate",
+    "langsmith",
+    "langfuse"
+  ]
+}

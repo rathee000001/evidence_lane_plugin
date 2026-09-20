@@ -4,9 +4,9 @@
   "authority_id": "receipts",
   "installed_execution_claimed": false,
   "manifest": {
-    "bytes": 60423,
+    "bytes": 79166,
     "path": "authorities/receipt_ledger/manifest.v4.json",
-    "sha256": "72c9e0022388cdeecaf9b9e403ba17af987a32f30f1081369bbb70e35b9c8399"
+    "sha256": "287d4277d2db605c4a41003fbe32482d36a9600f858961326dfff21be119e94b"
   },
   "path": "authorities/receipt_ledger",
   "project_state": "direct_flat_pv_lane_sqlite_and_artifacts",

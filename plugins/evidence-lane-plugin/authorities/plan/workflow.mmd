@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_STATEGRAPH
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=D712D1163E11A159C3F5217E6EC3E478FC663E7441EC4709578F04D24358F405
+%% LANGGRAPH_EXPORT_SHA256=B6B1EE8241E8D27E94416EC541AFAC24B16EC74091390671142C46EFB4FAAA6D
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=5
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=12
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -17,9 +17,8 @@ flowchart TB
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
   sdk["Authenticated SDK and native MCP client"]:::default
   read["Exact selected scope and bounded recorded evidence"]:::default
-  writer["Engine coordinator and owning project writer"]:::default
-  delta["Current stored Plan operation and Delta admission"]:::default
   owner["plan current executable owner"]:::default
+  writer["Engine coordinator and owning project writer"]:::default
   action_delta_enter["delta_enter"]:::default
   action_delta_enter_planned["delta_enter_planned"]:::default
   action_delta_query["delta_query"]:::default
@@ -72,8 +71,15 @@ flowchart TB
   owner -->|"published state"| read
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
   action_delta_enter ~~~ action_delta_enter_planned
+  action_delta_enter_planned ~~~ action_delta_query
   action_delta_query ~~~ action_delta_status
+  action_job_reconcile_effect ~~~ action_job_recovery_inspect
+  action_job_recovery_inspect ~~~ action_plan_create
   action_plan_create ~~~ action_plan_host_bind
+  action_plan_host_status ~~~ action_plan_host_sync
+  action_plan_host_sync ~~~ action_plan_read
   action_plan_read ~~~ action_plan_refresh
+  action_steer_preview ~~~ action_steer_submit
+  action_steer_submit ~~~ action_validation_policy_read
   action_validation_policy_read ~~~ action_validation_policy_set
 %% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

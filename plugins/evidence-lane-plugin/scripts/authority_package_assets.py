@@ -15,7 +15,7 @@ from evidence_lane_plugin.authority_support import (
     authority_migrations,
     authority_package_folder,
 )
-from evidence_lane_plugin.graph_pipeline import SemanticGraph
+from evidence_lane_plugin.graph_pipeline import SemanticGraph, schema_traversal_graph
 from evidence_lane_plugin.lanes import get_lane, lane_artifact_contract
 from evidence_lane_plugin.sdk import UUID_PATTERN, ActionRequest, ActionResponse
 from evidence_lane_plugin.storage import LANE_SCHEMA, RECEIPTS_SCHEMA
@@ -48,15 +48,7 @@ def request_schema(registry, actions):
 
 
 def schema_graph(identity, schema):
-    graph = SemanticGraph('schema_' + identity, role='AUTHORITY_TRAVERSAL')
-    names = {row['name'] for row in schema['tables']}
-    for row in schema['tables']:
-        graph.add_node('t_' + row['name'], row['name'] + '\n' + ', '.join(col['name'] for col in row['columns']), kind='table')
-    for row in schema['relations']:
-        if row['target'] not in names:
-            raise ValueError('Unresolved authority schema relationship: ' + row['target'])
-        graph.add_edge('t_' + row['source'], 't_' + row['target'], row['column'])
-    return graph.render_pair()
+    return schema_traversal_graph(identity, schema)
 
 
 def compile_workflow_assets(registry, owner_id, folder, *, storage, runtime_modules, actions=None, views=()):
@@ -86,9 +78,13 @@ def compile_workflow_assets(registry, owner_id, folder, *, storage, runtime_modu
     flow = SemanticGraph('workflow_' + owner_id, role='EXECUTABLE_WORKFLOW')
     flow.add_node('sdk', 'Authenticated SDK and native MCP client')
     flow.add_node('read', 'Exact selected scope and bounded recorded evidence')
-    flow.add_node('writer', 'Engine coordinator and owning project writer')
-    flow.add_node('delta', 'Current stored Plan operation and Delta admission')
     flow.add_node('owner', owner_id + ' current executable owner', kind='authority')
+    has_mutation = any(row['mutates'] for row in actions)
+    has_delta = any(row['requires_delta'] for row in actions)
+    if has_mutation:
+        flow.add_node('writer', 'Engine coordinator and owning project writer')
+    if has_delta:
+        flow.add_node('delta', 'Current stored Plan operation and Delta admission')
     for row in actions:
         key = 'action_' + row['name']
         flow.add_node(key, row['name'], kind='action')
@@ -96,7 +92,8 @@ def compile_workflow_assets(registry, owner_id, folder, *, storage, runtime_modu
         if row['requires_delta']:
             flow.add_edge('delta', key, 'required current operation contract')
         flow.add_edge(key, 'writer' if row['mutates'] else 'read', row['workflow'])
-    flow.add_edge('writer', 'owner', 'owned mutation and attributed result')
+    if has_mutation:
+        flow.add_edge('writer', 'owner', 'owned mutation and attributed result')
     flow.add_edge('owner', 'read', 'published state')
     mmd, dot, topology = flow.render_pair()
     outputs[folder + '/workflow.mmd'] = mmd.encode()

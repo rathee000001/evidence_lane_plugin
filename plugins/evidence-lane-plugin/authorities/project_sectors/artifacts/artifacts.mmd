@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=73281D06C0638C5CC100347ADBF78A77818EAA1137DCB9F63B7D54EA8120DC08
+%% LANGGRAPH_EXPORT_SHA256=8BACEBD038E2203FE09A87DA4F91CF22CBAA6F3138C1C6CBE1987BA873511C0C
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=17
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["artifacts owning SQLite schema"]:::default
   t_artifact_archive_member["artifact_archive_member<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
   t_artifact_chunk["artifact_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
   t_artifact_chunk_fts["artifact_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
@@ -38,6 +39,29 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_artifact_archive_member
+  SCHEMA_ROOT -->|"owns table"| t_artifact_chunk
+  SCHEMA_ROOT -->|"owns table"| t_artifact_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_artifact_current
+  SCHEMA_ROOT -->|"owns table"| t_artifact_file
+  SCHEMA_ROOT -->|"owns table"| t_artifact_media_probe
+  SCHEMA_ROOT -->|"owns table"| t_artifact_metadata
+  SCHEMA_ROOT -->|"owns table"| t_artifact_native_fact
+  SCHEMA_ROOT -->|"owns table"| t_artifact_relation_edge
+  SCHEMA_ROOT -->|"owns table"| t_artifact_review_required
+  SCHEMA_ROOT -->|"owns table"| t_artifact_sqlite_receipt
+  SCHEMA_ROOT -->|"owns table"| t_artifact_sqlite_relationship
+  SCHEMA_ROOT -->|"owns table"| t_artifact_sqlite_row
+  SCHEMA_ROOT -->|"owns table"| t_artifact_sqlite_schema_object
+  SCHEMA_ROOT -->|"owns table"| t_artifact_sqlite_table
+  SCHEMA_ROOT -->|"owns table"| t_artifact_text_extract
+  SCHEMA_ROOT -->|"owns table"| t_artifact_version
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_project_artifact
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_artifact_archive_member -->|"snapshot_id"| t_artifact_version
   t_artifact_chunk -->|"text_object"| t_objects
   t_artifact_chunk -->|"snapshot_id"| t_artifact_version
@@ -62,3 +86,22 @@ flowchart TB
   t_project_artifact -->|"snapshot_id"| t_artifact_version
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_artifact_archive_member ~~~ t_artifact_chunk
+  t_artifact_chunk ~~~ t_artifact_chunk_fts
+  t_artifact_chunk_fts ~~~ t_artifact_current
+  t_artifact_file ~~~ t_artifact_media_probe
+  t_artifact_media_probe ~~~ t_artifact_metadata
+  t_artifact_native_fact ~~~ t_artifact_relation_edge
+  t_artifact_relation_edge ~~~ t_artifact_review_required
+  t_artifact_review_required ~~~ t_artifact_sqlite_receipt
+  t_artifact_sqlite_receipt ~~~ t_artifact_sqlite_relationship
+  t_artifact_sqlite_relationship ~~~ t_artifact_sqlite_row
+  t_artifact_sqlite_row ~~~ t_artifact_sqlite_schema_object
+  t_artifact_sqlite_table ~~~ t_artifact_text_extract
+  t_artifact_version ~~~ t_lane_identity
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_project_artifact
+  t_project_artifact ~~~ t_schema_migrations
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -4,11 +4,11 @@
   "members": [
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "ab1caeb0011d1ce0328a0cd94a6c2cc2bf68729924be7860d500c2847ece2c0f"
+      "sha256": "72bdd2911091423d82f209b61a8a169fc0f6aec32491c5ec8d6bba8eb807a2c6"
     },
     {
       "path": "manifests/plugin-architecture.v4.json",
-      "sha256": "8a0ebebe3186eab1fe87fdc6808b6f47177fd6ebfd4c1230493e78ea03d29969"
+      "sha256": "1aafecc9955e24838d449b30c43b50bc17e4a1e79350db778653f113bcdddba9"
     },
     {
       "path": "src/evidence_lane_plugin/plugin_architecture.py",

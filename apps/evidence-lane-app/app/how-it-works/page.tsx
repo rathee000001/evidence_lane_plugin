@@ -1,0 +1,1 @@
+import type{Metadata}from'next';import{SpatialStoryPage}from'../components/spatial-story-page';import{howStory}from'../data/spatial-story';export const metadata:Metadata={title:'How it works — from request to verified result'};export default function How(){return <main id="main"><SpatialStoryPage story={howStory}/></main>}

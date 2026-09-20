@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=67B55560BD7409E941840754B2B3C3EF130B4A04E248F97AC6CFF8D3D9D6A19F
+%% LANGGRAPH_EXPORT_SHA256=A9E84062E4EBD7647D2AF470121A6935C922654282E5B962384471539AE1B027
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=17
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["ppt owning SQLite schema"]:::default
   t_lane_identity["lane_identity<br/>singleton, project_id, lane_id, kind, storage_layout, created_at"]:::table
   t_objects["objects<br/>digest, size_bytes, created_at"]:::table
   t_ppt_chart["ppt_chart<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
@@ -37,6 +38,28 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_ppt_chart
+  SCHEMA_ROOT -->|"owns table"| t_ppt_chunk
+  SCHEMA_ROOT -->|"owns table"| t_ppt_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_ppt_current
+  SCHEMA_ROOT -->|"owns table"| t_ppt_enrichment
+  SCHEMA_ROOT -->|"owns table"| t_ppt_export
+  SCHEMA_ROOT -->|"owns table"| t_ppt_file
+  SCHEMA_ROOT -->|"owns table"| t_ppt_image_reference
+  SCHEMA_ROOT -->|"owns table"| t_ppt_notes
+  SCHEMA_ROOT -->|"owns table"| t_ppt_render
+  SCHEMA_ROOT -->|"owns table"| t_ppt_shape
+  SCHEMA_ROOT -->|"owns table"| t_ppt_slide
+  SCHEMA_ROOT -->|"owns table"| t_ppt_slide_relationship
+  SCHEMA_ROOT -->|"owns table"| t_ppt_structure
+  SCHEMA_ROOT -->|"owns table"| t_ppt_table
+  SCHEMA_ROOT -->|"owns table"| t_ppt_text_block
+  SCHEMA_ROOT -->|"owns table"| t_ppt_version
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_ppt_chart -->|"snapshot_id"| t_ppt_version
   t_ppt_chunk -->|"text_object"| t_objects
   t_ppt_chunk -->|"snapshot_id"| t_ppt_version
@@ -63,3 +86,22 @@ flowchart TB
   t_ppt_version -->|"presentation_id"| t_ppt_file
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_lane_identity ~~~ t_objects
+  t_objects ~~~ t_ppt_chart
+  t_ppt_chart ~~~ t_ppt_chunk
+  t_ppt_chunk ~~~ t_ppt_chunk_fts
+  t_ppt_chunk_fts ~~~ t_ppt_current
+  t_ppt_current ~~~ t_ppt_enrichment
+  t_ppt_export ~~~ t_ppt_file
+  t_ppt_file ~~~ t_ppt_image_reference
+  t_ppt_image_reference ~~~ t_ppt_notes
+  t_ppt_notes ~~~ t_ppt_render
+  t_ppt_render ~~~ t_ppt_shape
+  t_ppt_shape ~~~ t_ppt_slide
+  t_ppt_slide_relationship ~~~ t_ppt_structure
+  t_ppt_structure ~~~ t_ppt_table
+  t_ppt_table ~~~ t_ppt_text_block
+  t_ppt_version ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

@@ -264,6 +264,74 @@
       ]
     },
     {
+      "name": "github_repository_inspect",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": true,
+      "project_required": true,
+      "profile": "code",
+      "workflow": "manage-project-sources",
+      "required_tools": [
+        "Python",
+        "PyGithub"
+      ],
+      "toolchain": {
+        "operation": "github_repository_inspect",
+        "profile": "code",
+        "routes": [
+          {
+            "route_id": "github_repository_inspect.pygithub",
+            "adapter": "evidence_lane_plugin.github_toolchain:register_github_actions.<locals>.handler",
+            "tool_ids": [
+              "Python",
+              "PyGithub"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Registered engine adapter",
+            "host_profiles": [],
+            "extension": {
+              "backend_id": "github.repository-reader",
+              "backend_version": "2.10.0",
+              "backend_runtime": "python",
+              "capability": "repository_metadata_read",
+              "lane": "github_code",
+              "role": "github_repository_snapshot",
+              "role_schema": {
+                "repository": "text",
+                "snapshot": "json",
+                "receipt_sha256": "blob_hash"
+              },
+              "read_path_fields": [],
+              "write_path_fields": [],
+              "resource_fields": [
+                "repository"
+              ],
+              "plugin_id_field": "plugin_id",
+              "lane_field": null,
+              "execution_owner": "engine_delta",
+              "code_loaded_from_registration": false
+            },
+            "argument_values": {},
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": "No equivalent alternate adapter is registered.",
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "94fd3dbf227747cf23004fc7033e57f7f5fdd56ade2d4a21b0da3d785e580980"
+      },
+      "verification_checks": [
+        "github_snapshot_integrity"
+      ]
+    },
+    {
       "name": "lane_configure_routes",
       "permission": "write",
       "mutates": true,
@@ -301,6 +369,75 @@
         "worker_operations": [],
         "installation_implied": false,
         "contract_digest": "e73548e0791c5be6fab93bbf2b3636ac36c3b98837eded7769750a1dfeb5d6d3"
+      },
+      "verification_checks": []
+    },
+    {
+      "name": "project_workflow_configure",
+      "permission": "read",
+      "mutates": false,
+      "requires_delta": false,
+      "project_required": true,
+      "profile": "core",
+      "workflow": "configure-project-workflow",
+      "required_tools": [],
+      "toolchain": {
+        "operation": "project_workflow_configure",
+        "profile": "core",
+        "routes": [
+          {
+            "route_id": "project_workflow_configure.git",
+            "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.with_git",
+            "tool_ids": [
+              "Python",
+              "Git"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Bounded read-only observation of the exact source-root repository.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "git_mode": [
+                "AUTO",
+                "REQUIRED"
+              ]
+            },
+            "argument_suffixes": {}
+          },
+          {
+            "route_id": "project_workflow_configure.content",
+            "adapter": "evidence_lane_plugin.first_class_workflows:register_first_class_actions.<locals>.content_only",
+            "tool_ids": [
+              "Python"
+            ],
+            "systems": [
+              "Windows"
+            ],
+            "fidelity": "exact_contract",
+            "provider": "engine_cpu",
+            "reason": "Content workflow with Git disabled or unavailable; repository state is not inferred.",
+            "host_profiles": [],
+            "extension": null,
+            "argument_values": {
+              "git_mode": [
+                "AUTO",
+                "DISABLED"
+              ]
+            },
+            "argument_suffixes": {}
+          }
+        ],
+        "installation_matrix": "toolchains/shared-toolchain.v4.json",
+        "selection": "ordered_pre_invocation_readiness_and_exact_fidelity",
+        "fallback_after_invocation": false,
+        "no_fallback_reason": null,
+        "worker_operations": [],
+        "installation_implied": false,
+        "contract_digest": "72ec1f18d503f516d71e51de7eba409b0e08be08446866b2986dc542f1278743"
       },
       "verification_checks": []
     },
@@ -1327,6 +1464,7 @@
   "planned_actions": [
     "enroll_project",
     "git_sync_selected",
+    "github_repository_inspect",
     "source_snapshot_retire"
   ],
   "planned_entrypoint": "delta_enter_planned through the owning sector builder",

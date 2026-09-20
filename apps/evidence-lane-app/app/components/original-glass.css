@@ -1,0 +1,77 @@
+.original-glass-orb,
+.rilIconBadge {
+  --glass-orb-color: #69d9f5;
+  --glass-orb-size: 36px;
+  position: relative;
+  width: var(--glass-orb-size);
+  height: var(--glass-orb-size);
+  flex: 0 0 var(--glass-orb-size);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #173047;
+  border: 1px solid color-mix(in srgb, var(--glass-orb-color) 34%, white);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 27%, rgba(255,255,255,.82), transparent 25%),
+    radial-gradient(circle at 48% 48%, color-mix(in srgb, var(--glass-orb-color) 62%, white), color-mix(in srgb, var(--glass-orb-color) 38%, transparent) 50%, rgba(255,255,255,.14) 76%);
+  box-shadow:
+    inset 4px 4px 8px rgba(255,255,255,.72),
+    inset -5px -6px 9px color-mix(in srgb, var(--glass-orb-color) 18%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--glass-orb-color) 10%, transparent),
+    0 0 15px color-mix(in srgb, var(--glass-orb-color) 43%, transparent);
+  isolation: isolate;
+}
+.original-glass-orb::before,
+.rilIconBadge::before { content: ""; position: absolute; z-index: 0; inset: 3px; border: 1px solid color-mix(in srgb, var(--glass-orb-color) 30%, white); border-radius: 50%; box-shadow: inset 2px 2px 5px rgba(255,255,255,.58); pointer-events: none; }
+.original-glass-orb::after,
+.rilIconBadge::after { content: ""; position: absolute; z-index: 0; inset: 8%; border-radius: 50%; background: linear-gradient(130deg,rgba(255,255,255,.52),transparent 28%); clip-path: ellipse(32% 48% at 27% 24%); pointer-events: none; }
+.original-glass-orb__content { position: absolute; z-index: 1; left: 50%; top: 50%; width: 72%; height: 72%; transform: translate(-50%,-50%); }
+.original-glass-orb__payload { width: 100%; height: 100%; display: grid; place-items: center; line-height: 1; transform: translate(var(--glass-orb-content-offset-x), var(--glass-orb-content-offset-y)); }
+.original-glass-orb__payload > :is(svg,img),
+.original-glass-orb__payload > .official-tool-icon { display: block; max-width: 100%; max-height: 100%; margin: auto; object-fit: contain; }
+.rilIconBadge img { position: relative; z-index: 1; width: 58%; height: 58%; }
+.original-glass-orb {
+  --glass-orb-content-offset-x: 0px;
+  --glass-orb-content-offset-y: 0px;
+  contain: layout paint;
+  overflow: hidden;
+}
+.original-glass-orb__content {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 72%;
+  height: 72%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+.original-glass-orb__content,
+.original-glass-orb__payload {
+  display: grid;
+  overflow: hidden;
+  border-radius: 50%;
+  place-items: center;
+}
+.original-glass-orb__payload {
+  position: static;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+.original-glass-orb__payload > :is(svg,img),
+.original-glass-orb__payload > .official-tool-icon,
+.original-glass-orb__payload > .source-lane-icon {
+  position: static;
+  inset: auto;
+  width: min(100%, 30px);
+  height: min(100%, 30px);
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  object-fit: contain;
+  transform: none;
+  transform-origin: center;
+}
+.original-glass-orb{aspect-ratio:1;min-width:var(--glass-orb-size);max-width:var(--glass-orb-size)}
+.original-glass-pill{display:inline-flex;align-items:center;border:1px solid #cde9f58c;border-radius:99px;padding:9px 20px 9px 9px;background:linear-gradient(145deg,#f4fcffed,#b9dce6d9);box-shadow:inset 2px 3px 6px white,0 8px 24px #0003;color:#17384b;font:600 14px Manrope,sans-serif;transition:transform .2s,box-shadow .2s}.original-glass-pill:hover{transform:translateY(-3px);box-shadow:inset 2px 3px 6px white,0 0 24px #77ddec44,0 12px 24px #0004}.original-pill__content{display:flex;align-items:center;gap:13px}.original-pill__slot{flex:0 0 auto;display:grid;place-items:center}.original-pill__label{flex:1 1 auto;text-align:left}.original-pill__slot--trailing{margin-left:12px}

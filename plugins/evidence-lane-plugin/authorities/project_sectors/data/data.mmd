@@ -1,9 +1,9 @@
 flowchart TB
 %% EVIDENCE_LANE_GRAPH_ENGINE=LANGGRAPH_GRAPH_EXPORTER
 %% LANGGRAPH_VERSION=1.2.11
-%% LANGGRAPH_EXPORT_SHA256=7AE5DBD16E97432A145CF51A111B9729852C7DCF57C0FA10C315E2DD3394D106
+%% LANGGRAPH_EXPORT_SHA256=0463BFF60944822E02DADBBC0C03C2C8F48AD2F51BC205A5735B1B73FA50C533
 %% EVIDENCE_LANE_LAYOUT=BALANCED_TWO_DIMENSIONAL_FANOUT_V1
-%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=0
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINT_COUNT=12
   classDef root fill:#101828,stroke:#101828,color:#fff,stroke-width:2px;
   classDef source fill:#edf5ff,stroke:#125cdd,color:#101828;
   classDef semantic fill:#f0ebff,stroke:#7147c7,color:#101828;
@@ -15,6 +15,7 @@ flowchart TB
   classDef table fill:#f0ebff,stroke:#7147c7,color:#101828;
   classDef column fill:#f7f9fc,stroke:#667085,color:#101828;
   classDef default fill:#f7f9fc,stroke:#667085,color:#101828;
+  SCHEMA_ROOT["data owning SQLite schema"]:::default
   t_data_chunk["data_chunk<br/>snapshot_id, chunk_id, item_id, ordinal, text_object"]:::table
   t_data_chunk_fts["data_chunk_fts<br/>snapshot_id, chunk_id, text_content"]:::table
   t_data_column["data_column<br/>snapshot_id, item_id, kind, ordinal, part, payload_json"]:::table
@@ -31,6 +32,22 @@ flowchart TB
   t_schema_migrations["schema_migrations<br/>owner, version, digest, description, applied_at"]:::table
   t_schema_ownership["schema_ownership<br/>object_name, owner, object_type"]:::table
   t_selector_retirement["selector_retirement<br/>snapshot_id, proof_object, job_id, plan_revision, created_at"]:::table
+  SCHEMA_ROOT -->|"owns table"| t_data_chunk
+  SCHEMA_ROOT -->|"owns table"| t_data_chunk_fts
+  SCHEMA_ROOT -->|"owns table"| t_data_column
+  SCHEMA_ROOT -->|"owns table"| t_data_current
+  SCHEMA_ROOT -->|"owns table"| t_data_derivative
+  SCHEMA_ROOT -->|"owns table"| t_data_export
+  SCHEMA_ROOT -->|"owns table"| t_data_lineage
+  SCHEMA_ROOT -->|"owns table"| t_data_sample
+  SCHEMA_ROOT -->|"owns table"| t_data_source
+  SCHEMA_ROOT -->|"owns table"| t_data_table
+  SCHEMA_ROOT -->|"owns table"| t_data_version
+  SCHEMA_ROOT -->|"owns table"| t_lane_identity
+  SCHEMA_ROOT -->|"owns table"| t_objects
+  SCHEMA_ROOT -->|"owns table"| t_schema_migrations
+  SCHEMA_ROOT -->|"owns table"| t_schema_ownership
+  SCHEMA_ROOT -->|"owns table"| t_selector_retirement
   t_data_chunk -->|"text_object"| t_objects
   t_data_chunk -->|"snapshot_id"| t_data_version
   t_data_column -->|"snapshot_id"| t_data_version
@@ -49,3 +66,17 @@ flowchart TB
   t_data_version -->|"source_id"| t_data_source
   t_selector_retirement -->|"proof_object"| t_objects
   t_selector_retirement -->|"snapshot_id"| t_objects
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_BEGIN
+  t_data_chunk ~~~ t_data_chunk_fts
+  t_data_chunk_fts ~~~ t_data_column
+  t_data_column ~~~ t_data_current
+  t_data_current ~~~ t_data_derivative
+  t_data_derivative ~~~ t_data_export
+  t_data_lineage ~~~ t_data_sample
+  t_data_sample ~~~ t_data_source
+  t_data_source ~~~ t_data_table
+  t_data_version ~~~ t_lane_identity
+  t_objects ~~~ t_schema_migrations
+  t_schema_migrations ~~~ t_schema_ownership
+  t_schema_ownership ~~~ t_selector_retirement
+%% EVIDENCE_LANE_LAYOUT_CONSTRAINTS_END

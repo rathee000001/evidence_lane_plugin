@@ -1156,7 +1156,7 @@
       "version": 1,
       "meaning": "Image frames, passive vector structure, streams and separate OCR/extraction provenance.",
       "consumer": "artifact_export",
-      "implementation_digest": "be0fec0fc80088c6ad9fac61ba1563c892b1076364ff8f81d2f8e4d5af0fdbe7",
+      "implementation_digest": "08984eca59dd11a9dae63e108d210e33ca8ce504c744dcf52d17d55b0fd594cc",
       "files": {
         "mmd": "media.mmd",
         "dot": "media.dot",

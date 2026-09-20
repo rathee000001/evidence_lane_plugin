@@ -4,7 +4,7 @@
   "authority_registry": {
     "bytes": 3482,
     "path": "authorities/authority-surface-registry.v4.json",
-    "sha256": "c91d7d46ea0e96abf59dddbf41dc64935fd8649934294521e553771662d7918b"
+    "sha256": "e16d239c27829d6235cb2e9a07e47b09b956cc1549b086cc5aa463ea0ca04bc9"
   },
   "env_policy": {
     "bytes": 29301,
@@ -20,7 +20,7 @@
   "sector_registry": {
     "bytes": 1681,
     "path": "authorities/project_sectors/sector-runtime-registry.v4.json",
-    "sha256": "4866cd9da165199fbe258193572454d6d8cb4a198c7aa074e3bb8850c9dca6c7"
+    "sha256": "4d06253f7a740313511943d3d28620b7082aba32eeef3b4cdf8f8b90d12684b9"
   },
   "status": "PASS",
   "uop_policy": {

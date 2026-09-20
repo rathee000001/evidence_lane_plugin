@@ -4,7 +4,7 @@
   "entrypoint": "hooks/events/SessionEnd/handler.py",
   "event": "SessionEnd",
   "event_contract": "hooks/events/SessionEnd/event.v4.json",
-  "event_contract_sha256": "959c2c6106fd9f30bc06da10003680efb28a4efe353d2d8dd2778995187e402d",
+  "event_contract_sha256": "8d3663f1e6592f9249fc1119ad931faebdc5ae408c3943678f12a643475eced9",
   "execution_owner": "evidence_lane_plugin.hook_pipeline",
   "handler_class": "evidence_lane_plugin.hook_event_handlers.SessionEndHandler",
   "host_stage_runner": "hooks/stage_runner.py",

@@ -1216,99 +1216,99 @@
     },
     {
       "path": "sdk/authorities/named-authorities.ref.v4.json",
-      "sha256": "dcb5a8b9d20970496924b71af0806f3535baf64338ac4e7a9c6741750e375df1"
+      "sha256": "c4c43bf9c1c5478ff133ef7b11755caacda03dc81d4ee88c36dbcfd04fa2fefd"
     },
     {
       "path": "sdk/authorities/named/canon.authority.v4.json",
-      "sha256": "265c415f3ddc7e6de702ad845600da100c65e32c9bd1c171f431e6ba408c3e1c"
+      "sha256": "ac428e1c076eed9545e8b298aa9f852ab83723929219b781d9bc5493e32735fc"
     },
     {
       "path": "sdk/authorities/named/chat_lineage.authority.v4.json",
-      "sha256": "5c6020c023bf9858ab33b5f26fdd3aad62bb8cc4519265cb94e6f147cc4e0371"
+      "sha256": "2305a49bbc366c5323360765ed809d0b447e1b52c4122249302de5647bcc8b52"
     },
     {
       "path": "sdk/authorities/named/learning.authority.v4.json",
-      "sha256": "3f26c4cf2928f7295406852d78e25846766baba496be846594411d3c2585a35d"
+      "sha256": "3ce39ce259a9c9925bfc5a08dc4f4edac19bf15de25523c64d06fda887551723"
     },
     {
       "path": "sdk/authorities/named/memory.authority.v4.json",
-      "sha256": "ab623f390e044254fccd41b98f0d9a04c829066efc4344773770d4b69e7de133"
+      "sha256": "5466cf4a5658bdd3362380fa0c4a9d0cfa4358aa3c0fa5f96aa4b353521ef703"
     },
     {
       "path": "sdk/authorities/named/plan.authority.v4.json",
-      "sha256": "c64f220dd0a9e176d82b13f590989e4b0d26cab618e4b5310d8365064a91dbf3"
+      "sha256": "3092b0788a97cecee55ef55393b697ad037b80c7e709105c54055e2c3b5dac38"
     },
     {
       "path": "sdk/authorities/named/receipts.authority.v4.json",
-      "sha256": "ca0f72709501750b17387ded1181121e0677c1cc674ed5c19576cb82964bb52f"
+      "sha256": "e11c2a6f7603c177c5a46384127800d3172f0fabe2adff81d79a29600709f191"
     },
     {
       "path": "sdk/authorities/named/sessions.authority.v4.json",
-      "sha256": "929224c6ccc90f5d568e982c9eb5ccb7713920934cbd348395b069ca2428e613"
+      "sha256": "f6d3677732fca745495e750cee9bdecd7e5f3c5fafa608c859afddc43a6901c5"
     },
     {
       "path": "sdk/authorities/named/sources.authority.v4.json",
-      "sha256": "e59b43a32ad6f5e2e023aa2cbc63a56475d841e54e3b4ca1fe388df4d890fc56"
+      "sha256": "e5c4e363faf203f5f8b503eb0a223c6034bb91607598aa82f76a7c9a8e7c2b27"
     },
     {
       "path": "sdk/authorities/named/universe.authority.v4.json",
-      "sha256": "7cf5fb36643b768b50638b572b023f7b9a401d95f62661899c343280a843bb4c"
+      "sha256": "8bf3bbfa07bd262cec2e128fb322b4a8b7a19ec9a1654d48475a8fd24300afdd"
     },
     {
       "path": "sdk/authorities/project-sectors.ref.v4.json",
-      "sha256": "974b1806dbbca11d9491c6098cbea323358f53ac3b43c16335f9004732c729ca"
+      "sha256": "6a9498f3ec979fc3c59d623115d99233254934a0a3b60b9f947cc6c9eef16321"
     },
     {
       "path": "sdk/authorities/project-sectors/artifacts.sector.v4.json",
-      "sha256": "75fd9559a3dd7896b7ecbef6321f84bb87b384b6367bee2d90e0df353ab84fc4"
+      "sha256": "8cf891c767f5345443928117caa73b93488f923fcc413da23f510c9f395efc68"
     },
     {
       "path": "sdk/authorities/project-sectors/custom.sector.v4.json",
-      "sha256": "0c96f72c4debdcbea3d67485bab4a089b61cea6d10542efa0cdc8bf4afdd6b42"
+      "sha256": "50368c6a6345e5670241ab34467445614e59c8d12ae5b2311e2adcb67ceca055"
     },
     {
       "path": "sdk/authorities/project-sectors/data.sector.v4.json",
-      "sha256": "5c0cd7ecb6238b41da8b9173669a164994e1db564a2faa6a5ded14a08d25a365"
+      "sha256": "6a6405d7171b2b43ec284665a612ee219eb4abe22d9068f5d9a63faa7b2e6390"
     },
     {
       "path": "sdk/authorities/project-sectors/data_excel.sector.v4.json",
-      "sha256": "87d24811b396203ac4b4dddc393ac95e8d4dbe938c6abd8ca6869e888c5d320c"
+      "sha256": "836f1aa872433517d1b996a855b256c6053a86285b197c7e34b576f4d05cdf4c"
     },
     {
       "path": "sdk/authorities/project-sectors/docs.sector.v4.json",
-      "sha256": "7c9a4ead43db281d552806a0308b3083ccc2ad267c3788f9a8a754ea43b9b4ed"
+      "sha256": "0144dcab0cfd9497ac990925960c1bc8ec6c2c449203d38df42f3c3b43c2856e"
     },
     {
       "path": "sdk/authorities/project-sectors/github_code.sector.v4.json",
-      "sha256": "7f9c7d4d1b7e2917e4a87eb9818a9a5c5c40c0c27be99be25e7d6ff1b29de39a"
+      "sha256": "d91cd725df10ac1099de03756e303eb9f974fcccbc2a648daf3082e7b02806c6"
     },
     {
       "path": "sdk/authorities/project-sectors/images_ocr.sector.v4.json",
-      "sha256": "cd7725d23a7a4a55ac6c66a477ca688a54c711207e8c3bebc21242b78cadf839"
+      "sha256": "c6ad3ebed87fb74fae1f070cf774e948babc37da3194c970607144cb476c79df"
     },
     {
       "path": "sdk/authorities/project-sectors/local_code.sector.v4.json",
-      "sha256": "917b47c1cea628c5950de8b77ce337ad2c67720165e35a0b83fc1df7810c7649"
+      "sha256": "6913788973cc4759b12692957f3df0a7ce85568da71de4d3a4e83f1d26b9d1fd"
     },
     {
       "path": "sdk/authorities/project-sectors/pdf_ocr.sector.v4.json",
-      "sha256": "2f44abc00b9df0461960979b62b1711d4d3806a0e900ba7dcf07e2659a4fc39b"
+      "sha256": "c132b581109691852da8eebfd4464157e7f1d991606b2c3db595b1f9308131f3"
     },
     {
       "path": "sdk/authorities/project-sectors/power_bi.sector.v4.json",
-      "sha256": "ffbf7ce022ab919ee394676386f1926f50c54e092f0c9baaadd3880601aead4c"
+      "sha256": "fb63a30fc4e298744f91cd0d0c89209687dc6d94882e87459cc1f375366abe3a"
     },
     {
       "path": "sdk/authorities/project-sectors/ppt.sector.v4.json",
-      "sha256": "e51ce0e8821907d9ea6e1db7cd296a5b45e0d213927399c5265a764ec6f17335"
+      "sha256": "2362bbf76cd775532e03218a5c56a854be707d3ce9f2d1f67872e837ab1365b9"
     },
     {
       "path": "sdk/authorities/project-sectors/research.sector.v4.json",
-      "sha256": "9a380fe20af872f755cf3c7e70a53a12aad16dfc1deef5ef0126d8bcc7b329e7"
+      "sha256": "36dcb184594dbe48cc08b15f05c553715941f699ceb6bf7ef9922739aa9f5c0c"
     },
     {
       "path": "sdk/authorities/project-sectors/tableau.sector.v4.json",
-      "sha256": "8bf08a7b8b41df36295b54c3543d69a79e18839b17e1af50de56922a77940fa7"
+      "sha256": "35ee07d02a0cea9ec29400ed3c8535b16e130d7e7c1d9c3a43e7b32df22c02a3"
     },
     {
       "path": "sdk/authorities/removed-authorities.v4.json",
@@ -1316,7 +1316,7 @@
     },
     {
       "path": "sdk/authorities/root-pv.ref.v4.json",
-      "sha256": "4cdd8647b1c8425fd3c245ac8fcf5f3ac10fc726d69a5c937dbb49aacf469f2a"
+      "sha256": "542cc667f7546916ca2273b9a191eb1502b9cf59e7c84148c3ecc5b40f006c4a"
     },
     {
       "path": "sdk/authorities/runtime.py",
@@ -1324,11 +1324,11 @@
     },
     {
       "path": "sdk/authorities/workflow-owners.ref.v4.json",
-      "sha256": "3535ccf04d57c804db27d7398f87d6e4fc03361090bf87558c6482cbd151375c"
+      "sha256": "aec20afbc2abc2b87b5eac108dbfb9bb8588ae52e34ae5ef0e2bf5d6c82a22c1"
     },
     {
       "path": "sdk/authorities/workflow-owners/instructions.owner.v4.json",
-      "sha256": "92ab5c869dcd24dfa4ed706fad481c919c97ae2530a5ccc72cc06f3069106fbd"
+      "sha256": "5bb7736842b430c925f305b9444f20456269a2d5ab4f9790a7b6f4a6dd766ab8"
     },
     {
       "path": "sdk/authorities/workflow-owners/session_authority.owner.v4.json",
@@ -1380,7 +1380,7 @@
     },
     {
       "path": "sdk/env_uop/action-plane.v4.json",
-      "sha256": "24bdc697dcb20ce1035b0cb45a43676744da677fba658af53adfaf4d5db24dd3"
+      "sha256": "a201398b8c65d33af91fcd5233509a1ca6228ee3c81500dd8f37dea1aed51e08"
     },
     {
       "path": "sdk/env_uop/cross-plane-contract.v4.json",
@@ -1388,11 +1388,11 @@
     },
     {
       "path": "sdk/env_uop/env-authority.v4.json",
-      "sha256": "61d1c375724070a51f8a8f5d3603525027c22bc7cccbbe22c829450e43cc342a"
+      "sha256": "c2e7c3072ef70cf0178a34bb7d22a18e768da2c724cd5526554f77ba315e44b0"
     },
     {
       "path": "sdk/env_uop/env-uop-contract-registry.v4.json",
-      "sha256": "3d51ea629c2efbdd0d13143934fa5040cbff7b596ade6abcde52e0eeaebcba28"
+      "sha256": "2ca8241d84a1dc8905b80c3d231a3284863efeb44dea5a02a55cc371b56e4276"
     },
     {
       "path": "sdk/env_uop/operations/classify-work.operation.v4.json",
@@ -1404,7 +1404,7 @@
     },
     {
       "path": "sdk/env_uop/operations/route-operation.operation.v4.json",
-      "sha256": "55f8d562341a4c0e0e1d66191662cb9a85cb8b6de00bee5e0dd160de4c10f48a"
+      "sha256": "11fbe3aef40397f197294db3554798f5183ea0ffdd4721eefa9ff3e50eb4bcea"
     },
     {
       "path": "sdk/env_uop/operations/select-toolchain.operation.v4.json",
@@ -1416,7 +1416,7 @@
     },
     {
       "path": "sdk/env_uop/uop-authority.v4.json",
-      "sha256": "de8dfe941dca6b2f83009851dfa6a34bdcc1201183fafd1b3e04bbd07e18ed40"
+      "sha256": "7353ead8098f0042267dfd32cc1c86f47bacddf8aeeecdca2e02073cc937364d"
     },
     {
       "path": "sdk/evidence_lane_sdk.py",
@@ -1428,59 +1428,59 @@
     },
     {
       "path": "sdk/hooks/events/Interrupt.v4.json",
-      "sha256": "27f83d81af84fda81f306027a007d8f155162f304c8e65a12767c45e58738fcb"
+      "sha256": "96cd4fd0381f547e543d34aac4509e9173c01b8518005e59ea44b3f796416e8d"
     },
     {
       "path": "sdk/hooks/events/PermissionRequest.v4.json",
-      "sha256": "db93baecd8be260ac1df96c64db547b0c615ab2650444a38e4085453cff0d39c"
+      "sha256": "983df32fbcc631392cacdad424d80e8e64ad65bc828bad0d5b8ba3c9f4eb51fc"
     },
     {
       "path": "sdk/hooks/events/PostCompact.v4.json",
-      "sha256": "f8427a687a1267c666d56ac3f8e599c5994062ae93bfb25a23b8389d5c95dada"
+      "sha256": "99422f5489bbf7b8d724282f5fe1cc36a33a8ff21df690528edf72815d99e89f"
     },
     {
       "path": "sdk/hooks/events/PostToolUse.v4.json",
-      "sha256": "87cf76d901f045d1a9d5582febc4b1149f63e7220c8dbf96a76ecdb6b49f0589"
+      "sha256": "13a966d6c4bdd8b557910e9b72d8c18fb92885656bb10a32688c9192e5ebda83"
     },
     {
       "path": "sdk/hooks/events/PreCompact.v4.json",
-      "sha256": "9589a0dced27d0b35d23a986aab84e3e898fabd8eae3de60298b14407b3ed175"
+      "sha256": "51bc5cd0af93a458d810b408853ce33f692eb5e2d49a6c61e28955c3393d3cfb"
     },
     {
       "path": "sdk/hooks/events/PreToolUse.v4.json",
-      "sha256": "ecd95fc839c7575e0b7d9cfdfc5540617fc96a39b47d16d0f11730c6317aacc3"
+      "sha256": "919d48c9cd7622703fe522a408ae07b025628df8588242ef2b7848535384a3f0"
     },
     {
       "path": "sdk/hooks/events/SessionEnd.v4.json",
-      "sha256": "fdc883b96e6f505762ace356d5aa253da629c16c62ffd8103660448b9861c91b"
+      "sha256": "be5c6b0e8db95aea7d2b717f876b1d6e87b0c8429b5c0c3332bd97196095c15f"
     },
     {
       "path": "sdk/hooks/events/SessionStart.v4.json",
-      "sha256": "473ebf6d023945a4e5de7ba8eed9453a9d7f02fef5592c3edb8d9fe1cb5d8cdb"
+      "sha256": "bf57a3dc17e8f845a1afd2d1a5585fd860f42b7b6f616a4be0e1dc3e8309d359"
     },
     {
       "path": "sdk/hooks/events/Stop.v4.json",
-      "sha256": "827f4d6ff22092bda3804fa3b51fc03f665c5dc423d536d2c9ccc6d4c1b2d2f5"
+      "sha256": "7645123a00706f3d8bdafbc0cfdab70d158b30b1b4b0dd97484d596b26170583"
     },
     {
       "path": "sdk/hooks/events/SubagentStart.v4.json",
-      "sha256": "cc298ab99b62bb2ed4f69c207b63114d4e1de8e4a62f8219652c24208a0f7dc7"
+      "sha256": "9a4d82bda0379b4a56c6c1999b9e8cd27ae9ff6a9b63a7ea335ad30aba9864b8"
     },
     {
       "path": "sdk/hooks/events/SubagentStop.v4.json",
-      "sha256": "1025cccd4fb20b915d45992d0680d19a933b3ad23dfc7728c0b5b7932e252f54"
+      "sha256": "83f788eb99121700f77c41de4f009aec3affae864064062a7f7171a25fdf5d7e"
     },
     {
       "path": "sdk/hooks/events/UserPromptSubmit.v4.json",
-      "sha256": "f5a41c26f308572a8bd05bb29d8f480399c1de236e84578bf17db609c3ac60f5"
+      "sha256": "3c40936f2874ebe0319d2c11c95b2dd0344a764a10a707c5dc08de1b7eda11b3"
     },
     {
       "path": "sdk/hooks/hook-runtime.ref.v4.json",
-      "sha256": "5a4c3aceb739b8a9f692b6bf0c4d1d0baef1b0bf21cb91d1d9fb378a681e8ebd"
+      "sha256": "5f5e379a032a67d82a8a5b1bc9c6115cd7d8a33455bbd941baa43e5c122472af"
     },
     {
       "path": "sdk/hooks/hook-runtime.v4.json",
-      "sha256": "bd71616ce401a34f4f372cd8e6e023ca94c88bcc1aa91c8f6627272e872b405b"
+      "sha256": "2696806a223887d48619922c1f3ce502a1b169db9b634752b2d2713983ed6a96"
     },
     {
       "path": "sdk/hooks/runtime.py",
@@ -1504,11 +1504,11 @@
     },
     {
       "path": "sdk/host/hook-control.contract.v4.json",
-      "sha256": "ebbab7763f399c86fa9be644c2c16ea7c2483e182b7532e1ea3521725ea2b32c"
+      "sha256": "9b39abd004fcc20ac18075ebcb36eee8e5720f0dbe1e18939cf62913e63e4bfe"
     },
     {
       "path": "sdk/host/host-contract-registry.v4.json",
-      "sha256": "19cf51656dbf4188732b4e9fcdc32dbfed3ed29aa4bfceac4173d160ba148056"
+      "sha256": "7e816681ddfa88fbba92ef50933358fe8287d166a28bb3165e8e044e4554c53d"
     },
     {
       "path": "sdk/host/local-install.contract.v4.json",
@@ -1524,7 +1524,7 @@
     },
     {
       "path": "sdk/host/public-backend-readiness.v4.json",
-      "sha256": "e973d7b6ca008adbe939bdb8d2b8af4289feb7df844ff38219b88b997fc221b7"
+      "sha256": "93d6eeaad9a9e3f1b9ecfe5af6565c0265c12df9cbbccf3300ca19082965ed70"
     },
     {
       "path": "sdk/host/runtime-install-restart.contract.v4.json",
@@ -1552,15 +1552,15 @@
     },
     {
       "path": "sdk/internal/authority-surface-routing.v4.json",
-      "sha256": "0116ca529f98d90afb960e53feca77c5dccaab251146fdcbafd9150ed99747f5"
+      "sha256": "78e81c330e111f67390541ed81e82c10df8aac3e0387527ae01cdf7ca13613c1"
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "ce387300df5f7e7b4941305eb464bc99e015829ec3fe8703189a1e8d444676d0"
+      "sha256": "305461ca8efde28049b167a3072023ca3b49059e049c24ba2ed986380e0a7216"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
-      "sha256": "3d0f1b2387906f1e44e4c2786f875cd3bd1dacc5d71359fd6f59edf3ae958d07"
+      "sha256": "c35f40ae816d17e6b8252913156757c4457ea367441e38eb4ee209cf7df07fef"
     },
     {
       "path": "sdk/internal/modules/_bounded_process_child.module.v4.json",
@@ -1620,7 +1620,7 @@
     },
     {
       "path": "sdk/internal/modules/authority_support.module.v4.json",
-      "sha256": "ba2d6677abf3053e01df8ec9236fdd4091290840c838b186d7e99f73a587068e"
+      "sha256": "dd2cda3a81fd1d2e210a31494e06e2691f77c00a4a7d9f011aef47e2113efd03"
     },
     {
       "path": "sdk/internal/modules/bounded_io.module.v4.json",
@@ -1628,7 +1628,7 @@
     },
     {
       "path": "sdk/internal/modules/build.module.v4.json",
-      "sha256": "269db996eff201e0c59c275a1b0d2b25ee01aa24a1cd9bbd79e1a64b4569bfc0"
+      "sha256": "85c00b8a2f6c7b4634b49b2fc0c2ac0906507747455d133a8e86bb0e7fc7ebad"
     },
     {
       "path": "sdk/internal/modules/canon_consequence_graph.module.v4.json",
@@ -1684,7 +1684,7 @@
     },
     {
       "path": "sdk/internal/modules/codex_action_plane.module.v4.json",
-      "sha256": "cf62013e605c66186645b5a5b8ab8c7a296f6f139c0072227875d8890a161227"
+      "sha256": "e4e9cc456a42a9159b0a10a8451e669ddcad93d18576ad0ac20cd639dc1245ab"
     },
     {
       "path": "sdk/internal/modules/codex_env_uop_policy.module.v4.json",
@@ -1832,7 +1832,7 @@
     },
     {
       "path": "sdk/internal/modules/flash_authority.module.v4.json",
-      "sha256": "bc046835e1c754fdce63fddf68361140e3ee45a2a56f9f898a55c385dcc7f7a0"
+      "sha256": "328bac54352f6493dfe3a7faf53d93ac46612e1bf333c008dec8c0802e99be53"
     },
     {
       "path": "sdk/internal/modules/git_adapter.module.v4.json",
@@ -1864,7 +1864,7 @@
     },
     {
       "path": "sdk/internal/modules/graph_pipeline.module.v4.json",
-      "sha256": "36b96c7606ef4a16805915a9ddec8e026c41ca1f1d1e2946c78469269e42264a"
+      "sha256": "cadbe6b8f094d108c6802f523d285e7a0f5c3257bfbcb00f7e65bc4d6ce77ccb"
     },
     {
       "path": "sdk/internal/modules/hardware_acceleration.module.v4.json",
@@ -1888,7 +1888,7 @@
     },
     {
       "path": "sdk/internal/modules/hook_contract.module.v4.json",
-      "sha256": "0dc934af8b9c4c8e87d8934fc4dcb7b97d8c55d418ccbe90ab62ec45b3fd0a51"
+      "sha256": "8c965e8c937aaf1a06650a22868852ff03d35b1ee6c39e2c83ea3612fa641fe7"
     },
     {
       "path": "sdk/internal/modules/hook_event_handlers.module.v4.json",
@@ -1916,11 +1916,11 @@
     },
     {
       "path": "sdk/internal/modules/hook_stage_runtime.module.v4.json",
-      "sha256": "d0841a223c1239d3af31dba3ab500b70ec5403047ea62e453dd776013a405467"
+      "sha256": "395313e5f6c6844612d17df230832eaf650cd912a4d7ce5a491461b3e9ae04e1"
     },
     {
       "path": "sdk/internal/modules/hook_transport.module.v4.json",
-      "sha256": "68f3f22616a0a018ca61134705e04f60a4bc3d23e478cc9bdc258278a21a5aff"
+      "sha256": "28acc411598753b7e4ed192f78d5b33e9451d67cad5b9e2f9f024035f16f9f1b"
     },
     {
       "path": "sdk/internal/modules/host_routing.module.v4.json",
@@ -2432,7 +2432,7 @@
     },
     {
       "path": "sdk/internal/modules/sector_support.module.v4.json",
-      "sha256": "160075267fe10944b312b0ae42997eff24f1e5f14f24312114973293105e40ef"
+      "sha256": "a8e27c66610e77872e4592adc67e33a3dfb3c82e22d701e2413eb0a78c5faf7b"
     },
     {
       "path": "sdk/internal/modules/selected_sqlite_parser.module.v4.json",
@@ -2572,7 +2572,7 @@
     },
     {
       "path": "sdk/internal/modules/storage_selection.module.v4.json",
-      "sha256": "b3917bb0127a98cd93d43b2ef02ffc67779fee1791d7d9a03c1348c4395e8e49"
+      "sha256": "8811fee79c0b8e3bb8d3de4ff356211686516f9a28fadb43ad4db2385ffe5b64"
     },
     {
       "path": "sdk/internal/modules/store.module.v4.json",
@@ -2732,11 +2732,11 @@
     },
     {
       "path": "sdk/plan/plan-contract-registry.v4.json",
-      "sha256": "04445b05623aebda69bb316f9cbef08bb0a44edcb04f500095440171c7a75a00"
+      "sha256": "96315bed0a657b981cbffc021ed0a652ea004be7a64a0015ec66a84a088bb7d5"
     },
     {
       "path": "sdk/plan/plan-contracts.v4.json",
-      "sha256": "772e7469024f0eb4ec200152ac42037a4bb6854924969c8af9a963b44410fbe2"
+      "sha256": "54bdd7817d85512e0b5e5eed8e35772adfae7498c4b01023d7dedb59c2f610e8"
     },
     {
       "path": "sdk/plan/runtime.py",
@@ -3972,7 +3972,7 @@
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "4581f8b4a60597b1b3d0db695d469754e1a00a31537c4507313536a7842a63ca"
+      "sha256": "6ddc15e09d8c98d30ad232e538236dad271518e5987b7f6b61785da747eb8281"
     },
     {
       "path": "sdk/skills/__init__.py",
@@ -3992,7 +3992,7 @@
     },
     {
       "path": "sdk/transports/hook-capture.transport.v4.json",
-      "sha256": "4dfbd52516d283bf6933e2402bdf568f3fbf7490eb8fabf99185f5767256ec3c"
+      "sha256": "4d0335e3c4d1c375f38d7a0fbebd2346637ec010f25e3c1aa81474de8d8cfa82"
     },
     {
       "path": "sdk/transports/local-api.transport.v4.json",
@@ -4012,7 +4012,7 @@
     },
     {
       "path": "sdk/transports/transport-registry.v4.json",
-      "sha256": "ec8bf6cc9a6e36fd8aaa7649c5ee180728fcb944049c7cad3cbef55ac470fbdc"
+      "sha256": "dbed69c50863113041f1acade25b3af5ace7563f8285f813fffeddfe2b498d1f"
     },
     {
       "path": "sdk/workflows/__init__.py",

@@ -19,7 +19,7 @@ from .registry import Contract
 from .storage import json_text, reject_links
 
 FLASH_MANIFEST_SCHEMA = 'evidence-lane.session-flash-manifest.v4'
-FLASH_MANIFEST_SHA256 = '96ffae3eff853635ae14748eadcea7bb2e8e84bed1357a5e0933732bbbf76d1b'
+FLASH_MANIFEST_SHA256 = '3fcdeeb94fb951ab5985b361df79f9cb1efde4cb5881d492d080d980f8be6ed3'
 FLASH_AUTHORITY_VERSION = 'ENV4_UOP4_FULL_OPERATING_FRAMEWORK'
 
 

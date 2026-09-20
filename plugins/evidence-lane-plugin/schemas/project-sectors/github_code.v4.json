@@ -24,7 +24,7 @@
     },
     {
       "path": "authorities/project_sectors/github_code/manifest.v4.json",
-      "sha256": "5622e502a1ae0fd289de216cf05c86b76b494b0a0d410cf953cd28813ceaf6eb"
+      "sha256": "c4b4eb8f50e807761c46163bb2fdfe7278bb226834c909a09a060e24d5cca31d"
     },
     {
       "path": "authorities/project_sectors/github_code/migration-history.json",

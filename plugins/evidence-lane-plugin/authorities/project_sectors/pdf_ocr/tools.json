@@ -1361,7 +1361,7 @@
       "version": 1,
       "meaning": "Page, native form/widget and separate OCR evidence locators.",
       "consumer": "artifact_export",
-      "implementation_digest": "17bb67dc2e6e6935e90bddebb7664efccae4f6b0baf6acafd4b9ef2e6e160bcb",
+      "implementation_digest": "b8f0af9fc419579798f1c091857141c68ed28925307b329675605868a5b1ca6e",
       "files": {
         "mmd": "pdf.mmd",
         "dot": "pdf.dot",

@@ -67,15 +67,15 @@
     },
     {
       "path": "authorities/instructions/workflow.dot",
-      "sha256": "233e49540f548d1d1c86fb8a6faacc7b9ec24b9ee96e724ee3240d40d1d6ea09"
+      "sha256": "69698f82a32ca417bdaf61429cf7f0353a73737a459fcbdb3da601cee7058e2b"
     },
     {
       "path": "authorities/instructions/workflow.mmd",
-      "sha256": "2da3632629c9711f6f7c29838f2799ea7160fba4406790f9267bbee5b2318082"
+      "sha256": "665542367e819a62f81fb69fc166f862c25cc0da55135d022cf33c401f111432"
     },
     {
       "path": "authorities/instructions/workflow.v4.json",
-      "sha256": "6026133ffe6a7b2e4c27f4a94f957cf5a34692b094b9a1eb762738d69785585f"
+      "sha256": "edb08f1758720c59e397c6d50d646dee57c27a469fcaea620f23f733a89f8c2d"
     }
   ]
 }
