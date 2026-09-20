@@ -174,6 +174,25 @@
   "rules": [
     {
       "paths": [
+        "ARCHITECTURE.md",
+        "docs/assets/**"
+      ],
+      "profiles": [
+        "ci"
+      ]
+    },
+    {
+      "paths": [
+        ".github/maintainer-ci.v4.json",
+        "scripts/audit_final_workspace_purge.py"
+      ],
+      "profiles": [
+        "ci",
+        "package"
+      ]
+    },
+    {
+      "paths": [
         "README.md",
         "LICENSE.md",
         "NOTICE.md",

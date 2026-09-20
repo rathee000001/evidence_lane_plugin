@@ -428,17 +428,52 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
     public_docs = sorted(
         path.name for path in (ROOT / "docs").glob("*.md")
     )
-    allowed_public_docs = ["TOOLCHAIN_EXECUTION_MATRIX.md"]
+    allowed_public_docs = sorted(
+        [
+            "CONTRIBUTORS.md",
+            "COPYRIGHT.md",
+            "INSTALL.md",
+            "INTEGRATIONS.md",
+            "LICENSE.md",
+            "LOCAL_DATA.md",
+            "PRIVACY.md",
+            "PROJECT_SETUP.md",
+            "QUICKSTART.md",
+            "README.md",
+            "RELEASES.md",
+            "SDK_AND_MCP.md",
+            "SECURITY.md",
+            "STUDIO.md",
+            "TERMS.md",
+            "THIRD_PARTY_NOTICES.md",
+            "TROUBLESHOOTING.md",
+            "WORKFLOW_GUIDE.md",
+        ]
+    )
     reject(
         public_docs != allowed_public_docs,
         "STALE_PUBLIC_DOC_PRESENT",
         paths=public_docs,
     )
-    reject(
-        sha256(ROOT / "docs/TOOLCHAIN_EXECUTION_MATRIX.md")
-        != sha256(PLUGIN / "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md"),
-        "TOOLCHAIN_EXECUTION_MATRIX_PROJECTION_MISMATCH",
+    skill_registry = load(PLUGIN / "skills/skill-surface-registry.v4.json")
+    expected_workflow_docs = sorted(
+        f"{row['name']}.md" for row in skill_registry["skills"]
     )
+    public_workflow_docs = sorted(
+        path.name for path in (ROOT / "docs/workflows").glob("*.md")
+    )
+    reject(
+        public_workflow_docs != expected_workflow_docs,
+        "PUBLIC_WORKFLOW_DOC_SET_MISMATCH",
+        paths=public_workflow_docs,
+    )
+    reject(
+        not (ROOT / "docs/assets/evidence-lane-logo.png").is_file()
+        or sha256(ROOT / "docs/assets/evidence-lane-logo.png")
+        != "74ac2a8d7fc794e7aca49311eeef3c3bd91f055f61f32588d3e2f53601db54f7",
+        "PUBLIC_DOC_LOGO_IDENTITY_MISMATCH",
+    )
+    reject((ROOT / "ARCHITECTURE.md").exists(), "PUBLIC_ARCHITECTURE_PAGE_PRESENT")
     reject((ROOT / "github-pages").exists(), "GITHUB_PAGES_ROOT_PRESENT")
     reject(
         (ROOT / ".github/workflows/evidence-lane-github-pages.yml").exists(),
