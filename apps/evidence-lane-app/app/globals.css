@@ -32,3 +32,27 @@
 .project-status-notice strong{color:#f3d98b;font-size:.82rem;letter-spacing:.025em;white-space:nowrap}
 .project-status-notice span{color:#c3ced8;font-size:.78rem;line-height:1.45}
 @media(max-width:740px){.project-status-notice>div{align-items:flex-start;flex-direction:column;gap:3px;text-align:left;padding-block:10px}.project-status-notice strong{white-space:normal}.project-status-notice span{font-size:.72rem}}
+
+/* Header/footer hotfix: keep navigation visible and put the hold notice at the page end. */
+.site-footer .project-status-notice{margin-top:0;border-top:1px solid #efce7652;border-bottom:0;box-shadow:none}
+.site-footer .project-status-notice>div{padding-block:15px}
+@media(max-width:1020px){
+  .header-inner{min-height:0;padding-block:8px 10px;flex-wrap:wrap;justify-content:center}
+  .header-inner .original-brand{display:flex;width:100%;justify-content:center}
+  .header-inner .original-brand>span{width:220px;height:90px}
+  .menu-toggle{display:none!important}
+  .nav,.nav.open{display:flex!important;position:static!important;inset:auto!important;width:100%;max-width:100%;padding:6px!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start;gap:6px!important;overflow-x:auto;overflow-y:hidden;border-radius:24px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{flex:0 0 auto;min-height:42px!important;padding:4px 10px!important;font-size:.75rem!important}
+  .nav a.download-pill{margin-left:0}
+}
+@media(max-width:740px){
+  .header-inner{width:calc(100% - 24px);padding-top:4px}
+  .header-inner .original-brand>span{width:184px;height:75px}
+  .nav a{gap:6px!important;padding:4px 8px!important;font-size:.7rem!important}
+  .nav a .original-glass-orb{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .site-footer .project-status-notice>div{padding-block:14px}
+}
+
+html,body{max-width:100%;overflow-x:clip}
+@media(max-width:1020px){.site-header{position:relative!important;top:auto!important}}
