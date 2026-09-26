@@ -47,7 +47,7 @@ Check the project identity, revision, timestamps, status, and verification evide
 
 The next coordinated Studio release is being designed in the accepted **Cosmic Observatory** language from the public website. Its concepts cover all nine views, living connections, detail inspectors, keyboard focus, empty/loading/error states, and reduced-motion behavior while preserving the same read-only backend.
 
-The current redesign is included in the v4.0.8 experimental snapshot. It remains an incomplete on-hold interface and is not evidence that the broader product plan or installed runtime is complete.
+The current redesign is included in the v4.0.9 experimental snapshot. It remains an incomplete on-hold interface and is not evidence that the broader product plan or installed runtime is complete.
 
 ## If Studio looks stale
 

@@ -74,9 +74,9 @@ CPU is the baseline compute route. NVIDIA CUDA and DirectML are used only when t
 
 ## Experimental closeout release
 
-The final on-hold snapshot is **v4.0.8**. It publishes the current website and Windows Studio interface, corrects repeated automatic Studio foregrounding, and makes no claim that the broader product plan is complete.
+The corrected final on-hold snapshot is **v4.0.9**. It publishes the current website and Windows Studio interface, corrects repeated automatic Studio foregrounding, and makes no claim that the broader product plan is complete.
 
-- Immutable tag: [`evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d)
+- Immutable tag: [`evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d)
 - Published component archives: 12
 - Bound archive bytes: 7,083,785,294
 - Asset-set SHA-256: `977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd`

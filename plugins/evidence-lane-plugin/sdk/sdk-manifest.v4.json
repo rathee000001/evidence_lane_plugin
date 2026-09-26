@@ -1556,11 +1556,11 @@
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "9b47e71b4475f0c4583d197745808027b8a5bf2b8035da204eeed1e15c3ff6cf"
+      "sha256": "4618d5333951a08338d920e0595c6a7483d6dd1c595e55f478d3418fe3841cd9"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
-      "sha256": "7f98fef20d677369ba9b1235f6bb88dd9c10bef1a3ca7a26acdbc7ebc4667e1c"
+      "sha256": "0ea4db2a66532fa75cd7ee2c716a4998c15a892be997770af4439e52bbcf75b5"
     },
     {
       "path": "sdk/internal/modules/_bounded_process_child.module.v4.json",
@@ -1628,7 +1628,7 @@
     },
     {
       "path": "sdk/internal/modules/build.module.v4.json",
-      "sha256": "056c9a53a3cf00f34dc6bbc6a29d8ac9b9e1de2828caee942855febc35380755"
+      "sha256": "bbfdf1445e06b227cb68819b5d4f1731519a8c5e62285984f2dd2051615925eb"
     },
     {
       "path": "sdk/internal/modules/canon_consequence_graph.module.v4.json",
@@ -2572,7 +2572,7 @@
     },
     {
       "path": "sdk/internal/modules/storage_selection.module.v4.json",
-      "sha256": "9cbe8fa48eed474e11673e0208c7411f2ba250fa9f46a77e1549cd91b27e3c2b"
+      "sha256": "e36c20562c51839829668e68bb766cdee97ba093be17b9308eb4215f86e43d6b"
     },
     {
       "path": "sdk/internal/modules/store.module.v4.json",
@@ -3972,7 +3972,7 @@
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "9be1f274a13a4b873a760c3dcc0b076daae2b4f99aa3a066ede75d725768fe2d"
+      "sha256": "b45818d6f9e2675bf8d480f87c964201a5cfbbf9dae70359c624f1d3748267ca"
     },
     {
       "path": "sdk/skills/__init__.py",

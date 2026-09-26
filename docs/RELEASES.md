@@ -6,17 +6,21 @@
 
 A release is an exact relationship among source, tag, package assets, installation records, and runtime observations. Those facts should not be collapsed into one “version installed” statement.
 
-## v4.0.8 — experimental closeout
+## v4.0.9 — corrected experimental closeout
 
-- Tag: [`evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d)
+- Tag: [`evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d)
 - Component archives: 12
 - Total archive bytes: 7,083,785,294
 - Asset-set SHA-256: `977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd`
-- Source manifest SHA-256: `db6ae4287ec1ad8b56668479066217726d6be4a733e1d43a498ebe1b77456ce3`
+- Source manifest SHA-256: `b3e4acd168553fd3909dfb219ba19ddbb32e1fdc67883e8c9b9d2656ab5706bd`
 
 This release preserves the project as an incomplete experimental snapshot while the maintainer focuses on securing employment. It publishes the current website and Windows Studio interface, pairs that interface into the plugin, and prevents ordinary MCP reconnection from repeatedly opening or foregrounding Studio. The larger implementation Plan is preserved for a possible later resume.
 
 The release is not production-ready and should not be relied on for critical or unattended work. Its exact tag, package assets, local installation, and observed runtime remain separate facts.
+
+## v4.0.8 — superseded experimental prerelease
+
+v4.0.8 published the intended source and assets, but its installation self-test still required the earlier nine-file Studio bundle. The v4.0.8 installer rejected the new 25-file hash-bound Studio bundle and restored v4.0.7 without changing project data. Use v4.0.9, which corrects that verifier contract. Do not install v4.0.8.
 
 ## v4.0.7
 

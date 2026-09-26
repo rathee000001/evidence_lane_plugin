@@ -21,11 +21,11 @@ Project databases, source files, and credentials are not release payloads.
 
 ## Install the exact marketplace snapshot
 
-The current v4.0.8 experimental marketplace snapshot is bound to one immutable tag. It is incomplete and is not production-ready. From a terminal where the `codex` command is available:
+The current v4.0.9 experimental marketplace snapshot is bound to one immutable tag. It is incomplete and is not production-ready. From a terminal where the `codex` command is available:
 
 ```powershell
 codex plugin marketplace add https://github.com/rathee000001/evidence_lane_plugin `
-  --ref evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d `
+  --ref evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d `
   --sparse .agents/plugins/marketplace.json `
   --sparse plugins/evidence-lane-plugin `
   --json

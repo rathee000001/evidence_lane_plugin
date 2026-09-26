@@ -1,6 +1,6 @@
 {
   "name": "evidence-lane-plugin",
-  "version": "4.0.8",
+  "version": "4.0.9",
   "description": "Project workflows, source evidence and lane-specific tools over a persistent engine.",
   "author": {
     "name": "Praveen Rathee",

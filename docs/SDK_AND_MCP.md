@@ -20,7 +20,7 @@ The path is:
 
 ## Current release snapshot
 
-The v4.0.8 experimental snapshot contains 24 public skills, 295 typed actions, and 103 retained tool/dependency assignments. These numbers are generated snapshot facts, not permanent product limits. Current registries and schemas remain authoritative.
+The v4.0.9 experimental snapshot contains 24 public skills, 295 typed actions, and 103 retained tool/dependency assignments. These numbers are generated snapshot facts, not permanent product limits. Current registries and schemas remain authoritative.
 
 ## Skills
 

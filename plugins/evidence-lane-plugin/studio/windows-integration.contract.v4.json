@@ -8,24 +8,24 @@
   "expired_session_reopens_exact_profile": true,
   "failed_profile_close_prevents_spawn": true,
   "installed_verification": {
-    "bytes": 6377,
+    "bytes": 6661,
     "path": "scripts/verify_installed_runtime.py",
-    "sha256": "681e0281b5c867de1d6e2c812165fb003487faf2ec3e1feff0e30e603f955deb"
+    "sha256": "b1d1357e35c5d3ad89393bda88e3bdb8286e76c3d2639500c7d5835bc87707ab"
   },
   "launcher_binary": {
     "bytes": 9216,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-    "sha256": "a6dc77531196f31db64b4a7932bd2cb50da73fc4c087e9e03b3885619af56bba"
+    "sha256": "ebb0a85c944f46f8dfe83d299415f0d343ba9e5f31ebdb7b70bd2f692d3987e5"
   },
   "launcher_build": {
     "bytes": 502,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-    "sha256": "67e5ce17d300f355ebd40e99008ddda7aafbbab5af24c3f79da1e6174cfaf11d"
+    "sha256": "bab34945cdebe1e5be4bbcc4faab685b54d148d88cbec3222ed96b5a597bb9b0"
   },
   "launcher_source": {
     "bytes": 8132,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-    "sha256": "744457dd8883bbff2d4f09778c32608d128772da3565866e1e9c106f6a812030"
+    "sha256": "f16a44bf0fc336a99d4c1b1a90de9b8650746b7d97c99886411153b228974657"
   },
   "native_installation_verified": false,
   "owner_control_timeout_seconds": 30,

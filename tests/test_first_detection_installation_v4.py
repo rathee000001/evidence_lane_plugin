@@ -38,6 +38,10 @@ installer_module = load_script(
     "evidence_lane_first_detection",
     PLUGIN / "scripts/first_detection.py",
 )
+installed_self_test = load_script(
+    "evidence_lane_installed_self_test",
+    PLUGIN / "scripts/verify_installed_runtime.py",
+)
 
 
 COMPONENTS = [
@@ -52,6 +56,19 @@ COMPONENTS = [
     ("provider-rocm", "amd_rocm_compatible"),
     ("ghostscript-runtime", "explicit_ghostscript_license"),
 ]
+
+
+def test_installed_self_test_accepts_the_current_bounded_studio_manifest() -> None:
+    manifest = json.loads(
+        (PLUGIN / "src/evidence_lane_plugin/studio/assets-manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    installed_self_test.verify_studio_manifest(manifest)
+    with pytest.raises(RuntimeError, match="SELF_TEST_STUDIO_ASSETS_MISMATCH"):
+        installed_self_test.verify_studio_manifest(
+            {"schema_version": 1, "assets": {"/studio/": {}}}
+        )
 
 
 def write(path: Path, content: bytes | str = b"fixture\n") -> None:
@@ -506,8 +523,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.8"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.8-bundle-")
+        assert binding["plugin_version"] == "4.0.9"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.9-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()

@@ -11,7 +11,7 @@
   "source": {
     "bytes": 5701,
     "path": "src/evidence_lane_plugin/build.py",
-    "sha256": "26ccb27fc8c1f2c77cdb6e0f92de1d5cc98ceb743fbe9f8221b770ed3f2267af"
+    "sha256": "562b6cd1c27363b2e38d451b18ebe66f91681ca3e8e6f36c7e78f9d04fd3534a"
   },
   "status": "PASS",
   "workflow_registry": "sdk/internal/workflow-registry.v4.json"

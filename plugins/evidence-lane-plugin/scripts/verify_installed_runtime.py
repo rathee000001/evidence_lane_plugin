@@ -23,6 +23,18 @@ def _first_detection():
     return module
 
 
+def verify_studio_manifest(document: dict) -> None:
+    assets = document.get("assets")
+    required = {"/studio/", "/studio/app.js", "/studio/styles.css"}
+    if (
+        document.get("schema_version") != 1
+        or not isinstance(assets, dict)
+        or not 6 <= len(assets) <= 100
+        or not required.issubset(assets)
+    ):
+        raise RuntimeError("SELF_TEST_STUDIO_ASSETS_MISMATCH")
+
+
 def verify(release_root: Path, *, installation_root: Path | None = None) -> dict:
     release = release_root.resolve(strict=True)
     if PLUGIN.resolve() != release / "plugin":
@@ -54,8 +66,7 @@ def verify(release_root: Path, *, installation_root: Path | None = None) -> dict
         raise RuntimeError("SELF_TEST_OPERATION_CATALOG_MISMATCH")
     static = PLUGIN / "src/evidence_lane_plugin/studio/assets-manifest.json"
     static_manifest = json.loads(static.read_text(encoding="utf-8"))
-    if static_manifest.get("schema_version") != 1 or len(static_manifest.get("assets", {})) != 9:
-        raise RuntimeError("SELF_TEST_STUDIO_ASSETS_MISMATCH")
+    verify_studio_manifest(static_manifest)
     shared = json.loads(
         (PLUGIN / "toolchains/shared-toolchain.v4.json").read_text(encoding="utf-8")
     )
