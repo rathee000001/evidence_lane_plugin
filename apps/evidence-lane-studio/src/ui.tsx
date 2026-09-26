@@ -1,13 +1,18 @@
 import type { ReactNode } from 'react';
 import { GlassIconOrb } from './design-system/components/GlassIconOrb';
 import { GlassPill } from './design-system/components/GlassPill';
+import {useWorkspaceSelection} from './observatory/WorkspaceSelection';
+import {subject as makeSubject,type SubjectKind,type StudioSubject} from './observatory/subjects';
+import {useObserver} from './observatory/ObserverContext';
 
 export const words = (value: unknown) => String(value ?? 'Unavailable').replaceAll('_', ' ');
 export const date = (value: unknown) => value ? new Date(String(value)).toLocaleString() : 'Not recorded';
 export const short = (value: unknown) => String(value ?? '').slice(0, 8);
 export const bytes = (value: number) => value >= 1048576 ? `${(value / 1048576).toLocaleString(undefined, {maximumFractionDigits: 1})} MB` : `${(value / 1024).toLocaleString(undefined, {maximumFractionDigits: 1})} KB`;
 
+const toolMarks:Record<string,string>={Python:'python.svg',Git:'git.svg',SQLite:'sqlite.svg'};
 const paths: Record<string, ReactNode> = {
+  operation: <><rect x="5" y="5" width="22" height="22" rx="4"/><path d="m10 11 5 5-5 5M18 21h5"/></>,
   plan: <><path d="M7 5h14v22H7zM11 11h6M11 16h6M11 21h4" /></>,
   jobs: <><path d="M5 10h22v17H5zM11 10V6h10v4M5 16h22M14 16v4h4v-4" /></>,
   workers: <><rect x="7" y="7" width="18" height="18" rx="4" /><path d="M12 12h8v8h-8zM12 3v4M20 3v4M12 25v4M20 25v4M3 12h4M3 20h4M25 12h4M25 20h4" /></>,
@@ -22,8 +27,9 @@ const paths: Record<string, ReactNode> = {
   plus: <path d="M16 6v20M6 16h20" />,
   close: <path d="m8 8 16 16M24 8 8 24" />,
 };
-export function Icon({ name, size = 28, tone = 'cyan' }: { name: string; size?: number; tone?: 'cyan' | 'gold' }) {
-  return <GlassIconOrb decorative size={size} color={tone === 'gold' ? '#e7bc64' : '#4bd3f2'}><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name] ?? paths.projects}</svg></GlassIconOrb>;
+const iconColors:Record<string,string>={plan:'#80dafa',jobs:'#ba9af5',workers:'#ae9bec',evidence:'#77debf',tools:'#e6bd80',connections:'#78d5e9',learning:'#c89af1',accelerators:'#8bc8f3',diagnostics:'#ec99b4',projects:'#8acff0',brain:'#c49de9'};
+export function Icon({ name, size = 28, tone = 'cyan',identity }: { name: string; size?: number; tone?: 'cyan' | 'gold';identity?:string }) {
+  return <GlassIconOrb decorative size={size} color={tone === 'gold' ? '#e7bc64' : iconColors[name]??'#8adbf2'}>{identity&&toolMarks[identity]?<img className="studio-tool-mark" data-mark={identity} src={import.meta.env.BASE_URL+'assets/tool-marks/'+toolMarks[identity]} alt=""/>:name==='brain'||name==='learning'?<span className="observer-brain-art"><img className="observer-brain" src={import.meta.env.BASE_URL+'assets/evidence-static-brain.png'} alt=""/></span>:<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><g className="observatory-icon-extrusion" transform="translate(1.4 1.7)">{paths[name] ?? paths.projects}</g><g className="observatory-icon-face">{paths[name] ?? paths.projects}</g></svg>}</GlassIconOrb>;
 }
 export function Badge({ children, tone = '' }: { children: ReactNode; tone?: string }) { return <span className={`studio-badge ${tone}`}>{children}</span>; }
 export function Empty({ title, detail, children, icon = 'projects' }: { title: string; detail: string; children?: ReactNode; icon?: string }) {
@@ -32,9 +38,12 @@ export function Empty({ title, detail, children, icon = 'projects' }: { title: s
 export function Metric({ label, value, detail, icon }: { label: string; value: ReactNode; detail?: string; icon?: string }) {
   return <article className="studio-metric">{icon && <Icon name={icon} size={36} />}<span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}</article>;
 }
-export function Details({ value, label = 'Recorded details' }: { value: unknown; label?: string }) {
-  return <details className="studio-details"><summary>{label}</summary><pre>{JSON.stringify(value, null, 2)}</pre></details>;
+export function Details({value,label='Recorded details',title=label,kind='query-result',id,recordSubject}:{value:unknown;label?:string;title?:string;kind?:SubjectKind;id?:string;recordSubject?:StudioSubject}){
+ const {inspectSubject}=useObserver();const workspace=useWorkspaceSelection();
+ const selected=recordSubject??makeSubject(kind,value,title,workspace?`${workspace.page}.${workspace.section} selected record`:'Selected read result',id);
+ return <button className="studio-details-button" type="button" data-subject-key={selected.key} aria-label={title} aria-haspopup="dialog" onClick={()=>workspace?workspace.open(selected):inspectSubject(selected)}>{label}<span aria-hidden="true">↗</span></button>;
 }
+
 export function Table({ columns, children, label }: { columns: string[]; children: ReactNode; label: string }) {
   return <div className="studio-table-wrap" tabIndex={0} aria-label={label}><table><thead><tr>{columns.map(column => <th scope="col" key={column}>{column}</th>)}</tr></thead><tbody>{children}</tbody></table></div>;
 }

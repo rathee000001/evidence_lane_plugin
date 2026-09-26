@@ -85,7 +85,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "181d3684ca5a26f6ec26263286c02c9caff976edfca717b07af5ecce0d589199"
+      "sha256": "8105acf68811cf6e3574f07f1d73d717d11f81e5227090841fc6a32a54b493cd"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",

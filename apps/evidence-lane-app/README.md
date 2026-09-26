@@ -28,7 +28,7 @@ guides and information/license routes. Source is in `app`; local fonts,
 branding and scene assets are in `public`. Universes and interactive scenes
 are rendered in code with motion controls and compact/reduced-motion fallbacks.
 
-Public plugin/release labels use the 4.0.7 source candidate snapshot. Catalogue
+Public plugin/release labels use the 4.0.8 experimental snapshot snapshot. Catalogue
 support, public release availability, installation and native execution are
 distinct states. Source snapshot scripts inspect the owning plugin contracts;
 they are maintainer tools and are not required to serve the website.

@@ -1,0 +1,10 @@
+node_modules/
+*.tsbuildinfo
+artwork/website-theme-redesign/build/
+artwork/website-theme-redesign/test-tmp*/
+artwork/website-theme-redesign/pytest-cache/
+artwork/website-theme-redesign/*.log
+artwork/website-theme-redesign/*.pid
+
+# Local design reviews and superseded concepts are not shipped.
+/artwork/website-theme-redesign/

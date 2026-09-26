@@ -1900,7 +1900,10 @@ class FirstDetectionInstaller:
                         binding,
                         active["release_receipt"]["selected_components"],
                     )
-                    self._start_release(self.root, plan)
+                    # Reusing the exact installed release is the normal path for
+                    # every new MCP client. The installed MCP launcher starts or
+                    # reconnects the background engine after re-exec; reopening
+                    # Studio here would foreground the human UI for every client.
                     return {**active, "installation_state": "REUSED_EXACT_RELEASE"}
                 self._validate_upgrade(active, binding)
                 previous = active

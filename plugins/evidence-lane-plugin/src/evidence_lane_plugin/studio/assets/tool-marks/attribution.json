@@ -1,0 +1,26 @@
+[
+  {
+    "name": "git",
+    "file": "git.svg",
+    "source": "https://git-scm.com/community/logos",
+    "asset": "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.svg",
+    "rights": "Git logo by Jason Long; CC BY 3.0",
+    "sha256": "1080a5430edb6278dc03e4b04efc16c8bed5b943408d648ad721a28836814220"
+  },
+  {
+    "name": "python",
+    "file": "python.svg",
+    "source": "https://www.python.org/community/logos/",
+    "asset": "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/files/python-logo-only.svg",
+    "rights": "Python Software Foundation trademark; used to identify Python",
+    "sha256": "baec8662a1461c2cacc326b54d2727cb2f1ce07ba02d00f5b826d035104f649f"
+  },
+  {
+    "slug": "sqlite",
+    "file": "sqlite.svg",
+    "packageVersion": "16.31.0",
+    "source": "https://github.com/sqlite/sqlite/blob/43e862723ec680542ca6f608f9963c0993dd7324/art/sqlite370.eps",
+    "hex": "003B57",
+    "sha256": "5d6914ac86d88c380d485b219171c18cb7eff2c738851f40f3c83d4d933c7cb1"
+  }
+]

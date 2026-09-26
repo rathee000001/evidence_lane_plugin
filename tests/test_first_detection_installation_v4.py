@@ -506,8 +506,8 @@ def test_production_plan_accounts_for_every_retained_tool_and_install_input() ->
         assert binding["assets"] == []
     else:
         assert binding["installation_enabled"] is True
-        assert binding["plugin_version"] == "4.0.7"
-        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.7-bundle-")
+        assert binding["plugin_version"] == "4.0.8"
+        assert binding["release_ref"].startswith("refs/tags/evidence-lane-v4.0.8-bundle-")
         assert len(binding["assets_sha256"]) == 64
         assert len(binding["assets"]) == 12
     assert binding["bundle_plan_sha256"] == hashlib.sha256(plan_path.read_bytes()).hexdigest()
@@ -789,9 +789,11 @@ def test_exact_release_assets_install_once_and_reexec_from_immutable_copy(
     first_command_count = len(commands)
     reused = installer.ensure()
     assert reused["installation_state"] == "REUSED_EXACT_RELEASE"
-    assert len(commands) == first_command_count + 1
-    assert any(
-        value.endswith("launch_studio.py") for value in commands[-1]
+    assert len(commands) == first_command_count
+    assert not any(
+        value.endswith("launch_studio.py")
+        for command in commands[first_command_count:]
+        for value in command
     )
     assert set(copied) == expected
     pointer = json.loads((install_root / "installation.json").read_text())

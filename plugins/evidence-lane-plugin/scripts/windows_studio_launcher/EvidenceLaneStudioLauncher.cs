@@ -8,8 +8,8 @@ using System.Text;
 [assembly: AssemblyDescription("Stable-root launcher for Evidence Lane Studio and its persistent engine")]
 [assembly: AssemblyCompany("Evidence Lane")]
 [assembly: AssemblyProduct("Evidence Lane")]
-[assembly: AssemblyVersion("4.0.7.0")]
-[assembly: AssemblyFileVersion("4.0.7.0")]
+[assembly: AssemblyVersion("4.0.8.0")]
+[assembly: AssemblyFileVersion("4.0.8.0")]
 
 internal static class EvidenceLaneStudioLauncher
 {

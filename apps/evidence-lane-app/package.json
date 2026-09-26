@@ -2,7 +2,7 @@
   "name": "evidence-lane-v4-site",
   "private": true,
   "type": "module",
-  "version": "4.0.7",
+  "version": "4.0.8",
   "scripts": {
     "build": "next build",
     "dev": "next dev",

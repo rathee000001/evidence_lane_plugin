@@ -1336,7 +1336,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "4820896ef4e12a127fc2e97a44d2d66abdb1c3f91353c3e033a9f3908642e6db"
+      "sha256": "16467c9f5e9c93aa60624e5694ab5da51cb458a9794255a406b287fb48a71457"
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
@@ -1388,7 +1388,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "181d3684ca5a26f6ec26263286c02c9caff976edfca717b07af5ecce0d589199"
+      "sha256": "8105acf68811cf6e3574f07f1d73d717d11f81e5227090841fc6a32a54b493cd"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -1476,7 +1476,7 @@
     },
     {
       "path": "schemas/schema-family-registry.v4.json",
-      "sha256": "d3413f7800f3c171d1f8d3a952fd8fba0c06320d20a90d060a2b1511bf2da2b3"
+      "sha256": "0af80514da42984fb502711a55895335e73d93e3a014bc0080056f6408be5130"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",

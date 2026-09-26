@@ -4,7 +4,7 @@
   "members": [
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "72bdd2911091423d82f209b61a8a169fc0f6aec32491c5ec8d6bba8eb807a2c6"
+      "sha256": "0d90cd632d90d60b9206b0a6f035eddafbb310bb3b5d3516ffa3af50501abbe4"
     },
     {
       "path": "manifests/plugin-architecture.v4.json",

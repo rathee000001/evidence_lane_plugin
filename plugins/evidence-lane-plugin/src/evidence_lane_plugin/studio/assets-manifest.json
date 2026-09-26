@@ -4,8 +4,8 @@
     "/studio/app.js": {
       "file": "app.js",
       "content_type": "text/javascript; charset=utf-8",
-      "sha256": "47a45c1086330a4ca18e4a2ce494749cb90c85d4250656f1d558f1ab0555d8a4",
-      "bytes": 266872
+      "sha256": "12dbc67956cd2e5d6127e466116e18e272175ad2548f7274b80082bf01a243ee",
+      "bytes": 313180
     },
     "/studio/assets/energy_routes-LMCTUTgm.svg": {
       "file": "assets/energy_routes-LMCTUTgm.svg",
@@ -25,11 +25,41 @@
       "sha256": "5f3ed419b62661f703f5df763b4dc562645f621935aa99fc3def87b8a129c4fa",
       "bytes": 5639
     },
+    "/studio/assets/evidence-lane-logo.png": {
+      "file": "assets/evidence-lane-logo.png",
+      "content_type": "image/png",
+      "sha256": "74ac2a8d7fc794e7aca49311eeef3c3bd91f055f61f32588d3e2f53601db54f7",
+      "bytes": 1526637
+    },
+    "/studio/assets/evidence-lane-logo.svg": {
+      "file": "assets/evidence-lane-logo.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "0fadd7a12d403c369254777e40abd5deb15ea2be702b042e19dcf9ab14a2c6db",
+      "bytes": 5528601
+    },
     "/studio/assets/evidence-os-cube-app-icon-transparent.png": {
       "file": "assets/evidence-os-cube-app-icon-transparent.png",
       "content_type": "image/png",
       "sha256": "54d8548328f33fefea8c76fadd092bda21f5ee9c7bba06e9eb1dcc296e69efb4",
       "bytes": 1456084
+    },
+    "/studio/assets/evidence-static-brain.png": {
+      "file": "assets/evidence-static-brain.png",
+      "content_type": "image/png",
+      "sha256": "70fbc1e11c029dda98aa695f80e96891312e028464476b7e54ba0b6b259a6529",
+      "bytes": 1019717
+    },
+    "/studio/assets/lane-monogram.svg": {
+      "file": "assets/lane-monogram.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "1f602b51f888f4676004fd867fd4d1cad45166f76a867f4846f9ab0ff8eb1efd",
+      "bytes": 1558169
+    },
+    "/studio/assets/lane-wire-monogram.png": {
+      "file": "assets/lane-wire-monogram.png",
+      "content_type": "image/png",
+      "sha256": "718b5bfa93f665ddae7c65050e8e2f5e794ab5e2b8c80749f9ebb852160a9d0a",
+      "bytes": 1167873
     },
     "/studio/assets/left_core-ClBz78z3.svg": {
       "file": "assets/left_core-ClBz78z3.svg",
@@ -37,11 +67,77 @@
       "sha256": "61b519e869d8f97b0c242acfb8bdc0da8d516fa195bda651a797b33e8e8e6714",
       "bytes": 1283565
     },
+    "/studio/assets/project-covers/coastal-study.png": {
+      "file": "assets/project-covers/coastal-study.png",
+      "content_type": "image/png",
+      "sha256": "ae9adb89d0cb0865e21ae647dbe72de0a5956d8177f77792d74382f8d82cfb7b",
+      "bytes": 2895819
+    },
+    "/studio/assets/project-covers/product-analysis.png": {
+      "file": "assets/project-covers/product-analysis.png",
+      "content_type": "image/png",
+      "sha256": "3abfab6cd5b77258cc54ac98c268ebdf1e15803437a7a541f3905ca8f1f38320",
+      "bytes": 1873128
+    },
+    "/studio/assets/project-covers/research-notes.png": {
+      "file": "assets/project-covers/research-notes.png",
+      "content_type": "image/png",
+      "sha256": "612d011814f2aa966a0ffaa61ddfd9c0499f2e23a62a99d05519cb52fb9c60fb",
+      "bytes": 2260166
+    },
+    "/studio/assets/RoomEnvironment-BdqtWeaI.js": {
+      "file": "assets/RoomEnvironment-BdqtWeaI.js",
+      "content_type": "text/javascript; charset=utf-8",
+      "sha256": "50a0515de2c75b2667370ac5c27aecb7e8c6d40ceb3279fc7fd79572536493a5",
+      "bytes": 2166
+    },
     "/studio/assets/s_core-DJ6p_OEt.svg": {
       "file": "assets/s_core-DJ6p_OEt.svg",
       "content_type": "image/svg+xml",
       "sha256": "06daa6939cf7dbf733f8e39460f4b14895fdd9f7f8c08a1006e542eb75dfc22e",
       "bytes": 233012
+    },
+    "/studio/assets/three.module-Y-ql4QRg.js": {
+      "file": "assets/three.module-Y-ql4QRg.js",
+      "content_type": "text/javascript; charset=utf-8",
+      "sha256": "29e1b595762d6b043cbeab8df053e0b1b30229737d2f6db7f7606948f9642412",
+      "bytes": 734491
+    },
+    "/studio/assets/tool-marks/attribution.json": {
+      "file": "assets/tool-marks/attribution.json",
+      "content_type": "application/json",
+      "sha256": "2c948fade4582fb4b6f72ce8689db510825986c3a1a89335303524793d2e8c0c",
+      "bytes": 1010
+    },
+    "/studio/assets/tool-marks/DISCLAIMER.md": {
+      "file": "assets/tool-marks/DISCLAIMER.md",
+      "content_type": "text/markdown; charset=utf-8",
+      "sha256": "f921095158b73e61e675ff99b327930fa95ad6f4cf667d414ffe8ae585205724",
+      "bytes": 4607
+    },
+    "/studio/assets/tool-marks/git.svg": {
+      "file": "assets/tool-marks/git.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "1080a5430edb6278dc03e4b04efc16c8bed5b943408d648ad721a28836814220",
+      "bytes": 858
+    },
+    "/studio/assets/tool-marks/LICENSE.md": {
+      "file": "assets/tool-marks/LICENSE.md",
+      "content_type": "text/markdown; charset=utf-8",
+      "sha256": "9046848b63a5c92bff14e4accca80bd987e0623b74adf9226ce5198d312b79d5",
+      "bytes": 6569
+    },
+    "/studio/assets/tool-marks/python.svg": {
+      "file": "assets/tool-marks/python.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "baec8662a1461c2cacc326b54d2727cb2f1ce07ba02d00f5b826d035104f649f",
+      "bytes": 9605
+    },
+    "/studio/assets/tool-marks/sqlite.svg": {
+      "file": "assets/tool-marks/sqlite.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "5d6914ac86d88c380d485b219171c18cb7eff2c738851f40f3c83d4d933c7cb1",
+      "bytes": 1435
     },
     "/studio/": {
       "file": "index.html",
@@ -52,8 +148,8 @@
     "/studio/styles.css": {
       "file": "styles.css",
       "content_type": "text/css; charset=utf-8",
-      "sha256": "645e276a2f0051bdebee2c9ea556760a5756176a00148ae28e18dec2d6be3bd2",
-      "bytes": 250021
+      "sha256": "9dd1710d9632a19b9fa356d0a30d59dbe5566b55210cb067ec7480660563c66f",
+      "bytes": 338492
     }
   }
 }

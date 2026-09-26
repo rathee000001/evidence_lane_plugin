@@ -1,5 +1,5 @@
 {
-  "version": "4.0.7",
+  "version": "4.0.8",
   "installationVerified": false,
   "releaseStatus": "Source candidate; public availability and installed-native execution not verified by this website",
   "sourceHashes": {
@@ -4290,7 +4290,7 @@
     }
   },
   "release": {
-    "release_ref": "refs/tags/evidence-lane-v4.0.7-bundle-977fb5ec2702ff9d",
+    "release_ref": "refs/tags/evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d",
     "assets_sha256": "977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd",
     "bundle_plan_sha256": "27599e220289354c4c1b6af61a516f04a28d4308ac6da571b13b5239e2b5a7b8",
     "source_manifest_sha256": "e3d38d2fb0eb6667f120b56bbf42d4093677e34b2d94b12d74f5a2bca12bda0c"

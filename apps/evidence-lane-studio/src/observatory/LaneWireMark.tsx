@@ -1,0 +1,7 @@
+import {useId} from 'react';
+/** Inline geometry keeps the accepted image on a self-origin URL under Studio's strict CSP. */
+export function LaneWireMark({moving=true}:{moving?:boolean}){
+ const id=useId();const links=['M1930 730C1980 736 2012 784 2043 816','M1922 1104C1990 1096 2010 1049 2055 1038','M1990 729C2014 734 2028 757 2040 781'];
+ const flow=['M2045 784C2043 850 2044 1018 2056 1055C2120 1060 2268 1060 2330 1058','M2050 837C2090 890 2141 975 2180 1022L2185 834L2300 833','M2184 926C2225 921 2260 925 2295 924','M2180 1022C2210 1030 2280 1030 2330 1028'];
+ return <g className={'observer-lane-mark '+(moving?'is-moving':'')}><defs><linearGradient id={id}><stop stopColor="#54dfff"/><stop offset=".3" stopColor="#a691ff"/><stop offset=".6" stopColor="#65edcd"/><stop offset="1" stopColor="#efcf8a"/></linearGradient></defs>{links.map(d=><g key={d}><path d={d} fill="none" stroke="#093d66" strokeWidth="8" strokeLinecap="round"/><path d={d} fill="none" stroke={`url(#${id})`} strokeWidth="5" strokeLinecap="round"/><path className="observer-logo-flow" d={d} fill="none" stroke="#e3ffff" strokeWidth="2.8"/></g>)}<image className="observer-lane-body" href={import.meta.env.BASE_URL+'assets/lane-wire-monogram.png'} x="1920" y="720" width="480" height="400"/>{flow.map((d,i)=><path className={'observer-logo-flow '+(i%2?'is-reverse':'')} key={d} d={d} fill="none" stroke="#d5ffff" strokeWidth="1.3" opacity=".65"/>)}</g>;
+}

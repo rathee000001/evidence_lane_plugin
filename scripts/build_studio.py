@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -27,9 +28,25 @@ def main():
     result = subprocess.run([npm, 'run', 'build'], cwd=APP, check=False)
     if result.returncode:
         raise SystemExit(result.returncode)
+    # Vite can preserve shader-source indentation inside split JavaScript
+    # chunks. Normalize line-ending whitespace before hashing and packaging so
+    # the generated release bytes pass the repository whitespace gate without
+    # changing executable tokens.
+    for generated in OUT.rglob('*'):
+        if generated.is_file() and generated.suffix in {'.html', '.js', '.css', '.svg', '.json', '.md'}:
+            text = generated.read_text(encoding='utf-8')
+            lines = []
+            for line in text.splitlines():
+                line = line.rstrip(' \t')
+                if generated.suffix == '.js':
+                    line = re.sub(r'^ +(?=\t)', '', line)
+                lines.append(line)
+            normalized = '\n'.join(lines) + ('\n' if text.endswith(('\n', '\r')) else '')
+            generated.write_text(normalized, encoding='utf-8', newline='\n')
     entries = {}
     allowed = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-               '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png'}
+               '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
+               '.json': 'application/json', '.md': 'text/markdown; charset=utf-8'}
     files = sorted(path for path in OUT.rglob('*') if path.is_file())
     if len(files) > 100 or sum(path.stat().st_size for path in files) > 32_000_000:
         raise SystemExit('Studio build exceeds its static asset budget')

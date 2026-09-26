@@ -14,7 +14,7 @@ Evidence Lane does not currently advertise the Windows Studio on macOS, Linux, a
 
 ## 2. Install the managed plugin
 
-Install an exact published release through the Codex plugin manager. The current release is [v4.0.7](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.7-bundle-977fb5ec2702ff9d). Follow [Installation](INSTALL.md) for the exact commands and verification steps.
+Install an exact published release through the Codex plugin manager. The on-hold experimental snapshot is [v4.0.8](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.8-bundle-977fb5ec2702ff9d). It is incomplete and is not production-ready. Follow [Installation](INSTALL.md) for the exact commands and verification steps.
 
 The plugin comes first. Its first-detection route provisions the shared engine, Studio, and required local toolchain under `C:\Apps\EvidenceLaneStudio` unless an explicit supported override is configured.
 

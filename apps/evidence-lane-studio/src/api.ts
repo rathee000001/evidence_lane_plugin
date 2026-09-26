@@ -2,6 +2,8 @@ import type { Snapshot } from './types';
 
 let csrf: string | null = null;
 let initialization: Promise<void> | undefined;
+export const isDesignPreview=()=>import.meta.env.DEV&&new URLSearchParams(location.search).get('design-preview')==='1';
+export const designPreviewState=()=>isDesignPreview()?new URLSearchParams(location.search).get('state'):null;
 const messages: Record<string, string> = {
   STUDIO_AUTHENTICATION_REQUIRED: 'Open Studio from its launcher to reconnect.',
   STUDIO_TICKET_EXPIRED: 'This launch link expired. Open Studio again from its launcher.',
@@ -42,6 +44,7 @@ const messages: Record<string, string> = {
 };
 
 export async function api<T = Record<string, any>>(route: string, payload?: unknown, read = false): Promise<T> {
+  if(import.meta.env.DEV&&isDesignPreview())return (await import('./observatory/preview-fixtures')).previewRead(route,payload) as Promise<T>;
   const longOperation = ['backup', 'backup-verify', 'git-restore'].includes(route) ||
     (route === 'read' && typeof payload === 'object' && payload !== null && 'action' in payload &&
       ['git_restore_preview', 'project_recovery_inspect'].includes(String(payload.action)));

@@ -2811,7 +2811,7 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "4820896ef4e12a127fc2e97a44d2d66abdb1c3f91353c3e033a9f3908642e6db"
+      "sha256": "16467c9f5e9c93aa60624e5694ab5da51cb458a9794255a406b287fb48a71457"
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
@@ -2839,7 +2839,7 @@
     },
     {
       "path": "schemas/package/package-family.v4.json",
-      "sha256": "181d3684ca5a26f6ec26263286c02c9caff976edfca717b07af5ecce0d589199"
+      "sha256": "8105acf68811cf6e3574f07f1d73d717d11f81e5227090841fc6a32a54b493cd"
     },
     {
       "path": "schemas/plan/plan-family.v4.json",
@@ -2927,11 +2927,11 @@
     },
     {
       "path": "schemas/schema-family-registry.v4.json",
-      "sha256": "d3413f7800f3c171d1f8d3a952fd8fba0c06320d20a90d060a2b1511bf2da2b3"
+      "sha256": "0af80514da42984fb502711a55895335e73d93e3a014bc0080056f6408be5130"
     },
     {
       "path": "schemas/schema-manifest.v4.json",
-      "sha256": "c66f741403f64e3ac2a086da420f451bf2fefe3b96daed30f7304398eba4b10b"
+      "sha256": "4b1441e7f874bbdda547c08fb422336c4cef34eff8593ec80d6a2349e1bd9169"
     },
     {
       "path": "schemas/sdk/sdk-family.v4.json",
@@ -4391,11 +4391,11 @@
     },
     {
       "path": "sdk/host/host-contract-registry.v4.json",
-      "sha256": "7e816681ddfa88fbba92ef50933358fe8287d166a28bb3165e8e044e4554c53d"
+      "sha256": "76fbf219eb4c6533e85803ef6fd1bd750742115e3a4a34cbabd9a71605971d98"
     },
     {
       "path": "sdk/host/local-install.contract.v4.json",
-      "sha256": "d67983aca886c28386f8d8d60d3dc6cc2b814dd74ec1256f7ccef77b6f8d6426"
+      "sha256": "020c11e996ddb4ab2743ad0e8af4995b2582710a9879501d6e53743cd0a31578"
     },
     {
       "path": "sdk/host/mcp-startup-isolation.contract.v4.json",
@@ -4431,11 +4431,11 @@
     },
     {
       "path": "sdk/internal/module-registry.v4.json",
-      "sha256": "305461ca8efde28049b167a3072023ca3b49059e049c24ba2ed986380e0a7216"
+      "sha256": "9b47e71b4475f0c4583d197745808027b8a5bf2b8035da204eeed1e15c3ff6cf"
     },
     {
       "path": "sdk/internal/modules/__init__.module.v4.json",
-      "sha256": "c35f40ae816d17e6b8252913156757c4457ea367441e38eb4ee209cf7df07fef"
+      "sha256": "7f98fef20d677369ba9b1235f6bb88dd9c10bef1a3ca7a26acdbc7ebc4667e1c"
     },
     {
       "path": "sdk/internal/modules/_bounded_process_child.module.v4.json",
@@ -4503,7 +4503,7 @@
     },
     {
       "path": "sdk/internal/modules/build.module.v4.json",
-      "sha256": "85c00b8a2f6c7b4634b49b2fc0c2ac0906507747455d133a8e86bb0e7fc7ebad"
+      "sha256": "056c9a53a3cf00f34dc6bbc6a29d8ac9b9e1de2828caee942855febc35380755"
     },
     {
       "path": "sdk/internal/modules/canon_consequence_graph.module.v4.json",
@@ -5447,7 +5447,7 @@
     },
     {
       "path": "sdk/internal/modules/storage_selection.module.v4.json",
-      "sha256": "8811fee79c0b8e3bb8d3de4ff356211686516f9a28fadb43ad4db2385ffe5b64"
+      "sha256": "9cbe8fa48eed474e11673e0208c7411f2ba250fa9f46a77e1549cd91b27e3c2b"
     },
     {
       "path": "sdk/internal/modules/store.module.v4.json",
@@ -6819,11 +6819,11 @@
     },
     {
       "path": "sdk/sdk-manifest.v4.json",
-      "sha256": "d0427e07b2794bb00d2dfbdd6f615121a5b96febbfabd2563abff5326e942df0"
+      "sha256": "781e23be6e2f1db658082fe6796abaa0a9229e7e8ef68789f183e7098fc75143"
     },
     {
       "path": "sdk/sdk-surface-registry.v4.json",
-      "sha256": "6ddc15e09d8c98d30ad232e538236dad271518e5987b7f6b61785da747eb8281"
+      "sha256": "9be1f274a13a4b873a760c3dcc0b076daae2b4f99aa3a066ede75d725768fe2d"
     },
     {
       "path": "sdk/skills/skill-bindings.v4.json",
