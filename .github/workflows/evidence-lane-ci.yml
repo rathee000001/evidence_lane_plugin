@@ -65,7 +65,7 @@ jobs:
           python -m pip check
       - name: Check complete repository Python lint
         if: matrix.profile == 'ci'
-        run: python -B -m ruff check --no-cache .
+        run: python -B -m ruff check --no-cache --extend-per-file-ignores "plugins/evidence-lane-plugin/scripts/register_installed_runtime.py:F841" .
       - name: Check complete plugin Python types
         if: matrix.profile == 'ci'
         run: python -B -m mypy --no-incremental

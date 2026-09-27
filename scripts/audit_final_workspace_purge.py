@@ -446,6 +446,7 @@ def audit(root: Path = ROOT) -> dict[str, Any]:
             "STUDIO.md",
             "TERMS.md",
             "THIRD_PARTY_NOTICES.md",
+            "TOOLCHAIN_EXECUTION_MATRIX.md",
             "TROUBLESHOOTING.md",
             "WORKFLOW_GUIDE.md",
         ]

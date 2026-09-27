@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from evidence_lane_plugin.errors import LaneError
 from evidence_lane_plugin.windows_application import (
     APP_ID,

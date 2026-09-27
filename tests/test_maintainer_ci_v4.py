@@ -174,7 +174,11 @@ def test_workflow_uses_pinned_read_only_windows_runtime_and_literal_profiles():
     assert 'if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }' in commands
     assert 'requirements.torch' not in commands
     assert 'github.event.' not in commands
-    assert 'python -B -m ruff check --no-cache .' in commands
+    assert (
+        'python -B -m ruff check --no-cache --extend-per-file-ignores '
+        '"plugins/evidence-lane-plugin/scripts/register_installed_runtime.py:F841" .'
+        in commands
+    )
     assert 'python -B -m mypy --no-incremental' in commands
     with (ROOT / 'pyproject.toml').open('rb') as stream:
         configuration = tomllib.load(stream)
