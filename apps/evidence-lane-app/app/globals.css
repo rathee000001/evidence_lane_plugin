@@ -56,3 +56,4 @@
 
 html,body{max-width:100%;overflow-x:clip}
 @media(max-width:1020px){.site-header{position:relative!important;top:auto!important}}
+@media(max-width:1020px){.nav{scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-width:thin;scroll-padding-inline:12px}.nav a{scroll-snap-align:center}.header-inner{align-items:flex-start}}

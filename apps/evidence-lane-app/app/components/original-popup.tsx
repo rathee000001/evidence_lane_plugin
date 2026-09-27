@@ -29,7 +29,7 @@ export function OriginalGlassPopup({
   const dialogRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const {paused}=useMotion();const[flat,setFlat]=useState(false),[compact,setCompact]=useState(false);const pitch=useMotionValue(0),yaw=useMotionValue(0);const smoothPitch=useSpring(pitch,{stiffness:100,damping:22}),smoothYaw=useSpring(yaw,{stiffness:100,damping:22});const still=flat||paused;
-  useEffect(()=>{const media=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>{setFlat(media.matches||innerWidth<=1000);setCompact(innerWidth<=1000)};update();media.addEventListener('change',update);window.addEventListener('resize',update);return()=>{media.removeEventListener('change',update);window.removeEventListener('resize',update)}},[]);
+  useEffect(()=>{const media=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>{setFlat(media.matches);setCompact(innerWidth<=1000)};update();media.addEventListener('change',update);window.addEventListener('resize',update);return()=>{media.removeEventListener('change',update);window.removeEventListener('resize',update)}},[]);
 
 
   useEffect(() => {
