@@ -7,14 +7,14 @@
     "provisioning/release-binding.v4.json",
     "provisioning/source-manifest.v4.json"
   ],
-  "file_count": 3332,
-  "total_bytes": 72344825,
-  "files_sha256": "2d11a36471e0a57a59092b76553aa8aad41af49ff1b61be594ea3514cdc14729",
+  "file_count": 3340,
+  "total_bytes": 74593903,
+  "files_sha256": "37aaf718eb04bc74c5431bca2e802cd1fe79d5f76a69b6ae9fee5c16fb570a41",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
-      "bytes": 1842,
-      "sha256": "bb69e40ed0878c6ab556897a88813e60dd2d41d96f84381f7cdb9af58f5c2e86"
+      "bytes": 1843,
+      "sha256": "3d10c60258433f942891e9ae8ea4b888c0a780a4bee47be6b2dd2d7c9c10773b"
     },
     {
       "path": ".mcp.json",
@@ -5478,13 +5478,13 @@
     },
     {
       "path": "provisioning/full-bundle-plan.v4.json",
-      "bytes": 541625,
-      "sha256": "d8739473ecd2d5a855015b30f05ee3695f673bbde5fcc2e1693fbca1bf507615"
+      "bytes": 542998,
+      "sha256": "ff53b7395a855172fff4e94858c5881a51601ea00f956a166ddcd5baaa9e1688"
     },
     {
       "path": "pyproject.toml",
-      "bytes": 1505,
-      "sha256": "24fd5044717fb99c6bfaf3fb4bfeca158fc64e34058014d58083a43793d9a3ad"
+      "bytes": 1506,
+      "sha256": "c5317785b8b965203ea608f180b26a986f41c64c3fc30b0064dea0faec6c157e"
     },
     {
       "path": "requirements.lock.txt",
@@ -7183,8 +7183,8 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "bytes": 3996,
-      "sha256": "97ac1c91a7e32edc65d8d40420fab1558435307cfa072402162e86b655ed001e"
+      "bytes": 3998,
+      "sha256": "f8ff67ba0e2d7b502d2fdb05baffab721936d2f9c2475c0aab4d5de3a8814da5"
     },
     {
       "path": "schemas/install/first-detection-source-manifest.v4.schema.json",
@@ -7503,8 +7503,8 @@
     },
     {
       "path": "scripts/generate_first_detection_plan.py",
-      "bytes": 37107,
-      "sha256": "b8e8a75f5cdfdc44c8d0fed21f1dfbe0b5004448b7c9cdc4420b77b5b0c7e214"
+      "bytes": 37676,
+      "sha256": "b7f5ba3bd9ad255408aa60f313829c92aac6eacbebc625eb9d96b64d765452b2"
     },
     {
       "path": "scripts/generate_package_surface_projections.py",
@@ -7523,8 +7523,8 @@
     },
     {
       "path": "scripts/generate_studio_linkage.py",
-      "bytes": 9968,
-      "sha256": "12c65a35dc413c32acc5172f0b94ebaeb40982420ce55ead4b153217cd6662b3"
+      "bytes": 10757,
+      "sha256": "e5a46a8d973fc8996324a8046c46faf04b1648b464b5b02db02ce84d4e259455"
     },
     {
       "path": "scripts/generate_toolchain_execution_matrix.py",
@@ -7588,8 +7588,8 @@
     },
     {
       "path": "scripts/register_installed_runtime.py",
-      "bytes": 6496,
-      "sha256": "71b45805acabf7804405082468177bcd0d54ff042528be78e9de2ecb79aed3b6"
+      "bytes": 5306,
+      "sha256": "70bdf12636deb3b3e1e6c1cb16cd09e5735343951973fc063ed8219f02e2d985"
     },
     {
       "path": "scripts/run_engine.py",
@@ -7623,28 +7623,63 @@
     },
     {
       "path": "scripts/verify_installed_runtime.py",
-      "bytes": 6661,
-      "sha256": "b1d1357e35c5d3ad89393bda88e3bdb8286e76c3d2639500c7d5835bc87707ab"
+      "bytes": 7736,
+      "sha256": "a2610cf24f4c2760f66fd76ab25d81ab98841ffc69df51995778279a3447ae7c"
+    },
+    {
+      "path": "scripts/windows_studio_installer/Build-EvidenceLaneStudioSetup.ps1",
+      "bytes": 2925,
+      "sha256": "331253d6913751042a8d9fb7c303165c259588a512338fba375238d5e3043508"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudio.ico",
+      "bytes": 28668,
+      "sha256": "ac09ff0f13496fc8914bfa4ab2d320b66a3a5c0199cd4ca651c111532e585819"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudio.iss",
+      "bytes": 4634,
+      "sha256": "b79a2eb4a4259b316fee4b445b742a995af640c43b366d2eafee9b6a072040e6"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.build.json",
+      "bytes": 810,
+      "sha256": "e520fb81eb0120aae9bf34eb59cc5afc7b34292cb06b5b4425bd6f19825e7f17"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe",
+      "bytes": 2122157,
+      "sha256": "c9aa83a914867cd6223595fe181fe60c50b3a1fad36721aab6af69abf6639f97"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.cs",
+      "bytes": 6646,
+      "sha256": "cbad9c80835e85196c8e22763a190dd2b2b6178b6e3ff646230035beb2e473cf"
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.exe",
+      "bytes": 37376,
+      "sha256": "21fc9644a5f85de9c9f1cf0fe7cf87dbf89f1df33d4498cf9ee99144c3b1336c"
     },
     {
       "path": "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
-      "bytes": 2093,
-      "sha256": "e04657c93a0e269daca20e94a3f7169c820cb3be4d9421ca5f50e9e880f64008"
+      "bytes": 2450,
+      "sha256": "a221280cb0291e836a243657ed325ba6e1b23c3803ea722af4a4d609dc1a23a2"
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-      "bytes": 502,
-      "sha256": "bab34945cdebe1e5be4bbcc4faab685b54d148d88cbec3222ed96b5a597bb9b0"
+      "bytes": 589,
+      "sha256": "b6abda868b0598b3ae1acad93f85dbbf0dc4d5fb20603ca32dedc9c1f0ec6162"
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-      "bytes": 8132,
-      "sha256": "f16a44bf0fc336a99d4c1b1a90de9b8650746b7d97c99886411153b228974657"
+      "bytes": 8134,
+      "sha256": "3b4b7788a9fb93535e4f4dd0b956eb025b742810b91a2c89b260bebfde74db89"
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-      "bytes": 9216,
-      "sha256": "ebb0a85c944f46f8dfe83d299415f0d343ba9e5f31ebdb7b70bd2f692d3987e5"
+      "bytes": 38400,
+      "sha256": "42f8c6f9f39480c4b25ef9d655698077d40874255a5d72dd9f8c09bfa96f7e3a"
     },
     {
       "path": "sdk/README.md",
@@ -13713,8 +13748,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/__init__.py",
-      "bytes": 142,
-      "sha256": "cafbba81441ed23fa1dc90255c8c56ab569717f3b4aea56145ccf23b8d7d06ed"
+      "bytes": 143,
+      "sha256": "179f54e10b237b4491420bf6f6d09f0519fb9d46cc8a162f167e85945b8df8fc"
     },
     {
       "path": "src/evidence_lane_plugin/_bounded_process_child.py",
@@ -13798,8 +13833,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/build.py",
-      "bytes": 5701,
-      "sha256": "562b6cd1c27363b2e38d451b18ebe66f91681ca3e8e6f36c7e78f9d04fd3534a"
+      "bytes": 5702,
+      "sha256": "89d9f7c151087c62ff05b3cceaf8746bc1e6cf268c82b40b189e112c86323a21"
     },
     {
       "path": "src/evidence_lane_plugin/canon_consequence_graph.py",
@@ -15548,8 +15583,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/storage_selection.py",
-      "bytes": 6990,
-      "sha256": "3104c47b93a1f9bfb00bf975ac7ff8a15337d1512f65f75b45c1f506b601e00f"
+      "bytes": 6991,
+      "sha256": "ff86696e65417e09b46ac25a3b84ce033a965bd006883dbc50297fc09d7a6b99"
     },
     {
       "path": "src/evidence_lane_plugin/store.py",
@@ -15563,13 +15598,13 @@
     },
     {
       "path": "src/evidence_lane_plugin/studio/app.js",
-      "bytes": 313180,
-      "sha256": "12dbc67956cd2e5d6127e466116e18e272175ad2548f7274b80082bf01a243ee"
+      "bytes": 313095,
+      "sha256": "7d69d4b44ce012fdf5e2583dae678d434adf8e5ac437d5fd15ad589ded0054b7"
     },
     {
       "path": "src/evidence_lane_plugin/studio/assets-manifest.json",
       "bytes": 6251,
-      "sha256": "c1fa2dc35ab7035e78903d4f9db5ee72431f2cd777303a2afdab4dce42a6d3fd"
+      "sha256": "af44e028276e58b8b499eb1ada9b1dbd9e452e8fcbcde38a5a50172662ed0620"
     },
     {
       "path": "src/evidence_lane_plugin/studio/assets/RoomEnvironment-BdqtWeaI.js",
@@ -15703,8 +15738,8 @@
     },
     {
       "path": "src/evidence_lane_plugin/studio_window.py",
-      "bytes": 9805,
-      "sha256": "ecebfba3ca20712faa4d308f4c1a8e7042df1921a3eb9a63060181e29be0b0fc"
+      "bytes": 9801,
+      "sha256": "cc391e6fbf9d72c6e24e93e8b6e053514a373ebdcdcaffb4967795c5878d53bf"
     },
     {
       "path": "src/evidence_lane_plugin/tableau_authoring.py",
@@ -15832,6 +15867,11 @@
       "sha256": "39ecae91a2ceb7ca44e9a971666d562b0f1bfc6fd0b367707236e2bc32c87b08"
     },
     {
+      "path": "src/evidence_lane_plugin/windows_application.py",
+      "bytes": 12141,
+      "sha256": "87a522e983c57034488eb3e89ca546a318d2fcbf9e3c0beaf88af616de374da0"
+    },
+    {
       "path": "src/evidence_lane_plugin/worker_tasks.py",
       "bytes": 391,
       "sha256": "1c99fc3ac8e2b6e6a062f0979136d527b1dc53f83621f0384e71bbf0949ee68d"
@@ -15853,8 +15893,8 @@
     },
     {
       "path": "studio/README.md",
-      "bytes": 1788,
-      "sha256": "02339bde055db457b7ed4b5913f760175a00e277bee8a34f5199bba6082ef1ed"
+      "bytes": 1964,
+      "sha256": "a5765aaca31438b469ab0fa2d522323e1eb53eca30ea98fa7d020b6116818129"
     },
     {
       "path": "studio/engine-api.contract.v4.json",
@@ -15869,12 +15909,12 @@
     {
       "path": "studio/installation.contract.v4.json",
       "bytes": 1591,
-      "sha256": "ae3c5c8151b9810abdfce6799a5730e1de66302dfe274f9a890305db2718b0dc"
+      "sha256": "a9b00774596cd5a17c0adac99c236b90d82591bd8c486327f699846d5bd6e8cf"
     },
     {
       "path": "studio/studio-linkage.v4.json",
       "bytes": 1473,
-      "sha256": "2718764ac3ebaf90c55d92802e112dbc3660165e2609fec746c1c82d4dc8bd3f"
+      "sha256": "a7f388e5c04f071c818ca6fc43e01a4d5435f2eb59d15b66a9edb7ebc801428c"
     },
     {
       "path": "studio/toolchain-license.contract.v4.json",
@@ -15883,8 +15923,8 @@
     },
     {
       "path": "studio/windows-integration.contract.v4.json",
-      "bytes": 2918,
-      "sha256": "93c252d8573fd0fde72a74d8ea46590231885216c9f4e84b54362e8b59f55fa4"
+      "bytes": 4299,
+      "sha256": "5dfe5174de83eb04c9bffc5bdde91c90e4824a4b1b1f61daafe1a4e37a772f0f"
     },
     {
       "path": "tests/test-surface-policy.v4.json",
@@ -15919,7 +15959,7 @@
     {
       "path": "toolchains/TOOLCHAIN_EXECUTION_MATRIX.md",
       "bytes": 88162,
-      "sha256": "5588804dfa785d8ba710fff29d658de4c0118b88551345d0c62d98a8cdf6f25f"
+      "sha256": "96ed6eb348c6c6692ac6c62a3594ce4d904fe11dc250e201147332b0c4cfff1a"
     },
     {
       "path": "toolchains/docling-models.v4.json",
@@ -16672,5 +16712,5 @@
       "sha256": "6eccd5569b6dd6c318934fed9b4046dacf677edf1b1e6e0e644a7eb7d45e9c8c"
     }
   ],
-  "receipt_sha256": "78e1b42425d6256297691ba0b9c32f9068539d598c7e0b520a5947f0544c045a"
+  "receipt_sha256": "80b76d3d25570fcce7387a876aa0b7785aa1e6cf068c46ada7e8632af2571416"
 }

@@ -1,4 +1,37 @@
 {
+  "app_paths_registration": true,
+  "app_user_model_id": "EvidenceLane.Studio",
+  "application_display_name": "Evidence Lane Studio",
+  "application_icon": {
+    "bytes": 28668,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudio.ico",
+    "sha256": "ac09ff0f13496fc8914bfa4ab2d320b66a3a5c0199cd4ca651c111532e585819"
+  },
+  "application_installer_binary": {
+    "bytes": 2122157,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe",
+    "sha256": "c9aa83a914867cd6223595fe181fe60c50b3a1fad36721aab6af69abf6639f97"
+  },
+  "application_installer_build": {
+    "bytes": 810,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.build.json",
+    "sha256": "e520fb81eb0120aae9bf34eb59cc5afc7b34292cb06b5b4425bd6f19825e7f17"
+  },
+  "application_installer_definition": {
+    "bytes": 4634,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudio.iss",
+    "sha256": "b79a2eb4a4259b316fee4b445b742a995af640c43b366d2eafee9b6a072040e6"
+  },
+  "application_shell_binary": {
+    "bytes": 37376,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.exe",
+    "sha256": "21fc9644a5f85de9c9f1cf0fe7cf87dbf89f1df33d4498cf9ee99144c3b1336c"
+  },
+  "application_shell_source": {
+    "bytes": 6646,
+    "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.cs",
+    "sha256": "cbad9c80835e85196c8e22763a190dd2b2b6178b6e3ff646230035beb2e473cf"
+  },
   "background_engine_opens_studio": false,
   "desktop_shortcut_count": 1,
   "engine_console_hidden": true,
@@ -7,33 +40,40 @@
   "existing_window_restored_on_reopen": true,
   "expired_session_reopens_exact_profile": true,
   "failed_profile_close_prevents_spawn": true,
+  "installed_apps_registration": true,
   "installed_verification": {
-    "bytes": 6661,
+    "bytes": 7736,
     "path": "scripts/verify_installed_runtime.py",
-    "sha256": "b1d1357e35c5d3ad89393bda88e3bdb8286e76c3d2639500c7d5835bc87707ab"
+    "sha256": "a2610cf24f4c2760f66fd76ab25d81ab98841ffc69df51995778279a3447ae7c"
   },
   "launcher_binary": {
-    "bytes": 9216,
+    "bytes": 38400,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-    "sha256": "ebb0a85c944f46f8dfe83d299415f0d343ba9e5f31ebdb7b70bd2f692d3987e5"
+    "sha256": "42f8c6f9f39480c4b25ef9d655698077d40874255a5d72dd9f8c09bfa96f7e3a"
   },
   "launcher_build": {
-    "bytes": 502,
+    "bytes": 589,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-    "sha256": "bab34945cdebe1e5be4bbcc4faab685b54d148d88cbec3222ed96b5a597bb9b0"
+    "sha256": "b6abda868b0598b3ae1acad93f85dbbf0dc4d5fb20603ca32dedc9c1f0ec6162"
   },
   "launcher_source": {
-    "bytes": 8132,
+    "bytes": 8134,
     "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-    "sha256": "f16a44bf0fc336a99d4c1b1a90de9b8650746b7d97c99886411153b228974657"
+    "sha256": "3b4b7788a9fb93535e4f4dd0b956eb025b742810b91a2c89b260bebfde74db89"
+  },
+  "legacy_shortcut_owner": {
+    "bytes": 13591,
+    "path": "src/evidence_lane_plugin/shortcuts.py",
+    "sha256": "546b390e8f2df58e6ecd8d4a3f4732737826e3b6c29f13f64536e87584792b5f"
   },
   "native_installation_verified": false,
+  "normal_windows_uninstaller": true,
   "owner_control_timeout_seconds": 30,
   "owner_issued_ticket_required": true,
   "registration": {
-    "bytes": 6496,
+    "bytes": 5306,
     "path": "scripts/register_installed_runtime.py",
-    "sha256": "71b45805acabf7804405082468177bcd0d54ff042528be78e9de2ecb79aed3b6"
+    "sha256": "70bdf12636deb3b3e1e6c1cb16cd09e5735343951973fc063ed8219f02e2d985"
   },
   "schema": "evidence-lane.studio-windows-integration-link.v4",
   "service_owner": {
@@ -42,18 +82,7 @@
     "sha256": "d59477f19c8891172b9a0109156b4a5bfb41ceedcb82dd2f74abf2985b36e95a"
   },
   "session_lifetime_hours": 12,
-  "shortcut_changes_console_encoding": false,
-  "shortcut_failure_phase_diagnostics": "fixed_whitelist",
-  "shortcut_fixed_script_transport": "utf16le_base64_encoded_command",
-  "shortcut_helper_timeout_seconds": 30,
-  "shortcut_owner": {
-    "bytes": 13591,
-    "path": "src/evidence_lane_plugin/shortcuts.py",
-    "sha256": "546b390e8f2df58e6ecd8d4a3f4732737826e3b6c29f13f64536e87584792b5f"
-  },
-  "shortcut_readback_transport": "ascii_base64_utf8_json",
-  "shortcut_request_transport": "child_process_environment_json",
-  "shortcut_stdin_required": false,
+  "shortcut_owner": "windows_application_installer",
   "start_menu_shortcut_count": 1,
   "startup_owner": {
     "bytes": 5256,
@@ -66,8 +95,13 @@
   "upgrade_copies_project_databases": false,
   "upgrade_preserves_project_locator_registry": true,
   "window_owner": {
-    "bytes": 9805,
+    "bytes": 9801,
     "path": "src/evidence_lane_plugin/studio_window.py",
-    "sha256": "ecebfba3ca20712faa4d308f4c1a8e7042df1921a3eb9a63060181e29be0b0fc"
+    "sha256": "cc391e6fbf9d72c6e24e93e8b6e053514a373ebdcdcaffb4967795c5878d53bf"
+  },
+  "windows_application_owner": {
+    "bytes": 12141,
+    "path": "src/evidence_lane_plugin/windows_application.py",
+    "sha256": "87a522e983c57034488eb3e89ca546a318d2fcbf9e3c0beaf88af616de374da0"
   }
 }

@@ -20,7 +20,7 @@ The path is:
 
 ## Current release snapshot
 
-The v4.0.9 experimental snapshot contains 24 public skills, 295 typed actions, and 103 retained tool/dependency assignments. These numbers are generated snapshot facts, not permanent product limits. Current registries and schemas remain authoritative.
+The v4.0.10 experimental snapshot contains 24 public skills, 295 typed actions, and 103 retained tool/dependency assignments. These numbers are generated snapshot facts, not permanent product limits. Current registries and schemas remain authoritative.
 
 ## Skills
 
@@ -32,7 +32,7 @@ Actions define inputs, state-change behavior, project/task requirements, and out
 
 ## MCP
 
-The plugin's MCP server exposes current typed operations through the supported Codex connection. MCP is not the Studio server UI, a project connector grant, an external tool provider, or an acting AI agent.
+The plugin's optional MCP server exposes current typed operations through the supported Codex connection under the separate `evidence-lane` namespace. It does not register, replace, proxy or shadow native Codex task/thread tools such as `codex_app`. MCP is not the Studio window, a project connector grant, an external tool provider, or an acting AI agent. Tool availability is fixed for a Codex turn; reconnecting an already in-progress turn does not rebuild that turn's native tool catalog.
 
 ## SDK
 

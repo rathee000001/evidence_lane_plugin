@@ -6,9 +6,9 @@
   "member_count": 6,
   "members": [
     {
-      "bytes": 1788,
+      "bytes": 1964,
       "path": "studio/README.md",
-      "sha256": "02339bde055db457b7ed4b5913f760175a00e277bee8a34f5199bba6082ef1ed"
+      "sha256": "a5765aaca31438b469ab0fa2d522323e1eb53eca30ea98fa7d020b6116818129"
     },
     {
       "bytes": 1415,
@@ -23,7 +23,7 @@
     {
       "bytes": 1591,
       "path": "studio/installation.contract.v4.json",
-      "sha256": "ae3c5c8151b9810abdfce6799a5730e1de66302dfe274f9a890305db2718b0dc"
+      "sha256": "a9b00774596cd5a17c0adac99c236b90d82591bd8c486327f699846d5bd6e8cf"
     },
     {
       "bytes": 1009,
@@ -31,9 +31,9 @@
       "sha256": "faa5e6a5f983951ae7dfd6b9a316342d7eca599339ef63b89ebf9f52129803f5"
     },
     {
-      "bytes": 2918,
+      "bytes": 4299,
       "path": "studio/windows-integration.contract.v4.json",
-      "sha256": "93c252d8573fd0fde72a74d8ea46590231885216c9f4e84b54362e8b59f55fa4"
+      "sha256": "5dfe5174de83eb04c9bffc5bdde91c90e4824a4b1b1f61daafe1a4e37a772f0f"
     }
   ],
   "native_installation_verified": false,

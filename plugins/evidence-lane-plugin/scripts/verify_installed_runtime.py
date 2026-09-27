@@ -57,6 +57,16 @@ def verify(release_root: Path, *, installation_root: Path | None = None) -> dict
     mcp_manifest = json.loads(
         (PLUGIN / "mcp/mcp-manifest.v4.json").read_text(encoding="utf-8")
     )
+    mcp_connection = json.loads((PLUGIN / ".mcp.json").read_text(encoding="utf-8"))
+    if (
+        set(mcp_connection.get("mcpServers", {})) != {"evidence-lane"}
+        or mcp_connection["mcpServers"]["evidence-lane"].get("required") is not False
+        or any(
+            name in json.dumps(mcp_connection).casefold()
+            for name in ("codex_app", "send_message_to_thread", "list_threads")
+        )
+    ):
+        raise RuntimeError("SELF_TEST_MCP_NAMESPACE_ISOLATION_FAILED")
     expected_operations = mcp_manifest.get("action_count")
     if (
         not isinstance(expected_operations, int)
@@ -84,6 +94,7 @@ def verify(release_root: Path, *, installation_root: Path | None = None) -> dict
     if not all(path.is_file() for path in required_install_records):
         raise RuntimeError("SELF_TEST_INSTALLATION_RECORD_MISSING")
     runtime_records_verified = False
+    windows_application_verified = False
     provider_count = 0
     native_count = 0
     asset_count = 0
@@ -122,6 +133,15 @@ def verify(release_root: Path, *, installation_root: Path | None = None) -> dict
         asset_count = len(asset_record["assets"])
         provider_count = len(providers)
         runtime_records_verified = True
+        from evidence_lane_plugin import __version__
+        from evidence_lane_plugin.windows_application import WindowsStudioApplication
+
+        application = WindowsStudioApplication(
+            installation_root,
+            PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe",
+            __version__,
+        ).status()
+        windows_application_verified = application["registration_verified"] is True
     return {
         "status": "PASS",
         "operations": operation_count,
@@ -132,6 +152,8 @@ def verify(release_root: Path, *, installation_root: Path | None = None) -> dict
             path.relative_to(release).as_posix() for path in required_install_records
         ],
         "runtime_records_verified": runtime_records_verified,
+        "mcp_namespace_isolated": True,
+        "windows_application_verified": windows_application_verified,
         "native_tool_count": native_count,
         "shared_asset_count": asset_count,
         "provider_count": provider_count,

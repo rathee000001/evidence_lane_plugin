@@ -6,6 +6,20 @@
 
 A release is an exact relationship among source, tag, package assets, installation records, and runtime observations. Those facts should not be collapsed into one “version installed” statement.
 
+## v4.0.10 — normal Windows Studio installation correction
+
+- Tag: [`evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d)
+- Component archives: 12 retained immutable archives
+- Total archive bytes: 7,083,785,294
+- Asset-set SHA-256: `977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd`
+- Source manifest SHA-256: `83d1ae10a00fd45f50d12c6d3258b7959f363cc5a0878c721dfa430f72208a47`
+
+This correction keeps the Codex plugin in the managed plugin runtime and installs the visible Studio shell as a normal per-user Windows application. Windows receives a stable application identity, Installed Apps and App Paths records, the Evidence Lane icon, Start and desktop entries, versioned uninstall metadata, the exact **Evidence Lane Studio** title, and one maximized window. The shared engine, selected dependency components and all 103 retained tool assignments remain under the first-detection installation root.
+
+The plugin continues to expose only the separate optional `evidence-lane` MCP namespace. It does not register or replace native Codex task/thread tools. The public mobile website also returns to a continuous coded-universe background; section animations remain below their text without an added blue panel surface.
+
+The broader product remains incomplete, experimental and on hold.
+
 ## v4.0.9 — corrected experimental closeout
 
 - Tag: [`evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d)

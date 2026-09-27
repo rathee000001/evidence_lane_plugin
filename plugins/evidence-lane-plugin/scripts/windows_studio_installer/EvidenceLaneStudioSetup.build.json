@@ -1,0 +1,15 @@
+{
+  "schema": "evidence-lane.windows-studio-setup-build.v4",
+  "status": "PASS",
+  "version": "4.0.10",
+  "source_sha256": "cbad9c80835e85196c8e22763a190dd2b2b6178b6e3ff646230035beb2e473cf",
+  "icon_sha256": "ac09ff0f13496fc8914bfa4ab2d320b66a3a5c0199cd4ca651c111532e585819",
+  "definition_sha256": "b79a2eb4a4259b316fee4b445b742a995af640c43b366d2eafee9b6a072040e6",
+  "shell_sha256": "21fc9644a5f85de9c9f1cf0fe7cf87dbf89f1df33d4498cf9ee99144c3b1336c",
+  "shell_bytes": 37376,
+  "setup_sha256": "c9aa83a914867cd6223595fe181fe60c50b3a1fad36721aab6af69abf6639f97",
+  "setup_bytes": 2122157,
+  "csharp_compiler": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
+  "inno_compiler": "C:\\Users\\rathe\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe",
+  "app_user_model_id": "EvidenceLane.Studio"
+}

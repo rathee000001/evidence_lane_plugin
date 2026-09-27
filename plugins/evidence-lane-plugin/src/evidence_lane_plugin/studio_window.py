@@ -19,6 +19,7 @@ from .errors import LaneError
 from .storage import reject_links
 
 _BROWSER_NAMES = {"msedge.exe", "chrome.exe"}
+_SW_MAXIMIZE = 3
 
 
 def _normalized_path(value: str | Path) -> str:
@@ -78,7 +79,7 @@ def restore_dedicated_browser_window(processes: tuple[Any, ...]) -> bool:
         pid = wintypes.DWORD()
         user32.GetWindowThreadProcessId(window, ctypes.byref(pid))
         if pid.value in pids and user32.IsWindowVisible(window):
-            user32.ShowWindow(window, 9)  # SW_RESTORE; a normal visible window is unchanged.
+            user32.ShowWindow(window, _SW_MAXIMIZE)
             user32.SetForegroundWindow(window)
             found = bool(user32.IsWindowVisible(window))
             return False
@@ -200,7 +201,7 @@ class StudioWindow:
                     opened = True
                     mode = "existing_dedicated_browser_window"
                 else:
-                    arguments = [str(self.browser), "--new-window", "--app=" + url,
+                    arguments = [str(self.browser), "--new-window", "--start-maximized", "--app=" + url,
                                  "--user-data-dir=" + str(profile), "--no-first-run", "--no-default-browser-check"]
                     # This flag suppresses an inherited console, not the GUI window.
                     # No debugging endpoint or shell is enabled.

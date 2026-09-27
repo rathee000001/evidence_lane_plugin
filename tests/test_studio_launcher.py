@@ -42,6 +42,7 @@ def test_window_uses_visible_app_frame_and_private_profile_without_debug_port(tm
     assert window(url)
     command, options = calls[0]
     assert "--app=" + url in command
+    assert "--start-maximized" in command
     assert "--user-data-dir=" + str(tmp_path / "runtime/studio-browser") in command
     assert not any("remote-debugging" in arg or "disable-web-security" in arg or "headless" in arg for arg in command)
     assert "shell" not in options
@@ -353,3 +354,9 @@ def test_host_browser_detection_returns_existing_supported_executable():
     browser = installed_browser()
     assert browser is not None and browser.is_absolute() and browser.is_file()
     assert browser.name in {"msedge.exe", "chrome.exe"}
+
+
+def test_studio_window_uses_maximized_show_state():
+    from evidence_lane_plugin import studio_window
+
+    assert studio_window._SW_MAXIMIZE == 3

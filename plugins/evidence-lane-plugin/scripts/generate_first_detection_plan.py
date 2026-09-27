@@ -649,6 +649,13 @@ def build_outputs() -> dict[str, bytes]:
         / "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
         PLUGIN
         / "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudioShell.cs",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudioShell.exe",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudio.ico",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudio.iss",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe",
+        PLUGIN / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.build.json",
+        PLUGIN / "scripts/windows_studio_installer/Build-EvidenceLaneStudioSetup.ps1",
         *model_paths.values(),
         *[PLUGIN / row["manifest"] for row in provider_rows],
         *[PLUGIN / row["lock"] for row in provider_rows],

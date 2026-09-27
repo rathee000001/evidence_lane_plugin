@@ -14,9 +14,9 @@ Evidence Lane does not currently advertise the Windows Studio on macOS, Linux, a
 
 ## 2. Install the managed plugin
 
-Install an exact published release through the Codex plugin manager. The on-hold experimental snapshot is [v4.0.9](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d). It is incomplete and is not production-ready. Follow [Installation](INSTALL.md) for the exact commands and verification steps.
+Install an exact published release through the Codex plugin manager. The on-hold experimental Windows-installation correction is [v4.0.10](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d). It is incomplete and is not production-ready. Follow [Installation](INSTALL.md) for the exact commands and verification steps.
 
-The plugin comes first. Its first-detection route provisions the shared engine, Studio, and required local toolchain under `C:\Apps\EvidenceLaneStudio` unless an explicit supported override is configured.
+The plugin comes first. Codex keeps it in the managed plugin runtime. Its first-detection route provisions the shared engine and required local toolchains under `C:\Apps\EvidenceLaneStudio`, then registers the visible Studio shell as a normal per-user Windows application.
 
 ## 3. Open or resume the project
 
@@ -50,7 +50,7 @@ Use **Carry out the next task**. The engine checks the current task, eligible to
 
 ## 8. Open Studio
 
-Launch **Evidence Lane Studio** from the Desktop shortcut or the direct Start-menu entry. Studio is read-only. Use it to inspect the Plan, jobs, evidence, workers, tools, connections, learning, compute, and diagnostics.
+Launch **Evidence Lane Studio** from Windows Start, the desktop shortcut, or Installed Apps. The title is always **Evidence Lane Studio** and the supported launcher opens or restores one maximized window. Studio is read-only. Use it to inspect the Plan, jobs, evidence, workers, tools, connections, learning, compute, and diagnostics.
 
 ## 9. Continue deliberately
 

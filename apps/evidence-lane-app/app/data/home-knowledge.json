@@ -1,5 +1,5 @@
 {
-  "version": "4.0.9",
+  "version": "4.0.10",
   "counts": {
     "workflows": 24,
     "operations": 295,
@@ -8748,14 +8748,14 @@
     "Diagnostics"
   ],
   "references": {
-    ".codex-plugin/plugin.json": "72bdd2911091423d82f209b61a8a169fc0f6aec32491c5ec8d6bba8eb807a2c6",
+    ".codex-plugin/plugin.json": "3d10c60258433f942891e9ae8ea4b888c0a780a4bee47be6b2dd2d7c9c10773b",
     "skills/skill-surface-registry.v4.json": "f6b939439fff03b0aa0b77426cc09d60d9cb07c8bba19b12efedd4ddeb63444e",
     "sdk/workflows/skill-workflow-registry.v4.json": "e0b9002a7e6382c908e701da238c97d59c067ef3a97c1dc257013dbd4d0d2d59",
     "toolchains/operation-toolchains.v4.json": "ae010074ad75f450261d4770ecec39239622bec91885b1fe23e6bcd5c12e3579",
     "toolchains/shared-toolchain.v4.json": "a4a5c029f473885941c2541e3c45256e81fd6fe92824e0cafe3a8256155e2274",
     "authorities/authority-surface-registry.v4.json": "e16d239c27829d6235cb2e9a07e47b09b956cc1549b086cc5aa463ea0ca04bc9",
     "authorities/project_sectors/sector-runtime-registry.v4.json": "4d06253f7a740313511943d3d28620b7082aba32eeef3b4cdf8f8b90d12684b9",
-    "provisioning/full-bundle-plan.v4.json": "27599e220289354c4c1b6af61a516f04a28d4308ac6da571b13b5239e2b5a7b8",
+    "provisioning/full-bundle-plan.v4.json": "ff53b7395a855172fff4e94858c5881a51601ea00f956a166ddcd5baaa9e1688",
     "manifests/engine-connection.v4.json": "a0cc59b2395bdb55afd66b604f8018b306720b0819be57ecc276dce632a5e7e2",
     "studio/engine-api.contract.v4.json": "9ea4bd9301d52a64b9506a07e387cb1f62a22362dfb2355b625539e5e226f615",
     "env/orchestration.policy.v4.json": "56d759b5673f09e91353fc1fc8e60181ab9fd29bc9ce04d23cdfa9ec5e8a8599",
@@ -8768,7 +8768,7 @@
     "src/evidence_lane_plugin/connector_governance.py": "ca2138f71c252306e0544aefaa9c6d01b52fd6add533cb244dff0fc157c2a246",
     "src/evidence_lane_plugin/project_memory.py": "4cc82ffc31649888f39dcf0bbb5a63a22b46d2f21dc1f13d88129cd31cb240cc",
     "src/evidence_lane_plugin/agent_learning.py": "9105b6aa0047d0c0a932c014b3cb4d330b6714deab3769a4425554fb31da1a05",
-    "apps/evidence-lane-studio/src/App.tsx": "4885ac4e4e170e9400d9dc2f23dbf11e76f469f3338411e8e26ddd01e9250980",
-    "docs/TOOLCHAIN_EXECUTION_MATRIX.md": "04ed12384362b5919123d21f9c9d13d07101e307af515853ed890526bb6208f9"
+    "apps/evidence-lane-studio/src/App.tsx": "4fc20a4c9081dee454417dad61f5158c861ddc481b041d651fff6e09e7a5e6fa",
+    "docs/TOOLCHAIN_EXECUTION_MATRIX.md": "96ed6eb348c6c6692ac6c62a3594ce4d904fe11dc250e201147332b0c4cfff1a"
   }
 }

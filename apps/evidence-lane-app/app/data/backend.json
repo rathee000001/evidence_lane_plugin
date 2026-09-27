@@ -1,13 +1,13 @@
 {
-  "version": "4.0.9",
+  "version": "4.0.10",
   "installationVerified": false,
   "releaseStatus": "Source candidate; public availability and installed-native execution not verified by this website",
   "sourceHashes": {
     "skills/skill-surface-registry.v4.json": "f6b939439fff03b0aa0b77426cc09d60d9cb07c8bba19b12efedd4ddeb63444e",
     "sdk/workflows/skill-workflow-registry.v4.json": "e0b9002a7e6382c908e701da238c97d59c067ef3a97c1dc257013dbd4d0d2d59",
-    ".codex-plugin/plugin.json": "72bdd2911091423d82f209b61a8a169fc0f6aec32491c5ec8d6bba8eb807a2c6",
-    "studio/installation.contract.v4.json": "75a5ec1aa4d119880fb340ef3d93f40f7f52f875de31120fffabcb306ade3443",
-    "provisioning/release-binding.v4.json": "361b5411df901fb1b37b01eb65756ae9f6f57274c4ab3b0edcb92e2008a81294",
+    ".codex-plugin/plugin.json": "3d10c60258433f942891e9ae8ea4b888c0a780a4bee47be6b2dd2d7c9c10773b",
+    "studio/installation.contract.v4.json": "a9b00774596cd5a17c0adac99c236b90d82591bd8c486327f699846d5bd6e8cf",
+    "provisioning/release-binding.v4.json": "8f4e98e77a6956bec5fded1f340ab19e5f1f38643cf5e167985f6fcb2d1322c8",
     "env/orchestration.policy.v4.json": "56d759b5673f09e91353fc1fc8e60181ab9fd29bc9ce04d23cdfa9ec5e8a8599",
     "LICENSE.md": "f5ba35f6630a97d9787ee3b207ffe932a307aa240a4a1313a0d9511f37b152b7"
   },
@@ -4290,10 +4290,10 @@
     }
   },
   "release": {
-    "release_ref": "refs/tags/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d",
+    "release_ref": "refs/tags/evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d",
     "assets_sha256": "977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd",
-    "bundle_plan_sha256": "27599e220289354c4c1b6af61a516f04a28d4308ac6da571b13b5239e2b5a7b8",
-    "source_manifest_sha256": "e3d38d2fb0eb6667f120b56bbf42d4093677e34b2d94b12d74f5a2bca12bda0c"
+    "bundle_plan_sha256": "ff53b7395a855172fff4e94858c5881a51601ea00f956a166ddcd5baaa9e1688",
+    "source_manifest_sha256": "83d1ae10a00fd45f50d12c6d3258b7959f363cc5a0878c721dfa430f72208a47"
   },
   "assets": [
     {

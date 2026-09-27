@@ -18,9 +18,25 @@ Evidence Lane preserves eligible prior releases and quarantines failed new relea
 
 If the process is live and CPU/disk evidence shows progress, wait on the same process. A quiet console is not proof of a stall.
 
-## Shortcut registration fails
+## Studio is absent from Installed Apps or Windows Start
 
-Compare each `.lnk` file with its ownership receipt. A changed or foreign shortcut is not overwritten silently. Preserve the mismatched file, resolve ownership explicitly, then let the packaged registrar create an owned shortcut.
+Confirm that the active release is v4.0.10 or later and first detection reached `ACTIVE_EXACT_RELEASE`. Windows should report:
+
+- **Evidence Lane Studio** in Installed Apps;
+- `EvidenceLaneStudio.exe` in the current-user App Paths registry;
+- Start and desktop entries with the Evidence Lane icon;
+- application identity `EvidenceLane.Studio`;
+- a per-user shell under `%LOCALAPPDATA%\Programs\Evidence Lane Studio`.
+
+Search finding an old `.lnk` file is not proof that the application is installed. If Windows still shows a blank icon or an old shortcut-only result, inspect the normal application registration and restart a fresh Start/Search session after the exact installer completes. Do not modify the unrelated **Evidence Lane** application.
+
+## Studio has the wrong title or window size
+
+The supported title is **Evidence Lane Studio**. The launcher opens or restores one maximized window. A title such as `Projects · Evidence Lane Studio`, a normal-sized restored window, or multiple newly opening windows indicates an older Studio bundle or launch path. Verify the managed plugin version, active release receipt, Windows application version and exact shell target before retrying.
+
+## Native Codex thread tools are missing in one task
+
+Evidence Lane does not own native Codex task/thread tools. Confirm that `.mcp.json` contains only the optional `evidence-lane` server and no `codex_app` namespace. A turn that began before a reconnect keeps its original enabled tool catalog; additional messages steered into that same in-progress turn do not add tools. Finish or stop that turn, then start a fresh turn before diagnosing an MCP collision.
 
 ## Studio opens with no project
 

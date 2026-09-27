@@ -44,14 +44,16 @@ def register(
     *,
     startup_backend=None,
     shortcut_backend=None,
+    application_backend=None,
     appdata: Path | None = None,
     desktop: Path | None = None,
     system: str | None = None,
 ) -> dict[str, Any]:
+    from evidence_lane_plugin import __version__
     from evidence_lane_plugin.errors import LaneError
     from evidence_lane_plugin.projects import atomic_json
-    from evidence_lane_plugin.shortcuts import StudioShortcut
     from evidence_lane_plugin.startup import LoginStartup
+    from evidence_lane_plugin.windows_application import WindowsStudioApplication
 
     current_system = platform.system() if system is None else system
     if current_system != "Windows":
@@ -64,18 +66,16 @@ def register(
     runtime_root = release / "engine"
     pythonw = release / "engine/venv/Scripts/pythonw.exe"
     launcher = release / "app/EvidenceLaneStudio.exe"
+    setup = release / "plugin/scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe"
     if (
         not plugin_root.is_dir()
         or not runtime_root.is_dir()
         or not pythonw.is_file()
         or not launcher.is_file()
+        or not setup.is_file()
     ):
         raise RuntimeError("INSTALLED_ENTRYPOINT_MISSING")
-    programs = Path(
-        os.environ.get("APPDATA", str(Path.home() / "AppData/Roaming"))
-    ) / "Microsoft/Windows/Start Menu/Programs"
-    start_menu = appdata or programs
-    legacy_start_menu = None if appdata is not None else programs / "Evidence Lane"
+    programs = Path(os.environ.get("APPDATA", str(Path.home() / "AppData/Roaming"))) / "Microsoft/Windows/Start Menu/Programs"
     desktop_root = desktop or windows_desktop_root()
     startup_owner = LoginStartup(
         pythonw,
@@ -84,57 +84,20 @@ def register(
         launcher_executable=launcher,
         backend=startup_backend,
     )
-    start_menu_owner = StudioShortcut(
-        pythonw,
-        runtime_root,
-        start_menu,
-        plugin_root=plugin_root,
-        launcher_executable=launcher,
-        backend=shortcut_backend,
-    )
-    desktop_owner = StudioShortcut(
-        pythonw,
-        runtime_root,
-        desktop_root,
-        plugin_root=plugin_root,
-        launcher_executable=launcher,
-        backend=shortcut_backend,
+    application_owner = WindowsStudioApplication(
+        installation,
+        setup,
+        __version__,
+        backend=application_backend,
+        system=lambda: current_system,
     )
     startup_before = startup_owner.status()
-    start_menu_shortcut = None
-    desktop_shortcut = None
-    legacy_shortcut = None
+    application = None
     try:
         startup = startup_owner.install()
-        start_menu_shortcut = start_menu_owner.install()
-        desktop_shortcut = desktop_owner.install()
-        if legacy_start_menu is not None:
-            legacy_owner = StudioShortcut(
-                pythonw,
-                runtime_root,
-                legacy_start_menu,
-                plugin_root=plugin_root,
-                launcher_executable=launcher,
-                backend=shortcut_backend,
-            )
-            if legacy_owner.path.exists():
-                legacy_shortcut = legacy_owner.uninstall()
-            else:
-                legacy_shortcut = {
-                    "registered": False,
-                    "path": str(legacy_owner.path),
-                }
+        application = application_owner.install()
     except Exception as reason:
         rollback_errors = []
-        for owner, result in (
-            (desktop_owner, desktop_shortcut),
-            (start_menu_owner, start_menu_shortcut),
-        ):
-            if result is not None and result.get("changed") is True:
-                try:
-                    owner.uninstall()
-                except (LaneError, OSError, RuntimeError) as rollback_error:
-                    rollback_errors.append(type(rollback_error).__name__)
         if startup_before.get("entry_present") is False:
             try:
                 startup_owner.uninstall()
@@ -149,10 +112,10 @@ def register(
         "installation_root": str(installation),
         "release_root": str(release),
         "startup": startup,
+        "windows_application": application,
         "shortcuts": {
-            "start_menu": start_menu_shortcut,
-            "desktop": desktop_shortcut,
-            "legacy_nested_start_menu": legacy_shortcut,
+            "start_menu": {"registered": True, "path": application["start_menu_shortcut"]},
+            "desktop": {"registered": True, "path": application["desktop_shortcut"]},
         },
         "start_menu_scope": "direct_programs_root",
         "desktop_resolution": "windows_user_shell_folder",

@@ -63,7 +63,7 @@ export function App() {
     window.addEventListener('hashchange', changed);
     return () => window.removeEventListener('hashchange', changed);
   }, []);
-  useEffect(() => { document.title = `${page === 'projects' ? 'Projects' : workflows.find(([key]) => key === page)?.[1]} · Evidence Lane Studio`; }, [page]);
+  useEffect(() => { document.title = 'Evidence Lane Studio'; }, []);
 
   function navigate(next: Page) { location.hash = next; setPage(next); }
   function selectProject(id: string) {

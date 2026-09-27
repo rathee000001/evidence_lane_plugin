@@ -3,7 +3,7 @@
   "status": "COMPLETE_PREINSTALL_SOURCE_PLAN",
   "plugin": {
     "id": "evidence-lane-plugin",
-    "version": "4.0.9",
+    "version": "4.0.10",
     "repository": "https://github.com/rathee000001/evidence_lane_plugin",
     "sparse_root": "plugins/evidence-lane-plugin"
   },
@@ -10214,8 +10214,8 @@
     },
     {
       "path": ".codex-plugin/plugin.json",
-      "sha256": "bb69e40ed0878c6ab556897a88813e60dd2d41d96f84381f7cdb9af58f5c2e86",
-      "bytes": 1842
+      "sha256": "3d10c60258433f942891e9ae8ea4b888c0a780a4bee47be6b2dd2d7c9c10773b",
+      "bytes": 1843
     },
     {
       "path": "requirements.runtime.lock.txt",
@@ -10239,8 +10239,8 @@
     },
     {
       "path": "schemas/install/first-detection-release-binding.v4.schema.json",
-      "sha256": "97ac1c91a7e32edc65d8d40420fab1558435307cfa072402162e86b655ed001e",
-      "bytes": 3996
+      "sha256": "f8ff67ba0e2d7b502d2fdb05baffab721936d2f9c2475c0aab4d5de3a8814da5",
+      "bytes": 3998
     },
     {
       "path": "schemas/install/first-detection-bundle-plan.v4.schema.json",
@@ -10289,23 +10289,58 @@
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs",
-      "sha256": "f16a44bf0fc336a99d4c1b1a90de9b8650746b7d97c99886411153b228974657",
-      "bytes": 8132
+      "sha256": "3b4b7788a9fb93535e4f4dd0b956eb025b742810b91a2c89b260bebfde74db89",
+      "bytes": 8134
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe",
-      "sha256": "ebb0a85c944f46f8dfe83d299415f0d343ba9e5f31ebdb7b70bd2f692d3987e5",
-      "bytes": 9216
+      "sha256": "42f8c6f9f39480c4b25ef9d655698077d40874255a5d72dd9f8c09bfa96f7e3a",
+      "bytes": 38400
     },
     {
       "path": "scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json",
-      "sha256": "bab34945cdebe1e5be4bbcc4faab685b54d148d88cbec3222ed96b5a597bb9b0",
-      "bytes": 502
+      "sha256": "b6abda868b0598b3ae1acad93f85dbbf0dc4d5fb20603ca32dedc9c1f0ec6162",
+      "bytes": 589
     },
     {
       "path": "scripts/windows_studio_launcher/Build-EvidenceLaneStudioLauncher.ps1",
-      "sha256": "e04657c93a0e269daca20e94a3f7169c820cb3be4d9421ca5f50e9e880f64008",
-      "bytes": 2093
+      "sha256": "a221280cb0291e836a243657ed325ba6e1b23c3803ea722af4a4d609dc1a23a2",
+      "bytes": 2450
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.cs",
+      "sha256": "cbad9c80835e85196c8e22763a190dd2b2b6178b6e3ff646230035beb2e473cf",
+      "bytes": 6646
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioShell.exe",
+      "sha256": "21fc9644a5f85de9c9f1cf0fe7cf87dbf89f1df33d4498cf9ee99144c3b1336c",
+      "bytes": 37376
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudio.ico",
+      "sha256": "ac09ff0f13496fc8914bfa4ab2d320b66a3a5c0199cd4ca651c111532e585819",
+      "bytes": 28668
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudio.iss",
+      "sha256": "b79a2eb4a4259b316fee4b445b742a995af640c43b366d2eafee9b6a072040e6",
+      "bytes": 4634
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe",
+      "sha256": "c9aa83a914867cd6223595fe181fe60c50b3a1fad36721aab6af69abf6639f97",
+      "bytes": 2122157
+    },
+    {
+      "path": "scripts/windows_studio_installer/EvidenceLaneStudioSetup.build.json",
+      "sha256": "e520fb81eb0120aae9bf34eb59cc5afc7b34292cb06b5b4425bd6f19825e7f17",
+      "bytes": 810
+    },
+    {
+      "path": "scripts/windows_studio_installer/Build-EvidenceLaneStudioSetup.ps1",
+      "sha256": "331253d6913751042a8d9fb7c303165c259588a512338fba375238d5e3043508",
+      "bytes": 2925
     },
     {
       "path": "toolchains/embedding-model.v4.json",
@@ -10406,5 +10441,5 @@
   },
   "installation_state": "not_installed",
   "installed_native_execution_claimed": false,
-  "receipt_sha256": "0a8b8d8466025542b213047255d70cba370de8d1ed1ed475fc39937a9a8cfb3e"
+  "receipt_sha256": "d44103b0373eeb4c90c927e67601335da4e5b7d0ae01542072302343df3e79eb"
 }

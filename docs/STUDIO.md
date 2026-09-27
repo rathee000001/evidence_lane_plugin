@@ -26,9 +26,9 @@ Studio does not create projects, steer a Plan, start jobs, grant a connection, s
 
 ## One persistent window
 
-The supported launcher opens or restores one Studio window. The engine can continue in the background without a console. Closing the visible window does not automatically delete the shared runtime or project state.
+The supported launcher opens or restores one maximized Studio window titled **Evidence Lane Studio**. The engine can continue in the background without a console. Minimizing the window does not stop the engine, and closing the visible window does not delete the shared runtime or project state.
 
-Use the owned Desktop shortcut or the direct Windows Start-menu entry. A shortcut that no longer matches its installer ownership receipt is preserved and rejected rather than overwritten silently.
+Studio is registered as a normal per-user Windows application under `%LOCALAPPDATA%\Programs\Evidence Lane Studio`. Windows owns its Installed Apps entry, App Paths identity, `EvidenceLane.Studio` AppUserModelID, Start-menu entry, desktop shortcut, icon, version and uninstaller. The large shared engine and toolchains remain under `C:\Apps\EvidenceLaneStudio` and are upgraded only through the exact plugin release.
 
 ## Reading state honestly
 
@@ -47,7 +47,7 @@ Check the project identity, revision, timestamps, status, and verification evide
 
 The next coordinated Studio release is being designed in the accepted **Cosmic Observatory** language from the public website. Its concepts cover all nine views, living connections, detail inspectors, keyboard focus, empty/loading/error states, and reduced-motion behavior while preserving the same read-only backend.
 
-The current redesign is included in the v4.0.9 experimental snapshot. It remains an incomplete on-hold interface and is not evidence that the broader product plan or installed runtime is complete.
+The current redesign and corrected Windows identity are included in the v4.0.10 experimental snapshot. It remains an incomplete on-hold interface and is not evidence that the broader product plan or installed runtime is complete.
 
 ## If Studio looks stale
 

@@ -20,6 +20,7 @@ SOURCE = (
 )
 BINARY = SOURCE.with_name("EvidenceLaneStudioLauncher.exe")
 BUILD = SOURCE.with_name("EvidenceLaneStudioLauncher.build.json")
+ICON = SOURCE.parent.parent / "windows_studio_installer/EvidenceLaneStudio.ico"
 
 
 def load_registration_script():
@@ -31,13 +32,60 @@ def load_registration_script():
     return module
 
 
+class ApplicationBackend:
+    def __init__(self, root: Path, *, failure: Exception | None = None):
+        self.root = root
+        self.failure = failure
+        self.installs = 0
+        self.runtime = None
+
+    def install(self, _setup: Path, runtime: Path) -> None:
+        if self.failure is not None:
+            raise self.failure
+        self.installs += 1
+        self.runtime = runtime
+
+    def status(self, runtime: Path, version: str) -> dict:
+        application = self.root / "Programs/Evidence Lane Studio"
+        executable = application / "EvidenceLaneStudio.exe"
+        icon = application / "EvidenceLaneStudio.ico"
+        start = self.root / "Start/Evidence Lane Studio.lnk"
+        desktop = self.root / "Desktop/Evidence Lane Studio.lnk"
+        return {
+            "registered": self.runtime is not None,
+            "app_id": "EvidenceLane.Studio",
+            "display_name": "Evidence Lane Studio",
+            "display_version": version,
+            "publisher": "Evidence Lane",
+            "install_location": str(application),
+            "display_icon": str(icon),
+            "uninstall_command": str(application / "unins000.exe"),
+            "app_path": str(executable),
+            "runtime_root": str(runtime),
+            "expected_runtime_root": str(runtime),
+            "expected_version": version,
+            "application_root": str(application),
+            "executable": str(executable),
+            "icon": str(icon),
+            "start_menu_shortcut": str(start),
+            "desktop_shortcut": str(desktop),
+            "executable_present": True,
+            "icon_present": True,
+            "start_menu_present": True,
+            "desktop_present": True,
+            "project_state_changed": False,
+        }
+
+
 def test_packaged_launcher_build_identity_and_read_only_layout_inspection(tmp_path: Path) -> None:
     build = json.loads(BUILD.read_text(encoding="utf-8"))
     assert build["schema"] == "evidence-lane.windows-studio-launcher-build.v4"
     assert build["status"] == "PASS"
     assert build["source_sha256"] == hashlib.sha256(SOURCE.read_bytes()).hexdigest()
+    assert build["icon_sha256"] == hashlib.sha256(ICON.read_bytes()).hexdigest()
     assert build["output_sha256"] == hashlib.sha256(BINARY.read_bytes()).hexdigest()
     assert build["output_bytes"] == BINARY.stat().st_size
+    assert build["version"] == "4.0.10.0"
     install = tmp_path / "shared"
     release = install
     launcher = release / "app/EvidenceLaneStudio.exe"
@@ -125,6 +173,9 @@ def test_stable_installation_registration_is_read_back_and_idempotent(tmp_path: 
     pythonw.write_bytes(b"fixture")
     launcher.write_bytes(b"fixture")
     (plugin / "scripts/run_engine.py").write_text("# fixture\n", encoding="utf-8")
+    setup = plugin / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe"
+    setup.parent.mkdir(parents=True)
+    setup.write_bytes(b"fixture")
 
     class RunValue:
         value = None
@@ -139,41 +190,28 @@ def test_stable_installation_registration_is_read_back_and_idempotent(tmp_path: 
             self.value = None
 
     run_value = RunValue()
-    shortcut_specification = None
-
-    def shortcut(path, *, specification=None):
-        nonlocal shortcut_specification
-        if specification is not None:
-            path.write_bytes(b"shortcut")
-            shortcut_specification = specification
-        assert shortcut_specification is not None
-        return shortcut_specification
-
-    menu = tmp_path / "menu"
+    application = ApplicationBackend(tmp_path)
     first = module.register(
         installation,
         release,
         startup_backend=run_value,
-        shortcut_backend=shortcut,
-        appdata=menu,
-        desktop=tmp_path / "desktop",
+        application_backend=application,
         system="Windows",
     )
     second = module.register(
         installation,
         release,
         startup_backend=run_value,
-        shortcut_backend=shortcut,
-        appdata=menu,
-        desktop=tmp_path / "desktop",
+        application_backend=application,
         system="Windows",
     )
     assert first["status"] == second["status"] == "PASS"
     assert first["startup"]["registered"] is True
-    assert first["shortcuts"]["start_menu"]["changed"] is True
-    assert first["shortcuts"]["desktop"]["changed"] is True
-    assert second["shortcuts"]["start_menu"]["changed"] is False
-    assert second["shortcuts"]["desktop"]["changed"] is False
+    assert first["windows_application"]["registration_verified"] is True
+    assert first["windows_application"]["app_id"] == "EvidenceLane.Studio"
+    assert first["shortcuts"]["start_menu"]["registered"] is True
+    assert first["shortcuts"]["desktop"]["registered"] is True
+    assert application.installs == 2
     assert len(run_value.value) < 260
     assert "--startup" in run_value.value
     persisted = json.loads((installation / "registration.json").read_text())
@@ -228,7 +266,7 @@ def test_owned_pre_icon_shortcut_is_atomically_upgraded(tmp_path: Path) -> None:
     assert receipt["specification"]["icon_location"] == f"{launcher},0"
 
 
-def test_default_registration_uses_direct_start_menu_and_retires_owned_nested_link(
+def test_default_registration_uses_normal_windows_application_installer(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     module = load_registration_script()
@@ -243,6 +281,9 @@ def test_default_registration_uses_direct_start_menu_and_retires_owned_nested_li
     pythonw.write_bytes(b"fixture")
     launcher.write_bytes(b"fixture")
     (plugin / "scripts/run_engine.py").write_text("# fixture\n", encoding="utf-8")
+    setup = plugin / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe"
+    setup.parent.mkdir(parents=True)
+    setup.write_bytes(b"fixture")
 
     class RunValue:
         value = None
@@ -256,53 +297,20 @@ def test_default_registration_uses_direct_start_menu_and_retires_owned_nested_li
         def remove(self):
             self.value = None
 
-    def shortcut_backend(path, *, specification=None):
-        if specification is not None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(specification), encoding="utf-8")
-        return json.loads(path.read_text(encoding="utf-8"))
-
-    roaming = tmp_path / "roaming"
-    programs = roaming / "Microsoft/Windows/Start Menu/Programs"
-    desktop = tmp_path / "redirected-desktop"
-    monkeypatch.setenv("APPDATA", str(roaming))
-    monkeypatch.setattr(module, "windows_desktop_root", lambda: desktop)
-    legacy = StudioShortcut(
-        pythonw,
-        runtime,
-        programs / "Evidence Lane",
-        plugin_root=plugin,
-        launcher_executable=launcher,
-        backend=shortcut_backend,
-    )
-    legacy_specification = dict(legacy.specification())
-    legacy_specification.pop("icon_location")
-    legacy.path.parent.mkdir(parents=True)
-    legacy.path.write_text(json.dumps(legacy_specification), encoding="utf-8")
-    legacy.receipt.write_text(
-        json.dumps(
-            {
-                "sha256": hashlib.sha256(legacy.path.read_bytes()).hexdigest(),
-                "specification": legacy_specification,
-            }
-        ),
-        encoding="utf-8",
-    )
+    application = ApplicationBackend(tmp_path)
     result = module.register(
         installation,
         installation,
         startup_backend=RunValue(),
-        shortcut_backend=shortcut_backend,
+        application_backend=application,
         system="Windows",
     )
-    direct = programs / "Evidence Lane Studio.lnk"
     assert result["start_menu_scope"] == "direct_programs_root"
     assert result["desktop_resolution"] == "windows_user_shell_folder"
-    assert direct.is_file()
-    assert json.loads(direct.read_text())["icon_location"] == f"{launcher},0"
-    assert (desktop / "Evidence Lane Studio.lnk").is_file()
-    assert not legacy.path.exists()
-    assert not legacy.receipt.exists()
+    assert result["windows_application"]["display_name"] == "Evidence Lane Studio"
+    assert result["windows_application"]["display_version"] == "4.0.10"
+    assert result["windows_application"]["app_path"].endswith("EvidenceLaneStudio.exe")
+    assert application.installs == 1
 
 
 def test_registration_failure_rolls_back_new_login_and_shortcut_entries(tmp_path: Path) -> None:
@@ -318,6 +326,9 @@ def test_registration_failure_rolls_back_new_login_and_shortcut_entries(tmp_path
     pythonw.write_bytes(b"fixture")
     launcher.write_bytes(b"fixture")
     (plugin / "scripts/run_engine.py").write_text("# fixture\n", encoding="utf-8")
+    setup = plugin / "scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe"
+    setup.parent.mkdir(parents=True)
+    setup.write_bytes(b"fixture")
 
     class RunValue:
         value = None
@@ -332,30 +343,16 @@ def test_registration_failure_rolls_back_new_login_and_shortcut_entries(tmp_path
             self.value = None
 
     run_value = RunValue()
-    specifications = {}
-
-    def shortcut(path, *, specification=None):
-        key = str(path.parent)
-        if specification is not None:
-            if "desktop" in path.parts:
-                raise RuntimeError("fixture desktop failure")
-            path.write_bytes(b"shortcut")
-            specifications[key] = specification
-        return specifications[key]
-
-    menu = tmp_path / "menu"
-    desktop = tmp_path / "desktop"
-    with pytest.raises(RuntimeError, match="fixture desktop failure"):
+    application = ApplicationBackend(
+        tmp_path, failure=RuntimeError("fixture application failure")
+    )
+    with pytest.raises(RuntimeError, match="fixture application failure"):
         module.register(
             installation,
             installation,
             startup_backend=run_value,
-            shortcut_backend=shortcut,
-            appdata=menu,
-            desktop=desktop,
+            application_backend=application,
             system="Windows",
         )
     assert run_value.value is None
-    assert not (menu / "Evidence Lane Studio.lnk").exists()
-    assert not (menu / ".evidence-lane-studio-shortcut.json").exists()
     assert not (installation / "registration.json").exists()

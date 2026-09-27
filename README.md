@@ -64,7 +64,7 @@ The [Workflow Guide](docs/WORKFLOW_GUIDE.md) explains the complete set of 24 pub
 
 Studio is the local read-only observer. It shows the selected project's Plan, jobs, evidence, workers, toolchains, connections, learning, compute, and diagnostics. Users navigate and inspect in Studio; project changes remain directed through Codex.
 
-Studio is a Windows application installed with the shared local engine and toolchain. It is not the public Vercel website. See [Windows Studio](docs/STUDIO.md).
+Studio is a normally registered per-user Windows application with its own Installed Apps entry, App Paths identity, Start-menu entry, desktop shortcut, icon, version and uninstaller. Its read-only window connects to the shared local engine and toolchains provisioned by plugin first detection. It is not the public Vercel website. See [Windows Studio](docs/STUDIO.md).
 
 ## Supported environment
 
@@ -72,14 +72,16 @@ The current product targets a persistent local Windows PC using Codex Desktop St
 
 CPU is the baseline compute route. NVIDIA CUDA and DirectML are used only when the selected operation and measured host compatibility allow them. Optional services and external connectors require their own configuration and bounded grants.
 
-## Experimental closeout release
+## Experimental Windows-installation correction
 
-The corrected final on-hold snapshot is **v4.0.9**. It publishes the current website and Windows Studio interface, corrects repeated automatic Studio foregrounding, and makes no claim that the broader product plan is complete.
+The final installation correction is **v4.0.10**. It preserves the incomplete on-hold product scope while correcting the Windows application identity: Studio installs normally, uses the Evidence Lane icon and title, opens or restores one maximized window, and remains separate from Codex's managed plugin registration.
 
-- Immutable tag: [`evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.9-bundle-977fb5ec2702ff9d)
+- Immutable tag: [`evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d`](https://github.com/rathee000001/evidence_lane_plugin/releases/tag/evidence-lane-v4.0.10-bundle-977fb5ec2702ff9d)
 - Published component archives: 12
 - Bound archive bytes: 7,083,785,294
 - Asset-set SHA-256: `977fb5ec2702ff9dcc0c804cc4d17881f2c90400dbbbf9597f73980d370389cd`
+
+The current registries declare **103 retained tools and dependency assignments**. That count is a release fact, not a permanent product limit. The plugin exposes only the optional `evidence-lane` MCP namespace and does not replace or proxy native Codex task/thread tools.
 
 A published source release, a manager installation, an active local runtime, and a verified project operation establish different facts. Follow the [Installation](docs/INSTALL.md) and [Releases](docs/RELEASES.md) guides instead of inferring runtime readiness from a version label.
 

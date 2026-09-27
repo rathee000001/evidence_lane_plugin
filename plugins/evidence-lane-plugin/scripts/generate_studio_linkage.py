@@ -103,13 +103,25 @@ def outputs() -> dict[str, object]:
     windows = {
         "schema": "evidence-lane.studio-windows-integration-link.v4",
         "registration": ref("scripts/register_installed_runtime.py"),
-        "shortcut_owner": ref("src/evidence_lane_plugin/shortcuts.py"),
+        "windows_application_owner": ref("src/evidence_lane_plugin/windows_application.py"),
+        "legacy_shortcut_owner": ref("src/evidence_lane_plugin/shortcuts.py"),
         "startup_owner": ref("src/evidence_lane_plugin/startup.py"),
         "service_owner": ref("src/evidence_lane_plugin/service.py"),
         "window_owner": ref("src/evidence_lane_plugin/studio_window.py"),
         "launcher_source": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.cs"),
         "launcher_binary": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.exe"),
         "launcher_build": ref("scripts/windows_studio_launcher/EvidenceLaneStudioLauncher.build.json"),
+        "application_shell_source": ref("scripts/windows_studio_installer/EvidenceLaneStudioShell.cs"),
+        "application_shell_binary": ref("scripts/windows_studio_installer/EvidenceLaneStudioShell.exe"),
+        "application_icon": ref("scripts/windows_studio_installer/EvidenceLaneStudio.ico"),
+        "application_installer_definition": ref("scripts/windows_studio_installer/EvidenceLaneStudio.iss"),
+        "application_installer_binary": ref("scripts/windows_studio_installer/EvidenceLaneStudioSetup.exe"),
+        "application_installer_build": ref("scripts/windows_studio_installer/EvidenceLaneStudioSetup.build.json"),
+        "installed_apps_registration": True,
+        "app_paths_registration": True,
+        "app_user_model_id": "EvidenceLane.Studio",
+        "application_display_name": "Evidence Lane Studio",
+        "normal_windows_uninstaller": True,
         "desktop_shortcut_count": 1,
         "start_menu_shortcut_count": 1,
         "studio_visible": True,
@@ -122,13 +134,7 @@ def outputs() -> dict[str, object]:
         "session_lifetime_hours": 12,
         "failed_profile_close_prevents_spawn": True,
         "owner_control_timeout_seconds": 30,
-        "shortcut_helper_timeout_seconds": 30,
-        "shortcut_request_transport": "child_process_environment_json",
-        "shortcut_stdin_required": False,
-        "shortcut_failure_phase_diagnostics": "fixed_whitelist",
-        "shortcut_fixed_script_transport": "utf16le_base64_encoded_command",
-        "shortcut_readback_transport": "ascii_base64_utf8_json",
-        "shortcut_changes_console_encoding": False,
+        "shortcut_owner": "windows_application_installer",
         "upgrade_preserves_project_locator_registry": True,
         "upgrade_copies_project_databases": False,
         "upgrade_copies_client_or_session_bindings": False,
@@ -153,7 +159,9 @@ provisioning, release verification and stable-root publication remain in the
 canonical first-detection installer. MCP startup may start that installer in a
 detached process, then returns without blocking an unrelated Codex task.
 
-Background engine discovery does not open Studio. The installed launcher opens
+Background engine discovery does not open Studio. The normal Windows application
+registration owns Installed Apps, App Paths, the AppUserModel identity, Start and
+desktop shortcuts, the icon-bearing shell and its uninstaller. The installed launcher opens
 one exact private-profile window; a later open request restores a healthy
 authenticated window. If its session expired or its engine changed, the owner
 launcher closes only that private profile and opens one freshly ticketed window.

@@ -4,8 +4,14 @@
     "/studio/app.js": {
       "file": "app.js",
       "content_type": "text/javascript; charset=utf-8",
-      "sha256": "12dbc67956cd2e5d6127e466116e18e272175ad2548f7274b80082bf01a243ee",
-      "bytes": 313180
+      "sha256": "7d69d4b44ce012fdf5e2583dae678d434adf8e5ac437d5fd15ad589ded0054b7",
+      "bytes": 313095
+    },
+    "/studio/assets/RoomEnvironment-BdqtWeaI.js": {
+      "file": "assets/RoomEnvironment-BdqtWeaI.js",
+      "content_type": "text/javascript; charset=utf-8",
+      "sha256": "50a0515de2c75b2667370ac5c27aecb7e8c6d40ceb3279fc7fd79572536493a5",
+      "bytes": 2166
     },
     "/studio/assets/energy_routes-LMCTUTgm.svg": {
       "file": "assets/energy_routes-LMCTUTgm.svg",
@@ -85,12 +91,6 @@
       "sha256": "612d011814f2aa966a0ffaa61ddfd9c0499f2e23a62a99d05519cb52fb9c60fb",
       "bytes": 2260166
     },
-    "/studio/assets/RoomEnvironment-BdqtWeaI.js": {
-      "file": "assets/RoomEnvironment-BdqtWeaI.js",
-      "content_type": "text/javascript; charset=utf-8",
-      "sha256": "50a0515de2c75b2667370ac5c27aecb7e8c6d40ceb3279fc7fd79572536493a5",
-      "bytes": 2166
-    },
     "/studio/assets/s_core-DJ6p_OEt.svg": {
       "file": "assets/s_core-DJ6p_OEt.svg",
       "content_type": "image/svg+xml",
@@ -103,29 +103,29 @@
       "sha256": "29e1b595762d6b043cbeab8df053e0b1b30229737d2f6db7f7606948f9642412",
       "bytes": 734491
     },
-    "/studio/assets/tool-marks/attribution.json": {
-      "file": "assets/tool-marks/attribution.json",
-      "content_type": "application/json",
-      "sha256": "2c948fade4582fb4b6f72ce8689db510825986c3a1a89335303524793d2e8c0c",
-      "bytes": 1010
-    },
     "/studio/assets/tool-marks/DISCLAIMER.md": {
       "file": "assets/tool-marks/DISCLAIMER.md",
       "content_type": "text/markdown; charset=utf-8",
       "sha256": "f921095158b73e61e675ff99b327930fa95ad6f4cf667d414ffe8ae585205724",
       "bytes": 4607
     },
-    "/studio/assets/tool-marks/git.svg": {
-      "file": "assets/tool-marks/git.svg",
-      "content_type": "image/svg+xml",
-      "sha256": "1080a5430edb6278dc03e4b04efc16c8bed5b943408d648ad721a28836814220",
-      "bytes": 858
-    },
     "/studio/assets/tool-marks/LICENSE.md": {
       "file": "assets/tool-marks/LICENSE.md",
       "content_type": "text/markdown; charset=utf-8",
       "sha256": "9046848b63a5c92bff14e4accca80bd987e0623b74adf9226ce5198d312b79d5",
       "bytes": 6569
+    },
+    "/studio/assets/tool-marks/attribution.json": {
+      "file": "assets/tool-marks/attribution.json",
+      "content_type": "application/json",
+      "sha256": "2c948fade4582fb4b6f72ce8689db510825986c3a1a89335303524793d2e8c0c",
+      "bytes": 1010
+    },
+    "/studio/assets/tool-marks/git.svg": {
+      "file": "assets/tool-marks/git.svg",
+      "content_type": "image/svg+xml",
+      "sha256": "1080a5430edb6278dc03e4b04efc16c8bed5b943408d648ad721a28836814220",
+      "bytes": 858
     },
     "/studio/assets/tool-marks/python.svg": {
       "file": "assets/tool-marks/python.svg",

@@ -7,7 +7,9 @@ provisioning, release verification and stable-root publication remain in the
 canonical first-detection installer. MCP startup may start that installer in a
 detached process, then returns without blocking an unrelated Codex task.
 
-Background engine discovery does not open Studio. The installed launcher opens
+Background engine discovery does not open Studio. The normal Windows application
+registration owns Installed Apps, App Paths, the AppUserModel identity, Start and
+desktop shortcuts, the icon-bearing shell and its uninstaller. The installed launcher opens
 one exact private-profile window; a later open request restores a healthy
 authenticated window. If its session expired or its engine changed, the owner
 launcher closes only that private profile and opens one freshly ticketed window.
